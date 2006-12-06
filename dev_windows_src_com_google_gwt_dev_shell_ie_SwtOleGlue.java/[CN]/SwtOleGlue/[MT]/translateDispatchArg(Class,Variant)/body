@@ -1,0 +1,40 @@
+{
+  assert(varArg.getType() == COM.VT_DISPATCH);
+  Variant result=null;
+  try {
+    IDispatch dispatch=varArg.getDispatch();
+    result=new Variant();
+    int pVarResultAddress=0;
+    int globalRef=0;
+    try {
+      pVarResultAddress=OS.GlobalAlloc(OS.GMEM_FIXED | OS.GMEM_ZEROINIT,Variant.sizeof);
+      int[] pArgErr=new int[1];
+      int hr=dispatch.Invoke(IDispatchProxy.DISPID_MAGIC_GETGLOBALREF,new GUID(),COM.LOCALE_USER_DEFAULT,COM.DISPATCH_METHOD,new DISPPARAMS(),pVarResultAddress,new EXCEPINFO(),pArgErr);
+      if (hr >= COM.S_OK) {
+        result=Variant.win32_new(pVarResultAddress);
+        globalRef=result.getInt();
+      }
+    }
+  finally {
+      if (pVarResultAddress != 0) {
+        COM.VariantClear(pVarResultAddress);
+        OS.GlobalFree(pVarResultAddress);
+      }
+    }
+    if (globalRef != 0) {
+      IDispatchProxy proxy=(IDispatchProxy)LowLevel.objFromGlobalRefInt(globalRef);
+      return proxy.getTarget();
+    }
+ else     if (type == OleAutomation.class) {
+      return varArg.getAutomation();
+    }
+ else {
+      return HandleIE6.createHandle(type,dispatch.getAddress());
+    }
+  }
+  finally {
+    if (result != null) {
+      result.dispose();
+    }
+  }
+}

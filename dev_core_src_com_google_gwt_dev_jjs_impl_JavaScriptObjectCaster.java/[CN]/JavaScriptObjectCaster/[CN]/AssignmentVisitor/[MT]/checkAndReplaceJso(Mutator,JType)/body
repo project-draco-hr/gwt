@@ -1,0 +1,17 @@
+{
+  JType argType=arg.get().getType();
+  if (argType == targetType) {
+    return;
+  }
+  if (!(targetType instanceof JReferenceType)) {
+    return;
+  }
+  if (!program.isJavaScriptObject(argType)) {
+    return;
+  }
+  JCastOperation cast=new JCastOperation(program,targetType,program.getLiteralNull());
+  ChangeList myChangeList=new ChangeList("Synthesize a cast from '" + argType + "' to '"+ targetType+ "'.");
+  myChangeList.replaceExpression(cast.expr,arg);
+  myChangeList.replaceExpression(arg,cast);
+  changeList.add(myChangeList);
+}

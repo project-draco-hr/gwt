@@ -1,0 +1,17 @@
+{
+  List toFlush=null;
+synchronized (updatesLock) {
+    if (updates.isEmpty()) {
+      return false;
+    }
+    toFlush=updates;
+    updates=new LinkedList();
+  }
+  for (Iterator iter=toFlush.iterator(); iter.hasNext(); ) {
+    LogEvent update=(LogEvent)iter.next();
+    if (!update.logger.isLoggerDead()) {
+      update.uiFlush(tree);
+    }
+  }
+  return true;
+}

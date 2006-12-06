@@ -1,0 +1,17 @@
+{
+  JField field=(JField)fTypeMap.tryGet(declaration.binding);
+  if (field == null) {
+    return;
+  }
+  JExpression initializer=null;
+  if (declaration.initialization != null) {
+    initializer=dispProcessExpression(declaration.initialization);
+  }
+  if (initializer instanceof JLiteral) {
+    field.constInitializer=(JLiteral)initializer;
+  }
+ else   if (initializer != null) {
+    JStatement assignStmt=program.createAssignmentStmt(createVariableRef(field),initializer);
+    fCurrentMethod.body.statements.add(assignStmt);
+  }
+}

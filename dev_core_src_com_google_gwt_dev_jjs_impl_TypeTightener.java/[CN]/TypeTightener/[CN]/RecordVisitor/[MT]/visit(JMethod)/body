@@ -1,0 +1,27 @@
+{
+  fCurrentMethod=x;
+  List overrides=x.overrides;
+  JMethod[] virtualOverrides=program.typeOracle.getAllVirtualOverrides(x);
+  if (overrides.isEmpty() && virtualOverrides.length == 0) {
+    return true;
+  }
+  for (int j=0, c=x.params.size(); j < c; ++j) {
+    JParameter param=(JParameter)x.params.get(j);
+    Set set=(Set)paramUpRefs.get(param);
+    if (set == null) {
+      set=new HashSet();
+      paramUpRefs.put(param,set);
+    }
+    for (int i=0; i < overrides.size(); ++i) {
+      JMethod baseMethod=(JMethod)overrides.get(i);
+      JParameter baseParam=(JParameter)baseMethod.params.get(j);
+      set.add(baseParam);
+    }
+    for (int i=0; i < virtualOverrides.length; ++i) {
+      JMethod baseMethod=virtualOverrides[i];
+      JParameter baseParam=(JParameter)baseMethod.params.get(j);
+      set.add(baseParam);
+    }
+  }
+  return true;
+}

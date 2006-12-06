@@ -1,0 +1,62 @@
+{
+  JMethod oldMethod=x.getTarget();
+  if (x.canBePolymorphic()) {
+    return;
+  }
+  if (oldMethod.isStatic()) {
+    return;
+  }
+  if (oldMethod.isAbstract()) {
+    return;
+  }
+  if (oldMethod.isNative()) {
+    return;
+  }
+  if (oldMethod == program.getNullMethod()) {
+    return;
+  }
+  if (program.getStaticImpl(oldMethod) != null) {
+    return;
+  }
+  JClassType enclosingType=(JClassType)oldMethod.getEnclosingType();
+  JType oldReturnType=oldMethod.getType();
+  String newName="$" + oldMethod.getName();
+  JMethod newMethod=new JMethod(program,newName,enclosingType,oldReturnType,false,true,true,oldMethod.isPrivate());
+  JParameter thisParam=program.createParameter("this$static".toCharArray(),enclosingType,true,newMethod);
+  Map varMap=new IdentityHashMap();
+  for (int i=0; i < oldMethod.params.size(); ++i) {
+    JParameter oldVar=(JParameter)oldMethod.params.get(i);
+    JParameter newVar=program.createParameter(oldVar.getName().toCharArray(),oldVar.getType(),oldVar.isFinal(),newMethod);
+    varMap.put(oldVar,newVar);
+  }
+  newMethod.freezeParamTypes();
+  for (int i=0; i < oldMethod.locals.size(); ++i) {
+    JLocal oldVar=(JLocal)oldMethod.locals.get(i);
+    JLocal newVar=program.createLocal(oldVar.getName().toCharArray(),oldVar.getType(),oldVar.isFinal(),newMethod);
+    varMap.put(oldVar,newVar);
+  }
+  ChangeList myChangeList=new ChangeList("Create a new static method '" + newMethod + "' for instance method '"+ oldMethod+ "'");
+  myChangeList.addMethod(newMethod);
+  program.putStaticImpl(oldMethod,newMethod);
+  ChangeList subChangeList=new ChangeList("Update thisrefs as paramrefs; update paramrefs and localrefs to target this method.");
+  RewriteMethodBody rewriter=new RewriteMethodBody(thisParam,varMap,subChangeList);
+  oldMethod.traverse(rewriter);
+  myChangeList.add(subChangeList);
+  myChangeList.clear(oldMethod.locals);
+  myChangeList.moveBody(oldMethod,newMethod);
+  JMethodCall newCall=new JMethodCall(program,null,newMethod);
+  newCall.args.add(program.getExpressionThisRef(enclosingType));
+  for (int i=0; i < oldMethod.params.size(); ++i) {
+    JParameter param=(JParameter)oldMethod.params.get(i);
+    newCall.args.add(new JParameterRef(program,param));
+  }
+  JStatement statement;
+  if (oldReturnType == program.getTypeVoid()) {
+    statement=new JExpressionStatement(program,newCall);
+  }
+ else {
+    statement=new JReturnStatement(program,newCall);
+  }
+  myChangeList.addStatement(statement,oldMethod.body);
+  changeList.add(myChangeList);
+}

@@ -1,0 +1,28 @@
+{
+  if (dispId == 0 && (flags & COM.DISPATCH_PROPERTYGET) != 0) {
+    return new Variant(toString());
+  }
+ else   if (dispId == 1) {
+    if ((flags & COM.DISPATCH_METHOD) != 0) {
+      Object[] javaParams=SwtOleGlue.convertVariantsToObjects(new Class[]{IDispatch.class,String.class,String.class,String.class},params,"Calling method 'gwtOnLoad'");
+      IDispatch frameWnd=(IDispatch)javaParams[0];
+      String moduleName=(String)javaParams[1];
+      boolean success=gwtOnLoad(frameWnd,moduleName);
+      return new Variant(success);
+    }
+ else     if ((flags & COM.DISPATCH_PROPERTYGET) != 0) {
+      try {
+        Method gwtOnLoadMethod=getClass().getMethod("gwtOnLoad",new Class[]{IDispatch.class,String.class});
+        IDispatchImpl funcObj=new MethodDispatch(null,gwtOnLoadMethod);
+        IDispatch disp=new IDispatch(funcObj.getAddress());
+        disp.AddRef();
+        return new Variant(disp);
+      }
+ catch (      Exception e) {
+        return new Variant();
+      }
+    }
+    throw new HResultException(COM.E_NOTSUPPORTED);
+  }
+  throw new HResultException(COM.DISP_E_MEMBERNOTFOUND);
+}

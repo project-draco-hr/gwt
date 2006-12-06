@@ -1,0 +1,41 @@
+{
+  byte[] reply=responsePayload.getBytes(CHARSET_UTF8);
+  String contentType=CONTENT_TYPE_TEXT_PLAIN_UTF8;
+  if (acceptsGzipEncoding(request) && shouldCompressResponse(request,response,responsePayload)) {
+    ByteArrayOutputStream output=null;
+    GZIPOutputStream gzipOutputStream=null;
+    Throwable caught=null;
+    try {
+      output=new ByteArrayOutputStream(reply.length);
+      gzipOutputStream=new GZIPOutputStream(output);
+      gzipOutputStream.write(reply);
+      gzipOutputStream.finish();
+      gzipOutputStream.flush();
+      response.setHeader(CONTENT_ENCODING,CONTENT_ENCODING_GZIP);
+      reply=output.toByteArray();
+    }
+ catch (    UnsupportedEncodingException e) {
+      caught=e;
+    }
+catch (    IOException e) {
+      caught=e;
+    }
+ finally {
+      if (null != gzipOutputStream) {
+        gzipOutputStream.close();
+      }
+      if (null != output) {
+        output.close();
+      }
+    }
+    if (caught != null) {
+      getServletContext().log("Unable to compress response",caught);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      return;
+    }
+  }
+  response.setContentLength(reply.length);
+  response.setContentType(contentType);
+  response.setStatus(HttpServletResponse.SC_OK);
+  response.getOutputStream().write(reply);
+}

@@ -1,0 +1,22 @@
+{
+  if (type == objectType) {
+    return new JType[0];
+  }
+  JPrimitiveType primitive=type.isPrimitive();
+  if (primitive != null) {
+    return new JType[]{primitive};
+  }
+  JParameterizedType parameterizedType=type.isParameterized();
+  if (parameterizedType != null) {
+    return getSerializableTypesAssignableTo(parameterizedType.getRawType());
+  }
+  JArrayType arrayType=type.isArray();
+  if (arrayType != null) {
+    return getSerializableTypesAssignableTo(arrayType.getLeafType());
+  }
+  JClassType classOrInterface=type.isClassOrInterface();
+  if (classOrInterface != null) {
+    return getSerializableTypesAssignableTo(classOrInterface);
+  }
+  return new JType[0];
+}

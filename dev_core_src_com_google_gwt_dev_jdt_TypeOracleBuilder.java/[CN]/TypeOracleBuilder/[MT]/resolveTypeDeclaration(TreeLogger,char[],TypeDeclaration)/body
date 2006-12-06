@@ -1,0 +1,46 @@
+{
+  SourceTypeBinding binding=jclass.binding;
+  if (binding.constantPoolName() == null) {
+    return true;
+  }
+  String qname=String.valueOf(binding.qualifiedSourceName());
+  logger.log(TreeLogger.SPAM,"Found type '" + qname + "'",null);
+  JClassType type=(JClassType)resolveType(logger,binding);
+  if (type == null) {
+    return false;
+  }
+  type.addModifierBits(Shared.bindingToModifierBits(jclass.binding));
+  if (type.isInterface() == null) {
+    ReferenceBinding superclassRef=binding.superclass;
+    if (superclassRef != null) {
+      JClassType superclass=(JClassType)resolveType(logger,superclassRef);
+      if (superclass == null) {
+        return false;
+      }
+      type.setSuperclass(superclass);
+    }
+  }
+  ReferenceBinding[] superintfRefs=binding.superInterfaces;
+  for (int i=0; i < superintfRefs.length; i++) {
+    ReferenceBinding superintfRef=superintfRefs[i];
+    JClassType intf=(JClassType)resolveType(logger,superintfRef);
+    if (intf == null) {
+      return false;
+    }
+    type.addImplementedInterface(intf);
+  }
+  FieldDeclaration[] jfields=jclass.fields;
+  if (!resolveFields(logger,unitSource,type,jfields)) {
+    return false;
+  }
+  AbstractMethodDeclaration[] jmethods=jclass.methods;
+  if (!resolveMethods(logger,unitSource,type,jmethods)) {
+    return false;
+  }
+  if (jclass.javadoc != null) {
+    if (!parseMetaDataTags(unitSource,type,jclass.javadoc)) {
+      return false;
+    }
+  }
+  return true;
+}

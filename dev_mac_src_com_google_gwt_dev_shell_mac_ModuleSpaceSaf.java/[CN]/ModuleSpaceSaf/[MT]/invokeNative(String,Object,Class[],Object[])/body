@@ -1,0 +1,17 @@
+{
+  HandleSaf.releaseQueuedPtrs();
+  int jsthis=wrapObjectAsJSObject(jthis);
+  int curExecState=LowLevelSaf.getExecState();
+  int argc=args.length;
+  int argv[]=new int[argc];
+  for (int i=0; i < argc; ++i) {
+    argv[i]=SwtWebKitGlue.convertObjectToJSVal(curExecState,getIsolatedClassLoader(),types[i],args[i]);
+  }
+  int result=LowLevelSaf.invoke(curExecState,fWindow,name,jsthis,argv);
+  if (!isExceptionActive()) {
+    return result;
+  }
+  RuntimeException thrown=takeJavaException();
+  thrown.fillInStackTrace();
+  throw thrown;
+}

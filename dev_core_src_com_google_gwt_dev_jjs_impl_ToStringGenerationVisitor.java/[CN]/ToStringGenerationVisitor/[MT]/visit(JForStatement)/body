@@ -1,0 +1,31 @@
+{
+  print(CHARS_FOR);
+  lparen();
+  Iterator iter=x.getInitializers().iterator();
+  if (iter.hasNext()) {
+    JStatement stmt=(JStatement)iter.next();
+    stmt.traverse(this);
+  }
+  fSuppressType=true;
+  while (iter.hasNext()) {
+    print(CHARS_COMMA);
+    JStatement stmt=(JStatement)iter.next();
+    stmt.traverse(this);
+  }
+  fSuppressType=false;
+  semi();
+  space();
+  if (x.getTestExpr() != null) {
+    x.getTestExpr().traverse(this);
+  }
+  semi();
+  space();
+  visitCollectionWithCommas(x.getIncrements().iterator());
+  rparen();
+  if (x.body != null) {
+    nestedStatementPush(x.body);
+    x.body.traverse(this);
+    nestedStatementPop(x.body);
+  }
+  return false;
+}

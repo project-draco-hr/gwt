@@ -1,0 +1,77 @@
+{
+  srcWriter.println("private static native JavaScriptObject createMethodMap() /*-" + '{');
+{
+    srcWriter.indent();
+    srcWriter.println("return {");
+    JType[] types=getSerializableTypes();
+    boolean needComma=false;
+    for (int index=0; index < types.length; ++index) {
+      JType type=types[index];
+      if (isAbstractType(type)) {
+        continue;
+      }
+      if (needComma) {
+        srcWriter.println(",");
+      }
+ else {
+        needComma=true;
+      }
+      String typeString=shouldEnforceTypeVersioning() ? serializationOracle.encodeSerializedInstanceReference(type) : serializationOracle.getSerializedTypeName(type);
+      srcWriter.print("\"" + typeString + "\":");
+      srcWriter.println("[");
+{
+        srcWriter.indent();
+{
+          JMethod instantiationMethod=serializationOracle.getCustomFieldSerializerInstantiateMethodForType(type);
+          JClassType customSerializer=serializationOracle.hasCustomFieldSerializer(type);
+          if (customSerializer != null && instantiationMethod == null) {
+            JMethod[] methods=customSerializer.getMethods();
+            for (int i=0; i < methods.length; ++i) {
+              if (CustomFieldSerializerValidator.isValidInstantiateMethod(methods[i],type)) {
+                instantiationMethod=methods[i];
+                break;
+              }
+            }
+          }
+          srcWriter.print("function(x){return ");
+          if (instantiationMethod != null) {
+            srcWriter.print("@" + instantiationMethod.getEnclosingType().getQualifiedSourceName());
+            srcWriter.print("::");
+            srcWriter.print(instantiationMethod.getName());
+          }
+ else {
+            srcWriter.print("@" + serializationOracle.getTypeSerializerQualifiedName(getServiceInterface()));
+            srcWriter.print("::");
+            srcWriter.print(getInstantiationMethodName(type));
+          }
+          srcWriter.print("(L" + SerializationStreamReader.class.getName().replace('.','/') + ";)");
+          srcWriter.print("(x);}");
+          srcWriter.println(",");
+        }
+        String jsniSignature=normalizeJSNIInstanceSerializationMethodSignature(type);
+        String serializerName=serializationOracle.getFieldSerializerName(type);
+{
+          srcWriter.print("function(x,y){");
+          srcWriter.print("@" + serializerName);
+          srcWriter.print("::deserialize(L" + SerializationStreamReader.class.getName().replace('.','/') + ";"+ jsniSignature+ ")");
+          srcWriter.print("(x,y);}");
+          srcWriter.println(",");
+        }
+{
+          srcWriter.print("function(x,y){");
+          srcWriter.print("@" + serializerName);
+          srcWriter.print("::serialize(L" + SerializationStreamWriter.class.getName().replace('.','/') + ";"+ jsniSignature+ ")");
+          srcWriter.print("(x,y);}");
+          srcWriter.println();
+        }
+        srcWriter.outdent();
+      }
+      srcWriter.print("]");
+    }
+    srcWriter.println();
+    srcWriter.println("};");
+    srcWriter.outdent();
+  }
+  srcWriter.println("}-*/;");
+  srcWriter.println();
+}

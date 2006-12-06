@@ -1,0 +1,25 @@
+{
+  if (x.op == JBinaryOperator.ASG_DIV && x.getType() != program.getTypePrimitiveFloat() && x.getType() != program.getTypePrimitiveDouble()) {
+    final int pushUsedLocals=fLocalIndex;
+    JMultiExpression multi=new JMultiExpression(program);
+    ReplaceSideEffectsInLvalue replacer=new ReplaceSideEffectsInLvalue(multi);
+    x.lhs.traverse(replacer);
+    fLocalIndex=pushUsedLocals;
+    JNullLiteral litNull=program.getLiteralNull();
+    JBinaryOperation operation=new JBinaryOperation(program,x.getLhs().getType(),JBinaryOperator.DIV,litNull,litNull);
+    JBinaryOperation asg=new JBinaryOperation(program,x.getLhs().getType(),JBinaryOperator.ASG,litNull,operation);
+    ChangeList myChangeList=new ChangeList("Break '" + x + "' into two operations.");
+    myChangeList.replaceExpression(operation.lhs,x.lhs);
+    myChangeList.replaceExpression(operation.rhs,x.rhs);
+    myChangeList.replaceExpression(asg.lhs,x.lhs);
+    if (replacer.getChangeList().empty()) {
+      myChangeList.replaceExpression(m,asg);
+    }
+ else {
+      myChangeList.add(replacer.getChangeList());
+      myChangeList.addExpression(asg,multi.exprs);
+      myChangeList.replaceExpression(m,multi);
+    }
+    changeList.add(myChangeList);
+  }
+}

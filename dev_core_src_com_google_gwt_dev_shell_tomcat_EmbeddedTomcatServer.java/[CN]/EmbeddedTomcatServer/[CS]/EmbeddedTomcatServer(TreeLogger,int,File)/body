@@ -1,0 +1,45 @@
+{
+  if (topLogger == null) {
+    throw new NullPointerException("No logger specified");
+  }
+  final TreeLogger logger=topLogger.branch(TreeLogger.INFO,"Starting HTTP on port " + listeningPort,null);
+  fStartupBranchLogger=logger;
+  sTomcat=this;
+  fPort=listeningPort;
+  File topWorkDir=new File(System.getProperty("user.dir"));
+  String catBase=System.getProperty("catalina.base");
+  if (catBase == null) {
+    catBase=generateDefaultCatalinaBase(logger,topWorkDir);
+    System.setProperty("catalina.base",catBase);
+  }
+  logger.log(TreeLogger.DEBUG,"catalina.base = " + catBase,null);
+  String adapterClassName=CommonsLoggerAdapter.class.getName();
+  System.setProperty("org.apache.commons.logging.Log",adapterClassName);
+  Logger catalinaLogger=new CatalinaLoggerAdapter(topLogger);
+  fCatEmbedded=new Embedded();
+  fCatEmbedded.setDebug(0);
+  fCatEmbedded.setLogger(catalinaLogger);
+  fCatEngine=fCatEmbedded.createEngine();
+  fCatEngine.setName("gwt");
+  fCatEngine.setDefaultHost("localhost");
+  String appBase=catBase + "/webapps";
+  fCatHost=(StandardHost)fCatEmbedded.createHost("localhost",appBase);
+  HostConfig hostConfig=new HostConfig();
+  fCatHost.addLifecycleListener(hostConfig);
+  fCatHost.addContainerListener(new ContainerListener(){
+    public void containerEvent(    ContainerEvent event){
+      if (StandardHost.PRE_INSTALL_EVENT.equals(event.getType())) {
+        StandardContext webapp=(StandardContext)event.getData();
+        publishShellLoggerAttribute(logger,topLogger,webapp);
+        publishShellOutDirAttribute(logger,outDir,webapp);
+      }
+    }
+  }
+);
+  fCatEngine.addChild(fCatHost);
+  fCatEngine.setDefaultHost(fCatHost.getName());
+  fCatEmbedded.addEngine(fCatEngine);
+  InetAddress nullAddr=null;
+  Connector connector=fCatEmbedded.createConnector(nullAddr,fPort,false);
+  fCatEmbedded.addConnector(connector);
+}

@@ -1,0 +1,124 @@
+{
+  int eventType=DOM.eventGetType(event);
+switch (eventType) {
+case Event.ONCLICK:
+{
+      Element e=DOM.eventGetTarget(event);
+      if (shouldTreeDelegateFocusToElement(e)) {
+      }
+ else {
+        setFocus(true);
+      }
+      break;
+    }
+case Event.ONMOUSEDOWN:
+{
+    if (mouseListeners != null) {
+      mouseListeners.fireMouseEvent(this,event);
+    }
+    elementClicked(root,DOM.eventGetTarget(event));
+    break;
+  }
+case Event.ONMOUSEUP:
+{
+  if (mouseListeners != null) {
+    mouseListeners.fireMouseEvent(this,event);
+  }
+  break;
+}
+case Event.ONMOUSEMOVE:
+{
+if (mouseListeners != null) {
+  mouseListeners.fireMouseEvent(this,event);
+}
+break;
+}
+case Event.ONMOUSEOVER:
+{
+if (mouseListeners != null) {
+mouseListeners.fireMouseEvent(this,event);
+}
+break;
+}
+case Event.ONMOUSEOUT:
+{
+if (mouseListeners != null) {
+mouseListeners.fireMouseEvent(this,event);
+}
+break;
+}
+case Event.ONFOCUS:
+if (focusListeners != null) {
+focusListeners.fireFocusEvent(this,event);
+}
+break;
+case Event.ONBLUR:
+{
+if (focusListeners != null) {
+focusListeners.fireFocusEvent(this,event);
+}
+break;
+}
+case Event.ONKEYDOWN:
+if (curSelection == null) {
+if (root.getChildCount() > 0) {
+onSelection(root.getChild(0),true);
+}
+super.onBrowserEvent(event);
+return;
+}
+if (lastEventType == Event.ONKEYDOWN) {
+return;
+}
+switch (DOM.eventGetKeyCode(event)) {
+case KeyboardListener.KEY_UP:
+{
+moveSelectionUp(curSelection);
+DOM.eventPreventDefault(event);
+break;
+}
+case KeyboardListener.KEY_DOWN:
+{
+moveSelectionDown(curSelection,true);
+DOM.eventPreventDefault(event);
+break;
+}
+case KeyboardListener.KEY_LEFT:
+{
+if (curSelection.getState()) {
+curSelection.setState(false);
+}
+DOM.eventPreventDefault(event);
+break;
+}
+case KeyboardListener.KEY_RIGHT:
+{
+if (!curSelection.getState()) {
+curSelection.setState(true);
+}
+DOM.eventPreventDefault(event);
+break;
+}
+}
+case Event.ONKEYUP:
+if (eventType == Event.ONKEYUP) {
+if (DOM.eventGetKeyCode(event) == KeyboardListener.KEY_TAB) {
+Vector chain=new Vector();
+collectElementChain(chain,getElement(),DOM.eventGetTarget(event));
+TreeItem item=findItemByChain(chain,0,root);
+if (item != getSelectedItem()) {
+setSelectedItem(item,true);
+}
+}
+}
+case Event.ONKEYPRESS:
+{
+if (keyboardListeners != null) {
+keyboardListeners.fireKeyboardEvent(this,event);
+}
+break;
+}
+}
+super.onBrowserEvent(event);
+lastEventType=eventType;
+}

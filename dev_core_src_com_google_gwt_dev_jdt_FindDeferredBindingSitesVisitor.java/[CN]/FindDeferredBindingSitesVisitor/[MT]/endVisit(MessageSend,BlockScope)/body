@@ -1,0 +1,28 @@
+{
+  final ProblemReporter problemReporter=scope.problemReporter();
+  if (messageSend.binding == null) {
+    return;
+  }
+  String methodName=String.valueOf(messageSend.selector);
+  if (!methodName.equals(REBIND_MAGIC_METHOD)) {
+    return;
+  }
+  char[][] targetClass=messageSend.binding.declaringClass.compoundName;
+  String targetClassName=CharOperation.toString(targetClass);
+  if (!targetClassName.equals(REBIND_MAGIC_CLASS)) {
+    return;
+  }
+  Expression[] args=messageSend.arguments;
+  if (args.length != 1) {
+    problemReporter.abortDueToInternalError("GWT.create() should take exactly one argument",messageSend);
+    return;
+  }
+  Expression arg=args[0];
+  if (!(arg instanceof ClassLiteralAccess)) {
+    problemReporter.abortDueToInternalError("Only class literals may be used as arguments to GWT.create()",messageSend);
+    return;
+  }
+  ClassLiteralAccess cla=(ClassLiteralAccess)arg;
+  String typeName=String.valueOf(cla.targetType.readableName());
+  results.add(typeName);
+}

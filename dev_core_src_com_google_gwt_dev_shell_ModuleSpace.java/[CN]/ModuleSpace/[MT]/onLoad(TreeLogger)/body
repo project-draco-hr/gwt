@@ -1,0 +1,32 @@
+{
+  host.onModuleReady(this);
+  setJavaScriptHost();
+  initializeStaticDispatcher();
+  String entryPointTypeName=null;
+  try {
+    String[] entryPoints=host.getEntryPointTypeNames();
+    if (entryPoints.length > 0) {
+      for (int i=0; i < entryPoints.length; i++) {
+        entryPointTypeName=entryPoints[i];
+        Object module=rebindAndCreate(entryPointTypeName);
+        Method onModuleLoad=module.getClass().getMethod("onModuleLoad",null);
+        onModuleLoad.invoke(module,null);
+      }
+    }
+ else {
+      logger.log(TreeLogger.WARN,"The module has no entry points defined, so onModuleLoad() will never be called",null);
+    }
+  }
+ catch (  Throwable e) {
+    Throwable caught=e;
+    if (e instanceof InvocationTargetException) {
+      caught=((InvocationTargetException)e).getTargetException();
+    }
+    if (caught instanceof ExceptionInInitializerError) {
+      caught=((ExceptionInInitializerError)caught).getException();
+    }
+    final String UNABLE_TO_LOAD_MESSAGE="Unable to load module entry point class " + entryPointTypeName;
+    logger.log(TreeLogger.ERROR,UNABLE_TO_LOAD_MESSAGE,caught);
+    throw new UnableToCompleteException();
+  }
+}

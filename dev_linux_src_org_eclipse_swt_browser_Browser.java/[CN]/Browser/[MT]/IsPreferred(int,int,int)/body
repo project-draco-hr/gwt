@@ -1,0 +1,29 @@
+{
+  boolean preferred=false;
+  int size=XPCOM.strlen(aContentType);
+  if (size > 0) {
+    byte[] typeBytes=new byte[size + 1];
+    XPCOM.memmove(typeBytes,aContentType,size);
+    String contentType=new String(typeBytes);
+    if (!contentType.equals(XPCOM.CONTENT_MAYBETEXT) && !contentType.equals(XPCOM.CONTENT_MULTIPART)) {
+      int[] result=new int[1];
+      int rc=XPCOM.NS_GetServiceManager(result);
+      if (rc != XPCOM.NS_OK)       error(rc);
+      if (result[0] == 0)       error(XPCOM.NS_NOINTERFACE);
+      nsIServiceManager serviceManager=new nsIServiceManager(result[0]);
+      result[0]=0;
+      rc=serviceManager.GetService(XPCOM.NS_CATEGORYMANAGER_CID,nsICategoryManager.NS_ICATEGORYMANAGER_IID,result);
+      serviceManager.Release();
+      if (rc != XPCOM.NS_OK)       error(rc);
+      if (result[0] == 0)       error(XPCOM.NS_NOINTERFACE);
+      nsICategoryManager categoryManager=new nsICategoryManager(result[0]);
+      result[0]=0;
+      byte[] categoryBytes=Converter.wcsToMbcs(null,"Gecko-Content-Viewers",true);
+      rc=categoryManager.GetCategoryEntry(categoryBytes,typeBytes,result);
+      categoryManager.Release();
+      preferred=rc == XPCOM.NS_OK;
+    }
+  }
+  XPCOM.memmove(retval,new int[]{preferred ? 1 : 0},4);
+  return XPCOM.NS_OK;
+}

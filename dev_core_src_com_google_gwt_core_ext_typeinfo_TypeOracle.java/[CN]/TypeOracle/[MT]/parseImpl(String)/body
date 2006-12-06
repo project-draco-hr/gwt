@@ -1,0 +1,40 @@
+{
+  if (type.endsWith("[]")) {
+    String remainder=type.substring(0,type.length() - 2);
+    JType componentType=parseImpl(remainder);
+    return getArrayType(componentType);
+  }
+  if (type.endsWith(">")) {
+    int bracket=type.indexOf('<');
+    if (bracket == -1) {
+      throw new ParseException("Mismatched brackets; expected '<' to match subsequent '>'");
+    }
+    String rawTypeName=type.substring(0,bracket);
+    JType rawType=parseImpl(rawTypeName);
+    if (rawType.isParameterized() != null) {
+      throw new BadTypeArgsException("Only non-parameterized classes and interface can be parameterized");
+    }
+ else     if (rawType.isClassOrInterface() == null) {
+      throw new BadTypeArgsException("Only classes and interface can be parameterized, so " + rawType.getQualifiedSourceName() + " cannot be used in this context");
+    }
+    String typeArgGuts=type.substring(bracket + 1,type.length() - 1);
+    String[] typeArgNames=typeArgGuts.split(",");
+    JType[] typeArgs=new JType[typeArgNames.length];
+    for (int i=0; i < typeArgNames.length; i++) {
+      typeArgs[i]=parseImpl(typeArgNames[i]);
+      if (typeArgs[i].isPrimitive() != null) {
+        throw new BadTypeArgsException("Type arguments cannot be primitive, so " + typeArgs[i].getQualifiedSourceName() + " cannot be used in this context");
+      }
+    }
+    return getParameterizedType(rawType.isClassOrInterface(),typeArgs);
+  }
+  JType result=JPrimitiveType.valueOf(type);
+  if (result != null) {
+    return result;
+  }
+  result=findType(type);
+  if (result != null) {
+    return result;
+  }
+  throw new NotFoundException(type);
+}

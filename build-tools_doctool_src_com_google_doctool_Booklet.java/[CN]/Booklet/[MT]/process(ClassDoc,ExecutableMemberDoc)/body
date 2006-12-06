@@ -1,0 +1,81 @@
+{
+  if (looksSynthesized(memberDoc)) {
+    return;
+  }
+  if (memberDoc.tags("@skip").length > 0) {
+    return;
+  }
+  if (memberDoc instanceof MethodDoc) {
+    beginln("method");
+    emitIdentity(getId(memberDoc),memberDoc.name());
+    emitLocation(memberDoc);
+    String rawComment=memberDoc.getRawCommentText();
+    if (rawComment.length() == 0) {
+      MethodDoc methodDoc=(MethodDoc)memberDoc;
+      MethodDoc superMethodDoc=methodDoc.overriddenMethod();
+      if (superMethodDoc == null) {
+        ClassDoc classDocToTry=methodDoc.containingClass();
+        while (classDocToTry != null) {
+          superMethodDoc=findMatchingInterfaceMethodDoc(classDocToTry.interfaces(),methodDoc);
+          if (superMethodDoc != null)           break;
+          classDocToTry=classDocToTry.superclass();
+        }
+      }
+      if (superMethodDoc != null) {
+        memberDoc=superMethodDoc;
+      }
+    }
+  }
+ else   if (memberDoc instanceof ConstructorDoc) {
+    beginln("constructor");
+    emitIdentity(getId(memberDoc),memberDoc.containingClass().name());
+    emitLocation(memberDoc);
+  }
+ else {
+    throw new IllegalStateException("What kind of executable member is this?");
+  }
+  emitDescription(enclosing,memberDoc,memberDoc.firstSentenceTags(),memberDoc.inlineTags());
+  emitOutOfLineTags(memberDoc.tags());
+  emitModifiers(memberDoc);
+  begin("flatSignature");
+  text(memberDoc.flatSignature());
+  end();
+  if (memberDoc instanceof MethodDoc)   emitType(((MethodDoc)memberDoc).returnType());
+  beginln("params");
+  Parameter[] pda=memberDoc.parameters();
+  for (int i=0; i < pda.length; i++) {
+    Parameter pd=pda[i];
+    begin("param");
+    emitType(pd.type());
+    begin("name");
+    text(pd.name());
+    end();
+    end();
+  }
+  endln();
+  ClassDoc[] tea=memberDoc.thrownExceptions();
+  if (tea.length > 0) {
+    beginln("throws");
+    for (int i=0; i < tea.length; ++i) {
+      ClassDoc te=tea[i];
+      beginln("throw","ref",getId(te));
+      text(te.name());
+      endln();
+    }
+    endln();
+  }
+  if (fShowCode) {
+    SourcePosition pos=memberDoc.position();
+    if (pos != null) {
+      beginln("code");
+      String source=slurpSource(pos);
+      begin("pre","class","code");
+      beginCDATA();
+      text(source);
+      endCDATA();
+      endln();
+      endln();
+    }
+  }
+  endln();
+}

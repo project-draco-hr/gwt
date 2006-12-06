@@ -1,0 +1,28 @@
+{
+  SerializableType reachableType=(SerializableType)reachableTypes.get(type);
+  if (reachableType == null) {
+    return null;
+  }
+  JClassType customSerializer=reachableType.getCustomSerializer();
+  if (customSerializer != null) {
+    return customSerializer;
+  }
+  if (!isSerializable(type)) {
+    return null;
+  }
+  JArrayType arrayType=type.isArray();
+  if (arrayType == null) {
+    return null;
+  }
+  JType componentType=arrayType.getComponentType();
+  JPrimitiveType primitiveType=componentType.isPrimitive();
+  String qualifiedSerializerName=DEFAULT_BUILTIN_CUSTOM_SERIALIZER_PACKAGE_NAME + ".";
+  if (primitiveType != null) {
+    qualifiedSerializerName+=primitiveType.getSimpleSourceName();
+  }
+ else {
+    qualifiedSerializerName+=typeOracle.getJavaLangObject().getSimpleSourceName();
+  }
+  qualifiedSerializerName+="_Array_CustomFieldSerializer";
+  return typeOracle.findType(qualifiedSerializerName);
+}

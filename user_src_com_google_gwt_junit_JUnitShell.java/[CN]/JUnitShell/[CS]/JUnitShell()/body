@@ -1,0 +1,62 @@
+{
+  super(true,true);
+  registerHandler(new ArgHandlerFlag(){
+    public String getPurpose(){
+      return "Causes your test to run in web (compiled) mode (defaults to hosted mode)";
+    }
+    public String getTag(){
+      return "-web";
+    }
+    public boolean setFlag(){
+      runStyle=new RunStyleLocalWeb(JUnitShell.this);
+      return true;
+    }
+  }
+);
+  registerHandler(new ArgHandlerString(){
+    public String getPurpose(){
+      return "Runs web mode via RMI to a BrowserManagerServer; e.g. rmi://localhost/ie6";
+    }
+    public String getTag(){
+      return "-remoteweb";
+    }
+    public String[] getTagArgs(){
+      return new String[]{"rmiUrl"};
+    }
+    public boolean isUndocumented(){
+      return true;
+    }
+    public boolean setString(    String str){
+      try {
+        BrowserManager browserManager=(BrowserManager)Naming.lookup(str);
+        runStyle=new RunStyleRemoteWeb(JUnitShell.this,browserManager);
+      }
+ catch (      Exception e) {
+        System.err.println("Error connecting to browser manager at " + str);
+        e.printStackTrace();
+        System.exit(1);
+        return false;
+      }
+      return true;
+    }
+  }
+);
+  registerHandler(new ArgHandlerFlag(){
+    public String getPurpose(){
+      return "Causes the log window and browser windows to be displayed; useful for debugging";
+    }
+    public String getTag(){
+      return "-notHeadless";
+    }
+    public boolean setFlag(){
+      setHeadless(false);
+      return true;
+    }
+  }
+);
+  setRunTomcat(true);
+  setHeadless(true);
+  if (System.getProperty(PROP_JUNIT_HYBRID_MODE) != null) {
+    runStyle=new RunStyleLocalWeb(this);
+  }
+}

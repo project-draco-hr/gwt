@@ -1,0 +1,36 @@
+{
+  char[][] name=typeDeclaration.binding.compoundName;
+  SourceTypeBinding binding=typeDeclaration.binding;
+  if (binding instanceof LocalTypeBinding) {
+    char[] localName=binding.constantPoolName();
+    if (localName == null) {
+      return false;
+    }
+    for (int i=0, c=localName.length; i < c; ++i) {
+      if (localName[i] == '/') {
+        localName[i]='.';
+      }
+    }
+    name=new char[1][0];
+    name[0]=localName;
+  }
+  JReferenceType newType;
+  if (binding.isClass()) {
+    newType=fProgram.createClass(name,binding.isAbstract(),binding.isFinal());
+  }
+ else   if (binding.isInterface()) {
+    newType=fProgram.createInterface(name);
+  }
+ else {
+    assert(false);
+    return false;
+  }
+  JMethod clinit=fProgram.createMethod("$clinit".toCharArray(),newType,fProgram.getTypeVoid(),false,true,true,true,false);
+  clinit.freezeParamTypes();
+  if (newType instanceof JClassType) {
+    JMethod init=fProgram.createMethod("$init".toCharArray(),newType,fProgram.getTypeVoid(),false,false,true,true,false);
+    init.freezeParamTypes();
+  }
+  fTypeMap.put(binding,newType);
+  return true;
+}

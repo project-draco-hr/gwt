@@ -1,0 +1,17 @@
+{
+  if (x.condition != null) {
+    Constant cst=x.condition.optimizedBooleanConstant();
+    if (cst != Constant.NotAConstant) {
+      if (!cst.booleanValue()) {
+        JBlock block=new JBlock(program);
+        block.statements=processStatements(x.initializations);
+        return block;
+      }
+    }
+  }
+  List init=processStatements(x.initializations);
+  JExpression expr=dispProcessExpression(x.condition);
+  List incr=processStatements(x.increments);
+  JStatement body=dispProcessStatement(x.action);
+  return new JForStatement(program,init,expr,incr,body);
+}

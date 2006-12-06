@@ -1,0 +1,26 @@
+{
+  Binding binding=x.binding;
+  JNode node=fTypeMap.get(binding);
+  if (!(node instanceof JVariable)) {
+    return null;
+  }
+  JVariable variable=(JVariable)node;
+  JExpression curRef=createVariableRef(variable,binding);
+  if (x.otherBindings != null) {
+    for (int i=0; i < x.otherBindings.length; i++) {
+      FieldBinding fieldBinding=x.otherBindings[i];
+      JField field;
+      if (fieldBinding.declaringClass == null) {
+        field=program.getSpecialField("Array.length");
+        if (!field.getName().equals(String.valueOf(fieldBinding.name))) {
+          throw new InternalCompilerException("Error matching fieldBinding.");
+        }
+      }
+ else {
+        field=(JField)fTypeMap.get(fieldBinding);
+      }
+      curRef=new JFieldRef(program,curRef,field,fCurrentClass);
+    }
+  }
+  return curRef;
+}

@@ -1,0 +1,18 @@
+{
+  if (started) {
+    throw new IllegalStateException("Startup code has already been run");
+  }
+  started=true;
+  loadRequiredNativeLibs();
+  openAppWindow();
+  initializeLogger();
+  if (fRunTomcat) {
+    final int serverPort=getPort();
+    String whyFailed=EmbeddedTomcatServer.start(getTopLogger(),serverPort,outDir);
+    if (whyFailed != null) {
+      System.err.println(whyFailed);
+      return false;
+    }
+  }
+  return true;
+}

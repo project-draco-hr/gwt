@@ -1,0 +1,31 @@
+{
+  JsFor jsFor=new JsFor();
+  if (x.body != null) {
+    jsFor.setBody((JsStatement)pop());
+  }
+ else {
+    jsFor.setBody(jsProgram.getEmptyStmt());
+  }
+{
+    JsExpression incrExpr=null;
+    List exprStmts=popList(x.getIncrements().size());
+    for (int i=0; i < exprStmts.size(); ++i) {
+      JsExprStmt exprStmt=(JsExprStmt)exprStmts.get(i);
+      incrExpr=createCommaExpression(incrExpr,exprStmt.getExpression());
+    }
+    jsFor.setIncrExpr(incrExpr);
+  }
+  if (x.getTestExpr() != null) {
+    jsFor.setCondition((JsExpression)pop());
+  }
+  JsExpression initExpr=null;
+  List initStmts=popList(x.getInitializers().size());
+  for (int i=0; i < initStmts.size(); ++i) {
+    JsExprStmt initStmt=(JsExprStmt)initStmts.get(i);
+    if (initStmt != null) {
+      initExpr=createCommaExpression(initExpr,initStmt.getExpression());
+    }
+  }
+  jsFor.setInitExpr(initExpr);
+  push(jsFor);
+}

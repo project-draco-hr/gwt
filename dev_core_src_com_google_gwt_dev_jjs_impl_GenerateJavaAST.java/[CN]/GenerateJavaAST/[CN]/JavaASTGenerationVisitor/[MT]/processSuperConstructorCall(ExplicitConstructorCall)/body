@@ -1,0 +1,52 @@
+{
+  JMethod ctor=(JMethod)fTypeMap.get(x.binding);
+  JExpression trueQualifier=createThisRef(fCurrentClass);
+  JMethodCall call=new JMethodCall(program,trueQualifier,ctor);
+  ReferenceBinding superClass=x.binding.declaringClass;
+  if (superClass instanceof NestedTypeBinding && !superClass.isStatic()) {
+    NestedTypeBinding myBinding=(NestedTypeBinding)fCurrentClassScope.referenceType().binding;
+    NestedTypeBinding superBinding=(NestedTypeBinding)superClass;
+    if (superBinding.enclosingInstances != null) {
+      JExpression qualifier=dispProcessExpression(x.qualification);
+      for (int j=0; j < superBinding.enclosingInstances.length; ++j) {
+        SyntheticArgumentBinding arg=superBinding.enclosingInstances[j];
+        JClassType classType=(JClassType)fTypeMap.get(arg.type);
+        if (qualifier == null) {
+          List workList=new ArrayList();
+          Iterator paramIt=fCurrentMethod.params.iterator();
+          for (int i=0; i < myBinding.enclosingInstances.length; ++i) {
+            workList.add(createVariableRef((JParameter)paramIt.next()));
+          }
+          call.args.add(createThisRef(classType,workList));
+        }
+ else {
+          call.args.add(createThisRef(classType,qualifier));
+        }
+      }
+    }
+    if (superBinding.outerLocalVariables != null) {
+      for (int j=0; j < superBinding.outerLocalVariables.length; ++j) {
+        SyntheticArgumentBinding arg=superBinding.outerLocalVariables[j];
+        JType varType=(JType)fTypeMap.get(arg.type);
+        String varName=String.valueOf(arg.name);
+        JParameter param=null;
+        for (int i=0; i < fCurrentMethod.params.size(); ++i) {
+          JParameter paramIt=(JParameter)fCurrentMethod.params.get(i);
+          if (varType == paramIt.getType() && varName.equals(paramIt.getName())) {
+            param=paramIt;
+          }
+        }
+        if (param == null) {
+          throw new InternalCompilerException("Could not find matching local arg for explicit super ctor call.");
+        }
+        call.args.add(createVariableRef(param));
+      }
+    }
+  }
+  if (x.arguments != null) {
+    for (int i=0, n=x.arguments.length; i < n; ++i) {
+      call.args.add(dispProcessExpression(x.arguments[i]));
+    }
+  }
+  return call;
+}

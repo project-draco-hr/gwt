@@ -1,0 +1,29 @@
+{
+  super(shell,host);
+  final ExternalFactory externalFactory=new ExternalFactory(){
+    public ExternalObject createExternalObject(){
+      if (fExternalObject == null) {
+        fExternalObject=new ExternalObjectImpl();
+      }
+      return fExternalObject;
+    }
+    public boolean matchesDOMWindow(    int domWindow){
+      nsIWebBrowser webBrowser=(nsIWebBrowser)LowLevel.snatchFieldObjectValue(fBrowser.getClass(),fBrowser,"webBrowser");
+      int[] aContentDOMWindow=new int[1];
+      webBrowser.GetContentDOMWindow(aContentDOMWindow);
+      if (aContentDOMWindow[0] == domWindow) {
+        return true;
+      }
+      return false;
+    }
+    private ExternalObject fExternalObject=null;
+  }
+;
+  LowLevelMoz.registerExternalFactory(externalFactory);
+  addDisposeListener(new DisposeListener(){
+    public void widgetDisposed(    DisposeEvent e){
+      LowLevelMoz.unregisterExternalFactory(externalFactory);
+    }
+  }
+);
+}

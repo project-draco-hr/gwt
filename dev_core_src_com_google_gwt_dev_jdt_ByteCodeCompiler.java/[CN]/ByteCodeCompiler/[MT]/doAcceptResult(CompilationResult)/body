@@ -1,0 +1,21 @@
+{
+  TreeLogger logger=getLogger();
+  ClassFile[] classFiles=result.getClassFiles();
+  for (int i=0; i < classFiles.length; i++) {
+    ClassFile classFile=classFiles[i];
+    char[][] compoundName=classFile.getCompoundName();
+    char[] classNameChars=CharOperation.concatWith(compoundName,'.');
+    String className=String.valueOf(classNameChars);
+    byte bytes[]=classFile.getBytes();
+    String loc=String.valueOf(result.compilationUnit.getFileName());
+    boolean isTransient=true;
+    if (result.compilationUnit instanceof ICompilationUnitAdapter) {
+      ICompilationUnitAdapter unit=(ICompilationUnitAdapter)result.compilationUnit;
+      isTransient=unit.getCompilationUnitProvider().isTransient();
+    }
+    ByteCode byteCode=new ByteCode(className,bytes,loc,isTransient);
+    if (cacheManager.acceptIntoCache(logger,className,byteCode)) {
+      logger.log(TreeLogger.SPAM,"Successfully compiled and cached '" + className + "'",null);
+    }
+  }
+}

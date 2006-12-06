@@ -1,0 +1,28 @@
+{
+  super(null);
+  this.logger=logger;
+  this.compiler=compiler;
+  for (int i=0; i < CacheManager.BOOTSTRAP_CLASSES.length; i++) {
+    Class clazz=CacheManager.BOOTSTRAP_CLASSES[i];
+    String className=clazz.getName();
+    try {
+      String path=clazz.getName().replace('.','/').concat(".class");
+      ClassLoader cl=Thread.currentThread().getContextClassLoader();
+      URL url=cl.getResource(path);
+      if (url != null) {
+        byte classBytes[]=getClassBytesFromStream(url.openStream());
+        String loc=url.toExternalForm();
+        compiler.putClassBytes(logger,className,classBytes,loc);
+      }
+ else {
+        logger.log(TreeLogger.ERROR,"Could not find required bootstrap class '" + className + "' in the classpath",null);
+        throw new UnableToCompleteException();
+      }
+    }
+ catch (    IOException e) {
+      logger.log(TreeLogger.ERROR,"Error reading class bytes for " + className,e);
+      throw new UnableToCompleteException();
+    }
+  }
+  compiler.removeStaleByteCode(logger);
+}

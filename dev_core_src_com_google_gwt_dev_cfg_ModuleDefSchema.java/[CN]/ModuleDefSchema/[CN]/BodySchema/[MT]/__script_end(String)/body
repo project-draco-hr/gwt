@@ -1,0 +1,13 @@
+{
+  ScriptReadyBodySchema childSchema=(ScriptReadyBodySchema)fChild;
+  String js=childSchema.getScriptReadyBlock();
+  if (js == null) {
+    logger.log(TreeLogger.ERROR,"Injected scripts require an associated JavaScript block that indicates when the corresponding script is fully loaded and ready for use",null);
+    throw new UnableToCompleteException();
+  }
+  js="var $wnd = window; " + js;
+  int lineNumber=childSchema.getStartLineNumber();
+  JsFunction fn=parseJsBlock(lineNumber,js);
+  Script script=new Script(src,fn);
+  moduleDef.getScripts().append(script);
+}

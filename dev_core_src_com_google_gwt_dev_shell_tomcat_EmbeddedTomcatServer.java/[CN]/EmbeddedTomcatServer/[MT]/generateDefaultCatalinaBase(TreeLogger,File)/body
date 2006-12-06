@@ -1,0 +1,18 @@
+{
+  logger=logger.branch(TreeLogger.TRACE,"Property 'catalina.base' not specified; checking for a standard catalina base image instead",null);
+  FileOracleFactory fof=new FileOracleFactory();
+  final String TOMCAT_ETC_DIR="com/google/gwt/dev/etc/tomcat/";
+  fof.addRootPackage(TOMCAT_ETC_DIR,null);
+  FileOracle fo=fof.create(logger);
+  if (fo.isEmpty()) {
+    logger.log(TreeLogger.WARN,"Could not find " + TOMCAT_ETC_DIR,null);
+    return null;
+  }
+  File catBase=new File(workDir,"tomcat");
+  String[] allChildren=fo.getAllFiles();
+  for (int i=0; i < allChildren.length; i++) {
+    String src=allChildren[i];
+    copyFileNoOverwrite(logger,fo,src,catBase);
+  }
+  return catBase.getAbsolutePath();
+}

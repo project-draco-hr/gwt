@@ -1,0 +1,34 @@
+{
+  Object instance=null;
+  SerializedInstanceReference serializedInstRef=serializableTypeOracle.decodeSerializedInstanceReference(typeSignature);
+  try {
+    Class instanceClass=Class.forName(serializedInstRef.getName(),false,this.getClass().getClassLoader());
+    if (!serializableTypeOracle.isSerializable(instanceClass)) {
+      throw new SerializationException("Class '" + instanceClass.getName() + "' is not serializable");
+    }
+    validateTypeVersions(instanceClass,serializedInstRef);
+    Class customSerializer=serializableTypeOracle.hasCustomFieldSerializer(instanceClass);
+    instance=instantiate(customSerializer,instanceClass);
+    rememberDecodedObject(instance);
+    deserializeImpl(customSerializer,instanceClass,instance);
+    return instance;
+  }
+ catch (  ClassNotFoundException e) {
+    throw new SerializationException(e);
+  }
+catch (  InstantiationException e) {
+    throw new SerializationException(e);
+  }
+catch (  IllegalAccessException e) {
+    throw new SerializationException(e);
+  }
+catch (  IllegalArgumentException e) {
+    throw new SerializationException(e);
+  }
+catch (  InvocationTargetException e) {
+    throw new SerializationException(e);
+  }
+catch (  NoSuchMethodException e) {
+    throw new SerializationException(e);
+  }
+}

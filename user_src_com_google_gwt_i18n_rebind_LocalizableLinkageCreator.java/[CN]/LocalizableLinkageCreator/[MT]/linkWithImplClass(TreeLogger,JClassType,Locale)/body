@@ -1,0 +1,37 @@
+{
+  String baseName=baseClass.getQualifiedSourceName();
+  String className=(String)implCache.get(baseName + locale);
+  if (className != null) {
+    return className;
+  }
+  if (baseClass.getName().indexOf("_") == 0) {
+    throw error(logger,"Cannot have a '_' in the base localizable class " + baseClass);
+  }
+  Map matchingClasses=findDerivedClasses(logger,baseClass);
+  String localeSuffix;
+  JClassType result=null;
+  if (locale == null) {
+    localeSuffix=LocalizableGenerator.DEFAULT_TOKEN;
+  }
+ else {
+    localeSuffix=locale.toString();
+  }
+  while (true) {
+    result=(JClassType)matchingClasses.get(localeSuffix);
+    if (result != null) {
+      break;
+    }
+    int strip=localeSuffix.lastIndexOf("_");
+    if (localeSuffix == LocalizableGenerator.DEFAULT_TOKEN) {
+      throw error(logger,"Cannot find a class to bind to argument type " + baseClass.getQualifiedSourceName());
+    }
+ else     if (strip == -1) {
+      localeSuffix=LocalizableGenerator.DEFAULT_TOKEN;
+    }
+ else {
+      localeSuffix=localeSuffix.substring(0,strip);
+    }
+  }
+  implCache.put(baseName + locale,className);
+  return result.getQualifiedSourceName();
+}

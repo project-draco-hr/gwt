@@ -1,0 +1,30 @@
+{
+  JsBlock body=(JsBlock)pop();
+  List locals=popList(x.locals.size());
+  List params=popList(x.params.size());
+  if (x.isAbstract()) {
+    push(null);
+    return;
+  }
+  JsFunction jsFunc=(JsFunction)methodMap.get(x);
+  jsFunc.setBody(body);
+  JsParameters jsParams=jsFunc.getParameters();
+  for (int i=0; i < params.size(); ++i) {
+    JsParameter param=(JsParameter)params.get(i);
+    jsParams.add(param);
+  }
+  JsVars vars=new JsVars();
+  for (int i=0; i < locals.size(); ++i) {
+    JsNameRef localRef=(JsNameRef)locals.get(i);
+    vars.add(new JsVar(localRef.getName()));
+  }
+  if (vars.iterator().hasNext()) {
+    jsFunc.getBody().getStatements().add(0,vars);
+  }
+  JsInvocation jsInvocation=maybeCreateClinitCall(x);
+  if (jsInvocation != null) {
+    jsFunc.getBody().getStatements().add(0,jsInvocation.makeStmt());
+  }
+  push(jsFunc);
+  fCurrentMethod=null;
+}

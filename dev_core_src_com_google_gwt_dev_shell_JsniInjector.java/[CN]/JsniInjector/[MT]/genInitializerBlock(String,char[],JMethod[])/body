@@ -1,0 +1,23 @@
+{
+  String escapedFile=Jsni.escapeQuotesAndSlashes(file);
+  StringBuffer sb=new StringBuffer();
+  sb.append(" static {");
+  for (int i=0; i < methods.length; ++i) {
+    JMethod method=methods[i];
+    JsBlock jsniBody=(JsBlock)parsedJsByMethod.get(method);
+    if (jsniBody == null) {
+      continue;
+    }
+    JParameter[] params=method.getParameters();
+    String paramNamesArray=getParamNamesArrayExpr(params);
+    final String TRY="try ";
+    final String CATCH=" catch (e) {\\n" + "  __static[\\\"@" + Jsni.JAVASCRIPTHOST_NAME + "::exceptionCaught"+ "(ILjava/lang/String;Ljava/lang/String;)\\\"]"+ "((e && e.number) ? e.number : 0, e ? e.name : null , e ? e.message : null);\\n"+ "}\\n";
+    String js=TRY + Jsni.generateEscapedJavaScript(jsniBody) + CATCH;
+    String jsniSig=Jsni.getJsniSignature(method);
+    int bodyStart=method.getBodyStart();
+    int line=Jsni.countNewlines(source,0,bodyStart) + 1;
+    sb.append("  " + Jsni.JAVASCRIPTHOST_NAME + ".createNative(\""+ escapedFile+ "\", "+ line+ ", "+ "\"@"+ jsniSig+ "\", "+ paramNamesArray+ ", \""+ js+ "\");");
+  }
+  sb.append("}");
+  return sb.toString().toCharArray();
+}

@@ -1,0 +1,19 @@
+{
+  this.module=moduleDef;
+  checkModule(logger);
+  outDir=new File(outDir,module.getName());
+  rules=module.getRules();
+  typeOracle=module.getTypeOracle(logger);
+  sourceOracle=new StandardSourceOracle(typeOracle);
+  declEntryPts=module.getEntryPointTypeNames();
+  rebindPermOracle=new DistillerRebindPermutationOracle();
+  properties=module.getProperties();
+  perms=new PropertyPermutations(properties);
+  WebModeCompilerFrontEnd frontEnd=new WebModeCompilerFrontEnd(sourceOracle,rebindPermOracle);
+  jjs=new JavaToJavaScriptCompiler(logger,frontEnd,declEntryPts,obfuscate,prettyNames);
+  initCompilations(logger);
+  SelectionScriptGenerator selGen=compilePermutations(logger);
+  writeSelectionScript(logger,selGen);
+  copyPublicFiles(logger);
+  logger.log(TreeLogger.INFO,"Compilation succeeded",null);
+}

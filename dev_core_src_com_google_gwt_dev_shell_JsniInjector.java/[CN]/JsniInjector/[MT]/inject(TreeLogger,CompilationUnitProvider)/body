@@ -1,0 +1,25 @@
+{
+  logger=logger.branch(TreeLogger.SPAM,"Checking for JavaScript native methods",null);
+  if (coreTypes == null) {
+    coreTypes=new CoreTypes(logger);
+  }
+  char[] source=cup.getSource();
+  List changes=new ArrayList();
+  rewriteCompilationUnit(logger,source,changes,cup);
+  int n=changes.size();
+  if (n > 0) {
+    Replacement[] repls=(Replacement[])changes.toArray(new Replacement[n]);
+    Arrays.sort(repls);
+    StringCopier copier=new StringCopier(source);
+    for (int i=0; i < n; ++i) {
+      Replacement repl=repls[i];
+      copier.commit(repl.text,repl.start,repl.end);
+    }
+    char[] results=copier.finish();
+    return new CompilationUnitProviderWithAlternateSource(cup,results);
+  }
+ else {
+    logger.log(TreeLogger.SPAM,"No JavaScript native methods were found",null);
+    return cup;
+  }
+}

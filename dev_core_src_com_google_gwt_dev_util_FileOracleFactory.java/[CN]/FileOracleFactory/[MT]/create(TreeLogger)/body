@@ -1,0 +1,33 @@
+{
+  List classPathUrls=new ArrayList();
+  for (ClassLoader curCL=classLoader; curCL != null; curCL=curCL.getParent()) {
+    if (curCL instanceof URLClassLoader) {
+      URLClassLoader curURLCL=(URLClassLoader)curCL;
+      URL[] curURLs=curURLCL.getURLs();
+      classPathUrls.addAll(Arrays.asList(curURLs));
+    }
+  }
+  List urls=new ArrayList();
+  List pkgNames=new ArrayList();
+  List filters=new ArrayList();
+  addPackagesInSortedOrder(logger,classLoader,rootPackages,classPathUrls,urls,pkgNames,filters,false);
+  addPackagesInSortedOrder(logger,classLoader,packages,classPathUrls,urls,pkgNames,filters,true);
+  List logicalNames=new ArrayList();
+  Map logicalToPhysical=new HashMap();
+  for (int i=0, c=urls.size(); i < c; ++i) {
+    try {
+      URL url=(URL)urls.get(i);
+      String pkgName=(String)pkgNames.get(i);
+      FileFilter filter=(FileFilter)filters.get(i);
+      TreeLogger branch=logger.branch(TreeLogger.TRACE,url.toString(),null);
+      indexURL(branch,filter,url,pkgName,logicalNames,logicalToPhysical);
+    }
+ catch (    URISyntaxException e) {
+      logger.log(TreeLogger.WARN,"Unexpected error searching " + urls.get(i),e);
+    }
+catch (    IOException e) {
+      logger.log(TreeLogger.WARN,"Unexpected error searching " + urls.get(i),e);
+    }
+  }
+  return new FileOracleImpl(logicalNames,logicalToPhysical);
+}

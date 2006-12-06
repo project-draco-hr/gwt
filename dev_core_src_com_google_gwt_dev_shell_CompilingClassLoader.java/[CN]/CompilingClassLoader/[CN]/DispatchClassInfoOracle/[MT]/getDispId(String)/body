@@ -1,0 +1,17 @@
+{
+  if (jsniMemberRef.equalsIgnoreCase("toString")) {
+    return 0;
+  }
+  int endClassName=jsniMemberRef.indexOf("::");
+  if (endClassName == -1 || jsniMemberRef.length() < 1 || jsniMemberRef.charAt(0) != '@') {
+    return -1;
+  }
+  String className=jsniMemberRef.substring(1,endClassName);
+  DispatchClassInfo dispClassInfo=getClassInfoFromClassName(className);
+  if (dispClassInfo != null) {
+    String memberName=jsniMemberRef.substring(endClassName + 2);
+    int memberId=dispClassInfo.getMemberId(memberName);
+    return synthesizeDispId(dispClassInfo.getClassId(),memberId);
+  }
+  return -1;
+}

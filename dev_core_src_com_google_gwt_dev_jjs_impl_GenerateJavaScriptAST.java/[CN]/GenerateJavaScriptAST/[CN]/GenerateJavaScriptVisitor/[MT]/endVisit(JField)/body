@@ -1,0 +1,18 @@
+{
+  if (x.hasInitializer() && x.constInitializer == null) {
+    push(null);
+    return;
+  }
+  if (x.constInitializer != null) {
+    x.constInitializer.traverse(this);
+  }
+ else {
+    x.getType().getDefaultValue().traverse(this);
+  }
+  JsNameRef fieldRef=getName(x).makeRef();
+  if (!x.isStatic()) {
+    fieldRef.setQualifier(fGlobalTemp.makeRef());
+  }
+  JsExpression asg=createAssignment(fieldRef,(JsExpression)pop());
+  push(new JsExprStmt(asg));
+}

@@ -1,0 +1,22 @@
+{
+  delayTestFinish(TEST_DELAY);
+  InheritanceTestServiceAsync service=getServiceAsync();
+  try {
+    service.echo(new AnonymousClassInterface(){
+      public void foo(){
+      }
+    }
+,new AsyncCallback(){
+      public void onFailure(      Throwable caught){
+        finishTest();
+      }
+      public void onSuccess(      Object result){
+        fail("Anonymous inner classes should not be serializable");
+      }
+    }
+);
+  }
+ catch (  RuntimeException ex) {
+    workAroundTypeSerializerBug(ex);
+  }
+}

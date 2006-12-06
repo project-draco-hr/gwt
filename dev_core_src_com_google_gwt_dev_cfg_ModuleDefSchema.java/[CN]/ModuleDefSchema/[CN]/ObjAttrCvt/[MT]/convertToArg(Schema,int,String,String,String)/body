@@ -1,0 +1,29 @@
+{
+  Object found=singletonsByName.get(attrValue);
+  if (found != null) {
+    return found;
+  }
+  try {
+    ClassLoader cl=Thread.currentThread().getContextClassLoader();
+    Class clazz=cl.loadClass(attrValue);
+    if (!fReqdSuperclass.isAssignableFrom(clazz)) {
+      Messages.INVALID_CLASS_DERIVATION.log(logger,clazz,fReqdSuperclass,null);
+      throw new UnableToCompleteException();
+    }
+    Object object=clazz.newInstance();
+    singletonsByName.put(attrValue,object);
+    return object;
+  }
+ catch (  ClassNotFoundException e) {
+    Messages.UNABLE_TO_LOAD_CLASS.log(logger,attrValue,e);
+    throw new UnableToCompleteException();
+  }
+catch (  InstantiationException e) {
+    Messages.UNABLE_TO_CREATE_OBJECT.log(logger,attrValue,e);
+    throw new UnableToCompleteException();
+  }
+catch (  IllegalAccessException e) {
+    Messages.UNABLE_TO_CREATE_OBJECT.log(logger,attrValue,e);
+    throw new UnableToCompleteException();
+  }
+}

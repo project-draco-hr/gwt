@@ -1,0 +1,17 @@
+{
+  assert(type != null);
+  assert(serializationOracle.isSerializable(type));
+  JParameterizedType parameterizedType=type.isParameterized();
+  if (parameterizedType != null) {
+    return createFieldSerializer(logger,ctx,parameterizedType.getRawType());
+  }
+  TypeOracle typeOracle=ctx.getTypeOracle();
+  assert(typeOracle != null);
+  JClassType customFieldSerializer=serializationOracle.hasCustomFieldSerializer(type);
+  if (customFieldSerializer != null) {
+    return customFieldSerializer.getQualifiedSourceName();
+  }
+  assert(type.isClass() != null);
+  FieldSerializerCreator creator=new FieldSerializerCreator(serializationOracle,type.isClass());
+  return creator.realize(logger,ctx);
+}

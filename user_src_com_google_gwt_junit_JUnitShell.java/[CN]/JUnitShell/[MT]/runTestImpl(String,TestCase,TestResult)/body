@@ -1,0 +1,22 @@
+{
+  String newTestCaseClassName=testCase.getClass().getName();
+  messageQueue.setNextTestName(newTestCaseClassName,testCase.getName());
+  boolean forceLaunch=!newTestCaseClassName.equals(testCaseClassName);
+  testCaseClassName=newTestCaseClassName;
+  runStyle.maybeLaunchModule(moduleName,forceLaunch);
+  try {
+    testBeginTimout=System.currentTimeMillis() + TEST_BEGIN_TIMEOUT_MILLIS;
+    pumpEventLoop();
+  }
+ catch (  TimeoutException e) {
+    testResult.addError(testCase,e);
+    return;
+  }
+  Throwable result=messageQueue.getResult(testCaseClassName);
+  if (result instanceof AssertionFailedError) {
+    testResult.addFailure(testCase,(AssertionFailedError)result);
+  }
+ else   if (result != null) {
+    testResult.addError(testCase,result);
+  }
+}

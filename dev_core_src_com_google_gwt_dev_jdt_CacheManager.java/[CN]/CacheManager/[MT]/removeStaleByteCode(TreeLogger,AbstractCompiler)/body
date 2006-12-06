@@ -1,0 +1,45 @@
+{
+  if (cacheDir == null) {
+    byteCodeCache.clear();
+    return;
+  }
+  if (isFirstTime()) {
+    Set classNames=byteCodeCache.keySet();
+    for (Iterator iter=classNames.iterator(); iter.hasNext(); ) {
+      Object className=iter.next();
+      ByteCode byteCode=((ByteCode)(byteCodeCache.get(className)));
+      if (byteCode == null) {
+        iter.remove();
+        continue;
+      }
+      String qname=byteCode.getBinaryTypeName();
+      if (TRANSIENT_CLASS_NAMES.contains(qname)) {
+        continue;
+      }
+      if (byteCode != null) {
+        String location=byteCode.getLocation();
+        if (byteCode.isTransient()) {
+          continue;
+        }
+        String fileName=Util.findFileName(location);
+        CompilationUnitDeclaration compilationUnitDeclaration=((CompilationUnitDeclaration)cudsByFileName.get(location));
+        if (compilationUnitDeclaration == null) {
+          changedFiles.add(location);
+          continue;
+        }
+        long srcLastModified=Long.MAX_VALUE;
+        File srcLocation=new File(fileName);
+        if (srcLocation.exists()) {
+          srcLastModified=srcLocation.lastModified();
+        }
+        long byteCodeLastModified=byteCodeCache.lastModified(className);
+        if (srcLastModified >= byteCodeLastModified) {
+          changedFiles.add(location);
+        }
+      }
+    }
+    addDependentsToChangedFiles();
+  }
+  becomeNotFirstTime();
+  invalidateChangedFiles(logger,compiler);
+}

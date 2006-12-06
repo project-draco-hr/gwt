@@ -1,0 +1,57 @@
+{
+  List genTypeNames=new ArrayList();
+  try {
+    TreeLogger branch;
+    if (!committedGeneratedCups.isEmpty()) {
+      String msg="Assimilating generated source";
+      branch=logger.branch(TreeLogger.DEBUG,msg,null);
+      TreeLogger subBranch=null;
+      if (branch.isLoggable(TreeLogger.DEBUG)) {
+        subBranch=branch.branch(TreeLogger.DEBUG,"Generated source files...",null);
+      }
+      assert(cacheManager.getTypeOracle() == typeOracle);
+      TypeOracleBuilder builder=new TypeOracleBuilder(cacheManager);
+      for (Iterator iter=committedGeneratedCups.iterator(); iter.hasNext(); ) {
+        GeneratedCompilationUnitProvider gcup=(GeneratedCompilationUnitProvider)iter.next();
+        String typeName=gcup.getTypeName();
+        String genTypeName=gcup.getPackageName() + "." + typeName;
+        genTypeNames.add(genTypeName);
+        CompilationUnitProvider cup=writeSource(logger,gcup,typeName);
+        builder.addCompilationUnit(cup);
+        if (subBranch != null) {
+          subBranch.log(TreeLogger.DEBUG,cup.getLocation(),null);
+        }
+      }
+      cacheManager.markVolatileFiles(committedGeneratedCups);
+      builder.build(branch);
+    }
+    JClassType[] genTypes=new JClassType[genTypeNames.size()];
+    int next=0;
+    for (Iterator iter=genTypeNames.iterator(); iter.hasNext(); ) {
+      String genTypeName=(String)iter.next();
+      try {
+        genTypes[next++]=typeOracle.getType(genTypeName);
+      }
+ catch (      NotFoundException e) {
+        String msg="Unable to find recently-generated type '" + genTypeName;
+        logger.log(TreeLogger.ERROR,msg,null);
+        throw new UnableToCompleteException();
+      }
+    }
+    return genTypes;
+  }
+  finally {
+    if (!uncommittedGeneratedCupsByPrintWriter.isEmpty()) {
+      String msg="For the following type(s), generated source was never committed (did you forget to call commit()?)";
+      logger=logger.branch(TreeLogger.WARN,msg,null);
+      for (Iterator iter=uncommittedGeneratedCupsByPrintWriter.values().iterator(); iter.hasNext(); ) {
+        StaticCompilationUnitProvider cup=(StaticCompilationUnitProvider)iter.next();
+        String typeName=cup.getPackageName() + "." + cup.getTypeName();
+        logger.log(TreeLogger.WARN,typeName,null);
+      }
+    }
+    uncommittedGeneratedCupsByPrintWriter.clear();
+    committedGeneratedCups.clear();
+    generatedTypeNames.clear();
+  }
+}

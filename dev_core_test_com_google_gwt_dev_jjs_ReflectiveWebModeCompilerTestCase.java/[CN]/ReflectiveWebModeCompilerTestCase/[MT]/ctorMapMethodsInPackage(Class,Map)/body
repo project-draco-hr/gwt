@@ -1,0 +1,21 @@
+{
+  Class superClass=packageClass.getSuperclass();
+  if (superClass != null)   ctorMapMethodsInPackage(superClass,methodByName);
+  Method[] methods=packageClass.getDeclaredMethods();
+  for (int i=0; i < methods.length; i++) {
+    Method method=methods[i];
+    String methodName=method.getName();
+    if (methodName.startsWith("src_")) {
+      if (method.getParameterTypes().length == 0) {
+        int modifiers=method.getModifiers();
+        if (Modifier.isStatic(modifiers) && Modifier.isPublic(modifiers)) {
+          method.setAccessible(true);
+          methodByName.put(methodName,method);
+        }
+ else {
+          System.err.println("Source method " + methodName + " in class "+ packageClass.getName()+ " should be 'public' and 'static'");
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  delayTestFinish(TEST_DELAY);
+  InheritanceTestSetFactory factory=new InheritanceTestSetFactory();
+  InheritanceTestServiceAsync service=getServiceAsync();
+  try {
+    service.echo(factory.new NonStaticInnerClass(),new AsyncCallback(){
+      public void onFailure(      Throwable caught){
+        finishTest();
+      }
+      public void onSuccess(      Object result){
+        fail("Non-static inner classes should not be serializable");
+      }
+    }
+);
+  }
+ catch (  RuntimeException ex) {
+    workAroundTypeSerializerBug(ex);
+  }
+}

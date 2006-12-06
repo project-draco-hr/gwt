@@ -1,0 +1,50 @@
+{
+  try {
+    fRootDoc=rootDoc;
+    File outputFile=new File(fOutputPath);
+    outputFile.getParentFile().mkdirs();
+    FileWriter fw=new FileWriter(outputFile);
+    pw=new PrintWriter(fw,true);
+    beginln("booklet");
+    fRootDocId="";
+    String title="";
+    Tag[] idTags=rootDoc.tags("@id");
+    if (idTags.length > 0) {
+      fRootDocId=idTags[0].text();
+    }
+ else {
+      fRootDoc.printWarning("Expecting @id in an overview html doc; see -overview");
+    }
+    Tag[] titleTags=rootDoc.tags("@title");
+    if (titleTags.length > 0) {
+      title=titleTags[0].text();
+    }
+ else {
+      fRootDoc.printWarning("Expecting @title in an overview html doc; see -overview");
+    }
+    emitIdentity(fRootDocId,title);
+    emitLocation(rootDoc);
+    emitDescription(null,rootDoc,rootDoc.firstSentenceTags(),rootDoc.inlineTags());
+    emitOutOfLineTags(rootDoc.tags());
+    HashSet packageNames=new HashSet();
+    ClassDoc[] cda=fRootDoc.classes();
+    for (int i=0; i < cda.length; i++) {
+      ClassDoc cd=cda[i];
+      if (cd.containingClass() == null) {
+        packageNames.add(cd.containingPackage().name());
+      }
+    }
+    for (Iterator iter=packageNames.iterator(); iter.hasNext(); ) {
+      String packageName=(String)iter.next();
+      if (fPackagesToGenerate == null || fPackagesToGenerate.contains(packageName)) {
+        PackageDoc pd=fRootDoc.packageNamed(packageName);
+        process(pd);
+      }
+    }
+    endln();
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    fRootDoc.printError("Caught exception: " + e.toString());
+  }
+}

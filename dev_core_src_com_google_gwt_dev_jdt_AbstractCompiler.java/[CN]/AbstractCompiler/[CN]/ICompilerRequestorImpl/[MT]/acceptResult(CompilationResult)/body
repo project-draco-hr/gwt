@@ -1,0 +1,26 @@
+{
+  IProblem[] errors=result.getErrors();
+  if (errors != null && errors.length > 0) {
+    String fn=String.valueOf(result.compilationUnit.getFileName());
+    String msg="Errors in '" + fn + "'";
+    TreeLogger branch=getLogger().branch(TreeLogger.ERROR,msg,null);
+    for (int i=0; i < errors.length; i++) {
+      IProblem error=errors[i];
+      msg=error.toString();
+      msg=msg.substring(msg.indexOf(' '));
+      if (error.getID() >= IProblem.InvalidUsageOfTypeParameters && error.getID() <= IProblem.InvalidUsageOfAnnotationDeclarations) {
+        msg="GWT does not yet support the Java 5.0 language enhancements; only 1.4 compatible source may be used";
+      }
+      StringBuffer msgBuf=new StringBuffer();
+      int line=error.getSourceLineNumber();
+      if (line > 0) {
+        msgBuf.append("Line ");
+        msgBuf.append(line);
+        msgBuf.append(": ");
+      }
+      msgBuf.append(msg);
+      branch.log(TreeLogger.ERROR,msgBuf.toString(),null);
+    }
+  }
+  doAcceptResult(result);
+}

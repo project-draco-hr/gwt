@@ -1,0 +1,16 @@
+{
+  JMethod oldMethod=x.getTarget();
+  JMethod newMethod=program.getStaticImpl(oldMethod);
+  if (newMethod == null || x.canBePolymorphic()) {
+    return;
+  }
+  ChangeList changes=new ChangeList("Replace '" + x + "' with a static call");
+  JMethodCall newCall=new JMethodCall(program,null,newMethod);
+  changes.replaceExpression(m,newCall);
+  changes.addExpression(x.instance,newCall.args);
+  for (int i=0; i < x.args.size(); ++i) {
+    Mutator arg=x.args.getMutator(i);
+    changes.addExpression(arg,newCall.args);
+  }
+  changeList.add(changes);
+}

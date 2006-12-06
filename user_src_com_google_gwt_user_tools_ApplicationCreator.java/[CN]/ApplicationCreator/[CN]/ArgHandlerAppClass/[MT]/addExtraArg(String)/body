@@ -1,0 +1,21 @@
+{
+  if (fullClassName != null) {
+    System.err.println("Too many arguments");
+    return false;
+  }
+  if (!arg.matches("[\\w\\$]+(\\.[\\w\\$]+)+")) {
+    System.err.println("'" + arg + "' does not appear to be a valid fully-qualified Java class name");
+    return false;
+  }
+  if (arg.indexOf('$') != -1) {
+    System.err.println("'" + arg + "': This version of the tool does not support nested classes");
+    return false;
+  }
+  String[] parts=arg.split("\\.");
+  if (parts.length < 2 || !parts[parts.length - 2].equals("client")) {
+    System.err.println("'" + arg + "': Please use 'client' as the final package, as in 'com.example.foo.client.MyApp'.\n"+ "It isn't technically necessary, but this tool enforces the best practice.");
+    return false;
+  }
+  fullClassName=arg;
+  return true;
+}

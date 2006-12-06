@@ -1,0 +1,25 @@
+{
+  long nextPingTime=System.currentTimeMillis() + pingDelaySecs * 1000;
+  prefs.put(NEXT_PING,String.valueOf(nextPingTime));
+  if (DEBUG_VERSION_CHECK) {
+    System.out.println("Ping delay is " + pingDelaySecs + "; next ping at "+ new Date(nextPingTime));
+  }
+  String lastServerVersion=prefs.get(LAST_SERVER_VERSION,null);
+  prefs.put(LAST_SERVER_VERSION,version);
+  if (!isServerVersionNewer(About.GWT_VERSION_NUM,version)) {
+    if (DEBUG_VERSION_CHECK) {
+      System.out.println("Server version is not newer");
+    }
+    return;
+  }
+  if (version.equals(lastServerVersion)) {
+    if (DEBUG_VERSION_CHECK) {
+      System.out.println("A notification has already been shown for " + version);
+    }
+    return;
+  }
+  if (DEBUG_VERSION_CHECK) {
+    System.out.println("Server version has changed to " + version + "; notification will be shown");
+  }
+  callback.onUpdateAvailable(html);
+}

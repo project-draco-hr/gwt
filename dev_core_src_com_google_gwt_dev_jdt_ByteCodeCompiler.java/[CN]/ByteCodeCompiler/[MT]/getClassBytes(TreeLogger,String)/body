@@ -1,0 +1,18 @@
+{
+  String msg="Getting bytecode for '" + binaryTypeName + "'";
+  logger=logger.branch(TreeLogger.SPAM,msg,null);
+  setLogger(logger);
+  ByteCode byteCode=doGetByteCodeFromCache(logger,binaryTypeName);
+  if (byteCode != null) {
+    return byteCode.getBytes();
+  }
+  ICompilationUnit start=getCompilationUnitForType(logger,binaryTypeName);
+  compile(logger,new ICompilationUnit[]{start});
+  byteCode=doGetByteCodeFromCache(logger,binaryTypeName);
+  if (byteCode != null) {
+    return byteCode.getBytes();
+  }
+ else {
+    throw new UnableToCompleteException();
+  }
+}

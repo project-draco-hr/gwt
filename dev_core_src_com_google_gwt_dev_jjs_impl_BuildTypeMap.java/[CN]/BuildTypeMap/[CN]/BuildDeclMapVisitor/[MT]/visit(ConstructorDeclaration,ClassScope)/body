@@ -1,0 +1,43 @@
+{
+  MethodBinding b=ctorDecl.binding;
+  JClassType enclosingType=(JClassType)fTypeMap.get(scope.enclosingSourceType());
+  String name=enclosingType.getShortName();
+  JMethod newMethod=fProgram.createMethod(name.toCharArray(),enclosingType,enclosingType,false,false,true,b.isPrivate(),false);
+  mapThrownExceptions(newMethod,ctorDecl);
+  int syntheticParamCount=0;
+  ReferenceBinding declaringClass=b.declaringClass;
+  if (declaringClass.isNestedType() && !declaringClass.isStatic()) {
+    NestedTypeBinding nestedBinding=(NestedTypeBinding)declaringClass;
+    Set alreadyNamedVariables=new HashSet();
+    if (nestedBinding.enclosingInstances != null) {
+      for (int i=0; i < nestedBinding.enclosingInstances.length; ++i) {
+        SyntheticArgumentBinding arg=nestedBinding.enclosingInstances[i];
+        String argName=String.valueOf(arg.name);
+        if (alreadyNamedVariables.contains(argName)) {
+          argName+="_" + i;
+        }
+        createParameter(arg,argName,newMethod);
+        ++syntheticParamCount;
+        alreadyNamedVariables.add(argName);
+      }
+    }
+    if (nestedBinding.outerLocalVariables != null) {
+      for (int i=0; i < nestedBinding.outerLocalVariables.length; ++i) {
+        SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
+        String argName=String.valueOf(arg.name);
+        if (alreadyNamedVariables.contains(argName)) {
+          argName+="_" + i;
+        }
+        createParameter(arg,argName,newMethod);
+        ++syntheticParamCount;
+        alreadyNamedVariables.add(argName);
+      }
+    }
+  }
+  mapParameters(newMethod,ctorDecl);
+  for (; syntheticParamCount > 0; --syntheticParamCount) {
+    newMethod.getOriginalParamTypes().remove(0);
+  }
+  fTypeMap.put(b,newMethod);
+  return true;
+}

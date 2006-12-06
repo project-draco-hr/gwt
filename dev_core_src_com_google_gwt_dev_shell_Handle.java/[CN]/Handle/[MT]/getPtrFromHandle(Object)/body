@@ -1,0 +1,21 @@
+{
+  try {
+    checkThread();
+    Class handleClass=handle.getClass();
+    while (handleClass != null && !handleClass.getName().equals(HANDLE_CLASS))     handleClass=handleClass.getSuperclass();
+    if (handleClass == null)     throw new RuntimeException("Error reading handle");
+    Field opaqueField=handleClass.getDeclaredField("opaque");
+    opaqueField.setAccessible(true);
+    Integer opaque=(Integer)opaqueField.get(handle);
+    return opaque.intValue();
+  }
+ catch (  IllegalAccessException e) {
+    throw new RuntimeException("Error reading handle",e);
+  }
+catch (  SecurityException e) {
+    throw new RuntimeException("Error reading handle",e);
+  }
+catch (  NoSuchFieldException e) {
+    throw new RuntimeException("Error reading handle",e);
+  }
+}

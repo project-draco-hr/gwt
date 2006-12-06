@@ -1,0 +1,29 @@
+{
+  assert(type != null);
+  assert(fmt != null);
+  assert(args >= 0);
+  fType=type;
+  fFmtParts=new char[args + 1][];
+  fArgIndices=new int[args];
+  int from=0;
+  for (int i=0; i < args; ++i) {
+    int to=fmt.indexOf('$',from);
+    if (to != -1) {
+      if (to < fmt.length() - 1) {
+        char charDigit=fmt.charAt(to + 1);
+        if (Character.isDigit(charDigit)) {
+          int digit=Character.digit(charDigit,10);
+          fFmtParts[i]=fmt.substring(from,to).toCharArray();
+          fArgIndices[i]=digit;
+          from=to + 2;
+          continue;
+        }
+      }
+    }
+    throw new IllegalArgumentException("Expected arg $" + i);
+  }
+  fFmtParts[args]=fmt.substring(from).toCharArray();
+  int minChars=0;
+  for (int i=0, n=fFmtParts.length; i < n; ++i)   minChars+=fFmtParts[i].length;
+  fMinChars=minChars;
+}

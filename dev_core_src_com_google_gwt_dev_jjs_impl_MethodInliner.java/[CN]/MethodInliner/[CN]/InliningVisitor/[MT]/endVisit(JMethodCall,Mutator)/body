@@ -1,0 +1,23 @@
+{
+  JMethod method=x.getTarget();
+  if (!method.isStatic() || method.isNative()) {
+    return;
+  }
+  if (cannotInline.contains(method)) {
+    return;
+  }
+  List stmts=method.body.statements;
+  boolean didInline=false;
+  if (stmts.isEmpty()) {
+    didInline=inlineEmptyMethodCall(x,m,method);
+  }
+ else   if (stmts.size() == 1) {
+    JStatement stmt=(JStatement)stmts.get(0);
+    if (stmt instanceof JReturnStatement) {
+      didInline=tryInlineSimpleMethodCall(x,m,method,(JReturnStatement)stmt);
+    }
+  }
+  if (!didInline) {
+    cannotInline.add(method);
+  }
+}

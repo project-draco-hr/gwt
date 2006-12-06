@@ -1,0 +1,26 @@
+{
+  if (isCompilationUnitOnDisk(location)) {
+    return null;
+  }
+  File tmpSrc;
+  Throwable caught=null;
+  try {
+    String prefix="gen";
+    if (optionalTypeName != null) {
+      prefix=optionalTypeName;
+    }
+    tmpSrc=File.createTempFile(prefix,".java");
+    writeCharsAsFile(logger,tmpSrc,source);
+    String dumpPath=tmpSrc.getAbsolutePath();
+    logger.log(TreeLogger.ERROR,"Compilation problem due to '" + location + "'; see snapshot "+ dumpPath,null);
+    return dumpPath;
+  }
+ catch (  IOException e) {
+    caught=e;
+  }
+catch (  UnableToCompleteException e) {
+    caught=e;
+  }
+  logger.log(TreeLogger.ERROR,"Compilation problem due to in-memory source '" + location + "', but unable to dump to disk",caught);
+  return null;
+}

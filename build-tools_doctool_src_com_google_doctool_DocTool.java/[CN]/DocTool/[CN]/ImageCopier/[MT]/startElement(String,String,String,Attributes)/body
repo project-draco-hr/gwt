@@ -1,0 +1,34 @@
+{
+  if (qName.equalsIgnoreCase("img")) {
+    String imgSrc=attributes.getValue("src");
+    if (imgSrc != null) {
+      boolean found=false;
+      for (int i=0, n=fImagePath.length; i < n; ++i) {
+        File dir=fImagePath[i];
+        File inFile=new File(dir,imgSrc);
+        if (inFile.exists()) {
+          found=true;
+          File outFile=new File(fHtmlDir,imgSrc);
+          if (outFile.exists()) {
+            if (outFile.lastModified() > inFile.lastModified()) {
+              break;
+            }
+          }
+ else {
+            File outFileDir=outFile.getParentFile();
+            if (!outFileDir.exists() && !outFileDir.mkdirs()) {
+              fErr.println("Unable to create image output dir " + outFileDir);
+              break;
+            }
+          }
+          if (!copyFile(inFile,outFile)) {
+            fErr.println("Unable to copy image file " + outFile);
+          }
+        }
+      }
+      if (!found) {
+        fErr.println("Unable to find image " + imgSrc);
+      }
+    }
+  }
+}

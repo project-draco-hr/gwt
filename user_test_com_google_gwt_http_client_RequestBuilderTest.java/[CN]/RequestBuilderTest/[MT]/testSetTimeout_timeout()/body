@@ -1,0 +1,20 @@
+{
+  delayTestFinish(TEST_FINISH_DELAY);
+  try {
+    RequestBuilder builder=new RequestBuilder(RequestBuilder.GET,getTestBaseURL() + "setTimeout/timeout");
+    builder.setTimeoutMillis(2000);
+    builder.sendRequest(null,new RequestCallback(){
+      public void onError(      Request request,      Throwable exception){
+        finishTest();
+      }
+      public void onResponseReceived(      Request request,      Response response){
+        assertEquals(200,response.getStatusCode());
+        fail("Test did not timeout");
+      }
+    }
+);
+  }
+ catch (  RequestException e) {
+    fail(e.getMessage());
+  }
+}

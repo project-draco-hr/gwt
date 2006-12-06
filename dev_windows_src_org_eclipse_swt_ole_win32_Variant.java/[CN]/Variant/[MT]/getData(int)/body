@@ -1,0 +1,64 @@
+{
+  if (pData == 0)   OLE.error(OLE.ERROR_OUT_OF_MEMORY);
+  COM.VariantInit(pData);
+  if ((type & COM.VT_BYREF) == COM.VT_BYREF) {
+    COM.MoveMemory(pData,new short[]{type},2);
+    COM.MoveMemory(pData + 8,new int[]{byRefPtr},4);
+    return;
+  }
+switch (type) {
+case COM.VT_EMPTY:
+case COM.VT_NULL:
+    COM.MoveMemory(pData,new short[]{type},2);
+  break;
+case COM.VT_BOOL:
+COM.MoveMemory(pData,new short[]{type},2);
+COM.MoveMemory(pData + 8,new int[]{(booleanData) ? COM.VARIANT_TRUE : COM.VARIANT_FALSE},2);
+break;
+case COM.VT_I1:
+COM.MoveMemory(pData,new short[]{type},2);
+COM.MoveMemory(pData + 8,new byte[]{byteData},1);
+break;
+case COM.VT_I2:
+COM.MoveMemory(pData,new short[]{type},2);
+COM.MoveMemory(pData + 8,new short[]{shortData},2);
+break;
+case COM.VT_I4:
+COM.MoveMemory(pData,new short[]{type},2);
+COM.MoveMemory(pData + 8,new int[]{intData},4);
+break;
+case COM.VT_I8:
+COM.MoveMemory(pData,new short[]{type},2);
+COM.MoveMemory(pData + 8,new long[]{longData},8);
+case COM.VT_UI2:
+COM.MoveMemory(pData,new short[]{type},2);
+COM.MoveMemory(pData + 8,new char[]{charData},2);
+break;
+case COM.VT_R4:
+COM.MoveMemory(pData,new short[]{type},2);
+COM.MoveMemory(pData + 8,new float[]{floatData},4);
+break;
+case COM.VT_R8:
+COM.MoveMemory(pData,new short[]{type},2);
+COM.MoveMemory(pData + 8,new double[]{doubleData},8);
+break;
+case COM.VT_DISPATCH:
+dispatchData.AddRef();
+COM.MoveMemory(pData,new short[]{type},2);
+COM.MoveMemory(pData + 8,new int[]{dispatchData.getAddress()},4);
+break;
+case COM.VT_UNKNOWN:
+unknownData.AddRef();
+COM.MoveMemory(pData,new short[]{type},2);
+COM.MoveMemory(pData + 8,new int[]{unknownData.getAddress()},4);
+break;
+case COM.VT_BSTR:
+COM.MoveMemory(pData,new short[]{type},2);
+char[] data=(stringData + "\0").toCharArray();
+int ptr=COM.SysAllocString(data);
+COM.MoveMemory(pData + 8,new int[]{ptr},4);
+break;
+default :
+OLE.error(SWT.ERROR_NOT_IMPLEMENTED);
+}
+}

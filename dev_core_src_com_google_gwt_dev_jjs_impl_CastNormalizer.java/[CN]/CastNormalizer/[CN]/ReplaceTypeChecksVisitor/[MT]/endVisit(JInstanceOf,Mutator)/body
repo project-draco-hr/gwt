@@ -1,0 +1,16 @@
+{
+  JType argType=x.getExpression().getType();
+  if (argType instanceof JClassType && program.typeOracle.canTriviallyCast((JClassType)argType,x.testType)) {
+    JNullLiteral nullLit=program.getLiteralNull();
+    JBinaryOperation eq=new JBinaryOperation(program,program.getTypePrimitiveBoolean(),JBinaryOperator.NEQ,nullLit,nullLit);
+    ChangeList myChangeList=new ChangeList("Replace '" + x + "' with a simple null test.");
+    myChangeList.replaceExpression(eq.lhs,x.expr);
+    myChangeList.replaceExpression(m,eq);
+    changeList.add(myChangeList);
+  }
+ else {
+    JMethod method=program.getSpecialMethod("Cast.instanceOf");
+    JMethodCall call=new JMethodCall(program,null,method);
+    replaceCast(call,x.testType,m,x.expr);
+  }
+}

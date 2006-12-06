@@ -1,0 +1,23 @@
+{
+  assert(type != null);
+  if (reachableTypes.contains(type)) {
+    return;
+  }
+  logger=logger.branch(TreeLogger.DEBUG,"Adding types reachable from type " + type.getQualifiedSourceName(),null);
+  reachableTypes.add(type);
+  if (type.isPrimitive() != null) {
+    return;
+  }
+  if (type.isArray() != null) {
+    addTypesReachableFromArray(logger,reachableTypes,type.isArray());
+    return;
+  }
+  if (type.isParameterized() != null) {
+    addTypeReachableFromParameterizedType(logger,reachableTypes,type.isParameterized());
+    return;
+  }
+  if (type.isClassOrInterface() == null) {
+    return;
+  }
+  addTypesReachableFromClassOrInterface(logger,reachableTypes,type.isClassOrInterface());
+}

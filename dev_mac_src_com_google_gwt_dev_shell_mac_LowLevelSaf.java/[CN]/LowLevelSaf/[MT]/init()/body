@@ -1,0 +1,25 @@
+{
+  LowLevel.init();
+  String libName="gwt-webkit";
+  if (!sInitialized) {
+    try {
+      String installPath=Utility.getInstallPath();
+      try {
+        installPath=new File(installPath).getCanonicalPath();
+      }
+ catch (      IOException e) {
+      }
+      System.load(installPath + '/' + System.mapLibraryName(libName));
+      if (!_initNative(DispatchObject.class,DispatchMethod.class)) {
+        throw new RuntimeException("Unable to initialize " + libName);
+      }
+    }
+ catch (    UnsatisfiedLinkError e) {
+      StringBuffer sb=new StringBuffer();
+      sb.append("Unable to load required native library '" + libName + "'");
+      sb.append("\n\tYour GWT installation may be corrupt");
+      throw new UnsatisfiedLinkError(sb.toString());
+    }
+    sInitialized=true;
+  }
+}

@@ -1,0 +1,27 @@
+{
+  if (child == null) {
+    return null;
+  }
+  try {
+    fParams[0]=child.getClass();
+    Method method=getClass().getDeclaredMethod(name,fParams);
+    fArgs[0]=child;
+    return (JNode)method.invoke(this,fArgs);
+  }
+ catch (  SecurityException e) {
+    throw new InternalCompilerException("Error during dispatch",e);
+  }
+catch (  NoSuchMethodException e) {
+    String s=fParams[0].getName();
+    throw new InternalCompilerException("Expecting: private void " + name + "("+ s.substring(s.lastIndexOf('.') + 1)+ " x) { }",e);
+  }
+catch (  IllegalArgumentException e) {
+    throw new InternalCompilerException("Error during dispatch",e);
+  }
+catch (  IllegalAccessException e) {
+    throw new InternalCompilerException("Error during dispatch",e);
+  }
+catch (  InvocationTargetException e) {
+    throw new InternalCompilerException("Error during dispatch",e.getTargetException());
+  }
+}

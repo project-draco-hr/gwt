@@ -1,0 +1,67 @@
+{
+  super(logger,writer,localizableClass,messageBindings,oracle);
+  try {
+    JType booleanType=oracle.parse(boolean.class.getName());
+    LookupMethodCreator booleanMethod=new LookupMethodCreator(this,booleanType){
+      public void printReturnTarget(){
+        println("return target.booleanValue();");
+      }
+      public String returnTemplate(){
+        return "boolean answer = {0}();\n cache.put(\"{0}\",new Boolean(answer));return answer;";
+      }
+    }
+;
+    namesToMethodCreators.put("getBoolean",booleanMethod);
+    JType doubleType=oracle.parse(double.class.getName());
+    LookupMethodCreator doubleMethod=new LookupMethodCreator(this,doubleType){
+      public void printReturnTarget(){
+        println("return target.doubleValue();");
+      }
+      public String returnTemplate(){
+        return "double answer = {0}();\n cache.put(\"{0}\",new Double(answer));return answer;";
+      }
+    }
+;
+    namesToMethodCreators.put("getDouble",doubleMethod);
+    JType intType=oracle.parse(int.class.getName());
+    LookupMethodCreator intMethod=new LookupMethodCreator(this,intType){
+      public void printReturnTarget(){
+        println("return target.intValue();");
+      }
+      public String returnTemplate(){
+        return "int answer = {0}();\n cache.put(\"{0}\",new Integer(answer));return answer;";
+      }
+    }
+;
+    namesToMethodCreators.put("getInt",intMethod);
+    JType floatType=oracle.parse(float.class.getName());
+    LookupMethodCreator floatMethod=new LookupMethodCreator(this,floatType){
+      public String returnTemplate(){
+        String val="float v ={0}(); cache.put(\"{0}\", new Float(v));return v;";
+        return val;
+      }
+      protected void printReturnTarget(){
+        println("return target.floatValue();");
+      }
+    }
+;
+    namesToMethodCreators.put("getFloat",floatMethod);
+    JType mapType=oracle.parse(Map.class.getName());
+    namesToMethodCreators.put("getMap",new LookupMethodCreator(this,mapType));
+    JType stringType=oracle.parse(String.class.getName());
+    LookupMethodCreator stringMethod=new LookupMethodCreator(this,stringType){
+      public String returnTemplate(){
+        return "String answer = {0}();\n cache.put(\"{0}\",answer);return answer;";
+      }
+    }
+;
+    namesToMethodCreators.put("getString",stringMethod);
+    JType stringArray=oracle.getArrayType(stringType);
+    namesToMethodCreators.put("getStringArray",new LookupMethodCreator(this,stringArray));
+    setNeedCache(true);
+    allInterfaceMethods=getAllInterfaceMethods(localizableClass);
+  }
+ catch (  TypeOracleException e) {
+    throw error(logger,e);
+  }
+}

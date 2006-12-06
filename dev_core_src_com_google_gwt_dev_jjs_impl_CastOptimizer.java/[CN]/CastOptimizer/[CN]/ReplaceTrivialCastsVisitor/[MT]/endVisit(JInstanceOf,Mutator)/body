@@ -1,0 +1,36 @@
+{
+  JType argType=x.getExpression().getType();
+  if (!(argType instanceof JReferenceType)) {
+    return;
+  }
+  JReferenceType toType=x.testType;
+  JReferenceType fromType=(JReferenceType)argType;
+  boolean triviallyTrue=false;
+  boolean triviallyFalse=false;
+  JTypeOracle typeOracle=program.typeOracle;
+  if (typeOracle.canTriviallyCast(fromType,toType)) {
+    triviallyTrue=true;
+  }
+ else   if (!typeOracle.isInstantiatedType(toType)) {
+    triviallyFalse=true;
+  }
+ else   if (!typeOracle.canTheoreticallyCast(fromType,toType)) {
+    triviallyFalse=true;
+  }
+  if (triviallyTrue) {
+    if (fromType == program.getTypeNull()) {
+      changeList.replaceExpression(m,program.getLiteralBoolean(true));
+    }
+ else {
+      JNullLiteral nullLit=program.getLiteralNull();
+      JBinaryOperation eq=new JBinaryOperation(program,program.getTypePrimitiveBoolean(),JBinaryOperator.NEQ,nullLit,nullLit);
+      ChangeList myChangeList=new ChangeList("Replace '" + x + "' with a simple null test.");
+      myChangeList.replaceExpression(eq.lhs,x.expr);
+      myChangeList.replaceExpression(m,eq);
+      changeList.add(myChangeList);
+    }
+  }
+ else   if (triviallyFalse) {
+    changeList.replaceExpression(m,program.getLiteralBoolean(false));
+  }
+}

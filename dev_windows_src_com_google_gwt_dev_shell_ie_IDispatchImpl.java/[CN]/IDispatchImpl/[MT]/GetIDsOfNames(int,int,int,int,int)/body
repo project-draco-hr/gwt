@@ -1,0 +1,20 @@
+{
+  try {
+    if (cNames < 1) {
+      return COM.E_INVALIDARG;
+    }
+    String[] names=SwtOleGlue.extractStringArrayFromOleCharPtrPtr(rgszNames,cNames);
+    int[] ids=new int[names.length];
+    Arrays.fill(ids,-1);
+    getIDsOfNames(names,ids);
+    OS.MoveMemory(rgDispId,ids,ids.length * 4);
+  }
+ catch (  HResultException e) {
+    return e.getHResult();
+  }
+catch (  Throwable e) {
+    e.printStackTrace();
+    return COM.E_FAIL;
+  }
+  return COM.S_OK;
+}

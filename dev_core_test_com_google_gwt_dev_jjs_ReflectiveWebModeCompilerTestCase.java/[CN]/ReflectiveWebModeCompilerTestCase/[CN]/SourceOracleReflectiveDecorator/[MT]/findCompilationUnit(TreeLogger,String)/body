@@ -1,0 +1,37 @@
+{
+  CompilationUnitProvider result=inner.findCompilationUnit(logger,sourceTypeName);
+  if (result == null) {
+    int lastDot=sourceTypeName.lastIndexOf('.');
+    String packageName="";
+    String simpleName=sourceTypeName;
+    if (lastDot != -1) {
+      packageName=sourceTypeName.substring(0,lastDot);
+      simpleName=sourceTypeName.substring(lastDot + 1);
+    }
+    String mangledPackageName=makeMangledPackageName(packageName);
+    Map methodsByMangledClassName=(Map)methodMapByPackageName.get(mangledPackageName);
+    if (methodsByMangledClassName != null) {
+      String mangledSimpleName=makeMangledSimpleName(simpleName);
+      Method method=(Method)methodsByMangledClassName.get(mangledSimpleName);
+      if (method != null) {
+        try {
+          String source=(String)method.invoke(null,new Object[0]);
+          result=new StaticCompilationUnitProvider(packageName,simpleName,source.toCharArray());
+        }
+ catch (        IllegalArgumentException e) {
+          e.printStackTrace();
+          return null;
+        }
+catch (        IllegalAccessException e) {
+          e.printStackTrace();
+          return null;
+        }
+catch (        InvocationTargetException e) {
+          e.printStackTrace();
+          return null;
+        }
+      }
+    }
+  }
+  return result;
+}

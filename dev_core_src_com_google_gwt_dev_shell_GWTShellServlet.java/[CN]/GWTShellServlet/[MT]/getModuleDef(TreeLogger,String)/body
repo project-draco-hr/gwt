@@ -1,0 +1,17 @@
+{
+synchronized (loadedModulesByName) {
+    ModuleDef moduleDef=(ModuleDef)loadedModulesByName.get(moduleName);
+    if (moduleDef == null) {
+      moduleDef=ModuleDefLoader.loadFromClassPath(logger,moduleName);
+      loadedModulesByName.put(moduleName,moduleDef);
+      String[] servletPaths=moduleDef.getServletPaths();
+      for (int i=0; i < servletPaths.length; i++) {
+        ModuleDef oldDef=(ModuleDef)modulesByServletPath.put(servletPaths[i],moduleDef);
+        if (oldDef != null) {
+          logger.log(TreeLogger.WARN,"Undefined behavior: Servlet path " + servletPaths[i] + " conflicts in modules "+ moduleDef.getName()+ " and "+ oldDef.getName(),null);
+        }
+      }
+    }
+    return moduleDef;
+  }
+}

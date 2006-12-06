@@ -1,0 +1,32 @@
+{
+  File[] files=curDir.listFiles();
+  for (int i=0; i < files.length; i++) {
+    File f=files[i];
+    if (f.exists()) {
+      if (f.isDirectory()) {
+        indexFolder(logger,filter,stripBaseLen,f,logicalNames,logicalToPhysical);
+      }
+ else       if (f.isFile()) {
+        try {
+          String logicalName=f.getAbsolutePath().substring(stripBaseLen);
+          logicalName=logicalName.replace(File.separatorChar,'/');
+          if (logicalToPhysical.containsKey(logicalName)) {
+            logger.log(TreeLogger.DEBUG,"Ignoring already-resolved " + logicalName,null);
+            continue;
+          }
+          if (filter != null && !filter.accept(logicalName)) {
+            logger.log(TreeLogger.SPAM,"Filtered out " + logicalName,null);
+            continue;
+          }
+          URL physicalUrl=f.toURL();
+          logicalToPhysical.put(logicalName,physicalUrl);
+          logicalNames.add(logicalName);
+          logger.log(TreeLogger.TRACE,"Found " + logicalName,null);
+        }
+ catch (        IOException e) {
+          logger.log(TreeLogger.WARN,"Unexpected error resolving " + f,e);
+        }
+      }
+    }
+  }
+}

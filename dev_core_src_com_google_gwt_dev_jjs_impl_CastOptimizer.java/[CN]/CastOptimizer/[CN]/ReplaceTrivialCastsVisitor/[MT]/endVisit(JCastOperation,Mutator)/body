@@ -1,0 +1,31 @@
+{
+  JType argType=x.getExpression().getType();
+  if (!(x.castType instanceof JReferenceType) || !(argType instanceof JReferenceType)) {
+    return;
+  }
+  JReferenceType toType=(JReferenceType)x.castType;
+  JReferenceType fromType=(JReferenceType)argType;
+  boolean triviallyTrue=false;
+  boolean triviallyFalse=false;
+  JTypeOracle typeOracle=program.typeOracle;
+  if (typeOracle.canTriviallyCast(fromType,toType)) {
+    triviallyTrue=true;
+  }
+ else   if (!typeOracle.isInstantiatedType(toType)) {
+    triviallyFalse=true;
+  }
+ else   if (!typeOracle.canTheoreticallyCast(fromType,toType)) {
+    triviallyFalse=true;
+  }
+  if (triviallyTrue) {
+    changeList.replaceExpression(m,x.expr);
+  }
+ else   if (triviallyFalse) {
+    JMethod method=program.getSpecialMethod("Cast.throwClassCastExceptionUnlessNull");
+    JMethodCall call=new JMethodCall(program,null,method,program.getTypeNull());
+    ChangeList myChangeList=new ChangeList("Replace '" + x + "' with a call to throwClassCastExceptionUnlessNull().");
+    myChangeList.addExpression(x.expr,call.args);
+    myChangeList.replaceExpression(m,call);
+    changeList.add(myChangeList);
+  }
+}

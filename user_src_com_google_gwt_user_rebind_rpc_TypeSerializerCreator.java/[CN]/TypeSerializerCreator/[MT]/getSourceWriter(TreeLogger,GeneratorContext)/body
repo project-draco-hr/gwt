@@ -1,0 +1,18 @@
+{
+  JClassType serviceIntf=getServiceInterface();
+  JPackage serviceIntfPackage=serviceIntf.getPackage();
+  String packageName=serviceIntfPackage != null ? serviceIntfPackage.getName() : "";
+  String className=serializationOracle.getTypeSerializerSimpleName(getServiceInterface());
+  PrintWriter printWriter=ctx.tryCreate(logger,packageName,className);
+  if (printWriter == null) {
+    return null;
+  }
+  ClassSourceFileComposerFactory composerFactory=new ClassSourceFileComposerFactory(packageName,className);
+  composerFactory.addImport(JavaScriptObject.class.getName());
+  composerFactory.addImport(Serializer.class.getName());
+  composerFactory.addImport(SerializationException.class.getName());
+  composerFactory.addImport(SerializationStreamReader.class.getName());
+  composerFactory.addImport(SerializationStreamWriter.class.getName());
+  composerFactory.addImplementedInterface("Serializer");
+  return composerFactory.createSourceWriter(ctx,printWriter);
+}

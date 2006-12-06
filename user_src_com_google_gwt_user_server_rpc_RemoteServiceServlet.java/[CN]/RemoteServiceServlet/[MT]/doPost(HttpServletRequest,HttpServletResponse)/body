@@ -1,0 +1,24 @@
+{
+  Throwable caught;
+  try {
+    perThreadRequest.set(request);
+    perThreadResponse.set(response);
+    String requestPayload=readPayloadAsUtf8(request);
+    String responsePayload=processCall(requestPayload);
+    writeResponse(request,response,responsePayload);
+    return;
+  }
+ catch (  IOException e) {
+    caught=e;
+  }
+catch (  ServletException e) {
+    caught=e;
+  }
+catch (  SerializationException e) {
+    caught=e;
+  }
+catch (  Throwable e) {
+    caught=e;
+  }
+  respondWithFailure(response,caught);
+}

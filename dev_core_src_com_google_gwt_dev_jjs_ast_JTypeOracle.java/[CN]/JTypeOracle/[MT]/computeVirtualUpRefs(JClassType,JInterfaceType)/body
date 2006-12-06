@@ -1,0 +1,22 @@
+{
+  outer:   for (Iterator itIntf=intf.methods.iterator(); itIntf.hasNext(); ) {
+    JMethod intfMethod=(JMethod)itIntf.next();
+    for (Iterator itType=type.methods.iterator(); itType.hasNext(); ) {
+      JMethod classMethod=(JMethod)itType.next();
+      if (JProgram.methodsDoMatch(intfMethod,classMethod)) {
+        continue outer;
+      }
+    }
+    for (JClassType superType=type.extnds; superType != fJavaLangObject; superType=superType.extnds) {
+      for (Iterator itSuper=superType.methods.iterator(); itSuper.hasNext(); ) {
+        JMethod superMethod=(JMethod)itSuper.next();
+        if (JProgram.methodsDoMatch(intfMethod,superMethod)) {
+          Map classToMethodMap=getOrCreateMap(virtualUpRefMap,superMethod);
+          Set methodSet=getOrCreate(classToMethodMap,type);
+          methodSet.add(intfMethod);
+          continue outer;
+        }
+      }
+    }
+  }
+}

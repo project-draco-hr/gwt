@@ -1,0 +1,27 @@
+{
+  RandomAccessFile f=null;
+  Throwable caught;
+  try {
+    where.getParentFile().mkdirs();
+    f=new RandomAccessFile(where,"rwd");
+    long newLen=0;
+    for (int i=0; i < what.length; i++) {
+      newLen+=what[i].length;
+      f.write(what[i]);
+    }
+    f.setLength(newLen);
+    return;
+  }
+ catch (  FileNotFoundException e) {
+    caught=e;
+  }
+catch (  IOException e) {
+    caught=e;
+  }
+ finally {
+    Utility.close(f);
+  }
+  String msg="Unable to write file '" + where + "'";
+  logger.log(TreeLogger.ERROR,msg,caught);
+  throw new UnableToCompleteException();
+}

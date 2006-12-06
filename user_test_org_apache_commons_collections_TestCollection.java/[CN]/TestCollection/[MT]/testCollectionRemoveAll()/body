@@ -1,0 +1,31 @@
+{
+  if (!isRemoveSupported())   return;
+  resetEmpty();
+  assertTrue("Emtpy collection removeAll should return false for " + "empty input",!collection.removeAll(Collections.EMPTY_SET));
+  verify();
+  assertTrue("Emtpy collection removeAll should return false for " + "nonempty input",!collection.removeAll(new ArrayList(collection)));
+  verify();
+  resetFull();
+  assertTrue("Full collection removeAll should return false for " + "empty input",!collection.removeAll(Collections.EMPTY_SET));
+  verify();
+  assertTrue("Full collection removeAll should return false for " + "other elements",!collection.removeAll(Arrays.asList(getOtherElements())));
+  verify();
+  assertTrue("Full collection removeAll should return true for " + "full elements",collection.removeAll(new HashSet(collection)));
+  confirmed.removeAll(new HashSet(confirmed));
+  verify();
+  resetFull();
+  int size=collection.size();
+  Object[] s=getFullElements();
+  List l=new ArrayList();
+  l.add(s[2]);
+  l.add(s[3]);
+  l.add(s[3]);
+  assertTrue("Full collection removeAll should work",collection.removeAll(l));
+  confirmed.removeAll(l);
+  verify();
+  assertTrue("Collection should shrink after removeAll",collection.size() < size);
+  Iterator iter=l.iterator();
+  while (iter.hasNext()) {
+    assertTrue("Collection shouldn't contain removed element",!collection.contains(iter.next()));
+  }
+}

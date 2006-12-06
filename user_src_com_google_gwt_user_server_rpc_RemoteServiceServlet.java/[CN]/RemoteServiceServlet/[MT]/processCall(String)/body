@@ -1,0 +1,71 @@
+{
+  onBeforeRequestDeserialized(payload);
+  ServerSerializationStreamReader streamReader=new ServerSerializationStreamReader(serializableTypeOracle);
+  streamReader.prepareToRead(payload);
+  String serviceIntfName=streamReader.readString();
+  if (!isImplementedRemoteServiceInterface(serviceIntfName)) {
+    throw new SecurityException("Blocked attempt to access interface '" + serviceIntfName + "', which is either not implemented by this servlet or which doesn't extend RemoteService; this is either misconfiguration or a hack attempt");
+  }
+  Class serviceIntf;
+  try {
+    serviceIntf=getClassFromName(serviceIntfName);
+  }
+ catch (  ClassNotFoundException e) {
+    throw new SerializationException("Unknown service interface class '" + serviceIntfName + "'",e);
+  }
+  String methodName=streamReader.readString();
+  int paramCount=streamReader.readInt();
+  Class[] paramTypes=new Class[paramCount];
+  for (int i=0; i < paramTypes.length; i++) {
+    String paramClassName=streamReader.readString();
+    try {
+      paramTypes[i]=getClassOrPrimitiveFromName(paramClassName);
+    }
+ catch (    ClassNotFoundException e) {
+      throw new SerializationException("Unknown parameter " + i + " type '"+ paramClassName+ "'",e);
+    }
+  }
+  Method serviceIntfMethod=findInterfaceMethod(serviceIntf,methodName,paramTypes,true);
+  if (serviceIntfMethod == null) {
+    throw new SecurityException("Method '" + methodName + "' (or a particular overload) on interface '"+ serviceIntfName+ "' was not found, this is either misconfiguration or a hack attempt");
+  }
+  Object[] args=new Object[paramCount];
+  for (int i=0; i < args.length; i++) {
+    args[i]=streamReader.deserializeValue(paramTypes[i]);
+  }
+  String responsePayload=GENERIC_FAILURE_MSG;
+  ServerSerializationStreamWriter streamWriter=new ServerSerializationStreamWriter(serializableTypeOracle);
+  Throwable caught=null;
+  try {
+    Class returnType=serviceIntfMethod.getReturnType();
+    Object returnVal=serviceIntfMethod.invoke(this,args);
+    responsePayload=createResponse(streamWriter,returnType,returnVal,false);
+  }
+ catch (  IllegalArgumentException e) {
+    caught=e;
+  }
+catch (  IllegalAccessException e) {
+    caught=e;
+  }
+catch (  InvocationTargetException e) {
+    caught=e;
+    Throwable cause=e.getCause();
+    if (cause != null) {
+      caught=cause;
+      if (isExpectedException(serviceIntfMethod,cause)) {
+        Class thrownClass=cause.getClass();
+        responsePayload=createResponse(streamWriter,thrownClass,cause,true);
+        caught=null;
+      }
+    }
+  }
+  if (caught != null) {
+    responsePayload=GENERIC_FAILURE_MSG;
+    ServletContext servletContext=getServletContext();
+    if (servletContext != null) {
+      servletContext.log("Exception while dispatching incoming RPC call",caught);
+    }
+  }
+  onAfterResponseSerialized(responsePayload);
+  return responsePayload;
+}

@@ -1,0 +1,18 @@
+{
+  if (className == null) {
+    throw new ClassNotFoundException("null class name",new NullPointerException());
+  }
+  if (isInStandardJavaPackage(className)) {
+    throw new ClassNotFoundException(className);
+  }
+  if (className.equals(ShellJavaScriptHost.class.getName())) {
+    return ShellJavaScriptHost.class;
+  }
+  try {
+    byte[] classBytes=compiler.getClassBytes(logger,className);
+    return defineClass(className,classBytes,0,classBytes.length);
+  }
+ catch (  UnableToCompleteException e) {
+    throw new ClassNotFoundException(className);
+  }
+}

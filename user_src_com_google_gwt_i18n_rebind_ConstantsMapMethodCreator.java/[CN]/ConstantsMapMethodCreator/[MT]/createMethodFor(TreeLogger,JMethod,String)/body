@@ -1,0 +1,27 @@
+{
+  String methodName=method.getName();
+  if (method.getParameters().length > 0) {
+    error(logger,methodName + " cannot have parameters; extend Messages instead if you need to create parameterized messages");
+  }
+  enableCache();
+  println("java.util.Map args = (java.util.Map) cache.get(" + wrap(methodName) + ");");
+  println("if (args == null){");
+  indent();
+  println("args = new com.google.gwt.i18n.client.impl.ConstantMap();");
+  String[] args=ConstantsStringArrayMethodCreator.split(value);
+  for (int i=0; i < args.length; i++) {
+    try {
+      String key=args[i];
+      String keyValue=getResources().getString(key);
+      println("args.put(" + wrap(key) + ", "+ wrap(keyValue)+ ");");
+    }
+ catch (    MissingResourceException e) {
+      String msg="While implementing map for " + method.getName() + "(), could not find key '"+ args[i]+ "'";
+      throw error(logger,msg);
+    }
+  }
+  println("cache.put(" + wrap(methodName) + ", args);");
+  println("}; ");
+  outdent();
+  println("return args;");
+}

@@ -1,0 +1,27 @@
+{
+  ArrayList list=new ArrayList();
+  JType[] types=serializationOracle.getSerializableTypes();
+  for (int index=0; index < types.length; ++index) {
+    JType type=types[index];
+    if (type.isPrimitive() != null) {
+      continue;
+    }
+    if (type.isInterface() != null) {
+      continue;
+    }
+    if (type.isParameterized() != null) {
+      continue;
+    }
+    list.add(type);
+  }
+  JType[] serTypes=(JType[])list.toArray(new JType[list.size()]);
+  Arrays.sort(serTypes,new Comparator(){
+    public int compare(    Object o1,    Object o2){
+      String n1=((JType)o1).getQualifiedSourceName();
+      String n2=((JType)o2).getQualifiedSourceName();
+      return n1.compareTo(n2);
+    }
+  }
+);
+  return serTypes;
+}

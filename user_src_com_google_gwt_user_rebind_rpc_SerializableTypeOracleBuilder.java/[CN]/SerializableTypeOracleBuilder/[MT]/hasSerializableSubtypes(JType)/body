@@ -1,0 +1,19 @@
+{
+  assert(type.isPrimitive() == null);
+  if (isObject(type)) {
+    return false;
+  }
+  JClassType classOrInterface=type.isClassOrInterface();
+  if (classOrInterface == null) {
+    return false;
+  }
+  JClassType[] subTypes=classOrInterface.getSubtypes();
+  for (int index=0; index < subTypes.length; ++index) {
+    JClassType subType=subTypes[index];
+    if (isSerializable(subType)) {
+      return true;
+    }
+  }
+  addReasonForUnserializability(type,HAS_NO_SERIALIZABLE_SUBTYPES);
+  return false;
+}

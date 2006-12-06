@@ -1,0 +1,19 @@
+{
+  if (type.isParameterized() != null) {
+    return type.getLeafType();
+  }
+  JArrayType arrayType=type.isArray();
+  if (arrayType != null) {
+    int rank=arrayType.getRank();
+    JType componentType=arrayType.getComponentType();
+    if (componentType.isParameterized() != null) {
+      type=getUnparameterizedType(typeOracle,componentType);
+      StringBuffer sb=new StringBuffer();
+      for (int i=0; i < rank; ++i) {
+        sb.append("[]");
+      }
+      return typeOracle.parse(type.getQualifiedSourceName() + sb.toString());
+    }
+  }
+  return type;
+}

@@ -1,0 +1,70 @@
+{
+  Element bodyElem=getBody();
+  while (DOM.getChildCount(bodyElem) > 0) {
+    DOM.removeChild(bodyElem,DOM.getChild(bodyElem,0));
+  }
+  int rowCount=1, colCount=1;
+  for (Iterator it=children.iterator(); it.hasNext(); ) {
+    Widget child=(Widget)it.next();
+    DockLayoutConstant dir=((LayoutData)child.getLayoutData()).direction;
+    if ((dir == NORTH) || (dir == SOUTH)) {
+      ++rowCount;
+    }
+ else     if ((dir == EAST) || (dir == WEST)) {
+      ++colCount;
+    }
+  }
+  TmpRow[] rows=new TmpRow[rowCount];
+  for (int i=0; i < rowCount; ++i) {
+    rows[i]=new TmpRow();
+    rows[i].tr=DOM.createTR();
+    DOM.appendChild(bodyElem,rows[i].tr);
+  }
+  int westCol=0, eastCol=colCount - 1;
+  int northRow=0, southRow=rowCount - 1;
+  Element centerTd=null;
+  for (Iterator it=children.iterator(); it.hasNext(); ) {
+    Widget child=(Widget)it.next();
+    LayoutData layout=(LayoutData)child.getLayoutData();
+    Element td=DOM.createTD();
+    layout.td=td;
+    DOM.setAttribute(layout.td,"align",layout.hAlign);
+    DOM.setStyleAttribute(layout.td,"verticalAlign",layout.vAlign);
+    DOM.setAttribute(layout.td,"width",layout.width);
+    DOM.setAttribute(layout.td,"height",layout.height);
+    if (layout.direction == NORTH) {
+      DOM.insertChild(rows[northRow].tr,td,rows[northRow].center);
+      appendAndMaybeAdopt(td,child.getElement(),beingAdded);
+      DOM.setIntAttribute(td,"colSpan",eastCol - westCol + 1);
+      ++northRow;
+    }
+ else     if (layout.direction == SOUTH) {
+      DOM.insertChild(rows[southRow].tr,td,rows[southRow].center);
+      appendAndMaybeAdopt(td,child.getElement(),beingAdded);
+      DOM.setIntAttribute(td,"colSpan",eastCol - westCol + 1);
+      --southRow;
+    }
+ else     if (layout.direction == WEST) {
+      TmpRow row=rows[northRow];
+      DOM.insertChild(row.tr,td,row.center++);
+      appendAndMaybeAdopt(td,child.getElement(),beingAdded);
+      DOM.setIntAttribute(td,"rowSpan",southRow - northRow + 1);
+      ++westCol;
+    }
+ else     if (layout.direction == EAST) {
+      TmpRow row=rows[northRow];
+      DOM.insertChild(row.tr,td,row.center);
+      appendAndMaybeAdopt(td,child.getElement(),beingAdded);
+      DOM.setIntAttribute(td,"rowSpan",southRow - northRow + 1);
+      --eastCol;
+    }
+ else     if (layout.direction == CENTER) {
+      centerTd=td;
+    }
+  }
+  if (center != null) {
+    TmpRow row=rows[northRow];
+    DOM.insertChild(row.tr,centerTd,row.center);
+    appendAndMaybeAdopt(centerTd,center.getElement(),beingAdded);
+  }
+}

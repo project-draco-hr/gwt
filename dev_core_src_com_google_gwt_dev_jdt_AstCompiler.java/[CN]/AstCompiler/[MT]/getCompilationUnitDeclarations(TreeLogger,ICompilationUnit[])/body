@@ -1,0 +1,21 @@
+{
+  List allUnits=Arrays.asList(units);
+  List newUnits=new ArrayList();
+  for (Iterator iter=allUnits.iterator(); iter.hasNext(); ) {
+    ICompilationUnitAdapter adapter=(ICompilationUnitAdapter)iter.next();
+    CompilationUnitProvider cup=adapter.getCompilationUnitProvider();
+    String location=cup.getLocation();
+    if (!(cachedResults.containsKey(location))) {
+      newUnits.add(adapter);
+    }
+  }
+  ICompilationUnit[] toBeProcessed=new ICompilationUnit[newUnits.size()];
+  newUnits.toArray(toBeProcessed);
+  CompilationUnitDeclaration[] newCuds=compile(logger,toBeProcessed);
+  for (int i=0; i < newCuds.length; i++) {
+    String newLoc=String.valueOf(newCuds[i].getFileName());
+    cachedResults.remove(newLoc);
+    cachedResults.add(newLoc,newCuds[i]);
+  }
+  return cachedResults.getDeclarations();
+}

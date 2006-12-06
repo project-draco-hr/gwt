@@ -1,0 +1,29 @@
+{
+  super(parent,SWT.NONE);
+  setLayout(new FillLayout());
+  SashForm sash=new SashForm(this,SWT.VERTICAL);
+  fTree=new Tree(sash,SWT.BORDER | SWT.SHADOW_IN);
+  fTree.setLinesVisible(false);
+  fTree.addSelectionListener(this);
+  fTree.setFocus();
+  fTree.addKeyListener(new KeyAdapter(){
+    public void keyPressed(    KeyEvent e){
+      if (e.keyCode == 'c' && e.stateMask == SWT.CTRL) {
+        copyTreeSelectionToClipboard(fTree);
+      }
+    }
+  }
+);
+  fLogger=new TreeItemLogger();
+  fDetails=new Text(sash,SWT.MULTI | SWT.WRAP | SWT.READ_ONLY| SWT.BORDER| SWT.V_SCROLL);
+  final Color detailsBgColor=new Color(null,255,255,255);
+  fDetails.setBackground(detailsBgColor);
+  fDetails.addDisposeListener(new DisposeListener(){
+    public void widgetDisposed(    DisposeEvent arg0){
+      detailsBgColor.dispose();
+    }
+  }
+);
+  sash.setWeights(new int[]{80,20});
+  initLogFlushTimer(parent.getDisplay());
+}

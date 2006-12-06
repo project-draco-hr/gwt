@@ -1,0 +1,79 @@
+{
+{
+    this.parser.getMethodBodies(cud);
+    if (cud.scope != null) {
+      cud.scope.faultInTypes();
+    }
+    if (cud.scope != null) {
+      cud.scope.verifyMethods(lookupEnvironment.methodVerifier());
+    }
+    cud.resolve();
+    cud.analyseCode();
+    if (doGenerateBytes) {
+      cud.generateCode();
+    }
+    if (options.produceReferenceInfo && cud.scope != null) {
+      cud.scope.storeDependencyInfo();
+    }
+    cud.compilationResult.totalUnitsKnown=totalUnits;
+  }
+  ICompilationUnit cu=cud.compilationResult.compilationUnit;
+  String loc=String.valueOf(cu.getFileName());
+  TreeLogger logger=threadLogger.branch(TreeLogger.SPAM,"Scanning for additional dependencies: " + loc,null);
+  String[] typeNames;
+  try {
+    typeNames=doFindAdditionalTypesUsingJsni(logger,cud);
+  }
+ catch (  UnableToCompleteException e) {
+    problemReporter.abortDueToInternalError("Unable to resolve required JSNI dependencies",cud);
+    return;
+  }
+  for (int i=0; i < typeNames.length; i++) {
+    String typeName=typeNames[i];
+    final String msg="Need additional type '" + typeName + "'";
+    logger.log(TreeLogger.SPAM,msg,null);
+    char[][] chars=CharOperation.splitOn('.',typeName.toCharArray());
+    lookupEnvironment.getType(chars);
+  }
+  try {
+    typeNames=doFindAdditionalTypesUsingRebinds(logger,cud);
+  }
+ catch (  UnableToCompleteException e) {
+    problemReporter.abortDueToInternalError("Unable to resolve required rebind dependencies",cud);
+    return;
+  }
+  for (int i=0; i < typeNames.length; i++) {
+    String typeName=typeNames[i];
+    final String msg="Need additional type '" + typeName + "'";
+    logger.log(TreeLogger.SPAM,msg,null);
+    ReferenceBinding type=resolvePossiblyNestedType(typeName);
+    if (type == null) {
+      problemReporter.abortDueToInternalError("Rebind result '" + typeName + "' could not be found");
+      return;
+    }
+    if (!type.isClass()) {
+      problemReporter.abortDueToInternalError("Rebind result '" + typeName + "' must be a class");
+      return;
+    }
+    if (type.isAbstract()) {
+      problemReporter.abortDueToInternalError("Rebind result '" + typeName + "' cannot be abstract");
+      return;
+    }
+    if (type.isNestedType() && !type.isStatic()) {
+      problemReporter.abortDueToInternalError("Rebind result '" + typeName + "' cannot be a non-static nested class");
+      return;
+    }
+    if (type.isLocalType()) {
+      problemReporter.abortDueToInternalError("Rebind result '" + typeName + "' cannot be a local class");
+      return;
+    }
+    MethodBinding noArgCtor=type.getExactMethod("<init>".toCharArray(),TypeBinding.NoParameters,cud.scope);
+    if (noArgCtor == null) {
+      problemReporter.abortDueToInternalError("Rebind result '" + typeName + "' has no default (zero argument) constructors.");
+      return;
+    }
+  }
+  if (cuds != null) {
+    cuds.add(cud);
+  }
+}

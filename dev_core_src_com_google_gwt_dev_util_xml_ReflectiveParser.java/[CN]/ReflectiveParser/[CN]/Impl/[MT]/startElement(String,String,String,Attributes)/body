@@ -1,0 +1,66 @@
+{
+  int lineNumber=fLocator.getLineNumber();
+  Schema schemaLevel=getTopSchemaLevel();
+  if (schemaLevel == null) {
+    Schema nextToTop=getNextToTopSchemaLevel();
+    setArgsAndPushLevel(null,null);
+    try {
+      nextToTop.onUnexpectedChild(lineNumber,elemName);
+    }
+ catch (    UnableToCompleteException e) {
+      throw new SAXException(e);
+    }
+    return;
+  }
+  Class slc=schemaLevel.getClass();
+  HandlerClassInfo classInfo=HandlerClassInfo.getClassInfo(slc);
+  HandlerMethod method=classInfo.getStartMethod(elemName);
+  if (method == null) {
+    try {
+      schemaLevel.onUnexpectedElement(lineNumber,elemName);
+    }
+ catch (    UnableToCompleteException e) {
+      throw new SAXException(e);
+    }
+    setArgsAndPushLevel(null,null);
+    return;
+  }
+  HandlerArgs args=method.createArgs(schemaLevel,lineNumber,elemName);
+  for (int i=0, n=atts.getLength(); i < n; ++i) {
+    String attrName=atts.getQName(i);
+    String attrValue=atts.getValue(i);
+    if (!args.setArg(attrName,attrValue)) {
+      try {
+        schemaLevel.onUnexpectedAttribute(lineNumber,elemName,attrName,attrValue);
+      }
+ catch (      UnableToCompleteException e) {
+        throw new SAXException(e);
+      }
+    }
+  }
+  int missingCount=0;
+  for (int i=0, n=args.getArgCount(); i < n; ++i) {
+    if (!args.isArgSet(i)) {
+      try {
+        schemaLevel.onMissingAttribute(lineNumber,elemName,args.getArgName(i));
+      }
+ catch (      UnableToCompleteException e) {
+        throw new SAXException(e);
+      }
+      ++missingCount;
+    }
+  }
+  if (missingCount > 0) {
+    setArgsAndPushLevel(null,null);
+    return;
+  }
+  Object[] invokeArgs=new Object[method.getParamCount()];
+  Schema childSchemaLevel;
+  try {
+    childSchemaLevel=method.invokeBegin(lineNumber,elemName,schemaLevel,args,invokeArgs);
+  }
+ catch (  UnableToCompleteException e) {
+    throw new SAXException(e);
+  }
+  setArgsAndPushLevel(invokeArgs,childSchemaLevel);
+}

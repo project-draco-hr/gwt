@@ -1,0 +1,22 @@
+{
+  String msg="Analyzing permutation #" + permNumber;
+  logger=logger.branch(TreeLogger.TRACE,msg,null);
+  logProperties(logger,currentProps,currentValues);
+  CompilationRebindOracle rebindOracle=new CompilationRebindOracle();
+  propOracle.setPropertyValues(currentProps,currentValues);
+  String[] entryPts=module.getEntryPointTypeNames();
+  Compilation cached=compilations.find(logger,rebindOracle,entryPts);
+  if (cached != null) {
+    msg="Matches existing compilation " + cached.getStrongName();
+    logger.log(TreeLogger.TRACE,msg,null);
+    return cached.getStrongName();
+  }
+  Compilation compilation=new Compilation();
+  rebindOracle.recordInto(compilation);
+  String js=jjs.compile(logger,rebindOracle);
+  String strongName=writeHtmlWithStrongName(logger,js);
+  compilation.setStrongName(strongName);
+  writeCacheFile(logger,compilation);
+  compilations.add(compilation);
+  return compilation.getStrongName();
+}

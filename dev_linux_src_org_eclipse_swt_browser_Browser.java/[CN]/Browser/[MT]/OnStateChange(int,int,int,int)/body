@@ -1,0 +1,24 @@
+{
+  if ((aStateFlags & nsIWebProgressListener.STATE_IS_DOCUMENT) == 0)   return XPCOM.NS_OK;
+  if ((aStateFlags & nsIWebProgressListener.STATE_START) != 0) {
+    if (request == 0)     request=aRequest;
+  }
+ else   if ((aStateFlags & nsIWebProgressListener.STATE_REDIRECTING) != 0) {
+    if (request == aRequest)     request=0;
+  }
+ else   if ((aStateFlags & nsIWebProgressListener.STATE_STOP) != 0) {
+    if (request == aRequest || request == 0) {
+      request=0;
+      StatusTextEvent event=new StatusTextEvent(this);
+      event.display=getDisplay();
+      event.widget=this;
+      event.text="";
+      for (int i=0; i < statusTextListeners.length; i++)       statusTextListeners[i].changed(event);
+      ProgressEvent event2=new ProgressEvent(this);
+      event2.display=getDisplay();
+      event2.widget=this;
+      for (int i=0; i < progressListeners.length; i++)       progressListeners[i].completed(event2);
+    }
+  }
+  return XPCOM.NS_OK;
+}

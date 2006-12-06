@@ -1,0 +1,40 @@
+{
+  SourceTypeBinding binding=typeDeclaration.binding;
+  if (binding.constantPoolName() == null) {
+    return false;
+  }
+  JReferenceType type=(JReferenceType)fTypeMap.get(binding);
+  if (binding.isNestedType() && !binding.isStatic()) {
+    assert(type instanceof JClassType);
+    NestedTypeBinding nestedBinding=(NestedTypeBinding)binding;
+    if (nestedBinding.enclosingInstances != null) {
+      for (int i=0; i < nestedBinding.enclosingInstances.length; ++i) {
+        SyntheticArgumentBinding arg=nestedBinding.enclosingInstances[i];
+        if (arg.matchingField != null) {
+          createField(arg,type);
+        }
+      }
+    }
+    if (nestedBinding.outerLocalVariables != null) {
+      for (int i=0; i < nestedBinding.outerLocalVariables.length; ++i) {
+        SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
+        createField(arg,type);
+      }
+    }
+  }
+  ReferenceBinding superClassBinding=binding.superclass();
+  if (superClassBinding != null) {
+    assert(binding.superclass().isClass());
+    JClassType superClass=(JClassType)fTypeMap.get(superClassBinding);
+    type.extnds=superClass;
+  }
+  ReferenceBinding[] superInterfaces=binding.superInterfaces();
+  for (int i=0; i < superInterfaces.length; ++i) {
+    ReferenceBinding superInterfaceBinding=superInterfaces[i];
+    assert(superInterfaceBinding.isInterface());
+    JInterfaceType superInterface=(JInterfaceType)fTypeMap.get(superInterfaceBinding);
+    type.implments.add(superInterface);
+  }
+  fTypeDecls.add(typeDeclaration);
+  return true;
+}

@@ -1,0 +1,18 @@
+{
+  assert(parameterizedType != null);
+  assert(isSerializable(parameterizedType));
+  JType rawType=parameterizedType.getRawType();
+  if (!isSerializable(rawType)) {
+    addReasonForUnserializability(parameterizedType,MessageFormat.format(RAW_TYPE_IS_NOT_SERIALIZABLE,new String[]{rawType.getQualifiedSourceName()}));
+    return true;
+  }
+  JType[] typeArgs=parameterizedType.getTypeArgs();
+  for (int index=0; index < typeArgs.length; ++index) {
+    JType type=typeArgs[index];
+    if (!isSerializable(type) && !hasSerializableSubtypes(type)) {
+      addReasonForUnserializability(parameterizedType,MessageFormat.format(UNSERIALIZABLE_TYPE_ARG,new String[]{type.getParameterizedQualifiedSourceName()}));
+      return true;
+    }
+  }
+  return false;
+}

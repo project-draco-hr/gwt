@@ -1,0 +1,41 @@
+{
+  if (evt.widget == fBackButton) {
+    fBrowser.back();
+  }
+ else   if (evt.widget == fForwardButton) {
+    fBrowser.forward();
+  }
+ else   if (evt.widget == fRefreshButton) {
+    fBrowser.refresh();
+  }
+ else   if (evt.widget == fStopButton) {
+    fBrowser.stop();
+  }
+ else   if (evt.widget == fOpenWebModeButton) {
+    Set keySet=moduleSpacesByName.keySet();
+    String[] moduleNames=Util.toStringArray(keySet);
+    if (moduleNames.length == 0) {
+      fOpenWebModeButton.setEnabled(false);
+      return;
+    }
+    TreeLogger logger=fLogger;
+    try {
+      Cursor waitCursor=getDisplay().getSystemCursor(SWT.CURSOR_WAIT);
+      getShell().setCursor(waitCursor);
+      getHost().compile(moduleNames);
+    }
+ catch (    UnableToCompleteException e) {
+      MessageBox msgBox=new MessageBox(getShell(),SWT.OK | SWT.ICON_ERROR);
+      msgBox.setText("Compilation Failed");
+      msgBox.setMessage("Compilation failed. Please see the log in the development shell for details.");
+      msgBox.open();
+      return;
+    }
+ finally {
+      Cursor normalCursor=getDisplay().getSystemCursor(SWT.CURSOR_ARROW);
+      getShell().setCursor(normalCursor);
+    }
+    String location=fLocation.getText();
+    launchExternalBrowser(logger,location);
+  }
+}

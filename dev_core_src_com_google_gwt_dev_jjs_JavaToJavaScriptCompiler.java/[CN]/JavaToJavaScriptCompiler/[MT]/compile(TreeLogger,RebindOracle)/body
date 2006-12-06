@@ -1,0 +1,65 @@
+{
+  try {
+    JProgram jprogram=new JProgram(logger,rebindOracle);
+    TypeMap typeMap=new TypeMap(jprogram);
+    JsProgram jsProgram=new JsProgram();
+    TypeDeclaration[] allTypeDeclarations=BuildTypeMap.exec(typeMap,goldenCuds,jsProgram);
+    if (checkForErrors(logger)) {
+      throw new UnableToCompleteException();
+    }
+    jprogram.typeOracle.computeBeforeAST();
+    GenerateJavaAST.exec(allTypeDeclarations,typeMap,jprogram);
+    if (checkForErrors(logger)) {
+      throw new UnableToCompleteException();
+    }
+    jprogram.typeOracle.computeAfterAST();
+    ReplaceRebinds.exec(jprogram);
+    String[] actualEntryPoints=new String[declEntryPoints.length];
+    for (int i=0; i < declEntryPoints.length; i++) {
+      actualEntryPoints[i]=rebindOracle.rebind(logger,declEntryPoints[i]);
+    }
+    findEntryPoints(logger,actualEntryPoints,jprogram);
+    boolean didChange;
+    do {
+      didChange=false;
+      didChange=Pruner.exec(jprogram,true) || didChange;
+      didChange=MethodAndClassFinalizer.exec(jprogram) || didChange;
+      didChange=MakeCallsStatic.exec(jprogram) || didChange;
+      didChange=TypeTightener.exec(jprogram) || didChange;
+      didChange=MethodCallTightener.exec(jprogram) || didChange;
+      didChange=CastOptimizer.exec(jprogram) || didChange;
+      didChange=MethodInliner.exec(jprogram) || didChange;
+    }
+ while (didChange);
+    CatchBlockNormalizer.exec(jprogram);
+    CompoundAssignmentNormalizer.exec(jprogram);
+    JavaScriptObjectCaster.exec(jprogram);
+    CastNormalizer.exec(jprogram);
+    ArrayNormalizer.exec(jprogram);
+    Pruner.exec(jprogram,false);
+    GenerateJavaScriptAST.exec(jprogram,jsProgram);
+    StringWriter sw=new StringWriter();
+    PrintWriter pw=new PrintWriter(sw,true);
+    TextOutputOnPrintWriter out=new TextOutputOnPrintWriter(pw,obfuscate);
+    NamingStrategy ns;
+    if (obfuscate) {
+      ns=new ObfuscatedNamingStrategy();
+    }
+ else     if (prettyNames) {
+      ns=new PrettyNamingStrategy();
+    }
+ else {
+      ns=new FullNamingStrategy();
+    }
+    JsSourceGenerationVisitor v=new JsSourceGenerationVisitor(out,ns);
+    jsProgram.traverse(v);
+    return sw.toString();
+  }
+ catch (  UnableToCompleteException e) {
+    throw e;
+  }
+catch (  Throwable e) {
+    logger.log(TreeLogger.ERROR,"Unexpected internal compiler error",e);
+    throw new UnableToCompleteException();
+  }
+}

@@ -1,0 +1,34 @@
+{
+  print(CHARS_IF);
+  lparen();
+  x.getIfExpr().traverse(this);
+  rparen();
+  if (x.thenStmt != null) {
+    nestedStatementPush(x.thenStmt);
+    x.thenStmt.traverse(this);
+    nestedStatementPop(x.thenStmt);
+  }
+  if (x.elseStmt != null) {
+    if (fNeedSemi) {
+      semi();
+      newline();
+    }
+ else {
+      space();
+      fNeedSemi=true;
+    }
+    print(CHARS_ELSE);
+    boolean elseIf=x.elseStmt instanceof JIfStatement;
+    if (!elseIf) {
+      nestedStatementPush(x.elseStmt);
+    }
+ else {
+      space();
+    }
+    x.elseStmt.traverse(this);
+    if (!elseIf) {
+      nestedStatementPop(x.elseStmt);
+    }
+  }
+  return false;
+}

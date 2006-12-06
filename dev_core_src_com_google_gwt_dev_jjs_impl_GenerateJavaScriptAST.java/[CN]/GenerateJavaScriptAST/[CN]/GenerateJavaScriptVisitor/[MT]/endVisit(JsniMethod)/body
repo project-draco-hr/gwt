@@ -1,0 +1,45 @@
+{
+  JsFunction jsFunc=x.getFunc();
+  jsFunc.traverse(new JsAbstractVisitorWithAllVisits(){
+    public void endVisit(    JsNameRef x){
+      String ident=x.getName().getIdent();
+      if (ident.charAt(0) == '@') {
+        HasEnclosingType node=(HasEnclosingType)program.jsniMap.get(ident);
+        assert(node != null);
+        if (node instanceof JField) {
+          JField field=(JField)node;
+          JsName jsName=getName(field);
+          assert(jsName != null);
+          x.setName(jsName);
+          JsInvocation clinitCall=maybeCreateClinitCall(field);
+          if (clinitCall != null) {
+            assert(x.getQualifier() == null);
+            x.setQualifier(clinitCall);
+          }
+        }
+ else {
+          JMethod method=(JMethod)node;
+          if (x.getQualifier() == null) {
+            JsName jsName=getName(method);
+            assert(jsName != null);
+            x.setName(jsName);
+          }
+ else {
+            JsName jsName=getPolyName(method);
+            if (jsName == null) {
+              jsName=fNullMethodName;
+            }
+            x.setName(jsName);
+          }
+        }
+      }
+    }
+  }
+);
+  JsInvocation jsInvocation=maybeCreateClinitCall(x);
+  if (jsInvocation != null) {
+    jsFunc.getBody().getStatements().add(0,jsInvocation.makeStmt());
+  }
+  push(jsFunc);
+  fCurrentMethod=null;
+}

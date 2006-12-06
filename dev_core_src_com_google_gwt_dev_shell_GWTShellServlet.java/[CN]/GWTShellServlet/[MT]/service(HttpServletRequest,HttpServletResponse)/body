@@ -1,0 +1,48 @@
+{
+  TreeLogger logger=getLogger();
+  int id=allocateRequestId();
+  if (logger.isLoggable(TreeLogger.TRACE)) {
+    StringBuffer url=request.getRequestURL();
+    logger=logger.branch(TreeLogger.TRACE,"Request " + id + ": "+ url,null);
+  }
+  String servletClassName=null;
+  try {
+    RequestParts parts=new RequestParts(request);
+    ModuleDef moduleDef=(ModuleDef)loadedModulesByName.get(parts.moduleName);
+    if (moduleDef != null) {
+      String servletPath="/" + parts.partialPath;
+      servletClassName=moduleDef.findServletForPath(servletPath);
+    }
+ else {
+    }
+  }
+ catch (  UnableToCompleteException e) {
+  }
+  if (servletClassName == null) {
+    String path=request.getPathInfo();
+    ModuleDef moduleDef=(ModuleDef)modulesByServletPath.get(path);
+    if (moduleDef != null) {
+      servletClassName=moduleDef.findServletForPath(path);
+      if (servletClassName != null) {
+        TreeLogger branch=logger.branch(TreeLogger.WARN,"Use of deprecated hosted mode servlet path mapping",null);
+        branch.log(TreeLogger.WARN,"The client code is invoking the servlet with a URL that is not module-relative: " + path,null);
+        branch.log(TreeLogger.WARN,"Prepend GWT.getModuleBaseURL() to the URL in client code to create a module-relative URL: /" + moduleDef.getName() + path,null);
+        branch.log(TreeLogger.WARN,"Using module-relative URLs ensures correct URL-independent behavior in external servlet containers",null);
+      }
+    }
+ else {
+    }
+  }
+  if (servletClassName != null) {
+    HttpServlet delegatee=tryGetOrLoadServlet(logger,servletClassName);
+    if (delegatee == null) {
+      logger.log(TreeLogger.ERROR,"Unable to dispatch request",null);
+      sendErrorResponse(response,HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Unable to find/load mapped servlet class '" + servletClassName + "'");
+      return;
+    }
+    delegatee.service(request,response);
+  }
+ else {
+    super.service(request,response);
+  }
+}

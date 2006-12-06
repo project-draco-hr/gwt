@@ -1,0 +1,22 @@
+{
+  Field[] declFields=instanceClass.getDeclaredFields();
+  Field[] serializableFields=serializableTypeOracle.applyFieldSerializationPolicy(declFields);
+  for (int index=0; index < serializableFields.length; ++index) {
+    Field declField=serializableFields[index];
+    assert(declField != null);
+    Object value=deserializeValue(declField.getType());
+    boolean isAccessible=declField.isAccessible();
+    boolean needsAccessOverride=!isAccessible && !Modifier.isPublic(declField.getModifiers());
+    if (needsAccessOverride) {
+      declField.setAccessible(true);
+    }
+    declField.set(instance,value);
+    if (needsAccessOverride) {
+      declField.setAccessible(isAccessible);
+    }
+  }
+  Class superClass=instanceClass.getSuperclass();
+  if (superClass != null && serializableTypeOracle.isSerializable(superClass)) {
+    deserializeImpl(serializableTypeOracle.hasCustomFieldSerializer(superClass),superClass,instance);
+  }
+}

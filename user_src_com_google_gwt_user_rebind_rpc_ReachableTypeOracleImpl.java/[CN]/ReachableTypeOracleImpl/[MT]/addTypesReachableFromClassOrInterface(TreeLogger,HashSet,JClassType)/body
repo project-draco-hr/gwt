@@ -1,0 +1,27 @@
+{
+  JField[] fields=classOrInterface.getFields();
+  for (int fieldIndex=0; fieldIndex < fields.length; ++fieldIndex) {
+    JField field=fields[fieldIndex];
+    if (field.isStatic() || field.isTransient()) {
+      continue;
+    }
+    JType fieldType=field.getType();
+    if (fieldType != null) {
+      addTypesReachableFromType(logger,reachableTypes,fieldType);
+    }
+  }
+  JClassType[] superIntfs=classOrInterface.getImplementedInterfaces();
+  for (int superIntfIndex=0; superIntfIndex < superIntfs.length; ++superIntfIndex) {
+    JClassType superIntf=superIntfs[superIntfIndex];
+    addTypesReachableFromType(logger,reachableTypes,superIntf);
+  }
+  JClassType superclass=classOrInterface.getSuperclass();
+  if (superclass != null) {
+    addTypesReachableFromType(logger,reachableTypes,superclass);
+  }
+  JClassType[] subTypes=classOrInterface.getSubtypes();
+  for (int subTypeIndex=0; subTypeIndex < subTypes.length; ++subTypeIndex) {
+    JClassType subType=subTypes[subTypeIndex];
+    addTypesReachableFromType(logger,reachableTypes,subType);
+  }
+}

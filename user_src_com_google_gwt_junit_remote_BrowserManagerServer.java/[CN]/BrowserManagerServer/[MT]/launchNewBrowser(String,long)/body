@@ -1,0 +1,17 @@
+{
+  if (url == null || keepAliveMs <= 0) {
+    throw new IllegalArgumentException();
+  }
+  try {
+    Process child=Runtime.getRuntime().exec(new String[]{launchCmd,url});
+synchronized (processByToken) {
+      int myToken=nextToken++;
+      Integer intTok=new Integer(myToken);
+      new ProcessManager(intTok,child,keepAliveMs);
+      return myToken;
+    }
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Error launching browser '" + launchCmd + "' for '"+ url+ "'",e);
+  }
+}

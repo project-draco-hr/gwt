@@ -1,0 +1,25 @@
+{
+  String result=(String)resultByName.get(name);
+  if (result == null) {
+    String baseIdent=getBaseIdent(name);
+    String tailIdent="";
+    int counter=0;
+    JsScope scope=name.getScope();
+    do {
+      result=obfuscate(baseIdent + tailIdent,scope,rootScope);
+      if (!conflicts(result,scope)) {
+        resultByName.put(name,result);
+        Map nameByResult=(Map)nameByResultByScope.get(scope);
+        if (nameByResult == null) {
+          nameByResult=new HashMap();
+          nameByResultByScope.put(scope,nameByResult);
+        }
+        nameByResult.put(result,name);
+        break;
+      }
+      tailIdent=String.valueOf(counter++);
+    }
+ while (true);
+  }
+  return result;
+}

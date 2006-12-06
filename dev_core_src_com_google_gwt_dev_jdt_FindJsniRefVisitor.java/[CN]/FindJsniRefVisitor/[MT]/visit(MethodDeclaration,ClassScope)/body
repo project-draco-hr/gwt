@@ -1,0 +1,50 @@
+{
+  if (!methodDeclaration.isNative()) {
+    return false;
+  }
+  char[] source=methodDeclaration.compilationResult().getCompilationUnit().getContents();
+  String jsniCode=String.valueOf(source,methodDeclaration.bodyStart,methodDeclaration.bodyEnd - methodDeclaration.bodyStart + 1);
+  int startPos=jsniCode.indexOf("/*-{");
+  int endPos=jsniCode.lastIndexOf("}-*/");
+  if (startPos < 0 || endPos < 0) {
+    return false;
+  }
+  startPos+=3;
+  endPos+=1;
+  jsniCode=jsniCode.substring(startPos,endPos);
+  String syntheticFnHeader="function(";
+  boolean first=true;
+  if (methodDeclaration.arguments != null) {
+    for (int i=0, c=methodDeclaration.arguments.length; i < c; ++i) {
+      Argument arg=methodDeclaration.arguments[i];
+      if (first) {
+        first=false;
+      }
+ else {
+        syntheticFnHeader+=',';
+      }
+      syntheticFnHeader+=String.valueOf(arg.name);
+    }
+  }
+  syntheticFnHeader+=')';
+  StringReader sr=new StringReader(syntheticFnHeader + '\n' + jsniCode);
+  try {
+    JsStatements result=jsParser.parse(jsProgram.getScope(),sr,-1);
+    result.traverse(new JsAbstractVisitorWithAllVisits(){
+      public void endVisit(      JsNameRef x){
+        String ident=x.getName().getIdent();
+        if (ident.charAt(0) == '@') {
+          String className=ident.substring(1,ident.indexOf(':'));
+          jsniClasses.add(className);
+        }
+      }
+    }
+);
+  }
+ catch (  IOException e) {
+    throw new InternalCompilerException("Internal error searching for JSNI references",e);
+  }
+catch (  JsParserException e) {
+  }
+  return false;
+}

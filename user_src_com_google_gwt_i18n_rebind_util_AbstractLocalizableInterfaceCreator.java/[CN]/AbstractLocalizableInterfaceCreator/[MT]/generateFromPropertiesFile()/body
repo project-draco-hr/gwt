@@ -1,0 +1,15 @@
+{
+  InputStream propStream=new FileInputStream(resourceFile);
+  LocalizedProperties p=new LocalizedProperties();
+  p.load(propStream,Util.DEFAULT_ENCODING);
+  addFormatters();
+  Iterator elements=p.getPropertyMap().entrySet().iterator();
+  if (elements.hasNext() == false) {
+    throw new IllegalStateException("File '" + resourceFile + "' cannot be used to generate message classes, as it has no key/value pairs defined.");
+  }
+  while (elements.hasNext()) {
+    Entry s=(Entry)elements.next();
+    genSimpleMethodDecl((String)s.getKey(),(String)s.getValue());
+  }
+  composer.commit(new PrintWriterTreeLogger());
+}

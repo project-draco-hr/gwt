@@ -1,0 +1,36 @@
+{
+  TypeOracle oracle=cacheManager.getTypeOracle();
+  SourceTypeBinding binding=typeDecl.binding;
+  if (binding.constantPoolName() == null) {
+    return;
+  }
+  String qname;
+  String jclassName;
+  if (binding instanceof LocalTypeBinding) {
+    char[] localName=binding.constantPoolName();
+    for (int i=0, c=localName.length; i < c; ++i) {
+      if (localName[i] == '/' || localName[i] == '$') {
+        localName[i]='.';
+      }
+    }
+    qname=String.valueOf(localName);
+    jclassName=qname.substring(qname.lastIndexOf('.') + 1);
+  }
+ else {
+    qname=getQualifiedName(binding);
+    jclassName=getSimpleName(typeDecl);
+  }
+  if (oracle.findType(qname) != null) {
+    return;
+  }
+  String jpkgName=getPackage(typeDecl);
+  JPackage pkg=oracle.getOrCreatePackage(jpkgName);
+  final boolean jclassIsIntf=isInterface(typeDecl);
+  CompilationUnitProvider cup=getCup(typeDecl);
+  int declStart=typeDecl.declarationSourceStart;
+  int declEnd=typeDecl.declarationSourceEnd;
+  int bodyStart=typeDecl.bodyStart;
+  int bodyEnd=typeDecl.bodyEnd;
+  JClassType type=new JClassType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
+  cacheManager.setTypeForBinding(binding,type);
+}

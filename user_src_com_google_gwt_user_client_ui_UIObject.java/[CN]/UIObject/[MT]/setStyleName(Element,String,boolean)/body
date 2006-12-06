@@ -1,0 +1,39 @@
+{
+  if (elem == null) {
+    throw new RuntimeException(NULL_HANDLE_MSG);
+  }
+  if (style.length() == 0) {
+    throw new IllegalArgumentException("Cannot pass is an empty string as a style name.");
+  }
+  String oldStyle=DOM.getAttribute(elem,"className");
+  int idx;
+  if (oldStyle == null) {
+    idx=-1;
+    oldStyle="";
+  }
+ else {
+    idx=oldStyle.indexOf(style);
+  }
+  while (idx != -1) {
+    if (idx == 0 || oldStyle.charAt(idx - 1) == ' ') {
+      int last=idx + style.length();
+      int lastPos=oldStyle.length();
+      if ((last == lastPos) || ((last < lastPos) && (oldStyle.charAt(last) == ' '))) {
+        break;
+      }
+    }
+    idx=oldStyle.indexOf(style,idx + 1);
+  }
+  if (add) {
+    if (idx == -1) {
+      DOM.setAttribute(elem,"className",oldStyle + " " + style);
+    }
+  }
+ else {
+    if (idx != -1) {
+      String begin=oldStyle.substring(0,idx);
+      String end=oldStyle.substring(idx + style.length());
+      DOM.setAttribute(elem,"className",begin + end);
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  if (!x.isStatic()) {
+    return null;
+  }
+  JReferenceType enclosingType=x.getEnclosingType();
+  if (!typeOracle.hasClinit(enclosingType)) {
+    return null;
+  }
+  if (enclosingType == fCurrentMethod.getEnclosingType()) {
+    return null;
+  }
+  JMethod clinitMethod=(JMethod)enclosingType.methods.get(0);
+  JsInvocation jsInvocation=new JsInvocation();
+  jsInvocation.setQualifier(getName(clinitMethod).makeRef());
+  return jsInvocation;
+}

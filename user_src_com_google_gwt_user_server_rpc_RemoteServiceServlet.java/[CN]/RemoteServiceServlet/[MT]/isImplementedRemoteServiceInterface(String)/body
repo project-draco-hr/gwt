@@ -1,0 +1,20 @@
+{
+synchronized (knownImplementedInterfaces) {
+    if (knownImplementedInterfaces.contains(intfName)) {
+      return true;
+    }
+    Class cls=getClass();
+    while ((cls != null) && !RemoteServiceServlet.class.equals(cls)) {
+      Class[] intfs=cls.getInterfaces();
+      for (int i=0; i < intfs.length; i++) {
+        Class intf=intfs[i];
+        if (isImplementedRemoteServiceInterfaceRecursive(intfName,intf)) {
+          knownImplementedInterfaces.add(intfName);
+          return true;
+        }
+      }
+      cls=cls.getSuperclass();
+    }
+    return false;
+  }
+}

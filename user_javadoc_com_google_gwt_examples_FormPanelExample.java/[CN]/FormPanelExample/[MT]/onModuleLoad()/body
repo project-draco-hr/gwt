@@ -1,0 +1,39 @@
+{
+  final FormPanel form=new FormPanel();
+  form.setAction("/myFormHandler");
+  form.setEncoding(FormPanel.ENCODING_MULTIPART);
+  form.setMethod(FormPanel.METHOD_POST);
+  VerticalPanel panel=new VerticalPanel();
+  form.setWidget(panel);
+  final TextBox tb=new TextBox();
+  tb.setName("textBoxFormElement");
+  panel.add(tb);
+  ListBox lb=new ListBox();
+  lb.setName("listBoxFormElement");
+  lb.addItem("foo","fooValue");
+  lb.addItem("bar","barValue");
+  lb.addItem("baz","bazValue");
+  panel.add(lb);
+  FileUpload upload=new FileUpload();
+  upload.setName("uploadFormElement");
+  panel.add(upload);
+  panel.add(new Button("Submit",new ClickListener(){
+    public void onClick(    Widget sender){
+      form.submit();
+    }
+  }
+));
+  form.addFormHandler(new FormHandler(){
+    public void onSubmitComplete(    FormSubmitCompleteEvent event){
+      Window.alert(event.getResults());
+    }
+    public void onSubmit(    FormSubmitEvent event){
+      if (tb.getText().length() == 0) {
+        Window.alert("The text box must not be empty");
+        event.setCancelled(true);
+      }
+    }
+  }
+);
+  RootPanel.get().add(form);
+}

@@ -1,0 +1,77 @@
+{
+  if (args.length > 0) {
+    boolean help=false;
+    if ("-help".equalsIgnoreCase(args[0])) {
+      help=true;
+    }
+ else     if ("-?".equals(args[0])) {
+      help=true;
+    }
+    if (help) {
+      printHelp();
+      return false;
+    }
+  }
+  Set defs=new HashSet(argHandlers.values());
+  int extraArgCount=0;
+  Set receivedArg=new HashSet();
+  ArgHandler nullHandler=(ArgHandler)argHandlers.get("");
+  for (int i=0; i < args.length; i++) {
+    String arg=args[i];
+    ArgHandler handler;
+    if (arg.startsWith("-")) {
+      handler=(ArgHandler)argHandlers.get(arg);
+    }
+ else {
+      handler=nullHandler;
+      ++extraArgCount;
+    }
+    if (handler == null) {
+      System.err.println("Unknown argument: " + arg);
+      printHelp();
+      return false;
+    }
+    int addtlConsumed=handler.handle(args,i);
+    if (addtlConsumed == -1) {
+      printHelp();
+      return false;
+    }
+    i+=addtlConsumed;
+    defs.remove(handler);
+    receivedArg.add(handler);
+  }
+  for (Iterator iter=argHandlers.values().iterator(); iter.hasNext(); ) {
+    ArgHandler argHandler=(ArgHandler)iter.next();
+    if (argHandler.isRequired() && !receivedArg.contains(argHandler)) {
+      System.err.print("Missing required argument '");
+      String tag=argHandler.getTag();
+      if (tag != null) {
+        System.err.print(tag);
+        System.err.print(" ");
+      }
+      String tagArg=argHandler.getTagArgs()[0];
+      System.err.print(tagArg);
+      System.err.println("'");
+      printHelp();
+      return false;
+    }
+  }
+  if (extraArgCount == 0 && nullHandler != null && nullHandler.isRequired()) {
+    System.err.print("Missing required argument '");
+    String tagArg=nullHandler.getTagArgs()[0];
+    System.err.print(tagArg);
+    System.err.println("'");
+    printHelp();
+    return false;
+  }
+  for (Iterator iter=defs.iterator(); iter.hasNext(); ) {
+    ArgHandler def=(ArgHandler)iter.next();
+    String[] defArgs=def.getDefaultArgs();
+    if (defArgs != null) {
+      if (def.handle(defArgs,0) == -1) {
+        return false;
+      }
+    }
+  }
+  return true;
+}

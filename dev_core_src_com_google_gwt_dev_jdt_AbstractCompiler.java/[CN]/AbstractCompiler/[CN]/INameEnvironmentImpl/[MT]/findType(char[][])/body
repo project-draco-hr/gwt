@@ -1,0 +1,52 @@
+{
+  String qname=CharOperation.toString(compoundTypeName);
+  if (nameEnvironmentAnswerForTypeName.containsKey(qname)) {
+    return (NameEnvironmentAnswer)(nameEnvironmentAnswerForTypeName.get(qname));
+  }
+  TreeLogger logger=threadLogger.branch(TreeLogger.SPAM,"Compiler is asking about '" + qname + "'",null);
+  if (sourceOracle.isPackage(qname)) {
+    logger.log(TreeLogger.SPAM,"Found to be a package",null);
+    return null;
+  }
+  ByteCode byteCode=doGetByteCodeFromCache(logger,qname);
+  if (byteCode != null) {
+    byte[] classBytes=byteCode.getBytes();
+    char[] loc=byteCode.getLocation().toCharArray();
+    try {
+      logger.log(TreeLogger.SPAM,"Found cached bytes",null);
+      ClassFileReader cfr=new ClassFileReader(classBytes,loc);
+      NameEnvironmentAnswer out=new NameEnvironmentAnswer(cfr,null);
+      nameEnvironmentAnswerForTypeName.put(qname,out);
+      return out;
+    }
+ catch (    ClassFormatException e) {
+      String msg="Bad bytecode for '" + qname + "'";
+      compiler.problemReporter.abortDueToInternalError(msg);
+      return null;
+    }
+  }
+  int pos=qname.indexOf('$');
+  if (pos >= 0) {
+    qname=qname.substring(0,pos);
+  }
+  CompilationUnitProvider cup;
+  try {
+    cup=sourceOracle.findCompilationUnit(logger,qname);
+    if (cup != null) {
+      logger.log(TreeLogger.SPAM,"Found type in compilation unit: " + cup.getLocation(),null);
+      ICompilationUnitAdapter unit=new ICompilationUnitAdapter(cup);
+      NameEnvironmentAnswer out=new NameEnvironmentAnswer(unit,null);
+      nameEnvironmentAnswerForTypeName.put(qname,out);
+      return out;
+    }
+ else {
+      logger.log(TreeLogger.SPAM,"Not a known type",null);
+      return null;
+    }
+  }
+ catch (  UnableToCompleteException e) {
+    String msg="Error acquiring source for '" + qname + "'";
+    compiler.problemReporter.abortDueToInternalError(msg);
+    return null;
+  }
+}

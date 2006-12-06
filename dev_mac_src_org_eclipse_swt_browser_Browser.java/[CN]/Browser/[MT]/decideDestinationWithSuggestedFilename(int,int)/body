@@ -1,0 +1,22 @@
+{
+  int length=OS.CFStringGetLength(filename);
+  char[] buffer=new char[length];
+  CFRange range=new CFRange();
+  range.length=length;
+  OS.CFStringGetCharacters(filename,range,buffer);
+  String name=new String(buffer);
+  FileDialog dialog=new FileDialog(getShell(),SWT.SAVE);
+  dialog.setText(SWT.getMessage("SWT_FileDownload"));
+  dialog.setFileName(name);
+  String path=dialog.open();
+  if (path == null) {
+    WebKit.objc_msgSend(download,WebKit.S_release);
+    return;
+  }
+  length=path.length();
+  char[] chars=new char[length];
+  path.getChars(0,length,chars,0);
+  int result=OS.CFStringCreateWithCharacters(0,chars,length);
+  WebKit.objc_msgSend(download,WebKit.S_setDestinationAllowOverwrite,result,1);
+  OS.CFRelease(result);
+}

@@ -1,0 +1,31 @@
+{
+  int jsFalse=LowLevelSaf.convertBoolean(false);
+  LowLevelSaf.pushExecState(execState);
+  try {
+    if (!LowLevelSaf.isWrappedDispatch(jsthis)) {
+      return jsFalse;
+    }
+    Object thisObj=LowLevelSaf.unwrapDispatch(jsthis);
+    if (!(thisObj instanceof ExternalObject)) {
+      return jsFalse;
+    }
+    if (jsargs.length < 2) {
+      return jsFalse;
+    }
+    if (!LowLevelSaf.isObject(jsargs[0])) {
+      return jsFalse;
+    }
+    if (!LowLevelSaf.isString(jsargs[1])) {
+      return jsFalse;
+    }
+    String moduleName=LowLevelSaf.coerceToString(execState,jsargs[1]);
+    boolean result=((ExternalObject)thisObj).gwtOnLoad(jsargs[0],moduleName);
+    return LowLevelSaf.convertBoolean(result);
+  }
+ catch (  Throwable e) {
+    return jsFalse;
+  }
+ finally {
+    LowLevelSaf.popExecState(execState);
+  }
+}

@@ -1,0 +1,21 @@
+{
+  fSourceWriter.print("public static void serialize(");
+  fSourceWriter.print(SerializationStreamWriter.class.getName());
+  fSourceWriter.print(" streamWriter, ");
+  fSourceWriter.print(getSerializableClass().getQualifiedSourceName());
+  fSourceWriter.println(" instance) throws " + SerializationException.class.getName() + " {");
+  fSourceWriter.indent();
+  writeFieldSerializationStatements();
+  JClassType serializableClass=getSerializableClass().isClass();
+  if (serializableClass != null) {
+    JClassType serializableSuperclass=getSerializableSuperclass(serializableClass);
+    if (serializableSuperclass != null) {
+      String fieldSerializerName=fSerializationOracle.getFieldSerializerName(serializableSuperclass);
+      fSourceWriter.print(fieldSerializerName);
+      fSourceWriter.println(".serialize(streamWriter, instance);");
+    }
+  }
+  fSourceWriter.outdent();
+  fSourceWriter.println("}");
+  fSourceWriter.println();
+}

@@ -1,0 +1,32 @@
+{
+  List candidates=new ArrayList(list);
+  for (int i=0; !candidates.isEmpty() && i < entryPts.length; i++) {
+    String in=entryPts[i];
+    String out=rebindOracle.rebind(logger,in);
+    removeMismatches(candidates,in,out);
+  }
+  for (Iterator iter=candidates.iterator(); iter.hasNext(); ) {
+    Compilation c=(Compilation)iter.next();
+    String[] cachedIns=c.getRebindInputs();
+    for (int i=0; i < cachedIns.length; i++) {
+      String cachedIn=cachedIns[i];
+      String cachedOut=c.getRebindOutput(cachedIn);
+      String out=rebindOracle.rebind(logger,cachedIn);
+      if (!cachedOut.equals(out)) {
+        iter.remove();
+        break;
+      }
+    }
+  }
+  if (candidates.isEmpty()) {
+    return null;
+  }
+ else   if (candidates.size() == 1) {
+    return (Compilation)candidates.get(0);
+  }
+ else {
+    String msg="Cannot decided between multiple existing compilations; cannot continue";
+    logger.log(TreeLogger.ERROR,msg,null);
+    throw new UnableToCompleteException();
+  }
+}

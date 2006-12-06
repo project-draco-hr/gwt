@@ -1,0 +1,46 @@
+{
+  for (Iterator iter=getProperties().iterator(); iter.hasNext(); ) {
+    Property prop=(Property)iter.next();
+    if (prop.getActiveValue() == null) {
+      String[] knownValues=prop.getKnownValues();
+      assert(knownValues.length > 0);
+      if (knownValues.length > 1) {
+        if (prop.getProvider() == null) {
+          prop.setProvider(new DefaultPropertyProvider(prop));
+        }
+      }
+ else {
+        prop.setActiveValue(knownValues[0]);
+      }
+    }
+  }
+  TreeLogger branch=Messages.SOURCE_PATH_LOCATIONS.branch(logger,null);
+  lazySourceOracle=sourcePathEntries.create(branch);
+  if (lazySourceOracle.isEmpty()) {
+    branch.log(TreeLogger.WARN,"No source path entries; expect subsequent failures",null);
+  }
+ else {
+    String[] allFiles=lazySourceOracle.getAllFiles();
+    Set files=new HashSet();
+    files.addAll(Arrays.asList(allFiles));
+    files.removeAll(alreadySeenFiles);
+    for (Iterator iter=files.iterator(); iter.hasNext(); ) {
+      String fileName=(String)iter.next();
+      int pos=fileName.lastIndexOf('/');
+      String packageName;
+      if (pos >= 0) {
+        packageName=fileName.substring(0,pos);
+        packageName=packageName.replace('/','.');
+      }
+ else {
+        packageName="";
+      }
+      URL url=lazySourceOracle.find(fileName);
+      allCups.add(new URLCompilationUnitProvider(url,packageName));
+    }
+    alreadySeenFiles.addAll(files);
+    this.cups=(CompilationUnitProvider[])allCups.toArray(this.cups);
+  }
+  branch=Messages.PUBLIC_PATH_LOCATIONS.branch(logger,null);
+  lazyPublicOracle=publicPathEntries.create(branch);
+}

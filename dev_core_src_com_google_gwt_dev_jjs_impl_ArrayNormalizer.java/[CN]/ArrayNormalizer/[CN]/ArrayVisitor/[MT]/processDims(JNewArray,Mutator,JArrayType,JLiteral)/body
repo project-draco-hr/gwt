@@ -1,0 +1,32 @@
+{
+  ChangeList myChanges=new ChangeList("Replace " + x + " with a call to Array.initDims()");
+  JMethodCall call=new JMethodCall(program,null,initDims,arrayType);
+  JsonArray typeIdList=new JsonArray(program);
+  JsonArray queryIdList=new JsonArray(program);
+  JsonArray dimList=new JsonArray(program);
+  JType leafType=arrayType.getLeafType();
+  int outstandingDims=arrayType.dims;
+  for (int i=0; i < x.dims.size(); ++i) {
+    Mutator dim=x.dims.getMutator(i);
+    if (dim.get() instanceof JAbsentArrayDimension) {
+      break;
+    }
+    JArrayType cur=program.getTypeArray(leafType,outstandingDims--);
+    JLiteral typeIdLit=program.getLiteralInt(program.getTypeId(cur));
+    myChanges.addExpression(typeIdLit,typeIdList.exprs);
+    JLiteral queryIdLit=program.getLiteralInt(tryGetQueryId(cur));
+    myChanges.addExpression(queryIdLit,queryIdList.exprs);
+    myChanges.addExpression(dim,dimList.exprs);
+  }
+  JType targetType=leafType;
+  if (outstandingDims > 0) {
+    targetType=program.getTypeArray(targetType,outstandingDims);
+  }
+  myChanges.addExpression(litTypeName,call.args);
+  myChanges.addExpression(typeIdList,call.args);
+  myChanges.addExpression(queryIdList,call.args);
+  myChanges.addExpression(dimList,call.args);
+  myChanges.addExpression(targetType.getDefaultValue(),call.args);
+  myChanges.replaceExpression(m,call);
+  changeList.add(myChanges);
+}

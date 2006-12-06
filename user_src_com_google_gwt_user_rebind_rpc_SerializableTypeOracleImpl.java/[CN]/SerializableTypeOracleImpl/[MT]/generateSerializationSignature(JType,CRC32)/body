@@ -1,0 +1,34 @@
+{
+  JParameterizedType parameterizedType=type.isParameterized();
+  if (parameterizedType != null) {
+    generateSerializationSignature(parameterizedType.getRawType(),crc);
+    return;
+  }
+  String serializedTypeName=getSerializedTypeName(type);
+  crc.update(serializedTypeName.getBytes());
+  if (excludeImplementationFromSerializationSignature(type)) {
+    return;
+  }
+  JClassType customSerializer=hasCustomFieldSerializer(type);
+  if (customSerializer != null) {
+    generateSerializationSignature(customSerializer,crc);
+  }
+ else   if (type.isArray() != null) {
+    JArrayType isArray=type.isArray();
+    generateSerializationSignature(isArray.getComponentType(),crc);
+  }
+ else   if (type.isClassOrInterface() != null) {
+    JClassType isClassOrInterface=type.isClassOrInterface();
+    JField[] fields=applyFieldSerializationPolicy(isClassOrInterface);
+    for (int i=0; i < fields.length; ++i) {
+      JField field=fields[i];
+      assert(field != null);
+      crc.update(field.getName().getBytes());
+      crc.update(getSerializedTypeName(field.getType()).getBytes());
+    }
+    JClassType superClass=isClassOrInterface.getSuperclass();
+    if (superClass != null) {
+      generateSerializationSignature(superClass,crc);
+    }
+  }
+}

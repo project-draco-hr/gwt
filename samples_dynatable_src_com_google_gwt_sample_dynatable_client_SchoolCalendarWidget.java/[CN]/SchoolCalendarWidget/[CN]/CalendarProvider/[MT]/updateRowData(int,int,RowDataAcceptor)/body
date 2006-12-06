@@ -1,0 +1,27 @@
+{
+  if (startRow == lastStartRow) {
+    if (maxRows == lastMaxRows) {
+      pushResults(acceptor,startRow,lastPeople);
+      return;
+    }
+  }
+  if (USE_STATIC_RPC_ANSWERS) {
+    ServiceDefTarget target=(ServiceDefTarget)calService;
+    String staticResponseURL=GWT.getModuleBaseURL();
+    staticResponseURL+="calendar" + startRow + ".txt";
+    target.setServiceEntryPoint(staticResponseURL);
+  }
+  calService.getPeople(startRow,maxRows,new AsyncCallback(){
+    public void onFailure(    Throwable caught){
+      acceptor.failed(caught);
+    }
+    public void onSuccess(    Object result){
+      Person[] people=(Person[])result;
+      lastStartRow=startRow;
+      lastMaxRows=maxRows;
+      lastPeople=people;
+      pushResults(acceptor,startRow,people);
+    }
+  }
+);
+}

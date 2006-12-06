@@ -1,0 +1,33 @@
+{
+  Throwable caught=null;
+  try {
+    TransformerFactory transformerFactory=TransformerFactory.newInstance();
+    StreamSource xsltSource=new StreamSource(new StringReader(xslt));
+    Transformer transformer=transformerFactory.newTransformer(xsltSource);
+    transformer.setOutputProperty(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION,"yes");
+    transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT,"yes");
+    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount","4");
+    if (params != null) {
+      for (Iterator iter=params.entrySet().iterator(); iter.hasNext(); ) {
+        Map.Entry entry=(Map.Entry)iter.next();
+        transformer.setParameter((String)entry.getKey(),entry.getValue());
+      }
+    }
+    FileOutputStream fos=new FileOutputStream(outFile);
+    StreamResult result=new StreamResult(fos);
+    StreamSource xmlSource=new StreamSource(new FileReader(inFile));
+    transformer.transform(xmlSource,result);
+    fos.close();
+    return;
+  }
+ catch (  TransformerConfigurationException e) {
+    caught=e;
+  }
+catch (  TransformerException e) {
+    caught=e;
+  }
+catch (  IOException e) {
+    caught=e;
+  }
+  throw new RuntimeException("Unable to complete the xslt tranform",caught);
+}

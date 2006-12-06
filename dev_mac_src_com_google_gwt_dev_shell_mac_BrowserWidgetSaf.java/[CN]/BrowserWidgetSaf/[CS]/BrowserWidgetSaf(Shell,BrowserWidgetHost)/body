@@ -1,0 +1,32 @@
+{
+  super(shell,host);
+  Browser.setWebInspectorEnabled(true);
+  fBrowser.setUserAgentApplicationName("Safari 419.3");
+  fBrowser.addWindowScriptObjectListener(new Browser.WindowScriptObjectListener(){
+    public void windowScriptObjectAvailable(    int windowScriptObject){
+      int sel=WebKit.sel_registerName("_imp");
+      int windowObject=WebKit.objc_msgSend(windowScriptObject,sel);
+      try {
+        LowLevelSaf.jsLock();
+        final int globalExec=LowLevelSaf.getGlobalExecState(windowObject);
+        int external=LowLevelSaf.wrapDispatch(new ExternalObject());
+        LowLevelSaf.executeScript(globalExec,"function __defineExternal(x) {" + "  window.external = x;" + "}");
+        LowLevelSaf.invoke(globalExec,windowObject,"__defineExternal",windowObject,new int[]{external});
+      }
+  finally {
+        LowLevelSaf.jsUnlock();
+      }
+    }
+  }
+);
+  getDisplay().timerExec(REDRAW_PERIOD,new Runnable(){
+    public void run(){
+      if (fBrowser.isDisposed() || isDisposed()) {
+        return;
+      }
+      fBrowser.setNeedsDisplay(true);
+      getDisplay().timerExec(REDRAW_PERIOD,this);
+    }
+  }
+);
+}

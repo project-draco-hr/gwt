@@ -1,0 +1,25 @@
+{
+  JType type=(JType)fTypeMap.get(x.resolvedType);
+  JMethod method=(JMethod)fTypeMap.get(x.binding);
+  assert(type == method.getType());
+  JExpression qualifier=dispProcessExpression(x.receiver);
+  if (x.receiver instanceof ThisReference) {
+    if (method.isStatic()) {
+      qualifier=null;
+    }
+ else     if (x.receiver instanceof QualifiedThisReference) {
+    }
+ else {
+      qualifier=createThisRef(method.getEnclosingType());
+    }
+  }
+  JMethodCall call=new JMethodCall(program,qualifier,method);
+  boolean isSuperRef=x.receiver instanceof SuperReference;
+  call.setCanBePolymorphic(!isSuperRef);
+  if (x.arguments != null) {
+    for (int i=0, n=x.arguments.length; i < n; ++i) {
+      call.args.add(dispProcessExpression(x.arguments[i]));
+    }
+  }
+  return call;
+}

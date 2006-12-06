@@ -1,0 +1,40 @@
+{
+  TreeItem treeItem=null;
+  if (isBranchCommit) {
+    TreeItemLogger parentLogger=(TreeItemLogger)logger.getParentLogger();
+    if (parentLogger.fLazyTreeItem == null) {
+      treeItem=new TreeItem(tree,SWT.NONE);
+      logger.fLazyTreeItem=treeItem;
+    }
+ else     if (!parentLogger.fLazyTreeItem.isDisposed()) {
+      treeItem=new TreeItem(parentLogger.fLazyTreeItem,SWT.NONE);
+      logger.fLazyTreeItem=treeItem;
+    }
+ else {
+      parentLogger.markLoggerDead();
+      return null;
+    }
+  }
+ else {
+    if (logger.fLazyTreeItem == null) {
+      treeItem=new TreeItem(tree,SWT.NONE);
+    }
+ else     if (!logger.fLazyTreeItem.isDisposed()) {
+      treeItem=new TreeItem(logger.fLazyTreeItem,SWT.NONE);
+    }
+ else {
+      logger.markLoggerDead();
+      return null;
+    }
+  }
+  String label=message;
+  if (label == null) {
+    if (caught != null) {
+      label=caught.getMessage();
+      if (label == null || label.trim().length() == 0)       label=caught.toString();
+    }
+  }
+  treeItem.setText(label);
+  treeItem.setData(this);
+  return treeItem;
+}

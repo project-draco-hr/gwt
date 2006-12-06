@@ -1,0 +1,31 @@
+{
+  boolean madeChanges=false;
+  while (true) {
+    RescueVisitor rescuer=new RescueVisitor();
+    for (int i=0; i < program.specialTypes.size(); ++i) {
+      JReferenceType type=(JReferenceType)program.specialTypes.get(i);
+      rescuer.rescue(type,true,noSpecialTypes);
+    }
+    for (int i=0; i < program.entryMethods.size(); ++i) {
+      JMethod method=(JMethod)program.entryMethods.get(i);
+      rescuer.rescue(method);
+    }
+    UpRefVisitor upRefer=new UpRefVisitor(rescuer);
+    do {
+      rescuer.commitInstantiatedTypes();
+      program.traverse(upRefer);
+    }
+ while (upRefer.didRescue());
+    PruneVisitor pruner=new PruneVisitor();
+    program.traverse(pruner);
+    ChangeList changes=pruner.getChangeList();
+    if (changes.empty()) {
+      break;
+    }
+    changes.apply();
+    referencedTypes.clear();
+    referencedNonTypes.clear();
+    madeChanges=true;
+  }
+  return madeChanges;
+}

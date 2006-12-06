@@ -1,0 +1,29 @@
+{
+  if (variable instanceof JLocal) {
+    JLocal local=(JLocal)variable;
+    if (local.getEnclosingMethod() != fCurrentMethod) {
+      throw new InternalCompilerException("LocalRef referencing local in a different method.");
+    }
+    return new JLocalRef(program,local);
+  }
+ else   if (variable instanceof JParameter) {
+    JParameter parameter=(JParameter)variable;
+    if (parameter.getEnclosingMethod() != fCurrentMethod) {
+      throw new InternalCompilerException("ParameterRef referencing param in a different method.");
+    }
+    return new JParameterRef(program,parameter);
+  }
+ else   if (variable instanceof JField) {
+    JField field=(JField)variable;
+    JExpression instance=null;
+    if (!field.isStatic()) {
+      JClassType fieldEnclosingType=(JClassType)field.getEnclosingType();
+      instance=createThisRef(fieldEnclosingType);
+      if (!program.typeOracle.canTriviallyCast((JClassType)instance.getType(),fieldEnclosingType)) {
+        throw new InternalCompilerException("FieldRef referencing field in a different type.");
+      }
+    }
+    return new JFieldRef(program,instance,field,fCurrentClass);
+  }
+  throw new InternalCompilerException("Unknown JVariable subclass.");
+}

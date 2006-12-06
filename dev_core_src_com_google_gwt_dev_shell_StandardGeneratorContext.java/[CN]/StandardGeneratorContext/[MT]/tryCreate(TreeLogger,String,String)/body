@@ -1,0 +1,17 @@
+{
+  String typeName=packageName + "." + simpleTypeName;
+  JClassType existingType=typeOracle.findType(packageName,simpleTypeName);
+  if (existingType != null) {
+    logger.log(TreeLogger.DEBUG,"Type '" + typeName + "' already exists and will not be re-created ",null);
+    return null;
+  }
+  if (generatedTypeNames.contains(typeName)) {
+    final String msg="A request to create type '" + typeName + "' was received while the type itself was being created; this might be a generator or configuration bug";
+    logger.log(TreeLogger.WARN,msg,null);
+    return null;
+  }
+  GeneratedCompilationUnitProvider gcup=new GeneratedCompilationUnitProvider(packageName,simpleTypeName);
+  uncommittedGeneratedCupsByPrintWriter.put(gcup.pw,gcup);
+  generatedTypeNames.add(typeName);
+  return gcup.pw;
+}

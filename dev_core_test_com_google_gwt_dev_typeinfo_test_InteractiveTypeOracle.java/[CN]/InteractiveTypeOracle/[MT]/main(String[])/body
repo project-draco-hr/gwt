@@ -1,0 +1,35 @@
+{
+  AbstractTreeLogger logger=null;
+  for (int i=0; i < args.length; i++) {
+    if ("-gui".equals(args[i])) {
+      logger=TreeLoggerWidget.getAsDetachedWindow("Interactive Type Oracle Log",700,600,true);
+      break;
+    }
+  }
+  if (logger == null) {
+    logger=new PrintWriterTreeLogger();
+  }
+  String logLevel=System.getProperty("gwt.logLevel");
+  if (logLevel != null) {
+    logger.setMaxDetail(TreeLogger.Type.valueOf(logLevel));
+  }
+  InputStreamReader isr=new InputStreamReader(System.in);
+  BufferedReader br=new BufferedReader(isr);
+  TypeOracleBuilder builder=new TypeOracleBuilder();
+  TypeOracle oracle=builder.build(logger);
+  InteractiveTypeOracle ito=new InteractiveTypeOracle(oracle);
+  try {
+    String command;
+    System.out.print("> ");
+    System.out.flush();
+    while (null != (command=br.readLine())) {
+      ito.processCommand(logger,command);
+      System.out.print("> ");
+      System.out.flush();
+    }
+  }
+ catch (  IOException e) {
+    System.err.println("Error reading stdin");
+    e.printStackTrace();
+  }
+}

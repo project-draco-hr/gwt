@@ -1,0 +1,21 @@
+{
+  Set out=new HashSet(){
+    public boolean remove(    Object o){
+      boolean removed=(DiskCache.this.remove(((Entry)o).getKey())) != null;
+      super.remove(o);
+      return removed;
+    }
+  }
+;
+  out.addAll(cache.entrySet());
+  if (directory != null) {
+    possiblyCreateCacheDirectory();
+    File[] entries=directory.listFiles();
+    for (int i=0; i < entries.length; i++) {
+      if (!cache.containsKey(new FileEntry(entries[i]).getKey())) {
+        out.add(new FileEntry(entries[i]));
+      }
+    }
+  }
+  return out;
+}

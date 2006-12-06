@@ -1,0 +1,19 @@
+{
+  JMethod method=x.getTarget();
+  JsInvocation jsInvocation=new JsInvocation();
+  popList(jsInvocation.getArguments(),x.args.size());
+  JsNameRef qualifier;
+  JsExpression unnecessaryQualifier=null;
+  if (method.isStatic()) {
+    if (x.getInstance() != null) {
+      unnecessaryQualifier=(JsExpression)pop();
+    }
+    qualifier=getName(method).makeRef();
+  }
+ else {
+    qualifier=getPolyName(method).makeRef();
+    qualifier.setQualifier((JsExpression)pop());
+  }
+  jsInvocation.setQualifier(qualifier);
+  push(createCommaExpression(unnecessaryQualifier,jsInvocation));
+}

@@ -1,0 +1,26 @@
+{
+  TypeOracle typeOracle=context.getTypeOracle();
+  assert(typeOracle != null);
+  setServiceInterface(serviceInterface);
+  initializeProperties(logger,context);
+  logger=logger.branch(TreeLogger.SPAM,"Generating TypeSerializer for service interface '" + serviceInterface.getQualifiedSourceName() + "'",null);
+  String generatedTypeNames=serializationOracle.getTypeSerializerQualifiedName(getServiceInterface());
+  generatedTypeNames+=";" + createFieldSerializers(logger,context);
+  srcWriter=getSourceWriter(logger,context);
+  if (srcWriter == null) {
+    return generatedTypeNames;
+  }
+  write_StaticFields();
+  writeCreate_Methods();
+  writeCreateMethodMapMethod();
+  if (shouldEnforceTypeVersioning()) {
+    writeCreateSignatureMapMethod();
+  }
+  writeRaiseSerializationException();
+  writeDeserializeMethod();
+  writeGetSerializationSignatureMethod();
+  writeInstantiateMethod();
+  writeSerializeMethod();
+  srcWriter.commit(logger);
+  return generatedTypeNames;
+}

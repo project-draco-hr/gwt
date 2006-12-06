@@ -1,0 +1,22 @@
+{
+  if (!isSerializable(type)) {
+    return null;
+  }
+  JClassType customSerializer=hasCustomFieldSerializer(type);
+  if (customSerializer != null) {
+    return customSerializer.getQualifiedSourceName();
+  }
+  JClassType classType=type.isClassOrInterface();
+  if (classType != null) {
+    String[] name=Shared.synthesizeTopLevelClassName(classType,GENERATED_FIELD_SERIALIZER_SUFFIX);
+    if (name[0].length() > 0) {
+      return name[0] + "." + name[1];
+    }
+ else {
+      return name[1];
+    }
+  }
+ else {
+    return type.getQualifiedSourceName() + GENERATED_FIELD_SERIALIZER_SUFFIX;
+  }
+}

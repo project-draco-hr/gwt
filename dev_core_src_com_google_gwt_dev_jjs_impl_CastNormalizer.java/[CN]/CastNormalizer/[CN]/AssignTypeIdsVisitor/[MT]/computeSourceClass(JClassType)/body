@@ -1,0 +1,48 @@
+{
+  if (type == null || alreadyRan.contains(type)) {
+    return;
+  }
+  alreadyRan.add(type);
+  computeSourceClass(type.extnds);
+  if (!program.typeOracle.isInstantiatedType(type)) {
+    return;
+  }
+  Set yesSet=null;
+  for (Iterator iter=queriedTypes.keySet().iterator(); iter.hasNext(); ) {
+    JReferenceType qType=(JReferenceType)iter.next();
+    Set querySet=(Set)queriedTypes.get(qType);
+    if (program.typeOracle.canTriviallyCast(type,qType)) {
+      for (Iterator it=querySet.iterator(); it.hasNext(); ) {
+        JReferenceType argType=(JReferenceType)it.next();
+        if (program.typeOracle.canTriviallyCast(type,argType)) {
+          if (yesSet == null) {
+            yesSet=new HashSet();
+          }
+          yesSet.add(qType);
+          break;
+        }
+      }
+    }
+  }
+  if (yesSet == null && !program.isJavaScriptObject(type)) {
+    return;
+  }
+  JReferenceType[] yesArray=new JReferenceType[nextQueryId];
+  if (yesSet != null) {
+    for (Iterator it=yesSet.iterator(); it.hasNext(); ) {
+      JReferenceType yesType=(JReferenceType)it.next();
+      Integer boxedInt=(Integer)queryIds.get(yesType);
+      yesArray[boxedInt.intValue()]=yesType;
+    }
+  }
+  JsonObject jsonObject=new JsonObject(program);
+  for (int i=0; i < nextQueryId; ++i) {
+    if (yesArray[i] != null) {
+      JIntLiteral labelExpr=program.getLiteralInt(i);
+      JIntLiteral valueExpr=program.getLiteralInt(1);
+      jsonObject.propInits.add(new JsonPropInit(program,labelExpr,valueExpr));
+    }
+  }
+  classes.add(type);
+  jsonObjects.add(jsonObject);
+}

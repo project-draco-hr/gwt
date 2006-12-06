@@ -1,0 +1,35 @@
+{
+  return new AbstractSet(){
+    public boolean contains(    Object key){
+      Map.Entry s=(Map.Entry)key;
+      Object value=get(s.getKey());
+      if (value == null) {
+        return value == s.getValue();
+      }
+ else {
+        return value.equals(s.getValue());
+      }
+    }
+    public Iterator iterator(){
+      Iterator custom=new Iterator(){
+        public boolean hasNext(){
+          return keys.hasNext();
+        }
+        public Object next(){
+          String key=(String)keys.next();
+          return new ImplMapEntry(key,get(key));
+        }
+        public void remove(){
+          keys.remove();
+        }
+        Iterator keys=keySet().iterator();
+      }
+;
+      return custom;
+    }
+    public int size(){
+      return FastStringMap.this.size();
+    }
+  }
+;
+}

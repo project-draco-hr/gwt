@@ -1,0 +1,63 @@
+{
+  TypeOracle oracle=context.getTypeOracle();
+  JClassType constantsClass;
+  JClassType messagesClass;
+  JClassType constantsWithLookupClass;
+  try {
+    constantsClass=oracle.getType(LocalizableGenerator.CONSTANTS_NAME);
+    constantsWithLookupClass=oracle.getType(LocalizableGenerator.CONSTANTS_WITH_LOOKUP_NAME);
+    messagesClass=oracle.getType(LocalizableGenerator.MESSAGES_NAME);
+  }
+ catch (  NotFoundException e) {
+    throw error(logger,e);
+  }
+  String name=targetClass.getName();
+  String packageName=targetClass.getPackage().getName();
+  boolean assignableToConstants=constantsClass.isAssignableFrom(targetClass);
+  boolean assignableToMessages=messagesClass.isAssignableFrom(targetClass);
+  if (!assignableToConstants && !assignableToMessages) {
+    return null;
+  }
+  if (assignableToConstants && assignableToMessages) {
+    throw error(logger,name + " cannot extend both Constants and Messages");
+  }
+  if (targetClass.isInterface() == null) {
+    throw error(logger,name + " must be an interface");
+  }
+  AbstractResource resource;
+  try {
+    resource=ResourceFactory.getBundle(targetClass,locale);
+  }
+ catch (  MissingResourceException e) {
+    throw error(logger,"Localization failed; there must be at least one properties file accessible through the classpath in package '" + packageName + "' whose base name is '"+ ResourceFactory.getResourceName(targetClass)+ "'");
+  }
+catch (  IllegalArgumentException e) {
+    throw error(logger,e.getMessage());
+  }
+  String realLocale="_";
+  if (resource.getLocale() != null) {
+    realLocale+=resource.getLocale();
+  }
+  String resourceName=targetClass.getName().replace('.','_');
+  String className=resourceName + realLocale;
+  PrintWriter pw=context.tryCreate(logger,packageName,className);
+  if (pw != null) {
+    ClassSourceFileComposerFactory factory=new ClassSourceFileComposerFactory(packageName,className);
+    factory.addImplementedInterface(targetClass.getQualifiedSourceName());
+    SourceWriter writer=factory.createSourceWriter(context,pw);
+    if (constantsWithLookupClass.isAssignableFrom(targetClass)) {
+      ConstantsWithLookupImplCreator c=new ConstantsWithLookupImplCreator(logger,writer,targetClass,resource,context.getTypeOracle());
+      c.emitClass(logger);
+    }
+ else     if (constantsClass.isAssignableFrom(targetClass)) {
+      ConstantsImplCreator c=new ConstantsImplCreator(logger,writer,targetClass,resource,context.getTypeOracle());
+      c.emitClass(logger);
+    }
+ else {
+      MessagesImplCreator messages=new MessagesImplCreator(logger,writer,targetClass,resource,context.getTypeOracle());
+      messages.emitClass(logger);
+    }
+    context.commit(logger,pw);
+  }
+  return packageName + "." + className;
+}

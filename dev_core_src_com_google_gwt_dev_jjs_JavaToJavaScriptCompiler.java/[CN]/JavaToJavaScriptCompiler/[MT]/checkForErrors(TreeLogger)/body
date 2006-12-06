@@ -1,0 +1,29 @@
+{
+  boolean compilationFailed=false;
+  for (int iCud=0; iCud < goldenCuds.length; iCud++) {
+    CompilationUnitDeclaration cud=goldenCuds[iCud];
+    CompilationResult result=cud.compilationResult();
+    if (result.hasErrors()) {
+      compilationFailed=true;
+      TreeLogger branch=logger.branch(TreeLogger.TRACE,"Errors in " + String.valueOf(result.getFileName()),null);
+      IProblem[] errors=result.getErrors();
+      for (int i=0; i < errors.length; i++) {
+        IProblem problem=errors[i];
+        if (problemSet.contains(problem)) {
+          continue;
+        }
+        problemSet.add(problem);
+        String msg=problem.toString();
+        msg=msg.substring(msg.indexOf(' '));
+        int line=problem.getSourceLineNumber();
+        StringBuffer msgBuf=new StringBuffer();
+        msgBuf.append("Line ");
+        msgBuf.append(line);
+        msgBuf.append(": ");
+        msgBuf.append(msg);
+        branch.log(problem.isError() ? TreeLogger.ERROR : TreeLogger.TRACE,msgBuf.toString(),null);
+      }
+    }
+  }
+  return compilationFailed;
+}

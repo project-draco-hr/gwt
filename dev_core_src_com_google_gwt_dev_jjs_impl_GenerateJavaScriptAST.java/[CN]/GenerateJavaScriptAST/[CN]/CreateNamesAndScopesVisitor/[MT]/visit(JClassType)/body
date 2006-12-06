@@ -1,0 +1,27 @@
+{
+  JsScope myScope=(JsScope)classScopes.get(x);
+  if (myScope != null) {
+    push(myScope);
+    return false;
+  }
+  names.put(x,fRootScope.createUniqueObfuscatableName(getNameString(x),x.getShortName()));
+  if (x.extnds == null) {
+    myScope=fObjectScope;
+  }
+ else {
+    JsScope parentScope=(JsScope)classScopes.get(x.extnds);
+    if (parentScope == null) {
+      x.extnds.traverse(this);
+    }
+    parentScope=(JsScope)classScopes.get(x.extnds);
+    assert(parentScope != null);
+    if (parentScope == fObjectScope) {
+      parentScope=fInterfaceScope;
+    }
+    myScope=new JsScope(parentScope);
+    myScope.setDescription("class " + x.getShortName());
+  }
+  classScopes.put(x,myScope);
+  push(myScope);
+  return true;
+}

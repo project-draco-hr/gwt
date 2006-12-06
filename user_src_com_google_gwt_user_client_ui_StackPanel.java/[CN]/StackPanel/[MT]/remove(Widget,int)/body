@@ -1,0 +1,27 @@
+{
+  if (child.getParent() != this) {
+    return false;
+  }
+  if (visibleStack == index) {
+    visibleStack=-1;
+  }
+ else   if (visibleStack > index) {
+    --visibleStack;
+  }
+  int rowIndex=2 * index;
+  Element tr=DOM.getChild(body,rowIndex);
+  DOM.removeChild(body,tr);
+  tr=DOM.getChild(body,rowIndex);
+  DOM.removeChild(body,tr);
+  super.remove(child);
+  int rows=getWidgetCount() * 2;
+  for (int i=rowIndex; i < rows; i=i + 2) {
+    Element childTR=DOM.getChild(body,i);
+    Element td=DOM.getFirstChild(childTR);
+    int curIndex=DOM.getIntAttribute(td,"__index");
+    assert(curIndex == (i / 2) - 1);
+    DOM.setIntAttribute(td,"__index",index);
+    ++index;
+  }
+  return true;
+}

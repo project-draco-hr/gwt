@@ -1,0 +1,20 @@
+{
+  if (jfield instanceof Initializer) {
+    return true;
+  }
+  String name=String.valueOf(jfield.name);
+  JField field=new JField(enclosingType,name);
+  field.addModifierBits(Shared.bindingToModifierBits(jfield.binding));
+  TypeBinding jfieldType=jfield.binding.type;
+  JType fieldType=resolveType(logger,jfieldType);
+  if (fieldType == null) {
+    return false;
+  }
+  field.setType(fieldType);
+  if (jfield.javadoc != null) {
+    if (!parseMetaDataTags(unitSource,field,jfield.javadoc)) {
+      return false;
+    }
+  }
+  return true;
+}

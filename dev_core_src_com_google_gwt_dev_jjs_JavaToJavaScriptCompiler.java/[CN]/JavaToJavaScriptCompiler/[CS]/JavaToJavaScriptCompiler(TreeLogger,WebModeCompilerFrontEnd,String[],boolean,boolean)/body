@@ -1,0 +1,46 @@
+{
+  if (declEntryPts.length == 0) {
+    throw new IllegalArgumentException("entry point(s) required");
+  }
+  this.declEntryPoints=declEntryPts;
+  this.obfuscate=obfuscate;
+  this.prettyNames=prettyNames;
+  RebindPermutationOracle rpo=compiler.getRebindPermutationOracle();
+  Set allEntryPoints=new HashSet();
+  for (int i=0; i < declEntryPts.length; i++) {
+    String[] all=rpo.getAllPossibleRebindAnswers(logger,declEntryPts[i]);
+    Util.addAll(allEntryPoints,all);
+  }
+  String[] entryPts=Util.toStringArray(allEntryPoints);
+  int k=entryPts.length;
+  String[] seedTypeNames=new String[k + 3];
+  System.arraycopy(entryPts,0,seedTypeNames,0,k);
+  seedTypeNames[k++]="com.google.gwt.lang.Array";
+  seedTypeNames[k++]="com.google.gwt.lang.Cast";
+  seedTypeNames[k++]="com.google.gwt.lang.Exceptions";
+  goldenCuds=compiler.getCompilationUnitDeclarations(logger,seedTypeNames);
+  if (goldenCuds.length == 0) {
+    logger.log(TreeLogger.ERROR,"Cannot proceed due to previous errors",null);
+    throw new UnableToCompleteException();
+  }
+  lastModified=0;
+  CompilationUnitProvider newestCup=null;
+  for (int i=0; i < goldenCuds.length; i++) {
+    CompilationUnitDeclaration cud=goldenCuds[i];
+    ICompilationUnitAdapter icua=(ICompilationUnitAdapter)cud.compilationResult.compilationUnit;
+    CompilationUnitProvider cup=icua.getCompilationUnitProvider();
+    long cupLastModified=cup.getLastModified();
+    if (cupLastModified > lastModified) {
+      newestCup=cup;
+      lastModified=cupLastModified;
+    }
+  }
+  if (newestCup != null) {
+    String loc=newestCup.getLocation();
+    String msg="Newest compilation unit is '" + loc + "'";
+    logger.log(TreeLogger.DEBUG,msg,null);
+  }
+  if (checkForErrors(logger)) {
+    throw new UnableToCompleteException();
+  }
+}

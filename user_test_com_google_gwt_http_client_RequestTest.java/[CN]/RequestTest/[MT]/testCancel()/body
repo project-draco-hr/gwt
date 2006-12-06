@@ -1,0 +1,22 @@
+{
+  delayTestFinish(TEST_FINISH_DELAY);
+  RequestBuilder builder=new RequestBuilder(RequestBuilder.GET,getTestBaseURL() + "/cancel");
+  try {
+    Request request=builder.sendRequest(null,new RequestCallback(){
+      public void onResponseReceived(      Request request,      Response response){
+        fail("Request was canceled - no response should be received");
+      }
+      public void onError(      Request request,      Throwable exception){
+        fail("Request was canceled - no timeout should occur");
+      }
+    }
+);
+    assertTrue(request.isPending());
+    request.cancel();
+    assertFalse(request.isPending());
+    finishTest();
+  }
+ catch (  RequestException e) {
+    fail(e.getMessage());
+  }
+}

@@ -1,0 +1,41 @@
+{
+  fCurrentClass=(JReferenceType)fTypeMap.get(x.binding);
+  fCurrentClassScope=x.scope;
+  if (x.fields != null) {
+    for (int i=0, n=x.fields.length; i < n; ++i) {
+      FieldDeclaration fieldDeclaration=x.fields[i];
+      if (fieldDeclaration.isStatic()) {
+        fCurrentMethod=(JMethod)fCurrentClass.methods.get(0);
+        fCurrentMethodScope=x.staticInitializerScope;
+      }
+ else {
+        fCurrentMethod=(JMethod)fCurrentClass.methods.get(1);
+        fCurrentMethodScope=x.initializerScope;
+      }
+      if (fieldDeclaration instanceof Initializer) {
+        assert(fCurrentClass instanceof JClassType);
+        processInitializer((Initializer)fieldDeclaration);
+      }
+ else {
+        processField(fieldDeclaration);
+      }
+    }
+  }
+  fCurrentMethodScope=null;
+  fCurrentMethod=null;
+  if (x.methods != null) {
+    for (int i=0, n=x.methods.length; i < n; ++i) {
+      if (x.methods[i].isConstructor()) {
+        assert(fCurrentClass instanceof JClassType);
+        processConstructor((ConstructorDeclaration)x.methods[i]);
+      }
+ else       if (x.methods[i].isClinit()) {
+      }
+ else {
+        processMethod(x.methods[i]);
+      }
+    }
+  }
+  fCurrentClassScope=null;
+  fCurrentClass=null;
+}

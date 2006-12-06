@@ -1,0 +1,16 @@
+{
+  if (!Schema.class.isAssignableFrom(c)) {
+    return;
+  }
+  Method[] methods=c.getDeclaredMethods();
+  for (int i=0, n=methods.length; i < n; ++i) {
+    Method method=methods[i];
+    HandlerMethod handlerMethod=HandlerMethod.tryCreate(method);
+    if (handlerMethod != null) {
+      String name=method.getName();
+      if (!namedHandlerMethods.containsKey(name))       namedHandlerMethods.put(name,handlerMethod);
+    }
+  }
+  Class superclass=c.getSuperclass();
+  if (superclass != null)   loadClassInfoRecursive(namedHandlerMethods,superclass);
+}

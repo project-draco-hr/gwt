@@ -1,0 +1,16 @@
+{
+  Binding binding=x.binding;
+  Object target=fTypeMap.get(binding);
+  if (!(target instanceof JVariable)) {
+    return null;
+  }
+  JVariable variable=(JVariable)target;
+  if (x.syntheticAccessors != null) {
+    JField field=(JField)variable;
+    if (!field.isStatic()) {
+      JExpression instance=createThisRef(field.getEnclosingType());
+      return new JFieldRef(program,instance,field,fCurrentClass);
+    }
+  }
+  return createVariableRef(variable,binding);
+}

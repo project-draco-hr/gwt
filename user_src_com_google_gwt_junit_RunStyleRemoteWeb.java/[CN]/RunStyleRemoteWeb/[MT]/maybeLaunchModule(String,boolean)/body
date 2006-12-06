@@ -1,0 +1,24 @@
+{
+  if (forceLaunch || remoteToken == 0) {
+    shell.compileForWebMode(moduleName);
+    String localhost;
+    try {
+      localhost=InetAddress.getLocalHost().getHostAddress();
+    }
+ catch (    UnknownHostException e) {
+      throw new RuntimeException("Unable to determine my ip address",e);
+    }
+    String url="http://" + localhost + ":"+ shell.getPort()+ "/"+ moduleName;
+    try {
+      if (remoteToken > 0) {
+        browserManager.killBrowser(remoteToken);
+        remoteToken=0;
+      }
+      remoteToken=browserManager.launchNewBrowser(url,INITIAL_KEEPALIVE_MS);
+    }
+ catch (    Exception e) {
+      shell.getTopLogger().log(TreeLogger.ERROR,"Error launching remote browser",e);
+      throw new UnableToCompleteException();
+    }
+  }
+}

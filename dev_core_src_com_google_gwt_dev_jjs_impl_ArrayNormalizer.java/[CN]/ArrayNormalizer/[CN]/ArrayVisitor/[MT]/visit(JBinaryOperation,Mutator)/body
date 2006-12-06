@@ -1,0 +1,24 @@
+{
+  if (x.op == JBinaryOperator.ASG && x.getLhs() instanceof JArrayRef) {
+    JArrayRef arrayRef=(JArrayRef)x.getLhs();
+    if (arrayRef.getType() instanceof JNullType) {
+      return false;
+    }
+    JArrayType arrayType=(JArrayType)arrayRef.getInstance().getType();
+    JType elementType=arrayType.getElementType();
+    if (elementType instanceof JReferenceType && !((JReferenceType)elementType).isFinal()) {
+      arrayRef.instance.traverse(this);
+      arrayRef.indexExpr.traverse(this);
+      x.rhs.traverse(this);
+      JMethodCall call=new JMethodCall(program,null,setCheckMethod);
+      ChangeList myChanges=new ChangeList("Replace " + x + " with a call to Array.setCheck()");
+      myChanges.replaceExpression(m,call);
+      myChanges.addExpression(arrayRef.instance,call.args);
+      myChanges.addExpression(arrayRef.indexExpr,call.args);
+      myChanges.addExpression(x.rhs,call.args);
+      changeList.add(myChanges);
+      return false;
+    }
+  }
+  return true;
+}

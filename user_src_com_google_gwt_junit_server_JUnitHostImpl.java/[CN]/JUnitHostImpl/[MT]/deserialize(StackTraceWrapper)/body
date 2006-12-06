@@ -1,0 +1,24 @@
+{
+  StackTraceElement ste=null;
+  Object[] args=new Object[]{stw.className,stw.methodName,stw.fileName,new Integer(stw.lineNumber)};
+  try {
+    try {
+      Constructor ctor=StackTraceElement.class.getDeclaredConstructor(new Class[]{String.class,String.class,String.class,int.class});
+      ctor.setAccessible(true);
+      ste=(StackTraceElement)ctor.newInstance(args);
+    }
+ catch (    NoSuchMethodException e) {
+      Constructor ctor=StackTraceElement.class.getDeclaredConstructor(null);
+      ctor.setAccessible(true);
+      ste=(StackTraceElement)ctor.newInstance(null);
+      setField(StackTraceElement.class,"declaringClass",ste,args[0]);
+      setField(StackTraceElement.class,"methodName",ste,args[1]);
+      setField(StackTraceElement.class,"fileName",ste,args[2]);
+      setField(StackTraceElement.class,"lineNumber",ste,args[3]);
+    }
+  }
+ catch (  Throwable e) {
+    this.log("Error creating stack trace",e);
+  }
+  return ste;
+}

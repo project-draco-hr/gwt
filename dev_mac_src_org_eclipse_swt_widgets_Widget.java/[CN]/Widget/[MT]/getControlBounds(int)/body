@@ -1,0 +1,30 @@
+{
+  if (OS.HIVIEW) {
+    CGRect rect=new CGRect();
+    OS.HIViewGetFrame(control,rect);
+    Rect inset=getInset();
+    rect.x-=inset.left;
+    rect.y-=inset.top;
+    rect.width+=inset.right + inset.left;
+    rect.height+=inset.bottom + inset.top;
+    return new Rectangle((int)rect.x,(int)rect.y,(int)rect.width,(int)rect.height);
+  }
+  Rect rect=new Rect();
+  OS.GetControlBounds(control,rect);
+  int window=OS.GetControlOwner(control);
+  int[] theRoot=new int[1];
+  OS.GetRootControl(window,theRoot);
+  int[] parentHandle=new int[1];
+  OS.GetSuperControl(control,parentHandle);
+  if (parentHandle[0] != theRoot[0]) {
+    Rect parentRect=new Rect();
+    OS.GetControlBounds(parentHandle[0],parentRect);
+    OS.OffsetRect(rect,(short)-parentRect.left,(short)-parentRect.top);
+  }
+  Rect inset=getInset();
+  rect.left-=inset.left;
+  rect.top-=inset.top;
+  rect.right+=inset.right;
+  rect.bottom+=inset.bottom;
+  return new Rectangle(rect.left,rect.top,rect.right - rect.left,rect.bottom - rect.top);
+}

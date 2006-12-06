@@ -1,0 +1,40 @@
+{
+  try {
+    if (dispId == DISPID_MAGIC_GETGLOBALREF && myGlobalRef != 0) {
+      return new Variant(myGlobalRef);
+    }
+ else     if (dispId >= 0) {
+      if (javaDispatch.isMethod(dispId)) {
+        Method method=javaDispatch.getMethod(dispId);
+        if ((flags & COM.DISPATCH_METHOD) != 0) {
+          return callMethod(classLoader,javaDispatch.getTarget(),params,method);
+        }
+ else         if (flags == COM.DISPATCH_PROPERTYGET) {
+          IDispatchImpl funcObj=new MethodDispatch(classLoader,method);
+          IDispatch disp=new IDispatch(funcObj.getAddress());
+          disp.AddRef();
+          return new Variant(disp);
+        }
+      }
+ else       if (javaDispatch.isField(dispId)) {
+        Field field=javaDispatch.getField(dispId);
+        if (flags == COM.DISPATCH_PROPERTYGET) {
+          return SwtOleGlue.convertObjectToVariant(classLoader,field.getType(),javaDispatch.getFieldValue(dispId));
+        }
+ else         if ((flags & (COM.DISPATCH_PROPERTYPUT | COM.DISPATCH_PROPERTYPUTREF)) != 0) {
+          javaDispatch.setFieldValue(dispId,SwtOleGlue.convertVariantToObject(field.getType(),params[0],"Setting field '" + field.getName() + "'"));
+          return new Variant();
+        }
+      }
+    }
+ else {
+      throw new HResultException(COM.DISP_E_MEMBERNOTFOUND);
+    }
+  }
+ catch (  IllegalArgumentException e) {
+    e.printStackTrace();
+    throw new HResultException(e);
+  }
+  System.err.println("IDispatchProxy cannot be invoked with flags: " + Integer.toHexString(flags));
+  throw new HResultException(COM.E_NOTSUPPORTED);
+}

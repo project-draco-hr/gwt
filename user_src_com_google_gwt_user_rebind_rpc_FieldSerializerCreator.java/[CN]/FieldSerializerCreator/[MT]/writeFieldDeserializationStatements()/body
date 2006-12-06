@@ -1,0 +1,46 @@
+{
+  JType type=getSerializableClass();
+  JArrayType isArray=type.isArray();
+  if (isArray != null) {
+    fSourceWriter.println("for (int itemIndex = 0; itemIndex < instance.length; ++itemIndex) {");
+    fSourceWriter.indent();
+    JType componentType=isArray.getComponentType();
+    fSourceWriter.print("instance[itemIndex] = ");
+    if (Shared.typeNeedsCast(componentType)) {
+      fSourceWriter.print("(" + componentType.getQualifiedSourceName() + ") ");
+    }
+    String readMethodName="streamReader.read" + Shared.getCallSuffix(componentType);
+    fSourceWriter.println(readMethodName + "();");
+    fSourceWriter.outdent();
+    fSourceWriter.println("}");
+  }
+ else {
+    JField[] serializableFields=getSerializableFields();
+    int fieldCount=serializableFields.length;
+    for (int fieldIndex=0; fieldIndex < fieldCount; ++fieldIndex) {
+      JField serializableField=serializableFields[fieldIndex];
+      JType fieldType=serializableField.getType();
+      boolean needsAccessor=needsAccessorMethods(serializableField);
+      String readMethodName="read" + Shared.getCallSuffix(fieldType);
+      String streamReadExpression="streamReader." + readMethodName + "()";
+      if (Shared.typeNeedsCast(fieldType)) {
+        streamReadExpression="(" + fieldType.getQualifiedSourceName() + ") "+ streamReadExpression;
+      }
+      if (needsAccessor) {
+        fSourceWriter.print("set");
+        fSourceWriter.print(Shared.capitalize(serializableField.getName()));
+        fSourceWriter.print("(instance, ");
+        fSourceWriter.print(streamReadExpression);
+        fSourceWriter.println(");");
+      }
+ else {
+        fSourceWriter.print("instance.");
+        fSourceWriter.print(serializableField.getName());
+        fSourceWriter.print(" = ");
+        fSourceWriter.print(streamReadExpression);
+        fSourceWriter.println(";");
+      }
+    }
+  }
+  fSourceWriter.println();
+}

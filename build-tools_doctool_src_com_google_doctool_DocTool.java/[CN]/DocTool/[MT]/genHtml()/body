@@ -1,0 +1,36 @@
+{
+  File htmlDir=new File(fOutDir,"html");
+  if (!htmlDir.exists() && !htmlDir.mkdirs()) {
+    fErr.println("Cannot create html output directory " + htmlDir.getAbsolutePath());
+    return false;
+  }
+  File mergedTopicsFile=new File(fOutDir,"topics.xml");
+  if (!mergeTopics(mergedTopicsFile))   return false;
+  copyImages(htmlDir,mergedTopicsFile);
+  File mergedHtmlsFile=new File(htmlDir,"topics.htmls");
+  long lastModifiedHtmls=mergedHtmlsFile.lastModified();
+  long lastModifiedTopics=mergedTopicsFile.lastModified();
+  if (!mergedHtmlsFile.exists() || lastModifiedHtmls < lastModifiedTopics) {
+    String xsltHtmls=getFileFromClassPath("topics-htmls.xslt");
+    Map params=new HashMap();
+    params.put("title",fTitle);
+    transform(xsltHtmls,mergedTopicsFile,mergedHtmlsFile,params);
+    if (!splitHtmls(mergedHtmlsFile))     return false;
+    File tocFile=new File(htmlDir,"contents.html");
+    String xsltToc=getFileFromClassPath("topics-toc.xslt");
+    transform(xsltToc,mergedTopicsFile,tocFile,params);
+    String css=getFileFromClassPath("doc.css");
+    try {
+      FileWriter cssWriter=new FileWriter(new File(htmlDir,"doc.css"));
+      cssWriter.write(css);
+      cssWriter.close();
+    }
+ catch (    IOException e) {
+      e.printStackTrace(fErr);
+    }
+  }
+ else {
+    fOut.println("Skipping html creation since nothing seems to have changed since " + mergedHtmlsFile.getAbsolutePath());
+  }
+  return true;
+}

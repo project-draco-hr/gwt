@@ -1,0 +1,128 @@
+{
+  this.addDisposeListener(new DisposeListener(){
+    public void widgetDisposed(    DisposeEvent e){
+      fBgColor.dispose();
+    }
+  }
+);
+  fGoButton.addSelectionListener(new SelectionAdapter(){
+    public void widgetSelected(    SelectionEvent e){
+      go(fLocation.getText());
+    }
+  }
+);
+  fLocation.addKeyListener(new KeyListener(){
+    public void keyPressed(    KeyEvent e){
+      if (e.character == '\r') {
+        go(fLocation.getText());
+      }
+    }
+    public void keyReleased(    KeyEvent e){
+    }
+  }
+);
+  fBrowser.addStatusTextListener(new StatusTextListener(){
+    public void changed(    StatusTextEvent evt){
+      fStatusBar.setText(" " + evt.text);
+    }
+  }
+);
+  fBrowser.addTitleListener(new TitleListener(){
+    public void changed(    TitleEvent evt){
+      fBrowser.getShell().setText(evt.title);
+    }
+  }
+);
+  fBrowser.addLocationListener(new LocationListener(){
+    public void changed(    LocationEvent evt){
+      if (evt.top) {
+        setLocationText(evt.location);
+      }
+    }
+    public void changing(    LocationEvent evt){
+      String whitelistRuleFound=null;
+      String blacklistRuleFound=null;
+      if (evt.location.indexOf(":") == -1) {
+        evt.location="file://" + evt.location;
+      }
+      String url=evt.location;
+      evt.doit=false;
+      if (BrowserWidgetHostChecker.isAlwaysWhitelisted(url)) {
+        evt.doit=true;
+        return;
+      }
+      whitelistRuleFound=BrowserWidgetHostChecker.matchWhitelisted(url);
+      blacklistRuleFound=BrowserWidgetHostChecker.matchBlacklisted(url);
+      evt.doit=whitelistRuleFound != null && blacklistRuleFound == null;
+      if (whitelistRuleFound == null && blacklistRuleFound == null) {
+        if (DialogBase.confirmAction((Shell)getParent(),"Browsing to remote sites is a security risk!  A malicious site could\r\n" + "execute Java code though this browser window.  Only click \"Yes\" if you\r\n" + "are sure you trust the remote site.  See the log for details and\r\n"+ "configuration instructions.\r\n"+ "\r\n"+ "\r\n"+ "Allow access to '" + url + "' for the rest of this session?\r\n","Security Warning")) {
+          evt.doit=true;
+          BrowserWidgetHostChecker.whitelistURL(url);
+        }
+ else {
+          evt.doit=false;
+          BrowserWidgetHostChecker.blacklistURL(url);
+        }
+      }
+      if (!evt.doit) {
+        int lastQues=url.lastIndexOf('?');
+        int lastSlash=url.lastIndexOf(File.pathSeparatorChar);
+        if (lastQues != -1 && lastQues > lastSlash) {
+          url=url.substring(0,lastQues);
+        }
+        if (!url.startsWith("http:") && !url.startsWith("https:")) {
+          File file=new File(url);
+          while (file != null) {
+            if (file.exists()) {
+              evt.doit=true;
+              break;
+            }
+ else {
+              String msg="Cannot find file '" + file.getAbsolutePath() + "'";
+              TreeLogger branch=fLogger.branch(TreeLogger.ERROR,msg,null);
+              if ("gwt-hosted.html".equalsIgnoreCase(file.getName())) {
+                branch.log(TreeLogger.ERROR,"If you want to open compiled output within this hosted browser, add '?gwt.hybrid' to the end of the URL",null);
+              }
+            }
+            file=file.getParentFile();
+          }
+        }
+      }
+      if (whitelistRuleFound == null || !evt.doit) {
+        String typeStr="untrusted";
+        if (blacklistRuleFound != null) {
+          typeStr="blocked";
+        }
+        TreeLogger header;
+        TreeLogger.Type msgType=TreeLogger.ERROR;
+        if (!evt.doit) {
+          header=fLogger.branch(msgType,"Unable to visit " + typeStr + " URL: '"+ url,null);
+        }
+ else {
+          msgType=TreeLogger.WARN;
+          header=fLogger.branch(TreeLogger.WARN,"Confirmation was required to visit " + typeStr + " URL: '"+ url,null);
+        }
+        if (blacklistRuleFound == null) {
+          BrowserWidgetHostChecker.notifyUntrustedHost(url,header,msgType);
+        }
+ else {
+          BrowserWidgetHostChecker.notifyBlacklistedHost(blacklistRuleFound,url,header,msgType);
+        }
+        setLocationText(fBrowser.getUrl());
+      }
+    }
+  }
+);
+  fBrowser.addOpenWindowListener(new OpenWindowListener(){
+    public void open(    WindowEvent event){
+      try {
+        event.browser=fHost.openNewBrowserWindow().getBrowser();
+        event.browser.getShell().open();
+      }
+ catch (      UnableToCompleteException e) {
+        fLogger.log(TreeLogger.ERROR,"Unable to open new browser window",e);
+      }
+    }
+  }
+);
+}

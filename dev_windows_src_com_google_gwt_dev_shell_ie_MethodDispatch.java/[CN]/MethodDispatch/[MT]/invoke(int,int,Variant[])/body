@@ -1,0 +1,28 @@
+{
+switch (id) {
+case 0:
+    if ((flags & COM.DISPATCH_METHOD) != 0) {
+      return callMethod(classLoader,null,params,method);
+    }
+ else     if ((flags & COM.DISPATCH_PROPERTYGET) != 0) {
+      return new Variant(toString());
+    }
+  break;
+case 1:
+if ((flags & (COM.DISPATCH_METHOD | COM.DISPATCH_PROPERTYGET)) != 0) {
+  return new Variant(toString());
+}
+break;
+case 2:
+if ((flags & COM.DISPATCH_METHOD) != 0) {
+Object jthis=SwtOleGlue.convertVariantToObject(method.getDeclaringClass(),params[0],"this");
+Variant[] otherParams=new Variant[params.length - 1];
+System.arraycopy(params,1,otherParams,0,otherParams.length);
+return callMethod(classLoader,jthis,otherParams,method);
+}
+break;
+default :
+throw new HResultException(COM.DISP_E_MEMBERNOTFOUND);
+}
+throw new HResultException(COM.E_NOTSUPPORTED);
+}

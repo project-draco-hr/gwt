@@ -1,0 +1,44 @@
+{
+  if (!isRemoveSupported())   return;
+  resetEmpty();
+  try {
+    collection.iterator().remove();
+    fail("New iterator.remove should raise IllegalState");
+  }
+ catch (  IllegalStateException e) {
+  }
+  verify();
+  try {
+    Iterator iter=collection.iterator();
+    iter.hasNext();
+    iter.remove();
+    fail("New iterator.remove should raise IllegalState " + "even after hasNext");
+  }
+ catch (  IllegalStateException e) {
+  }
+  verify();
+  resetFull();
+  int size=collection.size();
+  Iterator iter=collection.iterator();
+  while (iter.hasNext()) {
+    Object o=iter.next();
+    iter.remove();
+    if (!areEqualElementsDistinguishable()) {
+      confirmed.remove(o);
+      verify();
+    }
+    size--;
+    assertEquals("Collection should shrink by one after " + "iterator.remove",size,collection.size());
+  }
+  assertTrue("Collection should be empty after iterator purge",collection.isEmpty());
+  resetFull();
+  iter=collection.iterator();
+  iter.next();
+  iter.remove();
+  try {
+    iter.remove();
+    fail("Second iter.remove should raise IllegalState");
+  }
+ catch (  IllegalStateException e) {
+  }
+}

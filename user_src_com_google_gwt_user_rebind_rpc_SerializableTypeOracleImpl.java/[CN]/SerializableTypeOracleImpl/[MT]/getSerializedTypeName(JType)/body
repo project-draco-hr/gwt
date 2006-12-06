@@ -1,0 +1,31 @@
+{
+  JPrimitiveType primitiveType=type.isPrimitive();
+  if (primitiveType != null) {
+    Object val=PRIMITIVE_TYPE_BINARY_NAMES.get(primitiveType.getSimpleSourceName());
+    if (val == null) {
+      throw new RuntimeException("Unexpected primitive type '" + primitiveType.getQualifiedSourceName() + "'");
+    }
+    return (String)val;
+  }
+  JArrayType arrayType=type.isArray();
+  if (arrayType != null) {
+    JType componentType=arrayType.getComponentType();
+    boolean isClassOrInterface=(componentType.isArray() == null) && (componentType.isPrimitive() == null);
+    return "[" + (isClassOrInterface ? "L" : "") + getSerializedTypeName(arrayType.getComponentType())+ (isClassOrInterface ? ";" : "");
+  }
+  JParameterizedType parameterizedType=type.isParameterized();
+  if (parameterizedType != null) {
+    return getSerializedTypeName(parameterizedType.getRawType());
+  }
+  JClassType classType=type.isClassOrInterface();
+  assert(classType != null);
+  JClassType enclosingType=classType.getEnclosingType();
+  if (enclosingType != null) {
+    return getSerializedTypeName(enclosingType) + "$" + classType.getSimpleSourceName();
+  }
+  JPackage pkg=classType.getPackage();
+  if (pkg != null) {
+    return pkg.getName() + "." + classType.getSimpleSourceName();
+  }
+  return classType.getSimpleSourceName();
+}

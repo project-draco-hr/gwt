@@ -1,0 +1,26 @@
+{
+  JArrayType type=(JArrayType)fTypeMap.get(x.resolvedType);
+  JNewArray newArray=new JNewArray(program,type);
+  if (x.initializer != null) {
+    newArray.initializers=new HolderList();
+    if (x.initializer.expressions != null) {
+      for (int i=0; i < x.initializer.expressions.length; i++) {
+        Expression expression=x.initializer.expressions[i];
+        newArray.initializers.add(dispProcessExpression(expression));
+      }
+    }
+  }
+ else {
+    newArray.dims=new HolderList();
+    for (int i=0; i < x.dimensions.length; i++) {
+      Expression dimension=x.dimensions[i];
+      if (dimension == null) {
+        newArray.dims.add(program.getLiteralAbsentArrayDimension());
+      }
+ else {
+        newArray.dims.add(dispProcessExpression(dimension));
+      }
+    }
+  }
+  return newArray;
+}

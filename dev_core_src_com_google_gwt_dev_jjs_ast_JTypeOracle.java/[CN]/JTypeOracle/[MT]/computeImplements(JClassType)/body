@@ -1,0 +1,21 @@
+{
+  Set implementsSet=getOrCreate(implementsMap,type);
+  List list=new ArrayList();
+  list.add(type);
+  list.addAll(getOrCreate(superClassMap,type));
+  for (Iterator itSuper=list.iterator(); itSuper.hasNext(); ) {
+    JClassType superclass=(JClassType)itSuper.next();
+    for (Iterator itIntf=superclass.implments.iterator(); itIntf.hasNext(); ) {
+      JInterfaceType intf=(JInterfaceType)itIntf.next();
+      implementsSet.add(intf);
+      for (Iterator itIsUp=getOrCreate(superInterfaceMap,intf).iterator(); itIsUp.hasNext(); ) {
+        JInterfaceType isup=(JInterfaceType)itIsUp.next();
+        implementsSet.add(isup);
+      }
+    }
+  }
+  for (Iterator itImpl=implementsSet.iterator(); itImpl.hasNext(); ) {
+    JInterfaceType impl=(JInterfaceType)itImpl.next();
+    add(isImplementedMap,impl,type);
+  }
+}

@@ -1,0 +1,40 @@
+{
+  Set entrySet=reachableTypes.entrySet();
+  Iterator entrySetIter=entrySet.iterator();
+  ArrayList serializableTypesList=new ArrayList();
+  ArrayList unserializableTypesList=new ArrayList();
+  while (entrySetIter.hasNext()) {
+    Entry entry=(Entry)entrySetIter.next();
+    SerializableType reachableType=(SerializableType)entry.getValue();
+    ArrayList targetList;
+    if (reachableType.isSerializable()) {
+      targetList=serializableTypesList;
+    }
+ else {
+      targetList=unserializableTypesList;
+    }
+    targetList.add(reachableType.getType());
+  }
+  JType[] serializableTypes=getSortedArray(serializableTypesList);
+  if (serializableTypes.length > 0) {
+    TreeLogger localLogger=logger.branch(TreeLogger.DEBUG,"The following types were determined to be serializable:",null);
+    for (int i=0; i < serializableTypes.length; ++i) {
+      localLogger.log(TreeLogger.DEBUG,serializableTypes[i].getParameterizedQualifiedSourceName(),null);
+    }
+  }
+  JType[] unserializableTypes=getSortedArray(unserializableTypesList);
+  if (unserializableTypes.length > 0) {
+    TreeLogger localLogger=logger.branch(TreeLogger.DEBUG,"The following types were determined to be unserializable:",null);
+    for (int i=0; i < unserializableTypes.length; ++i) {
+      JType unserializableType=unserializableTypes[i];
+      String reason=getReasonForUnserializability(unserializableType);
+      if (reason != null) {
+        TreeLogger branch=localLogger.branch(TreeLogger.INFO,unserializableType.getParameterizedQualifiedSourceName(),null);
+        branch.log(TreeLogger.INFO,reason,null);
+      }
+ else {
+        localLogger.log(TreeLogger.DEBUG,unserializableType.getParameterizedQualifiedSourceName(),null);
+      }
+    }
+  }
+}

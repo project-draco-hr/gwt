@@ -1,0 +1,23 @@
+{
+  String out=(String)cache.get(in);
+  if (out == null) {
+    out=super.rebind(logger,in);
+    cache.put(in,out);
+  }
+ else {
+    String msg="Rebind answer for '" + in + "' found in cache "+ out;
+    logger.log(TreeLogger.DEBUG,msg,null);
+  }
+  if (compilation != null && compilation.recordDecision(in,out)) {
+    List genTypes=(List)generatedTypesByResultTypeName.get(out);
+    if (genTypes != null) {
+      for (Iterator iter=genTypes.iterator(); iter.hasNext(); ) {
+        JClassType genType=(JClassType)iter.next();
+        String sourceHash=genType.getTypeHash();
+        String genTypeName=genType.getQualifiedSourceName();
+        compilation.recordGeneratedTypeHash(genTypeName,sourceHash);
+      }
+    }
+  }
+  return out;
+}

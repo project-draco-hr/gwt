@@ -1,0 +1,16 @@
+{
+  ChangeList changes=new ChangeList("Inline a call to empty method '" + method + "'");
+  JMultiExpression multi=new JMultiExpression(program);
+  JExpression instance=x.getInstance();
+  if (instance != null && instance.hasSideEffects()) {
+    changes.addExpression(x.instance,multi.exprs);
+  }
+  for (int i=0, c=x.args.size(); i < c; ++i) {
+    if (x.args.getExpr(i).hasSideEffects()) {
+      changes.addExpression(x.args.getMutator(i),multi.exprs);
+    }
+  }
+  changes.replaceExpression(m,multi);
+  changeList.add(changes);
+  return true;
+}

@@ -1,0 +1,49 @@
+{
+  JsFunction func=nativeMethod.getFunc();
+  if (func == null) {
+    return;
+  }
+  final List nameRefs=new ArrayList();
+  func.traverse(new JsAbstractVisitorWithAllVisits(){
+    public void endVisit(    JsNameRef x){
+      String ident=x.getName().getIdent();
+      if (ident.charAt(0) == '@') {
+        nameRefs.add(x);
+      }
+    }
+  }
+);
+  for (int i=0; i < nameRefs.size(); ++i) {
+    JsNameRef nameRef=(JsNameRef)nameRefs.get(i);
+    String ident=nameRef.getName().getIdent();
+    HasEnclosingType node=(HasEnclosingType)program.jsniMap.get(ident);
+    if (node == null) {
+      node=parseJsniRef(x,ident);
+      if (node == null) {
+        continue;
+      }
+      program.jsniMap.put(ident,node);
+    }
+    assert(node != null);
+    CanBeStatic canBeStatic=(CanBeStatic)node;
+    HasName hasName=(HasName)node;
+    boolean isField=node instanceof JField;
+    assert(isField || node instanceof JMethod);
+    if (canBeStatic.isStatic() && nameRef.getQualifier() != null) {
+      reportJsniError(x,"Cannot make a qualified reference to the static " + (isField ? "field " : "method ") + hasName.getName(),0);
+    }
+ else     if (!canBeStatic.isStatic() && nameRef.getQualifier() == null) {
+      reportJsniError(x,"Cannot make an unqualified reference to the instance " + (isField ? "field " : "method ") + hasName.getName(),0);
+    }
+    if (isField) {
+      JField field=(JField)node;
+      JsniFieldRef fieldRef=new JsniFieldRef(program,field,fCurrentClass);
+      nativeMethod.jsniFieldRefs.add(fieldRef);
+    }
+ else {
+      JMethod method=(JMethod)node;
+      JsniMethodRef methodRef=new JsniMethodRef(program,method);
+      nativeMethod.jsniMethodRefs.add(methodRef);
+    }
+  }
+}

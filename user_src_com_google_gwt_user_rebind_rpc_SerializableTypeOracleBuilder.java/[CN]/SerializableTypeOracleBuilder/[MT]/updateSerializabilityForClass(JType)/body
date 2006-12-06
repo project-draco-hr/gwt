@@ -1,0 +1,37 @@
+{
+  assert(!hasCustomFieldSerializer(type));
+  JClassType isClass=type.isClass();
+  assert(type.isClass() != null);
+  if (isClass.isLocalType()) {
+    addReasonForUnserializability(type,IS_LOCAL);
+    return true;
+  }
+  if (isClass.getEnclosingType() != null) {
+    if (!isClass.isStatic()) {
+      addReasonForUnserializability(type,IS_NON_STATIC_NESTED);
+      return true;
+    }
+  }
+  if (!isDefaultInstantiable(isClass)) {
+    addReasonForUnserializability(type,IS_NOT_DEFAULT_INSTANTIABLE);
+    return true;
+  }
+  if (implementsMarkerInterface(isClass)) {
+    return !hasSerializableFields(isClass);
+  }
+  if (inheritedMarkerInterface(isClass)) {
+    JClassType superClass=isClass.getSuperclass();
+    if (isSerializable(superClass)) {
+      if (hasSerializableFields(type)) {
+        return false;
+      }
+    }
+ else {
+      addReasonForUnserializability(type,MessageFormat.format(SUPERCLASS_IS_NOT_SERIALIZABLE,new String[]{superClass.getQualifiedSourceName()}));
+    }
+  }
+ else {
+    addReasonForUnserializability(type,NOT_SERIALIZABLE);
+  }
+  return true;
+}

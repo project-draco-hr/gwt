@@ -1,0 +1,43 @@
+{
+  JAbstractMethod method;
+  if (jmethod instanceof Clinit) {
+    return true;
+  }
+  String name=null;
+  int declStart=jmethod.declarationSourceStart;
+  int declEnd=jmethod.declarationSourceEnd;
+  int bodyStart=jmethod.bodyStart;
+  int bodyEnd=jmethod.bodyEnd;
+  if (jmethod.isConstructor()) {
+    name=String.valueOf(enclosingType.getSimpleSourceName());
+    method=new JConstructor(enclosingType,name,declStart,declEnd,bodyStart,bodyEnd);
+  }
+ else {
+    name=String.valueOf(jmethod.binding.selector);
+    method=new JMethod(enclosingType,name,declStart,declEnd,bodyStart,bodyEnd);
+    TypeBinding jreturnType=((MethodDeclaration)jmethod).returnType.resolvedType;
+    JType returnType=resolveType(logger,jreturnType);
+    if (returnType == null) {
+      return false;
+    }
+    ((JMethod)method).setReturnType(returnType);
+  }
+  method.addModifierBits(Shared.bindingToModifierBits(jmethod.binding));
+  if (enclosingType.isInterface() != null) {
+    method.addModifierBits(Shared.MOD_PUBLIC | Shared.MOD_ABSTRACT);
+  }
+  Argument[] jparams=jmethod.arguments;
+  if (!resolveParameters(logger,method,jparams)) {
+    return false;
+  }
+  TypeReference[] jthrows=jmethod.thrownExceptions;
+  if (!resolveThrownTypes(logger,method,jthrows)) {
+    return false;
+  }
+  if (jmethod.javadoc != null) {
+    if (!parseMetaDataTags(unitSource,method,jmethod.javadoc)) {
+      return false;
+    }
+  }
+  return true;
+}

@@ -1,0 +1,17 @@
+{
+  JMethodCall call=new JMethodCall(program,null,initValues,arrayType);
+  JLiteral typeIdLit=program.getLiteralInt(program.getTypeId(arrayType));
+  JLiteral queryIdLit=program.getLiteralInt(tryGetQueryId(arrayType));
+  JsonArray initList=new JsonArray(program);
+  ChangeList myChanges=new ChangeList("Replace " + x + " with a call to Array.initValues()");
+  for (int i=0; i < x.initializers.size(); ++i) {
+    Mutator initializer=x.initializers.getMutator(i);
+    myChanges.addExpression(initializer,initList.exprs);
+  }
+  myChanges.addExpression(litTypeName,call.args);
+  myChanges.addExpression(typeIdLit,call.args);
+  myChanges.addExpression(queryIdLit,call.args);
+  myChanges.addExpression(initList,call.args);
+  myChanges.replaceExpression(m,call);
+  changeList.add(myChanges);
+}

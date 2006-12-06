@@ -1,0 +1,46 @@
+{
+  RequestBuilder builder=new RequestBuilder(RequestBuilder.GET,getTestBaseURL() + "setRequestHeader");
+  try {
+    builder.setHeader(null,"bar");
+    fail("setRequestHeader(null, \"bar\")");
+  }
+ catch (  NullPointerException ex) {
+  }
+  try {
+    builder.setHeader("","bar");
+    fail("setRequestHeader(\"\", \"bar\")");
+  }
+ catch (  IllegalArgumentException ex) {
+  }
+  try {
+    builder.setHeader("foo",null);
+    fail("setRequestHeader(\"foo\", null)");
+  }
+ catch (  NullPointerException ex) {
+  }
+  try {
+    builder.setHeader("foo","");
+    fail("setRequestHeader(\"foo\", \"\")");
+  }
+ catch (  IllegalArgumentException ex) {
+  }
+  delayTestFinish(TEST_FINISH_DELAY);
+  try {
+    builder=new RequestBuilder(RequestBuilder.GET,getTestBaseURL() + "setRequestHeader");
+    builder.setHeader("Foo","Bar");
+    builder.setHeader("Foo","Bar1");
+    builder.sendRequest(null,new RequestCallback(){
+      public void onError(      Request request,      Throwable exception){
+        fail("HTTPRequest timed out");
+      }
+      public void onResponseReceived(      Request request,      Response response){
+        assertEquals(200,response.getStatusCode());
+        finishTest();
+      }
+    }
+);
+  }
+ catch (  RequestException e) {
+    fail(e.getMessage());
+  }
+}
