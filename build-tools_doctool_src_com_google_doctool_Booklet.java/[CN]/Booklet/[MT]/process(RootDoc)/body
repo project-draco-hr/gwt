@@ -1,33 +1,33 @@
 {
   try {
-    fRootDoc=rootDoc;
-    File outputFile=new File(fOutputPath);
+    initialRootDoc=rootDoc;
+    File outputFile=new File(outputPath);
     outputFile.getParentFile().mkdirs();
     FileWriter fw=new FileWriter(outputFile);
     pw=new PrintWriter(fw,true);
     beginln("booklet");
-    fRootDocId="";
+    rootDocId="";
     String title="";
     Tag[] idTags=rootDoc.tags("@id");
     if (idTags.length > 0) {
-      fRootDocId=idTags[0].text();
+      rootDocId=idTags[0].text();
     }
  else {
-      fRootDoc.printWarning("Expecting @id in an overview html doc; see -overview");
+      initialRootDoc.printWarning("Expecting @id in an overview html doc; see -overview");
     }
     Tag[] titleTags=rootDoc.tags("@title");
     if (titleTags.length > 0) {
       title=titleTags[0].text();
     }
  else {
-      fRootDoc.printWarning("Expecting @title in an overview html doc; see -overview");
+      initialRootDoc.printWarning("Expecting @title in an overview html doc; see -overview");
     }
-    emitIdentity(fRootDocId,title);
+    emitIdentity(rootDocId,title);
     emitLocation(rootDoc);
     emitDescription(null,rootDoc,rootDoc.firstSentenceTags(),rootDoc.inlineTags());
     emitOutOfLineTags(rootDoc.tags());
     HashSet packageNames=new HashSet();
-    ClassDoc[] cda=fRootDoc.classes();
+    ClassDoc[] cda=initialRootDoc.classes();
     for (int i=0; i < cda.length; i++) {
       ClassDoc cd=cda[i];
       if (cd.containingClass() == null) {
@@ -36,8 +36,8 @@
     }
     for (Iterator iter=packageNames.iterator(); iter.hasNext(); ) {
       String packageName=(String)iter.next();
-      if (fPackagesToGenerate == null || fPackagesToGenerate.contains(packageName)) {
-        PackageDoc pd=fRootDoc.packageNamed(packageName);
+      if (packagesToGenerate == null || packagesToGenerate.contains(packageName)) {
+        PackageDoc pd=initialRootDoc.packageNamed(packageName);
         process(pd);
       }
     }
@@ -45,6 +45,6 @@
   }
  catch (  Exception e) {
     e.printStackTrace();
-    fRootDoc.printError("Caught exception: " + e.toString());
+    initialRootDoc.printError("Caught exception: " + e.toString());
   }
 }
