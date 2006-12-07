@@ -1,8 +1,8 @@
 {
-  if (fAlreadyRan.contains(x)) {
+  if (alreadyRan.contains(x)) {
     return;
   }
-  fAlreadyRan.add(x);
+  alreadyRan.add(x);
   List jsFuncs=popList(x.methods.size());
   List jsFields=popList(x.fields.size());
   if (typeOracle.hasClinit(x)) {
@@ -21,11 +21,11 @@
   if (typeOracle.isInstantiatedType(x)) {
     if (x != program.getTypeJavaLangString()) {
       JsName seedFuncName=getName(x);
-      JsFunction seedFunc=new JsFunction(fRootScope,seedFuncName);
+      JsFunction seedFunc=new JsFunction(rootScope,seedFuncName);
       JsBlock body=new JsBlock();
       seedFunc.setBody(body);
       globalStmts.add(seedFunc.makeStmt());
-      JsNameRef lhs=fPrototype.makeRef();
+      JsNameRef lhs=prototype.makeRef();
       lhs.setQualifier(seedFuncName.makeRef());
       JsExpression rhs;
       if (x.extnds != null) {
@@ -37,20 +37,20 @@
         rhs=new JsObjectLiteral();
       }
       JsExpression protoAsg=createAssignment(lhs,rhs);
-      JsExpression tmpAsg=createAssignment(fGlobalTemp.makeRef(),protoAsg);
+      JsExpression tmpAsg=createAssignment(globalTemp.makeRef(),protoAsg);
       globalStmts.add(tmpAsg.makeStmt());
     }
  else {
-      JsNameRef rhs=fPrototype.makeRef();
-      rhs.setQualifier(fRootScope.getOrCreateUnobfuscatableName("String").makeRef());
-      JsExpression tmpAsg=createAssignment(fGlobalTemp.makeRef(),rhs);
+      JsNameRef rhs=prototype.makeRef();
+      rhs.setQualifier(rootScope.getOrCreateUnobfuscatableName("String").makeRef());
+      JsExpression tmpAsg=createAssignment(globalTemp.makeRef(),rhs);
       globalStmts.add(tmpAsg.makeStmt());
     }
     for (int i=0; i < x.methods.size(); ++i) {
       JMethod method=(JMethod)x.methods.get(i);
       if (!method.isStatic() && !method.isAbstract()) {
         JsNameRef lhs=getPolyName(method).makeRef();
-        lhs.setQualifier(fGlobalTemp.makeRef());
+        lhs.setQualifier(globalTemp.makeRef());
         JsNameRef rhs=getName(method).makeRef();
         JsExpression asg=createAssignment(lhs,rhs);
         globalStmts.add(new JsExprStmt(asg));
@@ -59,15 +59,15 @@
     if (x == program.getTypeJavaLangObject()) {
       JMethod toStringMeth=program.getSpecialMethod("Object.toString");
       if (x.methods.contains(toStringMeth)) {
-        JsName lhsName=fRootScope.getOrCreateUnobfuscatableName("toString");
+        JsName lhsName=rootScope.getOrCreateUnobfuscatableName("toString");
         JsNameRef lhs=lhsName.makeRef();
-        lhs.setQualifier(fGlobalTemp.makeRef());
+        lhs.setQualifier(globalTemp.makeRef());
         JsInvocation call=new JsInvocation();
         JsNameRef toStringRef=new JsNameRef(getPolyName(toStringMeth));
         toStringRef.setQualifier(new JsThisRef());
         call.setQualifier(toStringRef);
         JsReturn jsReturn=new JsReturn(call);
-        JsFunction rhs=new JsFunction(fRootScope);
+        JsFunction rhs=new JsFunction(rootScope);
         JsBlock body=new JsBlock();
         body.getStatements().add(jsReturn);
         rhs.setBody(body);
@@ -78,7 +78,7 @@
 {
       JField typeIdField=program.getSpecialField("Object.typeName");
       JsNameRef lhs=getName(typeIdField).makeRef();
-      lhs.setQualifier(fGlobalTemp.makeRef());
+      lhs.setQualifier(globalTemp.makeRef());
       JsStringLiteral rhs=jsProgram.getStringLiteral(x.getName());
       JsExpression asg=createAssignment(lhs,rhs);
       globalStmts.add(new JsExprStmt(asg));
@@ -87,7 +87,7 @@
     if (typeId >= 0) {
       JField typeIdField=program.getSpecialField("Object.typeId");
       JsNameRef fieldRef=getName(typeIdField).makeRef();
-      fieldRef.setQualifier(fGlobalTemp.makeRef());
+      fieldRef.setQualifier(globalTemp.makeRef());
       JsIntegralLiteral typeIdLit=jsProgram.getIntegralLiteral(BigInteger.valueOf(typeId));
       JsExpression asg=createAssignment(fieldRef,typeIdLit);
       globalStmts.add(new JsExprStmt(asg));

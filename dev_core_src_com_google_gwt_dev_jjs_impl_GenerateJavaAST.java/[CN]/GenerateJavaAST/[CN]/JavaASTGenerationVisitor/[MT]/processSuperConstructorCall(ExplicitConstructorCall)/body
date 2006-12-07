@@ -1,19 +1,19 @@
 {
-  JMethod ctor=(JMethod)fTypeMap.get(x.binding);
-  JExpression trueQualifier=createThisRef(fCurrentClass);
+  JMethod ctor=(JMethod)typeMap.get(x.binding);
+  JExpression trueQualifier=createThisRef(currentClass);
   JMethodCall call=new JMethodCall(program,trueQualifier,ctor);
   ReferenceBinding superClass=x.binding.declaringClass;
   if (superClass instanceof NestedTypeBinding && !superClass.isStatic()) {
-    NestedTypeBinding myBinding=(NestedTypeBinding)fCurrentClassScope.referenceType().binding;
+    NestedTypeBinding myBinding=(NestedTypeBinding)currentClassScope.referenceType().binding;
     NestedTypeBinding superBinding=(NestedTypeBinding)superClass;
     if (superBinding.enclosingInstances != null) {
       JExpression qualifier=dispProcessExpression(x.qualification);
       for (int j=0; j < superBinding.enclosingInstances.length; ++j) {
         SyntheticArgumentBinding arg=superBinding.enclosingInstances[j];
-        JClassType classType=(JClassType)fTypeMap.get(arg.type);
+        JClassType classType=(JClassType)typeMap.get(arg.type);
         if (qualifier == null) {
           List workList=new ArrayList();
-          Iterator paramIt=fCurrentMethod.params.iterator();
+          Iterator paramIt=currentMethod.params.iterator();
           for (int i=0; i < myBinding.enclosingInstances.length; ++i) {
             workList.add(createVariableRef((JParameter)paramIt.next()));
           }
@@ -27,11 +27,11 @@
     if (superBinding.outerLocalVariables != null) {
       for (int j=0; j < superBinding.outerLocalVariables.length; ++j) {
         SyntheticArgumentBinding arg=superBinding.outerLocalVariables[j];
-        JType varType=(JType)fTypeMap.get(arg.type);
+        JType varType=(JType)typeMap.get(arg.type);
         String varName=String.valueOf(arg.name);
         JParameter param=null;
-        for (int i=0; i < fCurrentMethod.params.size(); ++i) {
-          JParameter paramIt=(JParameter)fCurrentMethod.params.get(i);
+        for (int i=0; i < currentMethod.params.size(); ++i) {
+          JParameter paramIt=(JParameter)currentMethod.params.get(i);
           if (varType == paramIt.getType() && varName.equals(paramIt.getName())) {
             param=paramIt;
           }
