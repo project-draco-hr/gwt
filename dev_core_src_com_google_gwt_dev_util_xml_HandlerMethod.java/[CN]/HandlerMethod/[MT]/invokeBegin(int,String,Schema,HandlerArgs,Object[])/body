@@ -8,7 +8,7 @@
   Throwable caught=null;
   try {
     target.setLineNumber(lineNumber);
-    nextSchemaLevel=(Schema)fMethod.invoke(target,outInvokeArgs);
+    nextSchemaLevel=(Schema)method.invoke(target,outInvokeArgs);
   }
  catch (  IllegalArgumentException e) {
     caught=e;
@@ -19,8 +19,16 @@ catch (  IllegalAccessException e) {
 catch (  InvocationTargetException e) {
     caught=e.getTargetException();
   }
-  if (caught != null)   target.onHandlerException(lineNumber,elemLocalName,fMethod,caught);
-  if (nextSchemaLevel != null)   return nextSchemaLevel;
- else   if (fArbitraryChildren)   return sArbitraryChildHandler;
- else   return null;
+  if (caught != null) {
+    target.onHandlerException(lineNumber,elemLocalName,method,caught);
+  }
+  if (nextSchemaLevel != null) {
+    return nextSchemaLevel;
+  }
+ else   if (arbitraryChildren) {
+    return sArbitraryChildHandler;
+  }
+ else {
+    return null;
+  }
 }
