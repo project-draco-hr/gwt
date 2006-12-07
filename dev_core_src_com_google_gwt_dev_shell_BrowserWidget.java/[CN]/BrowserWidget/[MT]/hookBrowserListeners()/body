@@ -1,39 +1,39 @@
 {
   this.addDisposeListener(new DisposeListener(){
     public void widgetDisposed(    DisposeEvent e){
-      fBgColor.dispose();
+      bgColor.dispose();
     }
   }
 );
-  fGoButton.addSelectionListener(new SelectionAdapter(){
+  goButton.addSelectionListener(new SelectionAdapter(){
     public void widgetSelected(    SelectionEvent e){
-      go(fLocation.getText());
+      go(location.getText());
     }
   }
 );
-  fLocation.addKeyListener(new KeyListener(){
+  location.addKeyListener(new KeyListener(){
     public void keyPressed(    KeyEvent e){
       if (e.character == '\r') {
-        go(fLocation.getText());
+        go(location.getText());
       }
     }
     public void keyReleased(    KeyEvent e){
     }
   }
 );
-  fBrowser.addStatusTextListener(new StatusTextListener(){
+  browser.addStatusTextListener(new StatusTextListener(){
     public void changed(    StatusTextEvent evt){
-      fStatusBar.setText(" " + evt.text);
+      statusBar.setText(" " + evt.text);
     }
   }
 );
-  fBrowser.addTitleListener(new TitleListener(){
+  browser.addTitleListener(new TitleListener(){
     public void changed(    TitleEvent evt){
-      fBrowser.getShell().setText(evt.title);
+      browser.getShell().setText(evt.title);
     }
   }
 );
-  fBrowser.addLocationListener(new LocationListener(){
+  browser.addLocationListener(new LocationListener(){
     public void changed(    LocationEvent evt){
       if (evt.top) {
         setLocationText(evt.location);
@@ -79,7 +79,7 @@
             }
  else {
               String msg="Cannot find file '" + file.getAbsolutePath() + "'";
-              TreeLogger branch=fLogger.branch(TreeLogger.ERROR,msg,null);
+              TreeLogger branch=logger.branch(TreeLogger.ERROR,msg,null);
               if ("gwt-hosted.html".equalsIgnoreCase(file.getName())) {
                 branch.log(TreeLogger.ERROR,"If you want to open compiled output within this hosted browser, add '?gwt.hybrid' to the end of the URL",null);
               }
@@ -96,11 +96,11 @@
         TreeLogger header;
         TreeLogger.Type msgType=TreeLogger.ERROR;
         if (!evt.doit) {
-          header=fLogger.branch(msgType,"Unable to visit " + typeStr + " URL: '"+ url,null);
+          header=logger.branch(msgType,"Unable to visit " + typeStr + " URL: '"+ url,null);
         }
  else {
           msgType=TreeLogger.WARN;
-          header=fLogger.branch(TreeLogger.WARN,"Confirmation was required to visit " + typeStr + " URL: '"+ url,null);
+          header=logger.branch(TreeLogger.WARN,"Confirmation was required to visit " + typeStr + " URL: '"+ url,null);
         }
         if (blacklistRuleFound == null) {
           BrowserWidgetHostChecker.notifyUntrustedHost(url,header,msgType);
@@ -108,19 +108,19 @@
  else {
           BrowserWidgetHostChecker.notifyBlacklistedHost(blacklistRuleFound,url,header,msgType);
         }
-        setLocationText(fBrowser.getUrl());
+        setLocationText(browser.getUrl());
       }
     }
   }
 );
-  fBrowser.addOpenWindowListener(new OpenWindowListener(){
+  browser.addOpenWindowListener(new OpenWindowListener(){
     public void open(    WindowEvent event){
       try {
-        event.browser=fHost.openNewBrowserWindow().getBrowser();
+        event.browser=host.openNewBrowserWindow().getBrowser();
         event.browser.getShell().open();
       }
  catch (      UnableToCompleteException e) {
-        fLogger.log(TreeLogger.ERROR,"Unable to open new browser window",e);
+        logger.log(TreeLogger.ERROR,"Unable to open new browser window",e);
       }
     }
   }

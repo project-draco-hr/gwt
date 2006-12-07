@@ -3,9 +3,9 @@
     throw new NullPointerException("No logger specified");
   }
   final TreeLogger logger=topLogger.branch(TreeLogger.INFO,"Starting HTTP on port " + listeningPort,null);
-  fStartupBranchLogger=logger;
+  startupBranchLogger=logger;
   sTomcat=this;
-  fPort=listeningPort;
+  port=listeningPort;
   File topWorkDir=new File(System.getProperty("user.dir"));
   String catBase=System.getProperty("catalina.base");
   if (catBase == null) {
@@ -16,17 +16,17 @@
   String adapterClassName=CommonsLoggerAdapter.class.getName();
   System.setProperty("org.apache.commons.logging.Log",adapterClassName);
   Logger catalinaLogger=new CatalinaLoggerAdapter(topLogger);
-  fCatEmbedded=new Embedded();
-  fCatEmbedded.setDebug(0);
-  fCatEmbedded.setLogger(catalinaLogger);
-  fCatEngine=fCatEmbedded.createEngine();
-  fCatEngine.setName("gwt");
-  fCatEngine.setDefaultHost("localhost");
+  catEmbedded=new Embedded();
+  catEmbedded.setDebug(0);
+  catEmbedded.setLogger(catalinaLogger);
+  catEngine=catEmbedded.createEngine();
+  catEngine.setName("gwt");
+  catEngine.setDefaultHost("localhost");
   String appBase=catBase + "/webapps";
-  fCatHost=(StandardHost)fCatEmbedded.createHost("localhost",appBase);
+  catHost=(StandardHost)catEmbedded.createHost("localhost",appBase);
   HostConfig hostConfig=new HostConfig();
-  fCatHost.addLifecycleListener(hostConfig);
-  fCatHost.addContainerListener(new ContainerListener(){
+  catHost.addLifecycleListener(hostConfig);
+  catHost.addContainerListener(new ContainerListener(){
     public void containerEvent(    ContainerEvent event){
       if (StandardHost.PRE_INSTALL_EVENT.equals(event.getType())) {
         StandardContext webapp=(StandardContext)event.getData();
@@ -36,10 +36,10 @@
     }
   }
 );
-  fCatEngine.addChild(fCatHost);
-  fCatEngine.setDefaultHost(fCatHost.getName());
-  fCatEmbedded.addEngine(fCatEngine);
+  catEngine.addChild(catHost);
+  catEngine.setDefaultHost(catHost.getName());
+  catEmbedded.addEngine(catEngine);
   InetAddress nullAddr=null;
-  Connector connector=fCatEmbedded.createConnector(nullAddr,fPort,false);
-  fCatEmbedded.addConnector(connector);
+  Connector connector=catEmbedded.createConnector(nullAddr,port,false);
+  catEmbedded.addConnector(connector);
 }
