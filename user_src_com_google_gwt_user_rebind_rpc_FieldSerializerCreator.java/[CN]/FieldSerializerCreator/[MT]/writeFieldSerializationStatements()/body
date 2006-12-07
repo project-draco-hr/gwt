@@ -2,40 +2,40 @@
   JType type=getSerializableClass();
   JArrayType isArray=type.isArray();
   if (isArray != null) {
-    fSourceWriter.println("int itemCount = instance.length;");
-    fSourceWriter.println();
-    fSourceWriter.println("streamWriter.writeInt(itemCount);");
-    fSourceWriter.println();
-    fSourceWriter.println("for (int itemIndex = 0; itemIndex < itemCount; ++itemIndex) {");
-    fSourceWriter.indent();
+    sourceWriter.println("int itemCount = instance.length;");
+    sourceWriter.println();
+    sourceWriter.println("streamWriter.writeInt(itemCount);");
+    sourceWriter.println();
+    sourceWriter.println("for (int itemIndex = 0; itemIndex < itemCount; ++itemIndex) {");
+    sourceWriter.indent();
     String writeMethodName="write" + Shared.getCallSuffix(isArray.getComponentType());
-    fSourceWriter.print("streamWriter.");
-    fSourceWriter.print(writeMethodName);
-    fSourceWriter.println("(instance[itemIndex]);");
-    fSourceWriter.outdent();
-    fSourceWriter.println("}");
+    sourceWriter.print("streamWriter.");
+    sourceWriter.print(writeMethodName);
+    sourceWriter.println("(instance[itemIndex]);");
+    sourceWriter.outdent();
+    sourceWriter.println("}");
   }
  else {
-    JField[] serializableFields=getSerializableFields();
-    int fieldCount=serializableFields.length;
+    JField[] jFields=getSerializableFields();
+    int fieldCount=jFields.length;
     for (int fieldIndex=0; fieldIndex < fieldCount; ++fieldIndex) {
-      JField serializableField=serializableFields[fieldIndex];
+      JField serializableField=jFields[fieldIndex];
       JType fieldType=serializableField.getType();
       String writeMethodName="write" + Shared.getCallSuffix(fieldType);
-      fSourceWriter.print("streamWriter.");
-      fSourceWriter.print(writeMethodName);
-      fSourceWriter.print("(");
+      sourceWriter.print("streamWriter.");
+      sourceWriter.print(writeMethodName);
+      sourceWriter.print("(");
       if (needsAccessorMethods(serializableField)) {
-        fSourceWriter.print("get");
-        fSourceWriter.print(Shared.capitalize(serializableField.getName()));
-        fSourceWriter.println("(instance));");
+        sourceWriter.print("get");
+        sourceWriter.print(Shared.capitalize(serializableField.getName()));
+        sourceWriter.println("(instance));");
       }
  else {
-        fSourceWriter.print("instance.");
-        fSourceWriter.print(serializableField.getName());
-        fSourceWriter.println(");");
+        sourceWriter.print("instance.");
+        sourceWriter.print(serializableField.getName());
+        sourceWriter.println(");");
       }
     }
   }
-  fSourceWriter.println();
+  sourceWriter.println();
 }
