@@ -11,8 +11,15 @@
     qualifier=getName(method).makeRef();
   }
  else {
-    qualifier=getPolyName(method).makeRef();
-    qualifier.setQualifier((JsExpression)pop());
+    if (x.isStaticDispatchOnly()) {
+      qualifier=objectScope.getOrCreateUnobfuscatableName("call").makeRef();
+      qualifier.setQualifier(getName(method).makeRef());
+      jsInvocation.getArguments().add(0,(JsExpression)pop());
+    }
+ else {
+      qualifier=getPolyName(method).makeRef();
+      qualifier.setQualifier((JsExpression)pop());
+    }
   }
   jsInvocation.setQualifier(qualifier);
   push(createCommaExpression(unnecessaryQualifier,jsInvocation));
