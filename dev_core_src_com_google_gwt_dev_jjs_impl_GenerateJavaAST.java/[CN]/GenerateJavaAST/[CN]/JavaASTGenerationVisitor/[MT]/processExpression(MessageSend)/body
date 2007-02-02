@@ -1,4 +1,5 @@
 {
+  JSourceInfo info=makeSourceInfo(x);
   JType type=(JType)typeMap.get(x.resolvedType);
   JMethod method=(JMethod)typeMap.get(x.binding);
   assert(type == method.getType());
@@ -10,17 +11,17 @@
  else     if (x.receiver instanceof QualifiedThisReference) {
     }
  else {
-      qualifier=createThisRef(method.getEnclosingType());
+      qualifier=createThisRef(info,method.getEnclosingType());
     }
   }
-  JMethodCall call=new JMethodCall(program,qualifier,method);
+  JMethodCall call=new JMethodCall(program,info,qualifier,method);
   boolean isSuperRef=x.receiver instanceof SuperReference;
   if (isSuperRef) {
     call.setStaticDispatchOnly();
   }
   if (x.arguments != null) {
     for (int i=0, n=x.arguments.length; i < n; ++i) {
-      call.args.add(dispProcessExpression(x.arguments[i]));
+      call.getArgs().add(dispProcessExpression(x.arguments[i]));
     }
   }
   return call;

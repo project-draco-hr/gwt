@@ -1,16 +1,17 @@
 {
+  JSourceInfo info=makeSourceInfo(x);
   JBlock tryBlock=processStatement(x.tryBlock);
   List catchArgs=new ArrayList();
   List catchBlocks=new ArrayList();
   if (x.catchBlocks != null) {
     for (int i=0, c=x.catchArguments.length; i < c; ++i) {
       JLocal local=(JLocal)typeMap.get(x.catchArguments[i].binding);
-      catchArgs.add(createVariableRef(local));
+      catchArgs.add(createVariableRef(info,local));
     }
     for (int i=0, c=x.catchBlocks.length; i < c; ++i) {
       catchBlocks.add(processStatement(x.catchBlocks[i]));
     }
   }
   JBlock finallyBlock=processStatement(x.finallyBlock);
-  return new JTryStatement(program,tryBlock,catchArgs,catchBlocks,finallyBlock);
+  return new JTryStatement(program,info,tryBlock,catchArgs,catchBlocks,finallyBlock);
 }

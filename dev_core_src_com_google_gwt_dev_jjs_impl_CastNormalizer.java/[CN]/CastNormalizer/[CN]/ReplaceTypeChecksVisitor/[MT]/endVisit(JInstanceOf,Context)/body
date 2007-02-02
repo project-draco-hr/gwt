@@ -1,0 +1,17 @@
+{
+  JType argType=x.getExpr().getType();
+  if (argType instanceof JClassType && program.typeOracle.canTriviallyCast((JClassType)argType,x.getTestType())) {
+    JNullLiteral nullLit=program.getLiteralNull();
+    JBinaryOperation eq=new JBinaryOperation(program,x.getSourceInfo(),program.getTypePrimitiveBoolean(),JBinaryOperator.NEQ,x.getExpr(),nullLit);
+    ctx.replaceMe(eq);
+  }
+ else {
+    JMethod method=program.getSpecialMethod("Cast.instanceOf");
+    JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,method);
+    Integer boxedInt=(Integer)queryIds.get(x.getTestType());
+    JIntLiteral qId=program.getLiteralInt(boxedInt.intValue());
+    call.getArgs().add(x.getExpr());
+    call.getArgs().add(qId);
+    ctx.replaceMe(call);
+  }
+}

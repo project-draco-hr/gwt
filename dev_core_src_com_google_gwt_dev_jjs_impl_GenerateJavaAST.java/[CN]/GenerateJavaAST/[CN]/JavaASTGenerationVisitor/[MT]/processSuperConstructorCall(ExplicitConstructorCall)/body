@@ -1,7 +1,8 @@
 {
+  JSourceInfo info=makeSourceInfo(x);
   JMethod ctor=(JMethod)typeMap.get(x.binding);
-  JExpression trueQualifier=createThisRef(currentClass);
-  JMethodCall call=new JMethodCall(program,trueQualifier,ctor);
+  JExpression trueQualifier=createThisRef(info,currentClass);
+  JMethodCall call=new JMethodCall(program,info,trueQualifier,ctor);
   ReferenceBinding superClass=x.binding.declaringClass;
   if (superClass instanceof NestedTypeBinding && !superClass.isStatic()) {
     NestedTypeBinding myBinding=(NestedTypeBinding)currentClassScope.referenceType().binding;
@@ -15,12 +16,12 @@
           List workList=new ArrayList();
           Iterator paramIt=currentMethod.params.iterator();
           for (int i=0; i < myBinding.enclosingInstances.length; ++i) {
-            workList.add(createVariableRef((JParameter)paramIt.next()));
+            workList.add(createVariableRef(info,(JParameter)paramIt.next()));
           }
-          call.args.add(createThisRef(classType,workList));
+          call.getArgs().add(createThisRef(classType,workList));
         }
  else {
-          call.args.add(createThisRef(classType,qualifier));
+          call.getArgs().add(createThisRef(classType,qualifier));
         }
       }
     }
@@ -39,13 +40,13 @@
         if (param == null) {
           throw new InternalCompilerException("Could not find matching local arg for explicit super ctor call.");
         }
-        call.args.add(createVariableRef(param));
+        call.getArgs().add(createVariableRef(info,param));
       }
     }
   }
   if (x.arguments != null) {
     for (int i=0, n=x.arguments.length; i < n; ++i) {
-      call.args.add(dispProcessExpression(x.arguments[i]));
+      call.getArgs().add(dispProcessExpression(x.arguments[i]));
     }
   }
   return call;

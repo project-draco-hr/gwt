@@ -1,0 +1,81 @@
+{
+  JExpression replaceExpr;
+  JType toType=x.getCastType();
+  if (toType instanceof JReferenceType) {
+    JExpression curExpr=x.getExpr();
+    JReferenceType refType=(JReferenceType)toType;
+    JType argType=x.getExpr().getType();
+    if (program.isJavaScriptObject(argType)) {
+      JMethod wrap=program.getSpecialMethod("Cast.wrapJSO");
+      JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,wrap,argType);
+      JClassSeed seed=program.getLiteralClassSeed((JClassType)argType);
+      call.getArgs().add(curExpr);
+      call.getArgs().add(seed);
+      curExpr=call;
+    }
+    if (argType instanceof JClassType && program.typeOracle.canTriviallyCast((JClassType)argType,refType)) {
+      replaceExpr=curExpr;
+    }
+ else {
+      JMethod method=program.getSpecialMethod("Cast.dynamicCast");
+      JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,method,toType);
+      Integer boxedInt=(Integer)queryIds.get(refType);
+      JIntLiteral qId=program.getLiteralInt(boxedInt.intValue());
+      call.getArgs().add(curExpr);
+      call.getArgs().add(qId);
+      replaceExpr=call;
+    }
+  }
+ else {
+    boolean narrow=false, round=false;
+    JPrimitiveType tByte=program.getTypePrimitiveByte();
+    JPrimitiveType tChar=program.getTypePrimitiveChar();
+    JPrimitiveType tShort=program.getTypePrimitiveShort();
+    JPrimitiveType tInt=program.getTypePrimitiveInt();
+    JPrimitiveType tLong=program.getTypePrimitiveLong();
+    JPrimitiveType tFloat=program.getTypePrimitiveFloat();
+    JPrimitiveType tDouble=program.getTypePrimitiveDouble();
+    JType fromType=x.getExpr().getType();
+    if (tByte == fromType) {
+      if (tChar == toType) {
+        narrow=true;
+      }
+    }
+ else     if (tShort == fromType) {
+      if (tByte == toType || tChar == toType) {
+        narrow=true;
+      }
+    }
+ else     if (tChar == fromType) {
+      if (tByte == toType || tShort == toType) {
+        narrow=true;
+      }
+    }
+ else     if (tInt == fromType) {
+      if (tByte == toType || tShort == toType || tChar == toType) {
+        narrow=true;
+      }
+    }
+ else     if (tLong == fromType) {
+      if (tByte == toType || tShort == toType || tChar == toType || tInt == toType) {
+        narrow=true;
+      }
+    }
+ else     if (tFloat == fromType || tDouble == fromType) {
+      if (tByte == toType || tShort == toType || tChar == toType || tInt == toType || tLong == toType) {
+        round=true;
+      }
+    }
+    if (narrow || round) {
+      String methodName="Cast." + (narrow ? "narrow_" : "round_") + toType.getName();
+      JMethod castMethod=program.getSpecialMethod(methodName);
+      JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,castMethod);
+      call.getArgs().add(x.getExpr());
+      replaceExpr=call;
+    }
+ else {
+      replaceExpr=x.getExpr();
+    }
+  }
+  ctx.replaceMe(replaceExpr);
+}

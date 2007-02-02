@@ -1,21 +1,16 @@
 {
-  boolean madeChanges=false;
   RecordVisitor recorder=new RecordVisitor();
-  program.traverse(recorder);
+  recorder.accept(program);
+  boolean madeChanges=false;
   while (true) {
     TightenTypesVisitor tightener=new TightenTypesVisitor();
-    program.traverse(tightener);
-    ChangeList changes=tightener.getChangeList();
-    if (changes.empty()) {
-      return madeChanges;
+    tightener.accept(program);
+    if (!tightener.didChange()) {
+      break;
     }
-    changes.apply();
     madeChanges=true;
     FixDanglingRefsVisitor fixer=new FixDanglingRefsVisitor();
-    program.traverse(fixer);
-    changes=fixer.getChangeList();
-    if (!changes.empty()) {
-      changes.apply();
-    }
+    fixer.accept(program);
   }
+  return madeChanges;
 }

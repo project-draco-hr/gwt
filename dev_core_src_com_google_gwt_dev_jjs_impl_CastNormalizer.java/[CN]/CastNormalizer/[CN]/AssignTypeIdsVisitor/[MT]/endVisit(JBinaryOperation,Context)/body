@@ -1,0 +1,29 @@
+{
+  if (x.getOp() == JBinaryOperator.ASG && x.getLhs() instanceof JArrayRef) {
+    JExpression instance=((JArrayRef)x.getLhs()).getInstance();
+    if (instance.getType() instanceof JNullType) {
+      return;
+    }
+    JArrayType lhsArrayType=(JArrayType)instance.getType();
+    JType elementType=lhsArrayType.getElementType();
+    if (!(elementType instanceof JReferenceType)) {
+      return;
+    }
+    if (((JReferenceType)elementType).isFinal()) {
+      return;
+    }
+    JTypeOracle typeOracle=program.typeOracle;
+    JType rhsType=x.getRhs().getType();
+    assert(rhsType instanceof JReferenceType);
+    JReferenceType refRhsType=(JReferenceType)rhsType;
+    for (Iterator it=instantiatedArrayTypes.iterator(); it.hasNext(); ) {
+      JArrayType arrayType=(JArrayType)it.next();
+      if (typeOracle.canTheoreticallyCast(arrayType,lhsArrayType)) {
+        JType itElementType=arrayType.getElementType();
+        if (itElementType instanceof JReferenceType) {
+          recordCastInternal((JReferenceType)itElementType,refRhsType);
+        }
+      }
+    }
+  }
+}

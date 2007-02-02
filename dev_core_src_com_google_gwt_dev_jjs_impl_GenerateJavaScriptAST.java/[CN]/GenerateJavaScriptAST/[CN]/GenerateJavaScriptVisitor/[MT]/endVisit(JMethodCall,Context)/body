@@ -1,0 +1,26 @@
+{
+  JMethod method=x.getTarget();
+  JsInvocation jsInvocation=new JsInvocation();
+  popList(jsInvocation.getArguments(),x.getArgs().size());
+  JsNameRef qualifier;
+  JsExpression unnecessaryQualifier=null;
+  if (method.isStatic()) {
+    if (x.getInstance() != null) {
+      unnecessaryQualifier=(JsExpression)pop();
+    }
+    qualifier=getName(method).makeRef();
+  }
+ else {
+    if (x.isStaticDispatchOnly()) {
+      qualifier=objectScope.getOrCreateUnobfuscatableName("call").makeRef();
+      qualifier.setQualifier(getName(method).makeRef());
+      jsInvocation.getArguments().add(0,(JsExpression)pop());
+    }
+ else {
+      qualifier=getPolyName(method).makeRef();
+      qualifier.setQualifier((JsExpression)pop());
+    }
+  }
+  jsInvocation.setQualifier(qualifier);
+  push(createCommaExpression(unnecessaryQualifier,jsInvocation));
+}

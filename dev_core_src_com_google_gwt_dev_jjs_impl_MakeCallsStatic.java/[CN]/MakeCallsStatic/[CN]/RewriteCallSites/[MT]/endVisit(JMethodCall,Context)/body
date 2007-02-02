@@ -1,0 +1,13 @@
+{
+  JMethod oldMethod=x.getTarget();
+  JMethod newMethod=program.getStaticImpl(oldMethod);
+  if (newMethod == null || x.canBePolymorphic()) {
+    return;
+  }
+  JMethodCall newCall=new JMethodCall(program,x.getSourceInfo(),null,newMethod);
+  newCall.getArgs().add(x.getInstance());
+  for (int i=0; i < x.getArgs().size(); ++i) {
+    newCall.getArgs().add(x.getArgs().get(i));
+  }
+  ctx.replaceMe(newCall);
+}

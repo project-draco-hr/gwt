@@ -1,8 +1,9 @@
 {
   MethodBinding b=methodDeclaration.binding;
+  JSourceInfo info=makeSourceInfo(methodDeclaration);
   JType returnType=(JType)typeMap.get(methodDeclaration.returnType.resolvedType);
   JReferenceType enclosingType=(JReferenceType)typeMap.get(scope.enclosingSourceType());
-  JMethod newMethod=program.createMethod(methodDeclaration.selector,enclosingType,returnType,b.isAbstract(),b.isStatic(),b.isFinal(),b.isPrivate(),b.isNative());
+  JMethod newMethod=program.createMethod(info,methodDeclaration.selector,enclosingType,returnType,b.isAbstract(),b.isStatic(),b.isFinal(),b.isPrivate(),b.isNative());
   mapThrownExceptions(newMethod,methodDeclaration);
   mapParameters(newMethod,methodDeclaration);
   typeMap.put(b,newMethod);
@@ -12,15 +13,15 @@
     int startPos=jsniCode.indexOf("/*-{");
     int endPos=jsniCode.lastIndexOf("}-*/");
     if (startPos < 0 && endPos < 0) {
-      GenerateJavaAST.reportJsniError(methodDeclaration,"Native methods require a JavaScript implementation enclosed with /*-{ and }-*/",0);
+      GenerateJavaAST.reportJsniError(info,methodDeclaration,"Native methods require a JavaScript implementation enclosed with /*-{ and }-*/");
       return true;
     }
     if (startPos < 0) {
-      GenerateJavaAST.reportJsniError(methodDeclaration,"Unable to find start of native block; begin your JavaScript block with: /*-{",0);
+      GenerateJavaAST.reportJsniError(info,methodDeclaration,"Unable to find start of native block; begin your JavaScript block with: /*-{");
       return true;
     }
     if (endPos < 0) {
-      GenerateJavaAST.reportJsniError(methodDeclaration,"Unable to find end of native block; terminate your JavaScript block with: }-*/",0);
+      GenerateJavaAST.reportJsniError(info,methodDeclaration,"Unable to find end of native block; terminate your JavaScript block with: }-*/");
       return true;
     }
     startPos+=3;
@@ -67,8 +68,8 @@ default :
   }
 }
 i+=startPos + detail.getLineOffset();
-String message=e.getMessage();
-GenerateJavaAST.reportJsniError(methodDeclaration,message,i);
+info=new JSourceInfo(i,i,info.getStartLine() + detail.getLine(),info.getFileName());
+GenerateJavaAST.reportJsniError(info,methodDeclaration,e.getMessage());
 }
 }
 return true;

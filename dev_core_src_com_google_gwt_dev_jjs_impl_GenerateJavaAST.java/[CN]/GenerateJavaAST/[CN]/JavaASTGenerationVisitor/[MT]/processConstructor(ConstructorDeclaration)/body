@@ -1,5 +1,6 @@
 {
   JMethod ctor=(JMethod)typeMap.get(x.binding);
+  JSourceInfo info=ctor.body.getSourceInfo();
   currentMethod=ctor;
   currentMethodScope=x.scope;
   JMethodCall call=null;
@@ -10,8 +11,8 @@
   boolean hasExplicitThis=(ctorCall != null) && !ctorCall.isSuperAccess();
   JClassType enclosingType=(JClassType)ctor.getEnclosingType();
   JMethod clinitMethod=(JMethod)enclosingType.methods.get(0);
-  JMethodCall clinitCall=new JMethodCall(program,null,clinitMethod);
-  ctor.body.statements.add(new JExpressionStatement(program,clinitCall));
+  JMethodCall clinitCall=new JMethodCall(program,info,null,clinitMethod);
+  ctor.body.statements.add(new JExpressionStatement(program,info,clinitCall));
   if (!hasExplicitThis) {
     ReferenceBinding declaringClass=x.binding.declaringClass;
     if (declaringClass instanceof NestedTypeBinding) {
@@ -23,7 +24,7 @@
           JParameter param=(JParameter)paramIt.next();
           if (arg.matchingField != null) {
             JField field=(JField)typeMap.get(arg);
-            ctor.body.statements.add(program.createAssignmentStmt(createVariableRef(field),createVariableRef(param)));
+            ctor.body.statements.add(program.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
           }
         }
       }
@@ -32,19 +33,19 @@
           SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
           JParameter param=(JParameter)paramIt.next();
           JField field=(JField)typeMap.get(arg);
-          ctor.body.statements.add(program.createAssignmentStmt(createVariableRef(field),createVariableRef(param)));
+          ctor.body.statements.add(program.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
         }
       }
     }
   }
   if (call != null) {
-    ctor.body.statements.add(new JExpressionStatement(program,call));
+    ctor.body.statements.add(new JExpressionStatement(program,makeSourceInfo(ctorCall),call));
   }
-  JExpression thisRef=createThisRef(enclosingType);
+  JExpression thisRef=createThisRef(info,enclosingType);
   if (!hasExplicitThis) {
     JMethod initMethod=(JMethod)enclosingType.methods.get(1);
-    JMethodCall initCall=new JMethodCall(program,thisRef,initMethod);
-    ctor.body.statements.add(new JExpressionStatement(program,initCall));
+    JMethodCall initCall=new JMethodCall(program,info,thisRef,initMethod);
+    ctor.body.statements.add(new JExpressionStatement(program,info,initCall));
   }
   if (x.statements != null) {
     for (int i=0, n=x.statements.length; i < n; ++i) {
@@ -57,5 +58,5 @@
   }
   currentMethodScope=null;
   currentMethod=null;
-  ctor.body.statements.add(new JReturnStatement(program,thisRef));
+  ctor.body.statements.add(new JReturnStatement(program,null,thisRef));
 }

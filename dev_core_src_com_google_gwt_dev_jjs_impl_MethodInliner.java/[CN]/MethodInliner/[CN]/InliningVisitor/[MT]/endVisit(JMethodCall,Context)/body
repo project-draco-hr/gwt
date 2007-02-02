@@ -1,0 +1,27 @@
+{
+  JMethod method=x.getTarget();
+  if (!method.isStatic() || method.isNative()) {
+    return;
+  }
+  if (cannotInline.contains(method)) {
+    return;
+  }
+  List stmts=method.body.statements;
+  boolean possibleToInline=false;
+  if (stmts.isEmpty()) {
+    inlineEmptyMethodCall(x,ctx);
+    possibleToInline=true;
+  }
+ else   if (stmts.size() == 1) {
+    JStatement stmt=(JStatement)stmts.get(0);
+    if (stmt instanceof JReturnStatement) {
+      possibleToInline=tryInlineExpression(x,ctx,((JReturnStatement)stmt).getExpr());
+    }
+ else     if (stmt instanceof JExpressionStatement) {
+      possibleToInline=tryInlineExpression(x,ctx,((JExpressionStatement)stmt).getExpr());
+    }
+  }
+  if (!possibleToInline) {
+    cannotInline.add(method);
+  }
+}

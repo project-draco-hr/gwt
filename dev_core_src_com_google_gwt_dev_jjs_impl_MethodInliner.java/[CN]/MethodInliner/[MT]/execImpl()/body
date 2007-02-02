@@ -1,32 +1,16 @@
 {
   boolean madeChanges=false;
   while (true) {
-{
-      InliningVisitor inliner=new InliningVisitor();
-      program.traverse(inliner);
-      ChangeList changes=inliner.getChangeList();
-      if (changes.empty()) {
-        break;
-      }
-      changes.apply();
-      madeChanges=true;
+    InliningVisitor inliner=new InliningVisitor();
+    inliner.accept(program);
+    if (!inliner.didChange()) {
+      break;
     }
-{
-      FlattenMultiVisitor flattener=new FlattenMultiVisitor();
-      program.traverse(flattener);
-      ChangeList changes=flattener.getChangeList();
-      if (!changes.empty()) {
-        changes.apply();
-      }
-    }
-{
-      ReduceMultiVisitor reducer=new ReduceMultiVisitor();
-      program.traverse(reducer);
-      ChangeList changes=reducer.getChangeList();
-      if (!changes.empty()) {
-        changes.apply();
-      }
-    }
+    madeChanges=true;
+    FlattenMultiVisitor flattener=new FlattenMultiVisitor();
+    flattener.accept(program);
+    ReduceMultiVisitor reducer=new ReduceMultiVisitor();
+    reducer.accept(program);
   }
   return madeChanges;
 }

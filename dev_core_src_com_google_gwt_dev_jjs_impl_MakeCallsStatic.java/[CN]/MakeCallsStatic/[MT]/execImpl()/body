@@ -1,19 +1,16 @@
 {
-{
-    CreateStaticMethodVisitor creator=new CreateStaticMethodVisitor();
-    program.traverse(creator);
-    ChangeList changes=creator.getChangeList();
-    if (changes.empty()) {
-      return false;
-    }
-    changes.apply();
+  FindStaticDispatchSitesVisitor finder=new FindStaticDispatchSitesVisitor();
+  finder.accept(program);
+  if (toBeMadeStatic.isEmpty()) {
+    return false;
   }
-{
-    RewriteCallSites rewriter=new RewriteCallSites();
-    program.traverse(rewriter);
-    ChangeList changes=rewriter.getChangeList();
-    assert(!changes.empty());
-    changes.apply();
+  CreateStaticImplsVisitor creator=new CreateStaticImplsVisitor();
+  creator.accept(program);
+  if (!creator.didChange()) {
+    return false;
   }
+  RewriteCallSites rewriter=new RewriteCallSites();
+  rewriter.accept(program);
+  assert(rewriter.didChange());
   return true;
 }

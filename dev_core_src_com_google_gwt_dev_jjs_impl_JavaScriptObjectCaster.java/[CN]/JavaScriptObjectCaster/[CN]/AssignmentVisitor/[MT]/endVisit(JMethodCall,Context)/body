@@ -1,0 +1,15 @@
+{
+  for (int i=0; i < x.getTarget().params.size(); ++i) {
+    JParameter param=(JParameter)x.getTarget().params.get(i);
+    JExpression newArg=checkAndReplaceJso((JExpression)x.getArgs().get(i),param.getType());
+    x.getArgs().set(i,newArg);
+  }
+  if (!x.getTarget().isStatic()) {
+    JExpression newInst=checkAndReplaceJso(x.getInstance(),program.getTypeJavaLangObject());
+    if (newInst != x.getInstance()) {
+      JMethodCall newCall=new JMethodCall(program,x.getSourceInfo(),newInst,x.getTarget(),x.isStaticDispatchOnly());
+      newCall.getArgs().addAll(x.getArgs());
+      ctx.replaceMe(newCall);
+    }
+  }
+}

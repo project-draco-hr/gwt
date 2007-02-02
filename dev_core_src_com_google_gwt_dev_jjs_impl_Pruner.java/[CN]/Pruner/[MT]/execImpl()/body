@@ -13,16 +13,14 @@
     UpRefVisitor upRefer=new UpRefVisitor(rescuer);
     do {
       rescuer.commitInstantiatedTypes();
-      program.traverse(upRefer);
+      upRefer.accept(program);
     }
  while (upRefer.didRescue());
     PruneVisitor pruner=new PruneVisitor();
-    program.traverse(pruner);
-    ChangeList changes=pruner.getChangeList();
-    if (changes.empty()) {
+    pruner.accept(program);
+    if (!pruner.didChange()) {
       break;
     }
-    changes.apply();
     referencedTypes.clear();
     referencedNonTypes.clear();
     madeChanges=true;

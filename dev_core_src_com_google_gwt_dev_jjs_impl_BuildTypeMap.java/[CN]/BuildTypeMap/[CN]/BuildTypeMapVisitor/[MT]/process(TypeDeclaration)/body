@@ -14,21 +14,22 @@
     name=new char[1][0];
     name[0]=localName;
   }
+  JSourceInfo info=makeSourceInfo(typeDeclaration);
   JReferenceType newType;
   if (binding.isClass()) {
-    newType=program.createClass(name,binding.isAbstract(),binding.isFinal());
+    newType=program.createClass(info,name,binding.isAbstract(),binding.isFinal());
   }
  else   if (binding.isInterface()) {
-    newType=program.createInterface(name);
+    newType=program.createInterface(info,name);
   }
  else {
     assert(false);
     return false;
   }
-  JMethod clinit=program.createMethod("$clinit".toCharArray(),newType,program.getTypeVoid(),false,true,true,true,false);
+  JMethod clinit=program.createMethod(null,"$clinit".toCharArray(),newType,program.getTypeVoid(),false,true,true,true,false);
   clinit.freezeParamTypes();
   if (newType instanceof JClassType) {
-    JMethod init=program.createMethod("$init".toCharArray(),newType,program.getTypeVoid(),false,false,true,true,false);
+    JMethod init=program.createMethod(null,"$init".toCharArray(),newType,program.getTypeVoid(),false,false,true,true,false);
     init.freezeParamTypes();
   }
   typeMap.put(binding,newType);

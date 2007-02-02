@@ -15,10 +15,11 @@
 );
   for (int i=0; i < nameRefs.size(); ++i) {
     JsNameRef nameRef=(JsNameRef)nameRefs.get(i);
+    JSourceInfo info=translateInfo(nameRef.getInfo());
     String ident=nameRef.getName().getIdent();
     HasEnclosingType node=(HasEnclosingType)program.jsniMap.get(ident);
     if (node == null) {
-      node=parseJsniRef(x,ident);
+      node=parseJsniRef(info,x,ident);
       if (node == null) {
         continue;
       }
@@ -30,19 +31,19 @@
     boolean isField=node instanceof JField;
     assert(isField || node instanceof JMethod);
     if (canBeStatic.isStatic() && nameRef.getQualifier() != null) {
-      reportJsniError(x,"Cannot make a qualified reference to the static " + (isField ? "field " : "method ") + hasName.getName(),0);
+      reportJsniError(info,x,"Cannot make a qualified reference to the static " + (isField ? "field " : "method ") + hasName.getName());
     }
  else     if (!canBeStatic.isStatic() && nameRef.getQualifier() == null) {
-      reportJsniError(x,"Cannot make an unqualified reference to the instance " + (isField ? "field " : "method ") + hasName.getName(),0);
+      reportJsniError(info,x,"Cannot make an unqualified reference to the instance " + (isField ? "field " : "method ") + hasName.getName());
     }
     if (isField) {
       JField field=(JField)node;
-      JsniFieldRef fieldRef=new JsniFieldRef(program,field,currentClass);
+      JsniFieldRef fieldRef=new JsniFieldRef(program,info,field,currentClass);
       nativeMethod.jsniFieldRefs.add(fieldRef);
     }
  else {
       JMethod method=(JMethod)node;
-      JsniMethodRef methodRef=new JsniMethodRef(program,method);
+      JsniMethodRef methodRef=new JsniMethodRef(program,info,method);
       nativeMethod.jsniMethodRefs.add(methodRef);
     }
   }

@@ -1,0 +1,28 @@
+{
+  if (targetExpr instanceof JLiteral) {
+    magicArg[0]=args.size();
+    return targetExpr;
+  }
+ else   if (targetExpr instanceof JParameterRef) {
+    int i=params.indexOf(((JParameterRef)targetExpr).getTarget());
+    assert(i >= 0);
+    magicArg[0]=i;
+    return (JExpression)args.get(i);
+  }
+ else   if (targetExpr instanceof JFieldRef) {
+    JFieldRef oldFieldRef=(JFieldRef)targetExpr;
+    JField field=oldFieldRef.getField();
+    JExpression instance=oldFieldRef.getInstance();
+    if (instance != null) {
+      instance=canInlineExpression(info,instance,params,args,magicArg);
+      if (instance == null) {
+        return null;
+      }
+    }
+    JFieldRef newFieldRef=new JFieldRef(program,info,instance,field,currentMethod.getEnclosingType());
+    return newFieldRef;
+  }
+ else {
+    return null;
+  }
+}

@@ -1,4 +1,5 @@
 {
+  JSourceInfo info=makeSourceInfo(x);
   SourceTypeBinding typeBinding=(SourceTypeBinding)x.resolvedType;
   if (typeBinding.constantPoolName() == null) {
     return program.getLiteralNull();
@@ -28,11 +29,11 @@
     if (targetMethod == null) {
       throw new InternalCompilerException("String constructor error; no matching implementation.");
     }
-    call=new JMethodCall(program,null,targetMethod);
+    call=new JMethodCall(program,makeSourceInfo(x),null,targetMethod);
   }
  else {
-    JNewInstance newInstance=new JNewInstance(program,newType);
-    call=new JMethodCall(program,newInstance,ctor);
+    JNewInstance newInstance=new JNewInstance(program,info,newType);
+    call=new JMethodCall(program,info,newInstance,ctor);
   }
   ReferenceBinding targetBinding=b.declaringClass;
   if (targetBinding.isNestedType() && !targetBinding.isStatic()) {
@@ -41,20 +42,20 @@
       for (int i=0; i < nestedBinding.enclosingInstances.length; ++i) {
         SyntheticArgumentBinding arg=nestedBinding.enclosingInstances[i];
         JClassType syntheticThisType=(JClassType)typeMap.get(arg.type);
-        call.args.add(createThisRef(syntheticThisType));
+        call.getArgs().add(createThisRef(info,syntheticThisType));
       }
     }
     if (nestedBinding.outerLocalVariables != null) {
       for (int i=0; i < nestedBinding.outerLocalVariables.length; ++i) {
         SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
         JVariable variable=(JVariable)typeMap.get(arg.actualOuterLocalVariable);
-        call.args.add(createVariableRef(variable,arg.actualOuterLocalVariable));
+        call.getArgs().add(createVariableRef(info,variable,arg.actualOuterLocalVariable));
       }
     }
   }
   if (x.arguments != null) {
     for (int i=0, n=x.arguments.length; i < n; ++i) {
-      call.args.add(dispProcessExpression(x.arguments[i]));
+      call.getArgs().add(dispProcessExpression(x.arguments[i]));
     }
   }
   return call;
