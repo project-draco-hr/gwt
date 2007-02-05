@@ -3,10 +3,22 @@
   JsExpression arg1=x.getArg1();
   _parenPush(x,arg1,!op.isLeftAssociative());
   arg1.traverse(this);
-  _parenPopOrSpace(x,arg1,!op.isLeftAssociative());
+  boolean needSpace=op.isKeyword() || arg1 instanceof JsPostfixOperation;
+  if (needSpace) {
+    _parenPopOrSpace(x,arg1,!op.isLeftAssociative());
+  }
+ else {
+    _parenPop(x,arg1,!op.isLeftAssociative());
+  }
   p.print(op.getSymbol());
   JsExpression arg2=x.getArg2();
-  _parenPushOrSpace(x,arg2,op.isLeftAssociative());
+  needSpace=op.isKeyword() || arg2 instanceof JsPrefixOperation;
+  if (needSpace) {
+    _parenPushOrSpace(x,arg2,op.isLeftAssociative());
+  }
+ else {
+    _parenPush(x,arg2,op.isLeftAssociative());
+  }
   arg2.traverse(this);
   _parenPop(x,arg2,op.isLeftAssociative());
   return false;
