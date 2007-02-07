@@ -1,10 +1,37 @@
 {
   return new AbstractSet(){
+    public boolean contains(    Object entryObj){
+      Entry entry=(Entry)entryObj;
+      if (entry != null) {
+        Object key=entry.getKey();
+        Object value=entry.getValue();
+        if (value != null || HashMap.this.containsKey(key)) {
+          Object foundValue=HashMap.this.get(key);
+          if (value == null) {
+            return foundValue == null;
+          }
+ else {
+            return value.equals(foundValue);
+          }
+        }
+      }
+      return false;
+    }
     public Iterator iterator(){
-      return new ImplMapEntryIterator();
+      return new EntrySetImplIterator();
+    }
+    public boolean remove(    Object entry){
+      if (contains(entry)) {
+        Object key=((Entry)entry).getKey();
+        HashMap.this.remove(key);
+        return true;
+      }
+ else {
+        return false;
+      }
     }
     public int size(){
-      return fullSlots;
+      return HashMap.this.size();
     }
   }
 ;
