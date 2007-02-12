@@ -1,7 +1,18 @@
 {
+  List catchArgs=x.getCatchArgs();
+  List catchBlocks=x.getCatchBlocks();
+  for (Iterator itA=catchArgs.iterator(), itB=catchBlocks.iterator(); itA.hasNext(); ) {
+    JLocalRef localRef=(JLocalRef)itA.next();
+    itB.next();
+    JReferenceType type=(JReferenceType)localRef.getType();
+    if (!program.typeOracle.isInstantiatedType(type) || type == program.getTypeNull()) {
+      itA.remove();
+      itB.remove();
+    }
+  }
   boolean noTry=x.getTryBlock().statements.isEmpty();
   boolean noFinally=(x.getFinallyBlock() == null) || x.getFinallyBlock().statements.isEmpty();
-  boolean noCatch=x.getCatchArgs().size() == 0;
+  boolean noCatch=catchArgs.size() == 0;
   if (noTry) {
     removeMe(x,ctx);
   }
