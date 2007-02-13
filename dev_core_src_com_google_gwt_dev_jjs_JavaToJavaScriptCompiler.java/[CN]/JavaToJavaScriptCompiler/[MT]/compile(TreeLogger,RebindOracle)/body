@@ -59,6 +59,37 @@
  catch (  UnableToCompleteException e) {
     throw e;
   }
+catch (  InternalCompilerException e) {
+    TreeLogger topBranch=logger.branch(TreeLogger.ERROR,"An internal compiler exception occurred",e);
+    List nodeTrace=e.getNodeTrace();
+    for (Iterator it=nodeTrace.iterator(); it.hasNext(); ) {
+      NodeInfo nodeInfo=(NodeInfo)it.next();
+      JSourceInfo info=nodeInfo.getSourceInfo();
+      String msg;
+      if (info != null) {
+        String fileName=info.getFileName();
+        fileName=fileName.substring(fileName.lastIndexOf('/') + 1);
+        fileName=fileName.substring(fileName.lastIndexOf('\\') + 1);
+        msg="at " + fileName + "("+ info.getStartLine()+ "): ";
+      }
+ else {
+        msg="<no source info>: ";
+      }
+      String description=nodeInfo.getDescription();
+      if (description != null) {
+        msg+=description;
+      }
+ else {
+        msg+="<no description available>";
+      }
+      TreeLogger nodeBranch=topBranch.branch(TreeLogger.ERROR,msg,null);
+      String className=nodeInfo.getClassName();
+      if (className != null) {
+        nodeBranch.log(TreeLogger.INFO,className,null);
+      }
+    }
+    throw new UnableToCompleteException();
+  }
 catch (  Throwable e) {
     logger.log(TreeLogger.ERROR,"Unexpected internal compiler error",e);
     throw new UnableToCompleteException();

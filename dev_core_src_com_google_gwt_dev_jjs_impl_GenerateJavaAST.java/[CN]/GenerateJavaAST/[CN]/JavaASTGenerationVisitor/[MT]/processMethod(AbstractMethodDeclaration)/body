@@ -1,24 +1,29 @@
 {
   MethodBinding b=x.binding;
   JMethod method=(JMethod)typeMap.get(b);
-  if (b.isImplementing() || b.isOverriding()) {
-    tryFindUpRefs(method,b);
-  }
-  if (x.isNative()) {
-    processNativeMethod(x,(JsniMethod)method);
-    return;
-  }
-  currentMethod=method;
-  currentMethodScope=x.scope;
-  if (x.statements != null) {
-    for (int i=0, n=x.statements.length; i < n; ++i) {
-      Statement origStmt=x.statements[i];
-      JStatement jstmt=dispProcessStatement(origStmt);
-      if (jstmt != null) {
-        method.body.statements.add(jstmt);
+  try {
+    if (b.isImplementing() || b.isOverriding()) {
+      tryFindUpRefs(method,b);
+    }
+    if (x.isNative()) {
+      processNativeMethod(x,(JsniMethod)method);
+      return;
+    }
+    currentMethod=method;
+    currentMethodScope=x.scope;
+    if (x.statements != null) {
+      for (int i=0, n=x.statements.length; i < n; ++i) {
+        Statement origStmt=x.statements[i];
+        JStatement jstmt=dispProcessStatement(origStmt);
+        if (jstmt != null) {
+          method.body.statements.add(jstmt);
+        }
       }
     }
+    currentMethodScope=null;
+    currentMethod=null;
   }
-  currentMethodScope=null;
-  currentMethod=null;
+ catch (  Throwable e) {
+    throw translateException(method,e);
+  }
 }

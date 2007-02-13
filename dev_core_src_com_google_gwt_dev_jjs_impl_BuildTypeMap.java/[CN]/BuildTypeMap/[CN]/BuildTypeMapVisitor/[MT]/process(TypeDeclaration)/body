@@ -1,37 +1,42 @@
 {
-  char[][] name=typeDeclaration.binding.compoundName;
-  SourceTypeBinding binding=typeDeclaration.binding;
-  if (binding instanceof LocalTypeBinding) {
-    char[] localName=binding.constantPoolName();
-    if (localName == null) {
+  try {
+    char[][] name=typeDeclaration.binding.compoundName;
+    SourceTypeBinding binding=typeDeclaration.binding;
+    if (binding instanceof LocalTypeBinding) {
+      char[] localName=binding.constantPoolName();
+      if (localName == null) {
+        return false;
+      }
+      for (int i=0, c=localName.length; i < c; ++i) {
+        if (localName[i] == '/') {
+          localName[i]='.';
+        }
+      }
+      name=new char[1][0];
+      name[0]=localName;
+    }
+    JSourceInfo info=makeSourceInfo(typeDeclaration);
+    JReferenceType newType;
+    if (binding.isClass()) {
+      newType=program.createClass(info,name,binding.isAbstract(),binding.isFinal());
+    }
+ else     if (binding.isInterface()) {
+      newType=program.createInterface(info,name);
+    }
+ else {
+      assert(false);
       return false;
     }
-    for (int i=0, c=localName.length; i < c; ++i) {
-      if (localName[i] == '/') {
-        localName[i]='.';
-      }
+    JMethod clinit=program.createMethod(null,"$clinit".toCharArray(),newType,program.getTypeVoid(),false,true,true,true,false);
+    clinit.freezeParamTypes();
+    if (newType instanceof JClassType) {
+      JMethod init=program.createMethod(null,"$init".toCharArray(),newType,program.getTypeVoid(),false,false,true,true,false);
+      init.freezeParamTypes();
     }
-    name=new char[1][0];
-    name[0]=localName;
+    typeMap.put(binding,newType);
+    return true;
   }
-  JSourceInfo info=makeSourceInfo(typeDeclaration);
-  JReferenceType newType;
-  if (binding.isClass()) {
-    newType=program.createClass(info,name,binding.isAbstract(),binding.isFinal());
+ catch (  Throwable e) {
+    throw translateException(typeDeclaration,e);
   }
- else   if (binding.isInterface()) {
-    newType=program.createInterface(info,name);
-  }
- else {
-    assert(false);
-    return false;
-  }
-  JMethod clinit=program.createMethod(null,"$clinit".toCharArray(),newType,program.getTypeVoid(),false,true,true,true,false);
-  clinit.freezeParamTypes();
-  if (newType instanceof JClassType) {
-    JMethod init=program.createMethod(null,"$init".toCharArray(),newType,program.getTypeVoid(),false,false,true,true,false);
-    init.freezeParamTypes();
-  }
-  typeMap.put(binding,newType);
-  return true;
 }

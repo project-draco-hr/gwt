@@ -1,45 +1,50 @@
 {
   currentClass=(JReferenceType)typeMap.get(x.binding);
-  currentClassScope=x.scope;
-  currentSeparatorPositions=x.compilationResult.lineSeparatorPositions;
-  currentFileName=String.valueOf(x.compilationResult.fileName);
-  if (x.fields != null) {
-    for (int i=0, n=x.fields.length; i < n; ++i) {
-      FieldDeclaration fieldDeclaration=x.fields[i];
-      if (fieldDeclaration.isStatic()) {
-        currentMethod=(JMethod)currentClass.methods.get(0);
-        currentMethodScope=x.staticInitializerScope;
-      }
+  try {
+    currentClassScope=x.scope;
+    currentSeparatorPositions=x.compilationResult.lineSeparatorPositions;
+    currentFileName=String.valueOf(x.compilationResult.fileName);
+    if (x.fields != null) {
+      for (int i=0, n=x.fields.length; i < n; ++i) {
+        FieldDeclaration fieldDeclaration=x.fields[i];
+        if (fieldDeclaration.isStatic()) {
+          currentMethod=(JMethod)currentClass.methods.get(0);
+          currentMethodScope=x.staticInitializerScope;
+        }
  else {
-        currentMethod=(JMethod)currentClass.methods.get(1);
-        currentMethodScope=x.initializerScope;
-      }
-      if (fieldDeclaration instanceof Initializer) {
-        assert(currentClass instanceof JClassType);
-        processInitializer((Initializer)fieldDeclaration);
-      }
+          currentMethod=(JMethod)currentClass.methods.get(1);
+          currentMethodScope=x.initializerScope;
+        }
+        if (fieldDeclaration instanceof Initializer) {
+          assert(currentClass instanceof JClassType);
+          processInitializer((Initializer)fieldDeclaration);
+        }
  else {
-        processField(fieldDeclaration);
+          processField(fieldDeclaration);
+        }
       }
     }
-  }
-  currentMethodScope=null;
-  currentMethod=null;
-  if (x.methods != null) {
-    for (int i=0, n=x.methods.length; i < n; ++i) {
-      if (x.methods[i].isConstructor()) {
-        assert(currentClass instanceof JClassType);
-        processConstructor((ConstructorDeclaration)x.methods[i]);
-      }
- else       if (x.methods[i].isClinit()) {
-      }
+    currentMethodScope=null;
+    currentMethod=null;
+    if (x.methods != null) {
+      for (int i=0, n=x.methods.length; i < n; ++i) {
+        if (x.methods[i].isConstructor()) {
+          assert(currentClass instanceof JClassType);
+          processConstructor((ConstructorDeclaration)x.methods[i]);
+        }
+ else         if (x.methods[i].isClinit()) {
+        }
  else {
-        processMethod(x.methods[i]);
+          processMethod(x.methods[i]);
+        }
       }
     }
+    currentClassScope=null;
+    currentClass=null;
+    currentSeparatorPositions=null;
+    currentFileName=null;
   }
-  currentClassScope=null;
-  currentClass=null;
-  currentSeparatorPositions=null;
-  currentFileName=null;
+ catch (  Throwable e) {
+    throw translateException(currentClass,e);
+  }
 }

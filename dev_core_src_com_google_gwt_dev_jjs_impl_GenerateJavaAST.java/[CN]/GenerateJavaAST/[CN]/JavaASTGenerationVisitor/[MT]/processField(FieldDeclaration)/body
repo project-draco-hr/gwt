@@ -3,16 +3,21 @@
   if (field == null) {
     return;
   }
-  JExpression initializer=null;
-  if (declaration.initialization != null) {
-    initializer=dispProcessExpression(declaration.initialization);
+  try {
+    JExpression initializer=null;
+    if (declaration.initialization != null) {
+      initializer=dispProcessExpression(declaration.initialization);
+    }
+    if (initializer instanceof JLiteral) {
+      field.constInitializer=(JLiteral)initializer;
+    }
+ else     if (initializer != null) {
+      JSourceInfo info=makeSourceInfo(declaration);
+      JStatement assignStmt=program.createAssignmentStmt(info,createVariableRef(info,field),initializer);
+      currentMethod.body.statements.add(assignStmt);
+    }
   }
-  if (initializer instanceof JLiteral) {
-    field.constInitializer=(JLiteral)initializer;
-  }
- else   if (initializer != null) {
-    JSourceInfo info=makeSourceInfo(declaration);
-    JStatement assignStmt=program.createAssignmentStmt(info,createVariableRef(info,field),initializer);
-    currentMethod.body.statements.add(assignStmt);
+ catch (  Throwable e) {
+    throw translateException(field,e);
   }
 }

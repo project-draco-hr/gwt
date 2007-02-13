@@ -3,39 +3,15 @@
     return null;
   }
   try {
-    try {
-      params[0]=child.getClass();
-      Method method=getClass().getDeclaredMethod(name,params);
-      args[0]=child;
-      return (JNode)method.invoke(this,args);
-    }
- catch (    SecurityException e) {
-      throw new InternalCompilerException("Error during dispatch",e);
-    }
-catch (    NoSuchMethodException e) {
-      String s=params[0].getName();
-      throw new InternalCompilerException("Expecting: private void " + name + "("+ s.substring(s.lastIndexOf('.') + 1)+ " x) { }",e);
-    }
-catch (    IllegalArgumentException e) {
-      throw new InternalCompilerException("Error during dispatch",e);
-    }
-catch (    IllegalAccessException e) {
-      throw new InternalCompilerException("Error during dispatch",e);
-    }
-catch (    InvocationTargetException e) {
-      Throwable target=e.getTargetException();
-      if (target instanceof InternalCompilerException) {
-        throw (InternalCompilerException)target;
-      }
- else {
-        throw new InternalCompilerException("Error during AST construction",target);
-      }
-    }
+    params[0]=child.getClass();
+    Method method=getClass().getDeclaredMethod(name,params);
+    args[0]=child;
+    return (JNode)method.invoke(this,args);
   }
- catch (  InternalCompilerException ice) {
-    if (child instanceof ASTNode) {
-      ice.addNode((ASTNode)child);
+ catch (  Throwable e) {
+    if (e instanceof InvocationTargetException) {
+      e=((InvocationTargetException)e).getTargetException();
     }
-    throw ice;
+    throw translateException(child,e);
   }
 }
