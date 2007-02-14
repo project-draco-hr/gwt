@@ -1,7 +1,13 @@
 {
   JExpression replaceExpr;
   JType toType=x.getCastType();
-  if (toType instanceof JReferenceType) {
+  if (toType instanceof JNullType) {
+    JMethod method=program.getSpecialMethod("Cast.throwClassCastExceptionUnlessNull");
+    JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,method,program.getTypeNull());
+    call.getArgs().add(x.getExpr());
+    replaceExpr=call;
+  }
+ else   if (toType instanceof JReferenceType) {
     JExpression curExpr=x.getExpr();
     JReferenceType refType=(JReferenceType)toType;
     JType argType=x.getExpr().getType();
