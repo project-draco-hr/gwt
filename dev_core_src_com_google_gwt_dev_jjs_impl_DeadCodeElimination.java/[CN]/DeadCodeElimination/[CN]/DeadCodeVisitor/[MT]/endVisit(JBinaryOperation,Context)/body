@@ -1,36 +1,49 @@
 {
-  if (x.getOp() == JBinaryOperator.AND) {
-    if (x.getLhs() instanceof JBooleanLiteral) {
-      JBooleanLiteral booleanLiteral=(JBooleanLiteral)x.getLhs();
+  JBinaryOperator op=x.getOp();
+  JExpression lhs=x.getLhs();
+  JExpression rhs=x.getRhs();
+  if (op == JBinaryOperator.AND) {
+    if (lhs instanceof JBooleanLiteral) {
+      JBooleanLiteral booleanLiteral=(JBooleanLiteral)lhs;
       if (booleanLiteral.getValue()) {
-        ctx.replaceMe(x.getRhs());
+        ctx.replaceMe(rhs);
       }
  else {
-        ctx.replaceMe(x.getLhs());
+        ctx.replaceMe(lhs);
       }
     }
- else     if (x.getRhs() instanceof JBooleanLiteral) {
-      JBooleanLiteral booleanLiteral=(JBooleanLiteral)x.getRhs();
+ else     if (rhs instanceof JBooleanLiteral) {
+      JBooleanLiteral booleanLiteral=(JBooleanLiteral)rhs;
       if (booleanLiteral.getValue()) {
-        ctx.replaceMe(x.getLhs());
+        ctx.replaceMe(lhs);
       }
     }
   }
- else   if (x.getOp() == JBinaryOperator.OR) {
-    if (x.getLhs() instanceof JBooleanLiteral) {
-      JBooleanLiteral booleanLiteral=(JBooleanLiteral)x.getLhs();
+ else   if (op == JBinaryOperator.OR) {
+    if (lhs instanceof JBooleanLiteral) {
+      JBooleanLiteral booleanLiteral=(JBooleanLiteral)lhs;
       if (booleanLiteral.getValue()) {
-        ctx.replaceMe(x.getLhs());
+        ctx.replaceMe(lhs);
       }
  else {
-        ctx.replaceMe(x.getRhs());
+        ctx.replaceMe(rhs);
       }
     }
- else     if (x.getRhs() instanceof JBooleanLiteral) {
-      JBooleanLiteral booleanLiteral=(JBooleanLiteral)x.getRhs();
+ else     if (rhs instanceof JBooleanLiteral) {
+      JBooleanLiteral booleanLiteral=(JBooleanLiteral)rhs;
       if (!booleanLiteral.getValue()) {
-        ctx.replaceMe(x.getLhs());
+        ctx.replaceMe(lhs);
       }
+    }
+  }
+ else   if (op == JBinaryOperator.EQ) {
+    if (lhs.getType() == program.getTypeNull() && rhs.getType() == program.getTypeNull()) {
+      ctx.replaceMe(program.getLiteralBoolean(true));
+    }
+  }
+ else   if (op == JBinaryOperator.NEQ) {
+    if (lhs.getType() == program.getTypeNull() && rhs.getType() == program.getTypeNull()) {
+      ctx.replaceMe(program.getLiteralBoolean(false));
     }
   }
 }
