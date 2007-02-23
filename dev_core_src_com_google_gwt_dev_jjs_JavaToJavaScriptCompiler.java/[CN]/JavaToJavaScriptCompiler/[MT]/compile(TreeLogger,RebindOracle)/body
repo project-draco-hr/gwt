@@ -12,6 +12,10 @@
     if (checkForErrors(logger)) {
       throw new UnableToCompleteException();
     }
+    boolean isDebugEnabled=false;
+    if (!isDebugEnabled) {
+      AssertionRemover.exec(jprogram);
+    }
     jprogram.typeOracle.computeAfterAST();
     ReplaceRebinds.exec(jprogram);
     String[] actualEntryPoints=new String[declEntryPoints.length];
@@ -31,6 +35,8 @@
       didChange=MethodInliner.exec(jprogram) || didChange;
     }
  while (didChange);
+    if (isDebugEnabled) {
+    }
     CatchBlockNormalizer.exec(jprogram);
     CompoundAssignmentNormalizer.exec(jprogram);
     JavaScriptObjectCaster.exec(jprogram);
