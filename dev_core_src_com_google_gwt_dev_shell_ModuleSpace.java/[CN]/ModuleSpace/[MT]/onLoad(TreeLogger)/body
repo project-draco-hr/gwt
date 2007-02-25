@@ -8,8 +8,22 @@
     if (entryPoints.length > 0) {
       for (int i=0; i < entryPoints.length; i++) {
         entryPointTypeName=entryPoints[i];
-        Object module=rebindAndCreate(entryPointTypeName);
-        Method onModuleLoad=module.getClass().getMethod("onModuleLoad",null);
+        Class clazz=loadClassFromSourceName(entryPointTypeName);
+        Method onModuleLoad=null;
+        try {
+          onModuleLoad=clazz.getMethod("onModuleLoad",null);
+          if (!Modifier.isStatic(onModuleLoad.getModifiers())) {
+            onModuleLoad=null;
+          }
+        }
+ catch (        NoSuchMethodException e) {
+        }
+        Object module=null;
+        if (onModuleLoad == null) {
+          module=rebindAndCreate(entryPointTypeName);
+          onModuleLoad=module.getClass().getMethod("onModuleLoad",null);
+        }
+        onModuleLoad.setAccessible(true);
         onModuleLoad.invoke(module,null);
       }
     }

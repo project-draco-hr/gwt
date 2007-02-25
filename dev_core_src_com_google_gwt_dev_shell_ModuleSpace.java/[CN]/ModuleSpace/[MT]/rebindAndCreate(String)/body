@@ -1,14 +1,22 @@
 {
   Throwable caught=null;
+  String msg=null;
+  String resultName=null;
   try {
     String sourceName=requestedClassName.replace('$','.');
-    String resultName=rebind(sourceName);
+    resultName=rebind(sourceName);
     Class resolvedClass=loadClassFromSourceName(resultName);
-    Constructor ctor=resolvedClass.getDeclaredConstructor(null);
-    ctor.setAccessible(true);
-    return ctor.newInstance(null);
+    if (Modifier.isAbstract(resolvedClass.getModifiers())) {
+      msg="Deferred binding result type '" + resultName + "' should not be abstract";
+    }
+ else {
+      Constructor ctor=resolvedClass.getDeclaredConstructor(null);
+      ctor.setAccessible(true);
+      return ctor.newInstance(null);
+    }
   }
  catch (  ClassNotFoundException e) {
+    msg="Could not load deferred binding result type '" + resultName + "'";
     caught=e;
   }
 catch (  InstantiationException e) {
@@ -21,12 +29,15 @@ catch (  ExceptionInInitializerError e) {
     caught=e.getException();
   }
 catch (  NoSuchMethodException e) {
+    msg="Rebind result '" + resultName + "' has no default (zero argument) constructors.";
     caught=e;
   }
 catch (  InvocationTargetException e) {
     caught=e.getTargetException();
   }
-  String msg="Failed to create an instance of '" + requestedClassName + "' via deferred binding ";
+  if (msg == null) {
+    msg="Failed to create an instance of '" + requestedClassName + "' via deferred binding ";
+  }
   host.getLogger().log(TreeLogger.ERROR,msg,caught);
   throw new UnableToCompleteException();
 }

@@ -1,0 +1,61 @@
+{
+  JMethod bootStrapMethod=program.createMethod(null,"init".toCharArray(),null,program.getTypeVoid(),false,true,true,false,false);
+  bootStrapMethod.freezeParamTypes();
+  for (int i=0; i < mainClassNames.length; ++i) {
+    String mainClassName=mainClassNames[i];
+    JReferenceType referenceType=program.getFromTypeMap(mainClassName);
+    if (referenceType == null) {
+      logger.log(TreeLogger.ERROR,"Could not find module entry point class '" + mainClassName + "'",null);
+      throw new UnableToCompleteException();
+    }
+    JExpression qualifier=null;
+    JMethod mainMethod=findMainMethod(referenceType);
+    if (mainMethod == null || !mainMethod.isStatic()) {
+      String originalClassName=mainClassName;
+      mainClassName=rebindOracle.rebind(logger,originalClassName);
+      referenceType=program.getFromTypeMap(mainClassName);
+      if (referenceType == null) {
+        logger.log(TreeLogger.ERROR,"Could not find module entry point class '" + mainClassName + "' after rebinding from '"+ originalClassName+ "'",null);
+        throw new UnableToCompleteException();
+      }
+      if (!(referenceType instanceof JClassType)) {
+        logger.log(TreeLogger.ERROR,"Module entry point class '" + mainClassName + "' must be a class",null);
+        throw new UnableToCompleteException();
+      }
+      JClassType mainClass=(JClassType)referenceType;
+      if (mainClass.isAbstract()) {
+        logger.log(TreeLogger.ERROR,"Module entry point class '" + mainClassName + "' must not be abstract",null);
+        throw new UnableToCompleteException();
+      }
+      mainMethod=findMainMethodRecurse(referenceType);
+      if (mainMethod == null) {
+        logger.log(TreeLogger.ERROR,"Could not find entry method 'onModuleLoad()' method in entry point class '" + mainClassName + "'",null);
+        throw new UnableToCompleteException();
+      }
+      if (mainMethod.isAbstract()) {
+        logger.log(TreeLogger.ERROR,"Entry method 'onModuleLoad' in entry point class '" + mainClassName + "' must not be abstract",null);
+        throw new UnableToCompleteException();
+      }
+      if (!mainMethod.isStatic()) {
+        JMethod noArgCtor=null;
+        for (int j=0; j < mainClass.methods.size(); ++j) {
+          JMethod ctor=(JMethod)mainClass.methods.get(j);
+          if (ctor.getName().equals(mainClass.getShortName())) {
+            if (ctor.params.size() == 0) {
+              noArgCtor=ctor;
+            }
+          }
+        }
+        if (noArgCtor == null) {
+          logger.log(TreeLogger.ERROR,"No default (zero argument) constructor could be found in entry point class '" + mainClassName + "' to qualify a call to non-static entry method 'onModuleLoad'",null);
+          throw new UnableToCompleteException();
+        }
+        JNewInstance newInstance=new JNewInstance(program,null,mainClass);
+        qualifier=new JMethodCall(program,null,newInstance,noArgCtor);
+      }
+    }
+    JMethodCall onModuleLoadCall=new JMethodCall(program,null,qualifier,mainMethod);
+    bootStrapMethod.body.statements.add(new JExpressionStatement(program,null,onModuleLoadCall));
+  }
+  program.addEntryMethod(bootStrapMethod);
+}
