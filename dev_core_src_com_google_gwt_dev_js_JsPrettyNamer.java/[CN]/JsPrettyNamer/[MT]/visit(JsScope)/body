@@ -1,0 +1,35 @@
+{
+  Set myChildIdents=childIdents;
+  childIdents=new HashSet();
+  List children=scope.getChildren();
+  for (Iterator it=children.iterator(); it.hasNext(); ) {
+    visit((JsScope)it.next());
+  }
+  JsRootScope rootScope=program.getRootScope();
+  if (scope == rootScope) {
+    return;
+  }
+  for (Iterator it=scope.getAllNames(); it.hasNext(); ) {
+    JsName name=(JsName)it.next();
+    if (!name.isObfuscatable()) {
+      name.setShortIdent(name.getIdent());
+      continue;
+    }
+    String newIdent=name.getShortIdent();
+    if (!isLegal(scope,childIdents,newIdent)) {
+      String checkIdent=newIdent;
+      for (int i=0; true; ++i) {
+        checkIdent=newIdent + "_" + i;
+        if (isLegal(scope,childIdents,checkIdent)) {
+          break;
+        }
+      }
+      name.setShortIdent(checkIdent);
+    }
+ else {
+    }
+    childIdents.add(name.getShortIdent());
+  }
+  myChildIdents.addAll(childIdents);
+  childIdents=myChildIdents;
+}

@@ -7,8 +7,7 @@
   while (fromCatchNode != null) {
     assert(fromCatchNode.getType() == TokenStream.CATCH);
     Node fromCatchVarName=fromCatchNode.getFirstChild();
-    JsName name=getScope().getOrCreateObfuscatableName(fromCatchVarName.getString());
-    JsCatch catchBlock=new JsCatch(name);
+    JsCatch catchBlock=new JsCatch(getScope(),fromCatchVarName.getString());
     fromCatchNode=fromCatchNode.getNext();
     Node fromCondition=fromCatchVarName.getNext();
     JsExpression toCondition=mapExpression(fromCondition);
@@ -21,7 +20,9 @@
       }
     }
     Node fromCatchBody=fromCondition.getNext();
+    pushScope(catchBlock.getScope());
     catchBlock.setBody(mapBlock(fromCatchBody));
+    popScope();
     toTry.getCatches().add(catchBlock);
   }
   Node fromFinallyNode=fromCatchNodes.getNext();

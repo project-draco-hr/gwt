@@ -3,7 +3,7 @@
   if (!x.isStatic()) {
     if (getPolyName(x) == null) {
       String mangleName=mangleNameForPoly(x);
-      JsName polyName=interfaceScope.getOrCreateObfuscatableName(mangleName,name);
+      JsName polyName=interfaceScope.declareName(mangleName,name);
       polymorphicNames.put(x,polyName);
     }
   }
@@ -13,14 +13,14 @@
   }
   JsName globalName;
   if (x.getEnclosingType() == null) {
-    globalName=rootScope.createUniqueObfuscatableName(name);
+    globalName=topScope.declareName(name);
   }
  else {
     String mangleName=mangleNameForGlobal(x);
-    globalName=rootScope.createUniqueObfuscatableName(mangleName,name);
+    globalName=topScope.declareName(mangleName,name);
   }
   names.put(x,globalName);
-  JsFunction jsFunction=new JsFunction(rootScope,globalName);
+  JsFunction jsFunction=new JsFunction(topScope,globalName);
   methodMap.put(x,jsFunction);
   push(jsFunction.getScope());
   return true;

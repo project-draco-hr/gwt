@@ -2,7 +2,7 @@
   JsFunction jsFunc=x.getFunc();
   jsFunc.traverse(new JsAbstractVisitorWithAllVisits(){
     public void endVisit(    JsNameRef x){
-      String ident=x.getName().getIdent();
+      String ident=x.getIdent();
       if (ident.charAt(0) == '@') {
         HasEnclosingType node=(HasEnclosingType)program.jsniMap.get(ident);
         assert(node != null);
@@ -10,7 +10,7 @@
           JField field=(JField)node;
           JsName jsName=getName(field);
           assert(jsName != null);
-          x.setName(jsName);
+          x.resolve(jsName);
           JsInvocation clinitCall=maybeCreateClinitCall(field);
           if (clinitCall != null) {
             assert(x.getQualifier() == null);
@@ -22,14 +22,14 @@
           if (x.getQualifier() == null) {
             JsName jsName=getName(method);
             assert(jsName != null);
-            x.setName(jsName);
+            x.resolve(jsName);
           }
  else {
             JsName jsName=getPolyName(method);
             if (jsName == null) {
               jsName=nullMethodName;
             }
-            x.setName(jsName);
+            x.resolve(jsName);
           }
         }
       }

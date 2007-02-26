@@ -43,20 +43,20 @@
     ArrayNormalizer.exec(jprogram);
     Pruner.exec(jprogram,false);
     GenerateJavaScriptAST.exec(jprogram,jsProgram);
+    JsSymbolResolver.exec(jsProgram);
+    if (obfuscate) {
+      JsObfuscateNamer.exec(jsProgram);
+    }
+ else     if (prettyNames) {
+      JsPrettyNamer.exec(jsProgram);
+    }
+ else {
+      JsVerboseNamer.exec(jsProgram);
+    }
     StringWriter sw=new StringWriter();
     PrintWriter pw=new PrintWriter(sw,true);
     TextOutputOnPrintWriter out=new TextOutputOnPrintWriter(pw,obfuscate);
-    NamingStrategy ns;
-    if (obfuscate) {
-      ns=new ObfuscatedNamingStrategy();
-    }
- else     if (prettyNames) {
-      ns=new PrettyNamingStrategy();
-    }
- else {
-      ns=new FullNamingStrategy();
-    }
-    JsSourceGenerationVisitor v=new JsSourceGenerationVisitor(out,ns);
+    JsSourceGenerationVisitor v=new JsSourceGenerationVisitor(out);
     jsProgram.traverse(v);
     return sw.toString();
   }
