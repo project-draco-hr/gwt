@@ -1,14 +1,6 @@
 {
   final Dependencies dependencies=new Dependencies();
-  TypeRefVisitor trv=new TypeRefVisitor(){
-    protected void onTypeRef(    SourceTypeBinding referencedType,    CompilationUnitDeclaration unitOfReferrer){
-      String referencedFn=String.valueOf(referencedType.getFileName());
-      CompilationUnitDeclaration referencedCup=(CompilationUnitDeclaration)cudsByFileName.get(referencedFn);
-      String fileName=String.valueOf(unitOfReferrer.getFileName());
-      dependencies.add(fileName,referencedFn);
-    }
-  }
-;
+  DependencyVisitor trv=new DependencyVisitor(dependencies);
   for (Iterator iter=cudsByFileName.values().iterator(); iter.hasNext(); ) {
     CompilationUnitDeclaration cud=(CompilationUnitDeclaration)iter.next();
     cud.traverse(trv,cud.scope);
