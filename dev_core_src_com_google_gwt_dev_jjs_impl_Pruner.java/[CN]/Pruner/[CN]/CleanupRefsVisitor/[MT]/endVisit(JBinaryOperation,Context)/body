@@ -1,0 +1,14 @@
+{
+  if (x.getOp() == JBinaryOperator.ASG) {
+    JExpression lhs=x.getLhs();
+    if (lhs.hasSideEffects()) {
+      return;
+    }
+    if (lhs instanceof JFieldRef || lhs instanceof JLocalRef) {
+      JVariable var=((JVariableRef)lhs).getTarget();
+      if (!referencedNonTypes.contains(var)) {
+        ctx.replaceMe(x.getRhs());
+      }
+    }
+  }
+}

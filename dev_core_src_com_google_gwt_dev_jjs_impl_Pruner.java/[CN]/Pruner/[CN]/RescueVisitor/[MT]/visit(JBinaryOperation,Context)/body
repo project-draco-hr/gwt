@@ -1,0 +1,37 @@
+{
+  if (x.getOp() == JBinaryOperator.ADD && x.getType() == program.getTypeJavaLangString()) {
+    rescueByConcat(x.getLhs().getType());
+    rescueByConcat(x.getRhs().getType());
+  }
+ else   if (x.getOp() == JBinaryOperator.ASG) {
+    boolean doSkip=false;
+    JExpression lhs=x.getLhs();
+    if (lhs.hasSideEffects()) {
+    }
+ else     if (lhs instanceof JLocalRef) {
+      doSkip=true;
+    }
+ else     if (lhs instanceof JFieldRef) {
+      JFieldRef fieldRef=(JFieldRef)lhs;
+      JExpression instance=fieldRef.getInstance();
+      if (fieldRef.getField().isStatic()) {
+        doSkip=true;
+      }
+ else       if (instance instanceof JThisRef) {
+        doSkip=true;
+      }
+ else       if (instance instanceof JParameterRef) {
+        JParameter param=((JParameterRef)instance).getParameter();
+        JMethod enclosingMethod=param.getEnclosingMethod();
+        if (program.isStaticImpl(enclosingMethod) && enclosingMethod.params.get(0) == param) {
+          doSkip=true;
+        }
+      }
+    }
+    if (doSkip) {
+      accept(x.getRhs());
+      return false;
+    }
+  }
+  return true;
+}
