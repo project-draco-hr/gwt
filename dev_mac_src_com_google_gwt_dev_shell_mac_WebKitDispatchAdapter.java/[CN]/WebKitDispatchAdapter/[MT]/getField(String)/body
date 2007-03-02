@@ -5,14 +5,18 @@
   }
   if (javaDispatch.isField(dispId)) {
     Field field=javaDispatch.getField(dispId);
-    return SwtWebKitGlue.convertObjectToJSVal(scriptObject,classLoader,field.getType(),javaDispatch.getFieldValue(dispId));
+    JsValueSaf jsValue=new JsValueSaf();
+    JsValueGlue.set(jsValue,classLoader,field.getType(),javaDispatch.getFieldValue(dispId));
+    int jsval=jsValue.getJsValue();
+    LowLevelSaf.gcLock(jsval);
+    return jsval;
   }
  else {
     Method method=javaDispatch.getMethod(dispId);
     DispatchMethod dispMethod;
     dispMethod=(DispatchMethod)classLoader.getMethodDispatch(method);
     if (dispMethod == null) {
-      dispMethod=new MethodDispatch(classLoader,method,scriptObject);
+      dispMethod=new MethodDispatch(classLoader,method);
       classLoader.putMethodDispatch(method,dispMethod);
     }
     return LowLevelSaf.wrapFunction(method.toString(),dispMethod);

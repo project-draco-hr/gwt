@@ -4,11 +4,15 @@
   }
  else   if (dispId == 1) {
     if ((flags & COM.DISPATCH_METHOD) != 0) {
-      Object[] javaParams=SwtOleGlue.convertVariantsToObjects(new Class[]{IDispatch.class,String.class,String.class,String.class},params,"Calling method 'gwtOnLoad'");
-      IDispatch frameWnd=(IDispatch)javaParams[0];
-      String moduleName=(String)javaParams[1];
-      boolean success=gwtOnLoad(frameWnd,moduleName);
-      return new Variant(success);
+      try {
+        IDispatch frameWnd=(params[0].getType() == COM.VT_DISPATCH) ? params[0].getDispatch() : null;
+        String moduleName=(params[1].getType() == COM.VT_BSTR) ? params[1].getString() : null;
+        boolean success=gwtOnLoad(frameWnd,moduleName);
+        return new Variant(success);
+      }
+ catch (      SWTException e) {
+        throw new HResultException(COM.E_INVALIDARG);
+      }
     }
  else     if ((flags & COM.DISPATCH_PROPERTYGET) != 0) {
       try {

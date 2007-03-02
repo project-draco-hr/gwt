@@ -1,0 +1,39 @@
+{
+  try {
+    if (!value.isJavaScriptObject()) {
+      throw new RuntimeException("Only Object type JavaScript objects can be made into JavaScriptObject");
+    }
+    Class jsoType=getJavaScriptObjectSuperclass(type);
+    if (jsoType == null) {
+      throw new RuntimeException("Requested type " + type.getName() + " not a subclass of JavaScriptObject");
+    }
+    Constructor ctor=type.getDeclaredConstructor(new Class[]{});
+    ctor.setAccessible(true);
+    Object jso=ctor.newInstance(new Object[]{});
+    Field referenceField=jsoType.getDeclaredField("hostedModeReference");
+    referenceField.setAccessible(true);
+    referenceField.set(jso,value);
+    return jso;
+  }
+ catch (  InstantiationException e) {
+    throw new RuntimeException("Error creating JavaScript object",e);
+  }
+catch (  IllegalAccessException e) {
+    throw new RuntimeException("Error creating JavaScript object",e);
+  }
+catch (  SecurityException e) {
+    throw new RuntimeException("Error creating JavaScript object",e);
+  }
+catch (  NoSuchFieldException e) {
+    throw new RuntimeException("Error creating JavaScript object",e);
+  }
+catch (  NoSuchMethodException e) {
+    throw new RuntimeException("Error creating JavaScript object",e);
+  }
+catch (  IllegalArgumentException e) {
+    throw new RuntimeException("Error creating JavaScript object",e);
+  }
+catch (  InvocationTargetException e) {
+    throw new RuntimeException("Error creating JavaScript object",e);
+  }
+}

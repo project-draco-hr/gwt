@@ -1,0 +1,18 @@
+{
+  int jsthis=wrapObjectAsJSObject(jthis);
+  int curExecState=LowLevelSaf.getExecState();
+  int argc=args.length;
+  int argv[]=new int[argc];
+  for (int i=0; i < argc; ++i) {
+    JsValueSaf jsValue=new JsValueSaf();
+    JsValueGlue.set(jsValue,getIsolatedClassLoader(),types[i],args[i]);
+    argv[i]=jsValue.getJsValue();
+  }
+  int result=LowLevelSaf.invoke(curExecState,window,name,jsthis,argv);
+  if (!isExceptionActive()) {
+    return new JsValueSaf(result);
+  }
+  RuntimeException thrown=takeJavaException();
+  thrown.fillInStackTrace();
+  throw thrown;
+}

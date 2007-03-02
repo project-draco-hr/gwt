@@ -3,11 +3,18 @@
     if (dispId == DISPID_MAGIC_GETGLOBALREF && myGlobalRef != 0) {
       return new Variant(myGlobalRef);
     }
- else     if (dispId >= 0) {
+ else     if (dispId == 0) {
+      if ((flags & COM.DISPATCH_METHOD) != 0) {
+      }
+ else       if ((flags & COM.DISPATCH_PROPERTYGET) != 0) {
+        return new Variant(getTarget().toString());
+      }
+    }
+ else     if (dispId > 0) {
       if (javaDispatch.isMethod(dispId)) {
         Method method=javaDispatch.getMethod(dispId);
         if ((flags & COM.DISPATCH_METHOD) != 0) {
-          return callMethod(classLoader,javaDispatch.getTarget(),params,method);
+          return callMethod(classLoader,getTarget(),params,method);
         }
  else         if (flags == COM.DISPATCH_PROPERTYGET) {
           IDispatchImpl funcObj=new MethodDispatch(classLoader,method);
@@ -22,7 +29,7 @@
           return SwtOleGlue.convertObjectToVariant(classLoader,field.getType(),javaDispatch.getFieldValue(dispId));
         }
  else         if ((flags & (COM.DISPATCH_PROPERTYPUT | COM.DISPATCH_PROPERTYPUTREF)) != 0) {
-          javaDispatch.setFieldValue(dispId,SwtOleGlue.convertVariantToObject(field.getType(),params[0],"Setting field '" + field.getName() + "'"));
+          javaDispatch.setFieldValue(dispId,JsValueGlue.get(new JsValueIE6(params[0]),field.getType(),"Setting field '" + field.getName() + "'"));
           return new Variant();
         }
       }

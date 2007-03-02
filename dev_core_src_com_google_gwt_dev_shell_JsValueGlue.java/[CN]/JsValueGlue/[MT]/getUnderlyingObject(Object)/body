@@ -1,0 +1,20 @@
+{
+  try {
+    Class type=getJavaScriptObjectSuperclass(jso.getClass());
+    if (type == null) {
+      throw new HostedModeException("Underlying JSO not a subclass of JavaScriptObject");
+    }
+    Field referenceField=type.getDeclaredField("hostedModeReference");
+    referenceField.setAccessible(true);
+    return (JsValue)referenceField.get(jso);
+  }
+ catch (  IllegalAccessException e) {
+    throw new RuntimeException("Error reading handle",e);
+  }
+catch (  SecurityException e) {
+    throw new RuntimeException("Error reading handle",e);
+  }
+catch (  NoSuchFieldException e) {
+    throw new RuntimeException("Error reading handle",e);
+  }
+}

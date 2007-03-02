@@ -1,0 +1,24 @@
+{
+  JsValueMoz jsValue=new JsValueMoz(jsRootedValue);
+  int dispId=classLoader.getDispId(name);
+  if (dispId < 0) {
+    jsValue.setUndefined();
+    return;
+  }
+  if (javaDispatch.isField(dispId)) {
+    Field field=javaDispatch.getField(dispId);
+    JsValueGlue.set(jsValue,classLoader,field.getType(),javaDispatch.getFieldValue(dispId));
+    return;
+  }
+ else {
+    Method method=javaDispatch.getMethod(dispId);
+    DispatchMethod dispMethod;
+    dispMethod=(DispatchMethod)classLoader.getMethodDispatch(method);
+    if (dispMethod == null) {
+      dispMethod=new MethodDispatch(classLoader,method);
+      classLoader.putMethodDispatch(method,dispMethod);
+    }
+    jsValue.setWrappedFunction(method.toString(),dispMethod);
+    return;
+  }
+}

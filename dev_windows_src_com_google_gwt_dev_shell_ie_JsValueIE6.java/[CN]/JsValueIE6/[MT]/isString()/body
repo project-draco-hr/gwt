@@ -1,0 +1,30 @@
+{
+  if (variant == null) {
+    return false;
+  }
+  if (variant.getType() == COM.VT_BSTR) {
+    return true;
+  }
+  if (variant.getType() != COM.VT_DISPATCH) {
+    return false;
+  }
+  OleAutomation auto=null;
+  Variant result=null;
+  try {
+    auto=new OleAutomation(variant.getDispatch());
+    int[] ids=auto.getIDsOfNames(new String[]{"valueOf"});
+    if (ids == null) {
+      return false;
+    }
+    result=auto.invoke(ids[0]);
+    return result.getType() == COM.VT_BSTR;
+  }
+  finally {
+    if (auto != null) {
+      auto.dispose();
+    }
+    if (result != null) {
+      result.dispose();
+    }
+  }
+}

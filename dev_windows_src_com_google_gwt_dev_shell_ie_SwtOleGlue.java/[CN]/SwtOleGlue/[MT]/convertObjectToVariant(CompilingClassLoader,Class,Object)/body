@@ -1,46 +1,8 @@
 {
-  if (o == null) {
-    return new Variant(0,COM.VT_NULL);
-  }
-  if (type.equals(String.class)) {
-    return new Variant((String)o);
-  }
- else   if (type.equals(boolean.class)) {
-    return new Variant(((Boolean)o).booleanValue());
-  }
- else   if (type.equals(byte.class)) {
-    return new Variant(((Byte)o).byteValue());
-  }
- else   if (type.equals(short.class)) {
-    return new Variant(((Short)o).shortValue());
-  }
- else   if (type.equals(char.class)) {
-    return new Variant(((Character)o).charValue());
-  }
- else   if (type.equals(int.class)) {
-    return new Variant(((Integer)o).intValue());
-  }
- else   if (type.equals(long.class)) {
-    return new Variant((double)((Long)o).longValue());
-  }
- else   if (type.equals(float.class)) {
-    return new Variant(((Float)o).floatValue());
-  }
- else   if (type.equals(double.class)) {
-    return new Variant(((Double)o).doubleValue());
-  }
- else   if (type.equals(Variant.class)) {
+  if (type.equals(Variant.class)) {
     return (Variant)o;
   }
-  try {
-    Class jso=Class.forName(HandleIE6.HANDLE_CLASS,true,cl);
-    if (jso.isAssignableFrom(type) && jso.isAssignableFrom(o.getClass())) {
-      IDispatch iDispatch=HandleIE6.getDispatchFromHandle(o);
-      iDispatch.AddRef();
-      return new Variant(iDispatch);
-    }
-  }
- catch (  ClassNotFoundException e) {
-  }
-  return wrapObjectAsVariant(cl,o);
+  JsValueIE6 jsValue=new JsValueIE6();
+  JsValueGlue.set(jsValue,cl,type,o);
+  return jsValue.getVariant();
 }

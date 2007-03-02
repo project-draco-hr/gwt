@@ -15,12 +15,14 @@ if ((flags & (COM.DISPATCH_METHOD | COM.DISPATCH_PROPERTYGET)) != 0) {
 break;
 case 2:
 if ((flags & COM.DISPATCH_METHOD) != 0) {
-Object jthis=SwtOleGlue.convertVariantToObject(method.getDeclaringClass(),params[0],"this");
+Object jthis=JsValueGlue.get(new JsValueIE6(params[0]),method.getDeclaringClass(),"this");
 Variant[] otherParams=new Variant[params.length - 1];
 System.arraycopy(params,1,otherParams,0,otherParams.length);
 return callMethod(classLoader,jthis,otherParams,method);
 }
 break;
+case IDispatchProxy.DISPID_MAGIC_GETGLOBALREF:
+return new Variant(0);
 default :
 throw new HResultException(COM.DISP_E_MEMBERNOTFOUND);
 }
