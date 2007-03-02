@@ -1,0 +1,63 @@
+{
+  StringBuffer buf=new StringBuffer(template);
+  replaceAll(buf,"__MODULE_FUNC__",moduleFunction);
+  replaceAll(buf,"__MODULE_NAME__",moduleName);
+  if (orderedProps != null) {
+    int startPos=buf.indexOf("// __SHELL_SERVLET_ONLY_BEGIN__");
+    int endPos=buf.indexOf("// __SHELL_SERVLET_ONLY_END__");
+    buf.delete(startPos,endPos);
+  }
+  int startPos=buf.indexOf("// __MODULE_DEPS_END__");
+  for (Iterator iter=styles.iterator(); iter.hasNext(); ) {
+    String style=(String)iter.next();
+    String text=cssInjector(style);
+    buf.insert(startPos,text);
+    startPos+=text.length();
+  }
+  for (Iterator iter=scripts.iterator(); iter.hasNext(); ) {
+    Script script=(Script)iter.next();
+    String text=scriptInjector(script.getSrc());
+    buf.insert(startPos,text);
+    startPos+=text.length();
+  }
+{
+    StringWriter sw=new StringWriter();
+    PrintWriter pw=new PrintWriter(sw,true);
+    genPropProviders(pw);
+    pw.close();
+    String stuff=sw.toString();
+    startPos=buf.indexOf("// __PROPERTIES_END__");
+    buf.insert(startPos,stuff);
+  }
+{
+    StringWriter sw=new StringWriter();
+    PrintWriter pw=new PrintWriter(sw,true);
+    if (orderedProps != null) {
+      if (orderedProps.length > 0) {
+        pw.println();
+        genPropValues(pw);
+        pw.println();
+        genAnswers(pw);
+        pw.println();
+        pw.print("      strongName = answers");
+        for (int i=0; i < orderedProps.length; i++) {
+          pw.print("[I[" + i + "]]");
+        }
+      }
+ else {
+        assert(orderedProps.length == 0);
+        Set entrySet=propertyValuesSetByStrongName.entrySet();
+        assert(entrySet.size() == 1);
+        Map.Entry entry=(Entry)entrySet.iterator().next();
+        String strongName=(String)entry.getKey();
+        pw.print("    strongName = " + literal(strongName));
+      }
+      pw.println(";");
+    }
+    pw.close();
+    String stuff=sw.toString();
+    startPos=buf.indexOf("// __PERMUTATIONS_END__");
+    buf.insert(startPos,stuff);
+  }
+  mainPw.print(buf.toString());
+}

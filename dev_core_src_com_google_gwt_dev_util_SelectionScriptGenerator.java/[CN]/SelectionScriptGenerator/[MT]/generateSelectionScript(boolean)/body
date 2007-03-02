@@ -1,0 +1,41 @@
+{
+  try {
+    String rawSource;
+{
+      StringWriter sw=new StringWriter();
+      PrintWriter pw=new PrintWriter(sw,true);
+      String template=Utility.getFileFromClassPath("com/google/gwt/dev/util/SelectionScriptTemplate.js");
+      genScript(pw,template);
+      pw.close();
+      rawSource=sw.toString();
+    }
+{
+      JsParser parser=new JsParser();
+      Reader r=new StringReader(rawSource);
+      JsProgram jsProgram=new JsProgram();
+      JsScope topScope=jsProgram.getScope();
+      JsName funcName=topScope.declareName(moduleFunction);
+      funcName.setObfuscatable(false);
+      parser.parseInto(topScope,jsProgram.getGlobalBlock(),r,1);
+      JsSymbolResolver.exec(jsProgram);
+      if (obfuscate) {
+        JsObfuscateNamer.exec(jsProgram);
+      }
+ else {
+        JsVerboseNamer.exec(jsProgram);
+      }
+      StringWriter sw=new StringWriter();
+      PrintWriter pw=new PrintWriter(sw,true);
+      TextOutputOnPrintWriter out=new TextOutputOnPrintWriter(pw,obfuscate);
+      JsSourceGenerationVisitor v=new JsSourceGenerationVisitor(out);
+      jsProgram.traverse(v);
+      return sw.toString();
+    }
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Error processing selection script template.",e);
+  }
+catch (  JsParserException e) {
+    throw new RuntimeException("Error processing selection script template.",e);
+  }
+}

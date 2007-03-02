@@ -1,17 +1,8 @@
 {
   String msg="The development shell servlet received a request for '" + partialPath + "' in module '"+ moduleName+ "' ";
   logger=logger.branch(TreeLogger.TRACE,msg,null);
-  if (partialPath.equals(moduleName + ".nocache.html")) {
-    if (request.getParameterMap().containsKey(HOSTED_MODE_QUERY_PARAM)) {
-      try {
-        String html=genSelectionPage(logger,moduleName);
-        response.setContentType("text/html");
-        response.getWriter().println(html);
-        return;
-      }
- catch (      UnableToCompleteException e) {
-      }
-    }
+  if (autoGenerateResources(request,response,logger,partialPath,moduleName)) {
+    return;
   }
   URL foundResource;
   try {
@@ -50,12 +41,16 @@
     msg="Guessed MIME type '" + mimeType + "'";
     logger.log(TreeLogger.TRACE,msg,null);
   }
+  boolean infinitelyCacheable=isInfinitelyCacheable(path);
   InputStream is=null;
   try {
     URLConnection conn=foundResource.openConnection();
     long lastModified=conn.getLastModified();
     if (isNotModified(request,lastModified)) {
       response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+      if (infinitelyCacheable) {
+        response.setHeader(HttpHeaders.CACHE_CONTROL,HttpHeaders.CACHE_CONTROL_MAXAGE_FOREVER);
+      }
       return;
     }
     response.setStatus(HttpServletResponse.SC_OK);
@@ -64,9 +59,18 @@
     response.setContentType(mimeType);
     String lastModifiedStr=HttpHeaders.toInternetDateFormat(lastModified);
     response.setHeader(HttpHeaders.LAST_MODIFIED,lastModifiedStr);
-    final long jan2nd1980=315637200000L;
-    String inThePastStr=HttpHeaders.toInternetDateFormat(jan2nd1980);
-    response.setHeader(HttpHeaders.EXPIRES,inThePastStr);
+    String maxAgeStr;
+    if (infinitelyCacheable) {
+      maxAgeStr=HttpHeaders.CACHE_CONTROL_MAXAGE_FOREVER;
+    }
+ else {
+      maxAgeStr=HttpHeaders.CACHE_CONTROL_MAXAGE_EXPIRED;
+    }
+    response.setHeader(HttpHeaders.CACHE_CONTROL,maxAgeStr);
+    int contentLength=conn.getContentLength();
+    if (contentLength >= 0) {
+      response.setHeader(HttpHeaders.CONTENT_LENGTH,Integer.toString(contentLength));
+    }
     is=foundResource.openStream();
     streamOut(is,response.getOutputStream(),1024 * 8);
   }
