@@ -1,18 +1,29 @@
 {
-  if (x.hasInitializer() && x.constInitializer == null) {
-    push(null);
-    return;
-  }
   if (x.constInitializer != null) {
     accept(x.constInitializer);
   }
- else {
+ else   if (!x.hasInitializer()) {
     accept(x.getType().getDefaultValue());
   }
-  JsNameRef fieldRef=getName(x).makeRef();
-  if (!x.isStatic()) {
-    fieldRef.setQualifier(globalTemp.makeRef());
+ else {
+    push(null);
   }
-  JsExpression asg=createAssignment(fieldRef,(JsExpression)pop());
-  push(new JsExprStmt(asg));
+  JsExpression rhs=(JsExpression)pop();
+  JsName name=getName(x);
+  if (x.isStatic()) {
+    JsVar var=new JsVar(name);
+    var.setInitExpr(rhs);
+    push(var);
+  }
+ else {
+    if (rhs != null) {
+      JsNameRef fieldRef=name.makeRef();
+      fieldRef.setQualifier(globalTemp.makeRef());
+      JsExpression asg=createAssignment(fieldRef,(JsExpression)pop());
+      push(new JsExprStmt(asg));
+    }
+ else {
+      push(null);
+    }
+  }
 }

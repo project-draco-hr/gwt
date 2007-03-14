@@ -1,23 +1,20 @@
 {
-  JsName jsFieldName=getName(x.getField());
-  JsNameRef nameRef=jsFieldName.makeRef();
-  JsExpression qualifier=null;
-  if (x.getInstance() != null) {
-    qualifier=(JsExpression)pop();
-  }
   JField field=x.getField();
-  if (field.isStatic()) {
-    JsExpression realQualifier=maybeCreateClinitCall(field);
-    if (qualifier != null) {
-      if (realQualifier == null) {
-        realQualifier=topScope.findExistingUnobfuscatableName("window").makeRef();
-      }
-      realQualifier=createCommaExpression(qualifier,realQualifier);
+  JsName jsFieldName=getName(field);
+  JsNameRef nameRef=jsFieldName.makeRef();
+  JsExpression curExpr=nameRef;
+  JsInvocation jsInvocation=maybeCreateClinitCall(field);
+  if (jsInvocation != null) {
+    curExpr=createCommaExpression(jsInvocation,curExpr);
+  }
+  if (x.getInstance() != null) {
+    JsExpression qualifier=(JsExpression)pop();
+    if (field.isStatic()) {
+      curExpr=createCommaExpression(qualifier,curExpr);
     }
-    nameRef.setQualifier(realQualifier);
-  }
  else {
-    nameRef.setQualifier(qualifier);
+      nameRef.setQualifier(qualifier);
+    }
   }
-  push(nameRef);
+  push(curExpr);
 }

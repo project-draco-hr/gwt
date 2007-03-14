@@ -21,8 +21,19 @@
   if (typeOracle.isInstantiatedType(x)) {
     generateClassSetup(x,globalStmts);
   }
+  JsVars vars=new JsVars();
   for (int i=0; i < jsFields.size(); ++i) {
-    JsStatement stmt=(JsStatement)jsFields.get(i);
-    globalStmts.add(stmt);
+    JsNode node=(JsNode)jsFields.get(i);
+    if (node instanceof JsVar) {
+      vars.add((JsVar)node);
+    }
+ else {
+      assert(node instanceof JsStatement);
+      JsStatement stmt=(JsStatement)jsFields.get(i);
+      globalStmts.add(stmt);
+    }
+  }
+  if (!vars.isEmpty()) {
+    globalStmts.add(vars);
   }
 }
