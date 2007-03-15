@@ -1,0 +1,20 @@
+{
+  if (subdir != null) {
+    name=subdir + "/" + name;
+  }
+  OutputStream os=genCtx.tryCreateResource(mockLogger,name);
+  assertNotNull(os);
+  byte[] arrayWritten=new byte[]{0,1,2,3,4,5,6,7,8,9};
+  os.write(arrayWritten);
+  genCtx.commitResource(mockLogger,os);
+  if (subdir != null) {
+    File createdDir=new File(tempOutDir,subdir);
+    assertTrue(createdDir.exists());
+    rememberToDelete(createdDir);
+  }
+  File createdFile=new File(tempOutDir,name);
+  assertTrue(createdFile.exists());
+  rememberToDelete(createdFile);
+  byte[] arrayRead=Util.readFileAsBytes(createdFile);
+  assertTrue(Arrays.equals(arrayWritten,arrayRead));
+}

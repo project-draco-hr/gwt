@@ -1,0 +1,32 @@
+{
+  logger=logger.branch(TreeLogger.DEBUG,"Preparing pending output resource '" + name + "'",null);
+  if (name == null || name.trim().equals("")) {
+    logger.log(TreeLogger.ERROR,"The resource name must be a non-empty string",null);
+    throw new UnableToCompleteException();
+  }
+  File f=new File(name);
+  if (f.isAbsolute()) {
+    logger.log(TreeLogger.ERROR,"Resource paths are intended to be relative to the compiled output directory and cannot be absolute",null);
+    throw new UnableToCompleteException();
+  }
+  if (name.indexOf('\\') >= 0) {
+    logger.log(TreeLogger.ERROR,"Resource paths must contain forward slashes (not backslashes) to denote subdirectories",null);
+    throw new UnableToCompleteException();
+  }
+  File pendingFile=new File(outDir,name);
+  for (Iterator iter=pendingResourcesByOutputStream.values().iterator(); iter.hasNext(); ) {
+    PendingResource pendingResource=(PendingResource)iter.next();
+    if (pendingResource.isSamePath(logger,pendingFile)) {
+      logger.log(TreeLogger.WARN,"The file is already a pending resource",null);
+      return null;
+    }
+  }
+  if (pendingFile.exists()) {
+    logger.log(TreeLogger.TRACE,"File already exists",null);
+    return null;
+  }
+  PendingResource pendingResource=new PendingResource(pendingFile);
+  OutputStream os=pendingResource.getOutputStream();
+  pendingResourcesByOutputStream.put(os,pendingResource);
+  return os;
+}

@@ -1,0 +1,15 @@
+{
+  String path=createTempOutFilename();
+  OutputStream os=genCtx.tryCreateResource(mockLogger,path);
+  os.write("going to call commit twice after this...".getBytes());
+  genCtx.commitResource(mockLogger,os);
+  File createdFile=new File(tempOutDir,path);
+  assertTrue(createdFile.exists());
+  rememberToDelete(createdFile);
+  try {
+    genCtx.commitResource(mockLogger,os);
+    fail("Calling commit() again on the same stream object should have caused an exception");
+  }
+ catch (  UnableToCompleteException e) {
+  }
+}

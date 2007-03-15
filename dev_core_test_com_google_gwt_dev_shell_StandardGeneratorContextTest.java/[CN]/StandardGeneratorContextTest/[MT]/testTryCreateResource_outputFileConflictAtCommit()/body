@@ -1,0 +1,17 @@
+{
+  String path=createTempOutFilename();
+  OutputStream os=genCtx.tryCreateResource(mockLogger,path);
+  assertNotNull("This test requires that the file being created does not already exist at this point",os);
+  byte[] arrayWritten=new byte[]{0,1,2,3,4,5,6,7,8,9};
+  os.write(arrayWritten);
+  try {
+    File existingFile=new File(tempOutDir,path);
+    Util.writeStringAsFile(existingFile,"please don't clobber me");
+    assertTrue(existingFile.exists());
+    rememberToDelete(existingFile);
+    genCtx.commitResource(mockLogger,os);
+    fail("The previous statement should have caused an exception since writing the resource must have failed");
+  }
+ catch (  UnableToCompleteException e) {
+  }
+}
