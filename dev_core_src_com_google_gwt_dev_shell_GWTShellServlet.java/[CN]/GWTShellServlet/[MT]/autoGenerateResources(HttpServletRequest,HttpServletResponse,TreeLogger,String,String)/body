@@ -1,8 +1,10 @@
 {
-  if (partialPath.equals(moduleName + ".nocache.js")) {
+  boolean nocacheHtml=partialPath.equals(moduleName + ".nocache.js");
+  boolean nocacheScript=!nocacheHtml && partialPath.equals(moduleName + ".nocache.script.js");
+  if (nocacheHtml || nocacheScript) {
     if (request.getParameter("compiled") == null) {
       try {
-        String js=genSelectionScript(logger,moduleName);
+        String js=genSelectionScript(logger,moduleName,nocacheScript);
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("text/javascript");
         response.getWriter().println(js);
