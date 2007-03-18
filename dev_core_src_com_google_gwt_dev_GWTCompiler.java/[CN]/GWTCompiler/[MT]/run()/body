@@ -1,19 +1,23 @@
 {
-  AbstractTreeLogger logger;
+  BootStrapPlatform.setSystemProperties();
   if (useGuiLogger) {
-    logger=TreeLoggerWidget.getAsDetachedWindow("Build Output for " + moduleName,800,600,true);
+    DetachedTreeLoggerWindow loggerWindow=DetachedTreeLoggerWindow.getInstance("Build Output for " + moduleName,800,600,true);
+    BootStrapPlatform.maybeInitializeAWT();
+    final AbstractTreeLogger logger=loggerWindow.getLogger();
+    final boolean[] success=new boolean[1];
+    Thread compilerThread=new Thread(new Runnable(){
+      public void run(){
+        success[0]=GWTCompiler.this.run(logger);
+      }
+    }
+);
+    compilerThread.setName("GWTCompiler Thread");
+    compilerThread.start();
+    loggerWindow.run();
+    waitForThreadToTerminate(compilerThread);
+    return success[0];
   }
  else {
-    logger=new PrintWriterTreeLogger();
-  }
-  try {
-    logger.setMaxDetail(logLevel);
-    ModuleDef moduleDef=ModuleDefLoader.loadFromClassPath(logger,moduleName);
-    distill(logger,moduleDef);
-    return true;
-  }
- catch (  UnableToCompleteException e) {
-    logger.log(TreeLogger.ERROR,"Build failed",null);
-    return false;
+    return run(new PrintWriterTreeLogger());
   }
 }
