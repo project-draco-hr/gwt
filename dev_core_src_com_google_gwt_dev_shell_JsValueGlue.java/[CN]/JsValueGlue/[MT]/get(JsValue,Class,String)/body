@@ -44,10 +44,14 @@ if (!value.isNumber()) {
 throw new HostedModeException(msgPrefix + ": JS value of type " + value.getTypeString()+ ", expected float");
 }
 doubleVal=value.getNumber();
-if (doubleVal < Float.MIN_VALUE || doubleVal > Float.MAX_VALUE) {
+if ((float)(doubleVal - Float.MIN_VALUE) == 0.0f) {
+doubleVal=Float.MIN_VALUE;
+}
+float floatVal=(float)doubleVal;
+if (Float.isInfinite(floatVal) && !Double.isInfinite(doubleVal)) {
 throw new HostedModeException(msgPrefix + ": JS value " + doubleVal+ " out of range for a float");
 }
-return new Float((float)doubleVal);
+return new Float(floatVal);
 case TypeInfo.TYPE_WRAP_INT:
 case TypeInfo.TYPE_PRIM_INT:
 return new Integer(getIntRange(value,Integer.MIN_VALUE,Integer.MAX_VALUE,"int",msgPrefix));
