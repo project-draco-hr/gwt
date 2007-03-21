@@ -1,24 +1,19 @@
 {
-  Throwable caught;
   try {
     perThreadRequest.set(request);
     perThreadResponse.set(response);
     String requestPayload=readPayloadAsUtf8(request);
+    onBeforeRequestDeserialized(requestPayload);
     String responsePayload=processCall(requestPayload);
+    onAfterResponseSerialized(responsePayload);
     writeResponse(request,response,responsePayload);
     return;
   }
- catch (  IOException e) {
-    caught=e;
+ catch (  Throwable e) {
+    doUnexpectedFailure(e);
   }
-catch (  ServletException e) {
-    caught=e;
+ finally {
+    perThreadRequest.set(null);
+    perThreadResponse.set(null);
   }
-catch (  SerializationException e) {
-    caught=e;
-  }
-catch (  Throwable e) {
-    caught=e;
-  }
-  respondWithFailure(response,caught);
 }

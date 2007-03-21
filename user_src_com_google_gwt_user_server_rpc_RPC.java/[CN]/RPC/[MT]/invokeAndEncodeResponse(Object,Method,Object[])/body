@@ -1,0 +1,21 @@
+{
+  if (serviceMethod == null) {
+    throw new NullPointerException("serviceMethod cannot be null");
+  }
+  String responsePayload;
+  try {
+    Object result=serviceMethod.invoke(target,args);
+    responsePayload=encodeResponseForSuccess(serviceMethod,result);
+  }
+ catch (  IllegalAccessException e) {
+    throw new SecurityException(formatIllegalAccessErrorMessage(target,serviceMethod),e);
+  }
+catch (  IllegalArgumentException e) {
+    throw new SecurityException(formatIllegalArgumentErrorMessage(target,serviceMethod,args),e);
+  }
+catch (  InvocationTargetException e) {
+    Throwable cause=e.getCause();
+    responsePayload=encodeResponseForFailure(serviceMethod,cause);
+  }
+  return responsePayload;
+}

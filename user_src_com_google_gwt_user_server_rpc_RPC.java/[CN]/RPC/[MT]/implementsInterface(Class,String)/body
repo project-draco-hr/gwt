@@ -1,0 +1,34 @@
+{
+synchronized (serviceToImplementedInterfacesMap) {
+    Set interfaceSet=(Set)serviceToImplementedInterfacesMap.get(service);
+    if (interfaceSet != null) {
+      if (interfaceSet.contains(intfName)) {
+        return true;
+      }
+    }
+ else {
+      interfaceSet=new HashSet();
+      serviceToImplementedInterfacesMap.put(service,interfaceSet);
+    }
+    if (!service.isInterface()) {
+      while ((service != null) && !RemoteServiceServlet.class.equals(service)) {
+        Class[] intfs=service.getInterfaces();
+        for (int i=0; i < intfs.length; i++) {
+          Class intf=intfs[i];
+          if (implementsInterfaceRecursive(intf,intfName)) {
+            interfaceSet.add(intfName);
+            return true;
+          }
+        }
+        service=service.getSuperclass();
+      }
+    }
+ else {
+      if (implementsInterfaceRecursive(service,intfName)) {
+        interfaceSet.add(intfName);
+        return true;
+      }
+    }
+    return false;
+  }
+}
