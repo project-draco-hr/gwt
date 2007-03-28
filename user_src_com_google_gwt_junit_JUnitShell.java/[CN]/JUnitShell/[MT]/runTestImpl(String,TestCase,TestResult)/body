@@ -1,9 +1,19 @@
 {
   String newTestCaseClassName=testCase.getClass().getName();
+  boolean sameTest=newTestCaseClassName.equals(testCaseClassName);
+  if (sameTest && lastLaunchFailed) {
+    throw new UnableToCompleteException();
+  }
   messageQueue.setNextTestName(newTestCaseClassName,testCase.getName());
-  boolean forceLaunch=!newTestCaseClassName.equals(testCaseClassName);
-  testCaseClassName=newTestCaseClassName;
-  runStyle.maybeLaunchModule(moduleName,forceLaunch);
+  try {
+    lastLaunchFailed=false;
+    testCaseClassName=newTestCaseClassName;
+    runStyle.maybeLaunchModule(moduleName,!sameTest);
+  }
+ catch (  UnableToCompleteException e) {
+    lastLaunchFailed=true;
+    throw e;
+  }
   try {
     testBeginTimout=System.currentTimeMillis() + TEST_BEGIN_TIMEOUT_MILLIS;
     pumpEventLoop();
