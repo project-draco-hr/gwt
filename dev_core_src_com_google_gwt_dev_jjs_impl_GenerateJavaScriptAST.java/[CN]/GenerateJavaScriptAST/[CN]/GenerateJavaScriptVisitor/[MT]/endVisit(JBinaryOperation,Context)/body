@@ -8,18 +8,9 @@
  else   if (myOp == JsBinaryOperator.NEQ && x.getLhs().getType() instanceof JReferenceType && x.getRhs().getType() instanceof JReferenceType) {
     myOp=JsBinaryOperator.REF_NEQ;
   }
-  if (myOp.isAssignment() && (lhs instanceof JsBinaryOperation)) {
-    JsBinaryOperation curLhs=(JsBinaryOperation)lhs;
-    assert(curLhs.getOperator() == JsBinaryOperator.COMMA);
-    while (curLhs.getArg2() instanceof JsBinaryOperation) {
-      curLhs=(JsBinaryOperation)curLhs.getArg2();
-      assert(curLhs.getOperator() == JsBinaryOperator.COMMA);
-    }
-    JsBinaryOperation asg=new JsBinaryOperation(myOp,curLhs.getArg2(),rhs);
-    curLhs.setArg2(asg);
-    push(lhs);
+  JsBinaryOperation binOp=new JsBinaryOperation(myOp,lhs,rhs);
+  if (maybeShuffleModifyingBinary(binOp)) {
     return;
   }
-  JsBinaryOperation binOp=new JsBinaryOperation(myOp,lhs,rhs);
   push(binOp);
 }
