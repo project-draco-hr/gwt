@@ -1,0 +1,50 @@
+{
+  int start=pos[0];
+  boolean gotPositive, gotNegative;
+  double ret=0.0;
+  gotPositive=(text.indexOf(positivePrefix,pos[0]) == pos[0]);
+  gotNegative=(text.indexOf(negativePrefix,pos[0]) == pos[0]);
+  if (gotPositive && gotNegative) {
+    if (positivePrefix.length() > negativePrefix.length()) {
+      gotNegative=false;
+    }
+ else     if (positivePrefix.length() < negativePrefix.length()) {
+      gotPositive=false;
+    }
+  }
+  if (gotPositive) {
+    pos[0]+=positivePrefix.length();
+  }
+ else   if (gotNegative) {
+    pos[0]+=negativePrefix.length();
+  }
+  if (text.indexOf(numberConstants.infinity(),pos[0]) == pos[0]) {
+    pos[0]+=numberConstants.infinity().length();
+    ret=Double.POSITIVE_INFINITY;
+  }
+ else   if (text.indexOf(numberConstants.notANumber(),pos[0]) == pos[0]) {
+    pos[0]+=numberConstants.notANumber().length();
+    ret=Double.NaN;
+  }
+ else {
+    ret=parseNumber(text,pos);
+  }
+  if (gotPositive) {
+    if (!(text.indexOf(positiveSuffix,pos[0]) == pos[0])) {
+      pos[0]=start;
+      return 0.0;
+    }
+    pos[0]+=positiveSuffix.length();
+  }
+ else   if (gotNegative) {
+    if (!(text.indexOf(negativeSuffix,pos[0]) == pos[0])) {
+      pos[0]=start;
+      return 0.0;
+    }
+    pos[0]+=negativeSuffix.length();
+  }
+  if (gotNegative) {
+    ret=-ret;
+  }
+  return ret;
+}

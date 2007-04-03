@@ -1,0 +1,61 @@
+{
+  affix.delete(0,affix.length());
+  boolean inQuote=false;
+  int len=pattern.length();
+  for (int pos=start; pos < len; ++pos) {
+    char ch=pattern.charAt(pos);
+    if (ch == QUOTE) {
+      if ((pos + 1) < len && pattern.charAt(pos + 1) == QUOTE) {
+        ++pos;
+        affix.append("'");
+      }
+ else {
+        inQuote=!inQuote;
+      }
+      continue;
+    }
+    if (inQuote) {
+      affix.append(ch);
+    }
+ else {
+switch (ch) {
+case PATTERN_DIGIT:
+case PATTERN_ZERO_DIGIT:
+case PATTERN_GROUPING_SEPARATOR:
+case PATTERN_DECIMAL_SEPARATOR:
+case PATTERN_SEPARATOR:
+        return pos - start;
+case CURRENCY_SIGN:
+      isCurrencyFormat=true;
+    if ((pos + 1) < len && pattern.charAt(pos + 1) == CURRENCY_SIGN) {
+      ++pos;
+      affix.append(currencyCode);
+    }
+ else {
+      affix.append(currencySymbol);
+    }
+  break;
+case PATTERN_PERCENT:
+if (multiplier != 1) {
+  throw new IllegalArgumentException("Too many percent/per mille characters in pattern \"" + pattern + '"');
+}
+multiplier=100;
+affix.append(numberConstants.percent());
+break;
+case PATTERN_PER_MILLE:
+if (multiplier != 1) {
+throw new IllegalArgumentException("Too many percent/per mille characters in pattern \"" + pattern + '"');
+}
+multiplier=1000;
+affix.append(numberConstants.perMill());
+break;
+case PATTERN_MINUS:
+affix.append("-");
+break;
+default :
+affix.append(ch);
+}
+}
+}
+return len - start;
+}
