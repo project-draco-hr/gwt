@@ -1,0 +1,56 @@
+{
+  DateRecord cal=new DateRecord();
+  int[] parsePos={start};
+  int abutPat=-1;
+  int abutStart=0;
+  int abutPass=0;
+  for (int i=0; i < patternParts.size(); ++i) {
+    PatternPart part=(PatternPart)patternParts.get(i);
+    if (part.count > 0) {
+      if (abutPat < 0 && part.abutStart) {
+        abutPat=i;
+        abutStart=start;
+        abutPass=0;
+      }
+      if (abutPat >= 0) {
+        int count=part.count;
+        if (i == abutPat) {
+          count-=abutPass++;
+          if (count == 0) {
+            return 0;
+          }
+        }
+        if (!subParse(text,parsePos,part,count,cal)) {
+          i=abutPat - 1;
+          parsePos[0]=abutStart;
+          continue;
+        }
+      }
+ else {
+        abutPat=-1;
+        if (!subParse(text,parsePos,part,0,cal)) {
+          return 0;
+        }
+      }
+    }
+ else {
+      abutPat=-1;
+      if (part.text.charAt(0) == ' ') {
+        int s=parsePos[0];
+        skipSpace(text,parsePos);
+        if (parsePos[0] > s) {
+          continue;
+        }
+      }
+ else       if (text.startsWith(part.text,parsePos[0])) {
+        parsePos[0]+=part.text.length();
+        continue;
+      }
+      return 0;
+    }
+  }
+  if (!cal.calcDate(date)) {
+    return 0;
+  }
+  return parsePos[0] - start;
+}
