@@ -1,0 +1,40 @@
+{
+  logger=logger.branch(TreeLogger.TRACE,"Analyzing methods on " + userType.getQualifiedSourceName(),null);
+  final JClassType imageClass;
+  try {
+    imageClass=userType.getOracle().getType(ABSTRACTIMAGEPROTOTYPE_QNAME);
+  }
+ catch (  NotFoundException e) {
+    logger.log(TreeLogger.ERROR,"GWT " + ABSTRACTIMAGEPROTOTYPE_QNAME + "class is not available",e);
+    throw new UnableToCompleteException();
+  }
+  Map rejectedMethodsAndWhy=new HashMap();
+  JMethod[] leafMethods=userType.getOverridableMethods();
+  for (int i=0; i < leafMethods.length; i++) {
+    JMethod method=leafMethods[i];
+    if (method.getReturnType() != imageClass) {
+      rejectedMethodsAndWhy.put(method,"Return type must be " + ABSTRACTIMAGEPROTOTYPE_QNAME);
+      continue;
+    }
+    if (method.getParameters().length > 0) {
+      rejectedMethodsAndWhy.put(method,"Method cannot take parameters");
+      continue;
+    }
+    String[][] md=method.getMetaData(METADATA_TAG);
+    if ((md.length > 1) || (md.length == 1 && md[0].length != 1)) {
+      rejectedMethodsAndWhy.put(method,"Expecting either no metadata tags, or one metadata tag of the form '@gwt.resource <resource-name>'");
+    }
+  }
+  if (!rejectedMethodsAndWhy.isEmpty()) {
+    logger=logger.branch(TreeLogger.ERROR,"The following methods are invalid on an image bundle:",null);
+    for (Iterator iter=rejectedMethodsAndWhy.entrySet().iterator(); iter.hasNext(); ) {
+      Map.Entry entry=(Map.Entry)iter.next();
+      JMethod badMethod=(JMethod)entry.getKey();
+      String reason=(String)entry.getValue();
+      TreeLogger branch=logger.branch(TreeLogger.ERROR,badMethod.getReadableDeclaration(),null);
+      branch.log(TreeLogger.ERROR,reason,null);
+    }
+    throw new UnableToCompleteException();
+  }
+  return leafMethods;
+}

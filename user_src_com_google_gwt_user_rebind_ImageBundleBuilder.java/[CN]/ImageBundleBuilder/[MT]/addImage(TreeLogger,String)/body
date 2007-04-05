@@ -1,0 +1,30 @@
+{
+  logger=logger.branch(TreeLogger.TRACE,"Adding image '" + imageName + "'",null);
+  BufferedImage image=null;
+  try {
+    URL imageUrl=getClass().getClassLoader().getResource(imageName);
+    if (imageUrl == null) {
+      logger.log(TreeLogger.ERROR,"Resource not found on classpath (is the name specified as Class.getResource() would expect?)",null);
+      throw new UnableToCompleteException();
+    }
+    InputStream is=imageUrl.openStream();
+    BufferedInputStream bis=new BufferedInputStream(is);
+    byte imgByte;
+    while ((imgByte=(byte)bis.read()) != -1) {
+      md5.update(imgByte);
+    }
+    is.close();
+    image=ImageIO.read(imageUrl);
+    if (image == null) {
+      logger.log(TreeLogger.ERROR,"Unrecognized image file format",null);
+      throw new UnableToCompleteException();
+    }
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Unable to read image resource",null);
+    throw new UnableToCompleteException();
+  }
+  ImageRect imageRect=new ImageRect(image);
+  orderedImageRects.add(imageRect);
+  return imageRect;
+}
