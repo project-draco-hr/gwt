@@ -4,18 +4,18 @@
     return;
   }
   final List nameRefs=new ArrayList();
-  func.traverse(new JsAbstractVisitorWithAllVisits(){
-    public void endVisit(    JsNameRef x){
+  new JsVisitor(){
+    public void endVisit(    JsNameRef x,    JsContext ctx){
       String ident=x.getIdent();
       if (ident.charAt(0) == '@') {
         nameRefs.add(x);
       }
     }
   }
-);
+.accept(func);
   for (int i=0; i < nameRefs.size(); ++i) {
     JsNameRef nameRef=(JsNameRef)nameRefs.get(i);
-    JSourceInfo info=nativeMethod.getSourceInfo();
+    SourceInfo info=nativeMethod.getSourceInfo();
     String ident=nameRef.getIdent();
     HasEnclosingType node=(HasEnclosingType)program.jsniMap.get(ident);
     if (node == null) {

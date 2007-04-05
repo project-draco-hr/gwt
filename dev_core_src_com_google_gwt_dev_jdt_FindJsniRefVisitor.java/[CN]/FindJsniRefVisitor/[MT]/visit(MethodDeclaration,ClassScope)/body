@@ -30,8 +30,8 @@
   StringReader sr=new StringReader(syntheticFnHeader + '\n' + jsniCode);
   try {
     JsStatements result=jsParser.parse(jsProgram.getScope(),sr,-1);
-    result.traverse(new JsAbstractVisitorWithAllVisits(){
-      public void endVisit(      JsNameRef x){
+    new JsVisitor(){
+      public void endVisit(      JsNameRef x,      JsContext ctx){
         String ident=x.getIdent();
         if (ident.charAt(0) == '@') {
           String className=ident.substring(1,ident.indexOf(':'));
@@ -39,7 +39,7 @@
         }
       }
     }
-);
+.accept(result);
   }
  catch (  IOException e) {
     throw new InternalCompilerException("Internal error searching for JSNI references",e);

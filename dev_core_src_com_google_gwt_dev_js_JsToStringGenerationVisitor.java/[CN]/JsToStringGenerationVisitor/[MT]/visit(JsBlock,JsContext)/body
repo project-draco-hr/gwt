@@ -1,0 +1,25 @@
+{
+  boolean needBraces=!x.isGlobalBlock();
+  if (needBraces) {
+    _blockOpen();
+  }
+  for (Iterator iter=x.getStatements().iterator(); iter.hasNext(); ) {
+    JsStatement stmt=(JsStatement)iter.next();
+    needSemi=true;
+    accept(stmt);
+    if (needSemi) {
+      if (stmt instanceof JsExprStmt && ((JsExprStmt)stmt).getExpression() instanceof JsFunction) {
+        _newline();
+      }
+ else {
+        _semi();
+        _newlineOpt();
+      }
+    }
+  }
+  if (needBraces) {
+    _blockClose();
+  }
+  needSemi=false;
+  return false;
+}
