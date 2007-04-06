@@ -1,0 +1,21 @@
+{
+  if (key == null) {
+    for (Iterator iter=loadedModules.entrySet().iterator(); iter.hasNext(); ) {
+      unloadModule((ModuleSpace)((Map.Entry)iter.next()).getValue());
+    }
+    loadedModules.clear();
+  }
+ else {
+    ModuleSpace moduleSpace=(ModuleSpace)loadedModules.get(key);
+    if (moduleSpace == null) {
+      throw new HostedModeException("Can't find frame window for " + key);
+    }
+    unloadModule(moduleSpace);
+    loadedModules.remove(key);
+  }
+  if (loadedModules.isEmpty()) {
+    if (!toolbar.openWebModeButton.isDisposed()) {
+      toolbar.openWebModeButton.setEnabled(false);
+    }
+  }
+}
