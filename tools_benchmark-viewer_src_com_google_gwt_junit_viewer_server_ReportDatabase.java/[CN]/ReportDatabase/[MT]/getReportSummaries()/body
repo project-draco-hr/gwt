@@ -1,0 +1,22 @@
+{
+  boolean update=false;
+synchronized (updateLock) {
+    if (!updating) {
+      long currentTime=System.currentTimeMillis();
+      if (currentTime > lastUpdateMillis + UPDATE_DURATION_MILLIS) {
+        update=updating=true;
+      }
+    }
+  }
+  if (update) {
+    updateReports();
+  }
+synchronized (reportsLock) {
+    List summaries=new ArrayList(reports.size());
+    for (Iterator it=reports.values().iterator(); it.hasNext(); ) {
+      ReportEntry entry=(ReportEntry)it.next();
+      summaries.add(entry.summary);
+    }
+    return summaries;
+  }
+}

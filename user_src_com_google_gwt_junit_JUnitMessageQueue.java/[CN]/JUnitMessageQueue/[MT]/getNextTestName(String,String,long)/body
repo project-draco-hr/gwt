@@ -1,0 +1,19 @@
+{
+synchronized (readTestLock) {
+    long stopTime=System.currentTimeMillis() + timeout;
+    while (!testIsAvailableFor(clientId)) {
+      long timeToWait=stopTime - System.currentTimeMillis();
+      if (timeToWait < 1) {
+        return null;
+      }
+      try {
+        readTestLock.wait(timeToWait);
+      }
+ catch (      InterruptedException e) {
+        return null;
+      }
+    }
+    bumpClientTestRequest(clientId);
+    return testMethod;
+  }
+}

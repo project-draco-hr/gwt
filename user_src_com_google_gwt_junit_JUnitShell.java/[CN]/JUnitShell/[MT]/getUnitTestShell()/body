@@ -5,10 +5,13 @@
     if (!shell.processArgs(args)) {
       throw new RuntimeException("Invalid shell arguments");
     }
+    shell.messageQueue=new JUnitMessageQueue(shell.numClients);
     if (!shell.startUp()) {
       throw new RuntimeException("Shell failed to start");
     }
+    shell.report=new BenchmarkReport(shell.getTopLogger());
     unitTestShell=shell;
+    Runtime.getRuntime().addShutdownHook(new Thread(shell.new Shutdown()));
   }
   return unitTestShell;
 }

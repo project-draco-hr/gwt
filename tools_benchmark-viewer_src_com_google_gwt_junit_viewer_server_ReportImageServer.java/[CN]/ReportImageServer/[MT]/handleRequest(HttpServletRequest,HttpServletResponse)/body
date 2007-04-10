@@ -1,0 +1,37 @@
+{
+  String uri=request.getRequestURI();
+  String requestString=uri.split("test_images/")[1];
+  String[] requestParams=requestString.split("/");
+  String reportName=URLDecoder.decode(requestParams[0],charset);
+  String categoryName=URLDecoder.decode(requestParams[1],charset);
+  String className=URLDecoder.decode(requestParams[2],charset);
+  String testName=URLDecoder.decode(requestParams[3],charset);
+  String agent=URLDecoder.decode(requestParams[4],charset);
+  ReportDatabase db=ReportDatabase.getInstance();
+  Report report=db.getReport(reportName);
+  List categories=report.getCategories();
+  Category category=getCategoryByName(categories,categoryName);
+  List benchmarks=category.getBenchmarks();
+  Benchmark benchmark=getBenchmarkByName(benchmarks,testName);
+  List results=benchmark.getResults();
+  Result result=getResultsByAgent(results,agent);
+  String title=BrowserInfo.getBrowser(agent);
+  JFreeChart chart=null;
+  try {
+    chart=createChart(testName,result,title);
+    if (chart == null) {
+      super.doGet(request,response);
+      return;
+    }
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+  chart.getTitle().setFont(Font.decode("Arial"));
+  final int graphWidth=Math.max(240,Math.min(480,(1024 - 10 * results.size()) / results.size()));
+  BufferedImage img=chart.createBufferedImage(graphWidth,240);
+  byte[] image=EncoderUtil.encode(img,ImageFormat.PNG);
+  response.setContentType("image/png");
+  OutputStream output=response.getOutputStream();
+  copy(new ByteArrayInputStream(image),output);
+}

@@ -1,0 +1,32 @@
+{
+  if (sourceCode == null) {
+    return;
+  }
+  summary.setLength(0);
+  comment.setLength(0);
+  String regex="/\\*\\*(.(?!}-\\*/))*\\*/";
+  Pattern p=Pattern.compile(regex,Pattern.DOTALL);
+  Matcher m=p.matcher(sourceCode);
+  if (!m.find()) {
+    return;
+  }
+  String commentStr=m.group();
+  p=Pattern.compile("(/\\*\\*\\s*)" + "(((\\s*\\**\\s*)([^\n\r]*)[\n\r]+)*)");
+  m=p.matcher(commentStr);
+  if (!m.find()) {
+    return;
+  }
+  String stripped=m.group(2);
+  p=Pattern.compile("^\\p{Blank}*\\**\\p{Blank}*",Pattern.MULTILINE);
+  String bareComment=p.matcher(stripped).replaceAll("");
+  BreakIterator iterator=BreakIterator.getSentenceInstance();
+  iterator.setText(bareComment);
+  int firstSentenceEnd=iterator.next();
+  if (firstSentenceEnd == BreakIterator.DONE) {
+    summary.append(bareComment);
+  }
+ else {
+    summary.append(bareComment.substring(0,firstSentenceEnd));
+  }
+  comment.append(bareComment);
+}

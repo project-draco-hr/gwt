@@ -1,0 +1,52 @@
+{
+  Map testMethods=getAllMethods(requestedClass,new MethodFilter(){
+    public boolean accept(    JMethod method){
+      return isJUnitTestMethod(method,true);
+    }
+  }
+);
+  for (Iterator it=testMethods.entrySet().iterator(); it.hasNext(); ) {
+    Map.Entry entry=(Map.Entry)it.next();
+    String name=(String)entry.getKey();
+    List methods=(List)entry.getValue();
+    if (methods.size() > 2) {
+      String msg=requestedClass + "." + name+ " has more than one overloaded version.\n"+ "It will not be included in the test case execution.";
+      logger.log(TreeLogger.WARN,msg,null);
+      it.remove();
+      continue;
+    }
+    if (methods.size() == 1) {
+      JMethod method=(JMethod)methods.get(0);
+      if (method.getParameters().length != 0) {
+        String msg=requestedClass + "." + name+ " does not have a zero-argument overload.\n"+ "It will not be included in the test case execution.";
+        logger.log(TreeLogger.WARN,msg,null);
+      }
+      it.remove();
+      continue;
+    }
+    JMethod method1=(JMethod)methods.get(0);
+    JMethod method2=(JMethod)methods.get(1);
+    JMethod noArgMethod=null;
+    JMethod overloadedMethod=null;
+    if (method1.getParameters().length == 0) {
+      noArgMethod=method1;
+    }
+ else {
+      overloadedMethod=method1;
+    }
+    if (method2.getParameters().length == 0) {
+      noArgMethod=method2;
+    }
+ else {
+      overloadedMethod=method2;
+    }
+    if (noArgMethod == null) {
+      String msg=requestedClass + "." + name+ " does not have a zero-argument overload.\n"+ "It will not be included in the test case execution.";
+      logger.log(TreeLogger.WARN,msg,null);
+      it.remove();
+      continue;
+    }
+    entry.setValue(overloadedMethod);
+  }
+  return testMethods;
+}

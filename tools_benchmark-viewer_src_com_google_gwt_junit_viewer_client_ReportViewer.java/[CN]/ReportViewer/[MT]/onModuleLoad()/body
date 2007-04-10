@@ -1,0 +1,30 @@
+{
+  init();
+  ServiceDefTarget target=(ServiceDefTarget)GWT.create(ReportServer.class);
+  target.setServiceEntryPoint(GWT.getModuleBaseURL() + "test_reports");
+  reportServer=(ReportServerAsync)target;
+  reportServer.getReportSummaries(new AsyncCallback(){
+    public void onFailure(    Throwable caught){
+      String msg="<p>" + caught.toString() + "</p>"+ "<p>Is your path to the reports correct?</p>";
+      statusLabel.setHTML(msg);
+    }
+    public void onSuccess(    Object result){
+      summaries=(List)result;
+      if (summaries != null) {
+        if (summaries.size() == 0) {
+          statusLabel.setText("There are no benchmark reports available in this folder.");
+        }
+        Collections.sort(summaries,new Comparator(){
+          public int compare(          Object o1,          Object o2){
+            ReportSummary r1=(ReportSummary)o1;
+            ReportSummary r2=(ReportSummary)o2;
+            return r2.getDate().compareTo(r1.getDate());
+          }
+        }
+);
+        displaySummaries();
+      }
+    }
+  }
+);
+}

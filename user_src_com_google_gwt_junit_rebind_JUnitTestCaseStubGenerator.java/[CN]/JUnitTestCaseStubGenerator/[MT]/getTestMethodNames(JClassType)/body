@@ -1,22 +1,8 @@
 {
-  HashSet testMethodNames=new HashSet();
-  JClassType cls=requestedClass;
-  while (true) {
-    if (isGWTTestCaseClass(cls)) {
-      break;
+  return (String[])getAllMethods(requestedClass,new MethodFilter(){
+    public boolean accept(    JMethod method){
+      return isJUnitTestMethod(method,false);
     }
-    JMethod[] clsDeclMethods=cls.getMethods();
-    for (int i=0, n=clsDeclMethods.length; i < n; ++i) {
-      JMethod declMethod=clsDeclMethods[i];
-      if (!isJUnitTestMethod(declMethod)) {
-        continue;
-      }
-      if (testMethodNames.contains(declMethod.getName())) {
-        continue;
-      }
-      testMethodNames.add(declMethod.getName());
-    }
-    cls=cls.getSuperclass();
   }
-  return (String[])testMethodNames.toArray(new String[testMethodNames.size()]);
+).keySet().toArray(new String[]{});
 }

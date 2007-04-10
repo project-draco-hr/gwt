@@ -1,0 +1,36 @@
+{
+  this.typeOracle=typeOracle;
+  String categoryType=getSimpleMetaData(benchmarkClass,GWT_BENCHMARK_CATEGORY);
+  Map zeroArgMethods=BenchmarkGenerator.getNotOverloadedTestMethods(benchmarkClass);
+  Map parameterizedMethods=BenchmarkGenerator.getParameterizedTestMethods(benchmarkClass,TreeLogger.NULL);
+  List testMethods=new ArrayList(zeroArgMethods.size() + parameterizedMethods.size());
+  testMethods.addAll(zeroArgMethods.values());
+  testMethods.addAll(parameterizedMethods.values());
+  Map metaDataMap=(Map)testMetaData.get(benchmarkClass.toString());
+  if (metaDataMap == null) {
+    metaDataMap=new HashMap();
+    testMetaData.put(benchmarkClass.toString(),metaDataMap);
+  }
+  Parser parser=null;
+  try {
+    parser=new Parser(benchmarkClass);
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.WARN,"Unable to parse the code for " + benchmarkClass,e);
+  }
+  for (int i=0; i < testMethods.size(); ++i) {
+    JMethod method=(JMethod)testMethods.get(i);
+    String methodName=method.getName();
+    String methodCategoryType=getSimpleMetaData(method,GWT_BENCHMARK_CATEGORY);
+    if (methodCategoryType == null) {
+      methodCategoryType=categoryType;
+    }
+    CategoryImpl methodCategory=getCategory(methodCategoryType);
+    String sourceCode=parser == null ? null : parser.getMethod(method);
+    StringBuffer summary=new StringBuffer();
+    StringBuffer comment=new StringBuffer();
+    getComment(sourceCode,summary,comment);
+    MetaData metaData=new MetaData(benchmarkClass.toString(),methodName,sourceCode,methodCategory,methodName,summary.toString());
+    metaDataMap.put(methodName,metaData);
+  }
+}

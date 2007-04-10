@@ -1,0 +1,32 @@
+{
+  Map zeroArgMethods=getNotOverloadedTestMethods(getRequestedClass());
+  SourceWriter sw=getSourceWriter();
+  JClassType type=getRequestedClass();
+  for (Iterator it=zeroArgMethods.entrySet().iterator(); it.hasNext(); ) {
+    Map.Entry entry=(Map.Entry)it.next();
+    String name=(String)entry.getKey();
+    JMethod method=(JMethod)entry.getValue();
+    JMethod beginMethod=getBeginMethod(type,name);
+    JMethod endMethod=getEndMethod(type,name);
+    sw.println("public void " + name + "() {");
+    sw.indent();
+    final String setupTimingName="__setupTiming";
+    final String testTimingName="__testTiming";
+    sw.println("double " + setupTimingName + " = 0;");
+    sw.println("double " + testTimingName + " = 0;");
+    Statements setupBench=genBenchTarget(beginMethod,endMethod,Collections.EMPTY_LIST,new Statement(new MethodCall(EMPTY_FUNC,null)));
+    StatementsList testStatements=new StatementsList();
+    testStatements.getStatements().add(new Statement(new MethodCall("super." + method.getName(),null)));
+    Statements testBench=genBenchTarget(beginMethod,endMethod,Collections.EMPTY_LIST,testStatements);
+    String recordResultsCode="com.google.gwt.junit.client.TestResults results = getTestResults();\n" + "com.google.gwt.junit.client.Trial trial = new com.google.gwt.junit.client.Trial();\n" + "trial.setRunTimeMillis( " + testTimingName + " - "+ setupTimingName+ " );\n"+ "results.getTrials().add( trial )";
+    Statements breakCode=new Statement("  break " + ESCAPE_LOOP);
+    setupBench=benchmark(setupBench,setupTimingName,false,null,breakCode);
+    testBench=benchmark(testBench,testTimingName,true,new Statement(recordResultsCode),breakCode);
+    ForLoop loop=(ForLoop)testBench.getStatements().get(0);
+    loop.setLabel(ESCAPE_LOOP);
+    sw.println(setupBench.toString());
+    sw.println(testBench.toString());
+    sw.outdent();
+    sw.println("}");
+  }
+}

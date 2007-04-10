@@ -1,0 +1,30 @@
+{
+  Map methods=new HashMap();
+  JClassType cls=type;
+  while (cls != null) {
+    JMethod[] clsDeclMethods=cls.getMethods();
+    for (int i=0, n=clsDeclMethods.length; i < n; ++i) {
+      JMethod declMethod=clsDeclMethods[i];
+      if (!filter.accept(declMethod)) {
+        continue;
+      }
+      List list=(List)methods.get(declMethod.getName());
+      if (list == null) {
+        list=new ArrayList();
+        methods.put(declMethod.getName(),list);
+        list.add(declMethod);
+        continue;
+      }
+      JParameter[] declParams=declMethod.getParameters();
+      for (int j=0; j < list.size(); ++j) {
+        JMethod method=(JMethod)list.get(j);
+        JParameter[] parameters=method.getParameters();
+        if (!equals(declParams,parameters)) {
+          list.add(declMethod);
+        }
+      }
+    }
+    cls=cls.getSuperclass();
+  }
+  return methods;
+}

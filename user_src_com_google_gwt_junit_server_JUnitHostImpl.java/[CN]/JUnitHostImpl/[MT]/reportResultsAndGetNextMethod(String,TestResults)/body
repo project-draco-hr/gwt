@@ -1,0 +1,16 @@
+{
+  JUnitMessageQueue host=getHost();
+  HttpServletRequest request=getThreadLocalRequest();
+  String agent=request.getHeader("User-Agent");
+  results.setAgent(agent);
+  String machine=request.getRemoteHost();
+  results.setHost(machine);
+  List trials=results.getTrials();
+  for (int i=0; i < trials.size(); ++i) {
+    Trial trial=(Trial)trials.get(i);
+    ExceptionWrapper ew=trial.getExceptionWrapper();
+    trial.setException(deserialize(ew));
+  }
+  host.reportResults(testClassName,results);
+  return host.getNextTestName(getClientId(),testClassName,TIME_TO_WAIT_FOR_TESTNAME);
+}

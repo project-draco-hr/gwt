@@ -28,8 +28,13 @@
     }
     public boolean setString(    String str){
       try {
-        BrowserManager browserManager=(BrowserManager)Naming.lookup(str);
-        runStyle=new RunStyleRemoteWeb(JUnitShell.this,browserManager);
+        String[] urls=str.split(",");
+        numClients=urls.length;
+        BrowserManager[] browserManagers=new BrowserManager[numClients];
+        for (int i=0; i < numClients; ++i) {
+          browserManagers[i]=(BrowserManager)Naming.lookup(urls[i]);
+        }
+        runStyle=new RunStyleRemoteWeb(JUnitShell.this,browserManagers);
       }
  catch (      Exception e) {
         System.err.println("Error connecting to browser manager at " + str);

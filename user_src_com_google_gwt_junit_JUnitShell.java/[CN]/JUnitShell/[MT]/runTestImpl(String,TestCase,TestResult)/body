@@ -16,18 +16,40 @@
     throw e;
   }
   try {
-    testBeginTimout=System.currentTimeMillis() + TEST_BEGIN_TIMEOUT_MILLIS;
     pumpEventLoop();
   }
  catch (  TimeoutException e) {
     testResult.addError(testCase,e);
     return;
   }
-  Throwable result=messageQueue.getResult(testCaseClassName);
-  if (result instanceof AssertionFailedError) {
-    testResult.addFailure(testCase,(AssertionFailedError)result);
+  List results=messageQueue.getResults(testCaseClassName);
+  if (results == null) {
+    return;
   }
- else   if (result != null) {
-    testResult.addError(testCase,result);
+  boolean parallelTesting=numClients > 1;
+  for (int i=0; i < results.size(); ++i) {
+    TestResults result=(TestResults)results.get(i);
+    Trial firstTrial=(Trial)result.getTrials().get(0);
+    Throwable exception=firstTrial.getException();
+    if (parallelTesting && exception != null) {
+      String msg="Remote test failed at " + result.getHost() + " on "+ result.getAgent();
+      if (exception instanceof AssertionFailedError) {
+        AssertionFailedError newException=new AssertionFailedError(msg + "\n" + exception.getMessage());
+        newException.setStackTrace(exception.getStackTrace());
+        exception=newException;
+      }
+ else {
+        exception=new RuntimeException(msg,exception);
+      }
+    }
+    if (exception instanceof AssertionFailedError) {
+      testResult.addFailure(testCase,(AssertionFailedError)exception);
+    }
+ else     if (exception != null) {
+      testResult.addError(testCase,exception);
+    }
+    if (testCase instanceof Benchmark) {
+      report.addBenchmarkResults(testCase,result);
+    }
   }
 }
