@@ -1,0 +1,38 @@
+{
+  picker.addChangeListener(new ChangeListener(){
+    public void onChange(    Widget sender){
+      if (separators != null) {
+        onChangeWithSeparators();
+      }
+ else {
+        currentValue=picker.getSelectedValue().toString();
+        box.setText(currentValue);
+      }
+      if (changeListeners != null) {
+        changeListeners.fireChange(SuggestBox.this);
+      }
+    }
+    private void onChangeWithSeparators(){
+      String newValue=(String)picker.getSelectedValue();
+      StringBuffer accum=new StringBuffer();
+      String text=box.getText();
+      accum.append(text.substring(0,selectStart));
+      if (selectStart > 0) {
+        accum.append(separatorPadding);
+      }
+      accum.append(newValue);
+      int savedCursorPos=accum.length();
+      String ender=text.substring(selectEnd).trim();
+      if (ender.length() == 0 || !isSeparator(ender.charAt(0))) {
+        accum.append(separators[0]).append(separatorPadding);
+        savedCursorPos=accum.length();
+      }
+      accum.append(ender);
+      String replacement=accum.toString();
+      currentValue=replacement.trim();
+      box.setText(replacement);
+      box.setCursorPos(savedCursorPos);
+    }
+  }
+);
+}

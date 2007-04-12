@@ -1,0 +1,27 @@
+{
+  int itemCount=0;
+  while (suggestions.hasNext()) {
+    Item item=ensureItem(itemCount);
+    Suggestion suggestion=(Suggestion)suggestions.next();
+    String display=suggestion.getDisplayString();
+    if (asHTML) {
+      DOM.setInnerHTML(item.getElement(),display);
+    }
+ else {
+      DOM.setInnerText(item.getElement(),display);
+    }
+    item.setValue(suggestion.getValue());
+    ++itemCount;
+  }
+  if (itemCount == 0) {
+    throw new IllegalStateException("Must set at least one item in a SuggestPicker");
+  }
+  int min=Math.min(itemCount,super.getItemCount());
+  for (int i=startInvisible; i < min; i++) {
+    setVisible(i,true);
+  }
+  startInvisible=itemCount;
+  for (int i=itemCount; i < super.getItemCount(); i++) {
+    setVisible(i,false);
+  }
+}
