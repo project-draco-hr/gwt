@@ -1,6 +1,10 @@
 {
   JType returnType=method.getReturnType();
   JParameter[] params=method.getParameters();
+  NameFactory nameFactory=new NameFactory();
+  for (int i=0; i < params.length; ++i) {
+    nameFactory.addName(params[i].getName());
+  }
   w.println();
   w.print("public void " + method.getName() + "(");
   int i;
@@ -22,8 +26,9 @@
     w.println(");");
   }
   w.outdent();
-  w.println("} catch (" + SerializationException.class.getName() + " e) {");
-  w.indentln("callback.onFailure(new " + InvocationException.class.getName() + "(e.getMessage()));");
+  String exceptionName=nameFactory.createName("e");
+  w.println("} catch (" + SerializationException.class.getName() + " "+ exceptionName+ ") {");
+  w.indentln("callback.onFailure(new " + InvocationException.class.getName() + "("+ exceptionName+ ".getMessage()));");
   w.indentln("return;");
   w.println("}");
   w.println(ResponseTextHandler.class.getName() + " handler = new " + ResponseTextHandler.class.getName()+ "() {");
