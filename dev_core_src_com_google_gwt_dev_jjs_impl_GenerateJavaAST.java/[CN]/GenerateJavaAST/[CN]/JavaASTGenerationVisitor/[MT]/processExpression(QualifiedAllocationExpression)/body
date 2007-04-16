@@ -9,6 +9,12 @@
   JNewInstance newInstance=new JNewInstance(program,info,enclosingType);
   JMethodCall call=new JMethodCall(program,info,newInstance,ctor);
   JExpression qualifier=dispProcessExpression(x.enclosingInstance);
+  List qualList=new ArrayList();
+  qualList.add(qualifier);
+  if (!currentMethod.isStatic()) {
+    JExpression implicitOuter=program.getExprThisRef(info,(JClassType)currentClass);
+    qualList.add(implicitOuter);
+  }
   if (x.arguments != null) {
     for (int i=0, n=x.arguments.length; i < n; ++i) {
       call.getArgs().add(dispProcessExpression(x.arguments[i]));
@@ -21,7 +27,7 @@
       for (int i=0; i < nestedBinding.enclosingInstances.length; ++i) {
         SyntheticArgumentBinding arg=nestedBinding.enclosingInstances[i];
         JClassType syntheticThisType=(JClassType)typeMap.get(arg.type);
-        call.getArgs().add(createThisRef(syntheticThisType,qualifier));
+        call.getArgs().add(createThisRef(syntheticThisType,qualList));
       }
     }
     if (nestedBinding.outerLocalVariables != null) {
