@@ -35,6 +35,11 @@
     JNewInstance newInstance=new JNewInstance(program,info,newType);
     call=new JMethodCall(program,info,newInstance,ctor);
   }
+  if (x.arguments != null) {
+    for (int i=0, n=x.arguments.length; i < n; ++i) {
+      call.getArgs().add(dispProcessExpression(x.arguments[i]));
+    }
+  }
   ReferenceBinding targetBinding=b.declaringClass;
   if (targetBinding.isNestedType() && !targetBinding.isStatic()) {
     NestedTypeBinding nestedBinding=(NestedTypeBinding)targetBinding;
@@ -51,11 +56,6 @@
         JVariable variable=(JVariable)typeMap.get(arg.actualOuterLocalVariable);
         call.getArgs().add(createVariableRef(info,variable,arg.actualOuterLocalVariable));
       }
-    }
-  }
-  if (x.arguments != null) {
-    for (int i=0, n=x.arguments.length; i < n; ++i) {
-      call.getArgs().add(dispProcessExpression(x.arguments[i]));
     }
   }
   return call;
