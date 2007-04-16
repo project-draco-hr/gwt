@@ -1,18 +1,9 @@
 {
   SourceInfo info=makeSourceInfo(x);
-  if (x.condition != null) {
-    Constant cst=x.condition.optimizedBooleanConstant();
-    if (cst != Constant.NotAConstant) {
-      if (!cst.booleanValue()) {
-        JBlock block=new JBlock(program,info);
-        block.statements=processStatements(x.initializations);
-        return block;
-      }
-    }
-  }
+  boolean removeBody=isOptimizedFalse(x.condition);
   List init=processStatements(x.initializations);
   JExpression expr=dispProcessExpression(x.condition);
   List incr=processStatements(x.increments);
-  JStatement body=dispProcessStatement(x.action);
+  JStatement body=removeBody ? null : dispProcessStatement(x.action);
   return new JForStatement(program,info,init,expr,incr,body);
 }

@@ -1,17 +1,10 @@
 {
-  Constant cst=x.condition.optimizedBooleanConstant();
-  if (cst != Constant.NotAConstant) {
-    if (cst.booleanValue()) {
-      return dispProcessStatement(x.thenStatement);
-    }
- else {
-      return dispProcessStatement(x.elseStatement);
-    }
-  }
+  boolean removeThen=isOptimizedFalse(x.condition);
+  boolean removeElse=isOptimizedTrue(x.condition);
   SourceInfo info=makeSourceInfo(x);
   JExpression expr=dispProcessExpression(x.condition);
-  JStatement thenStmt=dispProcessStatement(x.thenStatement);
-  JStatement elseStmt=dispProcessStatement(x.elseStatement);
+  JStatement thenStmt=removeThen ? null : dispProcessStatement(x.thenStatement);
+  JStatement elseStmt=removeElse ? null : dispProcessStatement(x.elseStatement);
   JIfStatement ifStmt=new JIfStatement(program,info,expr,thenStmt,elseStmt);
   return ifStmt;
 }
