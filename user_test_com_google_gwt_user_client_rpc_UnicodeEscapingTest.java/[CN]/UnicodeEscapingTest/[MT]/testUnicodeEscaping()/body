@@ -1,0 +1,25 @@
+{
+  delayTestFinish(DEFAULT_TEST_FINISH_DELAY_MS);
+  getService().getStringContainingCharacterRange(0,CHARACTER_RANGE_SIZE,new AsyncCallback(){
+    public void onFailure(    Throwable caught){
+      fail(caught.toString());
+    }
+    public void onSuccess(    Object result){
+      String str=(String)result;
+      assertTrue("expected: " + Integer.toString(CHARACTER_RANGE_SIZE) + " actual: "+ str.length()+ " for character range ["+ Integer.toString(start)+ ", "+ Integer.toString(start + CHARACTER_RANGE_SIZE)+ ")",CHARACTER_RANGE_SIZE == str.length());
+      char[] chars=str.toCharArray();
+      for (int i=0; i < CHARACTER_RANGE_SIZE; ++i) {
+        assertEquals(i + start,chars[i]);
+      }
+      start+=CHARACTER_RANGE_SIZE;
+      if (start < LAST_CHARACTER) {
+        delayTestFinish(DEFAULT_TEST_FINISH_DELAY_MS);
+        getService().getStringContainingCharacterRange(start,start + CHARACTER_RANGE_SIZE,this);
+      }
+ else {
+        finishTest();
+      }
+    }
+  }
+);
+}
