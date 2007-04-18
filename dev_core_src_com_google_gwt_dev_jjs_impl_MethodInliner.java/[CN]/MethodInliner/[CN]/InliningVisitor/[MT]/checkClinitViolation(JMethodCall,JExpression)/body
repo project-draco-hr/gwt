@@ -1,0 +1,24 @@
+{
+  JReferenceType targetEnclosingType=x.getTarget().getEnclosingType();
+  if (!program.typeOracle.hasClinit(targetEnclosingType)) {
+    return false;
+  }
+  if (program.isStaticImpl(x.getTarget())) {
+    return false;
+  }
+  if (currentMethod.getEnclosingType() == targetEnclosingType) {
+    return false;
+  }
+  if (!(resultExpression instanceof JFieldRef)) {
+    return true;
+  }
+  JFieldRef fieldRefResult=(JFieldRef)resultExpression;
+  JField fieldResult=fieldRefResult.getField();
+  if (!fieldResult.isStatic()) {
+    return true;
+  }
+  if (fieldResult.getEnclosingType() != targetEnclosingType) {
+    return true;
+  }
+  return false;
+}
