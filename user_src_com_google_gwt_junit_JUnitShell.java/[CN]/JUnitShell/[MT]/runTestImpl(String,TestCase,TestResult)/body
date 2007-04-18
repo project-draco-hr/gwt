@@ -13,12 +13,15 @@
   }
  catch (  UnableToCompleteException e) {
     lastLaunchFailed=true;
-    throw e;
+    testResult.addError(testCase,e);
+    return;
   }
   try {
+    testBeginTimeout=System.currentTimeMillis() + TEST_BEGIN_TIMEOUT_MILLIS;
     pumpEventLoop();
   }
  catch (  TimeoutException e) {
+    lastLaunchFailed=true;
     testResult.addError(testCase,e);
     return;
   }
