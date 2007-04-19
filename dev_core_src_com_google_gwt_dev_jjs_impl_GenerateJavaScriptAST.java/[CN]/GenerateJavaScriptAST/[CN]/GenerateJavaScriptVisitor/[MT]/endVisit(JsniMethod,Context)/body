@@ -1,6 +1,6 @@
 {
   JsFunction jsFunc=x.getFunc();
-  new JsVisitor(){
+  new JsModVisitor(){
     public void endVisit(    JsNameRef x,    JsContext ctx){
       String ident=x.getIdent();
       if (ident.charAt(0) == '@') {
@@ -11,6 +11,11 @@
           JsName jsName=getName(field);
           assert(jsName != null);
           x.resolve(jsName);
+          JsInvocation clinitCall=maybeCreateClinitCall(field);
+          if (clinitCall != null) {
+            JsExpression commaExpr=createCommaExpression(clinitCall,x);
+            ctx.replaceMe(commaExpr);
+          }
         }
  else {
           JMethod method=(JMethod)node;
