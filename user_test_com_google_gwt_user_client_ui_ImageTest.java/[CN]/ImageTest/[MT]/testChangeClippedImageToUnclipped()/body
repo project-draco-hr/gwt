@@ -1,0 +1,30 @@
+{
+  final ArrayList onloadEventFireCounter=new ArrayList();
+  final Image image=new Image("counting-forwards.png",12,13,8,8);
+  assertEquals("clipped",getCurrentImageStateName(image));
+  image.addLoadListener(new LoadListener(){
+    public void onError(    Widget sender){
+      fail("The image " + ((Image)sender).getUrl() + " failed to load.");
+    }
+    public void onLoad(    Widget sender){
+      onloadEventFireCounter.add(new Object());
+    }
+  }
+);
+  RootPanel.get().add(image);
+  delayTestFinish(2000);
+  image.setUrl("counting-forwards.png");
+  Timer t=new Timer(){
+    public void run(){
+      assertEquals(0,image.getOriginLeft());
+      assertEquals(0,image.getOriginTop());
+      assertEquals(32,image.getWidth());
+      assertEquals(32,image.getHeight());
+      assertEquals("unclipped",getCurrentImageStateName(image));
+      assertEquals(2,onloadEventFireCounter.size());
+      finishTest();
+    }
+  }
+;
+  t.schedule(1000);
+}
