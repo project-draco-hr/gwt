@@ -4,6 +4,7 @@
   }
   int endClassName=jsniMemberRef.indexOf("::");
   if (endClassName == -1 || jsniMemberRef.length() < 1 || jsniMemberRef.charAt(0) != '@') {
+    logger.log(TreeLogger.WARN,"Malformed JSNI reference '" + jsniMemberRef + "'; expect subsequent failures",new NoSuchFieldError(jsniMemberRef));
     return -1;
   }
   String className=jsniMemberRef.substring(1,endClassName);
@@ -13,5 +14,6 @@
     int memberId=dispClassInfo.getMemberId(memberName);
     return synthesizeDispId(dispClassInfo.getClassId(),memberId);
   }
+  logger.log(TreeLogger.WARN,"Class '" + className + "' in JSNI reference '"+ jsniMemberRef+ "' could not be found; expect subsequent failures",new ClassNotFoundException(className));
   return -1;
 }
