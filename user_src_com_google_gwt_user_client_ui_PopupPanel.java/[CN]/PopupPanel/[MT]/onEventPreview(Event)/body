@@ -1,4 +1,6 @@
 {
+  Element target=DOM.eventGetTarget(event);
+  boolean eventTargetsPopup=DOM.isOrHasChild(getElement(),target);
   int type=DOM.eventGetType(event);
 switch (type) {
 case Event.ONKEYDOWN:
@@ -19,18 +21,22 @@ case Event.ONMOUSEMOVE:
 case Event.ONCLICK:
 case Event.ONDBLCLICK:
 {
-if (DOM.getCaptureElement() == null) {
-  Element target=DOM.eventGetTarget(event);
-  if (!DOM.isOrHasChild(getElement(),target)) {
-    if (autoHide && (type == Event.ONCLICK)) {
-      hide(true);
-      return true;
-    }
-    return false;
-  }
+if (DOM.getCaptureElement() != null) {
+  return true;
+}
+if (!eventTargetsPopup && autoHide && (type == Event.ONCLICK)) {
+  hide(true);
+  return true;
 }
 break;
 }
+case Event.ONFOCUS:
+{
+if (modal && !eventTargetsPopup && (target != null)) {
+blur(target);
+return false;
 }
-return true;
+}
+}
+return !modal || (modal && eventTargetsPopup);
 }
