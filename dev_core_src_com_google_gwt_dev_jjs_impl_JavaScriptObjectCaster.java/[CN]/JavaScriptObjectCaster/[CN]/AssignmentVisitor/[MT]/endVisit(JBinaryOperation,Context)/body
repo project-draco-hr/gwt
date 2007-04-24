@@ -2,6 +2,11 @@
   if (x.isAssignment()) {
     JType lhsType=x.getLhs().getType();
     JExpression newRhs=checkAndReplaceJso(x.getRhs(),lhsType);
+    if (newRhs == x.getRhs()) {
+      if (x.getLhs() instanceof JArrayRef) {
+        newRhs=checkAndReplaceJsoArrayStore(newRhs,lhsType);
+      }
+    }
     if (newRhs != x.getRhs()) {
       JBinaryOperation asg=new JBinaryOperation(program,x.getSourceInfo(),lhsType,x.getOp(),x.getLhs(),newRhs);
       ctx.replaceMe(asg);
