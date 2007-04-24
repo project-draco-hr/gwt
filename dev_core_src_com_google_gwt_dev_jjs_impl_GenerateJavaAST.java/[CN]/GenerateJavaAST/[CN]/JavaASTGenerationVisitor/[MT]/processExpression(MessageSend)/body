@@ -3,16 +3,20 @@
   JType type=(JType)typeMap.get(x.resolvedType);
   JMethod method=(JMethod)typeMap.get(x.binding);
   assert(type == method.getType());
-  JExpression qualifier=dispProcessExpression(x.receiver);
+  JExpression qualifier;
   if (x.receiver instanceof ThisReference) {
     if (method.isStatic()) {
       qualifier=null;
     }
  else     if (x.receiver instanceof QualifiedThisReference) {
+      qualifier=dispProcessExpression(x.receiver);
     }
  else {
       qualifier=createThisRef(info,method.getEnclosingType());
     }
+  }
+ else {
+    qualifier=dispProcessExpression(x.receiver);
   }
   JMethodCall call=new JMethodCall(program,info,qualifier,method);
   boolean isSuperRef=x.receiver instanceof SuperReference;
