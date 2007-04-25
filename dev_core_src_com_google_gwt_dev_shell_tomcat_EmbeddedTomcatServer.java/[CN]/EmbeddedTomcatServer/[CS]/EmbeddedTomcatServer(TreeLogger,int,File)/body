@@ -5,7 +5,6 @@
   final TreeLogger logger=topLogger.branch(TreeLogger.INFO,"Starting HTTP on port " + listeningPort,null);
   startupBranchLogger=logger;
   sTomcat=this;
-  port=listeningPort;
   File topWorkDir=new File(System.getProperty("user.dir"));
   String catBase=System.getProperty("catalina.base");
   if (catBase == null) {
@@ -40,6 +39,11 @@
   catEngine.setDefaultHost(catHost.getName());
   catEmbedded.addEngine(catEngine);
   InetAddress nullAddr=null;
-  Connector connector=catEmbedded.createConnector(nullAddr,port,false);
+  Connector connector=catEmbedded.createConnector(nullAddr,listeningPort,false);
   catEmbedded.addConnector(connector);
+  catEmbedded.start();
+  port=computeLocalPort(connector);
+  if (port != listeningPort) {
+    logger.log(TreeLogger.INFO,"HTTP listening on port " + port,null);
+  }
 }
