@@ -1,12 +1,35 @@
 {
-  JExpression expression=x.getIfTest();
-  if (expression instanceof JBooleanLiteral) {
-    JBooleanLiteral booleanLiteral=(JBooleanLiteral)expression;
-    if (booleanLiteral.getValue()) {
-      ctx.replaceMe(x.getThenExpr());
+  JExpression condExpr=x.getIfTest();
+  JExpression thenExpr=x.getThenExpr();
+  JExpression elseExpr=x.getElseExpr();
+  if (condExpr instanceof JBooleanLiteral) {
+    if (((JBooleanLiteral)condExpr).getValue()) {
+      ctx.replaceMe(thenExpr);
     }
  else {
-      ctx.replaceMe(x.getElseExpr());
+      ctx.replaceMe(elseExpr);
+    }
+  }
+ else   if (thenExpr instanceof JBooleanLiteral) {
+    if (((JBooleanLiteral)thenExpr).getValue()) {
+      JBinaryOperation binOp=new JBinaryOperation(program,x.getSourceInfo(),x.getType(),JBinaryOperator.OR,condExpr,elseExpr);
+      ctx.replaceMe(binOp);
+    }
+ else {
+      JPrefixOperation notCondExpr=new JPrefixOperation(program,condExpr.getSourceInfo(),JUnaryOperator.NOT,condExpr);
+      JBinaryOperation binOp=new JBinaryOperation(program,x.getSourceInfo(),x.getType(),JBinaryOperator.AND,notCondExpr,elseExpr);
+      ctx.replaceMe(binOp);
+    }
+  }
+ else   if (elseExpr instanceof JBooleanLiteral) {
+    if (((JBooleanLiteral)elseExpr).getValue()) {
+      JPrefixOperation notCondExpr=new JPrefixOperation(program,condExpr.getSourceInfo(),JUnaryOperator.NOT,condExpr);
+      JBinaryOperation binOp=new JBinaryOperation(program,x.getSourceInfo(),x.getType(),JBinaryOperator.OR,notCondExpr,thenExpr);
+      ctx.replaceMe(binOp);
+    }
+ else {
+      JBinaryOperation binOp=new JBinaryOperation(program,x.getSourceInfo(),x.getType(),JBinaryOperator.AND,condExpr,thenExpr);
+      ctx.replaceMe(binOp);
     }
   }
 }

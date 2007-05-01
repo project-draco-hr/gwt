@@ -1,8 +1,43 @@
 {
   if (x.getOp() == JUnaryOperator.NOT) {
-    if (x.getArg() instanceof JBooleanLiteral) {
-      JBooleanLiteral booleanLiteral=(JBooleanLiteral)x.getArg();
+    JExpression arg=x.getArg();
+    if (arg instanceof JBooleanLiteral) {
+      JBooleanLiteral booleanLiteral=(JBooleanLiteral)arg;
       ctx.replaceMe(program.getLiteralBoolean(!booleanLiteral.getValue()));
+    }
+ else     if (arg instanceof JBinaryOperation) {
+      JBinaryOperation argOp=(JBinaryOperation)arg;
+      JBinaryOperator op=argOp.getOp();
+      JBinaryOperator newOp=null;
+      if (op == JBinaryOperator.EQ) {
+        newOp=JBinaryOperator.NEQ;
+      }
+ else       if (op == JBinaryOperator.NEQ) {
+        newOp=JBinaryOperator.EQ;
+      }
+ else       if (op == JBinaryOperator.GT) {
+        newOp=JBinaryOperator.LTE;
+      }
+ else       if (op == JBinaryOperator.LTE) {
+        newOp=JBinaryOperator.GT;
+      }
+ else       if (op == JBinaryOperator.GTE) {
+        newOp=JBinaryOperator.LT;
+      }
+ else       if (op == JBinaryOperator.LT) {
+        newOp=JBinaryOperator.GTE;
+      }
+      if (newOp != null) {
+        JBinaryOperation newBinOp=new JBinaryOperation(program,argOp.getSourceInfo(),argOp.getType(),newOp,argOp.getLhs(),argOp.getRhs());
+        ctx.replaceMe(newBinOp);
+      }
+    }
+ else     if (arg instanceof JPrefixOperation) {
+      JPrefixOperation argOp=(JPrefixOperation)arg;
+      JUnaryOperator op=argOp.getOp();
+      if (op == JUnaryOperator.NOT) {
+        ctx.replaceMe(argOp.getArg());
+      }
     }
   }
 }
