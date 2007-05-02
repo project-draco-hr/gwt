@@ -10,11 +10,16 @@
       itB.remove();
     }
   }
-  boolean noTry=x.getTryBlock().statements.isEmpty();
-  boolean noFinally=isEmpty(x.getFinallyBlock());
+  boolean noTry=isEmpty(x.getTryBlock());
   boolean noCatch=catchArgs.size() == 0;
+  boolean noFinally=isEmpty(x.getFinallyBlock());
   if (noTry) {
-    removeMe(x,ctx);
+    if (noFinally) {
+      removeMe(x,ctx);
+    }
+ else {
+      ctx.replaceMe(x.getFinallyBlock());
+    }
   }
  else   if (noCatch && noFinally) {
     ctx.replaceMe(x.getTryBlock());
