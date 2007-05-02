@@ -1,15 +1,21 @@
 {
-  JExpression expression=x.getIfExpr();
-  if (expression instanceof JBooleanLiteral) {
-    JBooleanLiteral booleanLiteral=(JBooleanLiteral)expression;
-    if (booleanLiteral.getValue()) {
-      ctx.replaceMe(x.getThenStmt());
+  JExpression expr=x.getIfExpr();
+  JStatement thenStmt=x.getThenStmt();
+  JStatement elseStmt=x.getElseStmt();
+  if (expr instanceof JBooleanLiteral) {
+    JBooleanLiteral booleanLiteral=(JBooleanLiteral)expr;
+    boolean boolVal=booleanLiteral.getValue();
+    if (boolVal && !isEmpty(thenStmt)) {
+      ctx.replaceMe(thenStmt);
     }
- else     if (x.getElseStmt() != null) {
-      ctx.replaceMe(x.getElseStmt());
+ else     if (!boolVal && !isEmpty(elseStmt)) {
+      ctx.replaceMe(elseStmt);
     }
  else {
       removeMe(x,ctx);
     }
+  }
+ else   if (isEmpty(thenStmt) && isEmpty(elseStmt)) {
+    ctx.replaceMe(expr.makeStatement());
   }
 }
