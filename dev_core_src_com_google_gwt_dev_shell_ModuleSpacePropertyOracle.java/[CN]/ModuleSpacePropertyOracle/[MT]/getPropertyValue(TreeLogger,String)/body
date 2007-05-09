@@ -1,23 +1,17 @@
 {
   if (propertyName == null) {
-    throw new IllegalArgumentException("null property name");
+    throw new NullPointerException("propertyName");
   }
   Property prop=props.find(propertyName);
   if (prop == null) {
-    throw new IllegalArgumentException("unknown property name: " + propertyName);
-  }
-  String value;
-  if (prevAnswers.containsKey(propertyName)) {
-    value=(String)prevAnswers.get(propertyName);
-  }
- else {
-    value=computePropertyValue(logger,propertyName,prop);
-    prevAnswers.put(propertyName,value);
-  }
-  if (value != null) {
-    return value;
-  }
- else {
     throw new BadPropertyValueException(propertyName);
+  }
+  if (prevAnswers.containsKey(propertyName)) {
+    return (String)prevAnswers.get(propertyName);
+  }
+ else {
+    String value=computePropertyValue(logger,propertyName,prop);
+    prevAnswers.put(propertyName,value);
+    return value;
   }
 }
