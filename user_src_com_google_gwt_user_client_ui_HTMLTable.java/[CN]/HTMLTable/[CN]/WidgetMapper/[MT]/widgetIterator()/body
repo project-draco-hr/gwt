@@ -1,5 +1,37 @@
 {
-  WidgetCollection collection=new WidgetCollection(HTMLTable.this);
-  fillWidgets(collection);
-  return collection.iterator();
+  return new Iterator(){
+    int lastIndex=-1;
+    int nextIndex=-1;
+{
+      findNext();
+    }
+    public boolean hasNext(){
+      return nextIndex < widgetList.size();
+    }
+    public Object next(){
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+      Object result=widgetList.get(nextIndex);
+      lastIndex=nextIndex;
+      findNext();
+      return result;
+    }
+    public void remove(){
+      if (lastIndex < 0) {
+        throw new IllegalStateException();
+      }
+      Widget w=(Widget)widgetList.get(lastIndex);
+      removeImpl(w.getElement(),lastIndex);
+      lastIndex=-1;
+    }
+    private void findNext(){
+      while (++nextIndex < widgetList.size()) {
+        if (widgetList.get(nextIndex) != null) {
+          return;
+        }
+      }
+    }
+  }
+;
 }
