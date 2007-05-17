@@ -42,16 +42,14 @@
     logger.log(TreeLogger.TRACE,msg,null);
   }
   maybeIssueXhtmlWarning(logger,mimeType,partialPath);
-  boolean infinitelyCacheable=isInfinitelyCacheable(path);
+  long cacheSeconds=getCacheTime(path);
   InputStream is=null;
   try {
     URLConnection conn=foundResource.openConnection();
     long lastModified=conn.getLastModified();
     if (isNotModified(request,lastModified)) {
       response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-      if (infinitelyCacheable) {
-        response.setHeader(HttpHeaders.CACHE_CONTROL,HttpHeaders.CACHE_CONTROL_MAXAGE_FOREVER);
-      }
+      setResponseCacheHeaders(response,cacheSeconds);
       return;
     }
     response.setStatus(HttpServletResponse.SC_OK);
@@ -60,14 +58,7 @@
     response.setContentType(mimeType);
     String lastModifiedStr=HttpHeaders.toInternetDateFormat(lastModified);
     response.setHeader(HttpHeaders.LAST_MODIFIED,lastModifiedStr);
-    String maxAgeStr;
-    if (infinitelyCacheable) {
-      maxAgeStr=HttpHeaders.CACHE_CONTROL_MAXAGE_FOREVER;
-    }
- else {
-      maxAgeStr=HttpHeaders.CACHE_CONTROL_MAXAGE_EXPIRED;
-    }
-    response.setHeader(HttpHeaders.CACHE_CONTROL,maxAgeStr);
+    setResponseCacheHeaders(response,cacheSeconds);
     int contentLength=conn.getContentLength();
     if (contentLength >= 0) {
       response.setHeader(HttpHeaders.CONTENT_LENGTH,Integer.toString(contentLength));
