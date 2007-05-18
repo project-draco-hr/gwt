@@ -1,4 +1,11 @@
 {
   JsValue.mainThreadCleanup();
-  return doInvoke(name,jthis,types,args);
+  JsValue result=doInvoke(name,jthis,types,args);
+  Throwable thrown=(Throwable)sCaughtJavaExceptionObject.get();
+  if (thrown == null) {
+    return result;
+  }
+  sCaughtJavaExceptionObject.set(null);
+  thrown.fillInStackTrace();
+  throw thrown;
 }

@@ -5,6 +5,7 @@
   }
   String methodDecl=method.getReadableDeclaration(false,true,false,false,false);
   sb.append(methodDecl + " {");
+  sb.append("try {");
   JType returnType=method.getReturnType();
   boolean isJavaScriptObject=isJavaScriptObject(returnType);
   JPrimitiveType primType;
@@ -53,7 +54,17 @@
   sb.append(Jsni.buildTypeList(method));
   sb.append(',');
   sb.append(Jsni.buildArgList(method));
-  sb.append(");}");
+  sb.append(");");
+  sb.append("} catch (java.lang.Throwable __gwt_exception) {");
+  sb.append("if (__gwt_exception instanceof java.lang.RuntimeException) throw (java.lang.RuntimeException) __gwt_exception;");
+  JType[] throwTypes=method.getThrows();
+  for (int i=0; i < throwTypes.length; ++i) {
+    String typeName=throwTypes[i].getQualifiedSourceName();
+    sb.append("if (__gwt_exception instanceof " + typeName + ") throw ("+ typeName+ ") __gwt_exception;");
+  }
+  sb.append("throw new java.lang.RuntimeException(\"Undeclared checked exception thrown out of JavaScript; web mode behavior may differ.\", __gwt_exception);");
+  sb.append("}");
+  sb.append("}");
   for (int i=0; i < expectedBodyLines; ++i) {
     sb.append('\n');
   }

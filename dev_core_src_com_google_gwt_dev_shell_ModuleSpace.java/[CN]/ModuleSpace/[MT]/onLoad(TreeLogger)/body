@@ -1,7 +1,15 @@
 {
   host.onModuleReady(this);
   setJavaScriptHost();
-  initializeStaticDispatcher();
+  try {
+    Object staticDispatch=getStaticDispatcher();
+    createNative("initializeStaticDispatcher",0,"__defineStatic",new String[]{"__arg0"},"window.__static = __arg0;");
+    invokeNativeVoid("__defineStatic",null,new Class[]{Object.class},new Object[]{staticDispatch});
+  }
+ catch (  Throwable e) {
+    logger.log(TreeLogger.ERROR,"Unable to initialize static dispatcher",e);
+    throw new UnableToCompleteException();
+  }
   String entryPointTypeName=null;
   try {
     String[] entryPoints=host.getEntryPointTypeNames();
