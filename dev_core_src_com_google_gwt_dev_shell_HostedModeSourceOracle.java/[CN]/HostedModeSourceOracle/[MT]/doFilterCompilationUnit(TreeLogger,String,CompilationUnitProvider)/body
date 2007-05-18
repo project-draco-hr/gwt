@@ -1,6 +1,13 @@
 {
   if (typeName.equals("com.google.gwt.core.client.GWT")) {
-    return cuMeta;
+    try {
+      String source=Utility.getFileFromClassPath("com/google/gwt/core/client/GWT.java-hosted");
+      return new StaticCompilationUnitProvider("com.google.gwt.core.client","GWT",source.toCharArray());
+    }
+ catch (    IOException e) {
+      logger.log(TreeLogger.ERROR,"Unable to load 'com/google/gwt/core/client/GWT.java-hosted' from class path; is your installation corrupt?",e);
+      throw new UnableToCompleteException();
+    }
   }
   CompilationUnitProvider jsnified=injector.inject(logger,existing);
   return jsnified;

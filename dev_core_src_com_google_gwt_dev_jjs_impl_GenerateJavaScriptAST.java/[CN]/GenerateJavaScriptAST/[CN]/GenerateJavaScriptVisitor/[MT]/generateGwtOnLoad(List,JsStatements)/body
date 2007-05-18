@@ -10,8 +10,14 @@
   JsParameters params=gwtOnLoad.getParameters();
   JsName errFn=fnScope.declareName("errFn");
   JsName modName=fnScope.declareName("modName");
+  JsName modBase=fnScope.declareName("modBase");
   params.add(new JsParameter(errFn));
   params.add(new JsParameter(modName));
+  params.add(new JsParameter(modBase));
+  JsExpression asg=createAssignment(topScope.findExistingUnobfuscatableName("$moduleName").makeRef(),modName.makeRef());
+  body.getStatements().add(asg.makeStmt());
+  asg=createAssignment(topScope.findExistingUnobfuscatableName("$moduleBase").makeRef(),modBase.makeRef());
+  body.getStatements().add(asg.makeStmt());
   JsIf jsIf=new JsIf();
   body.getStatements().add(jsIf);
   jsIf.setIfExpr(errFn.makeRef());
