@@ -16,24 +16,17 @@
  else {
         needComma=true;
       }
-      String typeString=shouldEnforceTypeVersioning() ? serializationOracle.encodeSerializedInstanceReference(type) : serializationOracle.getSerializedTypeName(type);
+      String typeString=serializationOracle.getSerializedTypeName(type);
+      if (shouldEnforceTypeVersioning()) {
+        typeString+="/" + serializationOracle.getSerializationSignature(type);
+      }
       srcWriter.print("\"" + typeString + "\":");
       srcWriter.println("[");
 {
         srcWriter.indent();
 {
-          JMethod instantiationMethod=serializationOracle.getCustomFieldSerializerInstantiateMethodForType(type);
-          JClassType customSerializer=serializationOracle.hasCustomFieldSerializer(type);
-          if (customSerializer != null && instantiationMethod == null) {
-            JMethod[] methods=customSerializer.getMethods();
-            for (int i=0; i < methods.length; ++i) {
-              if (CustomFieldSerializerValidator.isValidInstantiateMethod(methods[i],type)) {
-                instantiationMethod=methods[i];
-                break;
-              }
-            }
-          }
-          srcWriter.print("function(x){return ");
+          JMethod instantiationMethod=getCustomInstantiateMethod(type);
+          srcWriter.print("function(x){ return ");
           if (instantiationMethod != null) {
             srcWriter.print("@" + instantiationMethod.getEnclosingType().getQualifiedSourceName());
             srcWriter.print("::");

@@ -1,0 +1,24 @@
+{
+  JMethod[] methods=remoteService.getOverridableMethods();
+  logger=logger.branch(TreeLogger.DEBUG,"Analyzing methods:",null);
+  for (int i=0; i < methods.length; ++i) {
+    JMethod method=methods[i];
+    TreeLogger methodLogger=logger.branch(TreeLogger.DEBUG,method.toString(),null);
+    JType returnType=method.getReturnType();
+    TreeLogger returnTypeLogger=methodLogger.branch(TreeLogger.DEBUG,"Return type: " + returnType.getParameterizedQualifiedSourceName(),null);
+    checkForUnparameterizedType(returnTypeLogger,returnType);
+    checkType(returnTypeLogger,returnType,true);
+    JParameter[] params=method.getParameters();
+    for (int j=0; j < params.length; ++j) {
+      JParameter param=params[j];
+      TreeLogger paramLogger=methodLogger.branch(TreeLogger.DEBUG,"Parameter: " + param.toString(),null);
+      JType paramType=param.getType();
+      checkForUnparameterizedType(paramLogger,paramType);
+      checkType(paramLogger,paramType,true);
+    }
+    JType[] exs=method.getThrows();
+    if (exs.length > 0) {
+      checkTypes(methodLogger.branch(TreeLogger.DEBUG,"Throws:",null),method.getThrows());
+    }
+  }
+}

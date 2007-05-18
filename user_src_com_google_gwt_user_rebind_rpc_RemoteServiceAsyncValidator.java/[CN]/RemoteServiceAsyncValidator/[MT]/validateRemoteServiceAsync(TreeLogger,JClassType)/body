@@ -1,0 +1,35 @@
+{
+  logger=logger.branch(TreeLogger.DEBUG,"Checking the synchronous interface '" + remoteService.getQualifiedSourceName() + "' against its asynchronous version '"+ remoteService.getQualifiedSourceName()+ "Async'",null);
+  JClassType remoteServiceAsync=typeOracle.findType(remoteService.getQualifiedSourceName() + "Async");
+  boolean failed=false;
+  if (remoteServiceAsync == null) {
+    logger.branch(TreeLogger.ERROR,"Could not find an asynchronous version for the service interface " + remoteService.getQualifiedSourceName(),null);
+    failed=true;
+  }
+ else {
+    JMethod[] syncMethods=remoteService.getOverridableMethods();
+    JMethod[] asyncMethods=remoteServiceAsync.getOverridableMethods();
+    if (syncMethods.length != asyncMethods.length) {
+      logger.branch(TreeLogger.ERROR,"The asynchronous version of " + remoteService.getQualifiedSourceName() + " has "+ (asyncMethods.length > syncMethods.length ? "more" : "less")+ " methods than the synchronous version",null);
+      failed=true;
+    }
+ else {
+      for (int i=0; i < syncMethods.length; ++i) {
+        JMethod method=syncMethods[i];
+        JMethod asyncMethod=remoteServiceAsync.findMethod(method.getName(),getAsyncParamTypes(method));
+        if (asyncMethod == null) {
+          logger.branch(TreeLogger.ERROR,"Missing asynchronous version of the synchronous method '" + method.getReadableDeclaration() + "'",null);
+          failed=true;
+        }
+ else         if (asyncMethod.getReturnType() != JPrimitiveType.VOID) {
+          logger.branch(TreeLogger.ERROR,"The asynchronous version of the synchronous method '" + method.getReadableDeclaration() + "' must have a void return type",null);
+          failed=true;
+        }
+      }
+    }
+  }
+  if (failed) {
+    logValidAsyncInterfaceDeclaration(logger,remoteService);
+    throw new UnableToCompleteException();
+  }
+}

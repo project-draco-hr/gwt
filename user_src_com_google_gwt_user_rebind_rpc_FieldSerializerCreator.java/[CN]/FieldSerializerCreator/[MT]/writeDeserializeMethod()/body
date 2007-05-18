@@ -2,18 +2,15 @@
   sourceWriter.print("public static void deserialize(");
   sourceWriter.print(SerializationStreamReader.class.getName());
   sourceWriter.print(" streamReader, ");
-  sourceWriter.print(getSerializableClass().getQualifiedSourceName());
+  sourceWriter.print(serializableClass.getQualifiedSourceName());
   sourceWriter.println(" instance) throws " + SerializationException.class.getName() + "{");
   sourceWriter.indent();
   writeFieldDeserializationStatements();
-  JClassType jClass=getSerializableClass().isClass();
-  if (jClass != null) {
-    JClassType serializableSuperClass=getSerializableSuperclass(jClass);
-    if (serializableSuperClass != null) {
-      String fieldSerializerName=serializationOracle.getFieldSerializerName(serializableSuperClass);
-      sourceWriter.print(fieldSerializerName);
-      sourceWriter.println(".deserialize(streamReader, instance);");
-    }
+  JClassType superClass=serializableClass.getSuperclass();
+  if (superClass != null && serializationOracle.isSerializable(superClass)) {
+    String fieldSerializerName=serializationOracle.getFieldSerializerName(superClass);
+    sourceWriter.print(fieldSerializerName);
+    sourceWriter.println(".deserialize(streamReader, instance);");
   }
   sourceWriter.outdent();
   sourceWriter.println("}");

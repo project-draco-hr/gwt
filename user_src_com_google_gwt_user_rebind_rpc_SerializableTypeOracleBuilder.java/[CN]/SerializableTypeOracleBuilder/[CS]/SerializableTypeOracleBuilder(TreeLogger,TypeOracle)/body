@@ -1,9 +1,20 @@
 {
-  assert(rootLogger != null);
   this.rootLogger=rootLogger;
-  assert(typeOracle != null);
   this.typeOracle=typeOracle;
-  objectType=typeOracle.getType("java.lang","Object");
-  stringType=typeOracle.getType("java.lang","String");
-  serializationMarkerIntf=typeOracle.getType(IsSerializable.class.getName());
+  try {
+    collectionClass=typeOracle.getType(Collection.class.getName());
+    isSerializableClass=typeOracle.getType(IsSerializable.class.getName());
+    mapClass=typeOracle.getType(Map.class.getName());
+    serializableClass=typeOracle.getType(Serializable.class.getName());
+    stringClass=typeOracle.getType(String.class.getName());
+    streamReaderClass=typeOracle.getType(SerializationStreamReader.class.getName());
+    streamWriterClass=typeOracle.getType(SerializationStreamWriter.class.getName());
+    MetaTypeInfo mti=getMetaTypeInfo(stringClass);
+    mti.setSerializable(true);
+    remoteServiceAsyncValidator=new RemoteServiceAsyncValidator(typeOracle);
+  }
+ catch (  NotFoundException e) {
+    rootLogger.log(TreeLogger.ERROR,null,e);
+    throw new UnableToCompleteException();
+  }
 }

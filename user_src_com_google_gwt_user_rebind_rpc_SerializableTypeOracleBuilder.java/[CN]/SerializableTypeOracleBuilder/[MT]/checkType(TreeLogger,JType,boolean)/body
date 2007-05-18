@@ -1,0 +1,39 @@
+{
+  if (type == null || type.isPrimitive() != null) {
+    return;
+  }
+  logger=logger.branch(TreeLogger.DEBUG,type.getParameterizedQualifiedSourceName(),null);
+  MetaTypeInfo mti=getMetaTypeInfo(type);
+  TypeState state=mti.getState();
+  if (state == SerializableTypeOracleBuilder.CHECK_FAILED) {
+    logReasonsForUnserializability(logger,type);
+    return;
+  }
+ else   if (state == SerializableTypeOracleBuilder.CHECK_IN_PROGRESS) {
+    logger.branch(TreeLogger.DEBUG,"'" + type.getParameterizedQualifiedSourceName() + "' is being analyzed; skipping",null);
+    return;
+  }
+ else   if (state == SerializableTypeOracleBuilder.CHECK_SUCCEEDED) {
+    if (!mti.needToRecheck(checkSubtypes,inManualSerializationContext())) {
+      logger.branch(TreeLogger.DEBUG,"Type has already been analyzed",null);
+      return;
+    }
+  }
+  mti.setState(SerializableTypeOracleBuilder.CHECK_IN_PROGRESS);
+  if (type.isParameterized() != null) {
+    JParameterizedType parameterized=type.isParameterized();
+    checkType(logger.branch(TreeLogger.DEBUG,"Analyzing raw type",null),parameterized.getRawType(),true);
+    checkTypes(logger.branch(TreeLogger.DEBUG,"Analyzing type args",null),parameterized.getTypeArgs());
+  }
+ else   if (type.isArray() != null) {
+    checkArray(logger,type.isArray());
+  }
+ else   if (type.isClassOrInterface() != null) {
+    checkClassOrInterface(logger,type.isClassOrInterface(),checkSubtypes);
+  }
+  if (mti.getState() != SerializableTypeOracleBuilder.CHECK_FAILED) {
+    mti.setState(SerializableTypeOracleBuilder.CHECK_SUCCEEDED);
+  }
+  mti.setCheckedSubtypes(checkSubtypes);
+  mti.setCheckedInManualContext(inManualSerializationContext());
+}

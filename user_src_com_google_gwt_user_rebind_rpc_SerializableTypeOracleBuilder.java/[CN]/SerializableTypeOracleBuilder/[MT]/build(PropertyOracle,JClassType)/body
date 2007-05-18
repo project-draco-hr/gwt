@@ -1,0 +1,30 @@
+{
+  initializeProperties(rootLogger,propertyOracle);
+  remoteServiceAsyncValidator.validateRemoteServiceAsync(rootLogger,remoteService);
+  TreeLogger logger=rootLogger.branch(TreeLogger.DEBUG,"Analyzing '" + remoteService.getParameterizedQualifiedSourceName() + "' for serializable types",null);
+  validateRemoteService(logger,remoteService);
+  if (validationFailed) {
+    throw new UnableToCompleteException();
+  }
+  List serializableTypesList=new ArrayList();
+  Iterator iterTypes=typeToMetaTypeInfo.values().iterator();
+  while (iterTypes.hasNext()) {
+    MetaTypeInfo mti=(MetaTypeInfo)iterTypes.next();
+    JType type=mti.getType();
+    if (mti.isSerializable() && type.isInterface() == null) {
+      serializableTypesList.add(type);
+    }
+  }
+  JType[] serializableTypes=new JType[serializableTypesList.size()];
+  serializableTypesList.toArray(serializableTypes);
+  Arrays.sort(serializableTypes,new Comparator(){
+    public int compare(    Object o1,    Object o2){
+      String n1=((JType)o1).getQualifiedSourceName();
+      String n2=((JType)o2).getQualifiedSourceName();
+      return n1.compareTo(n2);
+    }
+  }
+);
+  logSerializableTypes(logger,serializableTypes);
+  return new SerializableTypeOracleImpl(typeOracle,serializableTypes);
+}

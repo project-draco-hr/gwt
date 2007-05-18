@@ -1,0 +1,28 @@
+{
+  TreeLogger localLogger=logger;
+  JField[] fields=classOrInterface.getFields();
+  if (fields.length > 0) {
+    localLogger=localLogger.branch(TreeLogger.DEBUG,"Analyzing Fields:",null);
+    contexts.push(classOrInterface);
+    for (int i=0; i < fields.length; ++i) {
+      JField field=fields[i];
+      if (field.isStatic() || field.isTransient()) {
+        continue;
+      }
+      if (field.isFinal()) {
+        if (!suppressNonStaticFinalFieldWarnings) {
+          localLogger.branch(TreeLogger.WARN,"Field '" + field.toString() + "' will not be serialized because it is final",null);
+        }
+        continue;
+      }
+      TreeLogger fieldLogger=localLogger.branch(TreeLogger.DEBUG,field.toString(),null);
+      JType fieldType=field.getType();
+      checkForUnparameterizedType(fieldLogger,fieldType);
+      checkType(fieldLogger,fieldType,true);
+    }
+    contexts.pop();
+  }
+ else {
+    localLogger.branch(TreeLogger.DEBUG,"No fields to analyze",null);
+  }
+}
