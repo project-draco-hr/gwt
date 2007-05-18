@@ -1,0 +1,34 @@
+{
+  this.images=images;
+  setElement(DOM.createDiv());
+  DOM.setStyleAttribute(getElement(),"position","relative");
+  focusable=FocusPanel.impl.createFocusable();
+  DOM.setStyleAttribute(focusable,"fontSize","0");
+  DOM.setStyleAttribute(focusable,"position","absolute");
+  DOM.setIntStyleAttribute(focusable,"zIndex",-1);
+  DOM.appendChild(getElement(),focusable);
+  sinkEvents(Event.MOUSEEVENTS | Event.ONCLICK | Event.KEYEVENTS);
+  DOM.sinkEvents(focusable,Event.FOCUSEVENTS);
+  root=new TreeItem(){
+    public void addItem(    TreeItem item){
+      if ((item.getParentItem() != null) || (item.getTree() != null)) {
+        item.remove();
+      }
+      item.setTree(this.getTree());
+      item.setParentItem(null);
+      getChildren().add(item);
+      DOM.setIntStyleAttribute(item.getElement(),"marginLeft",0);
+    }
+    public void removeItem(    TreeItem item){
+      if (!getChildren().contains(item)) {
+        return;
+      }
+      item.setTree(null);
+      item.setParentItem(null);
+      getChildren().remove(item);
+    }
+  }
+;
+  root.setTree(this);
+  setStyleName("gwt-Tree");
+}
