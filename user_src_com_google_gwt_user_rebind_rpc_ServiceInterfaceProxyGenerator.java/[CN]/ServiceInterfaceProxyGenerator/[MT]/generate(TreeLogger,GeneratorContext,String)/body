@@ -10,9 +10,7 @@
     logger.log(TreeLogger.ERROR,remoteService.getQualifiedSourceName() + " is not an interface",null);
     throw new UnableToCompleteException();
   }
-  logger=logger.branch(TreeLogger.DEBUG,"Generating client proxy for remote service interface '" + remoteService.getQualifiedSourceName() + "'",null);
-  SerializableTypeOracleBuilder stob=new SerializableTypeOracleBuilder(logger,typeOracle);
-  SerializableTypeOracle sto=stob.build(ctx.getPropertyOracle(),remoteService);
-  generateTypeSerializer(logger,ctx,remoteService,sto);
-  return generateProxy(logger,ctx,remoteService,sto);
+  ProxyCreator proxyCreator=new ProxyCreator(remoteService);
+  TreeLogger proxyLogger=logger.branch(TreeLogger.DEBUG,"Generating client proxy for remote service interface '" + remoteService.getQualifiedSourceName() + "'",null);
+  return proxyCreator.create(proxyLogger,ctx);
 }

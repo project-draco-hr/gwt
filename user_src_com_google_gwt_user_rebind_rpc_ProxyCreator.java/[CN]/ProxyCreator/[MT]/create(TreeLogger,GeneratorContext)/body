@@ -3,10 +3,14 @@
   if (srcWriter == null) {
     return getProxyQualifiedName();
   }
+  SerializableTypeOracleBuilder stob=new SerializableTypeOracleBuilder(logger,context.getTypeOracle());
+  SerializableTypeOracle sto=stob.build(context.getPropertyOracle(),serviceIntf);
+  TypeSerializerCreator tsc=new TypeSerializerCreator(logger,sto,context,serviceIntf);
+  tsc.realize(logger);
   enforceTypeVersioning=Shared.shouldEnforceTypeVersioning(logger,context.getPropertyOracle());
-  generateProxyFields(srcWriter);
+  generateProxyFields(srcWriter,sto);
   generateServiceDefTargetImpl(srcWriter);
-  generateProxyMethods(srcWriter);
+  generateProxyMethods(srcWriter,sto);
   srcWriter.commit(logger);
   return getProxyQualifiedName();
 }
