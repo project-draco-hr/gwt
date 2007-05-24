@@ -5,52 +5,27 @@
   }
  catch (  NullPointerException e) {
   }
-catch (  SerializationException e) {
-    fail(e.getMessage());
-  }
   try {
     RPC.decodeRequest("",null);
     fail("Expected IllegalArgumentException");
   }
  catch (  IllegalArgumentException e) {
   }
-catch (  SerializationException e) {
-    fail(e.getMessage());
+  RPCRequest request;
+  request=RPC.decodeRequest(VALID_ENCODED_REQUEST,null);
+  assertEquals(A.class.getMethod("method2",null),request.getMethod());
+  assertTrue(request.getParameters().length == 0);
+  request=RPC.decodeRequest(VALID_ENCODED_REQUEST,A.class);
+  assertEquals(A.class.getMethod("method2",null),request.getMethod());
+  assertTrue(request.getParameters().length == 0);
+  try {
+    request=RPC.decodeRequest(INVALID_INTERFACE_REQUEST,B.class);
+  }
+ catch (  IncompatibleRemoteServiceException e) {
   }
   try {
-    RPCRequest request=RPC.decodeRequest(VALID_ENCODED_REQUEST,null);
-    assertEquals(A.class.getMethod("method2",null),request.getMethod());
-    assertTrue(request.getParameters().length == 0);
+    request=RPC.decodeRequest(INVALID_METHOD_REQUEST,A.class);
   }
- catch (  SerializationException e) {
-    e.printStackTrace();
-  }
-  try {
-    RPCRequest request=RPC.decodeRequest(VALID_ENCODED_REQUEST,A.class);
-    assertEquals(A.class.getMethod("method2",null),request.getMethod());
-    assertTrue(request.getParameters().length == 0);
-  }
- catch (  SerializationException e) {
-    e.printStackTrace();
-  }
-  try {
-    RPCRequest request=RPC.decodeRequest(INVALID_INTERFACE_REQUEST,B.class);
-  }
- catch (  SecurityException e) {
-    System.out.println(e.getMessage());
-  }
-catch (  Throwable e) {
-    e.printStackTrace();
-    fail(e.getMessage());
-  }
-  try {
-    RPCRequest request=RPC.decodeRequest(INVALID_METHOD_REQUEST,A.class);
-  }
- catch (  SecurityException e) {
-    System.out.println(e.getMessage());
-  }
-catch (  Throwable e) {
-    e.printStackTrace();
-    fail(e.getMessage());
+ catch (  IncompatibleRemoteServiceException e) {
   }
 }
