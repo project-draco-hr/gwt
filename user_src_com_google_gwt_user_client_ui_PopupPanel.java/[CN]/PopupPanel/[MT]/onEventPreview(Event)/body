@@ -5,15 +5,30 @@
 switch (type) {
 case Event.ONKEYDOWN:
 {
-      return onKeyDownPreview((char)DOM.eventGetKeyCode(event),KeyboardListenerCollection.getKeyboardModifiers(event));
+      if (eventTargetsPopup) {
+        return onKeyDownPreview((char)DOM.eventGetKeyCode(event),KeyboardListenerCollection.getKeyboardModifiers(event));
+      }
+ else {
+        return !modal;
+      }
     }
 case Event.ONKEYUP:
 {
-    return onKeyUpPreview((char)DOM.eventGetKeyCode(event),KeyboardListenerCollection.getKeyboardModifiers(event));
+    if (eventTargetsPopup) {
+      return onKeyUpPreview((char)DOM.eventGetKeyCode(event),KeyboardListenerCollection.getKeyboardModifiers(event));
+    }
+ else {
+      return !modal;
+    }
   }
 case Event.ONKEYPRESS:
 {
-  return onKeyPressPreview((char)DOM.eventGetKeyCode(event),KeyboardListenerCollection.getKeyboardModifiers(event));
+  if (eventTargetsPopup) {
+    return onKeyPressPreview((char)DOM.eventGetKeyCode(event),KeyboardListenerCollection.getKeyboardModifiers(event));
+  }
+ else {
+    return !modal;
+  }
 }
 case Event.ONMOUSEDOWN:
 case Event.ONMOUSEUP:
@@ -38,5 +53,5 @@ return false;
 }
 }
 }
-return !modal || (modal && eventTargetsPopup);
+return !modal || eventTargetsPopup;
 }
