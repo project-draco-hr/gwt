@@ -40,7 +40,6 @@
       return;
     }
     if (type.isAbstract() && type.getSubtypes().length == 0) {
-      setUnserializableAndLog(logger,TreeLogger.ERROR,"Is abstract and it has no serializable subtypes",type);
       return;
     }
     getMetaTypeInfo(type).setSerializable(true);
@@ -76,9 +75,7 @@
     }
     if (mti.qualifiesForAutoSerialization()) {
       if (nSerializableSubtypes < nSubtypes) {
-        if (!allowUnserializableSubtypesOfAutoSerializableTypes || nSerializableSubtypes == 0) {
-          setUnserializableAndLog(logger,TreeLogger.ERROR,"Not all subtypes are serializable",type);
-        }
+        setUnserializableAndLog(logger,allowUnserializableSubtypesOfAutoSerializableTypes ? TreeLogger.WARN : TreeLogger.ERROR,"Not all subtypes of the automatically serializable type '" + type.getQualifiedSourceName() + "' are themselves automatically serializable",type);
       }
     }
  else     if (!mti.qualifiesForManualSerialization() && nSerializableSubtypes == 0) {
