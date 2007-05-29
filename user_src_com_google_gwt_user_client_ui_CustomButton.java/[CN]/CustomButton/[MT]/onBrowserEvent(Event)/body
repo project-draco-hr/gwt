@@ -4,12 +4,78 @@
   }
   int type=DOM.eventGetType(event);
 switch (type) {
+case Event.ONMOUSEDOWN:
+    setFocus(true);
+  onClickStart();
+DOM.setCapture(getElement());
+isCapturing=true;
+DOM.eventPreventDefault(event);
+break;
+case Event.ONMOUSEUP:
+if (isCapturing) {
+isCapturing=false;
+DOM.releaseCapture(getElement());
+if (isHovering()) {
+onClick();
+}
+}
+break;
+case Event.ONMOUSEMOVE:
+if (isCapturing) {
+DOM.eventPreventDefault(event);
+}
+break;
 case Event.ONMOUSEOUT:
-    setHovering(false);
-  break;
+if (DOM.isOrHasChild(getElement(),DOM.eventGetTarget(event))) {
+if (isCapturing) {
+onClickCancel();
+}
+setHovering(false);
+}
+break;
 case Event.ONMOUSEOVER:
+if (DOM.isOrHasChild(getElement(),DOM.eventGetTarget(event))) {
 setHovering(true);
+if (isCapturing) {
+onClickStart();
+}
+}
+break;
+case Event.ONCLICK:
+return;
+case Event.ONBLUR:
+if (isFocusing) {
+isFocusing=false;
+onClickCancel();
+}
+break;
+case Event.ONLOSECAPTURE:
+if (isCapturing) {
+isCapturing=false;
+onClickCancel();
+}
 break;
 }
 super.onBrowserEvent(event);
+char keyCode=(char)DOM.eventGetKeyCode(event);
+switch (type) {
+case Event.ONKEYDOWN:
+if (keyCode == ' ') {
+isFocusing=true;
+onClickStart();
+}
+break;
+case Event.ONKEYUP:
+if (isFocusing && keyCode == ' ') {
+isFocusing=false;
+onClick();
+}
+break;
+case Event.ONKEYPRESS:
+if (keyCode == '\n' || keyCode == '\r') {
+onClickStart();
+onClick();
+}
+break;
+}
 }
