@@ -1,0 +1,20 @@
+{
+  Date expiresEarly=new Date(new Date().getTime() + (5 * 1000));
+  Date expiresLate=new Date(new Date().getTime() + (60 * 1000));
+  Cookies.setCookie("shouldExpireEarly","early",expiresEarly);
+  Cookies.setCookie("shouldExpireLate","late",expiresLate);
+  Cookies.setCookie("shouldNotExpire","forever",null);
+  Timer timer=new Timer(){
+    public void run(){
+      assertNull(Cookies.getCookie("shouldExpireEarly"));
+      assertEquals(Cookies.getCookie("shouldExpireLate"),"late");
+      assertEquals(Cookies.getCookie("shouldNotExpire"),"forever");
+      Cookies.removeCookie("shouldNotExpire");
+      assertNull(Cookies.getCookie("shouldNotExpire"));
+      finishTest();
+    }
+  }
+;
+  timer.schedule(5010);
+  delayTestFinish(6 * 1000);
+}
