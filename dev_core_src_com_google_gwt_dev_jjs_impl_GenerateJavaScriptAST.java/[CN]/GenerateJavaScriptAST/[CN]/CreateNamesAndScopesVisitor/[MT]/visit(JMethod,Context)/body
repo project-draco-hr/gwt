@@ -20,8 +20,16 @@
     globalName=topScope.declareName(mangleName,name);
   }
   names.put(x,globalName);
-  JsFunction jsFunction=new JsFunction(topScope,globalName);
-  methodMap.put(x,jsFunction);
+  JsFunction jsFunction;
+  if (x.isNative()) {
+    JsniMethodBody body=(JsniMethodBody)x.getBody();
+    jsFunction=body.getFunc();
+    jsFunction.setName(globalName);
+  }
+ else {
+    jsFunction=new JsFunction(topScope,globalName);
+    methodBodyMap.put(x.getBody(),jsFunction);
+  }
   push(jsFunction.getScope());
   return true;
 }

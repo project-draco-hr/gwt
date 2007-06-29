@@ -2,13 +2,13 @@
   assert(name != null);
   assert(returnType != null);
   assert(!isAbstract || !isNative);
-  JMethod x;
   String sname=String.valueOf(name);
+  JMethod x=new JMethod(this,info,sname,enclosingType,returnType,isAbstract,isStatic,isFinal,isPrivate);
   if (isNative) {
-    x=new JsniMethod(this,info,sname,enclosingType,returnType,isStatic,isFinal,isPrivate);
+    x.setBody(new JsniMethodBody(this,info));
   }
- else {
-    x=new JMethod(this,info,sname,enclosingType,returnType,isAbstract,isStatic,isFinal,isPrivate);
+ else   if (!isAbstract) {
+    x.setBody(new JMethodBody(this,info));
   }
   if (sname.equals(FindDeferredBindingSitesVisitor.REBIND_MAGIC_METHOD) && enclosingType.getName().equals(FindDeferredBindingSitesVisitor.REBIND_MAGIC_CLASS)) {
     rebindCreateMethod=x;

@@ -1,11 +1,11 @@
 {
-  if (!toBeMadeStatic.contains(x)) {
-    return false;
-  }
   JClassType enclosingType=(JClassType)x.getEnclosingType();
-  JType oldReturnType=x.getType();
+  JType returnType=x.getType();
+  SourceInfo sourceInfo=x.getSourceInfo();
+  int myIndexInClass=enclosingType.methods.indexOf(x);
+  assert(myIndexInClass >= 0);
   String newName="$" + x.getName();
-  JMethod newMethod=new JMethod(program,x.getSourceInfo(),newName,enclosingType,oldReturnType,false,true,true,x.isPrivate());
+  JMethod newMethod=new JMethod(program,sourceInfo,newName,enclosingType,returnType,false,true,true,x.isPrivate());
   JParameter thisParam=program.createParameter(null,"this$static".toCharArray(),enclosingType,true,newMethod);
   Map varMap=new IdentityHashMap();
   for (int i=0; i < x.params.size(); ++i) {
@@ -14,33 +14,36 @@
     varMap.put(oldVar,newVar);
   }
   newMethod.freezeParamTypes();
-  for (int i=0; i < x.locals.size(); ++i) {
-    JLocal oldVar=(JLocal)x.locals.get(i);
-    JLocal newVar=program.createLocal(oldVar.getSourceInfo(),oldVar.getName().toCharArray(),oldVar.getType(),oldVar.isFinal(),newMethod);
-    varMap.put(oldVar,newVar);
-  }
-  x.locals.clear();
-  newMethod.body.statements.addAll(x.body.statements);
-  x.body.statements.clear();
-  RewriteMethodBody rewriter=new RewriteMethodBody(thisParam,varMap);
-  rewriter.accept(newMethod);
-  SourceInfo bodyInfo=x.body.getSourceInfo();
-  JMethodCall newCall=new JMethodCall(program,bodyInfo,null,newMethod);
-  newCall.getArgs().add(program.getExprThisRef(bodyInfo,enclosingType));
+  JAbstractMethodBody movedBody=x.getBody();
+  newMethod.setBody(movedBody);
+  JMethodBody newBody=new JMethodBody(program,sourceInfo);
+  x.setBody(newBody);
+  JMethodCall newCall=new JMethodCall(program,sourceInfo,null,newMethod);
+  newCall.getArgs().add(program.getExprThisRef(sourceInfo,enclosingType));
   for (int i=0; i < x.params.size(); ++i) {
     JParameter param=(JParameter)x.params.get(i);
-    newCall.getArgs().add(new JParameterRef(program,bodyInfo,param));
+    newCall.getArgs().add(new JParameterRef(program,sourceInfo,param));
   }
   JStatement statement;
-  if (oldReturnType == program.getTypeVoid()) {
+  if (returnType == program.getTypeVoid()) {
     statement=newCall.makeStatement();
   }
  else {
-    statement=new JReturnStatement(program,bodyInfo,newCall);
+    statement=new JReturnStatement(program,sourceInfo,newCall);
   }
-  x.body.statements.add(statement);
+  newBody.getStatements().add(statement);
+  if (newMethod.isNative()) {
+    JsFunction jsFunc=((JsniMethodBody)movedBody).getFunc();
+    JsName paramName=jsFunc.getScope().declareName("this$static");
+    jsFunc.getParameters().add(0,new JsParameter(paramName));
+    RewriteJsniMethodBody rewriter=new RewriteJsniMethodBody(paramName);
+    rewriter.accept(jsFunc.getBody());
+  }
+ else {
+    RewriteMethodBody rewriter=new RewriteMethodBody(thisParam,varMap);
+    rewriter.accept(movedBody);
+  }
   program.putStaticImpl(x,newMethod);
-  assert(ctx.canInsert());
-  ctx.insertAfter(newMethod);
+  enclosingType.methods.add(myIndexInClass + 1,newMethod);
   return false;
 }

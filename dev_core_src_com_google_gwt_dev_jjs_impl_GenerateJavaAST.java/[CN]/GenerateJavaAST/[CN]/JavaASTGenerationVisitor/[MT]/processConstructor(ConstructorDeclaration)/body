@@ -1,7 +1,7 @@
 {
   JMethod ctor=(JMethod)typeMap.get(x.binding);
   try {
-    SourceInfo info=ctor.body.getSourceInfo();
+    SourceInfo info=ctor.getSourceInfo();
     currentMethod=ctor;
     currentMethodScope=x.scope;
     JMethodCall superOrThisCall=null;
@@ -13,7 +13,9 @@
     JClassType enclosingType=(JClassType)ctor.getEnclosingType();
     JMethod clinitMethod=(JMethod)enclosingType.methods.get(0);
     JMethodCall clinitCall=new JMethodCall(program,info,null,clinitMethod);
-    ctor.body.statements.add(clinitCall.makeStatement());
+    JMethodBody body=(JMethodBody)ctor.getBody();
+    List statements=body.getStatements();
+    statements.add(clinitCall.makeStatement());
     if (!hasExplicitThis) {
       ReferenceBinding declaringClass=x.binding.declaringClass;
       if (declaringClass instanceof NestedTypeBinding) {
@@ -25,7 +27,7 @@
             JParameter param=(JParameter)paramIt.next();
             if (arg.matchingField != null) {
               JField field=(JField)typeMap.get(arg);
-              ctor.body.statements.add(program.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
+              statements.add(program.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
             }
           }
         }
@@ -34,32 +36,32 @@
             SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
             JParameter param=(JParameter)paramIt.next();
             JField field=(JField)typeMap.get(arg);
-            ctor.body.statements.add(program.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
+            statements.add(program.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
           }
         }
       }
     }
     if (superOrThisCall != null) {
-      ctor.body.statements.add(superOrThisCall.makeStatement());
+      statements.add(superOrThisCall.makeStatement());
     }
     JExpression thisRef=createThisRef(info,enclosingType);
     if (!hasExplicitThis) {
       JMethod initMethod=(JMethod)enclosingType.methods.get(1);
       JMethodCall initCall=new JMethodCall(program,info,thisRef,initMethod);
-      ctor.body.statements.add(initCall.makeStatement());
+      statements.add(initCall.makeStatement());
     }
     if (x.statements != null) {
       for (int i=0, n=x.statements.length; i < n; ++i) {
         Statement origStmt=x.statements[i];
         JStatement jstmt=dispProcessStatement(origStmt);
         if (jstmt != null) {
-          ctor.body.statements.add(jstmt);
+          statements.add(jstmt);
         }
       }
     }
     currentMethodScope=null;
     currentMethod=null;
-    ctor.body.statements.add(new JReturnStatement(program,null,thisRef));
+    statements.add(new JReturnStatement(program,null,thisRef));
   }
  catch (  Throwable e) {
     throw translateException(ctor,e);

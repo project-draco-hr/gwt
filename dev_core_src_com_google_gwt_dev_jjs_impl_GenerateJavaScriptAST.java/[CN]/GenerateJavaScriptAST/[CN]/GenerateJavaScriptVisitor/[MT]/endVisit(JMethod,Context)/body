@@ -1,30 +1,16 @@
 {
-  JsBlock body=(JsBlock)pop();
-  List locals=popList(x.locals.size());
-  List params=popList(x.params.size());
   if (x.isAbstract()) {
     push(null);
     return;
   }
-  JsFunction jsFunc=(JsFunction)methodMap.get(x);
-  jsFunc.setBody(body);
-  JsParameters jsParams=jsFunc.getParameters();
-  for (int i=0; i < params.size(); ++i) {
-    JsParameter param=(JsParameter)params.get(i);
-    jsParams.add(param);
-  }
-  JsVars vars=new JsVars();
-  Set alreadySeen=new HashSet();
-  for (int i=0; i < locals.size(); ++i) {
-    JsName name=(JsName)names.get(x.locals.get(i));
-    String ident=name.getIdent();
-    if (!alreadySeen.contains(ident)) {
-      alreadySeen.add(ident);
-      vars.add(new JsVar(name));
+  JsFunction jsFunc=(JsFunction)pop();
+  List params=popList(x.params.size());
+  if (!x.isNative()) {
+    JsParameters jsParams=jsFunc.getParameters();
+    for (int i=0; i < params.size(); ++i) {
+      JsParameter param=(JsParameter)params.get(i);
+      jsParams.add(param);
     }
-  }
-  if (!vars.isEmpty()) {
-    jsFunc.getBody().getStatements().add(0,vars);
   }
   JsInvocation jsInvocation=maybeCreateClinitCall(x);
   if (jsInvocation != null) {
