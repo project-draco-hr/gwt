@@ -2,51 +2,54 @@
   if (type == stringClass) {
     return;
   }
+  MetaTypeInfo mti=getMetaTypeInfo(type);
   if (type == typeOracle.getJavaLangObject()) {
-    setUnserializableAndLog(logger,inManualSerializationContext() ? TreeLogger.WARN : TreeLogger.ERROR,"In order to produce smaller client-side code, 'Object' is not allowed; consider using a more specific type",type);
+    if (inManualSerializationContext()) {
+      TreeLogger branch=logger.branch(TreeLogger.WARN,"Object was reached from a manually serializable type; all subtypes of Object which qualify for serialization will be considered",null);
+      checkAllSubtypesOfObject(branch);
+    }
+ else {
+      setUnserializableAndLog(logger,TreeLogger.ERROR,"In order to produce smaller client-side code, 'Object' is not allowed; consider using a more specific type",mti);
+    }
     return;
   }
   JClassType superclass=type.getSuperclass();
   if (superclass != null) {
-    MetaTypeInfo smti=getMetaTypeInfo(superclass);
-    if (smti.qualifiesForSerialization()) {
+    MetaTypeInfo superMti=getMetaTypeInfo(superclass);
+    if (superMti.qualifiesForSerialization()) {
       checkType(logger.branch(TreeLogger.DEBUG,"Analyzing superclass:",null),superclass,false);
     }
  else {
       logger.branch(TreeLogger.DEBUG,"Not analyzing superclass '" + superclass.getParameterizedQualifiedSourceName() + "' because it is not assignable to '"+ IsSerializable.class.getName()+ "' or '"+ Serializable.class.getName()+ "' nor does it have a custom field serializer",null);
     }
   }
-  MetaTypeInfo mti=getMetaTypeInfo(type);
-  if (mti.qualifiesForManualSerialization()) {
-    List failures=CustomFieldSerializerValidator.validate(streamReaderClass,streamWriterClass,mti.getManualSerializer(),type);
-    if (!failures.isEmpty()) {
-      setUnserializableAndLog(logger,TreeLogger.ERROR,failures,type);
-      return;
+  if (mti.qualifiesForSerialization()) {
+    if (mti.qualifiesForManualSerialization()) {
+      List failures=CustomFieldSerializerValidator.validate(streamReaderClass,streamWriterClass,mti.getManualSerializer(),type);
+      if (!failures.isEmpty()) {
+        setUnserializableAndLog(logger,TreeLogger.ERROR,failures,mti);
+        return;
+      }
+    }
+ else {
+      if (type.isLocalType()) {
+        setUnserializableAndLog(logger,TreeLogger.WARN,"Is a local type, it will be excluded from the set of serializable types",mti);
+        return;
+      }
+      if (type.isMemberType() && !type.isStatic()) {
+        setUnserializableAndLog(logger,TreeLogger.WARN,"Is nested but not static, it will be excluded from the set of serializable types",mti);
+        return;
+      }
+      if (type.isClass() != null && !type.isAbstract() && !type.isDefaultInstantiable()) {
+        setUnserializableAndLog(logger,TreeLogger.ERROR,"Was not default instantiable (it must have a zero-argument public constructor or no constructors at all)",mti);
+        return;
+      }
     }
     mti.setSerializable(true);
     checkFields(logger,type);
-  }
- else   if (mti.qualifiesForAutoSerialization()) {
-    if (type.isLocalType()) {
-      setUnserializableAndLog(logger,TreeLogger.WARN,"Is a local type, it will be excluded from the set of serializable types",type);
-      return;
-    }
-    if (type.isMemberType() && !type.isStatic()) {
-      setUnserializableAndLog(logger,TreeLogger.WARN,"Is nested but not static, it will be excluded from the set of serializable types",type);
-      return;
-    }
-    if (type.isClass() != null && !type.isDefaultInstantiable()) {
-      setUnserializableAndLog(logger,TreeLogger.ERROR,"Was not default instantiable (it must have a zero-argument public constructor or no constructors at all)",type);
-      return;
-    }
-    if (type.isAbstract() && type.getSubtypes().length == 0) {
-      return;
-    }
-    getMetaTypeInfo(type).setSerializable(true);
     checkMethods(logger,type);
-    checkFields(logger,type);
   }
-  if (validateSubtypes) {
+  if (checkSubtypes) {
     int nSubtypes=0;
     int nSerializableSubtypes=0;
     JClassType[] subtypes=type.getSubtypes();
@@ -75,12 +78,12 @@
     }
     if (mti.qualifiesForAutoSerialization()) {
       if (nSerializableSubtypes < nSubtypes) {
-        setUnserializableAndLog(logger,allowUnserializableSubtypesOfAutoSerializableTypes ? TreeLogger.WARN : TreeLogger.ERROR,"Not all subtypes of the automatically serializable type '" + type.getQualifiedSourceName() + "' are themselves automatically serializable",type);
+        setUnserializableAndLog(logger,allowUnserializableSubtypesOfAutoSerializableTypes ? TreeLogger.WARN : TreeLogger.ERROR,"Not all subtypes of the automatically serializable type '" + type.getQualifiedSourceName() + "' are themselves automatically serializable",mti);
       }
     }
  else     if (!mti.qualifiesForManualSerialization() && nSerializableSubtypes == 0) {
       String message=MessageFormat.format("Type ''{0}'' is not assignable to IsSerializable or java.io.Serializable, it does not have a custom field serializer and it does not have any serializable subtypes",new String[]{type.getParameterizedQualifiedSourceName()});
-      setUnserializableAndLog(logger,inManualSerializationContext() ? TreeLogger.WARN : TreeLogger.ERROR,message,type);
+      setUnserializableAndLog(logger,inManualSerializationContext() ? TreeLogger.WARN : TreeLogger.ERROR,message,mti);
     }
   }
 }

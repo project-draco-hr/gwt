@@ -1,7 +1,14 @@
 {
   MetaTypeInfo mti=(MetaTypeInfo)typeToMetaTypeInfo.get(type);
   if (mti == null) {
-    mti=new MetaTypeInfo(type);
+    boolean autoSerializable=false;
+    JClassType manualSerializer=null;
+    JClassType classOrInterface=type.isClassOrInterface();
+    if (classOrInterface != null) {
+      autoSerializable=classOrInterface.isAssignableTo(isSerializableClass) || classOrInterface.isAssignableTo(serializableClass);
+      manualSerializer=findCustomFieldSerializer(typeOracle,classOrInterface);
+    }
+    mti=new MetaTypeInfo(type,autoSerializable,manualSerializer);
     typeToMetaTypeInfo.put(type,mti);
   }
   return mti;

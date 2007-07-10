@@ -1,20 +1,15 @@
 {
   delayTestFinish(TEST_DELAY);
-  try {
-    CustomFieldSerializerTestServiceAsync service=getServiceAsync();
-    service.echo(CustomFieldSerializerTestSetFactory.createUnserializableClass(),new AsyncCallback(){
-      public void onFailure(      Throwable caught){
-        fail("Class UnserializableClass should be serializable because it has a custom field serializer");
-      }
-      public void onSuccess(      Object result){
-        assertNotNull(result);
-        assertTrue(CustomFieldSerializerTestSetValidator.isValid((UnserializableClass)result));
-        finishTest();
-      }
+  CustomFieldSerializerTestServiceAsync service=getServiceAsync();
+  service.echo(CustomFieldSerializerTestSetFactory.createUnserializableClass(),new AsyncCallback(){
+    public void onFailure(    Throwable caught){
+      fail("Class UnserializableClass should be serializable because it has a custom field serializer");
     }
+    public void onSuccess(    Object result){
+      assertNotNull(result);
+      assertTrue(CustomFieldSerializerTestSetValidator.isValid((ManuallySerializedClass)result));
+      finishTest();
+    }
+  }
 );
-  }
- catch (  RuntimeException ex) {
-    workAroundTypeSerializerBug(ex);
-  }
 }
