@@ -1,0 +1,19 @@
+{
+  Browser browser=(Browser)getParent().getParent();
+  Event event=new Event();
+  POINT pt=new POINT();
+  OS.MoveMemory(pt,ppt,POINT.sizeof);
+  event.x=pt.x;
+  event.y=pt.y;
+  browser.notifyListeners(SWT.MenuDetect,event);
+  if (!event.doit)   return COM.S_OK;
+  Menu menu=browser.getMenu();
+  if (menu != null && !menu.isDisposed()) {
+    if (pt.x != event.x || pt.y != event.y) {
+      menu.setLocation(event.x,event.y);
+    }
+    menu.setVisible(true);
+    return COM.S_OK;
+  }
+  return COM.S_FALSE;
+}

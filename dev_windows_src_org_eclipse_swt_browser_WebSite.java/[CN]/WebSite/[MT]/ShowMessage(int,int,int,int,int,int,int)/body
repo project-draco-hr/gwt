@@ -1,0 +1,19 @@
+{
+  int IDS_MESSAGE_BOX_CAPTION=8033;
+  if (lpstrText != 0) {
+    TCHAR lpLibFileName=new TCHAR(0,"SHDOCLC.DLL",true);
+    int hModule=OS.LoadLibrary(lpLibFileName);
+    if (hModule != 0) {
+      int cnt=OS.wcslen(lpstrText);
+      char[] buffer=new char[cnt];
+      OS.MoveMemory(buffer,lpstrText,cnt * 2);
+      String text=new String(buffer);
+      int length=(OS.IsUnicode ? cnt : OS.WideCharToMultiByte(OS.CP_ACP,0,buffer,cnt,0,0,null,null)) + 1;
+      TCHAR lpBuffer=new TCHAR(0,length);
+      int result=OS.LoadString(hModule,IDS_MESSAGE_BOX_CAPTION,lpBuffer,length);
+      OS.FreeLibrary(hModule);
+      return result > 0 && text.equals(lpBuffer.toString(0,result)) ? COM.S_OK : COM.S_FALSE;
+    }
+  }
+  return COM.S_FALSE;
+}

@@ -1,0 +1,29 @@
+{
+  checkWidget();
+  if (html == null)   SWT.error(SWT.ERROR_NULL_ARGUMENT);
+  boolean blankLoading=this.html != null;
+  this.html=html;
+  if (blankLoading)   return true;
+  int[] rgdispid;
+  if (navigate) {
+    rgdispid=auto.getIDsOfNames(new String[]{"ReadyState"});
+    Variant pVarResult=auto.getProperty(rgdispid[0]);
+    if (pVarResult == null)     return false;
+    delaySetText=pVarResult.getInt() != READYSTATE_COMPLETE;
+    pVarResult.dispose();
+    rgdispid=auto.getIDsOfNames(new String[]{"Stop"});
+    auto.invoke(rgdispid[0]);
+  }
+  rgdispid=auto.getIDsOfNames(new String[]{"Navigate","URL"});
+  navigate=true;
+  Variant[] rgvarg=new Variant[1];
+  rgvarg[0]=new Variant(ABOUT_BLANK);
+  int[] rgdispidNamedArgs=new int[1];
+  rgdispidNamedArgs[0]=rgdispid[1];
+  Variant pVarResult=auto.invoke(rgdispid[0],rgvarg,rgdispidNamedArgs);
+  rgvarg[0].dispose();
+  if (pVarResult == null)   return false;
+  boolean result=pVarResult.getType() == OLE.VT_EMPTY;
+  pVarResult.dispose();
+  return result;
+}
