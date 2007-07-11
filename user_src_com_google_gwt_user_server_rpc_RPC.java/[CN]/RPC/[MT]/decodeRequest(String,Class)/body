@@ -5,8 +5,9 @@
   if (encodedRequest.length() == 0) {
     throw new IllegalArgumentException("encodedRequest cannot be empty");
   }
+  ClassLoader classLoader=Thread.currentThread().getContextClassLoader();
   try {
-    ServerSerializationStreamReader streamReader=new ServerSerializationStreamReader(serializableTypeOracle);
+    ServerSerializationStreamReader streamReader=new ServerSerializationStreamReader(serializableTypeOracle,classLoader);
     streamReader.prepareToRead(encodedRequest);
     String serviceIntfName=streamReader.readString();
     if (type != null) {
@@ -16,7 +17,7 @@
     }
     Class serviceIntf;
     try {
-      serviceIntf=getClassFromSerializedName(serviceIntfName);
+      serviceIntf=getClassFromSerializedName(serviceIntfName,classLoader);
       if (!RemoteService.class.isAssignableFrom(serviceIntf)) {
         throw new IncompatibleRemoteServiceException("Blocked attempt to access interface '" + printTypeName(serviceIntf) + "', which doesn't extend RemoteService; this is either misconfiguration or a hack attempt");
       }
@@ -30,7 +31,7 @@
     for (int i=0; i < parameterTypes.length; i++) {
       String paramClassName=streamReader.readString();
       try {
-        parameterTypes[i]=getClassFromSerializedName(paramClassName);
+        parameterTypes[i]=getClassFromSerializedName(paramClassName,classLoader);
       }
  catch (      ClassNotFoundException e) {
         throw new IncompatibleRemoteServiceException("Parameter " + i + " of is of an unknown type '"+ paramClassName+ "'",e);
