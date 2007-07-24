@@ -11,13 +11,6 @@
     metaDataMap=new HashMap();
     testMetaData.put(benchmarkClass.toString(),metaDataMap);
   }
-  Parser parser=null;
-  try {
-    parser=new Parser(benchmarkClass);
-  }
- catch (  IOException e) {
-    logger.log(TreeLogger.WARN,"Unable to parse the code for " + benchmarkClass,e);
-  }
   for (int i=0; i < testMethods.size(); ++i) {
     JMethod method=(JMethod)testMethods.get(i);
     String methodName=method.getName();
@@ -26,11 +19,12 @@
       methodCategoryType=categoryType;
     }
     CategoryImpl methodCategory=getCategory(methodCategoryType);
-    StringBuffer sourceCode=parser == null ? null : new StringBuffer(parser.getMethod(method));
+    String methodSource=parser.getMethod(method);
+    StringBuffer sourceBuffer=(methodSource == null) ? null : new StringBuffer(methodSource);
     StringBuffer summary=new StringBuffer();
     StringBuffer comment=new StringBuffer();
-    getComment(sourceCode,summary,comment);
-    MetaData metaData=new MetaData(benchmarkClass.toString(),methodName,sourceCode != null ? sourceCode.toString() : null,methodCategory,methodName,summary.toString());
+    getComment(sourceBuffer,summary,comment);
+    MetaData metaData=new MetaData(benchmarkClass.toString(),methodName,(sourceBuffer != null) ? sourceBuffer.toString() : null,methodCategory,methodName,summary.toString());
     metaDataMap.put(methodName,metaData);
   }
 }

@@ -67,8 +67,12 @@
       }
 );
       final List trialsTables=new ArrayList();
-      final MutableBool isVisible=new MutableBool(false);
-      Button visibilityButton=new Button("Show Data",new ClickListener(){
+      Result sampleResult=(Result)benchmark.getResults().get(0);
+      Trial sampleTrial=(Trial)sampleResult.getTrials().get(0);
+      int numVariables=sampleTrial.getVariables().size();
+      final MutableBool isVisible=new MutableBool(numVariables > 2);
+      String buttonName=isVisible.value ? "Hide Data" : "Show Data";
+      Button visibilityButton=new Button(buttonName,new ClickListener(){
         public void onClick(        Widget sender){
           isVisible.value=!isVisible.value;
           for (int i=0; i < trialsTables.size(); ++i) {
@@ -82,10 +86,18 @@
 );
       for (int k=0; k < benchmark.getResults().size(); ++k) {
         Result result=(Result)benchmark.getResults().get(k);
-        resultsTable.setWidget(0,k,new Image(getImageUrl(report.getId(),c.getName(),benchmark.getClassName(),benchmark.getName(),result.getAgent())));
+        List trials=result.getTrials();
+        if (numVariables <= 2) {
+          resultsTable.setWidget(0,k,new Image(getImageUrl(report.getId(),c.getName(),benchmark.getClassName(),benchmark.getName(),result.getAgent())));
+        }
+ else {
+          if (k == 0) {
+            resultsTable.setHTML(0,k,"<b>" + BrowserInfo.getBrowser(result.getAgent()) + "</b><br><font size=\"-1\">(Graphs are not yet available "+ "for benchmarks with more than two parameters)</font>");
+          }
+        }
         resultsFormatter.setAlignment(2,k,HasHorizontalAlignment.ALIGN_LEFT,HasVerticalAlignment.ALIGN_TOP);
         FlexTable trialsTable=new FlexTable();
-        trialsTable.setVisible(false);
+        trialsTable.setVisible(isVisible.value);
         trialsTables.add(trialsTable);
         trialsTable.setBorderWidth(1);
         trialsTable.setCellPadding(5);
@@ -95,24 +107,21 @@
           resultsFormatter.setAlignment(1,k,HasHorizontalAlignment.ALIGN_LEFT,HasVerticalAlignment.ALIGN_MIDDLE);
         }
         resultsTable.setWidget(2,k,trialsTable);
-        List trials=result.getTrials();
         int numTrials=trials.size();
-        int numVariables=((Trial)trials.get(0)).getVariables().size();
-        Trial sampleTrial=(Trial)trials.get(0);
         Map variables=sampleTrial.getVariables();
         List variableNames=new ArrayList(variables.keySet());
         Collections.sort(variableNames);
         for (int varIndex=0; varIndex < numVariables; ++varIndex) {
           String varName=(String)variableNames.get(varIndex);
-          trialsTable.setWidget(0,varIndex,new HTML(varName));
+          trialsTable.setHTML(0,varIndex,varName);
         }
-        trialsTable.setWidget(0,numVariables,new HTML("Timing (ms)"));
+        trialsTable.setHTML(0,numVariables,"Timing (ms)");
         for (int l=0; l < numTrials; ++l) {
           Trial trial=(Trial)trials.get(l);
           for (int varIndex=0; varIndex < numVariables; ++varIndex) {
             String varName=(String)variableNames.get(varIndex);
             String varValue=(String)trial.getVariables().get(varName);
-            trialsTable.setWidget(l + 1,varIndex,new HTML(varValue));
+            trialsTable.setHTML(l + 1,varIndex,varValue);
           }
           String data=null;
           if (trial.getException() != null) {
@@ -121,7 +130,7 @@
  else {
             data=trial.getRunTimeMillis() + "";
           }
-          trialsTable.setWidget(l + 1,numVariables,new HTML(data));
+          trialsTable.setHTML(l + 1,numVariables,data);
         }
       }
     }

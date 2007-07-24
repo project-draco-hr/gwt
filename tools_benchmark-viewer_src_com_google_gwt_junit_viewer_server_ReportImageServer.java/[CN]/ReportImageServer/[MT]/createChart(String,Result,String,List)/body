@@ -1,4 +1,13 @@
 {
+  double maxTime=0;
+  for (int i=0; i < comparativeResults.size(); ++i) {
+    Result r=(Result)comparativeResults.get(i);
+    List resultTrials=r.getTrials();
+    for (int j=0; j < resultTrials.size(); ++j) {
+      Trial t=(Trial)resultTrials.get(j);
+      maxTime=Math.max(maxTime,t.getRunTimeMillis());
+    }
+  }
   List trials=result.getTrials();
   Trial firstTrial=(Trial)trials.get(0);
   int numVariables=firstTrial.getVariables().size();
@@ -48,7 +57,11 @@
     Trial trial=(Trial)trials.iterator().next();
     DefaultCategoryDataset data=new DefaultCategoryDataset();
     data.addValue(trial.getRunTimeMillis(),"result","result");
-    return ChartFactory.createBarChart(title,testName,valueTitle,data,PlotOrientation.VERTICAL,false,false,false);
+    JFreeChart chart=ChartFactory.createBarChart(title,testName,valueTitle,data,PlotOrientation.VERTICAL,false,false,false);
+    CategoryPlot p=chart.getCategoryPlot();
+    ValueAxis axis=p.getRangeAxis();
+    axis.setUpperBound(maxTime + maxTime * 0.1);
+    return chart;
   }
  else   if (numVariables == 1) {
     XYSeriesCollection data=new XYSeriesCollection();
@@ -63,7 +76,12 @@
       series.add(Double.parseDouble(domainValue),time);
     }
     data.addSeries(series);
-    return ChartFactory.createXYLineChart(title,domainVariable,valueTitle,data,PlotOrientation.VERTICAL,false,false,false);
+    JFreeChart chart=ChartFactory.createXYLineChart(title,domainVariable,valueTitle,data,PlotOrientation.VERTICAL,false,false,false);
+    XYPlot plot=chart.getXYPlot();
+    plot.getRangeAxis().setUpperBound(maxTime + maxTime * 0.1);
+    double maxDomainValue=getMaxValue(comparativeResults,domainVariable);
+    plot.getDomainAxis().setUpperBound(maxDomainValue + maxDomainValue * 0.1);
+    return chart;
   }
  else   if (numVariables == 2) {
     XYSeriesCollection data=new XYSeriesCollection();
@@ -85,7 +103,12 @@
       }
       data.addSeries(series);
     }
-    return ChartFactory.createXYLineChart(title,domainVariable,valueTitle,data,PlotOrientation.VERTICAL,true,true,false);
+    JFreeChart chart=ChartFactory.createXYLineChart(title,domainVariable,valueTitle,data,PlotOrientation.VERTICAL,true,true,false);
+    XYPlot plot=chart.getXYPlot();
+    plot.getRangeAxis().setUpperBound(maxTime + maxTime * 0.1);
+    double maxDomainValue=getMaxValue(comparativeResults,domainVariable);
+    plot.getDomainAxis().setUpperBound(maxDomainValue + maxDomainValue * 0.1);
+    return chart;
   }
-  return null;
+  throw new RuntimeException("The ReportImageServer is not yet able to " + "create charts for benchmarks with more than two variables.");
 }
