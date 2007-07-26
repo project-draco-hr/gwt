@@ -1,0 +1,30 @@
+{
+  Map adjList=new HashMap();
+  Set seen=new HashSet();
+  Stack queue=new Stack();
+  queue.push(root);
+  while (!queue.isEmpty()) {
+    JClassType clazz=(JClassType)queue.pop();
+    JClassType[] subclasses=clazz.getSubtypes();
+    if (seen.contains(clazz)) {
+      continue;
+    }
+    seen.add(clazz);
+    for (int i=0; i < subclasses.length; ++i) {
+      JClassType subclass=subclasses[i];
+      if (clazz.isInterface() != null) {
+        if (directlyImplementsInterface(subclass,clazz)) {
+          addEdge(adjList,subclass,clazz);
+          queue.push(subclass);
+        }
+      }
+ else {
+        if (subclass.getSuperclass() == clazz) {
+          addEdge(adjList,subclass,clazz);
+          queue.push(subclass);
+        }
+      }
+    }
+  }
+  return adjList;
+}

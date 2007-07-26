@@ -14,27 +14,30 @@
     return;
   }
  else   if (state == SerializableTypeOracleBuilder.CHECK_SUCCEEDED) {
-    if (!mti.needToRecheck(checkSubtypes,inManualSerializationContext())) {
+    if (!mti.needToRecheck(isRootType)) {
       localLogger.branch(TreeLogger.DEBUG,"Type has already been analyzed",null);
       return;
     }
-    mti.clearSerializationIssues();
+    mti.reset();
   }
   mti.setState(SerializableTypeOracleBuilder.CHECK_IN_PROGRESS);
   if (type.isParameterized() != null) {
     JParameterizedType parameterized=type.isParameterized();
     checkType(localLogger.branch(TreeLogger.DEBUG,"Analyzing raw type",null),parameterized.getRawType(),true);
-    checkTypes(localLogger.branch(TreeLogger.DEBUG,"Analyzing type args",null),parameterized.getTypeArgs());
+    TreeLogger branch=localLogger.branch(TreeLogger.DEBUG,"Analyzing type args",null);
+    JType[] typeArgs=parameterized.getTypeArgs();
+    for (int i=0; i < typeArgs.length; ++i) {
+      checkType(branch,typeArgs[i],true);
+    }
   }
  else   if (type.isArray() != null) {
-    checkArray(localLogger,type.isArray());
+    checkType(localLogger.branch(TreeLogger.DEBUG,"Analyzing component type:",null),type.isArray().getComponentType(),true);
   }
  else   if (type.isClassOrInterface() != null) {
-    checkClassOrInterface(localLogger,type.isClassOrInterface(),checkSubtypes);
+    checkClassOrInterface(localLogger,type.isClassOrInterface(),isRootType);
   }
   if (mti.getState() != SerializableTypeOracleBuilder.CHECK_FAILED) {
     mti.setState(SerializableTypeOracleBuilder.CHECK_SUCCEEDED);
   }
-  mti.setCheckedSubtypes(checkSubtypes);
-  mti.setCheckedInManualContext(inManualSerializationContext());
+  mti.setTypeRoot(isRootType);
 }

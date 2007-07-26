@@ -5,20 +5,27 @@
     JMethod method=methods[i];
     TreeLogger methodLogger=validationLogger.branch(TreeLogger.DEBUG,method.toString(),null);
     JType returnType=method.getReturnType();
-    TreeLogger returnTypeLogger=methodLogger.branch(TreeLogger.DEBUG,"Return type: " + returnType.getParameterizedQualifiedSourceName(),null);
-    checkForUnparameterizedType(returnTypeLogger,returnType);
-    checkType(returnTypeLogger,returnType,true);
+    if (returnType != JPrimitiveType.VOID) {
+      TreeLogger returnTypeLogger=methodLogger.branch(TreeLogger.DEBUG,"Return type: " + returnType.getParameterizedQualifiedSourceName(),null);
+      checkTypeRoot(returnTypeLogger,returnType,true);
+    }
     JParameter[] params=method.getParameters();
     for (int j=0; j < params.length; ++j) {
       JParameter param=params[j];
       TreeLogger paramLogger=methodLogger.branch(TreeLogger.DEBUG,"Parameter: " + param.toString(),null);
       JType paramType=param.getType();
-      checkForUnparameterizedType(paramLogger,paramType);
-      checkType(paramLogger,paramType,true);
+      checkTypeRoot(paramLogger,paramType,true);
     }
     JType[] exs=method.getThrows();
     if (exs.length > 0) {
-      checkTypes(methodLogger.branch(TreeLogger.DEBUG,"Throws:",null),method.getThrows());
+      TreeLogger throwsLogger=methodLogger.branch(TreeLogger.DEBUG,"Throws:",null);
+      for (int j=0; j < exs.length; ++j) {
+        JType ex=exs[j];
+        if (!exceptionClass.isAssignableFrom(ex.isClass())) {
+          throwsLogger=throwsLogger.branch(TreeLogger.WARN,"'" + ex.getQualifiedSourceName() + "' is not a checked exception; only checked exceptions may be used",null);
+        }
+        checkTypeRoot(throwsLogger,ex,true);
+      }
     }
   }
 }

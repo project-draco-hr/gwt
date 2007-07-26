@@ -1,5 +1,6 @@
 {
   TreeLogger localLogger=logger;
+  MetaTypeInfo mti=getMetaTypeInfo(classOrInterface);
   JField[] fields=classOrInterface.getFields();
   if (fields.length > 0) {
     localLogger=localLogger.branch(TreeLogger.DEBUG,"Analyzing Fields:",null);
@@ -17,8 +18,11 @@
       }
       TreeLogger fieldLogger=localLogger.branch(TreeLogger.DEBUG,field.toString(),null);
       JType fieldType=field.getType();
-      checkForUnparameterizedType(fieldLogger,fieldType);
-      checkType(fieldLogger,fieldType,true);
+      if (!checkTypeRoot(fieldLogger,fieldType,false)) {
+        if (mti.qualifiesForAutoSerialization()) {
+          mti.setSerializable(false);
+        }
+      }
     }
     typesBeingAnalyzed.pop();
   }

@@ -1,18 +1,4 @@
 {
-  if (type == stringClass) {
-    return;
-  }
-  MetaTypeInfo mti=getMetaTypeInfo(type);
-  if (type == typeOracle.getJavaLangObject()) {
-    if (inManualSerializationContext()) {
-      TreeLogger branch=logger.branch(TreeLogger.WARN,"Object was reached from a manually serializable type; all subtypes of Object which qualify for serialization will be considered",null);
-      checkAllSubtypesOfObject(branch);
-    }
- else {
-      setUnserializableAndLog(logger,TreeLogger.ERROR,"In order to produce smaller client-side code, 'Object' is not allowed; consider using a more specific type",mti);
-    }
-    return;
-  }
   JClassType superclass=type.getSuperclass();
   if (superclass != null) {
     MetaTypeInfo superMti=getMetaTypeInfo(superclass);
@@ -23,25 +9,33 @@
       logger.branch(TreeLogger.DEBUG,"Not analyzing superclass '" + superclass.getParameterizedQualifiedSourceName() + "' because it is not assignable to '"+ IsSerializable.class.getName()+ "' or '"+ Serializable.class.getName()+ "' nor does it have a custom field serializer",null);
     }
   }
+  MetaTypeInfo mti=getMetaTypeInfo(type);
   if (mti.qualifiesForSerialization()) {
     if (mti.qualifiesForManualSerialization()) {
       List failures=CustomFieldSerializerValidator.validate(streamReaderClass,streamWriterClass,mti.getManualSerializer(),type);
       if (!failures.isEmpty()) {
-        setUnserializableAndLog(logger,TreeLogger.ERROR,failures,mti);
+        validationFailed=true;
+        markAsUnserializableAndLog(logger,TreeLogger.ERROR,failures,mti);
         return;
       }
     }
  else {
+      if (!mti.directlyImplementsMarkerInterface()) {
+        if (superclass != null && !getMetaTypeInfo(superclass).isSerializable()) {
+          markAsUnserializableAndLog(logger,TreeLogger.WARN,"Superclass '" + superclass.getQualifiedSourceName() + "' is not serializable and this type does not implement '"+ IsSerializable.class.getName()+ "' or '"+ Serializable.class.getName()+ "'; see previous log entries",mti);
+          return;
+        }
+      }
       if (type.isLocalType()) {
-        setUnserializableAndLog(logger,TreeLogger.WARN,"Is a local type, it will be excluded from the set of serializable types",mti);
+        markAsUnserializableAndLog(logger,TreeLogger.WARN,"Is a local type, it will be excluded from the set of serializable types",mti);
         return;
       }
       if (type.isMemberType() && !type.isStatic()) {
-        setUnserializableAndLog(logger,TreeLogger.WARN,"Is nested but not static, it will be excluded from the set of serializable types",mti);
+        markAsUnserializableAndLog(logger,TreeLogger.WARN,"Is nested but not static, it will be excluded from the set of serializable types",mti);
         return;
       }
       if (type.isClass() != null && !type.isAbstract() && !type.isDefaultInstantiable()) {
-        setUnserializableAndLog(logger,TreeLogger.ERROR,"Was not default instantiable (it must have a zero-argument public constructor or no constructors at all)",mti);
+        markAsUnserializableAndLog(logger,TreeLogger.WARN,"Was not default instantiable (it must have a zero-argument, public constructor or no constructors at all)",mti);
         return;
       }
     }
@@ -49,9 +43,10 @@
     checkFields(logger,type);
     checkMethods(logger,type);
   }
+ else {
+    logger.branch(TreeLogger.DEBUG,"Type '" + type.getParameterizedQualifiedSourceName() + "' is not assignable to '"+ IsSerializable.class.getName()+ "' or '"+ Serializable.class.getName()+ "' nor does it have a custom field serializer",null);
+  }
   if (checkSubtypes) {
-    int nSubtypes=0;
-    int nSerializableSubtypes=0;
     JClassType[] subtypes=type.getSubtypes();
     if (subtypes.length > 0) {
       TreeLogger localLogger=logger.branch(TreeLogger.DEBUG,"Analyzing subclasses:",null);
@@ -60,30 +55,11 @@
         MetaTypeInfo smti=getMetaTypeInfo(subtype);
         if (smti.qualifiesForSerialization()) {
           checkType(localLogger,subtype,false);
-          ++nSubtypes;
-          if (smti.isSerializable()) {
-            ++nSerializableSubtypes;
-          }
- else {
-            localLogger.branch(TreeLogger.DEBUG,subtype.getParameterizedQualifiedSourceName() + " is not serializable",null);
-            if (subtype.isLocalType() || subtype.isMemberType() && !subtype.isStatic()) {
-              --nSubtypes;
-            }
-          }
         }
  else {
           localLogger.branch(TreeLogger.DEBUG,"Not analyzing subclass '" + subtype.getParameterizedQualifiedSourceName() + "' because it is not assignable to '"+ IsSerializable.class.getName()+ "' or '"+ Serializable.class.getName()+ "' nor does it have a custom field serializer",null);
         }
       }
-    }
-    if (mti.qualifiesForAutoSerialization()) {
-      if (nSerializableSubtypes < nSubtypes) {
-        setUnserializableAndLog(logger,allowUnserializableSubtypesOfAutoSerializableTypes ? TreeLogger.WARN : TreeLogger.ERROR,"Not all subtypes of the automatically serializable type '" + type.getQualifiedSourceName() + "' are themselves automatically serializable",mti);
-      }
-    }
- else     if (!mti.qualifiesForManualSerialization() && nSerializableSubtypes == 0) {
-      String message=MessageFormat.format("Type ''{0}'' is not assignable to IsSerializable or java.io.Serializable, it does not have a custom field serializer and it does not have any serializable subtypes",new String[]{type.getParameterizedQualifiedSourceName()});
-      setUnserializableAndLog(logger,inManualSerializationContext() ? TreeLogger.WARN : TreeLogger.ERROR,message,mti);
     }
   }
 }
