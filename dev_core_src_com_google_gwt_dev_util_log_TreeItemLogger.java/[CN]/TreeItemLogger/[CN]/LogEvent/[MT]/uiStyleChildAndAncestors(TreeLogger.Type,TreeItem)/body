@@ -31,9 +31,11 @@
   }
   child.setForeground(color);
   if (type.needsAttention()) {
+    Stack parents=new Stack();
     boolean propagateColor=true;
     TreeItem parent=child.getParentItem();
     while (parent != null) {
+      parents.push(parent);
       LogEvent parentEvent=(LogEvent)parent.getData();
       if (propagateColor) {
         if (parentEvent.type.isLowerPriorityThan(type)) {
@@ -43,8 +45,11 @@
           propagateColor=false;
         }
       }
-      parent.setExpanded(true);
       parent=parent.getParentItem();
+    }
+    while (!parents.isEmpty()) {
+      parent=(TreeItem)parents.pop();
+      parent.setExpanded(true);
     }
   }
 }
