@@ -6,15 +6,8 @@
   if (style.length() == 0) {
     throw new IllegalArgumentException(EMPTY_STYLENAME_MSG);
   }
-  String oldStyle=ensurePrimaryStyleName(elem);
-  int idx;
-  if (oldStyle == null) {
-    idx=-1;
-    oldStyle="";
-  }
- else {
-    idx=oldStyle.indexOf(style);
-  }
+  String oldStyle=getStyleName(elem);
+  int idx=oldStyle.indexOf(style);
   while (idx != -1) {
     if (idx == 0 || oldStyle.charAt(idx - 1) == ' ') {
       int last=idx + style.length();
@@ -35,12 +28,19 @@
   }
  else {
     if (idx != -1) {
-      if (idx == 0) {
-        throw new IllegalArgumentException("Cannot remove base style name");
+      String begin=oldStyle.substring(0,idx).trim();
+      String end=oldStyle.substring(idx + style.length()).trim();
+      String newClassName;
+      if (begin.length() == 0) {
+        newClassName=end;
       }
-      String begin=oldStyle.substring(0,idx);
-      String end=oldStyle.substring(idx + style.length());
-      DOM.setElementProperty(elem,"className",begin + end);
+ else       if (end.length() == 0) {
+        newClassName=begin;
+      }
+ else {
+        newClassName=begin + " " + end;
+      }
+      DOM.setElementProperty(elem,"className",newClassName);
     }
   }
 }
