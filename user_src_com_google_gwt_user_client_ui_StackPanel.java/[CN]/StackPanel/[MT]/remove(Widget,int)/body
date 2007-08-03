@@ -1,19 +1,18 @@
 {
-  if (child.getParent() != this) {
-    return false;
+  boolean removed=super.remove(child);
+  if (removed) {
+    int rowIndex=2 * index;
+    Element tr=DOM.getChild(body,rowIndex);
+    DOM.removeChild(body,tr);
+    tr=DOM.getChild(body,rowIndex);
+    DOM.removeChild(body,tr);
+    if (visibleStack == index) {
+      visibleStack=-1;
+    }
+ else     if (visibleStack > index) {
+      --visibleStack;
+    }
+    updateIndicesFrom(rowIndex);
   }
-  super.remove(child);
-  if (visibleStack == index) {
-    visibleStack=-1;
-  }
- else   if (visibleStack > index) {
-    --visibleStack;
-  }
-  int rowIndex=2 * index;
-  Element tr=DOM.getChild(body,rowIndex);
-  DOM.removeChild(body,tr);
-  tr=DOM.getChild(body,rowIndex);
-  DOM.removeChild(body,tr);
-  updateIndicesFrom(rowIndex);
-  return true;
+  return removed;
 }

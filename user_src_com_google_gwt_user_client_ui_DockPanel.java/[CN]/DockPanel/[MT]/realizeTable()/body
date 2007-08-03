@@ -4,7 +4,7 @@
     DOM.removeChild(bodyElem,DOM.getChild(bodyElem,0));
   }
   int rowCount=1, colCount=1;
-  for (Iterator it=children.iterator(); it.hasNext(); ) {
+  for (Iterator it=getChildren().iterator(); it.hasNext(); ) {
     Widget child=(Widget)it.next();
     DockLayoutConstant dir=((LayoutData)child.getLayoutData()).direction;
     if ((dir == NORTH) || (dir == SOUTH)) {
@@ -23,7 +23,7 @@
   int westCol=0, eastCol=colCount - 1;
   int northRow=0, southRow=rowCount - 1;
   Element centerTd=null;
-  for (Iterator it=children.iterator(); it.hasNext(); ) {
+  for (Iterator it=getChildren().iterator(); it.hasNext(); ) {
     Widget child=(Widget)it.next();
     LayoutData layout=(LayoutData)child.getLayoutData();
     Element td=DOM.createTD();
@@ -34,27 +34,27 @@
     DOM.setElementProperty(layout.td,"height",layout.height);
     if (layout.direction == NORTH) {
       DOM.insertChild(rows[northRow].tr,td,rows[northRow].center);
-      appendAndMaybeAdopt(td,child.getElement(),beingAdded);
+      DOM.appendChild(td,child.getElement());
       DOM.setElementPropertyInt(td,"colSpan",eastCol - westCol + 1);
       ++northRow;
     }
  else     if (layout.direction == SOUTH) {
       DOM.insertChild(rows[southRow].tr,td,rows[southRow].center);
-      appendAndMaybeAdopt(td,child.getElement(),beingAdded);
+      DOM.appendChild(td,child.getElement());
       DOM.setElementPropertyInt(td,"colSpan",eastCol - westCol + 1);
       --southRow;
     }
  else     if (layout.direction == WEST) {
       TmpRow row=rows[northRow];
       DOM.insertChild(row.tr,td,row.center++);
-      appendAndMaybeAdopt(td,child.getElement(),beingAdded);
+      DOM.appendChild(td,child.getElement());
       DOM.setElementPropertyInt(td,"rowSpan",southRow - northRow + 1);
       ++westCol;
     }
  else     if (layout.direction == EAST) {
       TmpRow row=rows[northRow];
       DOM.insertChild(row.tr,td,row.center);
-      appendAndMaybeAdopt(td,child.getElement(),beingAdded);
+      DOM.appendChild(td,child.getElement());
       DOM.setElementPropertyInt(td,"rowSpan",southRow - northRow + 1);
       --eastCol;
     }
@@ -65,6 +65,6 @@
   if (center != null) {
     TmpRow row=rows[northRow];
     DOM.insertChild(row.tr,centerTd,row.center);
-    appendAndMaybeAdopt(centerTd,center.getElement(),beingAdded);
+    DOM.appendChild(centerTd,center.getElement());
   }
 }
