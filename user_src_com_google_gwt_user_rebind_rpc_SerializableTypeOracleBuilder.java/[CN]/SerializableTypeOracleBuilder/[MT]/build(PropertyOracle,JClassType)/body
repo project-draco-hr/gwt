@@ -5,12 +5,16 @@
   if (validationFailed) {
     throw new UnableToCompleteException();
   }
+  Set possiblyInstantiatedTypes=new HashSet();
   List serializableTypesList=new ArrayList();
   Iterator iterTypes=typeToMetaTypeInfo.values().iterator();
   while (iterTypes.hasNext()) {
     MetaTypeInfo mti=(MetaTypeInfo)iterTypes.next();
     JType type=mti.getType();
     if (mti.isSerializable() && type.isInterface() == null) {
+      if (mti.maybeInstantiated()) {
+        possiblyInstantiatedTypes.add(type);
+      }
       serializableTypesList.add(type);
     }
   }
@@ -25,5 +29,5 @@
   }
 );
   logSerializableTypes(logger,serializableTypes);
-  return new SerializableTypeOracleImpl(typeOracle,serializableTypes);
+  return new SerializableTypeOracleImpl(typeOracle,serializableTypes,possiblyInstantiatedTypes);
 }

@@ -1,7 +1,7 @@
 {
   assert(instance != null);
   Field[] declFields=instanceClass.getDeclaredFields();
-  Field[] serializableFields=serializableTypeOracle.applyFieldSerializationPolicy(declFields);
+  Field[] serializableFields=SerializabilityUtil.applyFieldSerializationPolicy(declFields);
   for (int index=0; index < serializableFields.length; ++index) {
     Field declField=serializableFields[index];
     assert(declField != null);
@@ -26,7 +26,7 @@ catch (    IllegalAccessException e) {
     }
   }
   Class superClass=instanceClass.getSuperclass();
-  if (superClass != null && serializableTypeOracle.isSerializable(superClass)) {
+  if (serializationPolicy.shouldSerializeFields(superClass)) {
     serializeImpl(instance,superClass);
   }
 }

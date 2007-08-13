@@ -1,0 +1,22 @@
+{
+  InputStream is=getInputStreamFromString(VALID_POLICY_FILE_CONTENTS);
+  SerializationPolicy sp=SerializationPolicyLoader.loadFromStream(is);
+  assertTrue(sp.shouldDeserializeFields(A.class));
+  assertTrue(sp.shouldSerializeFields(A.class));
+  assertFalse(sp.shouldDeserializeFields(B.class));
+  assertFalse(sp.shouldSerializeFields(B.class));
+  sp.validateDeserialize(A.class);
+  sp.validateSerialize(A.class);
+  try {
+    sp.validateDeserialize(B.class);
+    fail("Expected SerializationException");
+  }
+ catch (  SerializationException ex) {
+  }
+  try {
+    sp.validateSerialize(B.class);
+    fail("Expected SerializationException");
+  }
+ catch (  SerializationException ex) {
+  }
+}

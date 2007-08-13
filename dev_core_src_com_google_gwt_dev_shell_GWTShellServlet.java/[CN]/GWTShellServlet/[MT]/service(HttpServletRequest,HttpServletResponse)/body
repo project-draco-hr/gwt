@@ -6,9 +6,10 @@
     logger=logger.branch(TreeLogger.TRACE,"Request " + id + ": "+ url,null);
   }
   String servletClassName=null;
+  ModuleDef moduleDef=null;
   try {
     RequestParts parts=new RequestParts(request);
-    ModuleDef moduleDef=(ModuleDef)loadedModulesByName.get(parts.moduleName);
+    moduleDef=(ModuleDef)loadedModulesByName.get(parts.moduleName);
     if (moduleDef != null) {
       String servletPath="/" + parts.partialPath;
       servletClassName=moduleDef.findServletForPath(servletPath);
@@ -20,7 +21,7 @@
   }
   if (servletClassName == null) {
     String path=request.getPathInfo();
-    ModuleDef moduleDef=(ModuleDef)modulesByServletPath.get(path);
+    moduleDef=(ModuleDef)modulesByServletPath.get(path);
     if (moduleDef != null) {
       servletClassName=moduleDef.findServletForPath(path);
       if (servletClassName != null) {
@@ -34,7 +35,7 @@
     }
   }
   if (servletClassName != null) {
-    HttpServlet delegatee=tryGetOrLoadServlet(logger,servletClassName);
+    HttpServlet delegatee=tryGetOrLoadServlet(logger,moduleDef,servletClassName);
     if (delegatee == null) {
       logger.log(TreeLogger.ERROR,"Unable to dispatch request",null);
       sendErrorResponse(response,HttpServletResponse.SC_INTERNAL_SERVER_ERROR,"Unable to find/load mapped servlet class '" + servletClassName + "'");

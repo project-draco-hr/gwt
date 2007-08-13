@@ -1,0 +1,54 @@
+{
+  if (encodedRequest == null) {
+    throw new NullPointerException("encodedRequest cannot be null");
+  }
+  if (encodedRequest.length() == 0) {
+    throw new IllegalArgumentException("encodedRequest cannot be empty");
+  }
+  ClassLoader classLoader=Thread.currentThread().getContextClassLoader();
+  try {
+    ServerSerializationStreamReader streamReader=new ServerSerializationStreamReader(classLoader,serializationPolicyProvider);
+    streamReader.prepareToRead(encodedRequest);
+    String serviceIntfName=streamReader.readString();
+    if (type != null) {
+      if (!implementsInterface(type,serviceIntfName)) {
+        throw new IncompatibleRemoteServiceException("Blocked attempt to access interface '" + serviceIntfName + "', which is not implemented by '"+ printTypeName(type)+ "'; this is either misconfiguration or a hack attempt");
+      }
+    }
+    SerializationPolicy serializationPolicy=streamReader.getSerializationPolicy();
+    Class serviceIntf;
+    try {
+      serviceIntf=getClassFromSerializedName(serviceIntfName,classLoader);
+      if (!RemoteService.class.isAssignableFrom(serviceIntf)) {
+        throw new IncompatibleRemoteServiceException("Blocked attempt to access interface '" + printTypeName(serviceIntf) + "', which doesn't extend RemoteService; this is either misconfiguration or a hack attempt");
+      }
+    }
+ catch (    ClassNotFoundException e) {
+      throw new IncompatibleRemoteServiceException("Could not locate requested interface '" + serviceIntfName + "' in default classloader",e);
+    }
+    String serviceMethodName=streamReader.readString();
+    int paramCount=streamReader.readInt();
+    Class[] parameterTypes=new Class[paramCount];
+    for (int i=0; i < parameterTypes.length; i++) {
+      String paramClassName=streamReader.readString();
+      try {
+        parameterTypes[i]=getClassFromSerializedName(paramClassName,classLoader);
+      }
+ catch (      ClassNotFoundException e) {
+        throw new IncompatibleRemoteServiceException("Parameter " + i + " of is of an unknown type '"+ paramClassName+ "'",e);
+      }
+    }
+    Method method=findInterfaceMethod(serviceIntf,serviceMethodName,parameterTypes,true);
+    if (method == null) {
+      throw new IncompatibleRemoteServiceException(formatMethodNotFoundErrorMessage(serviceIntf,serviceMethodName,parameterTypes));
+    }
+    Object[] parameterValues=new Object[parameterTypes.length];
+    for (int i=0; i < parameterValues.length; i++) {
+      parameterValues[i]=streamReader.deserializeValue(parameterTypes[i]);
+    }
+    return new RPCRequest(method,parameterValues,serializationPolicy);
+  }
+ catch (  SerializationException ex) {
+    throw new IncompatibleRemoteServiceException(ex.getMessage(),ex);
+  }
+}

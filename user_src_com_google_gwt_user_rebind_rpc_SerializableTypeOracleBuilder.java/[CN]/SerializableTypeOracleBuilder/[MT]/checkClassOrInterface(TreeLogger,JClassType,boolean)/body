@@ -47,17 +47,23 @@
     logger.branch(TreeLogger.DEBUG,"Type '" + type.getParameterizedQualifiedSourceName() + "' is not assignable to '"+ IsSerializable.class.getName()+ "' or '"+ Serializable.class.getName()+ "' nor does it have a custom field serializer",null);
   }
   if (checkSubtypes) {
+    if (!type.isAbstract() && (type.isDefaultInstantiable() || mti.qualifiesForManualSerialization())) {
+      mti.setMaybeInstantiated(true);
+    }
     JClassType[] subtypes=type.getSubtypes();
     if (subtypes.length > 0) {
       TreeLogger localLogger=logger.branch(TreeLogger.DEBUG,"Analyzing subclasses:",null);
       for (int i=0; i < subtypes.length; ++i) {
-        JClassType subtype=subtypes[i];
-        MetaTypeInfo smti=getMetaTypeInfo(subtype);
+        JClassType subType=subtypes[i];
+        MetaTypeInfo smti=getMetaTypeInfo(subType);
         if (smti.qualifiesForSerialization()) {
-          checkType(localLogger,subtype,false);
+          checkType(localLogger,subType,false);
+          if (!subType.isAbstract() && subType.isDefaultInstantiable()) {
+            smti.setMaybeInstantiated(true);
+          }
         }
  else {
-          localLogger.branch(TreeLogger.DEBUG,"Not analyzing subclass '" + subtype.getParameterizedQualifiedSourceName() + "' because it is not assignable to '"+ IsSerializable.class.getName()+ "' or '"+ Serializable.class.getName()+ "' nor does it have a custom field serializer",null);
+          localLogger.branch(TreeLogger.DEBUG,"Not analyzing subclass '" + subType.getParameterizedQualifiedSourceName() + "' because it is not assignable to '"+ IsSerializable.class.getName()+ "' or '"+ Serializable.class.getName()+ "' nor does it have a custom field serializer",null);
         }
       }
     }

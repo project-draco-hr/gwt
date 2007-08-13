@@ -1,6 +1,6 @@
 {
   Field[] declFields=instanceClass.getDeclaredFields();
-  Field[] serializableFields=serializableTypeOracle.applyFieldSerializationPolicy(declFields);
+  Field[] serializableFields=SerializabilityUtil.applyFieldSerializationPolicy(declFields);
   for (int index=0; index < serializableFields.length; ++index) {
     Field declField=serializableFields[index];
     assert(declField != null);
@@ -16,7 +16,7 @@
     }
   }
   Class superClass=instanceClass.getSuperclass();
-  if (superClass != null && serializableTypeOracle.isSerializable(superClass)) {
-    deserializeImpl(serializableTypeOracle.hasCustomFieldSerializer(superClass),superClass,instance);
+  if (serializationPolicy.shouldDeserializeFields(superClass)) {
+    deserializeImpl(SerializabilityUtil.hasCustomFieldSerializer(superClass),superClass,instance);
   }
 }
