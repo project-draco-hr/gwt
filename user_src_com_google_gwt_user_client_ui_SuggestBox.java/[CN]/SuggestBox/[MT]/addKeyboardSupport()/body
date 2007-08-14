@@ -1,58 +1,40 @@
 {
   box.addKeyboardListener(new KeyboardListenerAdapter(){
-    private boolean pendingCancel;
     public void onKeyDown(    Widget sender,    char keyCode,    int modifiers){
-      pendingCancel=picker.delegateKeyDown(keyCode);
-    }
-    public void onKeyPress(    Widget sender,    char keyCode,    int modifiers){
-      if (pendingCancel) {
-        box.cancelKey();
-        pendingCancel=false;
-      }
- else       if (popup.isAttached()) {
-        if (separators != null && isSeparator(keyCode)) {
-          picker.commitSelection();
-          box.cancelKey();
-        }
-      }
-    }
-    public void onKeyUp(    Widget sender,    char keyCode,    int modifiers){
-      refreshSuggestions();
-    }
-    /** 
- * In the presence of separators, returns the active search selection.
- */
-    private String getActiveSelection(    String text){
-      selectEnd=box.getCursorPos();
-      selectStart=-1;
-      for (int i=0; i < separators.length; i++) {
-        selectStart=Math.max(text.lastIndexOf(separators[i],selectEnd - 1),selectStart);
-      }
-      ++selectStart;
-      return text.substring(selectStart,selectEnd).trim();
-    }
-    private void refreshSuggestions(){
-      String text=box.getText();
-      if (text.equals(currentValue)) {
-        return;
-      }
+      if (suggestionPopup.isAttached()) {
+switch (keyCode) {
+case KeyboardListener.KEY_DOWN:
+          suggestionMenu.selectItem(suggestionMenu.getSelectedItemIndex() + 1);
+        break;
+case KeyboardListener.KEY_UP:
+      suggestionMenu.selectItem(suggestionMenu.getSelectedItemIndex() - 1);
+    break;
+case KeyboardListener.KEY_ENTER:
+case KeyboardListener.KEY_TAB:
+  suggestionMenu.doSelectedItemAction();
+break;
+}
+}
+}
+public void onKeyUp(Widget sender,char keyCode,int modifiers){
+refreshSuggestions();
+}
+private void refreshSuggestions(){
+String text=box.getText();
+if (text.equals(currentText)) {
+return;
+}
  else {
-        currentValue=text;
-      }
-      String selection;
-      if (separators == null) {
-        selection=text;
-      }
+currentText=text;
+}
+if (text.length() == 0) {
+suggestionPopup.hide();
+suggestionMenu.clearItems();
+}
  else {
-        selection=getActiveSelection(text);
-      }
-      if (selection.length() == 0) {
-        popup.hide();
-      }
- else {
-        showSuggestions(selection);
-      }
-    }
-  }
+showSuggestions(text);
+}
+}
+}
 );
 }
