@@ -12,9 +12,7 @@
     }
     pw.close();
     byte[] serializationPolicyFileContents=baos.toByteArray();
-    MessageDigest md5=MessageDigest.getInstance("MD5");
-    md5.update(serializationPolicyFileContents);
-    String serializationPolicyName=Util.toHexString(md5.digest());
+    String serializationPolicyName=Util.computeStrongName(serializationPolicyFileContents);
     String serializationPolicyFileName=SerializationPolicyLoader.getSerializationPolicyFileName(serializationPolicyName);
     OutputStream os=ctx.tryCreateResource(logger,serializationPolicyFileName);
     if (os != null) {
@@ -26,11 +24,7 @@
     }
     return serializationPolicyName;
   }
- catch (  NoSuchAlgorithmException e) {
-    logger.log(TreeLogger.ERROR,"Error initializing MD5",e);
-    throw new UnableToCompleteException();
-  }
-catch (  UnsupportedEncodingException e) {
+ catch (  UnsupportedEncodingException e) {
     logger.log(TreeLogger.ERROR,SerializationPolicyLoader.SERIALIZATION_POLICY_FILE_ENCODING + " is not supported",e);
     throw new UnableToCompleteException();
   }

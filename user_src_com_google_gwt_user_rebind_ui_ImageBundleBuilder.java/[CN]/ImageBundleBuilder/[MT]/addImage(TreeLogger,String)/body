@@ -7,14 +7,9 @@
       logger.log(TreeLogger.ERROR,"Resource not found on classpath (is the name specified as Class.getResource() would expect?)",null);
       throw new UnableToCompleteException();
     }
-    InputStream is=imageUrl.openStream();
-    BufferedInputStream bis=new BufferedInputStream(is);
-    byte imgByte;
-    while ((imgByte=(byte)bis.read()) != -1) {
-      md5.update(imgByte);
-    }
-    is.close();
-    image=ImageIO.read(imageUrl);
+    byte[] imgBytes=Util.readURLAsBytes(imageUrl);
+    md5.update(imgBytes);
+    image=ImageIO.read(new ByteArrayInputStream(imgBytes));
     if (image == null) {
       logger.log(TreeLogger.ERROR,"Unrecognized image file format",null);
       throw new UnableToCompleteException();
