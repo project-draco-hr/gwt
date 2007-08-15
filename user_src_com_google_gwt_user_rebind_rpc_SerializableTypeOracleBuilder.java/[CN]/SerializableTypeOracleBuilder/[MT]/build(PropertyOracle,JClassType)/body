@@ -1,21 +1,62 @@
 {
   initializeProperties(rootLogger,propertyOracle);
-  TreeLogger logger=rootLogger.branch(TreeLogger.DEBUG,"Analyzing '" + remoteService.getParameterizedQualifiedSourceName() + "' for serializable types",null);
-  validateRemoteService(logger,remoteService);
-  if (validationFailed) {
+  try {
+    JClassType stringType=typeOracle.getType(String.class.getName());
+    if (!checkTypeInstantiable(rootLogger,stringType,false,false)) {
+      throw new UnableToCompleteException();
+    }
+    JClassType icseType=typeOracle.getType(IncompatibleRemoteServiceException.class.getName());
+    if (!checkTypeInstantiable(rootLogger,icseType,false,false)) {
+      throw new UnableToCompleteException();
+    }
+  }
+ catch (  NotFoundException e) {
+    rootLogger.log(TreeLogger.ERROR,null,e);
     throw new UnableToCompleteException();
+  }
+  TreeLogger logger=rootLogger.branch(TreeLogger.DEBUG,"Analyzing '" + remoteService.getParameterizedQualifiedSourceName() + "' for serializable types",null);
+  alreadyCheckedObject=false;
+  validateRemoteService(logger,remoteService);
+  List typeInfoComputed=new ArrayList(typeToTypeInfoComputed.values());
+  Iterator iterTypes=typeInfoComputed.iterator();
+  while (iterTypes.hasNext()) {
+    TypeInfoComputed tic=(TypeInfoComputed)iterTypes.next();
+    if (tic.isInstantiable()) {
+      JArrayType arrayType=tic.getType().isArray();
+      if (arrayType != null) {
+        JType leafType=arrayType.getLeafType();
+        int rank=arrayType.getRank();
+        JClassType classType=leafType.isClassOrInterface();
+        if (classType != null) {
+          List instantiableSubTypes=new ArrayList();
+          JClassType[] subTypes=classType.getSubtypes();
+          for (int i=0; i < subTypes.length; ++i) {
+            if (getTypeInfoComputed(subTypes[i]).isInstantiable()) {
+              instantiableSubTypes.add(subTypes[i]);
+            }
+          }
+          List covariantTypes=getAllTypesBetweenRootTypeAndLeaves(classType,instantiableSubTypes);
+          for (int i=0, c=covariantTypes.size(); i < c; ++i) {
+            JArrayType covariantArray=getArrayType(typeOracle,rank,(JType)covariantTypes.get(i));
+            getTypeInfoComputed(covariantArray).setInstantiable(true);
+          }
+        }
+      }
+    }
   }
   Set possiblyInstantiatedTypes=new HashSet();
   List serializableTypesList=new ArrayList();
-  Iterator iterTypes=typeToMetaTypeInfo.values().iterator();
+  iterTypes=typeToTypeInfoComputed.values().iterator();
   while (iterTypes.hasNext()) {
-    MetaTypeInfo mti=(MetaTypeInfo)iterTypes.next();
-    JType type=mti.getType();
-    if (mti.isSerializable() && type.isInterface() == null) {
-      if (mti.maybeInstantiated()) {
+    TypeInfoComputed tic=(TypeInfoComputed)iterTypes.next();
+    JType type=tic.getType();
+    if (type.isParameterized() == null) {
+      if (tic.isInstantiable()) {
         possiblyInstantiatedTypes.add(type);
       }
-      serializableTypesList.add(type);
+      if (tic.isFieldSerializable()) {
+        serializableTypesList.add(type);
+      }
     }
   }
   JType[] serializableTypes=new JType[serializableTypesList.size()];

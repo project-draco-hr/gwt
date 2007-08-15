@@ -1,0 +1,48 @@
+{
+  TypeInfo typeInfo=getTypeInfo(type);
+  TypeInfoComputed tic=getTypeInfoComputed(type);
+  if (!typeInfo.isDeclaredSerializable()) {
+    logger.branch(TreeLogger.DEBUG,"Type '" + type.getParameterizedQualifiedSourceName() + "' is not assignable to '"+ IsSerializable.class.getName()+ "' or '"+ Serializable.class.getName()+ "' nor does it have a custom field serializer",null);
+    return false;
+  }
+  if (typeInfo.isManuallySerializable()) {
+    List failures=CustomFieldSerializerValidator.validate(streamReaderClass,streamWriterClass,typeInfo.getManualSerializer(),type);
+    if (!failures.isEmpty()) {
+      markAsUninstantiableAndLog(logger,isSpeculative,failures,tic);
+      return false;
+    }
+  }
+ else {
+    assert(typeInfo.isAutoSerializable());
+    if (type.isLocalType()) {
+      markAsUninstantiableAndLog(logger,isSpeculative,type.getParameterizedQualifiedSourceName() + " is a local type, it will be excluded from the set of serializable types",tic);
+      return false;
+    }
+    if (type.isMemberType() && !type.isStatic()) {
+      markAsUninstantiableAndLog(logger,isSpeculative,type.getParameterizedQualifiedSourceName() + " is nested but not static, it will be excluded from the set of serializable types",tic);
+      return false;
+    }
+    if (type.isInterface() != null || type.isAbstract()) {
+      return false;
+    }
+    boolean isDefaultInstantiable=false;
+    if (type.getConstructors().length == 0) {
+      isDefaultInstantiable=true;
+    }
+ else {
+      JConstructor ctor=type.findConstructor(new JType[0]);
+      if (ctor != null && !ctor.isPrivate()) {
+        isDefaultInstantiable=true;
+      }
+    }
+    if (!isDefaultInstantiable) {
+      logger.log(TreeLogger.WARN,"Was not default instantiable (it must have a zero-argument, non-private constructor or no constructors at all)",null);
+      return false;
+    }
+  }
+  if (!checkFields(logger,type,isSpeculative)) {
+    return false;
+  }
+  checkMethods(logger,type);
+  return true;
+}

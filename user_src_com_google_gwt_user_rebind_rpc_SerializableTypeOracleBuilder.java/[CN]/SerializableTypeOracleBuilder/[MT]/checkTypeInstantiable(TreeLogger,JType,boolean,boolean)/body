@@ -1,0 +1,70 @@
+{
+  assert(type != null);
+  if (type.isPrimitive() != null) {
+    return true;
+  }
+  TreeLogger localLogger=logger.branch(TreeLogger.DEBUG,type.getParameterizedQualifiedSourceName(),null);
+  TypeInfoComputed tic=getTypeInfoComputed(type);
+  if (tic.isPendingInstantiable()) {
+    return true;
+  }
+ else   if (tic.isDone()) {
+    return tic.isInstantiable();
+  }
+  tic.setPendingInstantiable();
+  if (type.getLeafType() == typeOracle.getJavaLangObject()) {
+    markAsUninstantiableAndLog(logger,isSpeculative,"In order to produce smaller client-side code, 'Object' is not allowed; consider using a more specific type",tic);
+    return false;
+  }
+  if (type.isParameterized() != null) {
+    JParameterizedType parameterized=type.isParameterized();
+    boolean allSucceeded=checkTypeInstantiable(localLogger.branch(TreeLogger.DEBUG,"Analyzing raw type",null),parameterized.getRawType(),isSpeculative,true);
+    TreeLogger branch=localLogger.branch(TreeLogger.DEBUG,"Analyzing type args",null);
+    JType[] typeArgs=parameterized.getTypeArgs();
+    for (int i=0; i < typeArgs.length; ++i) {
+      allSucceeded&=checkTypeInstantiable(branch,typeArgs[i],isSpeculative,false);
+    }
+    tic.setInstantiable(allSucceeded);
+    return allSucceeded;
+  }
+ else   if (type.isArray() != null) {
+    TreeLogger branch=localLogger.branch(TreeLogger.DEBUG,"Analyzing component type:",null);
+    boolean success=checkTypeInstantiable(branch,type.isArray().getComponentType(),isSpeculative,false);
+    tic.setInstantiable(success);
+    return success;
+  }
+ else   if (type.isClassOrInterface() != null) {
+    JClassType classType=type.isClassOrInterface();
+    TypeInfo typeInfo=getTypeInfo(classType);
+    if (isSpeculative && typeInfo.isDirectlySerializable()) {
+      isSpeculative=false;
+    }
+    boolean anySubtypes=false;
+    if (checkClassOrInterfaceInstantiable(localLogger,classType,isSpeculative)) {
+      tic.setInstantiable(true);
+      anySubtypes=true;
+      if (!rawTypeOk) {
+        checkForUnparameterizedType(logger,classType);
+      }
+    }
+    JClassType[] subtypes=classType.getSubtypes();
+    if (subtypes.length > 0) {
+      TreeLogger subLogger=localLogger.branch(TreeLogger.DEBUG,"Analyzing subclasses:",null);
+      for (int i=0; i < subtypes.length; ++i) {
+        JClassType subType=subtypes[i];
+        if (checkClassOrInterfaceInstantiable(subLogger,subType,true)) {
+          getTypeInfoComputed(subType).setInstantiable(true);
+          anySubtypes=true;
+        }
+      }
+    }
+    if (!anySubtypes && !isSpeculative) {
+      logger.log(getLogLevel(isSpeculative),"Type '" + type.getParameterizedQualifiedSourceName() + "' was not serializable and has no concrete serializable subtypes",null);
+    }
+    return anySubtypes;
+  }
+ else {
+    assert(false);
+    return false;
+  }
+}
