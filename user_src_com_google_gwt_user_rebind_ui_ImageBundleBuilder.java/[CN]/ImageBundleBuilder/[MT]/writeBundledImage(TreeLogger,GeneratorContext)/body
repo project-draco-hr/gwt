@@ -1,31 +1,20 @@
 {
-  int nextLeft=0;
-  int maxHeight=0;
-  for (Iterator iter=orderedImageRects.iterator(); iter.hasNext(); ) {
-    ImageRect imageRect=(ImageRect)iter.next();
-    imageRect.left=nextLeft;
-    nextLeft+=imageRect.width;
-    if (imageRect.height > maxHeight) {
-      maxHeight=imageRect.height;
-    }
+  BufferedImage bundledImage=drawBundledImage();
+  byte[] imageBytes;
+  try {
+    ByteArrayOutputStream byteOutputStream=new ByteArrayOutputStream();
+    ImageIO.write(bundledImage,BUNDLE_FILE_TYPE,byteOutputStream);
+    imageBytes=byteOutputStream.toByteArray();
   }
-  BufferedImage bundledImage=new BufferedImage(nextLeft,maxHeight,BufferedImage.TYPE_INT_ARGB_PRE);
-  Graphics2D g2d=bundledImage.createGraphics();
-  for (Iterator iter=orderedImageRects.iterator(); iter.hasNext(); ) {
-    ImageRect imageRect=(ImageRect)iter.next();
-    g2d.drawImage(imageRect.image,imageRect.left,0,null);
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Unable to generate file name for image bundle file",null);
+    throw new UnableToCompleteException();
   }
-  g2d.dispose();
-  String strongName=Util.toHexString(md5.digest());
-  String bundleFileType="png";
-  String bundleFileName=strongName + ".cache." + bundleFileType;
+  String bundleFileName=Util.computeStrongName(imageBytes) + ".cache." + BUNDLE_FILE_TYPE;
   OutputStream outStream=context.tryCreateResource(logger,bundleFileName);
   if (outStream != null) {
     try {
-      if (!ImageIO.write(bundledImage,bundleFileType,outStream)) {
-        logger.log(TreeLogger.ERROR,"Unsupported output file type",null);
-        throw new UnableToCompleteException();
-      }
+      outStream.write(imageBytes);
       context.commitResource(logger,outStream);
     }
  catch (    IOException e) {

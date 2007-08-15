@@ -1,0 +1,23 @@
+{
+  SortedMap sortedImageNameToImageRectMap=new TreeMap();
+  sortedImageNameToImageRectMap.putAll(imageNameToImageRectMap);
+  Collection orderedImageRects=sortedImageNameToImageRectMap.values();
+  int nextLeft=0;
+  int maxHeight=0;
+  for (Iterator iter=orderedImageRects.iterator(); iter.hasNext(); ) {
+    ImageRect imageRect=(ImageRect)iter.next();
+    imageRect.left=nextLeft;
+    nextLeft+=imageRect.width;
+    if (imageRect.height > maxHeight) {
+      maxHeight=imageRect.height;
+    }
+  }
+  BufferedImage bundledImage=new BufferedImage(nextLeft,maxHeight,BufferedImage.TYPE_INT_ARGB_PRE);
+  Graphics2D g2d=bundledImage.createGraphics();
+  for (Iterator iter=orderedImageRects.iterator(); iter.hasNext(); ) {
+    ImageRect imageRect=(ImageRect)iter.next();
+    g2d.drawImage(imageRect.image,imageRect.left,0,null);
+  }
+  g2d.dispose();
+  return bundledImage;
+}
