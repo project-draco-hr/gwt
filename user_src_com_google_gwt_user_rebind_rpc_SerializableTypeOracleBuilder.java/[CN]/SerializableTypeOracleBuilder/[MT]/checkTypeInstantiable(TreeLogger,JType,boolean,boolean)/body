@@ -43,9 +43,6 @@
     if (checkClassOrInterfaceInstantiable(localLogger,classType,isSpeculative)) {
       tic.setInstantiable(true);
       anySubtypes=true;
-      if (!rawTypeOk) {
-        checkForUnparameterizedType(logger,classType);
-      }
     }
     JClassType[] subtypes=classType.getSubtypes();
     if (subtypes.length > 0) {
@@ -58,7 +55,12 @@
         }
       }
     }
-    if (!anySubtypes && !isSpeculative) {
+    if (anySubtypes) {
+      if (!rawTypeOk) {
+        checkForUnparameterizedType(logger,classType);
+      }
+    }
+ else     if (!isSpeculative) {
       logger.log(getLogLevel(isSpeculative),"Type '" + type.getParameterizedQualifiedSourceName() + "' was not serializable and has no concrete serializable subtypes",null);
     }
     return anySubtypes;
