@@ -1,0 +1,32 @@
+{
+  final Set<String> pendingRemovals=new HashSet<String>();
+  TypeRefVisitor trv=new TypeRefVisitor(){
+    @Override protected void onTypeRef(    SourceTypeBinding referencedType,    CompilationUnitDeclaration unitOfReferrer){
+      String referencedFn=String.valueOf(referencedType.getFileName());
+      CompilationUnitDeclaration referencedCud=cudsByFileName.get(referencedFn);
+      if (referencedCud == null) {
+        String referrerFn=String.valueOf(unitOfReferrer.getFileName());
+        if (cudsByFileName.containsKey(referrerFn) && !pendingRemovals.contains(referrerFn)) {
+          TreeLogger branch=logger.branch(TreeLogger.TRACE,"Cascaded removal of compilation unit '" + referrerFn + "'",null);
+          final String badTypeName=CharOperation.toString(referencedType.compoundName);
+          branch.branch(TreeLogger.TRACE,"Due to reference to unavailable type: " + badTypeName,null);
+          pendingRemovals.add(referrerFn);
+        }
+      }
+    }
+  }
+;
+  do {
+    for (Iterator<String> iter=pendingRemovals.iterator(); iter.hasNext(); ) {
+      String fnToRemove=iter.next();
+      Object removed=cudsByFileName.remove(fnToRemove);
+      assert(removed != null);
+    }
+    pendingRemovals.clear();
+    for (Iterator<CompilationUnitDeclaration> iter=cudsByFileName.values().iterator(); iter.hasNext(); ) {
+      CompilationUnitDeclaration cud=iter.next();
+      cud.traverse(trv,cud.scope);
+    }
+  }
+ while (!pendingRemovals.isEmpty());
+}

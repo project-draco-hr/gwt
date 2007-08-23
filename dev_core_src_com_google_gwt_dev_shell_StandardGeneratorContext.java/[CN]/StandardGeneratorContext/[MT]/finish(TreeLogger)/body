@@ -1,6 +1,6 @@
 {
   abortUncommittedResources(logger);
-  List genTypeNames=new ArrayList();
+  List<String> genTypeNames=new ArrayList<String>();
   try {
     TreeLogger branch;
     if (!committedGeneratedCups.isEmpty()) {
@@ -12,8 +12,8 @@
       }
       assert(cacheManager.getTypeOracle() == typeOracle);
       TypeOracleBuilder builder=new TypeOracleBuilder(cacheManager);
-      for (Iterator iter=committedGeneratedCups.iterator(); iter.hasNext(); ) {
-        GeneratedCompilationUnitProvider gcup=(GeneratedCompilationUnitProvider)iter.next();
+      for (Iterator<GeneratedCompilationUnitProvider> iter=committedGeneratedCups.iterator(); iter.hasNext(); ) {
+        GeneratedCompilationUnitProvider gcup=iter.next();
         String typeName=gcup.getTypeName();
         String genTypeName=gcup.getPackageName() + "." + typeName;
         genTypeNames.add(genTypeName);
@@ -28,8 +28,8 @@
     }
     JClassType[] genTypes=new JClassType[genTypeNames.size()];
     int next=0;
-    for (Iterator iter=genTypeNames.iterator(); iter.hasNext(); ) {
-      String genTypeName=(String)iter.next();
+    for (Iterator<String> iter=genTypeNames.iterator(); iter.hasNext(); ) {
+      String genTypeName=iter.next();
       try {
         genTypes[next++]=typeOracle.getType(genTypeName);
       }
@@ -45,8 +45,8 @@
     if (!uncommittedGeneratedCupsByPrintWriter.isEmpty()) {
       String msg="For the following type(s), generated source was never committed (did you forget to call commit()?)";
       logger=logger.branch(TreeLogger.WARN,msg,null);
-      for (Iterator iter=uncommittedGeneratedCupsByPrintWriter.values().iterator(); iter.hasNext(); ) {
-        StaticCompilationUnitProvider cup=(StaticCompilationUnitProvider)iter.next();
+      for (Iterator<GeneratedCompilationUnitProvider> iter=uncommittedGeneratedCupsByPrintWriter.values().iterator(); iter.hasNext(); ) {
+        StaticCompilationUnitProvider cup=iter.next();
         String typeName=cup.getPackageName() + "." + cup.getTypeName();
         logger.log(TreeLogger.WARN,typeName,null);
       }

@@ -1,13 +1,12 @@
 {
   final Dependencies dependencies=new Dependencies();
   DependencyVisitor trv=new DependencyVisitor(dependencies);
-  for (Iterator iter=cudsByFileName.values().iterator(); iter.hasNext(); ) {
-    CompilationUnitDeclaration cud=(CompilationUnitDeclaration)iter.next();
+  for (  CompilationUnitDeclaration cud : cudsByFileName.values()) {
     cud.traverse(trv,cud.scope);
   }
-  Set toTraverse=new HashSet(changedFiles);
-  for (Iterator iter=toTraverse.iterator(); iter.hasNext(); ) {
-    String fileName=(String)iter.next();
+  Set<String> toTraverse=new HashSet<String>(changedFiles);
+  for (Iterator<String> iter=toTraverse.iterator(); iter.hasNext(); ) {
+    String fileName=iter.next();
     changedFiles.addAll(dependencies.transitiveClosure(fileName));
   }
 }

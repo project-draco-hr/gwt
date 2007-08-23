@@ -16,10 +16,10 @@
     if (entryPoints.length > 0) {
       for (int i=0; i < entryPoints.length; i++) {
         entryPointTypeName=entryPoints[i];
-        Class clazz=loadClassFromSourceName(entryPointTypeName);
+        Class<?> clazz=loadClassFromSourceName(entryPointTypeName);
         Method onModuleLoad=null;
         try {
-          onModuleLoad=clazz.getMethod("onModuleLoad",null);
+          onModuleLoad=clazz.getMethod("onModuleLoad");
           if (!Modifier.isStatic(onModuleLoad.getModifiers())) {
             onModuleLoad=null;
           }
@@ -29,10 +29,10 @@
         Object module=null;
         if (onModuleLoad == null) {
           module=rebindAndCreate(entryPointTypeName);
-          onModuleLoad=module.getClass().getMethod("onModuleLoad",null);
+          onModuleLoad=module.getClass().getMethod("onModuleLoad");
         }
         onModuleLoad.setAccessible(true);
-        onModuleLoad.invoke(module,null);
+        onModuleLoad.invoke(module);
       }
     }
  else {

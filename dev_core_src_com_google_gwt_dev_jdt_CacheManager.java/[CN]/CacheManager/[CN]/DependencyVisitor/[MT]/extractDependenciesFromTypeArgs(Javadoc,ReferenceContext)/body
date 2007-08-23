@@ -1,0 +1,42 @@
+{
+  if (javadoc == null) {
+    return;
+  }
+  final char[] source=scope.compilationResult().compilationUnit.getContents();
+  TypeOracleBuilder.parseMetaDataTags(source,new HasMetaData(){
+    public void addMetaData(    String tagName,    String[] values){
+      assert(values != null);
+      if (!TypeOracle.TAG_TYPEARGS.equals(tagName)) {
+        return;
+      }
+      if (values.length == 0) {
+        return;
+      }
+      Set<String> typeNames=new HashSet<String>();
+      int startIndex=1;
+      if (values[0].trim().startsWith("<")) {
+        startIndex=0;
+      }
+      extractTypeNamesFromTypeArg(combine(values,startIndex),typeNames);
+      Iterator<String> it=typeNames.iterator();
+      while (it.hasNext()) {
+        String typeName=it.next();
+        try {
+          ICompilationUnit compilationUnit=astCompiler.getCompilationUnitForType(TreeLogger.NULL,typeName);
+          String dependeeFilename=String.valueOf(compilationUnit.getFileName());
+          String dependerFilename=String.valueOf(scope.compilationResult().compilationUnit.getFileName());
+          dependencies.add(dependerFilename,dependeeFilename);
+        }
+ catch (        UnableToCompleteException e) {
+        }
+      }
+    }
+    public String[][] getMetaData(    String tagName){
+      return null;
+    }
+    public String[] getMetaDataTags(){
+      return null;
+    }
+  }
+,javadoc);
+}
