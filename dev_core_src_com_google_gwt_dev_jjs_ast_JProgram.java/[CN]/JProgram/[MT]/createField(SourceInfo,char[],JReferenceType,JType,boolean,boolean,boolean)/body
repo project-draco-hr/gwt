@@ -2,14 +2,13 @@
   assert(name != null);
   assert(enclosingType != null);
   assert(type != null);
-  boolean isSpecialField=specialTypes.contains(enclosingType);
-  if (isSpecialField) {
+  if (codeGenTypes.contains(enclosingType) || enclosingType == typeJavaLangObject) {
     hasInitializer=true;
   }
   String sname=String.valueOf(name);
   JField x=new JField(this,info,sname,enclosingType,type,isStatic,isFinal,hasInitializer);
-  if (isSpecialField) {
-    specialFields.put(enclosingType.getShortName() + '.' + sname,x);
+  if (indexedTypes.containsValue(enclosingType)) {
+    indexedFields.put(enclosingType.getShortName() + '.' + sname,x);
   }
   enclosingType.fields.add(x);
   return x;

@@ -1,0 +1,53 @@
+{
+  SourceInfo info=makeSourceInfo(x);
+  if (x.collection.resolvedType.isArrayType()) {
+    JLocal elementVar=(JLocal)typeMap.get(x.elementVariable.binding);
+    String elementVarName=elementVar.getName();
+    JLocal arrayVar=createSyntheticLocal(info,elementVarName + "$array",(JType)typeMap.get(x.collection.resolvedType));
+    JLocal indexVar=createSyntheticLocal(info,elementVarName + "$index",program.getTypePrimitiveInt());
+    JLocal maxVar=createSyntheticLocal(info,elementVarName + "$max",program.getTypePrimitiveInt());
+    List<JStatement> initializers=new ArrayList<JStatement>(3);
+    initializers.add(createLocalDeclaration(info,arrayVar,dispProcessExpression(x.collection)));
+    initializers.add(createLocalDeclaration(info,indexVar,program.getLiteralInt(0)));
+    initializers.add(createLocalDeclaration(info,maxVar,new JFieldRef(program,info,createVariableRef(info,arrayVar),program.getIndexedField("Array.length"),currentClass)));
+    JExpression condition=new JBinaryOperation(program,info,program.getTypePrimitiveBoolean(),JBinaryOperator.LT,createVariableRef(info,indexVar),createVariableRef(info,maxVar));
+    List<JStatement> increments=new ArrayList<JStatement>(1);
+    increments.add(new JPrefixOperation(program,info,JUnaryOperator.INC,createVariableRef(info,indexVar)).makeStatement());
+    JBlock body;
+    JStatement action=dispProcessStatement(x.action);
+    if (action instanceof JBlock) {
+      body=(JBlock)action;
+    }
+ else {
+      body=new JBlock(program,info);
+      body.statements.add(action);
+    }
+    JLocalDeclarationStatement elementDecl=(JLocalDeclarationStatement)processStatement(x.elementVariable);
+    assert(elementDecl.initializer == null);
+    elementDecl.initializer=new JArrayRef(program,info,createVariableRef(info,arrayVar),createVariableRef(info,indexVar));
+    body.statements.add(0,elementDecl);
+    return new JForStatement(program,info,initializers,condition,increments,body);
+  }
+ else {
+    JLocal elementVar=(JLocal)typeMap.get(x.elementVariable.binding);
+    String elementVarName=elementVar.getName();
+    JLocal iteratorVar=createSyntheticLocal(info,elementVarName + "$iterator",(JType)typeMap.get(x.collection.resolvedType));
+    List<JStatement> initializers=new ArrayList<JStatement>(1);
+    initializers.add(createLocalDeclaration(info,iteratorVar,new JMethodCall(program,info,dispProcessExpression(x.collection),program.getIndexedMethod("Iterable.iterator"))));
+    JExpression condition=new JMethodCall(program,info,createVariableRef(info,iteratorVar),program.getIndexedMethod("Iterator.hasNext"));
+    JBlock body;
+    JStatement action=dispProcessStatement(x.action);
+    if (action instanceof JBlock) {
+      body=(JBlock)action;
+    }
+ else {
+      body=new JBlock(program,info);
+      body.statements.add(action);
+    }
+    JLocalDeclarationStatement elementDecl=(JLocalDeclarationStatement)processStatement(x.elementVariable);
+    assert(elementDecl.initializer == null);
+    elementDecl.initializer=new JMethodCall(program,info,createVariableRef(info,iteratorVar),program.getIndexedMethod("Iterator.next"));
+    body.statements.add(0,elementDecl);
+    return new JForStatement(program,info,initializers,condition,Collections.emptyList(),body);
+  }
+}

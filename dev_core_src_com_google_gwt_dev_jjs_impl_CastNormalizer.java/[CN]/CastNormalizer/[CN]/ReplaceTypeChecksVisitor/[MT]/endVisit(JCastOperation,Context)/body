@@ -2,7 +2,7 @@
   JExpression replaceExpr;
   JType toType=x.getCastType();
   if (toType instanceof JNullType) {
-    JMethod method=program.getSpecialMethod("Cast.throwClassCastExceptionUnlessNull");
+    JMethod method=program.getIndexedMethod("Cast.throwClassCastExceptionUnlessNull");
     JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,method,program.getTypeNull());
     call.getArgs().add(x.getExpr());
     replaceExpr=call;
@@ -12,7 +12,7 @@
     JReferenceType refType=(JReferenceType)toType;
     JType argType=x.getExpr().getType();
     if (program.isJavaScriptObject(argType)) {
-      JMethod wrap=program.getSpecialMethod("Cast.wrapJSO");
+      JMethod wrap=program.getIndexedMethod("Cast.wrapJSO");
       JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,wrap,argType);
       JClassSeed seed=program.getLiteralClassSeed((JClassType)argType);
       call.getArgs().add(curExpr);
@@ -23,7 +23,7 @@
       replaceExpr=curExpr;
     }
  else {
-      JMethod method=program.getSpecialMethod("Cast.dynamicCast");
+      JMethod method=program.getIndexedMethod("Cast.dynamicCast");
       JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,method,toType);
       Integer boxedInt=(Integer)queryIds.get(refType);
       JIntLiteral qId=program.getLiteralInt(boxedInt.intValue());
@@ -74,7 +74,7 @@
     }
     if (narrow || round) {
       String methodName="Cast." + (narrow ? "narrow_" : "round_") + toType.getName();
-      JMethod castMethod=program.getSpecialMethod(methodName);
+      JMethod castMethod=program.getIndexedMethod(methodName);
       JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,castMethod);
       call.getArgs().add(x.getExpr());
       replaceExpr=call;
