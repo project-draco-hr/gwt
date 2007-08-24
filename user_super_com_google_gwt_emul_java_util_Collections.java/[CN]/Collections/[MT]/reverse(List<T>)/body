@@ -1,11 +1,17 @@
 {
-  int lastPos=l.size() - 1;
-  for (int i=0; i < l.size() / 2; i++) {
-    T element=l.get(i);
-    int swapPos=lastPos - i;
-    assert(swapPos > i);
-    T swappedWith=l.get(swapPos);
-    l.set(i,swappedWith);
-    l.set(swapPos,element);
+  if (l instanceof RandomAccess) {
+    for (int iFront=0, iBack=l.size() - 1; iFront < iBack; ++iFront, --iBack) {
+      Collections.swap(l,iFront,iBack);
+    }
+  }
+ else {
+    ListIterator<T> head=l.listIterator();
+    ListIterator<T> tail=l.listIterator(l.size());
+    while (head.nextIndex() < tail.previousIndex()) {
+      T headElem=head.next();
+      T tailElem=tail.previous();
+      head.set(tailElem);
+      tail.set(headElem);
+    }
   }
 }
