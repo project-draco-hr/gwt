@@ -1,7 +1,7 @@
 {
-  return new AbstractSet(){
-    public boolean contains(    Object key){
-      Map.Entry s=(Map.Entry)key;
+  return new AbstractSet<Map.Entry<String,T>>(){
+    @Override public boolean contains(    Object key){
+      Map.Entry<?,?> s=(Map.Entry<?,?>)key;
       Object value=get(s.getKey());
       if (value == null) {
         return value == s.getValue();
@@ -10,15 +10,15 @@
         return value.equals(s.getValue());
       }
     }
-    public Iterator iterator(){
-      Iterator custom=new Iterator(){
-        Iterator keys=keySet().iterator();
+    @Override public Iterator<Map.Entry<String,T>> iterator(){
+      Iterator<Map.Entry<String,T>> custom=new Iterator<Map.Entry<String,T>>(){
+        Iterator<String> keys=keySet().iterator();
         public boolean hasNext(){
           return keys.hasNext();
         }
-        public Object next(){
-          String key=(String)keys.next();
-          return new ImplMapEntry(key,get(key));
+        public Map.Entry<String,T> next(){
+          String key=keys.next();
+          return new ImplMapEntry<T>(key,get(key));
         }
         public void remove(){
           keys.remove();
@@ -27,7 +27,7 @@
 ;
       return custom;
     }
-    public int size(){
+    @Override public int size(){
       return FastStringMap.this.size();
     }
   }
