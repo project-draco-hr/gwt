@@ -3,7 +3,7 @@
   currentSeparatorPositions=compResult.lineSeparatorPositions;
   currentFileName=String.valueOf(compResult.fileName);
   SourceTypeBinding binding=typeDeclaration.binding;
-  if (binding.isEnum() || binding.isAnnotationType()) {
+  if (binding.isAnnotationType()) {
     return false;
   }
   if (binding.constantPoolName() == null) {
@@ -31,7 +31,7 @@
     }
     ReferenceBinding superClassBinding=binding.superclass();
     if (superClassBinding != null) {
-      assert(binding.superclass().isClass());
+      assert(binding.superclass().isClass() || binding.superclass().isEnum());
       JClassType superClass=(JClassType)typeMap.get(superClassBinding);
       type.extnds=superClass;
     }
@@ -43,6 +43,9 @@
       type.implments.add(superInterface);
     }
     typeDecls.add(typeDeclaration);
+    if (binding.isEnum()) {
+      processEnum(binding,type);
+    }
     return true;
   }
  catch (  InternalCompilerException ice) {
