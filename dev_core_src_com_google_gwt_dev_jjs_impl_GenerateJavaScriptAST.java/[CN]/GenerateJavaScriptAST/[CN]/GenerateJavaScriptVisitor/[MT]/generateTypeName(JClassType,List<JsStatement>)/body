@@ -1,0 +1,21 @@
+{
+  JField typeNameField=program.getIndexedField("Object.typeName");
+  JsName typeNameName=getName(typeNameField);
+  if (typeNameName == null) {
+    return;
+  }
+  JsNameRef lhs=typeNameName.makeRef();
+  lhs.setQualifier(globalTemp.makeRef());
+  String className=getClassName(x.getName());
+  String packageName=getPackageName(x.getName());
+  JsExpression rhs;
+  if (packageName.length() > 0) {
+    JsNameRef packageRef=(packageNames.get(packageName)).makeRef();
+    rhs=new JsBinaryOperation(JsBinaryOperator.ADD,packageRef,jsProgram.getStringLiteral(className));
+  }
+ else {
+    rhs=jsProgram.getStringLiteral(x.getName());
+  }
+  JsExpression asg=createAssignment(lhs,rhs);
+  globalStmts.add(new JsExprStmt(asg));
+}

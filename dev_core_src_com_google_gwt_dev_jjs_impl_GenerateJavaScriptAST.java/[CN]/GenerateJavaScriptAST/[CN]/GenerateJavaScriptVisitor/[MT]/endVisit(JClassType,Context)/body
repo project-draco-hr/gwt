@@ -3,17 +3,17 @@
     return;
   }
   alreadyRan.add(x);
-  List jsFuncs=popList(x.methods.size());
-  List jsFields=popList(x.fields.size());
+  List<JsFunction> jsFuncs=popList(x.methods.size());
+  List<JsNode<?>> jsFields=popList(x.fields.size());
   if (typeOracle.hasClinit(x)) {
-    handleClinit((JsFunction)jsFuncs.get(0));
+    handleClinit(jsFuncs.get(0));
   }
  else {
     jsFuncs.set(0,null);
   }
-  JsStatements globalStmts=jsProgram.getGlobalBlock().getStatements();
+  List<JsStatement> globalStmts=jsProgram.getGlobalBlock().getStatements();
   for (int i=0; i < jsFuncs.size(); ++i) {
-    JsFunction func=(JsFunction)jsFuncs.get(i);
+    JsFunction func=jsFuncs.get(i);
     if (func != null) {
       globalStmts.add(func.makeStmt());
     }
@@ -23,7 +23,7 @@
   }
   JsVars vars=new JsVars();
   for (int i=0; i < jsFields.size(); ++i) {
-    JsNode node=(JsNode)jsFields.get(i);
+    JsNode<?> node=jsFields.get(i);
     if (node instanceof JsVar) {
       vars.add((JsVar)node);
     }
