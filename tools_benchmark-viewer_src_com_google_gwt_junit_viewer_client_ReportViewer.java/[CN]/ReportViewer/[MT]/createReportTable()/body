@@ -49,7 +49,18 @@
       benchmarkTable.setBorderWidth(0);
       benchmarkTable.setCellPadding(5);
       benchmarkTable.setText(0,0,benchmark.getName());
-      benchmarkTable.setWidget(1,0,new HTML("<pre>" + benchmark.getSourceCode() + "</pre>"));
+      String codeHtml;
+      String sourceText=benchmark.getSourceCode();
+      if (sourceText != null) {
+        Element tempElem=DOM.createDiv();
+        DOM.setInnerText(tempElem,sourceText);
+        String escapedCodeHtml=DOM.getInnerHTML(tempElem);
+        codeHtml="<pre>" + escapedCodeHtml + "</pre>";
+      }
+ else {
+        codeHtml="<i>(source not available)</i>";
+      }
+      benchmarkTable.setWidget(1,0,new HTML(codeHtml));
       benchmarkTable.getFlexCellFormatter().setStyleName(0,0,"benchmark-name");
       benchmarkTable.getFlexCellFormatter().setStyleName(1,0,"benchmark-code");
       topTable.setWidget(currentRow++,0,benchmarkTable);
