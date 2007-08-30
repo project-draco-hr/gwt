@@ -1,11 +1,11 @@
 {
   if (binding.declaringClass != searchThisType) {
-    MethodBinding result=searchThisType.getExactMethod(binding.selector,binding.parameters,null);
-    if (result != null) {
-      if (areParametersIdentical(binding,result)) {
-        JMethod upRef=(JMethod)typeMap.get(result);
+    for (    MethodBinding tryMethod : searchThisType.getMethods(binding.selector)) {
+      if (binding.areParameterErasuresEqual(tryMethod)) {
+        JMethod upRef=(JMethod)typeMap.get(tryMethod);
         if (!method.overrides.contains(upRef)) {
           method.overrides.add(upRef);
+          break;
         }
       }
     }
