@@ -1,8 +1,13 @@
 {
-  String s=getNameString(x) + "__";
-  for (int i=0; i < x.getOriginalParamTypes().size(); ++i) {
-    JType type=x.getOriginalParamTypes().get(i);
-    s+=type.getJavahSignatureName();
+  if (x.overrides.isEmpty()) {
+    return mangleNameForPolyImpl(x);
   }
-  return s;
+ else {
+    for (    JMethod override : x.overrides) {
+      if (override.overrides.isEmpty()) {
+        return mangleNameForPolyImpl(override);
+      }
+    }
+  }
+  throw new InternalCompilerException("Cycle in overrides???");
 }
