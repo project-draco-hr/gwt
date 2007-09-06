@@ -1,24 +1,27 @@
 {
-  List ranges=Arrays.asList(new Range[]{new ListRange(Arrays.asList(new String[]{"a","b","c"})),new ListRange(Arrays.asList(new String[]{"1","2","3"})),new ListRange(Arrays.asList(new String[]{"alpha","beta","gamma","delta"}))});
+  List<Range<String>> ranges=new ArrayList<Range<String>>(3);
+  ranges.add(new ListRange<String>(Arrays.asList("a","b","c")));
+  ranges.add(new ListRange<String>(Arrays.asList("1","2","3")));
+  ranges.add(new ListRange<String>(Arrays.asList("alpha","beta","gamma","delta")));
   System.out.println("Testing normal iteration.");
-  for (Iterator it=new PermutationIterator(ranges); it.hasNext(); ) {
-    Permutation p=(Permutation)it.next();
+  for (Iterator<Permutation> it=new PermutationIterator(ranges); it.hasNext(); ) {
+    Permutation p=it.next();
     System.out.println(p);
   }
   System.out.println("\nTesting skipping iteration.");
-  Iterator skipIterator=Arrays.asList(new String[]{"alpha","beta","gamma","delta"}).iterator();
+  Iterator<String> skipIterator=Arrays.asList("alpha","beta","gamma","delta").iterator();
   boolean skipped=true;
   String skipValue=null;
   for (PermutationIterator it=new PermutationIterator(ranges); it.hasNext(); ) {
-    Permutation p=(Permutation)it.next();
+    Permutation p=it.next();
     if (skipped) {
       if (skipIterator.hasNext()) {
-        skipValue=(String)skipIterator.next();
+        skipValue=skipIterator.next();
         skipped=false;
       }
     }
     System.out.println(p);
-    String value=(String)p.getValues().get(p.getValues().size() - 1);
+    Object value=p.getValues().get(p.getValues().size() - 1);
     if (value.equals(skipValue)) {
       it.skipCurrentRange();
       skipped=true;

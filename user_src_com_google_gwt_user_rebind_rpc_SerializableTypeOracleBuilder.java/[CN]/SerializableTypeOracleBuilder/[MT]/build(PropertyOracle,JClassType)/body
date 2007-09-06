@@ -17,10 +17,8 @@
   TreeLogger logger=rootLogger.branch(TreeLogger.DEBUG,"Analyzing '" + remoteService.getParameterizedQualifiedSourceName() + "' for serializable types",null);
   alreadyCheckedObject=false;
   validateRemoteService(logger,remoteService);
-  List typeInfoComputed=new ArrayList(typeToTypeInfoComputed.values());
-  Iterator iterTypes=typeInfoComputed.iterator();
-  while (iterTypes.hasNext()) {
-    TypeInfoComputed tic=(TypeInfoComputed)iterTypes.next();
+  List<TypeInfoComputed> typeInfoComputed=new ArrayList<TypeInfoComputed>(typeToTypeInfoComputed.values());
+  for (  TypeInfoComputed tic : typeInfoComputed) {
     if (tic.isInstantiable()) {
       JArrayType arrayType=tic.getType().isArray();
       if (arrayType != null) {
@@ -28,27 +26,25 @@
         int rank=arrayType.getRank();
         JClassType classType=leafType.isClassOrInterface();
         if (classType != null) {
-          List instantiableSubTypes=new ArrayList();
+          List<JClassType> instantiableSubTypes=new ArrayList<JClassType>();
           JClassType[] subTypes=classType.getSubtypes();
           for (int i=0; i < subTypes.length; ++i) {
             if (getTypeInfoComputed(subTypes[i]).isInstantiable()) {
               instantiableSubTypes.add(subTypes[i]);
             }
           }
-          List covariantTypes=getAllTypesBetweenRootTypeAndLeaves(classType,instantiableSubTypes);
+          List<JClassType> covariantTypes=getAllTypesBetweenRootTypeAndLeaves(classType,instantiableSubTypes);
           for (int i=0, c=covariantTypes.size(); i < c; ++i) {
-            JArrayType covariantArray=getArrayType(typeOracle,rank,(JType)covariantTypes.get(i));
+            JArrayType covariantArray=getArrayType(typeOracle,rank,covariantTypes.get(i));
             getTypeInfoComputed(covariantArray).setInstantiable(true);
           }
         }
       }
     }
   }
-  Set possiblyInstantiatedTypes=new HashSet();
-  List serializableTypesList=new ArrayList();
-  iterTypes=typeToTypeInfoComputed.values().iterator();
-  while (iterTypes.hasNext()) {
-    TypeInfoComputed tic=(TypeInfoComputed)iterTypes.next();
+  Set<JType> possiblyInstantiatedTypes=new HashSet<JType>();
+  List<JType> serializableTypesList=new ArrayList<JType>();
+  for (  TypeInfoComputed tic : typeToTypeInfoComputed.values()) {
     JType type=tic.getType();
     if (type.isParameterized() == null) {
       if (tic.isInstantiable()) {
@@ -61,10 +57,10 @@
   }
   JType[] serializableTypes=new JType[serializableTypesList.size()];
   serializableTypesList.toArray(serializableTypes);
-  Arrays.sort(serializableTypes,new Comparator(){
-    public int compare(    Object o1,    Object o2){
-      String n1=((JType)o1).getQualifiedSourceName();
-      String n2=((JType)o2).getQualifiedSourceName();
+  Arrays.sort(serializableTypes,new Comparator<JType>(){
+    public int compare(    JType o1,    JType o2){
+      String n1=o1.getQualifiedSourceName();
+      String n2=o2.getQualifiedSourceName();
       return n1.compareTo(n2);
     }
   }

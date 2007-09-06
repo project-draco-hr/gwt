@@ -2,8 +2,7 @@
   JMethod[] methods=remoteService.getOverridableMethods();
   TreeLogger validationLogger=logger.branch(TreeLogger.DEBUG,"Analyzing methods:",null);
   boolean allSucceeded=true;
-  for (int i=0; i < methods.length; ++i) {
-    JMethod method=methods[i];
+  for (  JMethod method : methods) {
     TreeLogger methodLogger=validationLogger.branch(TreeLogger.DEBUG,method.toString(),null);
     JType returnType=method.getReturnType();
     if (returnType != JPrimitiveType.VOID) {
@@ -11,8 +10,7 @@
       allSucceeded&=checkTypeInstantiable(returnTypeLogger,returnType,false,false);
     }
     JParameter[] params=method.getParameters();
-    for (int j=0; j < params.length; ++j) {
-      JParameter param=params[j];
+    for (    JParameter param : params) {
       TreeLogger paramLogger=methodLogger.branch(TreeLogger.DEBUG,"Parameter: " + param.toString(),null);
       JType paramType=param.getType();
       allSucceeded&=checkTypeInstantiable(paramLogger,paramType,false,false);
@@ -20,8 +18,7 @@
     JType[] exs=method.getThrows();
     if (exs.length > 0) {
       TreeLogger throwsLogger=methodLogger.branch(TreeLogger.DEBUG,"Throws:",null);
-      for (int j=0; j < exs.length; ++j) {
-        JType ex=exs[j];
+      for (      JType ex : exs) {
         if (!exceptionClass.isAssignableFrom(ex.isClass())) {
           throwsLogger=throwsLogger.branch(TreeLogger.WARN,"'" + ex.getQualifiedSourceName() + "' is not a checked exception; only checked exceptions may be used",null);
         }

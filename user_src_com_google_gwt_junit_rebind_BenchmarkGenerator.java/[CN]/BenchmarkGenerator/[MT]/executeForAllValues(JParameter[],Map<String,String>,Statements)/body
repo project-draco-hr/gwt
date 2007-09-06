@@ -1,0 +1,21 @@
+{
+  Statements root=new StatementsList();
+  Statements currentContext=root;
+  for (int i=0; i < methodParams.length; ++i) {
+    JParameter methodParam=methodParams[i];
+    String paramName=methodParam.getName();
+    String paramValue=params.get(paramName);
+    String typeName=methodParam.getType().getQualifiedSourceName();
+    String iteratorName="it_" + paramName;
+    String initializer="java.util.Iterator<" + typeName + "> "+ iteratorName+ " = "+ paramValue+ ".iterator()";
+    ForLoop loop=new ForLoop(initializer,iteratorName + ".hasNext()","");
+    if (i == methodParams.length - 1) {
+      loop.setLabel(ESCAPE_LOOP);
+    }
+    currentContext.getStatements().add(loop);
+    loop.getStatements().add(new Statement(typeName + " " + paramName+ " = "+ iteratorName+ ".next()"));
+    currentContext=loop;
+  }
+  currentContext.getStatements().add(statements);
+  return root;
+}

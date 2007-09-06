@@ -5,31 +5,31 @@
   Throwable ex=null;
   Throwable cause=deserialize(ew.cause);
   try {
-    Class exClass=Class.forName(ew.typeName);
+    Class<?> exClass=Class.forName(ew.typeName);
     try {
-      Constructor ctor=exClass.getDeclaredConstructor(new Class[]{String.class,Throwable.class});
+      Constructor<?> ctor=exClass.getDeclaredConstructor(String.class,Throwable.class);
       ctor.setAccessible(true);
-      ex=(Throwable)ctor.newInstance(new Object[]{ew.message,cause});
+      ex=(Throwable)ctor.newInstance(ew.message,cause);
     }
  catch (    Throwable e) {
       try {
-        Constructor ctor=exClass.getDeclaredConstructor(new Class[]{String.class});
+        Constructor<?> ctor=exClass.getDeclaredConstructor(String.class);
         ctor.setAccessible(true);
-        ex=(Throwable)ctor.newInstance(new Object[]{ew.message});
+        ex=(Throwable)ctor.newInstance(ew.message);
         ex.initCause(cause);
       }
  catch (      Throwable e2) {
         try {
-          Constructor ctor=exClass.getDeclaredConstructor(new Class[]{Throwable.class});
+          Constructor<?> ctor=exClass.getDeclaredConstructor(Throwable.class);
           ctor.setAccessible(true);
-          ex=(Throwable)ctor.newInstance(new Object[]{cause});
+          ex=(Throwable)ctor.newInstance(cause);
           setField(Throwable.class,"detailMessage",ex,ew.message);
         }
  catch (        Throwable e3) {
           try {
-            Constructor ctor=exClass.getDeclaredConstructor(null);
+            Constructor<?> ctor=exClass.getDeclaredConstructor();
             ctor.setAccessible(true);
-            ex=(Throwable)ctor.newInstance(null);
+            ex=(Throwable)ctor.newInstance((Object[])null);
             ex.initCause(cause);
             setField(Throwable.class,"detailMessage",ex,ew.message);
           }

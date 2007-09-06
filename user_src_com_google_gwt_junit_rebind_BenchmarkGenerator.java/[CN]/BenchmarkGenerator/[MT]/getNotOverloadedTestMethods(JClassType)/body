@@ -1,18 +1,16 @@
 {
-  Map methods=getAllMethods(requestedClass,new MethodFilter(){
+  Map<String,List<JMethod>> methods=getAllMethods(requestedClass,new MethodFilter(){
     public boolean accept(    JMethod method){
       return isJUnitTestMethod(method,true);
     }
   }
 );
-  for (Iterator it=methods.entrySet().iterator(); it.hasNext(); ) {
-    Map.Entry entry=(Map.Entry)it.next();
-    List methodOverloads=(List)entry.getValue();
-    if (methodOverloads.size() > 1) {
-      it.remove();
-      continue;
+  Map<String,JMethod> notOverloadedMethods=new HashMap<String,JMethod>();
+  for (  Map.Entry<String,List<JMethod>> entry : methods.entrySet()) {
+    List<JMethod> methodOverloads=entry.getValue();
+    if (methodOverloads.size() <= 1) {
+      notOverloadedMethods.put(entry.getKey(),methodOverloads.get(0));
     }
-    entry.setValue(methodOverloads.get(0));
   }
-  return methods;
+  return notOverloadedMethods;
 }

@@ -1,0 +1,28 @@
+{
+  assert(instanceType != null);
+  String qualifiedTypeName;
+  if (instanceType.isArray()) {
+    Class<?> componentType=instanceType.getComponentType();
+    if (componentType.isPrimitive()) {
+      qualifiedTypeName="java.lang." + componentType.getName();
+    }
+ else {
+      qualifiedTypeName=Object.class.getName();
+    }
+    qualifiedTypeName+="_Array";
+  }
+ else {
+    qualifiedTypeName=instanceType.getName();
+  }
+  ClassLoader classLoader=Thread.currentThread().getContextClassLoader();
+  String simpleSerializerName=qualifiedTypeName + "_CustomFieldSerializer";
+  Class<?> customSerializer=getCustomFieldSerializer(classLoader,simpleSerializerName);
+  if (customSerializer != null) {
+    return customSerializer;
+  }
+  Class<?> customSerializerClass=getCustomFieldSerializer(classLoader,JRE_SERIALIZER_PACKAGE + "." + simpleSerializerName);
+  if (customSerializerClass != null) {
+    return customSerializerClass;
+  }
+  return null;
+}

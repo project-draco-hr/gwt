@@ -1,18 +1,17 @@
 {
   this.typeOracle=typeOracle;
   String categoryType=getSimpleMetaData(benchmarkClass,GWT_BENCHMARK_CATEGORY);
-  Map zeroArgMethods=BenchmarkGenerator.getNotOverloadedTestMethods(benchmarkClass);
-  Map parameterizedMethods=BenchmarkGenerator.getParameterizedTestMethods(benchmarkClass,TreeLogger.NULL);
-  List testMethods=new ArrayList(zeroArgMethods.size() + parameterizedMethods.size());
+  Map<String,JMethod> zeroArgMethods=BenchmarkGenerator.getNotOverloadedTestMethods(benchmarkClass);
+  Map<String,JMethod> parameterizedMethods=BenchmarkGenerator.getParameterizedTestMethods(benchmarkClass,TreeLogger.NULL);
+  List<JMethod> testMethods=new ArrayList<JMethod>(zeroArgMethods.size() + parameterizedMethods.size());
   testMethods.addAll(zeroArgMethods.values());
   testMethods.addAll(parameterizedMethods.values());
-  Map metaDataMap=(Map)testMetaData.get(benchmarkClass.toString());
+  Map<String,MetaData> metaDataMap=testMetaData.get(benchmarkClass.toString());
   if (metaDataMap == null) {
-    metaDataMap=new HashMap();
+    metaDataMap=new HashMap<String,MetaData>();
     testMetaData.put(benchmarkClass.toString(),metaDataMap);
   }
-  for (int i=0; i < testMethods.size(); ++i) {
-    JMethod method=(JMethod)testMethods.get(i);
+  for (  JMethod method : testMethods) {
     String methodName=method.getName();
     String methodCategoryType=getSimpleMetaData(method,GWT_BENCHMARK_CATEGORY);
     if (methodCategoryType == null) {
