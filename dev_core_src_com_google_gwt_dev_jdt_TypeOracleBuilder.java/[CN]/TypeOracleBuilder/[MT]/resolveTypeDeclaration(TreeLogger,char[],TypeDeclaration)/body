@@ -5,11 +5,19 @@
   }
   String qname=String.valueOf(binding.qualifiedSourceName());
   logger.log(TreeLogger.SPAM,"Found type '" + qname + "'",null);
+  if (isPackageInfoTypeName(qname)) {
+    return resolvePackage(logger,jclass);
+  }
   JClassType type=(JClassType)resolveType(logger,binding);
   if (type == null) {
     return false;
   }
   type.addModifierBits(Shared.bindingToModifierBits(jclass.binding));
+  Map<Class<? extends java.lang.annotation.Annotation>,java.lang.annotation.Annotation> declaredAnnotations=newAnnotationMap();
+  if (!resolveAnnotations(logger,jclass.annotations,declaredAnnotations)) {
+    return false;
+  }
+  type.addAnnotations(declaredAnnotations);
   if (type.isInterface() == null) {
     ReferenceBinding superclassRef=binding.superclass;
     if (superclassRef != null) {

@@ -26,11 +26,18 @@
   String jpkgName=getPackage(typeDecl);
   JPackage pkg=oracle.getOrCreatePackage(jpkgName);
   final boolean jclassIsIntf=isInterface(typeDecl);
+  boolean jclassIsAnnonation=isAnnotation(typeDecl);
   CompilationUnitProvider cup=getCup(typeDecl);
   int declStart=typeDecl.declarationSourceStart;
   int declEnd=typeDecl.declarationSourceEnd;
   int bodyStart=typeDecl.bodyStart;
   int bodyEnd=typeDecl.bodyEnd;
-  JClassType type=new JClassType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
+  JClassType type;
+  if (jclassIsAnnonation) {
+    type=new JAnnotationType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
+  }
+ else {
+    type=new JClassType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
+  }
   cacheManager.setTypeForBinding(binding,type);
 }

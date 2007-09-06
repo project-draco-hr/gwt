@@ -1,0 +1,28 @@
+{
+  ArrayInitializer arrayInitializer=(ArrayInitializer)expression;
+  Class<?> leafComponentClass=getClassLiteral(logger,arrayInitializer.binding.leafComponentType);
+  int[] dimensions=new int[arrayInitializer.binding.dimensions];
+  Expression[] initExpressions=arrayInitializer.expressions;
+  if (initExpressions != null) {
+    dimensions[0]=initExpressions.length;
+  }
+  Object array=Array.newInstance(leafComponentClass,dimensions);
+  boolean failed=false;
+  if (initExpressions != null) {
+    for (int i=0; i < initExpressions.length; ++i) {
+      Expression arrayInitExp=initExpressions[i];
+      Object value=evaluateExpression(logger,arrayInitExp);
+      if (value != null) {
+        Array.set(array,i,value);
+      }
+ else {
+        failed=true;
+        break;
+      }
+    }
+  }
+  if (!failed) {
+    return array;
+  }
+  return null;
+}

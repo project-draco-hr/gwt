@@ -1,20 +1,32 @@
 {
-  JAbstractMethod method;
   if (jmethod instanceof Clinit) {
     return true;
   }
-  String name=null;
   int declStart=jmethod.declarationSourceStart;
   int declEnd=jmethod.declarationSourceEnd;
   int bodyStart=jmethod.bodyStart;
   int bodyEnd=jmethod.bodyEnd;
+  String name=getMethodName(enclosingType,jmethod);
+  Map<Class<? extends java.lang.annotation.Annotation>,java.lang.annotation.Annotation> declaredAnnotations=newAnnotationMap();
+  if (!resolveAnnotations(logger,jmethod.annotations,declaredAnnotations)) {
+    return false;
+  }
+  JAbstractMethod method;
   if (jmethod.isConstructor()) {
-    name=String.valueOf(enclosingType.getSimpleSourceName());
-    method=new JConstructor(enclosingType,name,declStart,declEnd,bodyStart,bodyEnd);
+    method=new JConstructor(enclosingType,name,declStart,declEnd,bodyStart,bodyEnd,declaredAnnotations);
   }
  else {
-    name=String.valueOf(jmethod.binding.selector);
-    method=new JMethod(enclosingType,name,declStart,declEnd,bodyStart,bodyEnd);
+    if (jmethod.isAnnotationMethod()) {
+      AnnotationMethodDeclaration annotationMethod=(AnnotationMethodDeclaration)jmethod;
+      Object defaultValue=null;
+      if (annotationMethod.defaultValue != null) {
+        defaultValue=evaluateExpression(logger,annotationMethod.defaultValue);
+      }
+      method=new JAnnotationMethod(enclosingType,name,declStart,declEnd,bodyStart,bodyEnd,defaultValue,declaredAnnotations);
+    }
+ else {
+      method=new JMethod(enclosingType,name,declStart,declEnd,bodyStart,bodyEnd,declaredAnnotations);
+    }
     TypeBinding jreturnType=((MethodDeclaration)jmethod).returnType.resolvedType;
     JType returnType=resolveType(logger,jreturnType);
     if (returnType == null) {

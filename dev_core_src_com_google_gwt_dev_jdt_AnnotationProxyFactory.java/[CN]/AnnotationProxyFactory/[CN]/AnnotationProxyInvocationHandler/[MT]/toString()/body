@@ -1,0 +1,34 @@
+{
+  final StringBuilder msg=new StringBuilder();
+  msg.append('@').append(annotationType.getQualifiedSourceName()).append('(');
+  boolean first=true;
+  try {
+    for (    Method method : annotationClass.getDeclaredMethods()) {
+      if (first) {
+        first=false;
+      }
+ else {
+        msg.append(", ");
+      }
+      msg.append(method.getName()).append('=');
+      Object myVal=method.invoke(proxy);
+      if (myVal.getClass().isArray()) {
+        msg.append(java.util.Arrays.deepToString((Object[])myVal));
+      }
+ else {
+        msg.append(myVal);
+      }
+    }
+  }
+ catch (  IllegalArgumentException e) {
+    throw new RuntimeException(e);
+  }
+catch (  IllegalAccessException e) {
+    throw new RuntimeException(e);
+  }
+catch (  InvocationTargetException e) {
+    throw new RuntimeException(e.getTargetException());
+  }
+  msg.append(')');
+  return msg.toString();
+}
