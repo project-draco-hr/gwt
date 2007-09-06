@@ -1,27 +1,3 @@
 {
-  JPrimitiveType primitiveType=type.isPrimitive();
-  if (primitiveType != null) {
-    return primitiveType.getJNISignature();
-  }
-  JArrayType arrayType=type.isArray();
-  if (arrayType != null) {
-    JType component=arrayType.getComponentType();
-    if (component.isClassOrInterface() != null) {
-      return "[L" + getSerializedTypeName(arrayType.getComponentType()) + ";";
-    }
- else {
-      return "[" + getSerializedTypeName(arrayType.getComponentType());
-    }
-  }
-  JParameterizedType parameterizedType=type.isParameterized();
-  if (parameterizedType != null) {
-    return getSerializedTypeName(parameterizedType.getRawType());
-  }
-  JClassType classType=type.isClassOrInterface();
-  assert(classType != null);
-  JClassType enclosingType=classType.getEnclosingType();
-  if (enclosingType != null) {
-    return getSerializedTypeName(enclosingType) + "$" + classType.getSimpleSourceName();
-  }
-  return classType.getQualifiedSourceName();
+  return TypeOracleBuilder.computeBinaryClassName(type);
 }
