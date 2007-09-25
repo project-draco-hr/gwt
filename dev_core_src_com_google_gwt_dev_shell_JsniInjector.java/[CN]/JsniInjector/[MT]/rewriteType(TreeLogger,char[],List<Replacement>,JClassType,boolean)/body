@@ -1,0 +1,44 @@
+{
+  String loc=type.getCompilationUnit().getLocation();
+  List<JMethod> patchedMethods=new ArrayList<JMethod>();
+  JMethod[] methods=type.getMethods();
+  for (int i=0; i < methods.length; i++) {
+    JMethod method=methods[i];
+    if (method.isNative()) {
+      Jsni.Interval interval=Jsni.findJsniSource(method);
+      if (interval != null) {
+        String js=String.valueOf(source,interval.start,interval.end - interval.start);
+        int startLine=Jsni.countNewlines(source,0,interval.start) + 1;
+        JsBlock body=Jsni.parseAsFunctionBody(logger,js,loc,startLine);
+        parsedJsByMethod.put(method,body);
+        final int declStart=method.getDeclStart();
+        final int declEnd=method.getDeclEnd();
+        int expectedHeaderLines=Jsni.countNewlines(source,declStart,interval.start);
+        int expectedBodyLines=Jsni.countNewlines(source,interval.start,interval.end);
+        String newDecl=genNonNativeVersionOfJsniMethod(method,expectedHeaderLines,expectedBodyLines,pretty);
+        final char[] newSource=newDecl.toCharArray();
+        changes.add(new Replacement(declStart,declEnd,newSource));
+        patchedMethods.add(method);
+      }
+ else {
+        String msg="No JavaScript body found for native method '" + method + "' in type '"+ type+ "'";
+        logger.log(TreeLogger.ERROR,msg,null);
+        throw new UnableToCompleteException();
+      }
+    }
+  }
+  if (!patchedMethods.isEmpty()) {
+    JMethod[] patched=new JMethod[patchedMethods.size()];
+    patched=patchedMethods.toArray(patched);
+    TreeLogger branch=logger.branch(TreeLogger.SPAM,"Patched methods in '" + type.getQualifiedSourceName() + "'",null);
+    for (int i=0; i < patched.length; i++) {
+      branch.log(TreeLogger.SPAM,patched[i].getReadableDeclaration(),null);
+    }
+    char[] block=genInitializerBlock(loc,source,patched);
+    while (type.getEnclosingType() != null && !type.isStatic()) {
+      type=type.getEnclosingType();
+    }
+    int bodyStart=type.getBodyStart();
+    changes.add(new Replacement(bodyStart,bodyStart,block));
+  }
+}

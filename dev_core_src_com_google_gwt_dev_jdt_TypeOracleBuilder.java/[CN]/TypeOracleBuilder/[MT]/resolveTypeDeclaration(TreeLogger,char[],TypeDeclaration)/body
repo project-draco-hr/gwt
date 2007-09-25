@@ -8,7 +8,7 @@
   if (isPackageInfoTypeName(qname)) {
     return resolvePackage(logger,jclass);
   }
-  JClassType type=(JClassType)resolveType(logger,binding);
+  JRealClassType type=(JRealClassType)resolveType(logger,binding);
   if (type == null) {
     return false;
   }
@@ -18,6 +18,10 @@
     return false;
   }
   type.addAnnotations(declaredAnnotations);
+  List<JTypeParameter> typeParameters=new ArrayList<JTypeParameter>();
+  if (!resolveTypeParameters(logger,jclass.typeParameters,typeParameters)) {
+    return false;
+  }
   if (type.isInterface() == null) {
     ReferenceBinding superclassRef=binding.superclass;
     if (superclassRef != null) {

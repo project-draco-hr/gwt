@@ -32,12 +32,19 @@
   int declEnd=typeDecl.declarationSourceEnd;
   int bodyStart=typeDecl.bodyStart;
   int bodyEnd=typeDecl.bodyEnd;
-  JClassType type;
+  JRealClassType type;
   if (jclassIsAnnonation) {
     type=new JAnnotationType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
   }
+ else   if (typeDecl.typeParameters != null && typeDecl.typeParameters.length > 0) {
+    type=new JGenericType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
+    for (    TypeParameter jtypeParameter : typeDecl.typeParameters) {
+      JTypeParameter typeParameter=new JTypeParameter(String.valueOf(jtypeParameter.name),(JGenericType)type);
+      cacheManager.setTypeForBinding(jtypeParameter.binding,typeParameter);
+    }
+  }
  else {
-    type=new JClassType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
+    type=new JRealClassType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
   }
   cacheManager.setTypeForBinding(binding,type);
 }
