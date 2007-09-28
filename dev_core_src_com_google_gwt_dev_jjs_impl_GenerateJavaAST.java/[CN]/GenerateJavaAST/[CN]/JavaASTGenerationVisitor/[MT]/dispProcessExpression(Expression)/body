@@ -1,6 +1,26 @@
 {
+  JExpression result=null;
   if (x != null && x.constant != null && x.constant != Constant.NotAConstant) {
-    return (JExpression)dispatch("processConstant",x.constant);
+    result=(JExpression)dispatch("processConstant",x.constant);
   }
-  return (JExpression)dispatch("processExpression",x);
+  if (result == null) {
+    result=(JExpression)dispatch("processExpression",x);
+  }
+  if (x != null) {
+    if ((x.implicitConversion & TypeIds.BOXING) != 0) {
+      JType primitiveTypeToBox=(JType)typeMap.get(x.resolvedType);
+      if (!(primitiveTypeToBox instanceof JPrimitiveType)) {
+        throw new InternalCompilerException(result,"Attempt to box a non-primitive type: " + primitiveTypeToBox.getName(),null);
+      }
+      result=box(result,(JPrimitiveType)primitiveTypeToBox);
+    }
+ else     if ((x.implicitConversion & TypeIds.UNBOXING) != 0) {
+      JType typeToUnbox=(JType)typeMap.get(x.resolvedType);
+      if (!(typeToUnbox instanceof JClassType)) {
+        throw new InternalCompilerException(result,"Attempt to unbox a non-class type: " + typeToUnbox.getName(),null);
+      }
+      result=unbox(result,(JClassType)typeToUnbox);
+    }
+  }
+  return result;
 }

@@ -11,20 +11,20 @@
     }
     boolean hasExplicitThis=(ctorCall != null) && !ctorCall.isSuperAccess();
     JClassType enclosingType=(JClassType)ctor.getEnclosingType();
-    JMethod clinitMethod=(JMethod)enclosingType.methods.get(0);
+    JMethod clinitMethod=enclosingType.methods.get(0);
     JMethodCall clinitCall=new JMethodCall(program,info,null,clinitMethod);
     JMethodBody body=(JMethodBody)ctor.getBody();
-    List statements=body.getStatements();
+    List<JStatement> statements=body.getStatements();
     statements.add(clinitCall.makeStatement());
     if (!hasExplicitThis) {
       ReferenceBinding declaringClass=x.binding.declaringClass;
       if (declaringClass instanceof NestedTypeBinding) {
-        Iterator paramIt=getSyntheticsIterator(ctor);
+        Iterator<JParameter> paramIt=getSyntheticsIterator(ctor);
         NestedTypeBinding nestedBinding=(NestedTypeBinding)declaringClass;
         if (nestedBinding.enclosingInstances != null) {
           for (int i=0; i < nestedBinding.enclosingInstances.length; ++i) {
             SyntheticArgumentBinding arg=nestedBinding.enclosingInstances[i];
-            JParameter param=(JParameter)paramIt.next();
+            JParameter param=paramIt.next();
             if (arg.matchingField != null) {
               JField field=(JField)typeMap.get(arg);
               statements.add(program.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
@@ -34,7 +34,7 @@
         if (nestedBinding.outerLocalVariables != null) {
           for (int i=0; i < nestedBinding.outerLocalVariables.length; ++i) {
             SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
-            JParameter param=(JParameter)paramIt.next();
+            JParameter param=paramIt.next();
             JField field=(JField)typeMap.get(arg);
             statements.add(program.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
           }
@@ -46,7 +46,7 @@
     }
     JExpression thisRef=createThisRef(info,enclosingType);
     if (!hasExplicitThis) {
-      JMethod initMethod=(JMethod)enclosingType.methods.get(1);
+      JMethod initMethod=enclosingType.methods.get(1);
       JMethodCall initCall=new JMethodCall(program,info,thisRef,initMethod);
       statements.add(initCall.makeStatement());
     }
