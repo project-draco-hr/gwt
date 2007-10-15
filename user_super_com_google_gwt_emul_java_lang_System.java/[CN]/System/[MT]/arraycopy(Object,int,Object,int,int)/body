@@ -1,0 +1,36 @@
+{
+  if (src == null || dest == null) {
+    throw new NullPointerException();
+  }
+  String srcTypeName=GWT.getTypeName(src);
+  String destTypeName=GWT.getTypeName(dest);
+  if (srcTypeName.charAt(0) != '[' || destTypeName.charAt(0) != '[') {
+    throw new ArrayStoreException("Must be array types");
+  }
+  if (srcTypeName.charAt(1) != destTypeName.charAt(1)) {
+    throw new ArrayStoreException("Array types must match");
+  }
+  int srclen=getArrayLength(src);
+  int destlen=getArrayLength(dest);
+  if (srcOfs < 0 || destOfs < 0 || len < 0 || srcOfs + len > srclen || destOfs + len > destlen) {
+    throw new IndexOutOfBoundsException();
+  }
+  if ((srcTypeName.charAt(1) == 'L' || srcTypeName.charAt(1) == '[') && !srcTypeName.equals(destTypeName)) {
+    Object[] srcArray=(Object[])src;
+    Object[] destArray=(Object[])dest;
+    if (src == dest && srcOfs < destOfs) {
+      srcOfs+=len;
+      for (int destEnd=destOfs + len; destEnd-- > destOfs; ) {
+        destArray[destEnd]=srcArray[--srcOfs];
+      }
+    }
+ else {
+      for (int destEnd=destOfs + len; destOfs < destEnd; ) {
+        destArray[destOfs++]=srcArray[srcOfs++];
+      }
+    }
+  }
+ else {
+    nativeArraycopy(src,srcOfs,dest,destOfs,len);
+  }
+}
