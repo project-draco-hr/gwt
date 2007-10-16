@@ -6,7 +6,7 @@
   Object instance;
   if (program.isStaticImpl(method)) {
     method=program.staticImplFor(method);
-    instance=tryTranslateLiteral((JExpression)x.getArgs().get(0),String.class);
+    instance=tryTranslateLiteral(x.getArgs().get(0),String.class);
     skip=1;
   }
  else {
@@ -15,16 +15,16 @@
   if (instance == null && !method.isStatic()) {
     return;
   }
-  List params=method.getOriginalParamTypes();
-  Class paramTypes[]=new Class[params.size()];
+  List<JType> params=method.getOriginalParamTypes();
+  Class<?> paramTypes[]=new Class<?>[params.size()];
   Object paramValues[]=new Object[params.size()];
-  ArrayList args=x.getArgs();
+  ArrayList<JExpression> args=x.getArgs();
   for (int i=0; i != params.size(); ++i) {
-    paramTypes[i]=mapType((JType)params.get(i));
+    paramTypes[i]=mapType(params.get(i));
     if (paramTypes[i] == null) {
       return;
     }
-    paramValues[i]=tryTranslateLiteral((JExpression)args.get(i + skip),paramTypes[i]);
+    paramValues[i]=tryTranslateLiteral(args.get(i + skip),paramTypes[i]);
     if (paramValues[i] == null) {
       return;
     }
@@ -47,11 +47,7 @@
  else     if (result instanceof Integer) {
       ctx.replaceMe(program.getLiteralInt(((Integer)result).intValue()));
     }
- else {
-      boolean stopHere=true;
-    }
   }
  catch (  Exception e) {
-    boolean stopHere=true;
   }
 }
