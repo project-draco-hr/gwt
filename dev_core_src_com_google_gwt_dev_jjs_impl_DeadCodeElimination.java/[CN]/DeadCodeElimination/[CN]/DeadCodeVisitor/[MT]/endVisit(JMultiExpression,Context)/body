@@ -1,0 +1,23 @@
+{
+  for (int i=0; i < x.exprs.size() - 1; i++) {
+    JExpression expr=x.exprs.get(i);
+    if (!expr.hasSideEffects()) {
+      x.exprs.remove(i);
+      i--;
+      continue;
+    }
+    if (expr instanceof JFieldRef) {
+      JFieldRef fieldRef=(JFieldRef)expr;
+      JExpression instance=fieldRef.getInstance();
+      if (instance == null || !instance.hasSideEffects()) {
+        JMethod clinit=fieldRef.getField().getEnclosingType().methods.get(0);
+        assert(clinit.getName().equals("$clinit"));
+        JMethodCall methodCall=new JMethodCall(program,expr.getSourceInfo(),instance,clinit);
+        x.exprs.set(i,methodCall);
+      }
+    }
+  }
+  if (x.exprs.size() == 1) {
+    ctx.replaceMe(x.exprs.get(0));
+  }
+}
