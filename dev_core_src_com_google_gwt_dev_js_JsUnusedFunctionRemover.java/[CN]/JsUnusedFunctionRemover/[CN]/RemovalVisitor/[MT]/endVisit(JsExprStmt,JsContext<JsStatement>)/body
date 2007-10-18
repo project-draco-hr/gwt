@@ -1,0 +1,16 @@
+{
+  if (!(x.getExpression() instanceof JsFunction)) {
+    return;
+  }
+  JsFunction f=(JsFunction)x.getExpression();
+  if (!f.isFromJava()) {
+    return;
+  }
+  JsName name=f.getName();
+  if (toRemove.containsKey(name)) {
+    if (name.getIdent().equals("$clinit")) {
+      throw new InternalCompilerException("Tried to remove clinit " + name.getStaticRef().toSource());
+    }
+    ctx.removeMe();
+  }
+}
