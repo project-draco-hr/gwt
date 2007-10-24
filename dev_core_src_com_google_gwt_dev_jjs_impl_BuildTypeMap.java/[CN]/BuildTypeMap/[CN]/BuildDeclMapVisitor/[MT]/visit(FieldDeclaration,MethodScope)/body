@@ -3,7 +3,13 @@
     FieldBinding b=fieldDeclaration.binding;
     SourceInfo info=makeSourceInfo(fieldDeclaration);
     JReferenceType enclosingType=(JReferenceType)typeMap.get(scope.enclosingSourceType());
-    createField(info,b,enclosingType,fieldDeclaration.initialization != null);
+    Expression initialization=fieldDeclaration.initialization;
+    if (initialization != null && initialization instanceof AllocationExpression && ((AllocationExpression)initialization).enumConstant != null) {
+      createEnumField(info,b,enclosingType);
+    }
+ else {
+      createField(info,b,enclosingType,initialization != null);
+    }
     return true;
   }
  catch (  Throwable e) {
