@@ -1,34 +1,9 @@
 {
-  String wrapperTypeName=wrapperType.getName();
-  String primitiveName=null;
-  if ("java.lang.Integer".equals(wrapperTypeName)) {
-    primitiveName="int";
+  JPrimitiveType primitiveType=getPrimitiveTypeForWrapperType(wrapperType);
+  if (primitiveType == null) {
+    throw new InternalCompilerException(toUnbox,"Attempt to unbox unexpected type '" + wrapperType.getName() + "'",null);
   }
- else   if ("java.lang.Boolean".equals(wrapperTypeName)) {
-    primitiveName="boolean";
-  }
- else   if ("java.lang.Character".equals(wrapperTypeName)) {
-    primitiveName="char";
-  }
- else   if ("java.lang.Long".equals(wrapperTypeName)) {
-    primitiveName="long";
-  }
- else   if ("java.lang.Short".equals(wrapperTypeName)) {
-    primitiveName="short";
-  }
- else   if ("java.lang.Byte".equals(wrapperTypeName)) {
-    primitiveName="byte";
-  }
- else   if ("java.lang.Double".equals(wrapperTypeName)) {
-    primitiveName="double";
-  }
- else   if ("java.lang.Float".equals(wrapperTypeName)) {
-    primitiveName="float";
-  }
- else {
-    throw new InternalCompilerException(toUnbox,"Attempt to unbox unexpected type '" + wrapperTypeName + "'",null);
-  }
-  String valueMethodName=primitiveName + "Value";
+  String valueMethodName=primitiveType.getName() + "Value";
   JMethod valueMethod=null;
   for (  Object element : wrapperType.methods) {
     JMethod method=(JMethod)element;
@@ -40,7 +15,7 @@
     }
   }
   if (valueMethod == null) {
-    throw new InternalCompilerException(toUnbox,"Expected to find a method on '" + wrapperTypeName + "' whose signature matches 'public "+ primitiveName+ " "+ valueMethodName+ "()'",null);
+    throw new InternalCompilerException(toUnbox,"Expected to find a method on '" + wrapperType.getName() + "' whose signature matches 'public "+ primitiveType.getName()+ " "+ valueMethodName+ "()'",null);
   }
   JMethodCall unboxCall=new JMethodCall(program,toUnbox.getSourceInfo(),toUnbox,valueMethod);
   return unboxCall;
