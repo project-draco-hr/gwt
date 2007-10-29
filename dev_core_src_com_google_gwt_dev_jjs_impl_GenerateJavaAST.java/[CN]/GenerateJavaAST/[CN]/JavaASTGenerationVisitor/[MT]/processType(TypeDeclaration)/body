@@ -51,6 +51,14 @@
         }
       }
     }
+    if (currentClass instanceof JClassType && currentClass != program.getTypeJavaLangObject() && currentClass != program.getIndexedType("Array")) {
+      JMethod method=currentClass.methods.get(2);
+      assert("getClass".equals(method.getName()));
+      tryFindUpRefs(method);
+      JMethodBody body=(JMethodBody)method.getBody();
+      JClassLiteral classLit=program.getLiteralClass(currentClass);
+      body.getStatements().add(new JReturnStatement(program,null,classLit));
+    }
     if (x.binding.isEnum()) {
       processEnumType((JEnumType)currentClass);
     }
