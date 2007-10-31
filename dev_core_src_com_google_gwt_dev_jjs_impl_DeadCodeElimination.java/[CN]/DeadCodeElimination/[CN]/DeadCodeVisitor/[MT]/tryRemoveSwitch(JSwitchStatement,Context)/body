@@ -1,0 +1,28 @@
+{
+  JBlock body=x.getBody();
+  if (body.statements.size() == 0) {
+    ctx.replaceMe(x.getExpr().makeStatement());
+  }
+ else   if (body.statements.size() == 2) {
+    JCaseStatement caseStatement=(JCaseStatement)body.statements.get(0);
+    JStatement statement=body.statements.get(1);
+    FindBreakContinueStatementsVisitor visitor=new FindBreakContinueStatementsVisitor();
+    visitor.accept(statement);
+    if (visitor.hasBreakContinueStatements()) {
+      return;
+    }
+    if (caseStatement.getExpr() != null) {
+      JBinaryOperation compareOperation=new JBinaryOperation(program,x.getSourceInfo(),program.getTypePrimitiveBoolean(),JBinaryOperator.EQ,x.getExpr(),caseStatement.getExpr());
+      JBlock block=new JBlock(program,x.getSourceInfo());
+      block.statements.add(statement);
+      JIfStatement ifStatement=new JIfStatement(program,x.getSourceInfo(),compareOperation,block,null);
+      ctx.replaceMe(ifStatement);
+    }
+ else {
+      JBlock block=new JBlock(program,x.getSourceInfo());
+      block.statements.add(x.getExpr().makeStatement());
+      block.statements.add(statement);
+      ctx.replaceMe(block);
+    }
+  }
+}
