@@ -1,0 +1,20 @@
+{
+  Field[] serializableFields=SerializabilityUtil.applyFieldSerializationPolicy(instanceClass);
+  for (  Field declField : serializableFields) {
+    assert(declField != null);
+    Object value=deserializeValue(declField.getType());
+    boolean isAccessible=declField.isAccessible();
+    boolean needsAccessOverride=!isAccessible && !Modifier.isPublic(declField.getModifiers());
+    if (needsAccessOverride) {
+      declField.setAccessible(true);
+    }
+    declField.set(instance,value);
+    if (needsAccessOverride) {
+      declField.setAccessible(isAccessible);
+    }
+  }
+  Class<?> superClass=instanceClass.getSuperclass();
+  if (serializationPolicy.shouldDeserializeFields(superClass)) {
+    deserializeImpl(SerializabilityUtil.hasCustomFieldSerializer(superClass),superClass,instance);
+  }
+}

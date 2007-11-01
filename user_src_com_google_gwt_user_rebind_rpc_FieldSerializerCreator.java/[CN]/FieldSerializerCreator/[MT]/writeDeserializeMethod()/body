@@ -5,12 +5,12 @@
   sourceWriter.print(serializableClass.getQualifiedSourceName());
   sourceWriter.println(" instance) throws " + SerializationException.class.getName() + "{");
   sourceWriter.indent();
-  writeFieldDeserializationStatements();
-  JClassType superClass=serializableClass.getSuperclass();
-  if (superClass != null && serializationOracle.isSerializable(superClass)) {
-    String fieldSerializerName=serializationOracle.getFieldSerializerName(superClass);
-    sourceWriter.print(fieldSerializerName);
-    sourceWriter.println(".deserialize(streamReader, instance);");
+  JArrayType isArray=serializableClass.isArray();
+  if (isArray != null) {
+    writeArrayDeserializationStatements(isArray);
+  }
+ else {
+    writeClassDeserializationStatements();
   }
   sourceWriter.outdent();
   sourceWriter.println("}");

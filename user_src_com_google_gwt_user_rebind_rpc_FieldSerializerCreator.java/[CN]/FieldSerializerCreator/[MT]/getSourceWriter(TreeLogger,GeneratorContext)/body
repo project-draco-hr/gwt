@@ -1,6 +1,16 @@
 {
-  String packageName=serializableClass.getPackage().getName();
-  String className=getFieldSerializerClassName();
+  String qualifiedSerializerName=serializationOracle.getFieldSerializerName(serializableClass);
+  int packageNameEnd=qualifiedSerializerName.lastIndexOf('.');
+  String className;
+  String packageName;
+  if (packageNameEnd != -1) {
+    className=qualifiedSerializerName.substring(packageNameEnd + 1);
+    packageName=qualifiedSerializerName.substring(0,packageNameEnd);
+  }
+ else {
+    className=qualifiedSerializerName;
+    packageName="";
+  }
   PrintWriter printWriter=ctx.tryCreate(logger,packageName,className);
   if (printWriter == null) {
     return null;

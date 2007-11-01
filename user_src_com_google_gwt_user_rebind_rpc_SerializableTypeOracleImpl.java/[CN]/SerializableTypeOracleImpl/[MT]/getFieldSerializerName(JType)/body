@@ -6,17 +6,17 @@
   if (customSerializer != null) {
     return customSerializer.getQualifiedSourceName();
   }
-  JClassType classType=type.isClassOrInterface();
-  if (classType != null) {
-    String[] name=Shared.synthesizeTopLevelClassName(classType,GENERATED_FIELD_SERIALIZER_SUFFIX);
-    if (name[0].length() > 0) {
-      return name[0] + "." + name[1];
+  assert(type.isClassOrInterface() != null || type.isArray() != null);
+  JClassType classType=(JClassType)type;
+  String[] name=Shared.synthesizeTopLevelClassName(classType,GENERATED_FIELD_SERIALIZER_SUFFIX);
+  if (name[0].length() > 0) {
+    String serializerName=name[0] + "." + name[1];
+    if (name[0].startsWith("java.")) {
+      serializerName="com.google.gwt.user.client.rpc.core." + serializerName;
     }
- else {
-      return name[1];
-    }
+    return serializerName;
   }
  else {
-    return type.getQualifiedSourceName() + GENERATED_FIELD_SERIALIZER_SUFFIX;
+    return name[1];
   }
 }

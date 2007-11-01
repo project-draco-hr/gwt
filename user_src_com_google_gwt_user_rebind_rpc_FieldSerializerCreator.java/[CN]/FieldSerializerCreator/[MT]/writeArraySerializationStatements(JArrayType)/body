@@ -1,0 +1,18 @@
+{
+  JType componentType=isArray.getComponentType();
+  String writeMethodName=Shared.getStreamWriteMethodNameFor(componentType);
+  if ("writeObject".equals(writeMethodName)) {
+    sourceWriter.println(Object_Array_CustomFieldSerializer.class.getName() + ".serialize(streamWriter, instance);");
+  }
+ else {
+    sourceWriter.println("streamWriter.writeInt(instance.length);");
+    sourceWriter.println();
+    sourceWriter.println("for (int i = 0, n = instance.length; i < n; ++i) {");
+    sourceWriter.indent();
+    sourceWriter.print("streamWriter.");
+    sourceWriter.print(writeMethodName);
+    sourceWriter.println("(instance[i]);");
+    sourceWriter.outdent();
+    sourceWriter.println("}");
+  }
+}

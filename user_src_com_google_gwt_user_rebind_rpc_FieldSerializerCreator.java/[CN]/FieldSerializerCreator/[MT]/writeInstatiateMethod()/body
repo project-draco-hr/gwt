@@ -1,0 +1,22 @@
+{
+  if (serializableClass.isAbstract()) {
+    return;
+  }
+  sourceWriter.print("public static ");
+  sourceWriter.print(serializableClass.getQualifiedSourceName());
+  sourceWriter.print(" instantiate(");
+  sourceWriter.print(SerializationStreamReader.class.getName());
+  sourceWriter.println(" streamReader) throws " + SerializationException.class.getName() + "{");
+  sourceWriter.indent();
+  JArrayType isArray=serializableClass.isArray();
+  if (isArray != null) {
+    sourceWriter.println("int rank = streamReader.readInt();");
+    sourceWriter.println("return " + createArrayInstantiationExpression(isArray) + ";");
+  }
+ else {
+    sourceWriter.println("return new " + serializableClass.getQualifiedSourceName() + "();");
+  }
+  sourceWriter.outdent();
+  sourceWriter.println("}");
+  sourceWriter.println();
+}
