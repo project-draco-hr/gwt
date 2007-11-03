@@ -1,28 +1,23 @@
 {
   JMethod method=x.getTarget();
-  if (!method.isStatic() || method.isNative()) {
+  if (currentMethod == method) {
     return;
   }
   if (cannotInline.contains(method)) {
     return;
   }
-  JMethodBody body=(JMethodBody)method.getBody();
-  List<JStatement> stmts=body.getStatements();
   boolean possibleToInline=false;
-  if (method.getEnclosingType() != null && method.getEnclosingType().methods.get(0) == method && !stmts.isEmpty()) {
-    return;
-  }
-  if (stmts.isEmpty()) {
-    tryInlineEmptyMethodCall(x,ctx);
-    possibleToInline=true;
-  }
- else   if (stmts.size() == 1) {
-    JStatement stmt=stmts.get(0);
-    if (stmt instanceof JReturnStatement) {
-      possibleToInline=tryInlineExpression(x,ctx,((JReturnStatement)stmt).getExpr());
+  if (method.isStatic() && !method.isNative()) {
+    JMethodBody body=(JMethodBody)method.getBody();
+    List<JStatement> stmts=body.getStatements();
+    if (method.getEnclosingType() != null && method.getEnclosingType().methods.get(0) == method && !stmts.isEmpty()) {
+      possibleToInline=false;
     }
- else     if (stmt instanceof JExpressionStatement) {
-      possibleToInline=tryInlineExpression(x,ctx,((JExpressionStatement)stmt).getExpr());
+ else {
+      JMultiExpression multi=createMultiExpressionFromBody(body,ignoringReturnValueFor == x);
+      if (multi != null) {
+        possibleToInline=tryInlineExpression(x,ctx,multi);
+      }
     }
   }
   if (!possibleToInline) {
