@@ -5,9 +5,12 @@
     sep=_sepCommaOptSpace(sep);
     JsPropertyInitializer propInit=(JsPropertyInitializer)element;
     JsExpression labelExpr=propInit.getLabelExpr();
-    _parenPushIfConditional(labelExpr);
-    accept(labelExpr);
-    _parenPopIfConditional(labelExpr);
+    if (labelExpr instanceof JsStringLiteral && VALID_NAME_PATTERN.matcher(((JsStringLiteral)labelExpr).getValue()).matches()) {
+      p.print(((JsStringLiteral)labelExpr).getValue());
+    }
+ else {
+      accept(labelExpr);
+    }
     _colon();
     JsExpression valueExpr=propInit.getValueExpr();
     _parenPushIfConditional(valueExpr);
