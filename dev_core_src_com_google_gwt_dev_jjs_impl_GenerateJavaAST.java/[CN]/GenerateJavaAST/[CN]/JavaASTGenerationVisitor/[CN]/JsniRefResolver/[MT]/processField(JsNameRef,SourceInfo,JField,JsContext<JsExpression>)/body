@@ -1,0 +1,22 @@
+{
+  if (field.isStatic() && nameRef.getQualifier() != null) {
+    reportJsniError(info,methodDecl,"Cannot make a qualified reference to the static field " + field.getName());
+  }
+ else   if (!field.isStatic() && nameRef.getQualifier() == null) {
+    reportJsniError(info,methodDecl,"Cannot make an unqualified reference to the instance field " + field.getName());
+  }
+  JLiteral initializer=field.constInitializer;
+  if (field.isStatic() && field.isFinal() && initializer != null) {
+    JType type=initializer.getType();
+    if (type instanceof JPrimitiveType || type == program.getTypeJavaLangString()) {
+      GenerateJavaScriptLiterals generator=new GenerateJavaScriptLiterals(jsProgram);
+      generator.accept(initializer);
+      JsExpression result=generator.peek();
+      assert(result != null);
+      ctx.replaceMe(result);
+      return;
+    }
+  }
+  JsniFieldRef fieldRef=new JsniFieldRef(program,info,field,currentClass);
+  nativeMethodBody.jsniFieldRefs.add(fieldRef);
+}
