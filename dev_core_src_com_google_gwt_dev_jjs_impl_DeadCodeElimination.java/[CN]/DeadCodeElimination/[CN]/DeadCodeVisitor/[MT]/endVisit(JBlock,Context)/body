@@ -1,7 +1,27 @@
 {
-  if (x.statements.size() == 0) {
-    if (ctx.canRemove()) {
-      ctx.removeMe();
+  if (switchBlocks.contains(x)) {
+    return;
+  }
+  for (int i=0; i < x.statements.size(); i++) {
+    JStatement stmt=x.statements.get(i);
+    if (stmt instanceof JBlock) {
+      JBlock block=(JBlock)stmt;
+      if (canPromoteBlock(block)) {
+        x.statements.remove(i);
+        x.statements.addAll(i,block.statements);
+        i--;
+        didChange=true;
+        continue;
+      }
     }
+    if (stmt.unconditionalControlBreak()) {
+      for (int j=i + 1; j < x.statements.size(); ) {
+        x.statements.remove(j);
+        didChange=true;
+      }
+    }
+  }
+  if (ctx.canRemove() && x.statements.size() == 0) {
+    ctx.removeMe();
   }
 }
