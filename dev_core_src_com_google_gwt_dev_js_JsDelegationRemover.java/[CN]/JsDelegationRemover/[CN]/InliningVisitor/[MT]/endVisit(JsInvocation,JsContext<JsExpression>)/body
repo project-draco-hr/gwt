@@ -1,0 +1,40 @@
+{
+  if (!(x.getQualifier() instanceof JsNameRef)) {
+    return;
+  }
+  JsNameRef ref=(JsNameRef)x.getQualifier();
+  if (!(ref.getName().getStaticRef() instanceof JsFunction)) {
+    return;
+  }
+  JsFunction f=(JsFunction)ref.getName().getStaticRef();
+  List<JsStatement> statements=f.getBody().getStatements();
+  JsStatement clinit;
+  JsStatement toHoist;
+  if (statements.size() == 1) {
+    clinit=null;
+    toHoist=statements.get(0);
+  }
+ else   if (statements.size() == 2) {
+    clinit=statements.get(0);
+    toHoist=statements.get(1);
+    if (!isStaticInitializer(clinit)) {
+      return;
+    }
+  }
+ else {
+    return;
+  }
+  JsExpression replacement=hoistedExpression(toHoist);
+  if (replacement == null) {
+    return;
+  }
+  if (!isInlinableStatement(functionStack.peek(),x.getArguments(),f,toHoist)) {
+    return;
+  }
+  NameRefReplacerVisitor v=new NameRefReplacerVisitor(x,f);
+  replacement=v.accept(replacement);
+  if (statements.size() == 2) {
+    replacement=new JsBinaryOperation(JsBinaryOperator.COMMA,((JsExprStmt)clinit).getExpression(),replacement);
+  }
+  ctx.replaceMe(replacement);
+}
