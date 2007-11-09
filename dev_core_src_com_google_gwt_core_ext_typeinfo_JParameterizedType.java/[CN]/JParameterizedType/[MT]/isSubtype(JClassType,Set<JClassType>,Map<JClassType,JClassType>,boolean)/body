@@ -1,0 +1,41 @@
+{
+  if (typeHierarchy.contains(this)) {
+    return true;
+  }
+  for (  JClassType type : typeHierarchy) {
+    JParameterizedType parameterizedType=type.isParameterized();
+    if (parameterizedType == null) {
+      continue;
+    }
+    if (parameterizedType.getBaseType() != getBaseType()) {
+      continue;
+    }
+    JClassType[] otherTypeArgs=parameterizedType.getTypeArgs();
+    JClassType[] myTypeArgs=getTypeArgs();
+    boolean validSubstitution=true;
+    for (int i=0; i < myTypeArgs.length; ++i) {
+      JClassType otherTypeArg=otherTypeArgs[i];
+      JClassType myTypeArg=myTypeArgs[i];
+      validSubstitution=myTypeArg == otherTypeArg;
+      if (!validSubstitution) {
+        if (lookForSubstitutions) {
+          validSubstitution=otherTypeArg.isAssignableFrom(myTypeArg);
+        }
+ else {
+          JWildcardType isWildcard=myTypeArg.isWildcard();
+          if (isWildcard != null) {
+            validSubstitution=myTypeArg.isAssignableFrom(otherTypeArg);
+          }
+        }
+      }
+      if (!validSubstitution) {
+        break;
+      }
+      substitutions.put(otherTypeArg,myTypeArg);
+    }
+    if (validSubstitution) {
+      return true;
+    }
+  }
+  return false;
+}

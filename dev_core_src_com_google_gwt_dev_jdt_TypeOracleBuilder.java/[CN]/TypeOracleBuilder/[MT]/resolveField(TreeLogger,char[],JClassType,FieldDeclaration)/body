@@ -7,7 +7,14 @@
     return false;
   }
   String name=String.valueOf(jfield.name);
-  JField field=new JField(enclosingType,name,declaredAnnotations);
+  JField field;
+  if (jfield.getKind() == AbstractVariableDeclaration.ENUM_CONSTANT) {
+    assert(enclosingType.isEnum() != null);
+    field=new JEnumConstant(enclosingType,name,declaredAnnotations,jfield.binding.original().id);
+  }
+ else {
+    field=new JField(enclosingType,name,declaredAnnotations);
+  }
   field.addModifierBits(Shared.bindingToModifierBits(jfield.binding));
   TypeBinding jfieldType=jfield.binding.type;
   JType fieldType=resolveType(logger,jfieldType);

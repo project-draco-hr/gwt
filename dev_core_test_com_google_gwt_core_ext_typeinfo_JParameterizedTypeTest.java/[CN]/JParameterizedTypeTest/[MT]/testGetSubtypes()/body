@@ -1,0 +1,10 @@
+{
+  TypeOracle oracle=moduleContext.getOracle();
+  JGenericType genericType=oracle.getType(MyList.class.getName()).isGenericType();
+  JParameterizedType parameterizedType=oracle.getParameterizedType(genericType,new JClassType[]{integerType});
+  JClassType[] actualSubtypes=parameterizedType.getSubtypes();
+  JGenericType myCustomListType=oracle.getType(MyCustomList.class.getName()).isGenericType();
+  JParameterizedType parameterizedMyCustomList=oracle.getParameterizedType(myCustomListType,new JClassType[]{oracle.getWildcardType(new JUpperBound(oracle.getType(Serializable.class.getName()))),integerType});
+  JClassType[] expected={oracle.getType(MyIntegerList.class.getName()),parameterizedMyCustomList};
+  validateEquals(oracle,expected,actualSubtypes);
+}

@@ -14,6 +14,9 @@
   JAbstractMethod method;
   if (jmethod.isConstructor()) {
     method=new JConstructor(enclosingType,name,declStart,declEnd,bodyStart,bodyEnd,declaredAnnotations);
+    if (!resolveTypeParameters(logger,method,jmethod.typeParameters())) {
+      return false;
+    }
   }
  else {
     if (jmethod.isAnnotationMethod()) {
@@ -27,17 +30,8 @@
  else {
       method=new JMethod(enclosingType,name,declStart,declEnd,bodyStart,bodyEnd,declaredAnnotations);
     }
-    if (jmethod.typeParameters() != null) {
-      for (      TypeParameter jtypeParameter : jmethod.typeParameters()) {
-        JTypeParameter typeParameter=new JTypeParameter(String.valueOf(jtypeParameter.name),method);
-        cacheManager.getIdentityMapper().put(jtypeParameter.binding,typeParameter);
-      }
-      JTypeParameter[] typeParameters=method.getTypeParameters();
-      for (      TypeParameter jtypeParameter : jmethod.typeParameters()) {
-        JTypeParameter typeParameter=(JTypeParameter)cacheManager.getIdentityMapper().get(jtypeParameter.binding);
-        JBound bounds=createTypeVariableBounds(logger,jtypeParameter.binding);
-        typeParameter.setBounds(bounds);
-      }
+    if (!resolveTypeParameters(logger,method,jmethod.typeParameters())) {
+      return false;
     }
     TypeBinding jreturnType=((MethodDeclaration)jmethod).returnType.resolvedType;
     JType returnType=resolveType(logger,jreturnType);

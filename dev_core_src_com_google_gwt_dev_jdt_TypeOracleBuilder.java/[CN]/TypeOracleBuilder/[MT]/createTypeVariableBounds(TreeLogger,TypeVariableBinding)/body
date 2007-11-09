@@ -1,14 +1,21 @@
 {
-  TypeBinding firstBound=tvBinding.firstBound;
-  if (firstBound == null) {
-    firstBound=tvBinding.superclass;
+  TypeBinding jfirstBound=tvBinding.firstBound;
+  if (jfirstBound == null) {
+    JClassType upperBound=(JClassType)resolveType(logger,tvBinding.superclass);
+    assert(Object.class.getName().equals(upperBound.getQualifiedSourceName()));
+    return new JUpperBound(upperBound);
   }
-  JClassType firstBoundType=(JClassType)resolveType(logger,firstBound);
-  JBound bounds=new JBound(firstBoundType);
-  for (  ReferenceBinding ref : tvBinding.superInterfaces()) {
-    JClassType bound=(JClassType)resolveType(logger,ref);
-    assert(bound.isInterface() != null);
-    bounds.addUpperBound(bound);
+  List<JClassType> bounds=new ArrayList<JClassType>();
+  JClassType firstBound=(JClassType)resolveType(logger,jfirstBound);
+  if (firstBound.isClass() != null) {
+    bounds.add(firstBound);
   }
-  return bounds;
+  ReferenceBinding[] jsuperInterfaces=tvBinding.superInterfaces();
+  for (  ReferenceBinding jsuperInterface : jsuperInterfaces) {
+    JClassType superInterface=(JClassType)resolveType(logger,jsuperInterface);
+    assert(superInterface != null);
+    assert(superInterface.isInterface() != null);
+    bounds.add(superInterface);
+  }
+  return new JUpperBound(bounds.toArray(NO_JCLASSES));
 }

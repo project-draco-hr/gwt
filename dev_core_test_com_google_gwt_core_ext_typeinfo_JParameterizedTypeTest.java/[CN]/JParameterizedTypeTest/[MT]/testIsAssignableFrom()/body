@@ -1,0 +1,23 @@
+{
+  JParameterizedType testType=getTestType();
+  JClassType rawType=testType.getRawType();
+  assertTrue(testType.isAssignableFrom(rawType));
+  TypeOracle oracle=moduleContext.getOracle();
+  JGenericType genericList=(JGenericType)oracle.getType(List.class.getName());
+  JWildcardType unboundWildcard=oracle.getWildcardType(new JUpperBound(oracle.getJavaLangObject()));
+  JWildcardType numUpperBoundWildcard=oracle.getWildcardType(new JUpperBound(oracle.getType(Number.class.getName())));
+  JParameterizedType unboundList=oracle.getParameterizedType(genericList,new JClassType[]{unboundWildcard});
+  JParameterizedType numUpperBoundList=oracle.getParameterizedType(genericList,new JClassType[]{numUpperBoundWildcard});
+  assertTrue(unboundList.isAssignableFrom(numUpperBoundList));
+  assertFalse(numUpperBoundList.isAssignableFrom(unboundList));
+  JWildcardType intUpperBoundWildcard=oracle.getWildcardType(new JUpperBound(integerType));
+  JParameterizedType intUpperBoundList=oracle.getParameterizedType(genericList,new JClassType[]{intUpperBoundWildcard});
+  assertTrue(numUpperBoundList.isAssignableFrom(intUpperBoundList));
+  assertFalse(intUpperBoundList.isAssignableFrom(numUpperBoundList));
+  JWildcardType numLowerBoundWildcard=oracle.getWildcardType(new JLowerBound(oracle.getType(Number.class.getName())));
+  JWildcardType intLowerBoundWildcard=oracle.getWildcardType(new JLowerBound(integerType));
+  JParameterizedType numLowerBoundList=oracle.getParameterizedType(genericList,new JClassType[]{numLowerBoundWildcard});
+  JParameterizedType intLowerBoundList=oracle.getParameterizedType(genericList,new JClassType[]{intLowerBoundWildcard});
+  assertTrue(intLowerBoundList.isAssignableFrom(numLowerBoundList));
+  assertFalse(numLowerBoundList.isAssignableFrom(intLowerBoundList));
+}

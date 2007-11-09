@@ -36,12 +36,11 @@
   if (jclassIsAnnonation) {
     type=new JAnnotationType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
   }
- else   if (typeDecl.typeParameters != null && typeDecl.typeParameters.length > 0) {
+ else   if (maybeGeneric(typeDecl)) {
     type=new JGenericType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
-    for (    TypeParameter jtypeParameter : typeDecl.typeParameters) {
-      JTypeParameter typeParameter=new JTypeParameter(String.valueOf(jtypeParameter.name),(JGenericType)type);
-      cacheManager.setTypeForBinding(jtypeParameter.binding,typeParameter);
-    }
+  }
+ else   if (binding.isEnum()) {
+    type=new JEnumType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
   }
  else {
     type=new JRealClassType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);

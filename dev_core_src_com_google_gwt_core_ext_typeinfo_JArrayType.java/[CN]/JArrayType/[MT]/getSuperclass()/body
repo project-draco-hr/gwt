@@ -1,3 +1,21 @@
 {
-  return null;
+  JType compType=getComponentType();
+  JClassType javaLangObject=getOracle().getJavaLangObject();
+  if (compType.isPrimitive() != null) {
+    return javaLangObject;
+  }
+  JArrayType arrayComponent=compType.isArray();
+  if (arrayComponent != null) {
+    return getOracle().getArrayType(arrayComponent.getSuperclass());
+  }
+  JClassType type=compType.isClassOrInterface();
+  if (type == javaLangObject) {
+    return javaLangObject;
+  }
+  JClassType superType=type.getSuperclass();
+  if (superType == null) {
+    assert(type.isInterface() == null);
+    superType=javaLangObject;
+  }
+  return getOracle().getArrayType(superType);
 }

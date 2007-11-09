@@ -1,0 +1,16 @@
+{
+  List<JClassType> subtypeList=new ArrayList<JClassType>();
+  JClassType[] genericSubtypes=getBaseType().getSubtypes();
+  for (  JClassType subtype : genericSubtypes) {
+    Set<JClassType> typeHierarchy=getFlattenedTypeHierarchy(subtype);
+    Map<JClassType,JClassType> substitutions=new IdentityHashMap<JClassType,JClassType>();
+    if (isSubtype(subtype,typeHierarchy,substitutions,true)) {
+      JGenericType genericType=subtype.isGenericType();
+      if (genericType != null) {
+        subtype=createParameterizedTypeRecursive(genericType,substitutions);
+      }
+      subtypeList.add(subtype);
+    }
+  }
+  return subtypeList.toArray(TypeOracle.NO_JCLASSES);
+}

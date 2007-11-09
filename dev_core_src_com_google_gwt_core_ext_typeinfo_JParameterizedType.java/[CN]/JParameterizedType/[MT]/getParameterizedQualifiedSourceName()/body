@@ -1,17 +1,28 @@
 {
   StringBuffer sb=new StringBuffer();
-  sb.append(getQualifiedSourceName());
-  sb.append('<');
-  boolean needComma=false;
-  for (  JType typeArg : typeArgs) {
-    if (needComma) {
-      sb.append(", ");
-    }
- else {
-      needComma=true;
-    }
-    sb.append(typeArg.getParameterizedQualifiedSourceName());
+  if (getEnclosingType() != null) {
+    sb.append(getEnclosingType().getParameterizedQualifiedSourceName());
+    sb.append(".");
+    sb.append(getSimpleSourceName());
   }
-  sb.append('>');
+ else {
+    sb.append(getQualifiedSourceName());
+  }
+  if (typeArgs.size() > 0) {
+    sb.append('<');
+    boolean needComma=false;
+    for (    JType typeArg : typeArgs) {
+      if (needComma) {
+        sb.append(", ");
+      }
+ else {
+        needComma=true;
+      }
+      sb.append(typeArg.getParameterizedQualifiedSourceName());
+    }
+    sb.append('>');
+  }
+ else {
+  }
   return sb.toString();
 }

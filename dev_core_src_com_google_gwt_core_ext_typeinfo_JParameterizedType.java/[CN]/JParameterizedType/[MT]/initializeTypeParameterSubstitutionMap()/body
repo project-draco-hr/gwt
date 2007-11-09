@@ -1,0 +1,19 @@
+{
+  JParameterizedType currentParameterizedType=this;
+  while (currentParameterizedType != null) {
+    JGenericType genericType=currentParameterizedType.getBaseType();
+    JTypeParameter[] typeParameters=genericType.getTypeParameters();
+    JClassType[] typeArguments=currentParameterizedType.getTypeArgs();
+    for (    JTypeParameter typeParameter : typeParameters) {
+      substitutionMap.put(typeParameter,typeArguments[typeParameter.getOrdinal()]);
+    }
+    if (currentParameterizedType.isStatic()) {
+      break;
+    }
+    JClassType maybeParameterizedType=currentParameterizedType.getEnclosingType();
+    if (maybeParameterizedType == null || maybeParameterizedType.isParameterized() == null) {
+      break;
+    }
+    currentParameterizedType=maybeParameterizedType.isParameterized();
+  }
+}

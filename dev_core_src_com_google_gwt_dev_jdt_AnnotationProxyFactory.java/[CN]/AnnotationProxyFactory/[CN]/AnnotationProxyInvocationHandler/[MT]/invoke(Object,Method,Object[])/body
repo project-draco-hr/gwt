@@ -2,6 +2,7 @@
   String name=method.getName();
   Object value=identifierToValue.get(name);
   if (value != null) {
+    assert(method.getReturnType().isAssignableFrom(value.getClass()));
     return value;
   }
   JMethod jMethod=annotationType.findMethod(name,new JType[0]);
@@ -9,6 +10,9 @@
     JAnnotationMethod annotationMethod=jMethod.isAnnotationMethod();
     assert(annotationMethod != null);
     return annotationMethod.getDefaultValue();
+  }
+  if (method.getDeclaringClass() == Annotation.class && "annotationType".equals(method.getName())) {
+    return annotationClass;
   }
   return method.invoke(this,args);
 }
