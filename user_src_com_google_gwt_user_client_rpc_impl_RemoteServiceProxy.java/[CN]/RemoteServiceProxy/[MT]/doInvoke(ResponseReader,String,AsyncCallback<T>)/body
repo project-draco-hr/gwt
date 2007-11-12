@@ -1,0 +1,15 @@
+{
+  if (getServiceEntryPoint() == null) {
+    throw new NoServiceEntryPointSpecifiedException();
+  }
+  RequestCallbackAdapter<T> responseHandler=new RequestCallbackAdapter<T>(getSerializer(),callback,responseReader);
+  RequestBuilder rb=new RequestBuilder(RequestBuilder.POST,getServiceEntryPoint());
+  try {
+    return rb.sendRequest(requestData,responseHandler);
+  }
+ catch (  RequestException ex) {
+    InvocationException iex=new InvocationException("Unable to initiate the asynchronous service invocation -- check the network connection",ex);
+    callback.onFailure(iex);
+  }
+  return null;
+}
