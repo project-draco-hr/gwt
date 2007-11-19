@@ -1,24 +1,20 @@
 {
-  final ClientSerializationStreamReader streamReader=new ClientSerializationStreamReader(serializer);
   T result=null;
   Throwable caught=null;
-  String encodedResponse=response.getText();
   try {
-    if (isReturnValue(encodedResponse)) {
-      streamReader.prepareToRead(getEncodedInstance(encodedResponse));
-      result=(T)responseReader.read(streamReader);
+    String encodedResponse=response.getText();
+    if (RemoteServiceProxy.isReturnValue(encodedResponse)) {
+      result=(T)responseReader.read(streamFactory.createStreamReader(encodedResponse));
     }
- else     if (isThrownException(encodedResponse)) {
-      streamReader.prepareToRead(getEncodedInstance(encodedResponse));
-      caught=(Throwable)streamReader.readObject();
+ else     if (RemoteServiceProxy.isThrownException(encodedResponse)) {
+      caught=(Throwable)streamFactory.createStreamReader(encodedResponse).readObject();
     }
  else {
-      assert(isInvocationException(encodedResponse));
-      caught=new com.google.gwt.user.client.rpc.InvocationException(encodedResponse);
+      caught=new InvocationException(encodedResponse);
     }
   }
  catch (  com.google.gwt.user.client.rpc.SerializationException e) {
-    caught=new com.google.gwt.user.client.rpc.IncompatibleRemoteServiceException();
+    caught=new IncompatibleRemoteServiceException();
   }
 catch (  Throwable e) {
     caught=e;
