@@ -1,0 +1,37 @@
+{
+  byte[] responseBytes=responseContent.getBytes(CHARSET_UTF8);
+  if (gzipResponse) {
+    ByteArrayOutputStream output=null;
+    GZIPOutputStream gzipOutputStream=null;
+    Throwable caught=null;
+    try {
+      output=new ByteArrayOutputStream(responseBytes.length);
+      gzipOutputStream=new GZIPOutputStream(output);
+      gzipOutputStream.write(responseBytes);
+      gzipOutputStream.finish();
+      gzipOutputStream.flush();
+      response.setHeader(CONTENT_ENCODING,CONTENT_ENCODING_GZIP);
+      responseBytes=output.toByteArray();
+    }
+ catch (    IOException e) {
+      caught=e;
+    }
+ finally {
+      if (null != gzipOutputStream) {
+        gzipOutputStream.close();
+      }
+      if (null != output) {
+        output.close();
+      }
+    }
+    if (caught != null) {
+      servletContext.log("Unable to compress response",caught);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      return;
+    }
+  }
+  response.setContentLength(responseBytes.length);
+  response.setContentType(CONTENT_TYPE_TEXT_PLAIN_UTF8);
+  response.setStatus(HttpServletResponse.SC_OK);
+  response.getOutputStream().write(responseBytes);
+}
