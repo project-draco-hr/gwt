@@ -17,9 +17,12 @@
  else     if (rawType.isClassOrInterface() == null) {
       throw new BadTypeArgsException("Only classes and interface can be parameterized, so " + rawType.getQualifiedSourceName() + " cannot be used in this context");
     }
+ else     if (rawType.isGenericType() == null) {
+      throw new BadTypeArgsException("'" + rawType.getQualifiedSourceName() + "' is not a generic type; only generic types can be parameterized");
+    }
     String typeArgContents=type.substring(bracket + 1,type.length() - 1);
     JClassType[] typeArgs=parseTypeArgContents(typeArgContents);
-    return getParameterizedType(rawType.isClassOrInterface().isGenericType(),typeArgs);
+    return getParameterizedType(rawType.isGenericType(),typeArgs);
   }
   JType result=JPrimitiveType.valueOf(type);
   if (result != null) {
@@ -29,5 +32,5 @@
   if (result != null) {
     return result;
   }
-  throw new NotFoundException(type);
+  throw new NotFoundException("Unable to recognize '" + type + "' as a type name (is it fully qualified?)");
 }

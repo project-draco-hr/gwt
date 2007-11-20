@@ -5,9 +5,12 @@
   try {
     parameterizedType=parse(toParse);
   }
- catch (  TypeOracleException e) {
-    String msg="Unable to recognize '" + toParse + "' as a type name (is it fully qualified?)";
-    logger.log(TreeLogger.WARN,msg,null);
+ catch (  IllegalArgumentException e) {
+    logger.log(TreeLogger.WARN,e.getMessage(),e);
+    throw new UnableToCompleteException();
+  }
+catch (  TypeOracleException e) {
+    logger.log(TreeLogger.WARN,e.getMessage(),e);
     throw new UnableToCompleteException();
   }
   return parameterizedType;

@@ -1,8 +1,17 @@
 {
-  if (genericType.isMemberType()) {
+  if (genericType == null) {
+    throw new NullPointerException("genericType");
+  }
+  if (genericType.isMemberType() && !genericType.isStatic()) {
     if (genericType.getEnclosingType().isGenericType() != null && enclosingType.isParameterized() == null && enclosingType.isRawType() == null) {
       throw new IllegalArgumentException("enclosingType needs to be a parameterized type or a raw type");
     }
+  }
+  JTypeParameter[] typeParameters=genericType.getTypeParameters();
+  if (typeArgs.length < typeParameters.length) {
+    throw new IllegalArgumentException("Not enough type arguments were specified to parameterize '" + genericType.getParameterizedQualifiedSourceName() + "'");
+  }
+ else {
   }
   JParameterizedType parameterized=new JParameterizedType(genericType,enclosingType,typeArgs);
   String sig=parameterized.getParameterizedQualifiedSourceName();

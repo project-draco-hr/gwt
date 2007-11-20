@@ -2,12 +2,14 @@
   List<JClassType> subtypeList=new ArrayList<JClassType>();
   JClassType[] genericSubtypes=getBaseType().getSubtypes();
   for (  JClassType subtype : genericSubtypes) {
-    Set<JClassType> typeHierarchy=getFlattenedTypeHierarchy(subtype);
-    Map<JClassType,JClassType> substitutions=new IdentityHashMap<JClassType,JClassType>();
-    if (isSubtype(subtype,typeHierarchy,substitutions,true)) {
+    Map<JTypeParameter,JClassType> substitutions=findSubtypeSubstitution(subtype);
+    if (substitutions != null) {
       JGenericType genericType=subtype.isGenericType();
       if (genericType != null) {
         subtype=createParameterizedTypeRecursive(genericType,substitutions);
+      }
+ else {
+        assert(substitutions.isEmpty());
       }
       subtypeList.add(subtype);
     }

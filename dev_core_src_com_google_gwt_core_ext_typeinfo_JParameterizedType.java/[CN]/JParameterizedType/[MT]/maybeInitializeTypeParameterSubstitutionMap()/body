@@ -1,11 +1,15 @@
 {
+  if (lazySubstitutionMap != null) {
+    return;
+  }
+  lazySubstitutionMap=new IdentityHashMap<JTypeParameter,JClassType>();
   JParameterizedType currentParameterizedType=this;
   while (currentParameterizedType != null) {
     JGenericType genericType=currentParameterizedType.getBaseType();
     JTypeParameter[] typeParameters=genericType.getTypeParameters();
     JClassType[] typeArguments=currentParameterizedType.getTypeArgs();
     for (    JTypeParameter typeParameter : typeParameters) {
-      substitutionMap.put(typeParameter,typeArguments[typeParameter.getOrdinal()]);
+      lazySubstitutionMap.put(typeParameter,typeArguments[typeParameter.getOrdinal()]);
     }
     if (currentParameterizedType.isStatic()) {
       break;

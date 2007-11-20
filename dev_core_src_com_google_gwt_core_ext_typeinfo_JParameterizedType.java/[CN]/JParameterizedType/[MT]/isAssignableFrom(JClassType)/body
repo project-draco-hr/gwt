@@ -1,11 +1,26 @@
 {
-  if (possibleSubtype == this) {
+  Set<JClassType> typeHierarchy=getFlattenedSuperTypeHierarchy(otherType);
+  if (typeHierarchy.contains(this)) {
     return true;
   }
-  JRawType possibleRawSubtype=possibleSubtype.isRawType();
-  if (possibleRawSubtype != null) {
-    return getBaseType().isAssignableFrom(possibleRawSubtype.getBaseType());
+  for (  JClassType type : typeHierarchy) {
+    JGenericType isGeneric=type.isGenericType();
+    if (isGeneric != null) {
+      type=isGeneric.getRawType();
+    }
+    JParameterizedType isParameterized=type.isParameterized();
+    if (isParameterized != null && isParameterized.getBaseType() == getBaseType()) {
+      assert(isParameterized != this);
+      return areTypeArgsAssignableFrom(this.getTypeArgs(),isParameterized.getTypeArgs());
+    }
+    JRawType isRaw=type.isRawType();
+    if (isRaw != null && isRaw.getBaseType() == getBaseType()) {
+      return true;
+    }
+    JWildcardType isWildcard=type.isWildcard();
+    if (isWildcard != null && isWildcard.isAssignableTo(this)) {
+      return true;
+    }
   }
-  Set<JClassType> typeHierarchy=getFlattenedTypeHierarchy(possibleSubtype);
-  return isSubtype(possibleSubtype,typeHierarchy,new IdentityHashMap<JClassType,JClassType>(),false);
+  return false;
 }
