@@ -9,8 +9,25 @@ case 0:
     }
   break;
 case 1:
-if ((flags & (COM.DISPATCH_METHOD | COM.DISPATCH_PROPERTYGET)) != 0) {
+if ((flags & COM.DISPATCH_METHOD) != 0) {
   return new Variant(toString());
+}
+ else if ((flags & COM.DISPATCH_PROPERTYGET) != 0) {
+  Method toStringMethod;
+  try {
+    toStringMethod=Object.class.getDeclaredMethod("toString");
+  }
+ catch (  Throwable e) {
+    throw new RuntimeException("Failed to get Object.toString() method",e);
+  }
+  IDispatchImpl dispMethod=(IDispatchImpl)classLoader.getMethodDispatch(toStringMethod);
+  if (dispMethod == null) {
+    dispMethod=new MethodDispatch(classLoader,toStringMethod);
+    classLoader.putMethodDispatch(toStringMethod,dispMethod);
+  }
+  IDispatch disp=new IDispatch(dispMethod.getAddress());
+  disp.AddRef();
+  return new Variant(disp);
 }
 break;
 case 2:
@@ -20,6 +37,10 @@ Variant[] otherParams=new Variant[params.length - 1];
 System.arraycopy(params,1,otherParams,0,otherParams.length);
 return callMethod(classLoader,jthis,otherParams,method);
 }
+ else if ((flags & COM.DISPATCH_PROPERTYGET) != 0) {
+}
+break;
+case 3:
 break;
 case IDispatchProxy.DISPID_MAGIC_GETGLOBALREF:
 return new Variant(0);
