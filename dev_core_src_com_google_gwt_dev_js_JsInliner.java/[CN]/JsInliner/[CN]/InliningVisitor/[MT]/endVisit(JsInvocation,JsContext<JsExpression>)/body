@@ -1,40 +1,48 @@
 {
-  if (!(x.getQualifier() instanceof JsNameRef)) {
+  JsFunction f=isFunction(x.getQualifier());
+  if (f == null) {
     return;
   }
-  JsNameRef ref=(JsNameRef)x.getQualifier();
-  if (!(ref.getName().getStaticRef() instanceof JsFunction)) {
+  if (blacklist.contains(f)) {
     return;
   }
-  JsFunction f=(JsFunction)ref.getName().getStaticRef();
   List<JsStatement> statements=f.getBody().getStatements();
-  JsStatement clinit;
-  JsStatement toHoist;
-  if (statements.size() == 1) {
-    clinit=null;
-    toHoist=statements.get(0);
-  }
- else   if (statements.size() == 2) {
-    clinit=statements.get(0);
-    toHoist=statements.get(1);
-    if (!isStaticInitializer(clinit)) {
+  List<JsExpression> hoisted=new ArrayList<JsExpression>(statements.size());
+  for (  JsStatement statement : statements) {
+    JsExpression h=hoistedExpression(statement);
+    if (h == null) {
       return;
     }
+    hoisted.add(h);
+    if (hoistedExpressionTerminal(statement)) {
+      break;
+    }
+  }
+  JsExpression op;
+  if (hoisted.size() == 0) {
+    op=program.getNullLiteral();
   }
  else {
-    return;
+    ListIterator<JsExpression> i=hoisted.listIterator(hoisted.size());
+    op=i.previous();
+    while (i.hasPrevious()) {
+      JsBinaryOperation outerOp=new JsBinaryOperation(JsBinaryOperator.COMMA);
+      outerOp.setArg1(i.previous());
+      outerOp.setArg2(op);
+      op=outerOp;
+    }
   }
-  JsExpression replacement=hoistedExpression(toHoist);
-  if (replacement == null) {
-    return;
-  }
-  if (!isInlinableStatement(functionStack.peek(),x.getArguments(),f,toHoist)) {
+  if (!isInlinable(functionStack.peek(),x,f,op)) {
     return;
   }
   NameRefReplacerVisitor v=new NameRefReplacerVisitor(x,f);
-  replacement=v.accept(replacement);
-  if (statements.size() == 2) {
-    replacement=new JsBinaryOperation(JsBinaryOperator.COMMA,((JsExprStmt)clinit).getExpression(),replacement);
+  op=v.accept(op);
+  op=(new CommaNormalizer()).accept(op);
+  int originalComplexity=complexity(x);
+  int inlinedComplexity=complexity(op);
+  if (((float)inlinedComplexity / originalComplexity) > MAX_COMPLEXITY_INCREASE) {
+    return;
   }
-  ctx.replaceMe(replacement);
+  op=accept(op);
+  ctx.replaceMe(op);
 }
