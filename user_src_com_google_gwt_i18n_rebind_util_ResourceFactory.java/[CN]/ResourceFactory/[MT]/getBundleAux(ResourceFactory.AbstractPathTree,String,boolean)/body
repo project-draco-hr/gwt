@@ -1,9 +1,12 @@
 {
   String targetPath=tree.getPath();
   ClassLoader loader=AbstractResource.class.getClassLoader();
+  if (locale == null || locale.length() == 0) {
+    locale=DEFAULT_TOKEN;
+  }
   String localizedPath=targetPath;
-  if (locale != null) {
-    localizedPath=targetPath + "_" + locale;
+  if (!DEFAULT_TOKEN.equals(locale)) {
+    localizedPath=targetPath + LOCALE_SEPARATOR + locale;
   }
   AbstractResource result=cache.get(localizedPath);
   if (result != null) {
@@ -26,7 +29,7 @@
       found=element.load(m);
       found.setPath(partualPath);
       found.setPrimaryParent(parent);
-      found.setLocale(locale);
+      found.setLocaleName(locale);
       for (int j=0; j < altParents.size(); j++) {
         AbstractResource altParent=altParents.get(j);
         found.addAlternativeParent(altParent);
@@ -42,11 +45,15 @@
  else {
       found=NOT_FOUND;
     }
-    found=parent;
   }
   cache.put(localizedPath,found);
-  if (found == null && required) {
-    throw new MissingResourceException("Could not find any resource associated with " + tree.getPath(),null,null);
+  if (found == NOT_FOUND) {
+    if (required) {
+      throw new MissingResourceException("Could not find any resource associated with " + tree.getPath(),null,null);
+    }
+ else {
+      return null;
+    }
   }
   return found;
 }

@@ -4,33 +4,21 @@
   if (className != null) {
     return className;
   }
-  if (baseClass.getName().indexOf("_") == 0) {
-    throw error(logger,"Cannot have a '_' in the base localizable class " + baseClass);
+  if (baseClass.getName().indexOf(ResourceFactory.LOCALE_SEPARATOR) != -1) {
+    throw error(logger,"Cannot have a " + ResourceFactory.LOCALE_SEPARATOR + " in the base localizable class "+ baseClass);
   }
   Map<String,JClassType> matchingClasses=findDerivedClasses(logger,baseClass);
-  String localeSuffix;
+  String localeSuffix=locale;
   JClassType result=null;
-  if (locale == null) {
-    localeSuffix=LocalizableGenerator.DEFAULT_TOKEN;
-  }
- else {
-    localeSuffix=locale.toString();
-  }
   while (true) {
     result=matchingClasses.get(localeSuffix);
     if (result != null) {
       break;
     }
-    int strip=localeSuffix.lastIndexOf("_");
-    if (localeSuffix == LocalizableGenerator.DEFAULT_TOKEN) {
+    if (localeSuffix.equals(ResourceFactory.DEFAULT_TOKEN)) {
       throw error(logger,"Cannot find a class to bind to argument type " + baseClass.getQualifiedSourceName());
     }
- else     if (strip == -1) {
-      localeSuffix=LocalizableGenerator.DEFAULT_TOKEN;
-    }
- else {
-      localeSuffix=localeSuffix.substring(0,strip);
-    }
+    localeSuffix=ResourceFactory.getParentLocaleName(localeSuffix);
   }
   implCache.put(baseName + locale,className);
   return result.getQualifiedSourceName();
