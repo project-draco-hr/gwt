@@ -1,14 +1,20 @@
 {
-  for (int i=0; i < x.getTarget().params.size(); ++i) {
-    JParameter param=x.getTarget().params.get(i);
-    JExpression newArg=checkAndReplaceJso(x.getArgs().get(i),param.getType());
-    x.getArgs().set(i,newArg);
+  ArrayList<JExpression> args=x.getArgs();
+  JMethod target=x.getTarget();
+  if (!target.isNative()) {
+    for (int i=0; i < target.params.size(); ++i) {
+      JParameter param=target.params.get(i);
+      JExpression arg=args.get(i);
+      JExpression newArg=checkAndReplaceJso(arg,param.getType());
+      this.didChange|=(newArg != arg);
+      args.set(i,newArg);
+    }
   }
-  if (!x.getTarget().isStatic()) {
+  if (!target.isStatic()) {
     JExpression newInst=checkAndReplaceJso(x.getInstance(),program.getTypeJavaLangObject());
     if (newInst != x.getInstance()) {
-      JMethodCall newCall=new JMethodCall(program,x.getSourceInfo(),newInst,x.getTarget(),x.isStaticDispatchOnly());
-      newCall.getArgs().addAll(x.getArgs());
+      JMethodCall newCall=new JMethodCall(program,x.getSourceInfo(),newInst,target,x.isStaticDispatchOnly());
+      newCall.getArgs().addAll(args);
       ctx.replaceMe(newCall);
     }
   }
