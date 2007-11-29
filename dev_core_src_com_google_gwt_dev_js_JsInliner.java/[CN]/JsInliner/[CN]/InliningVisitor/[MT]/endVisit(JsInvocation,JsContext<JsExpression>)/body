@@ -8,29 +8,29 @@
   }
   List<JsStatement> statements=f.getBody().getStatements();
   List<JsExpression> hoisted=new ArrayList<JsExpression>(statements.size());
+  boolean sawReturnStatement=false;
   for (  JsStatement statement : statements) {
     JsExpression h=hoistedExpression(statement);
     if (h == null) {
       return;
     }
     hoisted.add(h);
-    if (hoistedExpressionTerminal(statement)) {
+    if (isReturnStatement(statement)) {
+      sawReturnStatement=true;
       break;
     }
   }
-  JsExpression op;
-  if (hoisted.size() == 0) {
-    op=program.getNullLiteral();
+  if (!sawReturnStatement) {
+    hoisted.add(program.getUndefinedLiteral());
   }
- else {
-    ListIterator<JsExpression> i=hoisted.listIterator(hoisted.size());
-    op=i.previous();
-    while (i.hasPrevious()) {
-      JsBinaryOperation outerOp=new JsBinaryOperation(JsBinaryOperator.COMMA);
-      outerOp.setArg1(i.previous());
-      outerOp.setArg2(op);
-      op=outerOp;
-    }
+  assert(hoisted.size() > 0);
+  ListIterator<JsExpression> i=hoisted.listIterator(hoisted.size());
+  JsExpression op=i.previous();
+  while (i.hasPrevious()) {
+    JsBinaryOperation outerOp=new JsBinaryOperation(JsBinaryOperator.COMMA);
+    outerOp.setArg1(i.previous());
+    outerOp.setArg2(op);
+    op=outerOp;
   }
   if (!isInlinable(functionStack.peek(),x,f,op)) {
     return;
