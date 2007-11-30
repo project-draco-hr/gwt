@@ -1,14 +1,12 @@
 {
   ArrayList<JExpression> args=x.getArgs();
   JMethod target=x.getTarget();
-  if (!target.isNative()) {
-    for (int i=0; i < target.params.size(); ++i) {
-      JParameter param=target.params.get(i);
-      JExpression arg=args.get(i);
-      JExpression newArg=checkAndReplaceJso(arg,param.getType());
-      this.didChange|=(newArg != arg);
-      args.set(i,newArg);
-    }
+  for (int i=0; i < target.params.size(); ++i) {
+    JParameter param=target.params.get(i);
+    JExpression arg=args.get(i);
+    JExpression newArg=checkAndReplaceJso(arg,param.getType(),target.isNative());
+    this.didChange|=(newArg != arg);
+    args.set(i,newArg);
   }
   if (!target.isStatic()) {
     JExpression newInst=checkAndReplaceJso(x.getInstance(),program.getTypeJavaLangObject());
