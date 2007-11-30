@@ -1,0 +1,40 @@
+{
+  if (lhsType == rhsType) {
+    return true;
+  }
+  Set<JClassType> rhsSupertypes=getFlattenedSuperTypeHierarchy(rhsType);
+  if (rhsSupertypes.contains(lhsType)) {
+    return true;
+  }
+  JGenericType lhsBaseType=null;
+  if (lhsType.isParameterized() != null) {
+    lhsBaseType=lhsType.isParameterized().getBaseType();
+  }
+ else   if (lhsType.isRawType() != null) {
+    lhsBaseType=lhsType.isRawType().getBaseType();
+  }
+  for (  JClassType rhsSupertype : rhsSupertypes) {
+    if (rhsSupertype.isGenericType() != null) {
+      rhsSupertype=rhsSupertype.isGenericType().getRawType();
+    }
+    JParameterizedType rhsParameterized=rhsSupertype.isParameterized();
+    if (rhsParameterized != null) {
+      if (rhsParameterized.getBaseType() == lhsBaseType) {
+        assert(rhsParameterized != lhsType);
+        if (lhsType.isRawType() != null) {
+          return true;
+        }
+ else {
+          assert(lhsType.isParameterized() != null);
+          return areTypeArgsAssignableFrom(lhsType.isParameterized().getTypeArgs(),rhsParameterized.getTypeArgs());
+        }
+      }
+    }
+ else     if (rhsSupertype.isRawType() != null) {
+      if (rhsSupertype.isRawType().getBaseType() == lhsBaseType) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
