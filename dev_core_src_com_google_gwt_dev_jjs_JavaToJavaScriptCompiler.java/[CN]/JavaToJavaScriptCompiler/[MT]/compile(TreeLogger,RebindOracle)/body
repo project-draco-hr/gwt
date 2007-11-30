@@ -12,11 +12,11 @@
     if (!isDebugEnabled) {
       AssertionRemover.exec(jprogram);
     }
-    jprogram.typeOracle.computeAfterAST();
     ReplaceRebinds.exec(jprogram);
     findEntryPoints(logger,rebindOracle,declEntryPoints,jprogram);
     boolean didChange;
     do {
+      jprogram.typeOracle.recomputeClinits();
       didChange=false;
       didChange=Pruner.exec(jprogram,true) || didChange;
       didChange=MethodAndClassFinalizer.exec(jprogram) || didChange;
@@ -25,9 +25,6 @@
       didChange=MethodCallTightener.exec(jprogram) || didChange;
       didChange=DeadCodeElimination.exec(jprogram) || didChange;
       didChange=MethodInliner.exec(jprogram) || didChange;
-      if (didChange) {
-        jprogram.typeOracle.recomputeClinits();
-      }
     }
  while (didChange);
     if (isDebugEnabled) {
@@ -38,6 +35,7 @@
     CastNormalizer.exec(jprogram);
     ArrayNormalizer.exec(jprogram);
     Pruner.exec(jprogram,false);
+    jprogram.typeOracle.recomputeClinits();
     GenerateJavaScriptAST.exec(jprogram,jsProgram,obfuscate,prettyNames);
     JsNormalizer.exec(jsProgram);
     JsSymbolResolver.exec(jsProgram);
