@@ -1,8 +1,13 @@
 {
-  threadLogger.set(logger);
-  Set<CompilationUnitDeclaration> cuds=new HashSet<CompilationUnitDeclaration>();
-  compiler.compile(units,cuds);
-  int size=cuds.size();
-  CompilationUnitDeclaration[] cudArray=new CompilationUnitDeclaration[size];
-  return cuds.toArray(cudArray);
+  TreeLogger oldLogger=threadLogger.push(logger);
+  try {
+    Set<CompilationUnitDeclaration> cuds=new HashSet<CompilationUnitDeclaration>();
+    compiler.compile(units,cuds);
+    int size=cuds.size();
+    CompilationUnitDeclaration[] cudArray=new CompilationUnitDeclaration[size];
+    return cuds.toArray(cudArray);
+  }
+  finally {
+    threadLogger.pop(oldLogger);
+  }
 }
