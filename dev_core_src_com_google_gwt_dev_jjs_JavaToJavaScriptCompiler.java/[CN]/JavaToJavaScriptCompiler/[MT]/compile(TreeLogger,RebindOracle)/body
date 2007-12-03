@@ -24,7 +24,9 @@
       didChange=TypeTightener.exec(jprogram) || didChange;
       didChange=MethodCallTightener.exec(jprogram) || didChange;
       didChange=DeadCodeElimination.exec(jprogram) || didChange;
-      didChange=MethodInliner.exec(jprogram) || didChange;
+      if (aggressivelyOptimize) {
+        didChange=MethodInliner.exec(jprogram) || didChange;
+      }
     }
  while (didChange);
     if (isDebugEnabled) {
@@ -39,12 +41,14 @@
     GenerateJavaScriptAST.exec(jprogram,jsProgram,obfuscate,prettyNames);
     JsNormalizer.exec(jsProgram);
     JsSymbolResolver.exec(jsProgram);
-    do {
-      didChange=false;
-      didChange=JsInliner.exec(jsProgram) || didChange;
-      didChange=JsUnusedFunctionRemover.exec(jsProgram) || didChange;
-    }
+    if (aggressivelyOptimize) {
+      do {
+        didChange=false;
+        didChange=aggressivelyOptimize && JsInliner.exec(jsProgram) || didChange;
+        didChange=JsUnusedFunctionRemover.exec(jsProgram) || didChange;
+      }
  while (didChange);
+    }
     if (obfuscate) {
       JsStringInterner.exec(jsProgram);
       JsObfuscateNamer.exec(jsProgram);
