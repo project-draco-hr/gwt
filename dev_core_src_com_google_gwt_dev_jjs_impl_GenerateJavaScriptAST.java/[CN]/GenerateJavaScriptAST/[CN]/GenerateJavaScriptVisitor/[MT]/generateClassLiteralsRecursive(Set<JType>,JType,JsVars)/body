@@ -1,0 +1,17 @@
+{
+  if (alreadyGenerated.contains(type)) {
+    return;
+  }
+  alreadyGenerated.add(type);
+  if (type instanceof JClassType && !(type instanceof JArrayType)) {
+    JClassType classType=(JClassType)type;
+    if (classType.extnds != null) {
+      generateClassLiteralsRecursive(alreadyGenerated,classType.extnds,vars);
+    }
+  }
+  JsName jsName=classLits.get(type);
+  JsExpression classObjectAlloc=classObjects.get(jsName);
+  JsVar var=new JsVar(jsName);
+  var.setInitExpr(classObjectAlloc);
+  vars.add(var);
+}
