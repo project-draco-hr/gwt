@@ -1,16 +1,17 @@
 {
   List<String> reasons=new ArrayList<String>();
-  JMethod deserialize=serializer.findMethod("deserialize",new JType[]{streamReaderClass,serializee});
-  if (!isValidCustomFieldSerializerMethod(deserialize,JPrimitiveType.VOID)) {
+  if (serializee.isEnum() != null) {
+    reasons.add("Enumerated types cannot have custom field serializers.");
+    return reasons;
+  }
+  if (!hasSerializationMethod(streamReaderClass,"deserialize",serializer,serializee)) {
     reasons.add(MessageFormat.format(NO_DESERIALIZE_METHOD,serializer.getQualifiedSourceName(),streamReaderClass.getQualifiedSourceName(),serializee.getQualifiedSourceName()));
   }
-  JMethod serialize=serializer.findMethod("serialize",new JType[]{streamWriterClass,serializee});
-  if (!isValidCustomFieldSerializerMethod(serialize,JPrimitiveType.VOID)) {
+  if (!hasSerializationMethod(streamWriterClass,"serialize",serializer,serializee)) {
     reasons.add(MessageFormat.format(NO_SERIALIZE_METHOD,serializer.getQualifiedSourceName(),streamWriterClass.getQualifiedSourceName(),serializee.getQualifiedSourceName()));
   }
-  if (!serializee.isAbstract() && !serializee.isDefaultInstantiable()) {
-    JMethod instantiate=serializer.findMethod("instantiate",new JType[]{streamReaderClass});
-    if (!isValidCustomFieldSerializerMethod(instantiate,serializee)) {
+  if (!Shared.isDefaultInstantiable(serializee)) {
+    if (!hasInstantiationMethod(streamReaderClass,serializer,serializee)) {
       reasons.add(MessageFormat.format(NO_INSTANTIATE_METHOD,serializer.getQualifiedSourceName(),serializee.getQualifiedSourceName(),streamReaderClass.getQualifiedSourceName()));
     }
   }

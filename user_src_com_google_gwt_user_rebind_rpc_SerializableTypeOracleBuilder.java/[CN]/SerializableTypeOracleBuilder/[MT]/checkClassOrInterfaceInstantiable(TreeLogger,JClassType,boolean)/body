@@ -14,6 +14,19 @@
   }
  else {
     assert(typeInfo.isAutoSerializable());
+    if (type.isEnum() != null) {
+      if (type.isLocalType()) {
+        tic.setInstantiable(false);
+        return false;
+      }
+ else {
+        return true;
+      }
+    }
+    if (type.isPrivate()) {
+      tic.setInstantiable(false);
+      return false;
+    }
     if (type.isLocalType()) {
       markAsUninstantiableAndLog(logger,isSpeculative,type.getParameterizedQualifiedSourceName() + " is a local type, it will be excluded from the set of serializable types",tic);
       return false;
@@ -25,17 +38,7 @@
     if (type.isInterface() != null || type.isAbstract()) {
       return false;
     }
-    boolean isDefaultInstantiable=false;
-    if (type.getConstructors().length == 0) {
-      isDefaultInstantiable=true;
-    }
- else {
-      JConstructor ctor=type.findConstructor(new JType[0]);
-      if (ctor != null && !ctor.isPrivate()) {
-        isDefaultInstantiable=true;
-      }
-    }
-    if (!isDefaultInstantiable) {
+    if (!Shared.isDefaultInstantiable(type)) {
       logger.log(TreeLogger.WARN,"Was not default instantiable (it must have a zero-argument, non-private constructor or no constructors at all)",null);
       return false;
     }

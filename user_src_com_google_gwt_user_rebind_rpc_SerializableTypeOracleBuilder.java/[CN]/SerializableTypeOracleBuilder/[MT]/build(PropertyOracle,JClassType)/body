@@ -2,11 +2,11 @@
   initializeProperties(rootLogger,propertyOracle);
   try {
     JClassType stringType=typeOracle.getType(String.class.getName());
-    if (!checkTypeInstantiable(rootLogger,stringType,false,false)) {
+    if (!checkTypeInstantiable(rootLogger,stringType,false)) {
       throw new UnableToCompleteException();
     }
     JClassType icseType=typeOracle.getType(IncompatibleRemoteServiceException.class.getName());
-    if (!checkTypeInstantiable(rootLogger,icseType,false,false)) {
+    if (!checkTypeInstantiable(rootLogger,icseType,false)) {
       throw new UnableToCompleteException();
     }
   }
@@ -42,20 +42,24 @@
       }
     }
   }
-  Set<JType> possiblyInstantiatedTypes=new HashSet<JType>();
-  List<JType> serializableTypesList=new ArrayList<JType>();
+  Set<JClassType> possiblyInstantiatedTypes=new HashSet<JClassType>();
+  List<JClassType> serializableTypesList=new ArrayList<JClassType>();
   for (  TypeInfoComputed tic : typeToTypeInfoComputed.values()) {
-    JType type=tic.getType();
-    if (type.isParameterized() == null) {
-      if (tic.isInstantiable()) {
-        possiblyInstantiatedTypes.add(type);
-      }
-      if (tic.isFieldSerializable()) {
-        serializableTypesList.add(type);
-      }
+    JClassType type=tic.getType();
+    if (type.isTypeParameter() != null || type.isWildcard() != null) {
+      continue;
+    }
+    if (type.isParameterized() != null) {
+      type=type.isParameterized().getRawType();
+    }
+    if (tic.isInstantiable()) {
+      possiblyInstantiatedTypes.add(type);
+    }
+    if (tic.isFieldSerializable()) {
+      serializableTypesList.add(type);
     }
   }
-  JType[] serializableTypes=new JType[serializableTypesList.size()];
+  JClassType[] serializableTypes=new JClassType[serializableTypesList.size()];
   serializableTypesList.toArray(serializableTypes);
   Arrays.sort(serializableTypes,new Comparator<JType>(){
     public int compare(    JType o1,    JType o2){
