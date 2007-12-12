@@ -6,23 +6,23 @@
   this.declEntryPoints=declEntryPts;
   this.obfuscate=obfuscate;
   this.prettyNames=prettyNames;
-  RebindPermutationOracle rpo=compiler.getRebindPermutationOracle();
-  Set<String> allEntryPoints=new HashSet<String>();
-  for (  String element : declEntryPts) {
-    String[] all=rpo.getAllPossibleRebindAnswers(logger,element);
-    Util.addAll(allEntryPoints,all);
+  this.validateOnly=validateOnly;
+  if (!validateOnly) {
+    RebindPermutationOracle rpo=compiler.getRebindPermutationOracle();
+    Set<String> allEntryPoints=new TreeSet<String>();
+    for (    String element : declEntryPts) {
+      String[] all=rpo.getAllPossibleRebindAnswers(logger,element);
+      Util.addAll(allEntryPoints,all);
+    }
+    allEntryPoints.add("com.google.gwt.lang.Array");
+    allEntryPoints.add("com.google.gwt.lang.Cast");
+    allEntryPoints.add("com.google.gwt.lang.Exceptions");
+    allEntryPoints.add("java.lang.Object");
+    allEntryPoints.add("java.lang.String");
+    allEntryPoints.add("java.lang.Iterable");
+    declEntryPts=allEntryPoints.toArray(new String[0]);
   }
-  String[] entryPts=Util.toStringArray(allEntryPoints);
-  int k=entryPts.length;
-  String[] seedTypeNames=new String[k + 6];
-  System.arraycopy(entryPts,0,seedTypeNames,0,k);
-  seedTypeNames[k++]="com.google.gwt.lang.Array";
-  seedTypeNames[k++]="com.google.gwt.lang.Cast";
-  seedTypeNames[k++]="com.google.gwt.lang.Exceptions";
-  seedTypeNames[k++]="java.lang.Object";
-  seedTypeNames[k++]="java.lang.String";
-  seedTypeNames[k++]="java.lang.Iterable";
-  goldenCuds=compiler.getCompilationUnitDeclarations(logger,seedTypeNames);
+  goldenCuds=compiler.getCompilationUnitDeclarations(logger,declEntryPts);
   checkForErrors(logger,false);
   lastModified=0;
   CompilationUnitProvider newestCup=null;

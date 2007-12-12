@@ -5,14 +5,30 @@
   rules=module.getRules();
   typeOracle=module.getTypeOracle(logger);
   sourceOracle=new StandardSourceOracle(typeOracle);
-  declEntryPts=module.getEntryPointTypeNames();
+  if (validateOnly) {
+    CompilationUnitProvider[] compilationUnits=module.getCompilationUnits();
+    declEntryPts=new String[compilationUnits.length];
+    for (int i=0; i < compilationUnits.length; ++i) {
+      CompilationUnitProvider cup=compilationUnits[i];
+      declEntryPts[i]=makeTypeName(cup);
+    }
+  }
+ else {
+    declEntryPts=module.getEntryPointTypeNames();
+  }
   rebindPermOracle=new DistillerRebindPermutationOracle();
   properties=module.getProperties();
   perms=new PropertyPermutations(properties);
   WebModeCompilerFrontEnd frontEnd=new WebModeCompilerFrontEnd(sourceOracle,rebindPermOracle);
-  jjs=new JavaToJavaScriptCompiler(logger,frontEnd,declEntryPts,obfuscate,prettyNames,aggressivelyOptimize);
-  initCompilations(logger);
+  jjs=new JavaToJavaScriptCompiler(logger,frontEnd,declEntryPts,obfuscate,prettyNames,aggressivelyOptimize,validateOnly);
+  if (!validateOnly) {
+    initCompilations(logger);
+  }
   SelectionScriptGenerator selGen=compilePermutations(logger);
+  if (validateOnly) {
+    logger.log(TreeLogger.INFO,"Validation succeeded",null);
+    return;
+  }
   writeSelectionScripts(logger,selGen);
   copyPublicFiles(logger);
   logger.log(TreeLogger.INFO,"Compilation succeeded",null);
