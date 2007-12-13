@@ -13,7 +13,7 @@
       AssertionRemover.exec(jprogram);
     }
     ReplaceRebinds.exec(jprogram);
-    if (validateOnly) {
+    if (options.isValidateOnly()) {
       return null;
     }
     findEntryPoints(logger,rebindOracle,declEntryPoints,jprogram);
@@ -27,7 +27,7 @@
       didChange=TypeTightener.exec(jprogram) || didChange;
       didChange=MethodCallTightener.exec(jprogram) || didChange;
       didChange=DeadCodeElimination.exec(jprogram) || didChange;
-      if (aggressivelyOptimize) {
+      if (options.isAggressivelyOptimize()) {
         didChange=MethodInliner.exec(jprogram) || didChange;
       }
     }
@@ -41,68 +41,72 @@
     ArrayNormalizer.exec(jprogram);
     Pruner.exec(jprogram,false);
     jprogram.typeOracle.recomputeClinits();
-    GenerateJavaScriptAST.exec(jprogram,jsProgram,obfuscate,prettyNames);
+    GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput());
     JsNormalizer.exec(jsProgram);
     JsSymbolResolver.exec(jsProgram);
-    if (aggressivelyOptimize) {
+    if (options.isAggressivelyOptimize()) {
       do {
         didChange=false;
-        didChange=aggressivelyOptimize && JsInliner.exec(jsProgram) || didChange;
+        didChange=options.isAggressivelyOptimize() && JsInliner.exec(jsProgram) || didChange;
         didChange=JsUnusedFunctionRemover.exec(jsProgram) || didChange;
       }
  while (didChange);
     }
-    if (obfuscate) {
+switch (options.getOutput()) {
+case OBFUSCATED:
       JsStringInterner.exec(jsProgram);
-      JsObfuscateNamer.exec(jsProgram);
-    }
- else     if (prettyNames) {
-      JsPrettyNamer.exec(jsProgram);
-    }
+    JsObfuscateNamer.exec(jsProgram);
+  break;
+case PRETTY:
+JsPrettyNamer.exec(jsProgram);
+break;
+case DETAILED:
+JsStringInterner.exec(jsProgram);
+JsVerboseNamer.exec(jsProgram);
+break;
+default :
+throw new InternalCompilerException("Unknown output mode");
+}
+DefaultTextOutput out=new DefaultTextOutput(options.getOutput().shouldMinimize());
+JsSourceGenerationVisitor v=new JsSourceGenerationVisitor(out);
+v.accept(jsProgram);
+return out.toString();
+}
+ catch (UnableToCompleteException e) {
+throw e;
+}
+catch (InternalCompilerException e) {
+TreeLogger topBranch=logger.branch(TreeLogger.ERROR,"An internal compiler exception occurred",e);
+List<NodeInfo> nodeTrace=e.getNodeTrace();
+for (NodeInfo nodeInfo : nodeTrace) {
+SourceInfo info=nodeInfo.getSourceInfo();
+String msg;
+if (info != null) {
+String fileName=info.getFileName();
+fileName=fileName.substring(fileName.lastIndexOf('/') + 1);
+fileName=fileName.substring(fileName.lastIndexOf('\\') + 1);
+msg="at " + fileName + "("+ info.getStartLine()+ "): ";
+}
  else {
-      JsStringInterner.exec(jsProgram);
-      JsVerboseNamer.exec(jsProgram);
-    }
-    DefaultTextOutput out=new DefaultTextOutput(obfuscate);
-    JsSourceGenerationVisitor v=new JsSourceGenerationVisitor(out);
-    v.accept(jsProgram);
-    return out.toString();
-  }
- catch (  UnableToCompleteException e) {
-    throw e;
-  }
-catch (  InternalCompilerException e) {
-    TreeLogger topBranch=logger.branch(TreeLogger.ERROR,"An internal compiler exception occurred",e);
-    List<NodeInfo> nodeTrace=e.getNodeTrace();
-    for (    NodeInfo nodeInfo : nodeTrace) {
-      SourceInfo info=nodeInfo.getSourceInfo();
-      String msg;
-      if (info != null) {
-        String fileName=info.getFileName();
-        fileName=fileName.substring(fileName.lastIndexOf('/') + 1);
-        fileName=fileName.substring(fileName.lastIndexOf('\\') + 1);
-        msg="at " + fileName + "("+ info.getStartLine()+ "): ";
-      }
+msg="<no source info>: ";
+}
+String description=nodeInfo.getDescription();
+if (description != null) {
+msg+=description;
+}
  else {
-        msg="<no source info>: ";
-      }
-      String description=nodeInfo.getDescription();
-      if (description != null) {
-        msg+=description;
-      }
- else {
-        msg+="<no description available>";
-      }
-      TreeLogger nodeBranch=topBranch.branch(TreeLogger.ERROR,msg,null);
-      String className=nodeInfo.getClassName();
-      if (className != null) {
-        nodeBranch.log(TreeLogger.INFO,className,null);
-      }
-    }
-    throw new UnableToCompleteException();
-  }
-catch (  Throwable e) {
-    logger.log(TreeLogger.ERROR,"Unexpected internal compiler error",e);
-    throw new UnableToCompleteException();
-  }
+msg+="<no description available>";
+}
+TreeLogger nodeBranch=topBranch.branch(TreeLogger.ERROR,msg,null);
+String className=nodeInfo.getClassName();
+if (className != null) {
+nodeBranch.log(TreeLogger.INFO,className,null);
+}
+}
+throw new UnableToCompleteException();
+}
+catch (Throwable e) {
+logger.log(TreeLogger.ERROR,"Unexpected internal compiler error",e);
+throw new UnableToCompleteException();
+}
 }

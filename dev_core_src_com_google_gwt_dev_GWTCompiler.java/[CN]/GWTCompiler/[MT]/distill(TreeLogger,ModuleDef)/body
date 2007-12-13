@@ -5,7 +5,7 @@
   rules=module.getRules();
   typeOracle=module.getTypeOracle(logger);
   sourceOracle=new StandardSourceOracle(typeOracle);
-  if (validateOnly) {
+  if (jjsOptions.isValidateOnly()) {
     CompilationUnitProvider[] compilationUnits=module.getCompilationUnits();
     declEntryPts=new String[compilationUnits.length];
     for (int i=0; i < compilationUnits.length; ++i) {
@@ -20,12 +20,12 @@
   properties=module.getProperties();
   perms=new PropertyPermutations(properties);
   WebModeCompilerFrontEnd frontEnd=new WebModeCompilerFrontEnd(sourceOracle,rebindPermOracle);
-  jjs=new JavaToJavaScriptCompiler(logger,frontEnd,declEntryPts,obfuscate,prettyNames,aggressivelyOptimize,validateOnly);
-  if (!validateOnly) {
+  jjs=new JavaToJavaScriptCompiler(logger,frontEnd,declEntryPts,jjsOptions);
+  if (!jjsOptions.isValidateOnly()) {
     initCompilations(logger);
   }
   SelectionScriptGenerator selGen=compilePermutations(logger);
-  if (validateOnly) {
+  if (jjsOptions.isValidateOnly()) {
     logger.log(TreeLogger.INFO,"Validation succeeded",null);
     return;
   }
