@@ -1,34 +1,49 @@
 {
   currentMethod=x;
-  List<JMethod> overrides=x.overrides;
-  JMethod[] virtualOverrides=program.typeOracle.getAllVirtualOverrides(x);
-  JMethod staticImplFor=program.staticImplFor(x);
-  if (staticImplFor != null && !staticImplFor.getEnclosingType().methods.contains(staticImplFor)) {
-    staticImplFor=null;
+  if (!x.isStatic()) {
+    List<JMethod> overrides=x.overrides;
+    JMethod[] virtualOverrides=program.typeOracle.getAllVirtualOverrides(x);
+    if (overrides.isEmpty() && virtualOverrides.length == 0) {
+      return true;
+    }
+    for (int j=0, c=x.params.size(); j < c; ++j) {
+      JParameter param=x.params.get(j);
+      Set<JParameter> set=paramUpRefs.get(param);
+      if (set == null) {
+        set=new HashSet<JParameter>();
+        paramUpRefs.put(param,set);
+      }
+      for (      JMethod baseMethod : overrides) {
+        JParameter baseParam=baseMethod.params.get(j);
+        set.add(baseParam);
+      }
+      for (      JMethod baseMethod : virtualOverrides) {
+        JParameter baseParam=baseMethod.params.get(j);
+        set.add(baseParam);
+      }
+    }
   }
-  if (overrides.isEmpty() && virtualOverrides.length == 0 && staticImplFor == null) {
-    return true;
-  }
-  for (int j=0, c=x.params.size(); j < c; ++j) {
-    JParameter param=x.params.get(j);
-    Set<JParameter> set=paramUpRefs.get(param);
-    if (set == null) {
-      set=new HashSet<JParameter>();
-      paramUpRefs.put(param,set);
+ else   if (program.isStaticImpl(x)) {
+    JMethod staticImplFor=program.staticImplFor(x);
+    if (staticImplFor == null || !staticImplFor.getEnclosingType().methods.contains(staticImplFor)) {
+      return true;
     }
-    for (int i=0; i < overrides.size(); ++i) {
-      JMethod baseMethod=overrides.get(i);
-      JParameter baseParam=baseMethod.params.get(j);
-      set.add(baseParam);
-    }
-    for (int i=0; i < virtualOverrides.length; ++i) {
-      JMethod baseMethod=virtualOverrides[i];
-      JParameter baseParam=baseMethod.params.get(j);
-      set.add(baseParam);
-    }
-    if (staticImplFor != null && j > 1) {
-      JParameter baseParam=staticImplFor.params.get(j - 1);
-      set.add(baseParam);
+    assert(x.params.size() == staticImplFor.params.size() + 1);
+    for (int j=0, c=x.params.size(); j < c; ++j) {
+      JParameter param=x.params.get(j);
+      Set<JParameter> set=paramUpRefs.get(param);
+      if (set == null) {
+        set=new HashSet<JParameter>();
+        paramUpRefs.put(param,set);
+      }
+      if (j == 0) {
+        assert(param.isThis());
+        set.add(param);
+      }
+ else {
+        JParameter baseParam=staticImplFor.params.get(j - 1);
+        set.add(baseParam);
+      }
     }
   }
   return true;
