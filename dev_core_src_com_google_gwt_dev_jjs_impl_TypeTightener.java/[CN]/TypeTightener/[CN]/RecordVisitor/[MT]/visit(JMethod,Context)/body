@@ -1,9 +1,8 @@
 {
   currentMethod=x;
   if (!x.isStatic()) {
-    List<JMethod> overrides=x.overrides;
-    JMethod[] virtualOverrides=program.typeOracle.getAllVirtualOverrides(x);
-    if (overrides.isEmpty() && virtualOverrides.length == 0) {
+    Set<JMethod> overrides=program.typeOracle.getAllOverrides(x);
+    if (overrides.isEmpty()) {
       return true;
     }
     for (int j=0, c=x.params.size(); j < c; ++j) {
@@ -14,10 +13,6 @@
         paramUpRefs.put(param,set);
       }
       for (      JMethod baseMethod : overrides) {
-        JParameter baseParam=baseMethod.params.get(j);
-        set.add(baseParam);
-      }
-      for (      JMethod baseMethod : virtualOverrides) {
         JParameter baseParam=baseMethod.params.get(j);
         set.add(baseParam);
       }
