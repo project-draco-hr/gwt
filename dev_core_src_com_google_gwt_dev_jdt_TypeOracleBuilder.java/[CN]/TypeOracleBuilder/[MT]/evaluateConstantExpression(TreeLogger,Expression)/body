@@ -10,7 +10,7 @@
     }
   }
  else   if (expression instanceof NumberLiteral) {
-    Object value=evaluateNumericExpression(expression);
+    Object value=getNumericLiteralValue((NumberLiteral)expression);
     if (value != null) {
       return value;
     }
@@ -27,26 +27,36 @@
     }
   }
  else   if (expression instanceof ArrayInitializer) {
-    Object value=evaluateArrayInitializerExpression(logger,expression);
+    Object value=createArrayConstant(logger,(ArrayInitializer)expression);
     if (value != null) {
       return value;
     }
   }
- else   if (expression instanceof QualifiedNameReference) {
-    QualifiedNameReference qualifiedNameRef=(QualifiedNameReference)expression;
-    Class clazz=getClassLiteral(logger,qualifiedNameRef.actualReceiverType);
-    assert(clazz.isEnum());
-    if (clazz != null) {
-      FieldBinding fieldBinding=qualifiedNameRef.fieldBinding();
-      String enumName=String.valueOf(fieldBinding.name);
-      return Enum.valueOf(clazz,enumName);
+ else   if (expression instanceof NameReference) {
+    NameReference nameRef=(NameReference)expression;
+    if (nameRef.constant != Constant.NotAConstant) {
+      return getConstantValue(nameRef.constant);
+    }
+ else {
+      Class clazz=getClassLiteral(logger,nameRef.actualReceiverType);
+      if (clazz.isEnum()) {
+        String enumName=String.valueOf(nameRef.fieldBinding().name);
+        return Enum.valueOf(clazz,enumName);
+      }
+ else {
+      }
     }
   }
  else   if (expression instanceof Annotation) {
-    Object annotationInstance=evaluateAnnotationExpression(logger,expression);
+    Object annotationInstance=createAnnotationInstance(logger,expression);
     if (annotationInstance != null) {
       return annotationInstance;
     }
+  }
+ else   if (expression instanceof ConditionalExpression) {
+    ConditionalExpression condExpression=(ConditionalExpression)expression;
+    assert(condExpression.constant != Constant.NotAConstant);
+    return getConstantValue(condExpression.constant);
   }
   assert(false);
   return null;

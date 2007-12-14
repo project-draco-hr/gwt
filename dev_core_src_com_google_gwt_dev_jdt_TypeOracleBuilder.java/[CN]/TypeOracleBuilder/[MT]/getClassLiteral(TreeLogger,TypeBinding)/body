@@ -1,15 +1,20 @@
 {
-  JClassType annotationType=(JClassType)resolveType(logger,resolvedType);
-  if (annotationType == null) {
+  JType type=resolveType(logger,resolvedType);
+  if (type == null) {
     return null;
   }
-  String className=computeBinaryClassName(annotationType);
-  try {
-    Class<?> clazz=Class.forName(className);
-    return clazz;
+  if (type.isPrimitive() != null) {
+    return getClassLiteralForPrimitive(type.isPrimitive());
   }
- catch (  ClassNotFoundException e) {
-    logger.log(TreeLogger.ERROR,"",e);
-    return null;
+ else {
+    try {
+      String className=computeBinaryClassName(type);
+      Class<?> clazz=Class.forName(className);
+      return clazz;
+    }
+ catch (    ClassNotFoundException e) {
+      logger.log(TreeLogger.ERROR,"",e);
+      return null;
+    }
   }
 }

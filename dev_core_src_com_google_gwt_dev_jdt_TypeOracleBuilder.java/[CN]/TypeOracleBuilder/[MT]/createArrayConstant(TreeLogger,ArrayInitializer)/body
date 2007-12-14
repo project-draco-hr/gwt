@@ -1,6 +1,8 @@
 {
-  ArrayInitializer arrayInitializer=(ArrayInitializer)expression;
   Class<?> leafComponentClass=getClassLiteral(logger,arrayInitializer.binding.leafComponentType);
+  if (leafComponentClass == null) {
+    return null;
+  }
   int[] dimensions=new int[arrayInitializer.binding.dimensions];
   Expression[] initExpressions=arrayInitializer.expressions;
   if (initExpressions != null) {
@@ -11,7 +13,7 @@
   if (initExpressions != null) {
     for (int i=0; i < initExpressions.length; ++i) {
       Expression arrayInitExp=initExpressions[i];
-      Object value=evaluateExpression(logger,arrayInitExp);
+      Object value=evaluateConstantExpression(logger,arrayInitExp);
       if (value != null) {
         Array.set(array,i,value);
       }
