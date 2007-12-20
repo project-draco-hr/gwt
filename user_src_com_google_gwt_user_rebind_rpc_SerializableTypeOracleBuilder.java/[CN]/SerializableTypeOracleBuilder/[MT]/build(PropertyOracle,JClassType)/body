@@ -41,8 +41,8 @@
       }
     }
   }
-  Set<JClassType> possiblyInstantiatedTypes=new HashSet<JClassType>();
-  List<JClassType> serializableTypesList=new ArrayList<JClassType>();
+  Set<JClassType> possiblyInstantiatedTypes=new TreeSet<JClassType>(JCLASS_TYPE_COMPARATOR);
+  Set<JClassType> fieldSerializableTypes=new TreeSet<JClassType>(JCLASS_TYPE_COMPARATOR);
   for (  TypeInfoComputed tic : typeToTypeInfoComputed.values()) {
     JClassType type=tic.getType();
     if (type.isTypeParameter() != null || type.isWildcard() != null) {
@@ -51,23 +51,16 @@
     if (type.isParameterized() != null) {
       type=type.isParameterized().getRawType();
     }
+ else     if (type.isGenericType() != null) {
+      type=type.isGenericType().getRawType();
+    }
     if (tic.isInstantiable()) {
       possiblyInstantiatedTypes.add(type);
     }
     if (tic.isFieldSerializable()) {
-      serializableTypesList.add(type);
+      fieldSerializableTypes.add(type);
     }
   }
-  JClassType[] serializableTypes=new JClassType[serializableTypesList.size()];
-  serializableTypesList.toArray(serializableTypes);
-  Arrays.sort(serializableTypes,new Comparator<JType>(){
-    public int compare(    JType o1,    JType o2){
-      String n1=o1.getQualifiedSourceName();
-      String n2=o2.getQualifiedSourceName();
-      return n1.compareTo(n2);
-    }
-  }
-);
-  logSerializableTypes(logger,serializableTypes);
-  return new SerializableTypeOracleImpl(typeOracle,serializableTypes,possiblyInstantiatedTypes);
+  logSerializableTypes(logger,fieldSerializableTypes);
+  return new SerializableTypeOracleImpl(typeOracle,fieldSerializableTypes,possiblyInstantiatedTypes);
 }
