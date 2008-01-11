@@ -8,8 +8,10 @@
     jprogram.typeOracle.computeBeforeAST();
     GenerateJavaAST.exec(allTypeDeclarations,typeMap,jprogram,jsProgram);
     checkForErrors(logger,true);
-    boolean isDebugEnabled=false;
-    if (!isDebugEnabled) {
+    if (options.isEnableAssertions()) {
+      AssertionNormalizer.exec(jprogram);
+    }
+ else {
       AssertionRemover.exec(jprogram);
     }
     ReplaceRebinds.exec(jprogram);
@@ -32,8 +34,6 @@
       }
     }
  while (didChange);
-    if (isDebugEnabled) {
-    }
     CatchBlockNormalizer.exec(jprogram);
     CompoundAssignmentNormalizer.exec(jprogram);
     JavaScriptObjectCaster.exec(jprogram);
