@@ -31,25 +31,26 @@
   replacements.put("@gwtDevPath",basePathEnv + gwtDevPath);
   replacements.put("@compileClass","com.google.gwt.dev.GWTCompiler");
   replacements.put("@i18nClass","com.google.gwt.i18n.tools.I18NSync");
-  if (createMessagesInterface) {
+  String templateData=null;
+  if (Messages.class == interfaceToCreate) {
     replacements.put("@createMessages","-createMessages");
+    templateData=Utility.getFileFromClassPath(PACKAGE_PATH + "i18nMessages.propertiessrc");
   }
  else {
-    replacements.put("@createMessages","");
-  }
-  if (createMessagesInterface) {
-    File i18nMessageProperties=Utility.createNormalFile(clientDir,interfaceName + ".properties",overwrite,ignore);
-    if (i18nMessageProperties != null) {
-      String out=Utility.getFileFromClassPath(PACKAGE_PATH + "i18nMessages.propertiessrc");
-      Utility.writeTemplateFile(i18nMessageProperties,out,replacements);
+    if (ConstantsWithLookup.class == interfaceToCreate) {
+      replacements.put("@createMessages","-createConstantsWithLookup");
     }
-  }
+ else     if (Constants.class == interfaceToCreate) {
+      replacements.put("@createMessages","");
+    }
  else {
-    File i18nConstantProperties=Utility.createNormalFile(clientDir,interfaceName + ".properties",overwrite,ignore);
-    if (i18nConstantProperties != null) {
-      String out=Utility.getFileFromClassPath(PACKAGE_PATH + "i18nConstants.propertiessrc");
-      Utility.writeTemplateFile(i18nConstantProperties,out,replacements);
+      throw new RuntimeException("Internal Error: Unable to create i18n class derived from " + interfaceToCreate.getName());
     }
+    templateData=Utility.getFileFromClassPath(PACKAGE_PATH + "i18nConstants.propertiessrc");
+  }
+  File i18nPropertiesFile=Utility.createNormalFile(clientDir,interfaceName + ".properties",overwrite,ignore);
+  if (i18nPropertiesFile != null && templateData != null) {
+    Utility.writeTemplateFile(i18nPropertiesFile,templateData,replacements);
   }
   if (eclipse != null) {
     replacements.put("@projectName",eclipse);
