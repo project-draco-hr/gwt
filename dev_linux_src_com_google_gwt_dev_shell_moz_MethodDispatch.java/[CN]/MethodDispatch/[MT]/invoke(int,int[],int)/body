@@ -12,7 +12,7 @@
     throw new RuntimeException("Not enough arguments to " + method);
   }
   Object jthis=null;
-  if ((method.getModifiers() & Modifier.STATIC) == 0) {
+  if (method.needsThis()) {
     jthis=JsValueGlue.get(jsthis,method.getDeclaringClass(),"invoke this");
   }
   for (int i=0; i < argc; ++i) {
@@ -29,7 +29,12 @@
     }
     JsValueGlue.set(returnValue,classLoader,method.getReturnType(),result);
   }
- catch (  InvocationTargetException e) {
+ catch (  InstantiationException e) {
+    Throwable t=e.getCause();
+    ModuleSpace.setThrownJavaException(t);
+    LowLevelMoz.raiseJavaScriptException();
+  }
+catch (  InvocationTargetException e) {
     Throwable t=e.getTargetException();
     ModuleSpace.setThrownJavaException(t);
     LowLevelMoz.raiseJavaScriptException();
