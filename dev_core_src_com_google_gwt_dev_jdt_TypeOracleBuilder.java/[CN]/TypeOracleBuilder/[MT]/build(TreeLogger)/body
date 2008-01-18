@@ -1,4 +1,5 @@
 {
+  PerfLogger.start("TypeOracleBuilder.build");
   Set<CompilationUnitProvider> addedCups=cacheManager.getAddedCups();
   TypeOracle oracle=cacheManager.getTypeOracle();
   for (Iterator<CompilationUnitProvider> iter=addedCups.iterator(); iter.hasNext(); ) {
@@ -26,8 +27,9 @@
     Util.logMissingTypeErrorWithHints(logger,"java.lang.Object");
     throw new UnableToCompleteException();
   }
-  cacheManager.invalidateOnRefresh(oracle);
-  CompilationUnitDeclaration[] cuds=cacheManager.getAstCompiler().getCompilationUnitDeclarations(logger,units);
+  PerfLogger.start("TypeOracleBuilder.build (compile)");
+  CompilationUnitDeclaration[] cuds=cacheManager.getAstCompiler().getChangedCompilationUnitDeclarations(logger,units);
+  PerfLogger.end();
   final Map<String,CompilationUnitDeclaration> cudsByFileName=new HashMap<String,CompilationUnitDeclaration>();
   for (int i=0; i < cuds.length; i++) {
     CompilationUnitDeclaration cud=cuds[i];
@@ -36,16 +38,6 @@
   }
   cacheManager.getCudsByFileName().putAll(cudsByFileName);
   removeUnitsWithErrors(logger,cudsByFileName);
-  for (Iterator<CompilationUnitDeclaration> iter=cudsByFileName.values().iterator(); iter.hasNext(); ) {
-    CompilationUnitDeclaration cud=iter.next();
-    ICompilationUnit unit=cud.compilationResult.compilationUnit;
-    ICompilationUnitAdapter adapter=((ICompilationUnitAdapter)unit);
-    CompilationUnitProvider cup=adapter.getCompilationUnitProvider();
-    JClassType[] seen=oracle.getTypesInCompilationUnit(cup);
-    if (seen.length > 0) {
-      iter.remove();
-    }
-  }
   final CacheManager.Mapper identityMapper=cacheManager.getIdentityMapper();
   for (Iterator<CompilationUnitDeclaration> iter=cudsByFileName.values().iterator(); iter.hasNext(); ) {
     CompilationUnitDeclaration cud=iter.next();
@@ -102,5 +94,6 @@
 ,cud.scope);
   }
   Util.invokeInaccessableMethod(TypeOracle.class,"refresh",new Class[]{TreeLogger.class},oracle,new Object[]{logger});
+  PerfLogger.end();
   return oracle;
 }

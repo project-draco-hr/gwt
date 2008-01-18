@@ -18,4 +18,13 @@
   }
   SourceOracleOnTypeOracle sooto=new SourceOracleOnTypeOracle(this.oracle);
   astCompiler=new AstCompiler(sooto);
+  astCompiler.setCachePolicy(new AstCompiler.CachePolicy(){
+    public boolean shouldProcess(    CompilationUnitDeclaration cud){
+      ICompilationUnit unit=cud.compilationResult.compilationUnit;
+      ICompilationUnitAdapter adapter=((ICompilationUnitAdapter)unit);
+      CompilationUnitProvider cup=adapter.getCompilationUnitProvider();
+      return getTypeOracle().findType(cup.getPackageName(),cup.getMainTypeName()) == null;
+    }
+  }
+);
 }

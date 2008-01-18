@@ -1,0 +1,18 @@
+{
+  if (!enabled) {
+    return;
+  }
+  long endTimeNanos=System.nanoTime();
+  Timing timing=currentTiming.get();
+  if (timing.isRoot()) {
+    System.out.println("Tried to end a timing that was never started!\n");
+    return;
+  }
+  timing.totalTimeNanos=endTimeNanos - timing.startTimeNanos;
+  Timing newCurrent=timing.parent;
+  currentTiming.set(newCurrent);
+  if (newCurrent.isRoot()) {
+    printTimings();
+    newCurrent.subTimings=new ArrayList<Timing>();
+  }
+}

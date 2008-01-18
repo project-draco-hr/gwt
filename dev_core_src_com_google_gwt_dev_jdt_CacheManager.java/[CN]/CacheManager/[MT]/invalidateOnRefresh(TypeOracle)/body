@@ -1,16 +1,11 @@
 {
-  if (!isTypeOracleBuilderFirstTime()) {
-    changedFiles.addAll(generatedCupLocations);
-    addDependentsToChangedFiles();
-    for (Iterator<String> iter=changedFiles.iterator(); iter.hasNext(); ) {
-      String location=iter.next();
-      CompilationUnitProvider cup=getCupsByLocation().get(location);
-      unitsByCup.remove(location);
-      Util.invokeInaccessableMethod(TypeOracle.class,"invalidateTypesInCompilationUnit",new Class[]{CompilationUnitProvider.class},typeOracle,new Object[]{cup});
-    }
-    astCompiler.invalidateChangedFiles(changedFiles,invalidatedTypes);
+  changedFiles.addAll(generatedCupLocations);
+  addDependentsToChangedFiles();
+  for (Iterator<String> iter=changedFiles.iterator(); iter.hasNext(); ) {
+    String location=iter.next();
+    CompilationUnitProvider cup=getCupsByLocation().get(location);
+    unitsByCup.remove(location);
+    Util.invokeInaccessableMethod(TypeOracle.class,"invalidateTypesInCompilationUnit",new Class[]{CompilationUnitProvider.class},typeOracle,new Object[]{cup});
   }
- else {
-    becomeTypeOracleNotFirstTime();
-  }
+  astCompiler.invalidateChangedFiles(changedFiles,invalidatedTypes);
 }
