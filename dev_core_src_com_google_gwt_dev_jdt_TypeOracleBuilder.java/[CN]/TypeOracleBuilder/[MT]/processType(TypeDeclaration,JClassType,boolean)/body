@@ -5,12 +5,12 @@
     return;
   }
   String qname=getQualifiedName(binding);
-  String jclassName;
+  String className;
   if (binding instanceof LocalTypeBinding) {
-    jclassName=qname.substring(qname.lastIndexOf('.') + 1);
+    className=qname.substring(qname.lastIndexOf('.') + 1);
   }
  else {
-    jclassName=getSimpleName(typeDecl);
+    className=getSimpleName(typeDecl);
   }
   if (oracle.findType(qname) != null) {
     return;
@@ -24,18 +24,20 @@
   int declEnd=typeDecl.declarationSourceEnd;
   int bodyStart=typeDecl.bodyStart;
   int bodyEnd=typeDecl.bodyEnd;
-  JRealClassType type;
+  JRealClassType jrealClassType;
   if (jclassIsAnnonation) {
-    type=new JAnnotationType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
+    jrealClassType=new JAnnotationType(oracle,cup,pkg,jenclosingType,isLocalType,className,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
   }
- else   if (maybeGeneric(typeDecl,enclosingType)) {
-    type=new JGenericType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
+ else   if (maybeGeneric(typeDecl,jenclosingType)) {
+    JTypeParameter[] jtypeParameters=declareTypeParameters(typeDecl.typeParameters);
+    JGenericType jgenericType=new JGenericType(oracle,cup,pkg,jenclosingType,isLocalType,className,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf,jtypeParameters);
+    jrealClassType=jgenericType;
   }
  else   if (binding.isEnum()) {
-    type=new JEnumType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
+    jrealClassType=new JEnumType(oracle,cup,pkg,jenclosingType,isLocalType,className,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
   }
  else {
-    type=new JRealClassType(oracle,cup,pkg,enclosingType,isLocalType,jclassName,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
+    jrealClassType=new JRealClassType(oracle,cup,pkg,jenclosingType,isLocalType,className,declStart,declEnd,bodyStart,bodyEnd,jclassIsIntf);
   }
-  cacheManager.setTypeForBinding(binding,type);
+  cacheManager.setTypeForBinding(binding,jrealClassType);
 }

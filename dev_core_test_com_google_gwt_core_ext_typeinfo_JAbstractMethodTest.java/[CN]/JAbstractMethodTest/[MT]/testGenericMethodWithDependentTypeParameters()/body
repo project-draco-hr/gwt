@@ -1,0 +1,34 @@
+{
+  TypeOracle oracle=moduleContext.getOracle();
+  JClassType type=oracle.getType(GenericClassWithDependentTypeBounds.class.getName());
+  JMethod[] methods=type.getMethods();
+  assertEquals(1,methods.length);
+  JMethod method=methods[0];
+  JTypeParameter[] typeParameters=method.getTypeParameters();
+  assertEquals(2,typeParameters.length);
+  JTypeParameter typeParameter=typeParameters[0];
+  assertEquals("Q",typeParameter.getName());
+  JBound genericTypeBound=typeParameter.getBounds();
+  assertNotNull(genericTypeBound.isUpperBound());
+  JClassType[] genericTypeBounds=genericTypeBound.getBounds();
+  assertEquals(1,genericTypeBounds.length);
+  JClassType upperBoundType=genericTypeBounds[0];
+  JParameterizedType upperBoundParameterizedType=upperBoundType.isParameterized();
+  assertNotNull(upperBoundParameterizedType);
+  assertEquals("GenericClassWithTypeBound",upperBoundParameterizedType.getName());
+  assertEquals(upperBoundParameterizedType.getBaseType(),oracle.getType(GenericClassWithTypeBound.class.getName()));
+  JClassType[] typeArgs=upperBoundParameterizedType.getTypeArgs();
+  assertEquals(1,typeArgs.length);
+  JClassType typeArg=typeArgs[0];
+  JTypeParameter typeArgTypeParameter=typeArg.isTypeParameter();
+  assertNotNull(typeArgTypeParameter);
+  assertEquals("P",typeArgTypeParameter.getName());
+  JBound typeArgBound=typeArgTypeParameter.getBounds();
+  assertNotNull(typeArgBound.isUpperBound());
+  JClassType[] typeArgBounds=typeArgBound.getBounds();
+  assertEquals(1,typeArgBounds.length);
+  JClassType typeArgUpperBoundType=typeArgBounds[0];
+  assertEquals(typeArgUpperBoundType,oracle.getType(Serializable.class.getName()));
+  JTypeParameter secondTypeParameter=typeParameters[1];
+  assertEquals(secondTypeParameter,typeArgTypeParameter);
+}

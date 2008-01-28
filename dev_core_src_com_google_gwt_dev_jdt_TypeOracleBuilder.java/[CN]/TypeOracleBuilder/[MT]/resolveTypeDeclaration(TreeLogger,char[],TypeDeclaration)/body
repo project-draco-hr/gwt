@@ -1,56 +1,56 @@
 {
-  SourceTypeBinding binding=jclass.binding;
+  SourceTypeBinding binding=clazz.binding;
   if (binding.constantPoolName() == null) {
     return true;
   }
   String qname=String.valueOf(binding.qualifiedSourceName());
   logger.log(TreeLogger.SPAM,"Found type '" + qname + "'",null);
   if (isPackageInfoTypeName(qname)) {
-    return resolvePackage(logger,jclass);
+    return resolvePackage(logger,clazz);
   }
-  JRealClassType type=(JRealClassType)resolveType(logger,binding);
-  if (type == null) {
+  JRealClassType jtype=(JRealClassType)resolveType(logger,binding);
+  if (jtype == null) {
     return false;
   }
-  type.addModifierBits(Shared.bindingToModifierBits(jclass.binding));
+  jtype.addModifierBits(Shared.bindingToModifierBits(clazz.binding));
   Map<Class<? extends java.lang.annotation.Annotation>,java.lang.annotation.Annotation> declaredAnnotations=newAnnotationMap();
-  if (!resolveAnnotations(logger,jclass.annotations,declaredAnnotations)) {
+  if (!resolveAnnotations(logger,clazz.annotations,declaredAnnotations)) {
     return false;
   }
-  type.addAnnotations(declaredAnnotations);
-  JGenericType genericType=type.isGenericType();
-  if (genericType != null && !resolveTypeParameters(logger,type.isGenericType(),jclass.typeParameters)) {
+  jtype.addAnnotations(declaredAnnotations);
+  JGenericType jGenericType=jtype.isGenericType();
+  if (jGenericType != null && !resolveBoundsForTypeParameters(logger,jtype.isGenericType(),clazz.typeParameters)) {
     return false;
   }
-  if (type.isInterface() == null) {
+  if (jtype.isInterface() == null) {
     ReferenceBinding superclassRef=binding.superclass;
     if (superclassRef != null) {
-      JClassType superclass=(JClassType)resolveType(logger,superclassRef);
-      if (superclass == null) {
+      JClassType jsuperClass=(JClassType)resolveType(logger,superclassRef);
+      if (jsuperClass == null) {
         return false;
       }
-      type.setSuperclass(superclass);
+      jtype.setSuperclass(jsuperClass);
     }
   }
   ReferenceBinding[] superintfRefs=binding.superInterfaces;
   for (int i=0; i < superintfRefs.length; i++) {
     ReferenceBinding superintfRef=superintfRefs[i];
-    JClassType intf=(JClassType)resolveType(logger,superintfRef);
-    if (intf == null) {
+    JClassType jinterface=(JClassType)resolveType(logger,superintfRef);
+    if (jinterface == null) {
       return false;
     }
-    type.addImplementedInterface(intf);
+    jtype.addImplementedInterface(jinterface);
   }
-  FieldDeclaration[] jfields=jclass.fields;
-  if (!resolveFields(logger,unitSource,type,jfields)) {
+  FieldDeclaration[] fields=clazz.fields;
+  if (!resolveFields(logger,unitSource,jtype,fields)) {
     return false;
   }
-  AbstractMethodDeclaration[] jmethods=jclass.methods;
-  if (!resolveMethods(logger,unitSource,type,jmethods)) {
+  AbstractMethodDeclaration[] methods=clazz.methods;
+  if (!resolveMethods(logger,unitSource,jtype,methods)) {
     return false;
   }
-  if (jclass.javadoc != null) {
-    if (!parseMetaDataTags(unitSource,type,jclass.javadoc)) {
+  if (clazz.javadoc != null) {
+    if (!parseMetaDataTags(unitSource,jtype,clazz.javadoc)) {
       return false;
     }
   }
