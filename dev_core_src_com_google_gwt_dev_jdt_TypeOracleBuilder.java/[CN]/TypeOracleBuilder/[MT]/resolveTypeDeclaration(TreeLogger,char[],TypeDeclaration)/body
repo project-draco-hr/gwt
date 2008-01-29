@@ -4,7 +4,7 @@
     return true;
   }
   String qname=String.valueOf(binding.qualifiedSourceName());
-  logger.log(TreeLogger.SPAM,"Found type '" + qname + "'",null);
+  logger=logger.branch(TreeLogger.SPAM,"Found type '" + qname + "'",null);
   if (isPackageInfoTypeName(qname)) {
     return resolvePackage(logger,clazz);
   }
@@ -14,9 +14,7 @@
   }
   jtype.addModifierBits(Shared.bindingToModifierBits(clazz.binding));
   Map<Class<? extends java.lang.annotation.Annotation>,java.lang.annotation.Annotation> declaredAnnotations=newAnnotationMap();
-  if (!resolveAnnotations(logger,clazz.annotations,declaredAnnotations)) {
-    return false;
-  }
+  resolveAnnotations(logger,clazz.annotations,declaredAnnotations);
   jtype.addAnnotations(declaredAnnotations);
   JGenericType jGenericType=jtype.isGenericType();
   if (jGenericType != null && !resolveBoundsForTypeParameters(logger,jtype.isGenericType(),clazz.typeParameters)) {

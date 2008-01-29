@@ -25,6 +25,7 @@
       return null;
     }
   }
+  String className=qname;
   int pos=qname.indexOf('$');
   if (pos >= 0) {
     qname=qname.substring(0,pos);
@@ -40,6 +41,22 @@
       return out;
     }
  else {
+      ClassLoader contextClassLoader=Thread.currentThread().getContextClassLoader();
+      if (isBinaryType(contextClassLoader,className)) {
+        URL resourceURL=contextClassLoader.getResource(className.replace('.','/') + ".class");
+        if (resourceURL != null) {
+          byte[] classBytes=Util.readURLAsBytes(resourceURL);
+          ClassFileReader cfr;
+          try {
+            cfr=new ClassFileReader(classBytes,null);
+            NameEnvironmentAnswer out=new NameEnvironmentAnswer(cfr,null);
+            nameEnvironmentAnswerForTypeName.put(qname,out);
+            return out;
+          }
+ catch (          ClassFormatException e) {
+          }
+        }
+      }
       logger.log(TreeLogger.SPAM,"Not a known type",null);
       return null;
     }
