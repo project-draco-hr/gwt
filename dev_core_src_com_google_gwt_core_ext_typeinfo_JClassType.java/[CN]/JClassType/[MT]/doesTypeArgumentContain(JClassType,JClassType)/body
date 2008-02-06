@@ -1,0 +1,22 @@
+{
+  if (lhsTypeArg == rhsTypeArg) {
+    return true;
+  }
+  JWildcardType lhsWildcard=lhsTypeArg.isWildcard();
+  JWildcardType rhsWildcard=rhsTypeArg.isWildcard();
+  if (lhsWildcard != null) {
+    if (rhsWildcard != null) {
+      return areWildcardsAssignable(lhsWildcard,rhsWildcard);
+    }
+ else {
+      JBound lhsBound=lhsWildcard.getBounds();
+      if (lhsBound.isLowerBound() == null) {
+        return areClassTypesAssignable(lhsBound.getFirstBound(),rhsTypeArg);
+      }
+ else {
+        return areClassTypesAssignable(rhsTypeArg,lhsBound.getFirstBound());
+      }
+    }
+  }
+  return false;
+}
