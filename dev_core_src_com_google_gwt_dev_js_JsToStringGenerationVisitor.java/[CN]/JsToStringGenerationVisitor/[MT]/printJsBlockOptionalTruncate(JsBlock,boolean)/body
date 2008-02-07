@@ -14,11 +14,23 @@
     needSemi=true;
     accept(stmt);
     if (needSemi) {
-      if (stmt instanceof JsExprStmt && ((JsExprStmt)stmt).getExpression() instanceof JsFunction) {
-        _newline();
+      boolean functionStmt=stmt instanceof JsExprStmt && ((JsExprStmt)stmt).getExpression() instanceof JsFunction;
+      boolean lastStatement=!iter.hasNext() && needBraces && !JsRequiresSemiVisitor.exec(stmt);
+      if (functionStmt) {
+        if (lastStatement) {
+          _newlineOpt();
+        }
+ else {
+          _newline();
+        }
       }
  else {
-        _semi();
+        if (lastStatement) {
+          _semiOpt();
+        }
+ else {
+          _semi();
+        }
         _newlineOpt();
       }
     }
