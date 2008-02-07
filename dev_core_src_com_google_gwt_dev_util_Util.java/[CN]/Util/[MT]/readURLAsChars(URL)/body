@@ -1,26 +1,7 @@
 {
-  InputStreamReader reader=null;
-  try {
-    URLConnection connection=url.openConnection();
-    connection.setUseCaches(false);
-    reader=new InputStreamReader(connection.getInputStream(),DEFAULT_ENCODING);
-    int contentLength=connection.getContentLength();
-    if (contentLength < 0) {
-      return null;
-    }
-    char[] fileContents=new char[contentLength];
-    int charsRead=reader.read(fileContents);
-    if (charsRead < fileContents.length) {
-      char[] trimmed=new char[charsRead];
-      System.arraycopy(fileContents,0,trimmed,0,charsRead);
-      fileContents=trimmed;
-    }
-    return fileContents;
+  byte[] bytes=readURLAsBytes(url);
+  if (bytes != null) {
+    return toString(bytes,DEFAULT_ENCODING).toCharArray();
   }
- catch (  IOException e) {
-    return null;
-  }
- finally {
-    Utility.close(reader);
-  }
+  return null;
 }
