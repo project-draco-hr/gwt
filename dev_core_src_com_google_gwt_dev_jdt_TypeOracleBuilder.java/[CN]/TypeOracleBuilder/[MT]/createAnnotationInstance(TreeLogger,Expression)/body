@@ -10,28 +10,13 @@
   for (  MemberValuePair mvp : annotation.memberValuePairs()) {
     String identifier=String.valueOf(mvp.name);
     Expression expressionValue=mvp.value;
-    Object value=evaluateConstantExpression(logger,expressionValue);
-    if (value == null) {
+    TypeBinding expectedElementValueType=mvp.binding.returnType;
+    Object elementValue=getAnnotationElementValue(logger,expectedElementValueType,expressionValue);
+    if (elementValue == null) {
       return null;
     }
-    try {
-      Method method=clazz.getMethod(identifier,new Class[0]);
-      Class<?> expectedClass=method.getReturnType();
-      Class<? extends Object> actualClass=value.getClass();
-      if (expectedClass.isArray() && !actualClass.isArray()) {
-        assert(expression instanceof SingleMemberAnnotation);
-        Object array=Array.newInstance(expectedClass.getComponentType(),1);
-        Array.set(array,0,value);
-        value=array;
-      }
-    }
- catch (    SecurityException e) {
-      return null;
-    }
-catch (    NoSuchMethodException e) {
-      return null;
-    }
-    identifierToValue.put(identifier,value);
+    assert(expectedElementValueType.isArrayType() == false || expectedElementValueType.isArrayType() && elementValue.getClass().isArray());
+    identifierToValue.put(identifier,elementValue);
   }
   JClassType annotationType=(JClassType)resolveType(logger,resolvedType);
   if (annotationType == null) {

@@ -1,18 +1,25 @@
 {
   String name=method.getName();
-  Object value=identifierToValue.get(name);
+  Object value=null;
+  if (identifierToValue.containsKey(name)) {
+    value=identifierToValue.get(name);
+    assert(value != null);
+  }
+ else {
+    JMethod jMethod=annotationType.findMethod(name,new JType[0]);
+    if (jMethod != null) {
+      JAnnotationMethod annotationMethod=jMethod.isAnnotationMethod();
+      assert(annotationMethod != null);
+      value=annotationMethod.getDefaultValue();
+      assert(value != null);
+    }
+ else     if (method.getDeclaringClass() == Annotation.class && "annotationType".equals(method.getName())) {
+      value=annotationClass;
+    }
+  }
   if (value != null) {
-    assert(method.getReturnType().isAssignableFrom(value.getClass()));
+    assert(isValidReturnType(method.getReturnType(),value.getClass()));
     return value;
-  }
-  JMethod jMethod=annotationType.findMethod(name,new JType[0]);
-  if (jMethod != null) {
-    JAnnotationMethod annotationMethod=jMethod.isAnnotationMethod();
-    assert(annotationMethod != null);
-    return annotationMethod.getDefaultValue();
-  }
-  if (method.getDeclaringClass() == Annotation.class && "annotationType".equals(method.getName())) {
-    return annotationClass;
   }
   return method.invoke(this,args);
 }
