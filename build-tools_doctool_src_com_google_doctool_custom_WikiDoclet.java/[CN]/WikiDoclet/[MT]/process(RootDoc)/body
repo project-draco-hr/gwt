@@ -1,0 +1,34 @@
+{
+  try {
+    File outFile=new File(outputFile);
+    outFile.getParentFile().mkdirs();
+    FileWriter fw=new FileWriter(outFile);
+    PrintWriter pw=new PrintWriter(fw,true);
+    if (headerFile != null) {
+      importHeader(fw);
+    }
+    for (    PackageDoc pack : root.specifiedPackages()) {
+      pw.println("==Package " + pack.name() + "==\n");
+      String packURL=JAVADOC_URL + pack.name().replace(".","/") + "/";
+      ClassDoc[] classes=pack.allClasses(true);
+      Arrays.sort(classes,new Comparator<ClassDoc>(){
+        public int compare(        ClassDoc arg0,        ClassDoc arg1){
+          return arg0.name().compareTo(arg1.name());
+        }
+      }
+);
+      for (      ClassDoc cls : classes) {
+        pw.format("[%s%s.html %s]\n",packURL,cls.name(),cls.name());
+        Collection<ExecutableMemberDoc> members=new ArrayList<ExecutableMemberDoc>();
+        members.addAll(Arrays.asList(cls.constructors(true)));
+        members.addAll(Arrays.asList(cls.methods(true)));
+        pw.print("  " + createMemberList(members));
+        pw.print("\n\n");
+      }
+    }
+    pw.close();
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(e);
+  }
+}
