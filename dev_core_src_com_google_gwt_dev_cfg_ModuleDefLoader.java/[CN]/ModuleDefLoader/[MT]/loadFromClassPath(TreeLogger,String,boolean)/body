@@ -1,15 +1,8 @@
 {
-  ModuleDef moduleDef=(ModuleDef)loadedModules.get(moduleName);
-  if (moduleDef == null || moduleDef.isGwtXmlFileStale()) {
-    moduleDef=new ModuleDefLoader().load(logger,moduleName);
-    if (enableCachingModules) {
-      loadedModules.put(moduleName,moduleDef);
-    }
+  ModuleDef moduleDef=tryGetLoadedModule(logger,moduleName,refresh);
+  if (moduleDef != null) {
+    return moduleDef;
   }
- else {
-    if (refresh) {
-      moduleDef.refresh(logger);
-    }
-  }
-  return moduleDef;
+  ModuleDefLoader loader=new ModuleDefLoader();
+  return loader.doLoadModule(logger,moduleName);
 }

@@ -1,0 +1,24 @@
+{
+  PerfLogger.start("GWTRunnerGenerator.getTestTypesForModule");
+  Set<String> testClasses=new TreeSet<String>();
+  for (  JClassType classType : allTestTypes) {
+    if (!classType.isPublic() || classType.isAbstract() || !classType.isDefaultInstantiable()) {
+      continue;
+    }
+    String className=classType.getQualifiedSourceName();
+    try {
+      Class<?> testClass=Class.forName(className);
+      GWTTestCase instantiated=(GWTTestCase)testClass.newInstance();
+      if (!moduleName.equals(instantiated.getModuleName())) {
+        continue;
+      }
+    }
+ catch (    Throwable e) {
+      logger.log(TreeLogger.INFO,"Error determining if test class '" + className + "' is a part of the current module; skipping; expect subsequent errors if this test class is run",e);
+      continue;
+    }
+    testClasses.add(className);
+  }
+  PerfLogger.end();
+  return testClasses;
+}

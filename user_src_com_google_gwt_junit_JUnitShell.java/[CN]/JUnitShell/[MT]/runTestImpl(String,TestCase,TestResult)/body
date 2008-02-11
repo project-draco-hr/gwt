@@ -1,15 +1,22 @@
 {
-  String newTestCaseClassName=testCase.getClass().getName();
-  boolean sameTest=newTestCaseClassName.equals(testCaseClassName);
+  String syntheticModuleName=moduleName + ".JUnit";
+  boolean sameTest=syntheticModuleName.equals(currentModuleName);
   if (sameTest && lastLaunchFailed) {
     throw new UnableToCompleteException();
   }
-  messageQueue.setNextTestName(newTestCaseClassName,testCase.getName());
+  currentModuleName=syntheticModuleName;
+  if (!sameTest) {
+    ModuleDef synthetic=ModuleDefLoader.createSyntheticModule(getTopLogger(),currentModuleName,new String[]{moduleName,"com.google.gwt.junit.JUnit"},true);
+    synthetic.clearEntryPoints();
+    synthetic.addEntryPointTypeName(GWTRunner.class.getName());
+    Property moduleNameProp=synthetic.getProperties().create("junit.moduleName");
+    moduleNameProp.addKnownValue(moduleName);
+    moduleNameProp.setActiveValue(moduleName);
+  }
+  lastLaunchFailed=false;
+  messageQueue.setNextTestName(currentModuleName,testCase.getClass().getName(),testCase.getName());
   try {
-    lastLaunchFailed=false;
-    testCaseClassName=newTestCaseClassName;
-    currentModuleName=moduleName;
-    runStyle.maybeLaunchModule(moduleName,!sameTest);
+    runStyle.maybeLaunchModule(currentModuleName,!sameTest);
   }
  catch (  UnableToCompleteException e) {
     lastLaunchFailed=true;
@@ -25,7 +32,7 @@
     testResult.addError(testCase,e);
     return;
   }
-  List<TestResults> results=messageQueue.getResults(testCaseClassName);
+  List<TestResults> results=messageQueue.getResults(currentModuleName);
   if (results == null) {
     return;
   }
