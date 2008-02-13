@@ -1,16 +1,23 @@
 {
+  logger.info("Launching browser for url: " + url + " keepAliveMs: "+ keepAliveMs);
   if (url == null || keepAliveMs <= 0) {
     throw new IllegalArgumentException();
   }
   try {
-    Process child=Runtime.getRuntime().exec(new String[]{launchCmd,url});
 synchronized (processByToken) {
       int myToken=nextToken++;
-      new ProcessManager(myToken,child,keepAliveMs);
+      if (serializeFlag && !processByToken.isEmpty()) {
+        launchCommandQueue.add(new LaunchCommand(myToken,url,keepAliveMs));
+        logger.info("Queuing up request token: " + myToken + " for url: "+ url+ ".  Another launch command is active.");
+      }
+ else {
+        execChild(myToken,url,keepAliveMs);
+      }
       return myToken;
     }
   }
  catch (  IOException e) {
+    logger.log(Level.SEVERE,"Error launching browser" + launchCmd + "' for '"+ url+ "'",e);
     throw new RuntimeException("Error launching browser '" + launchCmd + "' for '"+ url+ "'",e);
   }
 }

@@ -3,9 +3,17 @@ synchronized (processByToken) {
     if (token < 0 || token >= nextToken) {
       throw new IllegalArgumentException();
     }
-    ProcessManager process=processByToken.get(token);
+    BrowserManagerProcess process=processByToken.get(token);
     if (process != null) {
+      logger.fine("Killing browser. token=" + token);
       process.doKill();
+    }
+ else     if (launchCommandQueue.contains(new LaunchCommand(token))) {
+      launchCommandQueue.remove(new LaunchCommand(token));
+      logger.info(token + " removed from delayed launch queue.");
+    }
+ else {
+      logger.fine("No action taken. Browser not active for token " + token + ".");
     }
   }
 }

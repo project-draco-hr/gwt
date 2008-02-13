@@ -1,0 +1,25 @@
+{
+  boolean doCleanup=false;
+synchronized (this) {
+    if (!exited) {
+      logger.info("Killing browser process for " + this.token);
+      process.destroy();
+      try {
+        exitValue=process.waitFor();
+        doCleanup=true;
+      }
+ catch (      InterruptedException ie) {
+        logger.severe("Interrupted waiting for browser " + token + " exit during kill.");
+      }
+    }
+  }
+  if (doCleanup) {
+    if (cleanupBrowser() != 0) {
+      logger.warning("Kill Browser " + token + "exited with bad status: "+ exitValue);
+    }
+ else {
+      logger.info("Kill Browser " + token + " process exited normally. "+ getElapsed()+ " milliseconds.");
+    }
+  }
+  return exitValue;
+}

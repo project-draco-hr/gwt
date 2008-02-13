@@ -6,13 +6,14 @@ synchronized (processByToken) {
     if (token < 0 || token >= nextToken) {
       throw new IllegalArgumentException();
     }
-    ProcessManager process=processByToken.get(token);
+    BrowserManagerProcess process=processByToken.get(token);
     if (process != null) {
       if (process.keepAlive(keepAliveMs)) {
         return;
       }
- else {
-      }
+    }
+ else     if (launchCommandQueue.contains(new LaunchCommand(token))) {
+      return;
     }
   }
   throw new IllegalStateException("Process " + token + " already dead");
