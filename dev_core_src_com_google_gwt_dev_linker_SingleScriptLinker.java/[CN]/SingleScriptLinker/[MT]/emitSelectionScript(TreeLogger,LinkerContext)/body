@@ -1,0 +1,34 @@
+{
+  DefaultTextOutput out=new DefaultTextOutput(true);
+  out.print("(function () {");
+  out.newlineOpt();
+  String bootstrap=generateSelectionScript(logger,context);
+  bootstrap=context.optimizeJavaScript(logger,bootstrap);
+  out.print(bootstrap);
+  out.print("})();");
+  out.newlineOpt();
+  out.print("(function () {");
+  out.newlineOpt();
+  out.print("var $gwt_version = \"" + About.GWT_VERSION_NUM + "\";");
+  out.newlineOpt();
+  out.print("var $wnd = window;");
+  out.newlineOpt();
+  out.print("var $doc = $wnd.document;");
+  out.newlineOpt();
+  out.print("var $moduleName, $moduleBase;");
+  out.newlineOpt();
+  CompilationResult result=context.getCompilations().first();
+  out.print(result.getJavaScript());
+  out.newlineOpt();
+  out.print("if (" + context.getModuleFunctionName() + ") {");
+  out.newlineOpt();
+  out.print("  var __gwt_initHandlers = " + context.getModuleFunctionName() + ".__gwt_initHandlers;");
+  out.print("  " + context.getModuleFunctionName() + ".onScriptLoad(gwtOnLoad);");
+  out.newlineOpt();
+  out.print("}");
+  out.newlineOpt();
+  out.print("})();");
+  out.newlineOpt();
+  byte[] selectionScriptBytes=Util.getBytes(out.toString());
+  doEmit(logger,context,selectionScriptBytes,context.getModuleName() + ".nocache.js");
+}

@@ -4,23 +4,5 @@
   logProperties(logger,currentProps,currentValues);
   CompilationRebindOracle rebindOracle=new CompilationRebindOracle();
   propOracle.setPropertyValues(currentProps,currentValues);
-  String[] entryPts=module.getEntryPointTypeNames();
-  Compilation cached=compilations.find(logger,rebindOracle,entryPts);
-  if (cached != null) {
-    msg="Matches existing compilation " + cached.getStrongName();
-    logger.log(TreeLogger.TRACE,msg,null);
-    return cached.getStrongName();
-  }
-  Compilation compilation=new Compilation();
-  rebindOracle.recordInto(compilation);
-  String js=jjs.compile(logger,rebindOracle);
-  if (jjsOptions.isValidateOnly()) {
-    assert(js == null);
-    return null;
-  }
-  String strongName=writeHtmlAndJsWithStrongName(logger,js);
-  compilation.setStrongName(strongName);
-  writeCacheFile(logger,compilation);
-  compilations.add(compilation);
-  return compilation.getStrongName();
+  return jjs.compile(logger,rebindOracle);
 }

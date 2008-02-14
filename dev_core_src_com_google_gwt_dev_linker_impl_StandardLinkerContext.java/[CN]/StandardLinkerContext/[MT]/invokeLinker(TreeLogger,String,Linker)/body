@@ -1,0 +1,20 @@
+{
+  try {
+    linkerOutDir=new File(moduleOutDir,target);
+    if (!moduleOutDir.equals(linkerOutDir.getParentFile())) {
+      logger.log(TreeLogger.ERROR,"Trying to create linker dir in wrong place",null);
+      throw new UnableToCompleteException();
+    }
+    Util.recursiveDelete(linkerOutDir,true);
+    linkerOutDir.mkdirs();
+    if (!linkerOutDir.canWrite()) {
+      logger.log(TreeLogger.ERROR,"Unable create linker dir" + linkerOutDir.getPath(),null);
+      throw new UnableToCompleteException();
+    }
+    logger=logger.branch(TreeLogger.INFO,"Linking compilation with " + linker.getDescription() + " Linker into "+ linkerOutDir.getPath(),null);
+    linker.link(logger,this);
+  }
+  finally {
+    reset();
+  }
+}
