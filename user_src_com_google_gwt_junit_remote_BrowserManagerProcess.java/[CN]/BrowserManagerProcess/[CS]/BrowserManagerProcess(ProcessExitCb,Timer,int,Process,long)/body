@@ -1,23 +1,19 @@
 {
-  this.cb=cb;
-  this.timer=timer;
   this.process=process;
+  this.timer=timer;
   this.token=token;
-  schedule(initKeepAliveMs);
-  startTime=System.currentTimeMillis();
+  final long startTime=System.currentTimeMillis();
   Thread cleanupThread=new Thread(){
     @Override public void run(){
-      try {
-        exitValue=process.waitFor();
-        if (cleanupBrowser() != 0) {
-          logger.warning("Browser " + token + "exited with bad status: "+ exitValue);
+      while (true) {
+        try {
+          int exitValue=process.waitFor();
+          doCleanup(cb,exitValue,token,System.currentTimeMillis() - startTime);
+          return;
         }
- else {
-          logger.info("Browser " + token + " process exited normally. "+ getElapsed()+ " milliseconds.");
+ catch (        InterruptedException e) {
+          logger.log(Level.WARNING,"Interrupted waiting for process exit of: " + token,e);
         }
-      }
- catch (      InterruptedException e) {
-        logger.log(Level.WARNING,"Couldn't wait for process exit. token: " + token,e);
       }
     }
   }
@@ -25,4 +21,5 @@
   cleanupThread.setDaemon(true);
   cleanupThread.setName("Browser-" + token + "-Wait");
   cleanupThread.start();
+  keepAlive(initKeepAliveMs);
 }

@@ -1,13 +1,9 @@
 {
-synchronized (this) {
-    try {
-      process.exitValue();
-    }
- catch (    IllegalThreadStateException e) {
-      schedule(keepAliveMs);
-      return true;
-    }
+  assert(keepAliveMs > 0);
+  if (!deadOrDying) {
+    killTask=new KillTask();
+    timer.schedule(killTask,keepAliveMs);
+    return true;
   }
-  cleanupBrowser();
   return false;
 }
