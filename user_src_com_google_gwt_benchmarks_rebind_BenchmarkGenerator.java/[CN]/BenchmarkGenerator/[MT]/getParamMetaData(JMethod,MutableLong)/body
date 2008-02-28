@@ -1,0 +1,34 @@
+{
+  String[][] allValues=method.getMetaData(BENCHMARK_PARAM_META);
+  if (allValues == null || allValues.length == 0) {
+    return getAnnotationMetaData(method,bound);
+  }
+  deprecationBranch.log(TreeLogger.WARN,"Deprecated use of " + BENCHMARK_PARAM_META + " at "+ method.getEnclosingType()+ " in "+ method+ "; please use the new Benchmark JDK 1.5 annotations in "+ "com.google.gwt.benchmark.client",null);
+  Map<String,String> params=new HashMap<String,String>();
+  for (int i=0; i < allValues.length; ++i) {
+    String[] values=allValues[i];
+    StringBuffer result=new StringBuffer();
+    for (int j=0; j < values.length; ++j) {
+      result.append(values[j]);
+      result.append(" ");
+    }
+    String expr=result.toString();
+    String[] lhsAndRhs=expr.split("=");
+    String paramName=lhsAndRhs[0].trim();
+    String[] nameExprs=paramName.split(" ");
+    if (nameExprs.length > 1 && nameExprs[1].equals("-limit")) {
+      paramName=nameExprs[0];
+      JParameter[] parameters=method.getParameters();
+      if (!parameters[parameters.length - 1].getName().equals(paramName)) {
+        JClassType cls=method.getEnclosingType();
+        String msg="Error at " + cls + "."+ method.getName()+ ": only the last parameter of a method can be marked with the -limit flag";
+        logger.log(TreeLogger.ERROR,msg,null);
+        throw new UnableToCompleteException();
+      }
+      bound.value=getDefaultTimeout();
+    }
+    String paramValue=lhsAndRhs[1].trim();
+    params.put(paramName,paramValue);
+  }
+  return params;
+}

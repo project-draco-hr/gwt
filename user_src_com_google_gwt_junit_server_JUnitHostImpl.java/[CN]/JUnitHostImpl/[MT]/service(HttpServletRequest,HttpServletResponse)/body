@@ -3,11 +3,10 @@
   if (requestURI.endsWith("/junithost/loadError")) {
     String moduleName=getModuleName(getPrefix(requestURI));
     String requestPayload=RPCServletUtils.readContentAsUtf8(request);
-    TestResults results=new TestResults();
-    Trial trial=new Trial();
-    trial.setException(new JUnitFatalLaunchException(requestPayload));
-    results.getTrials().add(trial);
-    getHost().reportResults(moduleName,results);
+    JUnitResult result=new JUnitResult();
+    initResult(request,result);
+    result.setException(new JUnitFatalLaunchException(requestPayload));
+    getHost().reportResults(moduleName,result);
   }
  else {
     super.service(request,response);

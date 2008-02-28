@@ -1,0 +1,64 @@
+{
+  String syntheticModuleName=moduleName + "." + strategy.getSyntheticModuleExtension();
+  boolean sameTest=syntheticModuleName.equals(currentModuleName);
+  if (sameTest && lastLaunchFailed) {
+    throw new UnableToCompleteException();
+  }
+  currentModuleName=syntheticModuleName;
+  if (!sameTest) {
+    ModuleDef synthetic=ModuleDefLoader.createSyntheticModule(getTopLogger(),currentModuleName,new String[]{moduleName,strategy.getModuleInherit()},true);
+    synthetic.clearEntryPoints();
+    synthetic.addEntryPointTypeName(GWTRunner.class.getName());
+    Property moduleNameProp=synthetic.getProperties().create("junit.moduleName");
+    moduleNameProp.addKnownValue(moduleName);
+    moduleNameProp.setActiveValue(moduleName);
+  }
+  lastLaunchFailed=false;
+  messageQueue.setNextTestName(currentModuleName,testCase.getClass().getName(),testCase.getName());
+  try {
+    runStyle.maybeLaunchModule(currentModuleName,!sameTest);
+  }
+ catch (  UnableToCompleteException e) {
+    lastLaunchFailed=true;
+    testResult.addError(testCase,new JUnitFatalLaunchException(e));
+    return;
+  }
+  try {
+    testBeginTimeout=System.currentTimeMillis() + TEST_BEGIN_TIMEOUT_MILLIS;
+    pumpEventLoop();
+  }
+ catch (  TimeoutException e) {
+    lastLaunchFailed=true;
+    testResult.addError(testCase,e);
+    return;
+  }
+  List<JUnitResult> results=messageQueue.getResults(currentModuleName);
+  if (results == null) {
+    return;
+  }
+  boolean parallelTesting=numClients > 1;
+  for (  JUnitResult result : results) {
+    Throwable exception=result.getException();
+    if (parallelTesting && exception != null) {
+      String msg="Remote test failed at " + result.getHost() + " on "+ result.getAgent();
+      if (exception instanceof AssertionFailedError) {
+        AssertionFailedError newException=new AssertionFailedError(msg + "\n" + exception.getMessage());
+        newException.setStackTrace(exception.getStackTrace());
+        exception=newException;
+      }
+ else {
+        exception=new RuntimeException(msg,exception);
+      }
+    }
+    if (exception instanceof AssertionFailedError) {
+      testResult.addFailure(testCase,(AssertionFailedError)exception);
+    }
+ else     if (exception != null) {
+      if (exception instanceof JUnitFatalLaunchException) {
+        lastLaunchFailed=true;
+      }
+      testResult.addError(testCase,exception);
+    }
+    strategy.processResult(testCase,result);
+  }
+}

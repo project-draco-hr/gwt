@@ -1,35 +1,15 @@
 {
-  List<Trial> trials=results.getTrials();
-  if (!(testCase instanceof Benchmark)) {
-    Trial trial=new Trial();
-    long testDurationMillis=System.currentTimeMillis() - testBeginMillis;
-    trial.setRunTimeMillis(testDurationMillis);
-    if (ex != null) {
-      ExceptionWrapper ew=new ExceptionWrapper(ex);
-      if (checkPoints != null) {
-        for (int i=0, c=checkPoints.size(); i < c; ++i) {
-          ew.message+="\n" + checkPoints.get(i);
-        }
+  JUnitResult myResult=__getOrCreateTestResult();
+  if (ex != null) {
+    ExceptionWrapper ew=new ExceptionWrapper(ex);
+    if (checkPoints != null) {
+      for (int i=0, c=checkPoints.size(); i < c; ++i) {
+        ew.message+="\n" + checkPoints.get(i);
       }
-      trial.setExceptionWrapper(ew);
     }
-    trials.add(trial);
+    myResult.setExceptionWrapper(ew);
   }
- else {
-    if (ex != null) {
-      ExceptionWrapper ew=new ExceptionWrapper(ex);
-      if (checkPoints != null) {
-        for (int i=0, c=checkPoints.size(); i < c; ++i) {
-          ew.message+="\n" + checkPoints.get(i);
-        }
-      }
-      Trial trial=new Trial();
-      trial.setExceptionWrapper(ew);
-      trials.add(trial);
-    }
-  }
-  results.setSourceRef(getDocumentLocation());
   testIsFinished=true;
   resetAsyncState();
-  GWTRunner.get().reportResultsAndGetNextMethod(results);
+  GWTRunner.get().reportResultsAndGetNextMethod(myResult);
 }

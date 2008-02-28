@@ -1,8 +1,11 @@
 {
-  GWTTestCase testCase=createNewTestCase(testToRun.getTestClass());
-  if (testCase != null) {
-    testCase.setName(testToRun.getTestMethod());
+  GWTTestCaseImpl testCase=createNewTestCase(testToRun.getTestClass());
+  if (testCase == null) {
+    RuntimeException ex=new RuntimeException(testToRun + ": could not instantiate the requested class");
+    JUnitResult result=new JUnitResult();
+    result.setExceptionWrapper(new ExceptionWrapper(ex));
+    reportResultsAndGetNextMethod(result);
   }
-  GWTTestCaseImpl impl=new GWTTestCaseImpl(testCase);
-  impl.runTest();
+  testCase.setName(testToRun.getTestMethod());
+  testCase.__doRunTest();
 }
