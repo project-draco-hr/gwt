@@ -1,0 +1,63 @@
+{
+  if (type.isPrimitive()) {
+    if (type == Boolean.TYPE) {
+      value.setBoolean(((Boolean)obj).booleanValue());
+    }
+ else     if (type == Byte.TYPE) {
+      value.setInt(((Byte)obj).byteValue());
+    }
+ else     if (type == Character.TYPE) {
+      value.setInt(((Character)obj).charValue());
+    }
+ else     if (type == Double.TYPE) {
+      value.setDouble(((Double)obj).doubleValue());
+    }
+ else     if (type == Float.TYPE) {
+      value.setDouble(((Float)obj).floatValue());
+    }
+ else     if (type == Integer.TYPE) {
+      value.setInt(((Integer)obj).intValue());
+    }
+ else     if (type == Long.TYPE) {
+      long longVal=((Long)obj).longValue();
+      double doubleVal=longVal;
+      if ((long)doubleVal != longVal) {
+        ModuleSpace.getLogger().log(TreeLogger.WARN,"Loss of precision converting long to double",null);
+      }
+      value.setDouble(doubleVal);
+    }
+ else     if (type == Short.TYPE) {
+      value.setInt(((Short)obj).shortValue());
+    }
+ else     if (type == Void.TYPE) {
+      value.setUndefined();
+    }
+ else {
+      throw new HostedModeException("Cannot marshal primitive type " + type);
+    }
+  }
+ else   if (obj == null) {
+    value.setNull();
+  }
+ else {
+    try {
+      Class<?> jsoType=Class.forName(JSO_IMPL_CLASS,true,cl);
+      if (jsoType == obj.getClass()) {
+        JsValue jsObject=getUnderlyingObject(obj);
+        value.setValue(jsObject);
+        return;
+      }
+    }
+ catch (    ClassNotFoundException e) {
+    }
+    if (!type.isInstance(obj)) {
+      throw new HostedModeException("object is of type " + obj.getClass().getName() + ", expected "+ type.getName());
+    }
+    if (obj instanceof String) {
+      value.setString((String)obj);
+    }
+ else {
+      value.setWrappedJavaObject(cl,obj);
+    }
+  }
+}

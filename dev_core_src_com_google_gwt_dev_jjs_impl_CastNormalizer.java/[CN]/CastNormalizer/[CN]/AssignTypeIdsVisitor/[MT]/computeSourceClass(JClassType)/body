@@ -4,7 +4,7 @@
   }
   alreadyRan.add(type);
   computeSourceClass(type.extnds);
-  if (!program.typeOracle.isInstantiatedType(type)) {
+  if (!program.typeOracle.isInstantiatedType(type) || program.isJavaScriptObject(type)) {
     return;
   }
   Set<JReferenceType> yesSet=null;
@@ -22,14 +22,13 @@
       }
     }
   }
-  if (yesSet == null && !program.isJavaScriptObject(type) && (type != program.getTypeJavaLangObject())) {
+  if (yesSet == null && type != program.getTypeJavaLangObject()) {
     return;
   }
   JReferenceType[] yesArray=new JReferenceType[nextQueryId];
   if (yesSet != null) {
     for (    JReferenceType yesType : yesSet) {
-      Integer boxedInt=queryIds.get(yesType);
-      yesArray[boxedInt.intValue()]=yesType;
+      yesArray[queryIds.get(yesType)]=yesType;
     }
   }
   JsonObject jsonObject=new JsonObject(program);

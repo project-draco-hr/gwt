@@ -10,25 +10,19 @@
  else   if (toType instanceof JReferenceType) {
     JExpression curExpr=x.getExpr();
     JReferenceType refType=(JReferenceType)toType;
-    JType argType=x.getExpr().getType();
-    if (program.isJavaScriptObject(argType)) {
-      JMethod wrap=program.getIndexedMethod("Cast.wrapJSO");
-      JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,wrap,argType);
-      JClassSeed seed=program.getLiteralClassSeed((JClassType)argType);
-      call.getArgs().add(curExpr);
-      call.getArgs().add(seed);
-      curExpr=call;
-    }
-    if (argType instanceof JClassType && program.typeOracle.canTriviallyCast((JClassType)argType,refType)) {
+    JReferenceType argType=(JReferenceType)x.getExpr().getType();
+    if (program.typeOracle.canTriviallyCast(argType,refType)) {
       replaceExpr=curExpr;
     }
  else {
-      JMethod method=program.getIndexedMethod("Cast.dynamicCast");
+      boolean isJsoCast=program.isJavaScriptObject(toType);
+      JMethod method=program.getIndexedMethod(isJsoCast ? "Cast.dynamicCastJso" : "Cast.dynamicCast");
       JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,method,toType);
-      Integer boxedInt=queryIds.get(refType);
-      JIntLiteral qId=program.getLiteralInt(boxedInt.intValue());
       call.getArgs().add(curExpr);
-      call.getArgs().add(qId);
+      if (!isJsoCast) {
+        JIntLiteral qId=program.getLiteralInt(queryIds.get(refType));
+        call.getArgs().add(qId);
+      }
       replaceExpr=call;
     }
   }

@@ -1,0 +1,32 @@
+{
+  JClassType jsoType=program.getJavaScriptObject();
+  if (jsoType == null) {
+    return;
+  }
+  for (  JMethod method : jsoType.methods) {
+    if (!method.isStatic()) {
+      virtualJsoMethods.add(method);
+    }
+  }
+  if (virtualJsoMethods.isEmpty()) {
+    return;
+  }
+  CreateStaticImplsVisitor creator=new CreateStaticImplsVisitor();
+  for (  JMethod method : virtualJsoMethods) {
+    JMethod jsoStaticImpl=program.getStaticImpl(method);
+    if (jsoStaticImpl == null) {
+      creator.accept(method);
+      jsoStaticImpl=program.getStaticImpl(method);
+      assert(jsoStaticImpl != null);
+    }
+    JMethod objectOverride=findObjectOverride(method);
+    if (objectOverride != null) {
+      JMethod devirtualizer=createDevirtualMethod(objectOverride,jsoStaticImpl);
+      devirtualMethods.add(devirtualizer);
+      objectMethodToJsoMethod.put(objectOverride,devirtualizer);
+    }
+  }
+  RewriteVirtualDispatches rewriter=new RewriteVirtualDispatches();
+  rewriter.accept(program);
+  assert(rewriter.didChange());
+}

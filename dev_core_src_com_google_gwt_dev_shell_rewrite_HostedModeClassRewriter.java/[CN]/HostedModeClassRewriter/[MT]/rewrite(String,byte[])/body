@@ -1,0 +1,14 @@
+{
+  String desc=toDescriptor(className);
+  ClassWriter writer=new ClassWriter(0);
+  ClassVisitor v=writer;
+  v=new RewriteRefsToJsoClasses(v,jsoIntfDescriptors,mapper);
+  if (jsoImplDescriptors.contains(desc)) {
+    v=new WriteJsoImpl(v,jsoIntfDescriptors,mapper);
+  }
+ else   if (jsoIntfDescriptors.contains(desc)) {
+    v=new WriteJsoInterface(v);
+  }
+  new ClassReader(classBytes).accept(v,0);
+  return writer.toByteArray();
+}

@@ -27,4 +27,20 @@
     }
   }
   compiler.removeStaleByteCode(logger);
+  JClassType jsoType=typeOracle.findType(JsValueGlue.JSO_CLASS);
+  if (jsoType != null) {
+    Set<JClassType> jsoTypes=new HashSet<JClassType>();
+    JClassType[] jsoSubtypes=jsoType.getSubtypes();
+    Collections.addAll(jsoTypes,jsoSubtypes);
+    jsoTypes.add(jsoType);
+    Set<String> jsoTypeNames=new HashSet<String>();
+    for (    JClassType type : jsoTypes) {
+      jsoTypeNames.add(getBinaryName(type));
+    }
+    MyMethodDeclarationMapper mapper=new MyMethodDeclarationMapper(jsoTypes,typeOracle.getJavaLangObject());
+    classRewriter=new HostedModeClassRewriter(jsoTypeNames,mapper);
+  }
+ else {
+    classRewriter=null;
+  }
 }

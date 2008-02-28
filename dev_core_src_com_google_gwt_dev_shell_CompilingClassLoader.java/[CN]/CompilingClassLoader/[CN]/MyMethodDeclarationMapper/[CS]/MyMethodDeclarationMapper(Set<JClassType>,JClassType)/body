@@ -1,0 +1,23 @@
+{
+  for (  JClassType type : jsoTypes) {
+    for (    JMethod method : type.getMethods()) {
+      if (!method.isStatic()) {
+        String signature=createSignature(method);
+        Set<JClassType> declaringClasses=signatureToDeclaringClasses.get(signature);
+        if (declaringClasses == null) {
+          declaringClasses=new HashSet<JClassType>();
+          signatureToDeclaringClasses.put(signature,declaringClasses);
+        }
+        declaringClasses.add(type);
+      }
+    }
+  }
+  for (  JMethod method : javaLangObject.getMethods()) {
+    if (!method.isStatic()) {
+      String signature=createSignature(method);
+      Set<JClassType> declaringClasses=new HashSet<JClassType>();
+      signatureToDeclaringClasses.put(signature,declaringClasses);
+      declaringClasses.add(javaLangObject);
+    }
+  }
+}

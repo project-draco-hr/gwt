@@ -1,9 +1,11 @@
 {
-  if (field.isStatic() && nameRef.getQualifier() != null) {
-    reportJsniError(info,methodDecl,"Cannot make a qualified reference to the static field " + field.getName());
-  }
- else   if (!field.isStatic() && nameRef.getQualifier() == null) {
-    reportJsniError(info,methodDecl,"Cannot make an unqualified reference to the instance field " + field.getName());
+  if (field.getEnclosingType() != null) {
+    if (field.isStatic() && nameRef.getQualifier() != null) {
+      reportJsniError(info,methodDecl,"Cannot make a qualified reference to the static field " + field.getName());
+    }
+ else     if (!field.isStatic() && nameRef.getQualifier() == null) {
+      reportJsniError(info,methodDecl,"Cannot make an unqualified reference to the instance field " + field.getName());
+    }
   }
   JLiteral initializer=field.constInitializer;
   if (field.isStatic() && field.isFinal() && initializer != null) {

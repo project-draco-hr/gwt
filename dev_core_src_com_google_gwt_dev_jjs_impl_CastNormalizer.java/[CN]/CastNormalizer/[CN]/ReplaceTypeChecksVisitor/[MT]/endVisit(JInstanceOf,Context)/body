@@ -1,17 +1,20 @@
 {
-  JType argType=x.getExpr().getType();
-  if (argType instanceof JClassType && program.typeOracle.canTriviallyCast((JClassType)argType,x.getTestType())) {
+  JReferenceType argType=(JReferenceType)x.getExpr().getType();
+  JReferenceType toType=x.getTestType();
+  if (program.typeOracle.canTriviallyCast(argType,toType)) {
     JNullLiteral nullLit=program.getLiteralNull();
     JBinaryOperation eq=new JBinaryOperation(program,x.getSourceInfo(),program.getTypePrimitiveBoolean(),JBinaryOperator.NEQ,x.getExpr(),nullLit);
     ctx.replaceMe(eq);
   }
  else {
-    JMethod method=program.getIndexedMethod("Cast.instanceOf");
+    boolean isJsoCast=program.isJavaScriptObject(toType);
+    JMethod method=program.getIndexedMethod(isJsoCast ? "Cast.instanceOfJso" : "Cast.instanceOf");
     JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,method);
-    Integer boxedInt=queryIds.get(x.getTestType());
-    JIntLiteral qId=program.getLiteralInt(boxedInt.intValue());
     call.getArgs().add(x.getExpr());
-    call.getArgs().add(qId);
+    if (!isJsoCast) {
+      JIntLiteral qId=program.getLiteralInt(queryIds.get(toType));
+      call.getArgs().add(qId);
+    }
     ctx.replaceMe(call);
   }
 }

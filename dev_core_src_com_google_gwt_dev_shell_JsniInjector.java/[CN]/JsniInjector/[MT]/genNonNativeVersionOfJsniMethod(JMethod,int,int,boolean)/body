@@ -10,13 +10,8 @@
   sb.append(methodDecl + " {" + nl);
   sb.append("try {" + nl);
   JType returnType=method.getReturnType();
-  boolean isJavaScriptObject=isJavaScriptObject(returnType);
-  JPrimitiveType primType;
-  if (isJavaScriptObject) {
-    String returnTypeName=returnType.getParameterizedQualifiedSourceName();
-    sb.append("return (" + returnTypeName + ")"+ Jsni.JAVASCRIPTHOST_NAME+ ".invokeNativeHandle");
-  }
- else   if (null != (primType=returnType.isPrimitive())) {
+  JPrimitiveType primType=returnType.isPrimitive();
+  if (primType != null) {
     char[] primTypeSuffix=primType.getSimpleSourceName().toCharArray();
     primTypeSuffix[0]=Character.toUpperCase(primTypeSuffix[0]);
     String invokeMethodName="invokeNative" + String.valueOf(primTypeSuffix);
@@ -26,11 +21,6 @@
     sb.append(Jsni.JAVASCRIPTHOST_NAME);
     sb.append(".");
     sb.append(invokeMethodName);
-  }
- else   if (returnType == coreTypes.javaLangString) {
-    sb.append("return ");
-    sb.append(Jsni.JAVASCRIPTHOST_NAME);
-    sb.append(".invokeNativeString");
   }
  else {
     String returnTypeName=returnType.getParameterizedQualifiedSourceName();
@@ -49,17 +39,13 @@
  else {
     sb.append("\", this, ");
   }
-  if (isJavaScriptObject) {
-    String returnTypeName=returnType.getErasedType().getQualifiedSourceName();
-    sb.append(returnTypeName);
-    sb.append(".class, ");
-  }
   sb.append(Jsni.buildTypeList(method));
   sb.append(',');
   sb.append(Jsni.buildArgList(method));
   sb.append(");" + nl);
   sb.append("} catch (java.lang.Throwable __gwt_exception) {" + nl);
   sb.append("if (__gwt_exception instanceof java.lang.RuntimeException) throw (java.lang.RuntimeException) __gwt_exception;" + nl);
+  sb.append("if (__gwt_exception instanceof java.lang.Error) throw (java.lang.Error) __gwt_exception;" + nl);
   JType[] throwTypes=method.getThrows();
   for (int i=0; i < throwTypes.length; ++i) {
     String typeName=throwTypes[i].getQualifiedSourceName();
