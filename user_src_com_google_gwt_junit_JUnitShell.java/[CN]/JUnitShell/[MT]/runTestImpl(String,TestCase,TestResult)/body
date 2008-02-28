@@ -20,7 +20,7 @@
   }
  catch (  UnableToCompleteException e) {
     lastLaunchFailed=true;
-    testResult.addError(testCase,e);
+    testResult.addError(testCase,new JUnitFatalLaunchException(e));
     return;
   }
   try {
@@ -55,6 +55,9 @@
       testResult.addFailure(testCase,(AssertionFailedError)exception);
     }
  else     if (exception != null) {
+      if (exception instanceof JUnitFatalLaunchException) {
+        lastLaunchFailed=true;
+      }
       testResult.addError(testCase,exception);
     }
     if (testCase instanceof Benchmark) {
