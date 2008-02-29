@@ -1,0 +1,28 @@
+{
+  if (test instanceof TestSuite) {
+    TestSuite suite=(TestSuite)test;
+    if (suite.countTestCases() == 0) {
+      return nonGWTTestSuite;
+    }
+ else {
+      return getModuleSuiteFor(suite.testAt(0));
+    }
+  }
+ else   if (test instanceof GWTTestCase) {
+    GWTTestCase gwtTest=(GWTTestCase)test;
+    TestSuite suite=moduleSuites.get(gwtTest.getModuleName());
+    if (suite == null) {
+      suite=new TestSuite(gwtTest.getModuleName() + ".gwt.xml");
+      moduleSuites.put(gwtTest.getModuleName(),suite);
+      super.addTest(suite);
+    }
+    return suite;
+  }
+ else {
+    if (nonGWTTestSuite == null) {
+      nonGWTTestSuite=new TestSuite("Non-GWT");
+      super.addTest(nonGWTTestSuite);
+    }
+    return nonGWTTestSuite;
+  }
+}
