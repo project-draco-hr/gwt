@@ -22,9 +22,6 @@
       }
     }
   }
-  if (yesSet == null && type != program.getTypeJavaLangObject()) {
-    return;
-  }
   JReferenceType[] yesArray=new JReferenceType[nextQueryId];
   if (yesSet != null) {
     for (    JReferenceType yesType : yesSet) {
@@ -32,12 +29,15 @@
     }
   }
   JsonObject jsonObject=new JsonObject(program);
-  for (int i=0; i < nextQueryId; ++i) {
+  for (int i=1; i < nextQueryId; ++i) {
     if (yesArray[i] != null) {
       JIntLiteral labelExpr=program.getLiteralInt(i);
       JIntLiteral valueExpr=program.getLiteralInt(1);
       jsonObject.propInits.add(new JsonPropInit(program,labelExpr,valueExpr));
     }
+  }
+  if (jsonObject.propInits.isEmpty() && type != program.getTypeJavaLangObject() && type != program.getTypeJavaLangString()) {
+    return;
   }
   classes.add(type);
   jsonObjects.add(jsonObject);
