@@ -26,7 +26,7 @@
         srcWriter.indent();
         String serializerName=serializationOracle.getFieldSerializerName(type);
 {
-          srcWriter.print("function(x){ return @");
+          srcWriter.print("@");
           if (needsCreateMethod(type)) {
             srcWriter.print(serializationOracle.getTypeSerializerQualifiedName(getServiceInterface()));
             srcWriter.print("::");
@@ -36,21 +36,18 @@
             srcWriter.print(serializerName);
             srcWriter.print("::instantiate");
           }
-          srcWriter.println("(L" + SerializationStreamReader.class.getName().replace('.','/') + ";)(x);},");
+          srcWriter.print("(L" + SerializationStreamReader.class.getName().replace('.','/') + ";)");
+          srcWriter.println(",");
         }
         String jsniSignature=type.getJNISignature();
 {
-          srcWriter.print("function(x,y){");
           srcWriter.print("@" + serializerName);
           srcWriter.print("::deserialize(L" + SerializationStreamReader.class.getName().replace('.','/') + ";"+ jsniSignature+ ")");
-          srcWriter.print("(x,y);}");
           srcWriter.println(",");
         }
 {
-          srcWriter.print("function(x,y){");
           srcWriter.print("@" + serializerName);
           srcWriter.print("::serialize(L" + SerializationStreamWriter.class.getName().replace('.','/') + ";"+ jsniSignature+ ")");
-          srcWriter.print("(x,y);}");
           srcWriter.println();
         }
         srcWriter.outdent();
