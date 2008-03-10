@@ -1,5 +1,6 @@
 {
   TypeOracle typeOracle=context.getTypeOracle();
+  TreeLogger javadocAnnotationDeprecationBranch=logger.branch(TreeLogger.TRACE,"Scanning this RemoteService for deprecated annotations; " + "Please see " + RemoteServiceRelativePath.class.getName() + " for more information.",null);
   JClassType serviceAsync=typeOracle.findType(serviceIntf.getQualifiedSourceName() + "Async");
   if (serviceAsync == null) {
     logger.branch(TreeLogger.ERROR,"Could not find an asynchronous version for the service interface " + serviceIntf.getQualifiedSourceName(),null);
@@ -19,7 +20,7 @@
   enforceTypeVersioning=Shared.shouldEnforceTypeVersioning(logger,context.getPropertyOracle());
   String serializationPolicyStrongName=writeSerializationPolicyFile(logger,context,sto);
   generateProxyFields(srcWriter,sto,serializationPolicyStrongName);
-  generateProxyContructor(srcWriter);
+  generateProxyContructor(javadocAnnotationDeprecationBranch,srcWriter);
   generateProxyMethods(srcWriter,sto,syncMethToAsyncMethMap);
   srcWriter.commit(logger);
   return getProxyQualifiedName();
