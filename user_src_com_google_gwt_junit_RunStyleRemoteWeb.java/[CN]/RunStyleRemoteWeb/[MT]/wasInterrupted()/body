@@ -3,11 +3,22 @@
     int remoteToken=remoteTokens[i];
     BrowserManager mgr=browserManagers[i];
     if (remoteToken > 0) {
+      long callStart=System.currentTimeMillis();
       try {
         mgr.keepAlive(remoteToken,PING_KEEPALIVE_MS);
       }
  catch (      Exception e) {
-        shell.getTopLogger().log(TreeLogger.WARN,"Unexpected exception keeping remote browser alive",e);
+        Throwable cause=e.getCause();
+        if (cause instanceof SocketTimeoutException) {
+          long elapsed=System.currentTimeMillis() - callStart;
+          throw new TimeoutException("Timeout: " + elapsed + "ms  keeping alive remote browser at: "+ remoteBmsUrls[i],e.getCause());
+        }
+ else         if (e instanceof IllegalStateException) {
+          shell.getTopLogger().log(TreeLogger.INFO,"Browser at: " + remoteBmsUrls[i] + " already exited.",e);
+        }
+ else {
+          shell.getTopLogger().log(TreeLogger.ERROR,"Error keeping alive remote browser at " + remoteBmsUrls[i],e);
+        }
         return true;
       }
     }

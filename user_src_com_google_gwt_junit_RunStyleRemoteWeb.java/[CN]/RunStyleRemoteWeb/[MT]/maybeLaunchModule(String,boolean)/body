@@ -9,8 +9,9 @@
       throw new RuntimeException("Unable to determine my ip address",e);
     }
     String url="http://" + localhost + ":"+ shell.getPort()+ "/"+ getUrlSuffix(moduleName);
-    try {
-      for (int i=0; i < remoteTokens.length; ++i) {
+    for (int i=0; i < remoteTokens.length; ++i) {
+      long callStart=System.currentTimeMillis();
+      try {
         int remoteToken=remoteTokens[i];
         BrowserManager mgr=browserManagers[i];
         if (remoteToken != 0) {
@@ -18,10 +19,16 @@
         }
         remoteTokens[i]=mgr.launchNewBrowser(url,INITIAL_KEEPALIVE_MS);
       }
-    }
- catch (    Exception e) {
-      shell.getTopLogger().log(TreeLogger.ERROR,"Error launching remote browser",e);
-      throw new UnableToCompleteException();
+ catch (      Exception e) {
+        Throwable cause=e.getCause();
+        if (cause instanceof SocketTimeoutException) {
+          long elapsed=System.currentTimeMillis() - callStart;
+          shell.getTopLogger().log(TreeLogger.ERROR,"Timeout: " + elapsed + "ms  launching remote browser at: "+ remoteBmsUrls[i],e.getCause());
+          throw new UnableToCompleteException();
+        }
+        shell.getTopLogger().log(TreeLogger.ERROR,"Error launching remote browser at " + remoteBmsUrls[i],e);
+        throw new UnableToCompleteException();
+      }
     }
     running=true;
   }

@@ -27,22 +27,10 @@
       return true;
     }
     @Override public boolean setString(    String str){
-      try {
-        String[] urls=str.split(",");
-        numClients=urls.length;
-        BrowserManager[] browserManagers=new BrowserManager[numClients];
-        for (int i=0; i < numClients; ++i) {
-          browserManagers[i]=(BrowserManager)Naming.lookup(urls[i]);
-        }
-        runStyle=new RunStyleRemoteWeb(JUnitShell.this,browserManagers);
-      }
- catch (      Exception e) {
-        System.err.println("Error connecting to browser manager at " + str);
-        e.printStackTrace();
-        System.exit(1);
-        return false;
-      }
-      return true;
+      String[] urls=str.split(",");
+      numClients=urls.length;
+      runStyle=RunStyleRemoteWeb.create(JUnitShell.this,urls);
+      return runStyle != null;
     }
   }
 );
