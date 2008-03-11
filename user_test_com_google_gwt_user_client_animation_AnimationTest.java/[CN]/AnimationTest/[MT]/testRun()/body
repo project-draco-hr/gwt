@@ -1,0 +1,39 @@
+{
+  final TestAnimation animNow=new TestAnimation();
+  final TestAnimation animPast=new TestAnimation();
+  final TestAnimation animFuture=new TestAnimation();
+  long curTime=(new Date()).getTime();
+  animNow.run(300);
+  animPast.run(300,curTime - 150);
+  animFuture.run(300,curTime + 150);
+  new Timer(){
+    @Override public void run(){
+      assertTrue(animNow.started);
+      assertFalse(animNow.completed);
+      assertTrue(animNow.curProgress > 0.0 && animNow.curProgress <= 2.0);
+      assertTrue(animPast.started);
+      assertFalse(animPast.completed);
+      assertTrue(animPast.curProgress > 0.0 && animPast.curProgress <= 1.0);
+      assertFalse(animFuture.started);
+      assertFalse(animFuture.completed);
+      assertEquals(-1.0,animFuture.curProgress);
+    }
+  }
+.schedule(50);
+  new Timer(){
+    @Override public void run(){
+      assertTrue(animNow.started);
+      assertTrue(animNow.completed);
+      assertTrue(animNow.curProgress > 0.0 && animNow.curProgress <= 1.0);
+      assertTrue(animPast.started);
+      assertTrue(animPast.completed);
+      assertTrue(animPast.curProgress > 0.0 && animPast.curProgress <= 1.0);
+      assertTrue(animFuture.started);
+      assertFalse(animFuture.completed);
+      assertTrue(animFuture.curProgress > 0.0 && animFuture.curProgress <= 1.0);
+      finishTest();
+    }
+  }
+.schedule(350);
+  delayTestFinish(500);
+}
