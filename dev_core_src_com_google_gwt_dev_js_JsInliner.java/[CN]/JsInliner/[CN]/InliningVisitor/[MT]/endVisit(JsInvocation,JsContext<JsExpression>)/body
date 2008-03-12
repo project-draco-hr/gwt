@@ -1,4 +1,7 @@
 {
+  if (functionStack.isEmpty()) {
+    return;
+  }
   JsFunction f=isFunction(x.getQualifier());
   if (f == null) {
     return;
@@ -6,11 +9,12 @@
   if (blacklist.contains(f)) {
     return;
   }
-  List<JsStatement> statements=f.getBody().getStatements();
+  List<JsName> localVariableNames=new ArrayList<JsName>();
+  List<JsStatement> statements=new ArrayList<JsStatement>(f.getBody().getStatements());
   List<JsExpression> hoisted=new ArrayList<JsExpression>(statements.size());
   boolean sawReturnStatement=false;
   for (  JsStatement statement : statements) {
-    JsExpression h=hoistedExpression(statement);
+    JsExpression h=hoistedExpression(program,statement,localVariableNames);
     if (h == null) {
       return;
     }
@@ -36,6 +40,19 @@
     return;
   }
   NameRefReplacerVisitor v=new NameRefReplacerVisitor(x,f);
+  for (ListIterator<JsName> nameIterator=localVariableNames.listIterator(); nameIterator.hasNext(); ) {
+    JsName name=nameIterator.next();
+    String ident;
+    int count=0;
+    JsScope scope=functionStack.peek().getScope();
+    do {
+      ident=f.getName() + "_" + name.getIdent()+ "_"+ count++;
+    }
+ while (scope.findExistingName(ident) != null);
+    JsName newName=scope.declareName(ident,name.getShortIdent());
+    v.setReplacementName(name,newName);
+    nameIterator.set(newName);
+  }
   op=v.accept(op);
   op=(new CommaNormalizer()).accept(op);
   int originalComplexity=complexity(x);
@@ -43,6 +60,7 @@
   if (((float)inlinedComplexity / originalComplexity) > MAX_COMPLEXITY_INCREASE) {
     return;
   }
+  newLocalVariableStack.peek().addAll(localVariableNames);
   op=accept(op);
   ctx.replaceMe(op);
 }
