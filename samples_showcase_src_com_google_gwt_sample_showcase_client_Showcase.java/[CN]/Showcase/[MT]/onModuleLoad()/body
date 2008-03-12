@@ -1,0 +1,44 @@
+{
+  includeStyleSheets();
+  ShowcaseConstants constants=(ShowcaseConstants)GWT.create(ShowcaseConstants.class);
+  Window.enableScrolling(false);
+  app=new Application();
+  app.setMainMenuTitle(constants.mainMenuTitle());
+  setupTitlePanel(constants);
+  setupMainLinks(constants);
+  setupMainMenu(constants);
+  RootPanel.get().add(app);
+  app.setListener(new ApplicationListener(){
+    public void onMenuItemSelected(    TreeItem item){
+      ContentWidget content=itemWidgets.get(item);
+      if (content != null) {
+        History.newItem(getContentWidgetToken(content));
+      }
+    }
+  }
+);
+  HistoryListener historyListener=new HistoryListener(){
+    public void onHistoryChanged(    String historyToken){
+      TreeItem item=itemTokens.get(historyToken);
+      if (item != null) {
+        if (!item.equals(app.getMainMenu().getSelectedItem())) {
+          app.getMainMenu().setSelectedItem(item,false);
+          app.getMainMenu().ensureSelectedItemVisible();
+        }
+        displayContentWidget(itemWidgets.get(item));
+      }
+    }
+  }
+;
+  History.addHistoryListener(historyListener);
+  String initToken=History.getToken();
+  if (initToken.length() > 0) {
+    historyListener.onHistoryChanged(initToken);
+  }
+ else {
+    TreeItem firstItem=app.getMainMenu().getItem(0).getChild(0);
+    ContentWidget firstContent=itemWidgets.get(firstItem);
+    historyListener.onHistoryChanged(getContentWidgetToken(firstContent));
+  }
+  cacheImages();
+}

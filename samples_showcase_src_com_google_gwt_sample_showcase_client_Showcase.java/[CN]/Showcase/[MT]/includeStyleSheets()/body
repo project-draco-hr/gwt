@@ -1,0 +1,20 @@
+{
+  if (!LocaleInfo.getCurrentLocale().isRTL()) {
+    return;
+  }
+  Element headElem=getHeadElement();
+  int numChildren=DOM.getChildCount(headElem);
+  for (int i=0; i < numChildren; i++) {
+    Element elem=DOM.getChild(headElem,i);
+    if (DOM.getElementProperty(elem,"tagName").equalsIgnoreCase("link") && DOM.getElementProperty(elem,"rel").equalsIgnoreCase("stylesheet")) {
+      String href=DOM.getElementProperty(elem,"href");
+      DOM.removeChild(headElem,elem);
+      href=href.replaceAll(".css",".rtl.css");
+      Element styleElem=DOM.createElement("link");
+      DOM.setElementProperty(styleElem,"rel","stylesheet");
+      DOM.setElementProperty(styleElem,"type","text/css");
+      DOM.setElementProperty(styleElem,"href",href);
+      DOM.insertChild(headElem,styleElem,i);
+    }
+  }
+}

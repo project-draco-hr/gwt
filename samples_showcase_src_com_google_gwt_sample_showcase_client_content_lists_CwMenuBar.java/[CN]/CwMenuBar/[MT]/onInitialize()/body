@@ -1,0 +1,53 @@
+{
+  Command menuCommand=new Command(){
+    private int curPhrase=0;
+    private final String[] phrases=constants.cwMenuBarPrompts();
+    public void execute(){
+      Window.alert(phrases[curPhrase]);
+      curPhrase=(curPhrase + 1) % phrases.length;
+    }
+  }
+;
+  MenuBar menu=new MenuBar();
+  menu.setAutoOpen(true);
+  menu.setWidth("500px");
+  MenuBar recentDocsMenu=new MenuBar(true);
+  String[] recentDocs=constants.cwMenuBarFileRecents();
+  for (int i=0; i < recentDocs.length; i++) {
+    recentDocsMenu.addItem(recentDocs[i],menuCommand);
+  }
+  MenuBar fileMenu=new MenuBar(true);
+  menu.addItem(new MenuItem(constants.cwMenuBarFileCategory(),fileMenu));
+  String[] fileOptions=constants.cwMenuBarFileOptions();
+  for (int i=0; i < fileOptions.length; i++) {
+    if (i == 3) {
+      fileMenu.addSeparator();
+      fileMenu.addItem(fileOptions[i],recentDocsMenu);
+      fileMenu.addSeparator();
+    }
+ else {
+      fileMenu.addItem(fileOptions[i],menuCommand);
+    }
+  }
+  MenuBar editMenu=new MenuBar(true);
+  menu.addItem(new MenuItem(constants.cwMenuBarEditCategory(),editMenu));
+  String[] editOptions=constants.cwMenuBarEditOptions();
+  for (int i=0; i < editOptions.length; i++) {
+    editMenu.addItem(editOptions[i],menuCommand);
+  }
+  MenuBar gwtMenu=new MenuBar(true);
+  menu.addItem(new MenuItem("GWT",true,gwtMenu));
+  String[] gwtOptions=constants.cwMenuBarGWTOptions();
+  for (int i=0; i < gwtOptions.length; i++) {
+    gwtMenu.addItem(gwtOptions[i],menuCommand);
+  }
+  MenuBar helpMenu=new MenuBar(true);
+  menu.addSeparator();
+  menu.addItem(new MenuItem(constants.cwMenuBarHelpCategory(),helpMenu));
+  String[] helpOptions=constants.cwMenuBarHelpOptions();
+  for (int i=0; i < helpOptions.length; i++) {
+    helpMenu.addItem(helpOptions[i],menuCommand);
+  }
+  menu.ensureDebugId("cwMenuBar");
+  return menu;
+}

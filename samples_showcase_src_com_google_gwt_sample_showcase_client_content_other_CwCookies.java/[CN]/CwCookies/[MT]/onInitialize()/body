@@ -1,0 +1,48 @@
+{
+  Grid mainLayout=new Grid(3,3);
+  existingCookiesBox=new ListBox();
+  Button deleteCookieButton=new Button(constants.cwCookiesDeleteCookie());
+  mainLayout.setHTML(0,0,"<b>" + constants.cwCookiesExistingLabel() + "</b>");
+  mainLayout.setWidget(0,1,existingCookiesBox);
+  mainLayout.setWidget(0,2,deleteCookieButton);
+  cookieNameBox=new TextBox();
+  mainLayout.setHTML(1,0,"<b>" + constants.cwCookiesNameLabel() + "</b>");
+  mainLayout.setWidget(1,1,cookieNameBox);
+  cookieValueBox=new TextBox();
+  Button setCookieButton=new Button(constants.cwCookiesSetCookie());
+  mainLayout.setHTML(2,0,"<b>" + constants.cwCookiesValueLabel() + "</b>");
+  mainLayout.setWidget(2,1,cookieValueBox);
+  mainLayout.setWidget(2,2,setCookieButton);
+  setCookieButton.addClickListener(new ClickListener(){
+    public void onClick(    Widget sender){
+      String name=cookieNameBox.getText();
+      String value=cookieValueBox.getText();
+      Date expires=new Date((new Date()).getTime() + COOKIE_TIMOUT);
+      if (name.length() < 1) {
+        Window.alert(constants.cwCookiesInvalidCookie());
+        return;
+      }
+      Cookies.setCookie(name,value,expires);
+      refreshExistingCookies(name);
+    }
+  }
+);
+  existingCookiesBox.addChangeListener(new ChangeListener(){
+    public void onChange(    Widget sender){
+      updateExstingCookie();
+    }
+  }
+);
+  deleteCookieButton.addClickListener(new ClickListener(){
+    public void onClick(    Widget sender){
+      int selectedIndex=existingCookiesBox.getSelectedIndex();
+      String cookieName=existingCookiesBox.getValue(selectedIndex);
+      Cookies.removeCookie(cookieName);
+      existingCookiesBox.removeItem(selectedIndex);
+      updateExstingCookie();
+    }
+  }
+);
+  refreshExistingCookies(null);
+  return mainLayout;
+}

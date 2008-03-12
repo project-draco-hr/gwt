@@ -1,0 +1,27 @@
+{
+  final ListBox localeBox=new ListBox();
+  String currentLocale=LocaleInfo.getCurrentLocale().getLocaleName();
+  if (currentLocale.equals("default")) {
+    currentLocale="en";
+  }
+  String[] localeNames=LocaleInfo.getAvailableLocaleNames();
+  for (  String localeName : localeNames) {
+    if (!localeName.equals("default")) {
+      String nativeName=LocaleInfo.getLocaleNativeDisplayName(localeName);
+      localeBox.addItem(nativeName,localeName);
+      if (localeName.equals(currentLocale)) {
+        localeBox.setSelectedIndex(localeBox.getItemCount() - 1);
+      }
+    }
+  }
+  localeBox.addChangeListener(new ChangeListener(){
+    public void onChange(    Widget sender){
+      String localeName=localeBox.getValue(localeBox.getSelectedIndex());
+      Window.open(getHostPageLocation() + "?locale=" + localeName,"_self","");
+    }
+  }
+);
+  app.addLink(localeBox);
+  app.addLink(new HTML("<a href=\"" + GWT_HOMEPAGE + "\">"+ constants.mainLinkHomepage()+ "</a>"));
+  app.addLink(new HTML("<a href=\"" + GWT_EXAMPLES + "\">"+ constants.mainLinkExamples()+ "</a>"));
+}

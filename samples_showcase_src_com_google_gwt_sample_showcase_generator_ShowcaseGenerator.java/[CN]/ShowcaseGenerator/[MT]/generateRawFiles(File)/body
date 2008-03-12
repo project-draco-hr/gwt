@@ -1,0 +1,26 @@
+{
+  if (root.isDirectory()) {
+    File[] subFiles=root.listFiles();
+    for (int i=0; i < subFiles.length; i++) {
+      generateRawFiles(subFiles[i]);
+    }
+  }
+ else   if (root.isFile()) {
+    String fileContents=getFileContents(root);
+    int rawTagIndex=fileContents.indexOf(TAG_RAW);
+    if (fileContents == "" || rawTagIndex < 0) {
+      return;
+    }
+    int startLine=fileContents.lastIndexOf("\n",rawTagIndex);
+    int endLine=fileContents.indexOf("\n",rawTagIndex);
+    fileContents=fileContents.substring(0,startLine + 1) + fileContents.substring(endLine + 1);
+    fileContents=fileContents.replace("<","&lt;");
+    fileContents=fileContents.replace(">","&gt;");
+    fileContents=fileContents.replace("* \n   */\n","*/\n");
+    fileContents="<pre>" + fileContents + "</pre>";
+    String saveFile=root.getPath().substring(FILE_ROOT.length()) + ".html";
+    saveFile=saveFile.replace('/','.');
+    saveFile=DST_RAW + saveFile;
+    setFileContents(saveFile,fileContents);
+  }
+}
