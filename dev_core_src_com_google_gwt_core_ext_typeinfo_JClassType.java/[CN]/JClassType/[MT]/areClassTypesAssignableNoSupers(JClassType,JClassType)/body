@@ -14,8 +14,7 @@
   JTypeParameter lhsTypeParam=lhsType.isTypeParameter();
   JTypeParameter rhsTypeParam=rhsType.isTypeParameter();
   if (lhsTypeParam != null) {
-    JBound bounds=lhsTypeParam.getBounds();
-    JClassType[] lhsTypeBounds=bounds.getBounds();
+    JClassType[] lhsTypeBounds=lhsTypeParam.getBounds();
     for (    JClassType lhsTypeBound : lhsTypeBounds) {
       if (!areClassTypesAssignable(lhsTypeBound,rhsType)) {
         return false;
@@ -24,7 +23,7 @@
     return true;
   }
  else   if (rhsTypeParam != null) {
-    JClassType[] possibleSubtypeBounds=rhsTypeParam.getBounds().getBounds();
+    JClassType[] possibleSubtypeBounds=rhsTypeParam.getBounds();
     for (    JClassType possibleSubtypeBound : possibleSubtypeBounds) {
       if (areClassTypesAssignable(lhsType,possibleSubtypeBound)) {
         return true;
@@ -38,12 +37,12 @@
     return areWildcardsAssignable(lhsWildcard,rhsWildcard);
   }
  else   if (lhsWildcard != null) {
-    JBound lhsBound=lhsWildcard.getBounds();
-    if (lhsBound.isUpperBound() != null) {
-      return areClassTypesAssignable(lhsBound.getFirstBound(),rhsType);
+    JClassType[] lowerBounds=lhsWildcard.getLowerBounds();
+    if (lowerBounds.length > 0) {
+      return true;
     }
  else {
-      return true;
+      return areClassTypesAssignable(lhsWildcard.getFirstBound(),rhsType);
     }
   }
   JArrayType lhsArray=lhsType.isArray();
