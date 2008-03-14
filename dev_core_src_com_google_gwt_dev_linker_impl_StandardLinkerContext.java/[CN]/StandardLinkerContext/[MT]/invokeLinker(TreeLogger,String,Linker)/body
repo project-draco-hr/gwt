@@ -12,7 +12,36 @@
       throw new UnableToCompleteException();
     }
     logger=logger.branch(TreeLogger.INFO,"Linking compilation with " + linker.getDescription() + " Linker into "+ linkerOutDir.getPath(),null);
-    linker.link(logger,this);
+    LinkerContext shimParent=this;
+    for (    Class<? extends LinkerContextShim> clazz : shimClasses) {
+      TreeLogger shimLogger=logger.branch(TreeLogger.DEBUG,"Constructing LinkerContextShim " + clazz.getName(),null);
+      try {
+        Constructor<? extends LinkerContextShim> constructor=clazz.getConstructor(TreeLogger.class,LinkerContext.class);
+        shimParent=constructor.newInstance(shimLogger,shimParent);
+      }
+ catch (      InstantiationException e) {
+        shimLogger.log(TreeLogger.ERROR,"Unable to create LinkerContextShim",e);
+        throw new UnableToCompleteException();
+      }
+catch (      InvocationTargetException e) {
+        shimLogger.log(TreeLogger.ERROR,"Unable to create LinkerContextShim",e);
+        throw new UnableToCompleteException();
+      }
+catch (      NoSuchMethodException e) {
+        shimLogger.log(TreeLogger.ERROR,"LinkerContextShim subtypes must implement a two-argument " + "constructor accepting a TreeLogger and a LinkerContext",e);
+        throw new UnableToCompleteException();
+      }
+catch (      IllegalAccessException e) {
+        shimLogger.log(TreeLogger.ERROR,"Unable to create LinkerContextShim",e);
+        throw new UnableToCompleteException();
+      }
+    }
+    linker.link(logger,shimParent);
+    while (shimParent != this) {
+      LinkerContextShim shim=(LinkerContextShim)shimParent;
+      shim.commit(logger.branch(TreeLogger.DEBUG,"Committing LinkerContextShim " + shim.getClass().getName(),null));
+      shimParent=shim.getParent();
+    }
   }
   finally {
     reset();

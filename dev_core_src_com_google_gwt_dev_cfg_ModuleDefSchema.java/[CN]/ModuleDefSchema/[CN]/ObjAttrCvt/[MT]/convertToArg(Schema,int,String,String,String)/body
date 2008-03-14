@@ -3,18 +3,20 @@
   if (found != null) {
     return found;
   }
+  Class<?> foundClass=null;
   try {
     ClassLoader cl=Thread.currentThread().getContextClassLoader();
-    Class clazz=cl.loadClass(attrValue);
-    if (!fReqdSuperclass.isAssignableFrom(clazz)) {
-      Messages.INVALID_CLASS_DERIVATION.log(logger,clazz,fReqdSuperclass,null);
-      throw new UnableToCompleteException();
-    }
-    Object object=clazz.newInstance();
+    foundClass=cl.loadClass(attrValue);
+    Class<? extends T> clazz=foundClass.asSubclass(fReqdSuperclass);
+    T object=clazz.newInstance();
     singletonsByName.put(attrValue,object);
     return object;
   }
- catch (  ClassNotFoundException e) {
+ catch (  ClassCastException e) {
+    Messages.INVALID_CLASS_DERIVATION.log(logger,foundClass,fReqdSuperclass,null);
+    throw new UnableToCompleteException();
+  }
+catch (  ClassNotFoundException e) {
     Messages.UNABLE_TO_LOAD_CLASS.log(logger,attrValue,e);
     throw new UnableToCompleteException();
   }
