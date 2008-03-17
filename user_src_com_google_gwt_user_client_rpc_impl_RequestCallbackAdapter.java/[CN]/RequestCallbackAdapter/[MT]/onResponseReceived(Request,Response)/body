@@ -3,6 +3,7 @@
   Throwable caught=null;
   try {
     String encodedResponse=response.getText();
+    boolean toss=RemoteServiceProxy.isStatsAvailable() && RemoteServiceProxy.stats(methodName + ":responseReceived",RemoteServiceProxy.bytesStat(methodName,requestId,encodedResponse.length()));
     if (RemoteServiceProxy.isReturnValue(encodedResponse)) {
       result=(T)responseReader.read(streamFactory.createStreamReader(encodedResponse));
     }
@@ -19,10 +20,18 @@
 catch (  Throwable e) {
     caught=e;
   }
-  if (caught == null) {
-    callback.onSuccess(result);
+ finally {
+    boolean toss=RemoteServiceProxy.isStatsAvailable() && RemoteServiceProxy.stats(methodName + ":responseDeserialized",RemoteServiceProxy.timeStat(methodName,requestId));
   }
+  try {
+    if (caught == null) {
+      callback.onSuccess(result);
+    }
  else {
-    callback.onFailure(caught);
+      callback.onFailure(caught);
+    }
+  }
+  finally {
+    boolean toss=RemoteServiceProxy.isStatsAvailable() && RemoteServiceProxy.stats(methodName + ":responseCallbackDone",RemoteServiceProxy.timeStat(methodName,requestId));
   }
 }
