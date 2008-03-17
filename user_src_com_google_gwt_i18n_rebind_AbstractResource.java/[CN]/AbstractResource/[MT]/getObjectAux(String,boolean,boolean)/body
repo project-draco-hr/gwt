@@ -1,0 +1,24 @@
+{
+  ArrayList<AbstractResource> searched=new ArrayList<AbstractResource>();
+  searched.add(this);
+  Object s=handleGetObject(key);
+  if (s != null) {
+    return s;
+  }
+  AbstractResource parent=this.getPrimaryParent();
+  if (parent != null) {
+    searched.add(parent);
+    s=parent.getObjectAux(key,false);
+  }
+  if ((s == null) && (alternativeParents.size() > 0) && (useAlternativeParents)) {
+    for (int i=0; (i < alternativeParents.size()) && (s == null); i++) {
+      AbstractResource altParent=alternativeParents.get(i);
+      searched.add(altParent);
+      s=altParent.getObjectAux(key,true);
+    }
+  }
+  if (s == null && required) {
+    throw new MissingResourceException(key,searched);
+  }
+  return s;
+}

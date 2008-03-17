@@ -1,0 +1,64 @@
+{
+  JParameter[] params=m.getParameters();
+  int pluralParamIndex=-1;
+  Class<? extends PluralRule> ruleClass=null;
+  int numParams=params.length;
+  boolean[] seenFlags=new boolean[numParams];
+  for (int i=0; i < numParams; ++i) {
+    PluralCount pluralCount=params[i].getAnnotation(PluralCount.class);
+    if (pluralCount != null) {
+      if (pluralParamIndex >= 0) {
+        throw error(logger,m.getName() + ": there can only be one PluralCount parameter");
+      }
+      JPrimitiveType primType=params[i].getType().isPrimitive();
+      if (primType != JPrimitiveType.INT && primType != JPrimitiveType.SHORT) {
+        throw error(logger,m.getName() + ": PluralCount parameter must be int or short");
+      }
+      pluralParamIndex=i;
+      ruleClass=pluralCount.value();
+    }
+  }
+  StringBuffer generated=new StringBuffer();
+  if (ruleClass == null) {
+    if (m.getAnnotation(PluralText.class) != null) {
+      logger.log(TreeLogger.WARN,"Unused @PluralText on " + m.getEnclosingType().getSimpleSourceName() + "."+ m.getName()+ "; did you intend to mark a @PluralCount parameter?",null);
+    }
+  }
+ else {
+    if (ruleClass == PluralRule.class) {
+      ruleClass=DefaultRule.class;
+    }
+    PluralRule rule=createLocalizedPluralRule(logger,m.getEnclosingType().getOracle(),ruleClass,locale);
+    logger.log(TreeLogger.TRACE,"Using plural rule " + rule.getClass() + " for locale '"+ locale+ "'",null);
+    generated.append(PluralRule.class.getCanonicalName());
+    generated.append(" rule = new " + rule.getClass().getCanonicalName() + "();\n");
+    generated.append("switch (rule.select(arg" + pluralParamIndex + ")) {\n");
+    PluralForm[] pluralForms=rule.pluralForms();
+    resource.setPluralForms(key,pluralForms);
+    for (int i=1; i < pluralForms.length; ++i) {
+      String template=resource.getStringExt(key,pluralForms[i].getName());
+      if (template != null) {
+        generated.append("  case " + i + ": return ");
+        generateString(logger,template,params,seenFlags,generated);
+        generated.append(";\n");
+      }
+ else       if (pluralForms[i].getWarnIfMissing()) {
+        logger.log(TreeLogger.WARN,"No plural form '" + pluralForms[i].getName() + "' defined for method '"+ m.getName()+ "' in "+ m.getEnclosingType()+ " for locale "+ locale,null);
+      }
+    }
+    generated.append("}\n");
+  }
+  generated.append("return ");
+  String template=resource.getRequiredStringExt(logger,key,null);
+  generateString(logger,template,params,seenFlags,generated);
+  for (int i=0; i < numParams; ++i) {
+    if (!seenFlags[i]) {
+      Optional optional=params[i].getAnnotation(Optional.class);
+      if (optional == null) {
+        throw error(logger,"Required argument " + i + " not present: "+ template);
+      }
+    }
+  }
+  generated.append(';');
+  println(generated.toString());
+}
