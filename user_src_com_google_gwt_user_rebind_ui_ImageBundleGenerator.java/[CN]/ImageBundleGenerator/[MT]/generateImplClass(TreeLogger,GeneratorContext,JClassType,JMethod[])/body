@@ -1,0 +1,52 @@
+{
+  final JClassType abstractImagePrototype;
+  try {
+    abstractImagePrototype=userType.getOracle().getType(ABSTRACTIMAGEPROTOTYPE_QNAME);
+  }
+ catch (  NotFoundException e) {
+    logger.log(TreeLogger.ERROR,"GWT " + ABSTRACTIMAGEPROTOTYPE_QNAME + " class is not available",e);
+    throw new UnableToCompleteException();
+  }
+  String pkgName=userType.getPackage().getName();
+  String subName=computeSubclassName(userType);
+  ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(pkgName,subName);
+  f.addImport(ABSTRACTIMAGEPROTOTYPE_QNAME);
+  f.addImport(CLIPPEDIMAGEPROTOTYPE_QNAME);
+  f.addImport(GWT_QNAME);
+  f.addImplementedInterface(userType.getQualifiedSourceName());
+  PrintWriter pw=context.tryCreate(logger,pkgName,subName);
+  if (pw != null) {
+    SourceWriter sw=f.createSourceWriter(context,pw);
+    ImageBundleBuilder bulder=new ImageBundleBuilder();
+    List<String> imageResNames=new ArrayList<String>();
+    for (    JMethod method : imageMethods) {
+      CompilationUnitProvider unit=method.getEnclosingType().getCompilationUnit();
+      String sourceFile=unit.getLocation();
+      int lineNum=countLines(unit.getSource(),method.getDeclStart());
+      String branchMsg="Analyzing method '" + method.getName() + "' beginning on line "+ lineNum+ " of "+ sourceFile;
+      TreeLogger branch=logger.branch(TreeLogger.DEBUG,branchMsg,null);
+      if (method.getReturnType() != abstractImagePrototype) {
+        branch.log(TreeLogger.ERROR,"Return type must be " + ABSTRACTIMAGEPROTOTYPE_QNAME,null);
+        throw new UnableToCompleteException();
+      }
+      if (method.getParameters().length > 0) {
+        branch.log(TreeLogger.ERROR,"Method must have zero parameters",null);
+        throw new UnableToCompleteException();
+      }
+      String imageResName=getImageResourceName(branch,new JMethodOracleImpl(method));
+      assert(imageResName != null);
+      imageResNames.add(imageResName);
+      bulder.assimilate(logger,imageResName);
+    }
+    String bundledImageUrl=bulder.writeBundledImage(logger,context);
+    sw.print("private static final String IMAGE_BUNDLE_URL = GWT.getModuleBaseURL() + \"");
+    sw.print(escape(bundledImageUrl));
+    sw.println("\";");
+    int imageResNameIndex=0;
+    for (    JMethod method : imageMethods) {
+      generateImageMethod(logger,bulder,sw,method,imageResNames.get(imageResNameIndex++));
+    }
+    sw.commit(logger);
+  }
+  return f.getCreatedClassName();
+}
