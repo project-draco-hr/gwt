@@ -14,10 +14,6 @@
     return tic.isInstantiable();
   }
   tic.setPendingInstantiable();
-  if (classType.getLeafType() == typeOracle.getJavaLangObject()) {
-    markAsUninstantiableAndLog(logger,isSpeculative,"In order to produce smaller client-side code, 'Object' is not allowed; consider using a more specific type",tic);
-    return false;
-  }
   if (classType.isArray() != null) {
     return checkArrayInstantiable(logger,classType.isArray(),tic,isSpeculative);
   }
@@ -28,6 +24,11 @@
     TypeInfo typeInfo=getTypeInfo(classType);
     if (isSpeculative && typeInfo.isDirectlySerializable()) {
       isSpeculative=false;
+    }
+    JClassType javaLangObject=typeOracle.getJavaLangObject();
+    if (classType == javaLangObject || classType.getErasedType() == javaLangObject) {
+      markAsUninstantiableAndLog(localLogger,isSpeculative,"In order to produce smaller client-side code, 'Object' is not allowed; consider using a more specific type",tic);
+      return false;
     }
     boolean anySubtypes=false;
     if (checkClassOrInterfaceInstantiable(localLogger,classType,isSpeculative)) {
