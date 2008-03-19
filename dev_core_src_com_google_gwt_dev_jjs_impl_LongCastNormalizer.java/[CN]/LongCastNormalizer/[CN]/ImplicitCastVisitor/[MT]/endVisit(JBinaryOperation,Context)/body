@@ -1,0 +1,34 @@
+{
+  JType lhsType=x.getLhs().getType();
+  JType rhsType=x.getRhs().getType();
+  JType resultType=x.getType();
+  if (resultType == program.getTypeJavaLangString()) {
+    return;
+  }
+  if (x.getOp().isShiftOperator()) {
+    if (rhsType == longType) {
+      rhsType=program.getTypePrimitiveInt();
+    }
+  }
+ else   if (lhsType == longType || rhsType == longType) {
+    JType coerceTo=longType;
+    JPrimitiveType floatType=program.getTypePrimitiveFloat();
+    JPrimitiveType doubleType=program.getTypePrimitiveDouble();
+    if ((lhsType == floatType || lhsType == doubleType)) {
+      coerceTo=lhsType;
+    }
+    if (x.getOp().isAssignment()) {
+      coerceTo=lhsType;
+    }
+ else     if ((rhsType == floatType || rhsType == doubleType)) {
+      coerceTo=rhsType;
+    }
+    lhsType=rhsType=coerceTo;
+  }
+  JExpression newLhs=checkAndReplace(x.getLhs(),lhsType);
+  JExpression newRhs=checkAndReplace(x.getRhs(),rhsType);
+  if (newLhs != x.getLhs() || newRhs != x.getRhs()) {
+    JBinaryOperation binOp=new JBinaryOperation(program,x.getSourceInfo(),resultType,x.getOp(),newLhs,newRhs);
+    ctx.replaceMe(binOp);
+  }
+}

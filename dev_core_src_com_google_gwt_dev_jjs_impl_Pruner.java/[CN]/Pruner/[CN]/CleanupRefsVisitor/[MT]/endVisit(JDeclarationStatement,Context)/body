@@ -1,0 +1,18 @@
+{
+  if (!referencedNonTypes.contains(x.getVariableRef().getTarget())) {
+    JMultiExpression multi=new JMultiExpression(program,x.getSourceInfo());
+    JVariableRef variableRef=x.getVariableRef();
+    if (variableRef instanceof JFieldRef) {
+      JFieldRef fieldRef=(JFieldRef)variableRef;
+      JExpression instance=fieldRef.getInstance();
+      if (instance != null) {
+        multi.exprs.add(instance);
+      }
+    }
+    JExpression initializer=x.getInitializer();
+    if (initializer != null) {
+      multi.exprs.add(initializer);
+    }
+    ctx.replaceMe(multi.makeStatement());
+  }
+}

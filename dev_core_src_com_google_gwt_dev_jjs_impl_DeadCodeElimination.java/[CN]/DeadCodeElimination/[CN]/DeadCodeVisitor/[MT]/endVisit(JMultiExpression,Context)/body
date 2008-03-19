@@ -1,4 +1,9 @@
 {
+  List<JExpression> exprs=x.exprs;
+  if (exprs.size() > 1) {
+    List<JExpression> nonFinalChildren=exprs.subList(0,exprs.size() - 1);
+    ignoringExpressionOutput.removeAll(nonFinalChildren);
+  }
   for (int i=0; i < numRemovableExpressions(x); i++) {
     JExpression expr=x.exprs.get(i);
     if (!expr.hasSideEffects()) {
@@ -11,16 +16,6 @@
       x.exprs.addAll(i,((JMultiExpression)expr).exprs);
       i--;
       continue;
-    }
-    if (expr instanceof JFieldRef) {
-      JFieldRef fieldRef=(JFieldRef)expr;
-      JExpression instance=fieldRef.getInstance();
-      if (instance == null || !instance.hasSideEffects()) {
-        JMethod clinit=fieldRef.getField().getEnclosingType().methods.get(0);
-        assert(clinit.getName().equals("$clinit"));
-        JMethodCall methodCall=new JMethodCall(program,expr.getSourceInfo(),instance,clinit);
-        x.exprs.set(i,methodCall);
-      }
     }
   }
   if (x.exprs.size() == 1) {

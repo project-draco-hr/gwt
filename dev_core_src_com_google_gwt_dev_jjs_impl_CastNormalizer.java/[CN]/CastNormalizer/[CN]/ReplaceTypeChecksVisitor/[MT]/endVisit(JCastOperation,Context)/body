@@ -1,16 +1,17 @@
 {
   JExpression replaceExpr;
   JType toType=x.getCastType();
+  JExpression expr=x.getExpr();
   if (toType instanceof JNullType) {
     JMethod method=program.getIndexedMethod("Cast.throwClassCastExceptionUnlessNull");
     JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,method,program.getTypeNull());
-    call.getArgs().add(x.getExpr());
+    call.getArgs().add(expr);
     replaceExpr=call;
   }
  else   if (toType instanceof JReferenceType) {
-    JExpression curExpr=x.getExpr();
+    JExpression curExpr=expr;
     JReferenceType refType=(JReferenceType)toType;
-    JReferenceType argType=(JReferenceType)x.getExpr().getType();
+    JReferenceType argType=(JReferenceType)expr.getType();
     if (program.typeOracle.canTriviallyCast(argType,refType)) {
       replaceExpr=curExpr;
     }
@@ -27,7 +28,6 @@
     }
   }
  else {
-    boolean narrow=false, round=false;
     JPrimitiveType tByte=program.getTypePrimitiveByte();
     JPrimitiveType tChar=program.getTypePrimitiveChar();
     JPrimitiveType tShort=program.getTypePrimitiveShort();
@@ -35,46 +35,64 @@
     JPrimitiveType tLong=program.getTypePrimitiveLong();
     JPrimitiveType tFloat=program.getTypePrimitiveFloat();
     JPrimitiveType tDouble=program.getTypePrimitiveDouble();
-    JType fromType=x.getExpr().getType();
-    if (tByte == fromType) {
+    JType fromType=expr.getType();
+    String methodName=null;
+    if (tLong == fromType && tLong != toType) {
+      if (tByte == toType || tShort == toType || tChar == toType) {
+        JMethod castMethod=program.getIndexedMethod("LongLib.toInt");
+        JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,castMethod);
+        call.getArgs().add(expr);
+        expr=call;
+        fromType=tInt;
+      }
+ else       if (tInt == toType) {
+        methodName="LongLib.toInt";
+      }
+ else       if (tFloat == toType || tDouble == toType) {
+        methodName="LongLib.toDouble";
+      }
+    }
+    if (toType == tLong && fromType != tLong) {
+      if (tByte == fromType || tShort == fromType || tChar == fromType || tInt == fromType) {
+        methodName="LongLib.fromInt";
+      }
+ else       if (tFloat == fromType || tDouble == fromType) {
+        methodName="LongLib.fromDouble";
+      }
+    }
+ else     if (tByte == fromType) {
       if (tChar == toType) {
-        narrow=true;
+        methodName="Cast.narrow_" + toType.getName();
       }
     }
  else     if (tShort == fromType) {
       if (tByte == toType || tChar == toType) {
-        narrow=true;
+        methodName="Cast.narrow_" + toType.getName();
       }
     }
  else     if (tChar == fromType) {
       if (tByte == toType || tShort == toType) {
-        narrow=true;
+        methodName="Cast.narrow_" + toType.getName();
       }
     }
  else     if (tInt == fromType) {
       if (tByte == toType || tShort == toType || tChar == toType) {
-        narrow=true;
-      }
-    }
- else     if (tLong == fromType) {
-      if (tByte == toType || tShort == toType || tChar == toType || tInt == toType) {
-        narrow=true;
+        methodName="Cast.narrow_" + toType.getName();
       }
     }
  else     if (tFloat == fromType || tDouble == fromType) {
-      if (tByte == toType || tShort == toType || tChar == toType || tInt == toType || tLong == toType) {
-        round=true;
+      if (tByte == toType || tShort == toType || tChar == toType || tInt == toType) {
+        methodName="Cast.round_" + toType.getName();
       }
     }
-    if (narrow || round) {
-      String methodName="Cast." + (narrow ? "narrow_" : "round_") + toType.getName();
+    if (methodName != null) {
       JMethod castMethod=program.getIndexedMethod(methodName);
-      JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,castMethod);
-      call.getArgs().add(x.getExpr());
+      JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,castMethod,toType);
+      call.getArgs().add(expr);
       replaceExpr=call;
     }
  else {
-      replaceExpr=x.getExpr();
+      replaceExpr=expr;
     }
   }
   ctx.replaceMe(replaceExpr);

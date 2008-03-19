@@ -1,0 +1,29 @@
+{
+  JType lhsType=x.getLhs().getType();
+  JType rhsType=x.getRhs().getType();
+  if (lhsType != longType) {
+    return;
+  }
+  String methodName=getEmulationMethod(x.getOp());
+  if (methodName == null) {
+    return;
+  }
+switch (x.getOp()) {
+case SHL:
+case SHR:
+case SHRU:
+    if (rhsType != program.getTypePrimitiveInt()) {
+      throw new InternalCompilerException("Expected right operand to be of type int");
+    }
+  break;
+default :
+if (rhsType != longType) {
+  throw new InternalCompilerException("Expected right operand to be of type long");
+}
+}
+JMethod method=program.getIndexedMethod("LongLib." + methodName);
+JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,method,x.getType());
+call.getArgs().add(x.getLhs());
+call.getArgs().add(x.getRhs());
+ctx.replaceMe(call);
+}

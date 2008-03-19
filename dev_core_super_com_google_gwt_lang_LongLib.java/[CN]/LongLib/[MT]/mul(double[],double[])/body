@@ -1,0 +1,50 @@
+{
+  if (isZero(a)) {
+    return ZERO;
+  }
+  if (isZero(b)) {
+    return ZERO;
+  }
+  if (eq(a,MIN_VALUE)) {
+    return multByMinValue(b);
+  }
+  if (eq(b,MIN_VALUE)) {
+    return multByMinValue(a);
+  }
+  if (isNegative(a)) {
+    if (isNegative(b)) {
+      return mul(neg(a),neg(b));
+    }
+ else {
+      return neg(mul(neg(a),b));
+    }
+  }
+  assert(!isNegative(a));
+  if (isNegative(b)) {
+    return neg(mul(a,neg(b)));
+  }
+  assert(!isNegative(b));
+  if (lt(a,TWO_PWR_24) && lt(b,TWO_PWR_24)) {
+    return create(toDouble(a) * toDouble(b),0.0);
+  }
+  double a3=a[HIGH] % TWO_PWR_48_DBL;
+  double a4=a[HIGH] - a3;
+  double a1=a[LOW] % TWO_PWR_16_DBL;
+  double a2=a[LOW] - a1;
+  double b3=b[HIGH] % TWO_PWR_48_DBL;
+  double b4=b[HIGH] - b3;
+  double b1=b[LOW] % TWO_PWR_16_DBL;
+  double b2=b[LOW] - b1;
+  double[] res=ZERO;
+  res=addTimes(res,a4,b1);
+  res=addTimes(res,a3,b2);
+  res=addTimes(res,a3,b1);
+  res=addTimes(res,a2,b3);
+  res=addTimes(res,a2,b2);
+  res=addTimes(res,a2,b1);
+  res=addTimes(res,a1,b4);
+  res=addTimes(res,a1,b3);
+  res=addTimes(res,a1,b2);
+  res=addTimes(res,a1,b1);
+  return res;
+}

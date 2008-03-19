@@ -1,0 +1,16 @@
+{
+  if (x.getInitializer() == null) {
+    pop();
+    push(null);
+    return;
+  }
+  JsExpression initializer=(JsExpression)pop();
+  JsNameRef localRef=(JsNameRef)pop();
+  JVariable target=x.getVariableRef().getTarget();
+  if (target instanceof JField && target.getConstInitializer() != null) {
+    push(null);
+    return;
+  }
+  JsBinaryOperation binOp=new JsBinaryOperation(JsBinaryOperator.ASG,localRef,initializer);
+  push(binOp.makeStmt());
+}
