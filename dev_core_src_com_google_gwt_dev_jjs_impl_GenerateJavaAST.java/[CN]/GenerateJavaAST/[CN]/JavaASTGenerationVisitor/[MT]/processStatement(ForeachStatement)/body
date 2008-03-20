@@ -30,11 +30,18 @@
     result=new JForStatement(program,info,initializers,condition,increments,body);
   }
  else {
-    JLocal iteratorVar=createSyntheticLocal(info,elementVarName + "$iterator",(JType)typeMap.get(x.collection.resolvedType));
+    JLocal iteratorVar=createSyntheticLocal(info,elementVarName + "$iterator",program.getIndexedType("Iterator"));
     List<JStatement> initializers=new ArrayList<JStatement>(1);
     initializers.add(createDeclaration(info,iteratorVar,new JMethodCall(program,info,dispProcessExpression(x.collection),program.getIndexedMethod("Iterable.iterator"))));
     JExpression condition=new JMethodCall(program,info,createVariableRef(info,iteratorVar),program.getIndexedMethod("Iterator.hasNext"));
-    elementDecl.initializer=new JMethodCall(program,info,createVariableRef(info,iteratorVar),program.getIndexedMethod("Iterator.next"));
+    JMethodCall nextCall=new JMethodCall(program,info,createVariableRef(info,iteratorVar),program.getIndexedMethod("Iterator.next"));
+    JType elementType=elementDecl.getVariableRef().getType();
+    if (elementType != nextCall.getType()) {
+      elementDecl.initializer=new JCastOperation(program,info,elementType,nextCall);
+    }
+ else {
+      elementDecl.initializer=nextCall;
+    }
     body.statements.add(0,elementDecl);
     result=new JForStatement(program,info,initializers,condition,Collections.<JExpressionStatement>emptyList(),body);
   }
