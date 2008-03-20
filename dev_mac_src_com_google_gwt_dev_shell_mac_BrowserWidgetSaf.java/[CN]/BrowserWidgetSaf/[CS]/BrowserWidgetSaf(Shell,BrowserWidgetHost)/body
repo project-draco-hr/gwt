@@ -1,20 +1,20 @@
 {
   super(shell,host);
   Browser.setWebInspectorEnabled(true);
-  browser.setUserAgentApplicationName("Safari 419.3");
   browser.addWindowScriptObjectListener(new Browser.WindowScriptObjectListener(){
     public void windowScriptObjectAvailable(    int windowScriptObject){
-      int sel=WebKit.sel_registerName("_imp");
-      int windowObject=WebKit.objc_msgSend(windowScriptObject,sel);
+      int jsGlobalContext=browser.getGlobalContextForWindowObject(windowScriptObject);
+      int jsGlobalObject=LowLevelSaf.getGlobalJsObject(jsGlobalContext);
+      LowLevelSaf.pushJsContext(jsGlobalContext);
       try {
-        LowLevelSaf.jsLock();
-        final int globalExec=LowLevelSaf.getGlobalExecState(windowObject);
-        int external=LowLevelSaf.wrapDispatch(new ExternalObject());
-        LowLevelSaf.executeScript(globalExec,"function __defineExternal(x) {" + "  window.external = x;" + "}");
-        LowLevelSaf.invoke(globalExec,windowObject,"__defineExternal",windowObject,new int[]{external});
+        globalContexts.put(Integer.valueOf(jsGlobalObject),Integer.valueOf(jsGlobalContext));
+        int external=LowLevelSaf.wrapDispatchObject(jsGlobalContext,new ExternalObject());
+        LowLevelSaf.executeScript(jsGlobalContext,"function __defineExternal(x) {" + "  window.external = x;" + "}");
+        int ignoredResult=LowLevelSaf.invoke(jsGlobalContext,jsGlobalObject,"__defineExternal",jsGlobalObject,new int[]{external});
+        LowLevelSaf.gcUnprotect(jsGlobalContext,ignoredResult);
       }
   finally {
-        LowLevelSaf.jsUnlock();
+        LowLevelSaf.popJsContext(jsGlobalContext);
       }
     }
   }

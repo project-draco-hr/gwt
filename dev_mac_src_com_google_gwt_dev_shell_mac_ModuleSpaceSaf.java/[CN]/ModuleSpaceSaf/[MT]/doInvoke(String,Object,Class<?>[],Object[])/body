@@ -5,13 +5,14 @@
   JsValueGlue.set(jsValueThis,isolatedClassLoader,jthisType,jthis);
   int jsthis=jsValueThis.getJsValue();
   int argc=args.length;
-  int argv[]=new int[argc];
+  int[] argv=new int[argc];
+  JsValueSaf[] jsValueArgs=new JsValueSaf[argc];
   for (int i=0; i < argc; ++i) {
-    JsValueSaf jsValue=new JsValueSaf();
+    JsValueSaf jsValue=jsValueArgs[i]=new JsValueSaf();
     JsValueGlue.set(jsValue,isolatedClassLoader,types[i],args[i]);
     argv[i]=jsValue.getJsValue();
   }
-  int curExecState=LowLevelSaf.getExecState();
-  int result=LowLevelSaf.invoke(curExecState,window,name,jsthis,argv);
+  final int curJsContext=LowLevelSaf.getCurrentJsContext();
+  int result=LowLevelSaf.invoke(curJsContext,globalObject,name,jsthis,argv);
   return new JsValueSaf(result);
 }
