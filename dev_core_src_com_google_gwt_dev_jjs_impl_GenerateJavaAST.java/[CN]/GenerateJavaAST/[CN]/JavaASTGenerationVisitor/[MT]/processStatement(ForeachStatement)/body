@@ -34,23 +34,30 @@
     List<JStatement> initializers=new ArrayList<JStatement>(1);
     initializers.add(createDeclaration(info,iteratorVar,new JMethodCall(program,info,dispProcessExpression(x.collection),program.getIndexedMethod("Iterable.iterator"))));
     JExpression condition=new JMethodCall(program,info,createVariableRef(info,iteratorVar),program.getIndexedMethod("Iterator.hasNext"));
-    JMethodCall nextCall=new JMethodCall(program,info,createVariableRef(info,iteratorVar),program.getIndexedMethod("Iterator.next"));
-    JType elementType=elementDecl.getVariableRef().getType();
-    if (elementType != nextCall.getType()) {
-      elementDecl.initializer=new JCastOperation(program,info,elementType,nextCall);
-    }
- else {
-      elementDecl.initializer=nextCall;
+    elementDecl.initializer=new JMethodCall(program,info,createVariableRef(info,iteratorVar),program.getIndexedMethod("Iterator.next"));
+    if (elementVar.getType() != program.getTypeJavaLangObject()) {
+      TypeBinding collectionType;
+      try {
+        Field privateField=ForeachStatement.class.getDeclaredField("collectionElementType");
+        privateField.setAccessible(true);
+        collectionType=(TypeBinding)privateField.get(x);
+      }
+ catch (      Exception e) {
+        throw new InternalCompilerException(elementDecl,"Failed to retreive collectionElementType through reflection",e);
+      }
+      JType toType=(JType)typeMap.get(collectionType);
+      assert(toType instanceof JReferenceType);
+      elementDecl.initializer=maybeCast(toType,elementDecl.initializer);
     }
     body.statements.add(0,elementDecl);
     result=new JForStatement(program,info,initializers,condition,Collections.<JExpressionStatement>emptyList(),body);
   }
   if (x.elementVariableImplicitWidening != -1) {
     if ((x.elementVariableImplicitWidening & TypeIds.BOXING) != 0) {
-      elementDecl.initializer=box(elementDecl.initializer,(JClassType)elementVar.getType());
+      elementDecl.initializer=box(elementDecl.initializer,(JPrimitiveType)elementDecl.initializer.getType());
     }
  else     if ((x.elementVariableImplicitWidening & TypeIds.UNBOXING) != 0) {
-      elementDecl.initializer=unbox(elementDecl.initializer,(JPrimitiveType)elementVar.getType());
+      elementDecl.initializer=unbox(elementDecl.initializer,(JClassType)elementDecl.initializer.getType());
     }
   }
   return result;
