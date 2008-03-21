@@ -1,20 +1,10 @@
 {
-  SortedMap<String,ImageRect> sortedImageNameToImageRectMap=new TreeMap<String,ImageRect>();
-  sortedImageNameToImageRectMap.putAll(imageNameToImageRectMap);
-  Collection<ImageRect> orderedImageRects=sortedImageNameToImageRectMap.values();
-  int nextLeft=0;
-  int maxHeight=0;
-  for (  ImageRect imageRect : orderedImageRects) {
-    imageRect.left=nextLeft;
-    nextLeft+=imageRect.width;
-    if (imageRect.height > maxHeight) {
-      maxHeight=imageRect.height;
-    }
-  }
-  BufferedImage bundledImage=new BufferedImage(nextLeft,maxHeight,BufferedImage.TYPE_INT_ARGB_PRE);
+  Collection<ImageRect> imageRects=imageNameToImageRectMap.values();
+  final Size size=arrangeImages(imageRects);
+  BufferedImage bundledImage=new BufferedImage(size.width,size.height,BufferedImage.TYPE_INT_ARGB_PRE);
   Graphics2D g2d=bundledImage.createGraphics();
-  for (  ImageRect imageRect : orderedImageRects) {
-    g2d.drawImage(imageRect.image,imageRect.left,0,null);
+  for (  ImageRect imageRect : imageRects) {
+    g2d.drawImage(imageRect.image,imageRect.left,imageRect.top,null);
   }
   g2d.dispose();
   return bundledImage;
