@@ -1,0 +1,29 @@
+{
+  String testPlain=hideFromCompiler("CAT");
+  String testUnicode=hideFromCompiler("C\uD801\uDF00T");
+  assertEquals("CAT",new String(new int[]{'C','A','T'},0,3));
+  assertEquals("C\uD801\uDF00T",new String(new int[]{'C',67328,'T'},0,3));
+  assertEquals("\uD801\uDF00",new String(new int[]{'C',67328,'T'},1,1));
+  assertEquals(65,testPlain.codePointAt(1));
+  assertEquals("codePointAt fails on surrogate pair",67328,testUnicode.codePointAt(1));
+  assertEquals(65,testPlain.codePointBefore(2));
+  assertEquals("codePointBefore fails on surrogate pair",67328,testUnicode.codePointBefore(3));
+  assertEquals("codePointCount(plain): ",3,testPlain.codePointCount(0,3));
+  assertEquals("codePointCount(unicode): ",3,testUnicode.codePointCount(0,4));
+  assertEquals(1,testPlain.codePointCount(1,2));
+  assertEquals(1,testUnicode.codePointCount(1,2));
+  assertEquals(2,testUnicode.codePointCount(2,4));
+  assertEquals(1,testUnicode.offsetByCodePoints(0,1));
+  assertEquals("offsetByCodePoints(1,1): ",3,testUnicode.offsetByCodePoints(1,1));
+  assertEquals("offsetByCodePoints(2,1): ",3,testUnicode.offsetByCodePoints(2,1));
+  assertEquals(4,testUnicode.offsetByCodePoints(3,1));
+  assertEquals(1,testUnicode.offsetByCodePoints(2,-1));
+  assertEquals(1,testUnicode.offsetByCodePoints(3,-1));
+  assertEquals("offsetByCodePoints(4.-1): ",3,testUnicode.offsetByCodePoints(4,-1));
+  assertEquals(0,testUnicode.offsetByCodePoints(3,-2));
+  String nonBmpChar=hideFromCompiler("????");
+  assertEquals("\uD800\uDF46",nonBmpChar);
+  assertEquals(0x10346,nonBmpChar.codePointAt(0));
+  assertEquals(2,nonBmpChar.length());
+  assertEquals(1,nonBmpChar.codePointCount(0,2));
+}

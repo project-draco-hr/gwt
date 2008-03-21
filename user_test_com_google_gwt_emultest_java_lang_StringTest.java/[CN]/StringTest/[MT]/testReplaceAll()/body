@@ -1,8 +1,16 @@
 {
-  assertEquals("abcdef","xxxxabcxxdexf".replaceAll("x*",""));
-  assertEquals("1\\1abc123\\123de1234\\1234f","1abc123de1234f".replaceAll("([1234]+)","$1\\\\$1"));
-  assertEquals("\n  \n","x  x".replaceAll("x","\n"));
-  assertEquals("x  x","\n  \n".replaceAll("\\\n","x"));
-  assertEquals("x\"\\","x".replaceAll("x","\\x\\\"\\\\"));
-  assertEquals("$$x$","x".replaceAll("(x)","\\$\\$$1\\$"));
+  String regex=hideFromCompiler("*[").replaceAll("([/\\\\\\.\\*\\+\\?\\|\\(\\)\\[\\]\\{\\}])","\\\\$1");
+  assertEquals("\\*\\[",regex);
+  assertEquals("+1",hideFromCompiler("*[1").replaceAll(regex,"+"));
+  String x1=String.valueOf(new char[]{'x','x','x','a','b','c','x','x','d','e','x','f'});
+  assertEquals("abcdef",x1.replaceAll("x*",""));
+  String x2=String.valueOf(new char[]{'1','a','b','c','1','2','3','d','e','1','2','3','4','f'});
+  assertEquals("1\\1abc123\\123de1234\\1234f",x2.replaceAll("([1234]+)","$1\\\\$1"));
+  String x3=String.valueOf(new char[]{'x',' ',' ','x'});
+  assertEquals("\n  \n",x3.replaceAll("x","\n"));
+  String x4=String.valueOf(new char[]{'\n',' ',' ','\n'});
+  assertEquals("x  x",x4.replaceAll("\\\n","x"));
+  String x5=String.valueOf(new char[]{'x'});
+  assertEquals("x\"\\",x5.replaceAll("x","\\x\\\"\\\\"));
+  assertEquals("$$x$",x5.replaceAll("(x)","\\$\\$$1\\$"));
 }
