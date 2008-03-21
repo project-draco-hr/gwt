@@ -1,0 +1,28 @@
+{
+  CompilationResult compilationResult=new CompilationResult("TestCompilationUnit.java".toCharArray(),0,0,0);
+  CompilationUnitDeclaration cud=new CompilationUnitDeclaration(null,compilationResult,1);
+  LookupEnvironment lookupEnvironment=createMockLookupEnvironment();
+  cud.scope=new CompilationUnitScope(cud,lookupEnvironment);
+  TypeDeclaration typeDeclaration=new TypeDeclaration(compilationResult);
+  typeDeclaration.scope=new ClassScope(cud.scope,null);
+  cud.types=new TypeDeclaration[]{typeDeclaration};
+  BinaryTypeBinding binaryTypeBinding=new BinaryTypeBinding(null,new MockBinaryType(BINARY_TYPE_NAME),lookupEnvironment);
+  typeDeclaration.superclass=createMockBinaryTypeReference(binaryTypeBinding);
+  MethodDeclaration methodDeclaration=new MethodDeclaration(compilationResult);
+  methodDeclaration.scope=new MethodScope(typeDeclaration.scope,null,false);
+  methodDeclaration.returnType=createMockBinaryTypeReference(binaryTypeBinding);
+  LocalDeclaration localDeclaration=new LocalDeclaration(null,0,0);
+  localDeclaration.type=createMockBinaryTypeReference(binaryTypeBinding);
+  methodDeclaration.statements=new Statement[]{localDeclaration};
+  Annotation annotation=new MarkerAnnotation(createMockBinaryTypeReference(binaryTypeBinding),0);
+  typeDeclaration.annotations=new Annotation[]{annotation};
+  typeDeclaration.methods=new AbstractMethodDeclaration[]{methodDeclaration};
+  Expression[] expectedExpressions=new Expression[]{typeDeclaration.superclass,methodDeclaration.returnType,localDeclaration.type};
+  List<BinaryTypeReferenceSite> binaryTypeReferenceSites=BinaryTypeReferenceRestrictionsChecker.findInvalidBinaryTypeReferenceSites(cud);
+  assertEquals(expectedExpressions.length,binaryTypeReferenceSites.size());
+  for (int i=0; i < binaryTypeReferenceSites.size(); ++i) {
+    BinaryTypeReferenceSite binaryTypeReferenceSite=binaryTypeReferenceSites.get(i);
+    assertSame(binaryTypeBinding,binaryTypeReferenceSite.getBinaryTypeBinding());
+    assertSame(expectedExpressions[i],binaryTypeReferenceSite.getExpression());
+  }
+}
