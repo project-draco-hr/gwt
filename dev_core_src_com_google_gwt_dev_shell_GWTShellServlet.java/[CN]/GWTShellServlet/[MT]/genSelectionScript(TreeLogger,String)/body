@@ -3,9 +3,13 @@
   msg+=moduleName;
   logger.log(TreeLogger.TRACE,msg,null);
   ModuleDef moduleDef=getModuleDef(logger,moduleName);
-  File moduleDir=new File(getOutputDir(),moduleDef.getName());
-  StandardLinkerContext context=new StandardLinkerContext(logger,moduleDef,moduleDir,null,new JJSOptions());
+  File linkerDir=new File(getOutputDir(),GWTShell.GWT_SHELL_PATH + File.separator + moduleName);
+  StandardLinkerContext context=new StandardLinkerContext(logger,moduleDef,null,null,new JJSOptions());
   HostedModeLinker linker=new HostedModeLinker();
-  context.invokeLinker(logger,GWTShell.GWT_SHELL_PATH,linker);
-  return linker.generateSelectionScript(logger,context);
+  ArtifactSet artifacts=linker.link(logger,context,new ArtifactSet());
+  for (  EmittedArtifact artifact : artifacts.find(EmittedArtifact.class)) {
+    File out=new File(linkerDir,artifact.getPartialPath());
+    Util.copy(logger,artifact.getContents(logger),out);
+  }
+  return linker.generateSelectionScript(logger,context,context.getArtifacts());
 }

@@ -1,8 +1,9 @@
 {
   this.module=moduleDef;
   checkModule(logger);
+  generatorResourcesDir=new File(outDir,GWT_COMPILER_DIR + File.separator + moduleDef.getName()+ File.separator+ "generated");
   outDir=new File(outDir,module.getName());
-  generatorResourcesDir=new File(outDir,GENERATOR_DIR);
+  Util.recursiveDelete(outDir,true);
   Util.recursiveDelete(generatorResourcesDir,true);
   generatorResourcesDir.mkdirs();
   rules=module.getRules();
@@ -26,27 +27,6 @@
   perms=new PropertyPermutations(properties);
   WebModeCompilerFrontEnd frontEnd=new WebModeCompilerFrontEnd(sourceOracle,rebindPermOracle);
   jjs=new JavaToJavaScriptCompiler(logger,frontEnd,declEntryPts,jjsOptions);
-  if (!jjsOptions.isValidateOnly()) {
-    if (targets != null) {
-      boolean badTarget=false;
-      for (      String target : targets) {
-        if (module.getLinker(target) == null) {
-          logger.log(TreeLogger.ERROR,"Unknown target " + target,null);
-          badTarget=true;
-        }
-      }
-      if (badTarget) {
-        throw new UnableToCompleteException();
-      }
-    }
- else {
-      targets=module.getActiveLinkerNames();
-      if (targets == null || targets.length == 0) {
-        logger.log(TreeLogger.ERROR,"At least one Linker must be specified in the " + "module or on the command line",null);
-        throw new UnableToCompleteException();
-      }
-    }
-  }
   StandardLinkerContext linkerContext=new StandardLinkerContext(logger,module,outDir,generatorResourcesDir,jjsOptions);
   compilePermutations(logger,linkerContext);
   if (jjsOptions.isValidateOnly()) {
@@ -54,8 +34,5 @@
     return;
   }
   logger.log(TreeLogger.INFO,"Compilation succeeded",null);
-  for (  String linkerName : targets) {
-    Linker l=module.getLinker(linkerName);
-    linkerContext.invokeLinker(logger,linkerName,l);
-  }
+  linkerContext.link(logger,linkerContext,null);
 }

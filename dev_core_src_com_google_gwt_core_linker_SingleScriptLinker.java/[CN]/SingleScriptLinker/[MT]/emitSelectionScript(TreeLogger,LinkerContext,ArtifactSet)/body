@@ -1,0 +1,43 @@
+{
+  DefaultTextOutput out=new DefaultTextOutput(true);
+  out.print("(function () {");
+  out.newlineOpt();
+  String bootstrap=generateSelectionScript(logger,context,artifacts);
+  bootstrap=context.optimizeJavaScript(logger,bootstrap);
+  out.print(bootstrap);
+  out.print("})();");
+  out.newlineOpt();
+  out.print("(function () {");
+  out.newlineOpt();
+  out.print("var $gwt_version = \"" + About.GWT_VERSION_NUM + "\";");
+  out.newlineOpt();
+  out.print("var $wnd = window;");
+  out.newlineOpt();
+  out.print("var $doc = $wnd.document;");
+  out.newlineOpt();
+  out.print("var $moduleName, $moduleBase;");
+  out.newlineOpt();
+  CompilationResult result=null;
+  for (  CompilationResult artifact : artifacts.find(CompilationResult.class)) {
+    if (result == null) {
+      result=artifact;
+    }
+ else {
+      logger=logger.branch(TreeLogger.ERROR,"The module must have exactly one distinct" + " permutation when using the " + getDescription() + " Linker.",null);
+      throw new UnableToCompleteException();
+    }
+  }
+  out.print(result.getJavaScript());
+  out.newlineOpt();
+  out.print("if (" + context.getModuleFunctionName() + ") {");
+  out.newlineOpt();
+  out.print("  var __gwt_initHandlers = " + context.getModuleFunctionName() + ".__gwt_initHandlers;");
+  out.print("  " + context.getModuleFunctionName() + ".onScriptLoad(gwtOnLoad);");
+  out.newlineOpt();
+  out.print("}");
+  out.newlineOpt();
+  out.print("})();");
+  out.newlineOpt();
+  byte[] selectionScriptBytes=Util.getBytes(out.toString());
+  return emitBytes(logger,selectionScriptBytes,context.getModuleName() + ".nocache.js");
+}

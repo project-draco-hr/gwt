@@ -3,10 +3,11 @@
   this.jjsOptions=jjsOptions;
   this.moduleFunctionName=module.getFunctionName();
   this.moduleName=module.getName();
-  this.moduleOutDir=outDir;
-  this.shimClasses=new ArrayList<Class<? extends LinkerContextShim>>(module.getLinkerContextShims());
+  this.moduleOutDir=moduleOutDir;
+  this.linkerClasses=new ArrayList<Class<? extends Linker>>(module.getActiveLinkers());
+  linkerClasses.add(module.getActivePrimaryLinker());
   if (moduleOutDir != null) {
-    compilationsDir=new File(moduleOutDir,".gwt-compiler/compilations");
+    compilationsDir=new File(moduleOutDir.getParentFile(),GWTCompiler.GWT_COMPILER_DIR + File.separator + moduleName+ File.separator+ "compilations");
     Util.recursiveDelete(compilationsDir,true);
     compilationsDir.mkdirs();
     logger.log(TreeLogger.SPAM,"compilationsDir: " + compilationsDir.getPath(),null);
@@ -22,26 +23,20 @@
     logger.log(TreeLogger.SPAM,"Added property " + newProp,null);
   }
   properties=Collections.unmodifiableSortedSet(mutableProperties);
-  SortedSet<ModuleScriptResource> scripts=new TreeSet<ModuleScriptResource>(SCRIPT_RESOURCE_COMPARATOR);
   for (  Script script : module.getScripts()) {
-    scripts.add(new StandardScriptResource(script.getSrc(),module.findPublicFile(script.getSrc())));
+    artifacts.add(new StandardScriptReference(script.getSrc(),module.findPublicFile(script.getSrc())));
     logger.log(TreeLogger.SPAM,"Added script " + script.getSrc(),null);
   }
-  scriptResources=Collections.unmodifiableSortedSet(scripts);
-  SortedSet<ModuleStylesheetResource> styles=new TreeSet<ModuleStylesheetResource>(STYLE_RESOURCE_COMPARATOR);
   for (  String style : module.getStyles()) {
-    styles.add(new StandardStylesheetResource(style,module.findPublicFile(style)));
+    artifacts.add(new StandardStylesheetReference(style,module.findPublicFile(style)));
     logger.log(TreeLogger.SPAM,"Added style " + style,null);
   }
-  stylesheetResources=Collections.unmodifiableSortedSet(styles);
-  SortedSet<GeneratedResource> genResources=new TreeSet<GeneratedResource>(GENERATED_RESOURCE_COMPARATOR);
   if (generatorDir != null) {
     for (    String path : Util.recursiveListPartialPaths(generatorDir,false)) {
+      String partialPath=path.replace(File.separatorChar,'/');
       try {
-        String partialPath=path.replace(File.separatorChar,'/');
         GeneratedResource resource=new StandardGeneratedResource(partialPath,(new File(generatorDir,path)).toURL());
-        generatedResourcesByName.put(partialPath,resource);
-        genResources.add(resource);
+        artifacts.add(resource);
         logger.log(TreeLogger.SPAM,"Added generated resource " + resource,null);
       }
  catch (      MalformedURLException e) {
@@ -49,13 +44,10 @@
       }
     }
   }
-  generatedResources=Collections.unmodifiableSortedSet(genResources);
-  SortedSet<PublicResource> pubResources=new TreeSet<PublicResource>(PUBLIC_RESOURCE_COMPARATOR);
   for (  String path : module.getAllPublicFiles()) {
-    PublicResource resource=new StandardPublicResource(path,module.findPublicFile(path));
-    publicResourcesByName.put(path,resource);
-    pubResources.add(resource);
+    String partialPath=path.replace(File.separatorChar,'/');
+    PublicResource resource=new StandardPublicResource(partialPath,module.findPublicFile(path));
+    artifacts.add(resource);
     logger.log(TreeLogger.SPAM,"Added public resource " + resource,null);
   }
-  publicResources=Collections.unmodifiableSortedSet(pubResources);
 }
