@@ -5,6 +5,7 @@
   cud.scope=new CompilationUnitScope(cud,lookupEnvironment);
   TypeDeclaration typeDeclaration=new TypeDeclaration(compilationResult);
   typeDeclaration.scope=new ClassScope(cud.scope,null);
+  typeDeclaration.staticInitializerScope=new MethodScope(typeDeclaration.scope,null,false);
   cud.types=new TypeDeclaration[]{typeDeclaration};
   BinaryTypeBinding binaryTypeBinding=new BinaryTypeBinding(null,new MockBinaryType(BINARY_TYPE_NAME),lookupEnvironment);
   typeDeclaration.superclass=createMockBinaryTypeReference(binaryTypeBinding);
@@ -14,7 +15,8 @@
   LocalDeclaration localDeclaration=new LocalDeclaration(null,0,0);
   localDeclaration.type=createMockBinaryTypeReference(binaryTypeBinding);
   methodDeclaration.statements=new Statement[]{localDeclaration};
-  Annotation annotation=new MarkerAnnotation(createMockBinaryTypeReference(binaryTypeBinding),0);
+  SingleMemberAnnotation annotation=new SingleMemberAnnotation(createMockBinaryTypeReference(binaryTypeBinding),0);
+  annotation.memberValue=annotation.type;
   typeDeclaration.annotations=new Annotation[]{annotation};
   typeDeclaration.methods=new AbstractMethodDeclaration[]{methodDeclaration};
   Expression[] expectedExpressions=new Expression[]{typeDeclaration.superclass,methodDeclaration.returnType,localDeclaration.type};
