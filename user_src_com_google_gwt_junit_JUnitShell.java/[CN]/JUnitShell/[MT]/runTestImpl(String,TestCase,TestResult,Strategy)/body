@@ -1,22 +1,21 @@
 {
   String syntheticModuleName=moduleName + "." + strategy.getSyntheticModuleExtension();
-  boolean sameTest=syntheticModuleName.equals(currentModuleName);
+  boolean sameTest=(currentModule != null) && syntheticModuleName.equals(currentModule.getName());
   if (sameTest && lastLaunchFailed) {
     throw new UnableToCompleteException();
   }
-  currentModuleName=syntheticModuleName;
   if (!sameTest) {
-    ModuleDef synthetic=ModuleDefLoader.createSyntheticModule(getTopLogger(),currentModuleName,new String[]{moduleName,strategy.getModuleInherit()},true);
-    synthetic.clearEntryPoints();
-    synthetic.addEntryPointTypeName(GWTRunner.class.getName());
-    Property moduleNameProp=synthetic.getProperties().create("junit.moduleName");
+    currentModule=ModuleDefLoader.createSyntheticModule(getTopLogger(),syntheticModuleName,new String[]{moduleName,strategy.getModuleInherit()},true);
+    currentModule.clearEntryPoints();
+    currentModule.addEntryPointTypeName(GWTRunner.class.getName());
+    Property moduleNameProp=currentModule.getProperties().create("junit.moduleName");
     moduleNameProp.addKnownValue(moduleName);
     moduleNameProp.setActiveValue(moduleName);
   }
   lastLaunchFailed=false;
-  messageQueue.setNextTestName(currentModuleName,testCase.getClass().getName(),testCase.getName());
+  messageQueue.setNextTestName(currentModule.getName(),testCase.getClass().getName(),testCase.getName());
   try {
-    runStyle.maybeLaunchModule(currentModuleName,!sameTest);
+    runStyle.maybeLaunchModule(currentModule.getName(),!sameTest);
   }
  catch (  UnableToCompleteException e) {
     lastLaunchFailed=true;
@@ -32,7 +31,7 @@
     testResult.addError(testCase,e);
     return;
   }
-  List<JUnitResult> results=messageQueue.getResults(currentModuleName);
+  List<JUnitResult> results=messageQueue.getResults(currentModule.getName());
   if (results == null) {
     return;
   }
