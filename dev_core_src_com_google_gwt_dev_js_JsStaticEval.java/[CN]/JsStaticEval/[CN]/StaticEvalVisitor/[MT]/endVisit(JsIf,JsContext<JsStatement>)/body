@@ -1,0 +1,25 @@
+{
+  JsExpression expr=x.getIfExpr();
+  JsStatement thenStmt=x.getThenStmt();
+  JsStatement elseStmt=x.getElseStmt();
+  if (expr instanceof CanBooleanEval) {
+    CanBooleanEval cond=(CanBooleanEval)expr;
+    JsStatement onlyStmtToExecute;
+    if (cond.isBooleanTrue()) {
+      onlyStmtToExecute=thenStmt;
+    }
+ else     if (cond.isBooleanFalse()) {
+      onlyStmtToExecute=elseStmt;
+    }
+ else {
+      return;
+    }
+    JsBlock block=new JsBlock();
+    block.getStatements().add(expr.makeStmt());
+    block.getStatements().add(onlyStmtToExecute);
+    ctx.replaceMe(block);
+  }
+ else   if (isEmpty(thenStmt) && isEmpty(elseStmt)) {
+    ctx.replaceMe(expr.makeStmt());
+  }
+}

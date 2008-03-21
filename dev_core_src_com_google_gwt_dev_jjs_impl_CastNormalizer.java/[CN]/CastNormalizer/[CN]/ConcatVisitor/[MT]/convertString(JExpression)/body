@@ -1,9 +1,15 @@
 {
   JPrimitiveType charType=program.getTypePrimitiveChar();
   if (expr.getType() == charType) {
-    JMethodCall call=new JMethodCall(program,expr.getSourceInfo(),null,program.getIndexedMethod("Cast.charToString"));
-    call.getArgs().add(expr);
-    return call;
+    if (expr instanceof JCharLiteral) {
+      JCharLiteral charLit=(JCharLiteral)expr;
+      return program.getLiteralString(new char[]{charLit.getValue()});
+    }
+ else {
+      JMethodCall call=new JMethodCall(program,expr.getSourceInfo(),null,program.getIndexedMethod("Cast.charToString"));
+      call.getArgs().add(expr);
+      return call;
+    }
   }
  else   if (expr.getType() == program.getTypePrimitiveLong()) {
     JMethodCall call=new JMethodCall(program,expr.getSourceInfo(),null,program.getIndexedMethod("LongLib.toString"));

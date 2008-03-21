@@ -1,0 +1,23 @@
+{
+  List<JsStatement> stmts=x.getStatements();
+  for (int i=0; i < stmts.size(); i++) {
+    JsStatement stmt=stmts.get(i);
+    if (stmt instanceof JsBlock) {
+      JsBlock block=(JsBlock)stmt;
+      stmts.remove(i);
+      stmts.addAll(i,block.getStatements());
+      i--;
+      didChange=true;
+      continue;
+    }
+    if (stmt.unconditionalControlBreak()) {
+      for (int j=i + 1; j < stmts.size(); ) {
+        stmts.remove(j);
+        didChange=true;
+      }
+    }
+  }
+  if (ctx.canRemove() && stmts.size() == 0) {
+    ctx.removeMe();
+  }
+}

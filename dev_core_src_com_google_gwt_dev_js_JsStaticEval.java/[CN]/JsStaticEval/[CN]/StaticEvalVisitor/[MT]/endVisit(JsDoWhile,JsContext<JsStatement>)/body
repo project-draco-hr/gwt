@@ -1,0 +1,16 @@
+{
+  JsExpression expr=x.getCondition();
+  if (expr instanceof CanBooleanEval) {
+    CanBooleanEval cond=(CanBooleanEval)expr;
+    if (cond.isBooleanFalse()) {
+      FindBreakContinueStatementsVisitor visitor=new FindBreakContinueStatementsVisitor();
+      visitor.accept(x.getBody());
+      if (!visitor.hasBreakContinueStatements()) {
+        JsBlock block=new JsBlock();
+        block.getStatements().add(x.getBody());
+        block.getStatements().add(expr.makeStmt());
+        ctx.replaceMe(block);
+      }
+    }
+  }
+}
