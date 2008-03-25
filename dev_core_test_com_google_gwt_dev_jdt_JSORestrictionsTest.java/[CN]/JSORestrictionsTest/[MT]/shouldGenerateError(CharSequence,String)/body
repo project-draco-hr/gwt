@@ -1,25 +1,10 @@
 {
-  TypeOracleBuilder builder=new TypeOracleBuilder();
-  addStandardCups(builder);
-  StaticCompilationUnitProvider buggyCup=new StaticCompilationUnitProvider("","Buggy",buggyCode.toString().toCharArray());
-  builder.addCompilationUnit(buggyCup);
-  final boolean[] gotExpectedError=new boolean[1];
-  TreeLogger testLogger=new TreeLogger(){
-    public TreeLogger branch(    Type type,    String msg,    Throwable caught){
-      return this;
-    }
-    public boolean isLoggable(    Type type){
-      return type == ERROR;
-    }
-    public void log(    Type type,    String msg,    Throwable caught){
-      if (type == ERROR && msg.startsWith("Line ")) {
-        assertEquals(null,caught);
-        assertEquals(expectedError,msg);
-        gotExpectedError[0]=true;
-      }
-    }
-  }
-;
-  builder.build(testLogger);
-  assertTrue("Failed to get expected error: '" + expectedError + "'",gotExpectedError[0]);
+  UnitTestTreeLogger.Builder builder=new UnitTestTreeLogger.Builder();
+  builder.setLowestLogLevel(TreeLogger.ERROR);
+  builder.expectError("Errors in \'transient source for Buggy\'",null);
+  builder.expectError(expectedError,null);
+  builder.expectError("Compilation problem due to \'transient source for Buggy\'",null);
+  UnitTestTreeLogger logger=builder.createLogger();
+  TypeOracleTestingUtils.buildTypeOracleForCode("Buggy",buggyCode,logger);
+  logger.assertCorrectLogEntries();
 }
