@@ -8,6 +8,9 @@
     }
   }
   if (field.isCompileTimeConstant()) {
+    if (ctx.isLvalue()) {
+      reportJsniError(info,methodDecl,"Cannot change the value of compile-time constant " + field.getName());
+    }
     JLiteral initializer=field.getConstInitializer();
     JType type=initializer.getType();
     if (type instanceof JPrimitiveType || type == program.getTypeJavaLangString()) {
@@ -19,6 +22,6 @@
       return;
     }
   }
-  JsniFieldRef fieldRef=new JsniFieldRef(program,info,nameRef.getIdent(),field,currentClass);
+  JsniFieldRef fieldRef=new JsniFieldRef(program,info,nameRef.getIdent(),field,currentClass,ctx.isLvalue());
   nativeMethodBody.jsniFieldRefs.add(fieldRef);
 }
