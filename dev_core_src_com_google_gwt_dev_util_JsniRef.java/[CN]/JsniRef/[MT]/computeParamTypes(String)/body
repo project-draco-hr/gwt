@@ -1,0 +1,39 @@
+{
+  ArrayList<String> types=new ArrayList<String>();
+  StringBuilder nextType=new StringBuilder();
+  boolean inRef=false;
+  for (  char c : paramTypesString.toCharArray()) {
+    nextType.append(c);
+    if (inRef) {
+      if (c == JniConstants.DESC_REF_END) {
+        types.add(nextType.toString());
+        nextType.setLength(0);
+        inRef=false;
+      }
+    }
+ else {
+switch (c) {
+case JniConstants.DESC_BOOLEAN:
+case JniConstants.DESC_BYTE:
+case JniConstants.DESC_CHAR:
+case JniConstants.DESC_DOUBLE:
+case JniConstants.DESC_FLOAT:
+case JniConstants.DESC_INT:
+case JniConstants.DESC_LONG:
+case JniConstants.DESC_SHORT:
+case JniConstants.DESC_VOID:
+        types.add(nextType.toString());
+      nextType.setLength(0);
+    break;
+case JniConstants.DESC_ARRAY:
+  break;
+case JniConstants.DESC_REF:
+inRef=true;
+break;
+default :
+return null;
+}
+}
+}
+return types.toArray(Empty.STRINGS);
+}

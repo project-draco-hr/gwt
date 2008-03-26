@@ -2,15 +2,15 @@
   if (jsniMemberRef.equals("toString")) {
     jsniMemberRef="@java.lang.Object::toString()";
   }
-  int endClassName=jsniMemberRef.indexOf("::");
-  if (endClassName == -1 || jsniMemberRef.length() < 1 || jsniMemberRef.charAt(0) != '@') {
+  JsniRef parsed=JsniRef.parse(jsniMemberRef);
+  if (parsed == null) {
     logger.log(TreeLogger.WARN,"Malformed JSNI reference '" + jsniMemberRef + "'; expect subsequent failures",new NoSuchFieldError(jsniMemberRef));
     return -1;
   }
-  String className=jsniMemberRef.substring(1,endClassName);
+  String className=parsed.className();
   DispatchClassInfo dispClassInfo=getClassInfoFromClassName(className);
   if (dispClassInfo != null) {
-    String memberName=jsniMemberRef.substring(endClassName + 2);
+    String memberName=parsed.memberName();
     int memberId=dispClassInfo.getMemberId(memberName);
     if (memberId < 0) {
       logger.log(TreeLogger.WARN,"Member '" + memberName + "' in JSNI reference '"+ jsniMemberRef+ "' could not be found; expect subsequent failures",new NoSuchFieldError(memberName));
