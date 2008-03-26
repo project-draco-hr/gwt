@@ -1,7 +1,9 @@
 {
-  JavaASTGenerationVisitor v=new JavaASTGenerationVisitor(typeMap,jprogram,jsProgram,enableAsserts);
+  JavaASTGenerationVisitor v=new JavaASTGenerationVisitor(typeMap,jprogram,enableAsserts);
   for (int i=0; i < types.length; ++i) {
     v.processType(types[i]);
   }
   Collections.sort(jprogram.getDeclaredTypes(),new HasNameSort());
+  Map<JsniMethodBody,AbstractMethodDeclaration> jsniMethodMap=v.getJsniMethodMap();
+  new JsniRefGenerationVisitor(jprogram,jsProgram,jsniMethodMap).accept(jprogram);
 }
