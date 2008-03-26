@@ -1,0 +1,33 @@
+{
+  if (meth.isNative() && !suppressingWarnings(meth,scope)) {
+    final TypeReference returnType=meth.returnType;
+    if (containsLong(returnType,scope)) {
+      warn(meth,"JSNI method with return type of " + returnType);
+    }
+    if (meth.arguments != null) {
+      for (      Argument arg : meth.arguments) {
+        if (containsLong(arg.type,scope)) {
+          warn(arg,"JSNI method with a parameter of type " + arg.type);
+        }
+      }
+    }
+    FindJsniRefVisitor jsniRefsVisitor=new FindJsniRefVisitor();
+    meth.traverse(jsniRefsVisitor,scope);
+    Set<String> jsniRefs=jsniRefsVisitor.getJsniRefs();
+    for (    String jsniRefString : jsniRefs) {
+      JsniRef jsniRef=JsniRef.parse(jsniRefString);
+      if (hasLongParam(jsniRef)) {
+        warn(meth,"Passing a long into Java from JSNI (method " + jsniRef.memberName() + ")");
+      }
+      JType jsniRefType=getType(jsniRef);
+      if (containsLong(jsniRefType)) {
+        if (jsniRef.isMethod()) {
+          warn(meth,"Method " + jsniRef.memberName() + " returns type "+ jsniRefType+ ", which cannot be processed in JSNI code");
+        }
+ else {
+          warn(meth,"Field " + jsniRef.memberName() + " has type "+ jsniRefType+ ", which cannot be processed in JSNI code");
+        }
+      }
+    }
+  }
+}

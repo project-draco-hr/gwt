@@ -1,11 +1,10 @@
 {
-  Set dependentTypeNames=new HashSet();
-  Map requestedTypes=new HashMap();
-  FindDeferredBindingSitesVisitor v=new FindDeferredBindingSitesVisitor(requestedTypes);
+  Set<String> dependentTypeNames=new HashSet<String>();
+  FindDeferredBindingSitesVisitor v=new FindDeferredBindingSitesVisitor();
   cud.traverse(v,cud.scope);
-  for (Iterator iter=requestedTypes.keySet().iterator(); iter.hasNext(); ) {
-    String reqType=(String)iter.next();
-    DeferredBindingSite site=(DeferredBindingSite)requestedTypes.get(reqType);
+  Map<String,DeferredBindingSite> requestedTypes=v.getSites();
+  for (  String reqType : requestedTypes.keySet()) {
+    DeferredBindingSite site=requestedTypes.get(reqType);
     try {
       String[] resultTypes=rebindPermOracle.getAllPossibleRebindAnswers(logger,reqType);
       for (int i=0; i < resultTypes.length; ++i) {
@@ -44,5 +43,5 @@
       FindDeferredBindingSitesVisitor.reportRebindProblem(site,"Failed to resolve '" + reqType + "' via deferred binding");
     }
   }
-  return (String[])dependentTypeNames.toArray(Empty.STRINGS);
+  return dependentTypeNames.toArray(Empty.STRINGS);
 }

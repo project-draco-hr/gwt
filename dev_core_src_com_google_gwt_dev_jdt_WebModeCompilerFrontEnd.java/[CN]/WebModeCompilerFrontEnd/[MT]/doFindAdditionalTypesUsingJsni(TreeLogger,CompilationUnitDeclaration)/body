@@ -1,6 +1,13 @@
 {
-  Set dependentTypeNames=new HashSet();
-  FindJsniRefVisitor v=new FindJsniRefVisitor(dependentTypeNames);
+  FindJsniRefVisitor v=new FindJsniRefVisitor();
   cud.traverse(v,cud.scope);
-  return (String[])dependentTypeNames.toArray(Empty.STRINGS);
+  Set<String> jsniRefs=v.getJsniRefs();
+  Set<String> dependentTypeNames=new HashSet<String>();
+  for (  String jsniRef : jsniRefs) {
+    JsniRef parsed=JsniRef.parse(jsniRef);
+    if (parsed != null) {
+      dependentTypeNames.add(parsed.className());
+    }
+  }
+  return dependentTypeNames.toArray(Empty.STRINGS);
 }

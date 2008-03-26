@@ -1,0 +1,39 @@
+{
+  CompilationResult result=scope.referenceCompilationUnit().compilationResult;
+  long[] suppressWarningIrritants;
+  long[] suppressWarningScopePositions;
+  int suppressWarningsCount;
+  try {
+{
+      Field field=CompilationResult.class.getDeclaredField("suppressWarningIrritants");
+      field.setAccessible(true);
+      suppressWarningIrritants=(long[])field.get(result);
+    }
+{
+      Field field=CompilationResult.class.getDeclaredField("suppressWarningScopePositions");
+      field.setAccessible(true);
+      suppressWarningScopePositions=(long[])field.get(result);
+    }
+{
+      Field field=CompilationResult.class.getDeclaredField("suppressWarningsCount");
+      field.setAccessible(true);
+      suppressWarningsCount=(Integer)field.get(result);
+    }
+  }
+ catch (  NoSuchFieldException e) {
+    throw new InternalCompilerException("Failed to read suppress warnings data from JDT",e);
+  }
+catch (  IllegalAccessException e) {
+    throw new InternalCompilerException("Failed to read suppress warnings data from JDT",e);
+  }
+  for (int i=0; i < suppressWarningsCount; i++) {
+    if ((suppressWarningIrritants[i] & CompilerOptions.DiscouragedReference) != 0) {
+      long start=suppressWarningScopePositions[i] >> 32;
+      long end=suppressWarningScopePositions[i] & 0xFFFFFFFF;
+      if (meth.bodyStart >= start && meth.bodyStart <= end) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
