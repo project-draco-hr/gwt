@@ -1,0 +1,20 @@
+{
+  TypeOracleBuilder tiob=createTypeInfoOracleBuilder();
+  tiob.addCompilationUnit(CU_Object);
+  tiob.addCompilationUnit(CU_ExtendsGenericList);
+  tiob.addCompilationUnit(CU_GenericList);
+  tiob.addCompilationUnit(CU_ReferencesGenericListConstant);
+  TreeLogger logger=createTreeLogger();
+  TypeOracle to=tiob.build(logger);
+  JClassType extendsGenericListType=to.getType("test.refresh.ExtendsGenericList");
+  JClassType genericListType=to.getType("test.refresh.GenericList");
+  JClassType objectType=to.getJavaLangObject();
+  JClassType referencesGenericListConstantType=to.getType("test.refresh.ReferencesGenericListConstant");
+  tiob.addCompilationUnit(CU_GenericList);
+  refreshTypeOracle(tiob,to);
+  to=tiob.build(logger);
+  assertNotSame(genericListType.getQualifiedSourceName() + "; ",to.getType("test.refresh.GenericList"),genericListType);
+  assertNotSame(extendsGenericListType.getQualifiedSourceName() + "; ",to.getType("test.refresh.ExtendsGenericList"),extendsGenericListType);
+  assertSame(objectType.getQualifiedSourceName() + "; ",to.getJavaLangObject(),objectType);
+  assertNotSame(referencesGenericListConstantType.getQualifiedSourceName(),to.getType("test.refresh.ReferencesGenericListConstant"),referencesGenericListConstantType);
+}
