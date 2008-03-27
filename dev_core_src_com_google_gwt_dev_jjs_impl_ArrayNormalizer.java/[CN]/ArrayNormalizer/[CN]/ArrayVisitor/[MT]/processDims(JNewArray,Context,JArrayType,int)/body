@@ -1,0 +1,26 @@
+{
+  JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,initDims,arrayType);
+  JsonArray classLitList=new JsonArray(program);
+  JsonArray typeIdList=new JsonArray(program);
+  JsonArray queryIdList=new JsonArray(program);
+  JsonArray dimList=new JsonArray(program);
+  JType cur=arrayType;
+  for (int i=0; i < dims; ++i) {
+    JArrayType curArrayType=(JArrayType)cur;
+    JLiteral classLit=program.getLiteralClass(cur);
+    classLitList.exprs.add(classLit);
+    JLiteral typeIdLit=program.getLiteralInt(program.getTypeId(curArrayType));
+    typeIdList.exprs.add(typeIdLit);
+    JLiteral queryIdLit=program.getLiteralInt(tryGetQueryId(curArrayType));
+    queryIdList.exprs.add(queryIdLit);
+    dimList.exprs.add(x.dims.get(i));
+    cur=curArrayType.getElementType();
+  }
+  call.getArgs().add(classLitList);
+  call.getArgs().add(typeIdList);
+  call.getArgs().add(queryIdList);
+  call.getArgs().add(dimList);
+  call.getArgs().add(program.getLiteralInt(dims));
+  call.getArgs().add(getSeedTypeLiteralFor(cur));
+  ctx.replaceMe(call);
+}
