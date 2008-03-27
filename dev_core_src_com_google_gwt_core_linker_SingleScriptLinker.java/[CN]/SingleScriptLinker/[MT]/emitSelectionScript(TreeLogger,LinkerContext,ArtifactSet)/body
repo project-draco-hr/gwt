@@ -17,16 +17,14 @@
   out.newlineOpt();
   out.print("var $moduleName, $moduleBase;");
   out.newlineOpt();
-  CompilationResult result=null;
-  for (  CompilationResult artifact : artifacts.find(CompilationResult.class)) {
-    if (result == null) {
-      result=artifact;
-    }
- else {
-      logger=logger.branch(TreeLogger.ERROR,"The module must have exactly one distinct" + " permutation when using the " + getDescription() + " Linker.",null);
-      throw new UnableToCompleteException();
-    }
+  out.print("var $stats = $wnd.__gwtstatsEvent ? function(a,b,c,d) {$wnd.__gwtstatsEvent(a,b,c,d)} : null;");
+  out.newlineOpt();
+  Set<CompilationResult> results=artifacts.find(CompilationResult.class);
+  if (results.size() != 1) {
+    logger=logger.branch(TreeLogger.ERROR,"The module must have exactly one distinct" + " permutation when using the " + getDescription() + " Linker.",null);
+    throw new UnableToCompleteException();
   }
+  CompilationResult result=results.iterator().next();
   out.print(result.getJavaScript());
   out.newlineOpt();
   out.print("if (" + context.getModuleFunctionName() + ") {");
