@@ -1,0 +1,25 @@
+{
+  JavaScriptObject xmlHttpRequest=httpRequest.createXmlHTTPRequest();
+  String openError;
+  if (user != null && password != null) {
+    openError=XMLHTTPRequest.open(xmlHttpRequest,httpMethod,url,true,user,password);
+  }
+ else   if (user != null) {
+    openError=XMLHTTPRequest.open(xmlHttpRequest,httpMethod,url,true,user);
+  }
+ else {
+    openError=XMLHTTPRequest.open(xmlHttpRequest,httpMethod,url,true);
+  }
+  if (openError != null) {
+    RequestPermissionException requestPermissionException=new RequestPermissionException(url);
+    requestPermissionException.initCause(new RequestException(openError));
+    throw requestPermissionException;
+  }
+  setHeaders(xmlHttpRequest);
+  Request request=new Request(xmlHttpRequest,timeoutMillis,callback);
+  String sendError=XMLHTTPRequest.send(xmlHttpRequest,request,requestData,callback);
+  if (sendError != null) {
+    throw new RequestException(sendError);
+  }
+  return request;
+}
