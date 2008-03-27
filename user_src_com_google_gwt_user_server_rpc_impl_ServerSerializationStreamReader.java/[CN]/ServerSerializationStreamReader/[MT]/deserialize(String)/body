@@ -9,7 +9,11 @@
     Class<?> customSerializer=SerializabilityUtil.hasCustomFieldSerializer(instanceClass);
     instance=instantiate(customSerializer,instanceClass);
     rememberDecodedObject(instance);
-    deserializeImpl(customSerializer,instanceClass,instance);
+    Object replacement=deserializeImpl(customSerializer,instanceClass,instance);
+    if (instance != replacement) {
+      replaceRememberedObject(instance,replacement);
+      instance=replacement;
+    }
     return instance;
   }
  catch (  ClassNotFoundException e) {
