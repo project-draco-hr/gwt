@@ -1,0 +1,27 @@
+{
+  alreadySeen.add(type);
+  if (computed.contains(type)) {
+    return hasClinitSet.contains(type);
+  }
+  JMethod method=type.methods.get(0);
+  CheckClinitVisitor v=new CheckClinitVisitor();
+  v.accept(method);
+  if (v.hasNonClinitCalls()) {
+    return true;
+  }
+  for (  JReferenceType target : v.getClinitTargets()) {
+    if (target == null) {
+      return true;
+    }
+    if (alreadySeen.contains(target)) {
+      continue;
+    }
+    if (computeHasClinitRecursive(target,computed,alreadySeen)) {
+      return true;
+    }
+ else {
+      continue;
+    }
+  }
+  return false;
+}
