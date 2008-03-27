@@ -1,10 +1,25 @@
 {
   JMethod target=x.getTarget();
+  if (target.isStatic() && x.getInstance() != null) {
+    ignoringExpressionOutput.remove(x.getInstance());
+  }
+  List<JExpression> args=x.getArgs();
+  int paramCount=target.params.size();
+  List<JExpression> ignoredArgs=args.subList(paramCount,args.size());
+  ignoringExpressionOutput.removeAll(ignoredArgs);
+  for (int i=0; i < ignoredArgs.size(); ++i) {
+    JExpression arg=ignoredArgs.get(i);
+    if (!arg.hasSideEffects()) {
+      ignoredArgs.remove(i);
+      --i;
+      didChange=true;
+    }
+  }
   JReferenceType targetType=target.getEnclosingType();
   if (targetType == program.getTypeJavaLangString()) {
     tryOptimizeStringCall(x,ctx,target);
   }
- else   if (program.isClinit(target)) {
+ else   if (JProgram.isClinit(target)) {
     if (!program.typeOracle.hasClinit(targetType)) {
       ctx.replaceMe(program.getLiteralNull());
     }
