@@ -2,9 +2,16 @@
   String path=createTempOutFilename();
   OutputStream os=genCtx.tryCreateResource(mockLogger,path);
   os.write("going to call commit twice after this...".getBytes(Util.DEFAULT_ENCODING));
-  genCtx.commitResource(mockLogger,os);
+  genCtx.setCurrentGenerator(MockGenerator.class);
+  GeneratedResource res=genCtx.commitResource(mockLogger,os);
+  assertEquals(path,res.getPartialPath());
+  assertEquals(MockGenerator.class,res.getGenerator());
   File createdFile=new File(tempOutDir,path);
   assertTrue(createdFile.exists());
+  assertEquals(1,artifactSet.size());
+  GeneratedResource generatedResource=(GeneratedResource)artifactSet.iterator().next();
+  assertEquals(path,generatedResource.getPartialPath());
+  assertEquals(MockGenerator.class,generatedResource.getGenerator());
   rememberToDelete(createdFile);
   try {
     genCtx.commitResource(mockLogger,os);
@@ -12,4 +19,5 @@
   }
  catch (  UnableToCompleteException e) {
   }
+  assertEquals(1,artifactSet.size());
 }

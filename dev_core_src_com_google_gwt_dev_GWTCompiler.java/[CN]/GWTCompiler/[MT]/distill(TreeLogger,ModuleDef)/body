@@ -22,17 +22,19 @@
     logger.log(TreeLogger.INFO,"Compiling module " + module.getName(),null);
     declEntryPts=module.getEntryPointTypeNames();
   }
-  rebindPermOracle=new DistillerRebindPermutationOracle();
+  ArtifactSet generatorArtifacts=new ArtifactSet();
+  rebindPermOracle=new DistillerRebindPermutationOracle(generatorArtifacts);
   properties=module.getProperties();
   perms=new PropertyPermutations(properties);
   WebModeCompilerFrontEnd frontEnd=new WebModeCompilerFrontEnd(sourceOracle,rebindPermOracle);
   jjs=new JavaToJavaScriptCompiler(logger,frontEnd,declEntryPts,jjsOptions);
   StandardLinkerContext linkerContext=new StandardLinkerContext(logger,module,outDir,generatorResourcesDir,jjsOptions);
-  compilePermutations(logger,linkerContext);
+  compilePermutations(logger,linkerContext,generatorArtifacts);
   if (jjsOptions.isValidateOnly()) {
     logger.log(TreeLogger.INFO,"Validation succeeded",null);
     return;
   }
   logger.log(TreeLogger.INFO,"Compilation succeeded",null);
+  linkerContext.addOrReplaceArtifacts(generatorArtifacts);
   linkerContext.link(logger,linkerContext,null);
 }

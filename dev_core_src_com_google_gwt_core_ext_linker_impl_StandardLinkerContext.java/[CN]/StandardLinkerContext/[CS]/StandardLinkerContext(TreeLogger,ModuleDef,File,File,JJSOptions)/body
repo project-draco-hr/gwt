@@ -11,10 +11,20 @@
     Util.recursiveDelete(compilationsDir,true);
     compilationsDir.mkdirs();
     logger.log(TreeLogger.SPAM,"compilationsDir: " + compilationsDir.getPath(),null);
+    this.moduleAuxDir=new File(moduleOutDir.getParentFile(),moduleName + "-aux");
+    if (moduleAuxDir.exists()) {
+      Util.recursiveDelete(moduleAuxDir,false);
+    }
+    logger.log(TreeLogger.SPAM,"mouduleAuxDir: " + moduleAuxDir.getPath(),null);
   }
  else {
     compilationsDir=null;
+    moduleAuxDir=null;
   }
+  for (  Map.Entry<String,Class<? extends Linker>> entry : module.getLinkers().entrySet()) {
+    linkerShortNames.put(entry.getValue(),entry.getKey());
+  }
+  linkerShortNames.put(this.getClass(),"");
   SortedSet<SelectionProperty> mutableProperties=new TreeSet<SelectionProperty>(SELECTION_PROPERTY_COMPARATOR);
   for (  Property p : module.getProperties()) {
     StandardSelectionProperty newProp=new StandardSelectionProperty(p);
@@ -30,19 +40,6 @@
   for (  String style : module.getStyles()) {
     artifacts.add(new StandardStylesheetReference(style,module.findPublicFile(style)));
     logger.log(TreeLogger.SPAM,"Added style " + style,null);
-  }
-  if (generatorDir != null) {
-    for (    String path : Util.recursiveListPartialPaths(generatorDir,false)) {
-      String partialPath=path.replace(File.separatorChar,'/');
-      try {
-        GeneratedResource resource=new StandardGeneratedResource(partialPath,(new File(generatorDir,path)).toURL());
-        artifacts.add(resource);
-        logger.log(TreeLogger.SPAM,"Added generated resource " + resource,null);
-      }
- catch (      MalformedURLException e) {
-        logger.log(TreeLogger.ERROR,"Unable to convert generated resource to URL",e);
-      }
-    }
   }
   for (  String path : module.getAllPublicFiles()) {
     String partialPath=path.replace(File.separatorChar,'/');
