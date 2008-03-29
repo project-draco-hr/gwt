@@ -20,10 +20,11 @@ if ((flags & COM.DISPATCH_METHOD) != 0) {
  catch (  Throwable e) {
     throw new RuntimeException("Failed to get Object.toString() method",e);
   }
-  IDispatchImpl dispMethod=(IDispatchImpl)classLoader.getMethodDispatch(toStringMethod);
-  if (dispMethod == null) {
+  AccessibleObject obj=toStringMethod.getUnderlyingObject();
+  IDispatchImpl dispMethod=(IDispatchImpl)classLoader.getWrapperForObject(obj);
+  if (dispMethod == null || dispMethod.refCount < 1) {
     dispMethod=new MethodDispatch(classLoader,toStringMethod);
-    classLoader.putMethodDispatch(toStringMethod,dispMethod);
+    classLoader.putWrapperForObject(obj,dispMethod);
   }
   IDispatch disp=new IDispatch(dispMethod.getAddress());
   disp.AddRef();

@@ -17,10 +17,11 @@
           return callMethod(classLoader,getTarget(),params,method);
         }
  else         if (flags == COM.DISPATCH_PROPERTYGET) {
-          IDispatchImpl dispMethod=(IDispatchImpl)classLoader.getMethodDispatch(method);
+          AccessibleObject obj=method.getUnderlyingObject();
+          IDispatchImpl dispMethod=(IDispatchImpl)classLoader.getWrapperForObject(obj);
           if (dispMethod == null || dispMethod.refCount < 1) {
             dispMethod=new MethodDispatch(classLoader,method);
-            classLoader.putMethodDispatch(method,dispMethod);
+            classLoader.putWrapperForObject(obj,dispMethod);
           }
           IDispatch disp=new IDispatch(dispMethod.getAddress());
           disp.AddRef();

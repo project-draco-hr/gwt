@@ -15,10 +15,11 @@
     }
  else {
       MethodAdaptor method=javaDispatch.getMethod(dispId);
-      DispatchMethod dispMethod=(DispatchMethod)classLoader.getMethodDispatch(method);
+      AccessibleObject obj=method.getUnderlyingObject();
+      DispatchMethod dispMethod=(DispatchMethod)classLoader.getWrapperForObject(obj);
       if (dispMethod == null) {
         dispMethod=new MethodDispatch(classLoader,method);
-        classLoader.putMethodDispatch(method,dispMethod);
+        classLoader.putWrapperForObject(obj,dispMethod);
       }
       return LowLevelSaf.wrapDispatchMethod(jsContext,method.toString(),dispMethod);
     }
