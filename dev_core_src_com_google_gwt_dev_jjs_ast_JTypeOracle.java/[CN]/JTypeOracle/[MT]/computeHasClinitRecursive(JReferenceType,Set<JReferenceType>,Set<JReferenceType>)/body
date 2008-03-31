@@ -4,15 +4,13 @@
     return hasClinitSet.contains(type);
   }
   JMethod method=type.methods.get(0);
+  assert(JProgram.isClinit(method));
   CheckClinitVisitor v=new CheckClinitVisitor();
   v.accept(method);
   if (v.hasNonClinitCalls()) {
     return true;
   }
   for (  JReferenceType target : v.getClinitTargets()) {
-    if (target == null) {
-      return true;
-    }
     if (alreadySeen.contains(target)) {
       continue;
     }
