@@ -2,10 +2,21 @@
   JType type=(JType)typeMap.get(binding.type);
   boolean isCompileTimeConstant=binding.isStatic() && (binding.isFinal()) && (binding.constant() != Constant.NotAConstant)&& (binding.type.isBaseType());
   assert(type instanceof JPrimitiveType || !isCompileTimeConstant);
-  JField field=program.createField(info,binding.name,enclosingType,type,binding.isStatic(),binding.isFinal(),isCompileTimeConstant);
-  if (binding.isVolatile()) {
-    field.setVolatile();
+  assert(!binding.isFinal() || !binding.isVolatile());
+  Disposition disposition;
+  if (isCompileTimeConstant) {
+    disposition=Disposition.COMPILE_TIME_CONSTANT;
   }
+ else   if (binding.isFinal()) {
+    disposition=Disposition.FINAL;
+  }
+ else   if (binding.isVolatile()) {
+    disposition=Disposition.VOLATILE;
+  }
+ else {
+    disposition=Disposition.NONE;
+  }
+  JField field=program.createField(info,binding.name,enclosingType,type,binding.isStatic(),disposition);
   typeMap.put(binding,field);
   return field;
 }
