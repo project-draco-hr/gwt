@@ -5,25 +5,38 @@
   tree=new Tree(sash,SWT.BORDER | SWT.SHADOW_IN);
   tree.setLinesVisible(false);
   tree.addSelectionListener(this);
+  tree.addMouseListener(new MouseAdapter(){
+    public void mouseDoubleClick(    MouseEvent e){
+      openHelpOnSelection(tree);
+    }
+  }
+);
   tree.setFocus();
   tree.addKeyListener(new KeyAdapter(){
     @Override public void keyPressed(    KeyEvent e){
-      if (e.keyCode == 'c' && e.stateMask == SWT.CTRL) {
-        copyTreeSelectionToClipboard(tree);
-      }
-    }
-  }
+switch (e.keyCode) {
+case 'c':
+        if (e.stateMask == SWT.CTRL) {
+          copyTreeSelectionToClipboard(tree);
+        }
+      break;
+case '\r':
+case '\n':
+    openHelpOnSelection(tree);
+}
+}
+}
 );
-  logger=new TreeItemLogger();
-  details=new Text(sash,SWT.MULTI | SWT.WRAP | SWT.READ_ONLY| SWT.BORDER| SWT.V_SCROLL);
-  final Color detailsBgColor=new Color(null,255,255,255);
-  details.setBackground(detailsBgColor);
-  details.addDisposeListener(new DisposeListener(){
-    public void widgetDisposed(    DisposeEvent arg0){
-      detailsBgColor.dispose();
-    }
-  }
+logger=new TreeItemLogger();
+details=new Text(sash,SWT.MULTI | SWT.WRAP | SWT.READ_ONLY| SWT.BORDER| SWT.V_SCROLL);
+final Color detailsBgColor=new Color(null,255,255,255);
+details.setBackground(detailsBgColor);
+details.addDisposeListener(new DisposeListener(){
+public void widgetDisposed(DisposeEvent arg0){
+detailsBgColor.dispose();
+}
+}
 );
-  sash.setWeights(new int[]{80,20});
-  initLogFlushTimer(parent.getDisplay());
+sash.setWeights(new int[]{80,20});
+initLogFlushTimer(parent.getDisplay());
 }
