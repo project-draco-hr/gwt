@@ -7,9 +7,19 @@
     }
  catch (    NullPointerException exception) {
       assertTrue("NullPointerException only allowed to be thrown " + "if either the key or value is null.",keys[i] == null || values[i] == null);
-      assertTrue("NullPointerException on null key, but " + "useNullKey is not overridden to return false.",keys[i] == null || !useNullKey());
-      assertTrue("NullPointerException on null value, but " + "useNullValue is not overridden to return false.",values[i] == null || !useNullValue());
-      assertTrue("Unknown reason for NullPointer.",false);
+      if (keys[i] == null) {
+        if (useNullKey()) {
+          throw new Error("NullPointerException on null key, but " + "useNullKey is not overridden to return false.",exception);
+        }
+      }
+ else       if (values[i] == null) {
+        if (useNullValue()) {
+          throw new Error("NullPointerException on null value, but " + "useNullValue is not overridden to return false.",exception);
+        }
+      }
+ else {
+        throw exception;
+      }
     }
   }
   assertEquals("size must reflect number of mappings added.",keys.length,m.size());
