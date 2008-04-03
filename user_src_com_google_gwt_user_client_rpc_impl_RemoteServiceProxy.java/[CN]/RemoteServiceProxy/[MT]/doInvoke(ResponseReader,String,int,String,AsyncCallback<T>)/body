@@ -1,19 +1,15 @@
 {
-  if (getServiceEntryPoint() == null) {
-    throw new NoServiceEntryPointSpecifiedException();
-  }
-  RequestCallbackAdapter<T> responseHandler=new RequestCallbackAdapter<T>(this,methodName,invocationCount,callback,responseReader);
-  RequestBuilder rb=new RequestBuilder(RequestBuilder.POST,getServiceEntryPoint());
-  rb.setHeader("Content-Type","text/x-gwt-rpc; charset=utf-8");
+  RequestBuilder rb=doPrepareRequestBuilderImpl(responseReader,methodName,invocationCount,requestData,callback);
   try {
-    return rb.sendRequest(requestData,responseHandler);
+    return rb.send();
   }
  catch (  RequestException ex) {
     InvocationException iex=new InvocationException("Unable to initiate the asynchronous service invocation -- check the network connection",ex);
     callback.onFailure(iex);
   }
  finally {
-    boolean toss=isStatsAvailable() && stats(methodName + ":" + invocationCount+ ":requestSent",bytesStat(methodName,invocationCount,requestData.length()));
+    if (RemoteServiceProxy.isStatsAvailable() && RemoteServiceProxy.stats(methodName + ":" + invocationCount+ ":requestSent",RemoteServiceProxy.bytesStat(methodName,invocationCount,requestData.length()))) {
+    }
   }
   return null;
 }

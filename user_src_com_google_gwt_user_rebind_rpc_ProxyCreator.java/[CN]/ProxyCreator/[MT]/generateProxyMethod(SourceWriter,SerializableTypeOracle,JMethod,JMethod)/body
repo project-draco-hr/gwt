@@ -72,10 +72,18 @@
   w.println();
   w.println("String payload = " + streamWriterName + ".toString();");
   w.println("boolean toss2 = isStatsAvailable() && stats(\"" + statsMethodExpr + ":requestSerialized\", timeStat(\""+ getProxySimpleName()+ "."+ syncMethod.getName()+ "\", getRequestId()));");
-  if (asyncReturnType != JPrimitiveType.VOID) {
-    w.print("return ");
+  if (asyncReturnType == JPrimitiveType.VOID) {
+    w.print("doInvoke(");
   }
-  w.print("doInvoke(");
+ else   if (asyncReturnType.getQualifiedSourceName().equals(RequestBuilder.class.getName())) {
+    w.print("return doPrepareRequestBuilder(");
+  }
+ else   if (asyncReturnType.getQualifiedSourceName().equals(Request.class.getName())) {
+    w.print("return doInvoke(");
+  }
+ else {
+    throw new RuntimeException("Unhandled return type " + asyncReturnType.getQualifiedSourceName());
+  }
   JType returnType=syncMethod.getReturnType();
   w.print("ResponseReader." + getResponseReaderFor(returnType).name());
   w.print(", \"" + getProxySimpleName() + "."+ syncMethod.getName()+ "\", getRequestId(), payload, ");
