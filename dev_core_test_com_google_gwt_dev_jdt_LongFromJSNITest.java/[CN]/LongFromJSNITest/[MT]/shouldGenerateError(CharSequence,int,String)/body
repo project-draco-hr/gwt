@@ -1,0 +1,16 @@
+{
+  UnitTestTreeLogger.Builder b=new UnitTestTreeLogger.Builder();
+  b.setLowestLogLevel(TreeLogger.ERROR);
+  if (message != null) {
+    b.expect(TreeLogger.ERROR,"Errors in 'transient source for Buggy'",null);
+    final String fullMessage="Line " + line + ":  "+ message;
+    b.expect(TreeLogger.ERROR,fullMessage,null);
+    b.expect(TreeLogger.ERROR,"Compilation problem due to 'transient source for Buggy'",null);
+  }
+  UnitTestTreeLogger logger=b.createLogger();
+  TypeOracle oracle=buildOracleWithCode(code,logger);
+  logger.assertCorrectLogEntries();
+  if (message != null) {
+    assertEquals("Buggy compilation unit not removed from type oracle",null,oracle.findType("Buggy"));
+  }
+}
