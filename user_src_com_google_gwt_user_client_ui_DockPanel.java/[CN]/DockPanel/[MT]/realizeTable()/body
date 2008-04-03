@@ -10,7 +10,7 @@
     if ((dir == NORTH) || (dir == SOUTH)) {
       ++rowCount;
     }
- else     if ((dir == EAST) || (dir == WEST)) {
+ else     if ((dir == EAST) || (dir == WEST) || (dir == LINE_START)|| (dir == LINE_END)) {
       ++colCount;
     }
   }
@@ -20,7 +20,7 @@
     rows[i].tr=DOM.createTR();
     DOM.appendChild(bodyElem,rows[i].tr);
   }
-  int westCol=0, eastCol=colCount - 1;
+  int logicalLeftCol=0, logicalRightCol=colCount - 1;
   int northRow=0, southRow=rowCount - 1;
   Element centerTd=null;
   for (Iterator<Widget> it=getChildren().iterator(); it.hasNext(); ) {
@@ -35,31 +35,31 @@
     if (layout.direction == NORTH) {
       DOM.insertChild(rows[northRow].tr,td,rows[northRow].center);
       DOM.appendChild(td,child.getElement());
-      DOM.setElementPropertyInt(td,"colSpan",eastCol - westCol + 1);
+      DOM.setElementPropertyInt(td,"colSpan",logicalRightCol - logicalLeftCol + 1);
       ++northRow;
     }
  else     if (layout.direction == SOUTH) {
       DOM.insertChild(rows[southRow].tr,td,rows[southRow].center);
       DOM.appendChild(td,child.getElement());
-      DOM.setElementPropertyInt(td,"colSpan",eastCol - westCol + 1);
+      DOM.setElementPropertyInt(td,"colSpan",logicalRightCol - logicalLeftCol + 1);
       --southRow;
     }
- else     if (layout.direction == WEST) {
+ else     if (layout.direction == CENTER) {
+      centerTd=td;
+    }
+ else     if (shouldAddToLogicalLeftOfTable(layout.direction)) {
       TmpRow row=rows[northRow];
       DOM.insertChild(row.tr,td,row.center++);
       DOM.appendChild(td,child.getElement());
       DOM.setElementPropertyInt(td,"rowSpan",southRow - northRow + 1);
-      ++westCol;
+      ++logicalLeftCol;
     }
- else     if (layout.direction == EAST) {
+ else     if (shouldAddToLogicalRightOfTable(layout.direction)) {
       TmpRow row=rows[northRow];
       DOM.insertChild(row.tr,td,row.center);
       DOM.appendChild(td,child.getElement());
       DOM.setElementPropertyInt(td,"rowSpan",southRow - northRow + 1);
-      --eastCol;
-    }
- else     if (layout.direction == CENTER) {
-      centerTd=td;
+      --logicalRightCol;
     }
   }
   if (center != null) {
