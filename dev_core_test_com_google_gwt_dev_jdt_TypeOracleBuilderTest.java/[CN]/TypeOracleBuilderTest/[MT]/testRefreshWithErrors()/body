@@ -1,0 +1,60 @@
+{
+  TypeOracleBuilder tiob=createTypeInfoOracleBuilder();
+  StringBuffer sb=new StringBuffer();
+  sb.append("package java.lang;");
+  sb.append("public class Object { }");
+  addNonTransientCompilationUnitProvider(tiob,"java.lang.Object",sb);
+  sb=new StringBuffer();
+  sb.append("package test.refresh.with.errors;");
+  sb.append("public class UnmodifiedClass { }");
+  addNonTransientCompilationUnitProvider(tiob,"test.refresh.with.errors.UnmodifiedClass",sb);
+  sb=new StringBuffer();
+  sb.append("package test.refresh.with.errors;\n");
+  sb.append("public class GoodClass {\n");
+  sb.append("  ClassThatWillGoBad ctwgb;\n");
+  sb.append("}\n");
+  addNonTransientCompilationUnitProvider(tiob,"test.refresh.with.errors.GoodClass",sb);
+  StaticCompilationUnitProvider cupThatWillGoBad=new StaticCompilationUnitProvider("test.refresh.with.errors","ClassThatWillGoBad",null){
+    boolean goBad=false;
+    @Override public char[] getSource(){
+      StringBuffer sb=new StringBuffer();
+      if (!goBad) {
+        sb.append("package test.refresh.with.errors;\n");
+        sb.append("public class ClassThatWillGoBad {\n");
+        sb.append("}\n");
+        goBad=true;
+      }
+ else {
+        sb.append("This will cause a syntax error.");
+      }
+      return sb.toString().toCharArray();
+    }
+  }
+;
+  tiob.addCompilationUnit(cupThatWillGoBad);
+  TreeLogger logger=createTreeLogger();
+  TypeOracle to=tiob.build(logger);
+  assertNotNull(to.findType("test.refresh.with.errors.UnmodifiedClass"));
+  assertNotNull(to.findType("test.refresh.with.errors.GoodClass"));
+  assertNotNull(to.findType("test.refresh.with.errors.ClassThatWillGoBad"));
+  sb=new StringBuffer();
+  sb.append("package test.refresh.with.errors;\n");
+  sb.append("public class AnotherGoodClass {\n");
+  sb.append("  UnmodifiedClass uc; // This will cause the runaway pruning.\n");
+  sb.append("}\n");
+  addNonTransientCompilationUnitProvider(tiob,"test.refresh.with.errors.AnotherGoodClass",sb);
+  sb=new StringBuffer();
+  sb.append("package test.refresh.with.errors;\n");
+  sb.append("public class BadClass {\n");
+  sb.append("  This will trigger a syntax error.\n");
+  sb.append("}\n");
+  addNonTransientCompilationUnitProvider(tiob,"test.refresh.with.errors.BadClass",sb);
+  tiob.addCompilationUnit(cupThatWillGoBad);
+  refreshTypeOracle(tiob,to);
+  to=tiob.build(logger);
+  assertNotNull(to.findType("test.refresh.with.errors.UnmodifiedClass"));
+  assertNotNull(to.findType("test.refresh.with.errors.AnotherGoodClass"));
+  assertNull(to.findType("test.refresh.with.errors.BadClass"));
+  assertNull(to.findType("test.refresh.with.errors.ClassThatWillGoBad"));
+  assertNull(to.findType("test.refresh.with.errors.GoodClass"));
+}

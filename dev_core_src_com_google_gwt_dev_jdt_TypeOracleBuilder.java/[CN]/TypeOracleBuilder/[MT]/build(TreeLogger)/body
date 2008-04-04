@@ -30,16 +30,19 @@
   PerfLogger.start("TypeOracleBuilder.build (compile)");
   CompilationUnitDeclaration[] cuds=cacheManager.getAstCompiler().getChangedCompilationUnitDeclarations(logger,units);
   PerfLogger.end();
-  final Map<String,CompilationUnitDeclaration> cudsByFileName=new TreeMap<String,CompilationUnitDeclaration>();
+  final Map<String,CompilationUnitDeclaration> unchangedCudsByFileName=new TreeMap<String,CompilationUnitDeclaration>();
+  unchangedCudsByFileName.putAll(cacheManager.getCudsByFileName());
+  final Map<String,CompilationUnitDeclaration> changedCudsByFileName=new TreeMap<String,CompilationUnitDeclaration>();
   for (int i=0; i < cuds.length; i++) {
     CompilationUnitDeclaration cud=cuds[i];
-    char[] location=cud.getFileName();
-    cudsByFileName.put(String.valueOf(location),cud);
+    String fileName=String.valueOf(cud.getFileName());
+    changedCudsByFileName.put(fileName,cud);
+    unchangedCudsByFileName.remove(fileName);
   }
-  cacheManager.getCudsByFileName().putAll(cudsByFileName);
-  removeUnitsWithErrors(logger,cudsByFileName);
+  cacheManager.getCudsByFileName().putAll(changedCudsByFileName);
+  removeUnitsWithErrors(logger,changedCudsByFileName,unchangedCudsByFileName);
   final CacheManager.Mapper identityMapper=cacheManager.getIdentityMapper();
-  for (Iterator<CompilationUnitDeclaration> iter=cudsByFileName.values().iterator(); iter.hasNext(); ) {
+  for (Iterator<CompilationUnitDeclaration> iter=changedCudsByFileName.values().iterator(); iter.hasNext(); ) {
     CompilationUnitDeclaration cud=iter.next();
     cud.traverse(new ASTVisitor(){
       @Override public boolean visit(      TypeDeclaration typeDecl,      BlockScope scope){
@@ -59,7 +62,7 @@
     }
 ,cud.scope);
   }
-  for (Iterator<CompilationUnitDeclaration> iter=cudsByFileName.values().iterator(); iter.hasNext(); ) {
+  for (Iterator<CompilationUnitDeclaration> iter=changedCudsByFileName.values().iterator(); iter.hasNext(); ) {
     CompilationUnitDeclaration cud=iter.next();
     String loc=String.valueOf(cud.getFileName());
     String processing="Processing types in compilation unit: " + loc;
