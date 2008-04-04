@@ -1,0 +1,45 @@
+{
+  VerticalPanel vPanel=new VerticalPanel();
+  vPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_RIGHT);
+  app.setOptionsWidget(vPanel);
+  final ListBox localeBox=new ListBox();
+  String currentLocale=LocaleInfo.getCurrentLocale().getLocaleName();
+  if (currentLocale.equals("default")) {
+    currentLocale="en";
+  }
+  String[] localeNames=LocaleInfo.getAvailableLocaleNames();
+  for (  String localeName : localeNames) {
+    if (!localeName.equals("default")) {
+      String nativeName=LocaleInfo.getLocaleNativeDisplayName(localeName);
+      localeBox.addItem(nativeName,localeName);
+      if (localeName.equals(currentLocale)) {
+        localeBox.setSelectedIndex(localeBox.getItemCount() - 1);
+      }
+    }
+  }
+  localeBox.addChangeListener(new ChangeListener(){
+    public void onChange(    Widget sender){
+      String localeName=localeBox.getValue(localeBox.getSelectedIndex());
+      Window.open(getHostPageLocation() + "?locale=" + localeName,"_self","");
+    }
+  }
+);
+  HorizontalPanel localeWrapper=new HorizontalPanel();
+  localeWrapper.add(images.locale().createImage());
+  localeWrapper.add(localeBox);
+  vPanel.add(localeWrapper);
+  HorizontalPanel styleWrapper=new HorizontalPanel();
+  vPanel.add(styleWrapper);
+  for (int i=0; i < STYLE_THEMES.length; i++) {
+    String theme=STYLE_THEMES[i];
+    PushButton button=new PushButton();
+    button.addStyleName("sc-ThemeButton-" + theme);
+    styleWrapper.add(button);
+    button.addClickListener(new ClickListener(){
+      public void onClick(      Widget sender){
+        Window.alert("Additional styles coming soon...");
+      }
+    }
+);
+  }
+}
