@@ -12,8 +12,19 @@
     }
     if (stmt.unconditionalControlBreak()) {
       for (int j=i + 1; j < stmts.size(); ) {
-        stmts.remove(j);
-        didChange=true;
+        JsStatement toRemove=stmts.get(j);
+        JsStatement toReplace=ensureDeclarations(toRemove);
+        if (toReplace == null) {
+          stmts.remove(j);
+          didChange=true;
+        }
+ else         if (toReplace == toRemove) {
+          ++j;
+        }
+ else {
+          stmts.set(j,toReplace);
+          didChange=true;
+        }
       }
     }
   }

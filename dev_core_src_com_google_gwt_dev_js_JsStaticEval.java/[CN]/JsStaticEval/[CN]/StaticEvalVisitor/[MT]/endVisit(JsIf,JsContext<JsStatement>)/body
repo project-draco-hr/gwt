@@ -5,11 +5,14 @@
   if (expr instanceof CanBooleanEval) {
     CanBooleanEval cond=(CanBooleanEval)expr;
     JsStatement onlyStmtToExecute;
+    JsStatement removed;
     if (cond.isBooleanTrue()) {
       onlyStmtToExecute=thenStmt;
+      removed=elseStmt;
     }
  else     if (cond.isBooleanFalse()) {
       onlyStmtToExecute=elseStmt;
+      removed=thenStmt;
     }
  else {
       return;
@@ -19,7 +22,11 @@
     if (onlyStmtToExecute != null) {
       block.getStatements().add(onlyStmtToExecute);
     }
-    ctx.replaceMe(block);
+    JsStatement decls=ensureDeclarations(removed);
+    if (decls != null) {
+      block.getStatements().add(decls);
+    }
+    ctx.replaceMe(accept(block));
   }
  else   if (isEmpty(thenStmt) && isEmpty(elseStmt)) {
     ctx.replaceMe(expr.makeStmt());
