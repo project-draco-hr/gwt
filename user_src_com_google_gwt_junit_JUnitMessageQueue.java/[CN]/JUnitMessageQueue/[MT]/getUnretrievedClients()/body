@@ -1,0 +1,29 @@
+{
+  int lineCount=0;
+  StringBuilder buf=new StringBuilder();
+synchronized (readTestLock) {
+    Set<String> keys=clientTestRequests.keySet();
+    for (    String key : keys) {
+      if (lineCount > 0) {
+        buf.append('\n');
+      }
+      if (clientTestRequests.get(key) <= currentTestIndex) {
+        buf.append(" - NO RESPONSE: ");
+        buf.append(key);
+      }
+ else {
+        buf.append(" - (ok): ");
+        buf.append(key);
+      }
+      lineCount++;
+    }
+    int difference=numClients - keys.size();
+    if (difference > 0) {
+      if (lineCount > 0) {
+        buf.append('\n');
+      }
+      buf.append(" - " + difference + " client(s) haven't responded back to the servlet at all since the start of the test.");
+    }
+  }
+  return buf.toString();
+}

@@ -1,5 +1,6 @@
 {
 synchronized (readTestLock) {
+    long startTime=System.currentTimeMillis();
     long stopTime=System.currentTimeMillis() + timeout;
     while (!testIsAvailableFor(clientId,moduleName)) {
       long timeToWait=stopTime - System.currentTimeMillis();
@@ -10,7 +11,8 @@ synchronized (readTestLock) {
         readTestLock.wait(timeToWait);
       }
  catch (      InterruptedException e) {
-        return null;
+        double elapsed=(System.currentTimeMillis() - startTime) / 1000.0;
+        throw new TimeoutException("The servlet did not respond to the " + "next query to test within " + timeout + "ms.\n"+ " Module Name: "+ moduleName+ "\n"+ " Client id: "+ clientId+ "\n"+ " Actual time elapsed: "+ elapsed+ " seconds.\n");
       }
     }
     if (!moduleName.equals(testModule)) {
