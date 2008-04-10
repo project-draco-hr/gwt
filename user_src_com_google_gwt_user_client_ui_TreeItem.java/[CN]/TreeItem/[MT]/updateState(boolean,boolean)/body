@@ -1,15 +1,13 @@
 {
-  if (tree == null) {
+  if (tree == null || tree.isAttached() == false) {
     return;
   }
-  TreeImages images=tree.getImages();
-  if (children.size() == 0) {
-    UIObject.setVisible(childSpanElem,false);
-    images.treeLeaf().applyTo(statusImage);
+  if (getChildCount() == 0) {
+    if (childSpanElem != null) {
+      UIObject.setVisible(childSpanElem,false);
+    }
+    tree.showLeafImage(this);
     return;
-  }
-  if (itemAnimation == null) {
-    itemAnimation=new TreeItemAnimation();
   }
   if (animate && (tree != null) && (tree.isAttached())) {
     itemAnimation.setItemState(this,tree.isAnimationEnabled());
@@ -18,10 +16,10 @@
     itemAnimation.setItemState(this,false);
   }
   if (open) {
-    images.treeOpen().applyTo(statusImage);
+    tree.showOpenImage(this);
   }
  else {
-    images.treeClosed().applyTo(statusImage);
+    tree.showClosedImage(this);
   }
   if (updateTreeSelection) {
     tree.maybeUpdateSelection(this,this.open);
