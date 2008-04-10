@@ -3,8 +3,15 @@
   Throwable caught=null;
   try {
     String encodedResponse=response.getText();
+    int statusCode=response.getStatusCode();
     boolean toss=RemoteServiceProxy.isStatsAvailable() && RemoteServiceProxy.stats(methodName + ":" + requestId+ ":responseReceived",RemoteServiceProxy.bytesStat(methodName,requestId,encodedResponse.length()));
-    if (RemoteServiceProxy.isReturnValue(encodedResponse)) {
+    if (statusCode != Response.SC_OK) {
+      caught=new StatusCodeException(statusCode,encodedResponse);
+    }
+ else     if (encodedResponse == null) {
+      caught=new InvocationException("No response payload");
+    }
+ else     if (RemoteServiceProxy.isReturnValue(encodedResponse)) {
       result=(T)responseReader.read(streamFactory.createStreamReader(encodedResponse));
     }
  else     if (RemoteServiceProxy.isThrownException(encodedResponse)) {
