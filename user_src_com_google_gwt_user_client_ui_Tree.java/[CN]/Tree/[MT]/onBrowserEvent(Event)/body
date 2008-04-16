@@ -1,37 +1,56 @@
 {
   int eventType=DOM.eventGetType(event);
 switch (eventType) {
+case Event.ONKEYDOWN:
+{
+      if (curSelection == null) {
+        if (root.getChildCount() > 0) {
+          onSelection(root.getChild(0),true,true);
+        }
+        super.onBrowserEvent(event);
+        return;
+      }
+    }
+case Event.ONKEYPRESS:
+case Event.ONKEYUP:
+  if (DOM.eventGetAltKey(event) || DOM.eventGetMetaKey(event)) {
+    super.onBrowserEvent(event);
+    return;
+  }
+break;
+}
+switch (eventType) {
 case Event.ONCLICK:
 {
-      Element e=DOM.eventGetTarget(event);
-      if (shouldTreeDelegateFocusToElement(e)) {
-      }
+Element e=DOM.eventGetTarget(event);
+if (shouldTreeDelegateFocusToElement(e)) {
+}
  else {
-        setFocus(true);
-      }
-      break;
-    }
+  setFocus(true);
+}
+break;
+}
 case Event.ONMOUSEDOWN:
 {
-    if (mouseListeners != null) {
-      mouseListeners.fireMouseEvent(this,event);
-    }
-    if (DOM.eventGetCurrentTarget(event) == getElement()) {
-      elementClicked(DOM.eventGetTarget(event));
-    }
-    break;
-  }
+if (mouseListeners != null) {
+mouseListeners.fireMouseEvent(this,event);
+}
+if (DOM.eventGetCurrentTarget(event) == getElement()) {
+elementClicked(DOM.eventGetTarget(event));
+}
+break;
+}
 case Event.ONMOUSEUP:
 {
-  if (mouseListeners != null) {
-    mouseListeners.fireMouseEvent(this,event);
-  }
-  break;
+if (mouseListeners != null) {
+mouseListeners.fireMouseEvent(this,event);
+}
+break;
 }
 case Event.ONMOUSEMOVE:
 {
 if (mouseListeners != null) {
-  mouseListeners.fireMouseEvent(this,event);
+mouseListeners.fireMouseEvent(this,event);
 }
 break;
 }
@@ -62,60 +81,21 @@ focusListeners.fireFocusEvent(this,event);
 break;
 }
 case Event.ONKEYDOWN:
-if (DOM.eventGetAltKey(event) || DOM.eventGetMetaKey(event)) {
-super.onBrowserEvent(event);
-return;
-}
-if (curSelection == null) {
-if (root.getChildCount() > 0) {
-onSelection(root.getChild(0),true,true);
-}
-super.onBrowserEvent(event);
-return;
-}
-if (lastEventType == Event.ONKEYDOWN) {
-return;
-}
-if (isKeyboardNavigationEnabled(curSelection)) {
-switch (DOM.eventGetKeyCode(event)) {
-case KeyboardListener.KEY_UP:
 {
-moveSelectionUp(curSelection);
-DOM.eventPreventDefault(event);
+keyboardNavigation(event);
+lastWasKeyDown=true;
 break;
 }
-case KeyboardListener.KEY_DOWN:
+case Event.ONKEYPRESS:
 {
-moveSelectionDown(curSelection,true);
-DOM.eventPreventDefault(event);
+if (!lastWasKeyDown) {
+keyboardNavigation(event);
+}
+lastWasKeyDown=false;
 break;
-}
-case KeyboardListener.KEY_LEFT:
-{
-if (LocaleInfo.getCurrentLocale().isRTL()) {
-maybeExpandTreeItem();
-}
- else {
-maybeCollapseTreeItem();
-}
-DOM.eventPreventDefault(event);
-break;
-}
-case KeyboardListener.KEY_RIGHT:
-{
-if (LocaleInfo.getCurrentLocale().isRTL()) {
-maybeCollapseTreeItem();
-}
- else {
-maybeExpandTreeItem();
-}
-DOM.eventPreventDefault(event);
-break;
-}
-}
 }
 case Event.ONKEYUP:
-if (eventType == Event.ONKEYUP) {
+{
 if (DOM.eventGetKeyCode(event) == KeyboardListener.KEY_TAB) {
 ArrayList<Element> chain=new ArrayList<Element>();
 collectElementChain(chain,getElement(),DOM.eventGetTarget(event));
@@ -124,15 +104,24 @@ if (item != getSelectedItem()) {
 setSelectedItem(item,true);
 }
 }
+lastWasKeyDown=false;
+break;
 }
+}
+switch (eventType) {
+case Event.ONKEYDOWN:
+case Event.ONKEYUP:
 case Event.ONKEYPRESS:
 {
 if (keyboardListeners != null) {
 keyboardListeners.fireKeyboardEvent(this,event);
 }
+if (isArrowKey(DOM.eventGetKeyCode(event))) {
+DOM.eventCancelBubble(event,true);
+DOM.eventPreventDefault(event);
+}
 break;
 }
 }
 super.onBrowserEvent(event);
-lastEventType=eventType;
 }
