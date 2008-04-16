@@ -1,5 +1,10 @@
 {
   assert(!instanceClass.isArray());
-  Method deserialize=customSerializer.getMethod("deserialize",SerializationStreamReader.class,instanceClass);
-  deserialize.invoke(null,this,instance);
+  for (  Method method : customSerializer.getMethods()) {
+    if ("deserialize".equals(method.getName())) {
+      method.invoke(null,this,instance);
+      return;
+    }
+  }
+  throw new NoSuchMethodException("deserialize");
 }

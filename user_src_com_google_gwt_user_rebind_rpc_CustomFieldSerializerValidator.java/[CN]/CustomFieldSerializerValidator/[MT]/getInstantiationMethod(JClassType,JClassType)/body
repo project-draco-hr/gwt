@@ -5,7 +5,7 @@
     if (parameters.length != 1) {
       continue;
     }
-    if (parameters[0].getType() != streamReaderClass) {
+    if (!parameters[0].getType().getQualifiedSourceName().equals(SerializationStreamReader.class.getName())) {
       continue;
     }
     if (!isValidCustomFieldSerializerMethod(overload)) {
@@ -16,7 +16,9 @@
       continue;
     }
     JClassType clazz=(JClassType)type;
-    return clazz.isAssignableFrom(serializee);
+    if (clazz.isAssignableFrom(serializee)) {
+      return overload;
+    }
   }
-  return false;
+  return null;
 }

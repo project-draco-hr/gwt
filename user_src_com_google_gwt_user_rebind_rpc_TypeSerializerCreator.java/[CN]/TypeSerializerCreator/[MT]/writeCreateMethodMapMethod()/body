@@ -40,15 +40,25 @@
           srcWriter.print("(L" + SerializationStreamReader.class.getName().replace('.','/') + ";)");
           srcWriter.println(",");
         }
-        String jsniSignature=type.getJNISignature();
+        JClassType customSerializer=serializationOracle.hasCustomFieldSerializer(type);
 {
+          JType paramType=type;
+          if (customSerializer != null) {
+            JMethod deserializationMethod=CustomFieldSerializerValidator.getDeserializationMethod(customSerializer,(JClassType)type);
+            paramType=deserializationMethod.getParameters()[1].getType();
+          }
           srcWriter.print("@" + serializerName);
-          srcWriter.print("::deserialize(L" + SerializationStreamReader.class.getName().replace('.','/') + ";"+ jsniSignature+ ")");
+          srcWriter.print("::deserialize(L" + SerializationStreamReader.class.getName().replace('.','/') + ";"+ paramType.getJNISignature()+ ")");
           srcWriter.println(",");
         }
 {
+          JType paramType=type;
+          if (customSerializer != null) {
+            JMethod serializationMethod=CustomFieldSerializerValidator.getSerializationMethod(customSerializer,(JClassType)type);
+            paramType=serializationMethod.getParameters()[1].getType();
+          }
           srcWriter.print("@" + serializerName);
-          srcWriter.print("::serialize(L" + SerializationStreamWriter.class.getName().replace('.','/') + ";"+ jsniSignature+ ")");
+          srcWriter.print("::serialize(L" + SerializationStreamWriter.class.getName().replace('.','/') + ";"+ paramType.getJNISignature()+ ")");
           srcWriter.println();
         }
         srcWriter.outdent();
