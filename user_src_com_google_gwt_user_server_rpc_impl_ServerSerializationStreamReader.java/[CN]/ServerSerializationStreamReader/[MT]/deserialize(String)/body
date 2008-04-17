@@ -7,11 +7,12 @@
     serializationPolicy.validateDeserialize(instanceClass);
     validateTypeVersions(instanceClass,serializedInstRef);
     Class<?> customSerializer=SerializabilityUtil.hasCustomFieldSerializer(instanceClass);
+    int index=reserveDecodedObjectIndex();
     instance=instantiate(customSerializer,instanceClass);
-    rememberDecodedObject(instance);
+    rememberDecodedObject(index,instance);
     Object replacement=deserializeImpl(customSerializer,instanceClass,instance);
     if (instance != replacement) {
-      replaceRememberedObject(instance,replacement);
+      rememberDecodedObject(index,replacement);
       instance=replacement;
     }
     return instance;
