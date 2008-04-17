@@ -2,7 +2,12 @@
   if (from.compareTo(to) > 0) {
     throw new IllegalArgumentException(from + " > " + to);
   }
-  EnumSet<E> set=noneOf(from.getDeclaringClass());
-  set.addRange(from,to);
-  return set;
+  E[] all=from.getDeclaringClass().getEnumConstants();
+  E[] set=Array.clonify(all,all.length);
+  int start=from.ordinal();
+  int end=to.ordinal() + 1;
+  for (int i=start; i < end; ++i) {
+    set[i]=all[i];
+  }
+  return new EnumSetImpl<E>(all,set,end - start);
 }
