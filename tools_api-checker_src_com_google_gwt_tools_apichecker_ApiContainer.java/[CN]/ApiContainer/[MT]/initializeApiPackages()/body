@@ -1,0 +1,21 @@
+{
+  HashSet<JPackage> allPackages=new HashSet<JPackage>(Arrays.asList(typeOracle.getPackages()));
+  Iterator<JPackage> packagesIterator=allPackages.iterator();
+  HashSet<String> packagesNotAdded=new HashSet<String>();
+  while (packagesIterator.hasNext()) {
+    JPackage packageObject=packagesIterator.next();
+    if (ApiPackage.isApiPackage(packageObject)) {
+      ApiPackage apiPackageObj=new ApiPackage(packageObject,this);
+      apiPackages.put(apiPackageObj.getName(),apiPackageObj);
+    }
+ else {
+      packagesNotAdded.add(packageObject.toString());
+    }
+  }
+  if (packagesNotAdded.size() > 0) {
+    logger.log(TreeLogger.DEBUG,"API " + name + ": not added "+ packagesNotAdded.size()+ " packages: "+ packagesNotAdded,null);
+  }
+  if (apiPackages.size() > 0) {
+    logger.log(TreeLogger.INFO,"API " + name + apiPackages.size()+ " Api packages: "+ apiPackages.keySet(),null);
+  }
+}

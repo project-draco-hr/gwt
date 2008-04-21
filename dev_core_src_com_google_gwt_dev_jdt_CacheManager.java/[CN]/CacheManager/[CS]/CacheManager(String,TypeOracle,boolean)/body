@@ -1,0 +1,30 @@
+{
+  if (oracle == null) {
+    this.oracle=new TypeOracle();
+  }
+ else {
+    this.oracle=oracle;
+  }
+  changedFiles=new HashSet<String>();
+  cudsByFileName=new HashMap<String,CompilationUnitDeclaration>();
+  if (cacheDir != null) {
+    this.cacheDir=new File(cacheDir);
+    this.cacheDir.mkdirs();
+    byteCodeCache=new DiskCache(new File(cacheDir,"bytecode"));
+  }
+ else {
+    this.cacheDir=null;
+    byteCodeCache=new DiskCache(null);
+  }
+  SourceOracleOnTypeOracle sooto=new SourceOracleOnTypeOracle(this.oracle);
+  astCompiler=new AstCompiler(sooto,disableChecks);
+  astCompiler.setCachePolicy(new AstCompiler.CachePolicy(){
+    public boolean shouldProcess(    CompilationUnitDeclaration cud){
+      ICompilationUnit unit=cud.compilationResult.compilationUnit;
+      ICompilationUnitAdapter adapter=((ICompilationUnitAdapter)unit);
+      CompilationUnitProvider cup=adapter.getCompilationUnitProvider();
+      return getTypeOracle().findType(cup.getPackageName(),cup.getMainTypeName()) == null;
+    }
+  }
+);
+}

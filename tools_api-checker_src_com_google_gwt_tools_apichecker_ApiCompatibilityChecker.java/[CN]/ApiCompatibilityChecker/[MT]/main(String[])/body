@@ -1,0 +1,32 @@
+{
+  try {
+    ApiContainer newApi=null, existingApi=null;
+    boolean processNewApi=true;
+    boolean processExistingApi=true;
+    if (args.length < 1) {
+      printHelp();
+      Runtime.getRuntime().exit(-1);
+    }
+    if (processNewApi) {
+      newApi=new ApiContainer(args[0],"_new",logger1);
+    }
+    if (processExistingApi) {
+      existingApi=new ApiContainer(args[0],"_old",logger1);
+    }
+    if ((processNewApi && processExistingApi) && (newApi != null && existingApi != null)) {
+      HashSet<String> whiteList=new HashSet<String>();
+      if (!IGNORE_WHITELIST) {
+        whiteList=readStringFromFile(args[0]);
+      }
+      ApiDiffGenerator apiDiff=new ApiDiffGenerator(newApi,existingApi);
+      String apiDifferences=getApiDiff(apiDiff,whiteList,REMOVE_DUPLICATES);
+      System.out.println(apiDifferences);
+      System.out.println("\t\t\t\tApi Compatibility Checker tool, Copyright Google Inc. 2008");
+    }
+  }
+ catch (  Exception e) {
+    System.err.println("Exception " + e.getMessage() + ", printing stacktrace");
+    e.printStackTrace();
+    Runtime.getRuntime().exit(-1);
+  }
+}

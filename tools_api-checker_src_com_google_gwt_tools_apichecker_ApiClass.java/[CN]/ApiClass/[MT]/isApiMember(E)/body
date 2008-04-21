@@ -1,0 +1,29 @@
+{
+  boolean isPublic=false;
+  boolean isPublicOrProtected=false;
+  boolean isStatic=false;
+  if (member instanceof JField) {
+    JField field=(JField)member;
+    isPublic=field.isPublic();
+    isPublicOrProtected=isPublic || field.isProtected();
+    isStatic=field.isStatic();
+  }
+  if (member instanceof JAbstractMethod) {
+    JAbstractMethod method=(JAbstractMethod)member;
+    isPublic=method.isPublic();
+    isPublicOrProtected=isPublic || method.isProtected();
+    if (method instanceof JMethod) {
+      JMethod temp=(JMethod)method;
+      isStatic=temp.isStatic();
+    }
+ else {
+      isStatic=false;
+    }
+  }
+  if (ApiCompatibilityChecker.REMOVE_ABSTRACT_CLASS_FROM_API) {
+    if (!isInstantiableApiClass && !isStatic) {
+      return false;
+    }
+  }
+  return (isSubclassableApiClass && isPublicOrProtected) || (isNotsubclassableApiClass && isPublic);
+}

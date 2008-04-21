@@ -1,0 +1,32 @@
+{
+  DuplicateDetector<JField> fieldRemover=new DuplicateDetector<JField>(oldClass.getClassObject(),apiDiffGenerator,ApiClass.MethodType.CONSTRUCTOR){
+    @Override HashSet<JField> getElements(    ApiClassDiffGenerator other){
+      return other.getMissingFields();
+    }
+  }
+;
+  missingFields.removeAll(getDuplicateElements(missingFields.iterator(),fieldRemover));
+  DuplicateDetector<JField> intersectingFieldRemover=new DuplicateDetector<JField>(oldClass.getClassObject(),apiDiffGenerator,ApiClass.MethodType.CONSTRUCTOR){
+    @Override HashSet<JField> getElements(    ApiClassDiffGenerator other){
+      return other.getIntersectingFields();
+    }
+  }
+;
+  removeAll(intersectingFields,getDuplicateElements(intersectingFields.keySet().iterator(),intersectingFieldRemover));
+  for (  ApiClass.MethodType methodType : ApiClass.MethodType.values()) {
+    DuplicateDetector<JAbstractMethod> missingMemberRemover=new DuplicateDetector<JAbstractMethod>(oldClass.getClassObject(),apiDiffGenerator,methodType){
+      @Override HashSet<JAbstractMethod> getElements(      final ApiClassDiffGenerator other){
+        return other.getMissingMethods(methodType);
+      }
+    }
+;
+    missingMethods.get(methodType.getId()).removeAll(getDuplicateElements(missingMethods.get(methodType.getId()).iterator(),missingMemberRemover));
+    DuplicateDetector<JAbstractMethod> intersectingMemberRemover=new DuplicateDetector<JAbstractMethod>(oldClass.getClassObject(),apiDiffGenerator,methodType){
+      @Override HashSet<JAbstractMethod> getElements(      final ApiClassDiffGenerator other){
+        return other.getIntersectingMethods(methodType);
+      }
+    }
+;
+    removeAll(intersectingMethods.get(methodType.getId()),getDuplicateElements(intersectingMethods.get(methodType.getId()).keySet().iterator(),intersectingMemberRemover));
+  }
+}

@@ -1,0 +1,26 @@
+{
+  ArrayList<ApiChange.Status> apiChanges=oldClass.getModifierChanges(newClass);
+  int totalSize=missingFields.size() + intersectingFields.size() + apiChanges.size();
+  for (  ApiClass.MethodType methodType : ApiClass.MethodType.values()) {
+    totalSize+=(missingMethods.get(methodType.getId()).size() + intersectingMethods.get(methodType.getId()).size());
+  }
+  if (totalSize == 0) {
+    return "";
+  }
+  StringBuffer sb=new StringBuffer();
+  Iterator<ApiChange.Status> apiChangeIterator=apiChanges.iterator();
+  while (apiChangeIterator.hasNext()) {
+    sb.append("\t\t" + oldClass.getFullName() + " "+ apiChangeIterator.next()+ "\n");
+  }
+  if (apiChanges.size() == 0) {
+    sb.append("\t\tclass " + oldClass.getFullName() + "\n");
+  }
+  sb.append(printCollectionElements(missingFields.iterator()));
+  sb.append(printCollectionElements2(intersectingFields));
+  for (  ApiClass.MethodType methodType : ApiClass.MethodType.values()) {
+    sb.append(printCollectionElements(missingMethods.get(methodType.getId()).iterator()));
+    sb.append(printCollectionElements(intersectingMethods.get(methodType.getId())));
+  }
+  sb.append("\n");
+  return sb.toString();
+}

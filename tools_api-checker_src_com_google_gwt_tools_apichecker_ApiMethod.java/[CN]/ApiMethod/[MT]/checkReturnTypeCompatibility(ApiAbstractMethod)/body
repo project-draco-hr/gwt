@@ -1,0 +1,23 @@
+{
+  JType firstType, secondType;
+  if (newMethod.getMethodObject() instanceof JMethod && method instanceof JMethod) {
+    firstType=((JMethod)method).getReturnType();
+    secondType=((JMethod)newMethod.getMethodObject()).getReturnType();
+  }
+ else {
+    throw new AssertionError("Different types for method = " + method.getClass() + ", and newMethodObject = "+ newMethod.getMethodObject().getClass()+ ", signature = "+ getApiSignature());
+  }
+  StringBuffer sb=new StringBuffer();
+  if (firstType.getSimpleSourceName().indexOf("void") != -1) {
+    return null;
+  }
+  boolean compatible=ApiDiffGenerator.isFirstTypeAssignableToSecond(secondType,firstType);
+  if (compatible) {
+    return null;
+  }
+  sb.append("Return type changed from ");
+  sb.append(firstType.getQualifiedSourceName());
+  sb.append(" to ");
+  sb.append(secondType.getQualifiedSourceName());
+  return new ApiChange(ApiChange.Status.RETURN_TYPE_ERROR,sb.toString());
+}

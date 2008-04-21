@@ -1,0 +1,36 @@
+{
+  this.logger=logger;
+  if (fileName == null) {
+    throw new IllegalArgumentException("fileName is null");
+  }
+  FileInputStream fis=new FileInputStream(fileName);
+  Properties config=new Properties();
+  config.load(fis);
+  String apiName=config.getProperty("name" + suffix);
+  String allSourceFiles=config.getProperty("sourceFiles" + suffix);
+  String allExcludedFiles=config.getProperty("excludedFiles" + suffix);
+  if (allExcludedFiles == null) {
+    allExcludedFiles="";
+  }
+  if (apiName == null || allSourceFiles == null) {
+    throw new IllegalArgumentException("in apiContainer constructor, either name (" + apiName + ") or sourceFiles ("+ allSourceFiles+ ") is null");
+  }
+  logger.log(TreeLogger.DEBUG,"read from config file " + fileName + ", name = "+ apiName+ ", allSourceFiles = "+ allSourceFiles+ ", allExcludedFiles = "+ allExcludedFiles,null);
+  String sourceFilesArray[]=allSourceFiles.split(":");
+  Collection<File> fileCollection=new Vector<File>();
+  for (  String tempStr : sourceFilesArray) {
+    tempStr=tempStr.trim();
+    fileCollection.add(new File(tempStr));
+  }
+  this.sourceTrees=fileCollection;
+  if (allExcludedFiles.equals("")) {
+    this.excludedFiles=generateCanonicalHashmap(new String[0]);
+  }
+ else {
+    String excludedFilesArray[]=allExcludedFiles.split(":");
+    this.excludedFiles=generateCanonicalHashmap(excludedFilesArray);
+  }
+  this.name=apiName;
+  createTypeOracleFromSources();
+  initializeApiPackages();
+}

@@ -1,0 +1,14 @@
+{
+  HashSet<String> newFieldNames=newClass.getApiFieldNames();
+  HashSet<String> oldFieldNames=oldClass.getApiFieldNames();
+  HashSet<String> intersection=ApiDiffGenerator.findCommonElements(newFieldNames,oldFieldNames,className);
+  missingFields=oldClass.getApiFieldsBySet(oldFieldNames);
+  processFieldsInIntersection(intersection);
+  for (  ApiClass.MethodType methodType : ApiClass.MethodType.values()) {
+    HashSet<String> newMethodNames=newClass.getApiMemberNames(methodType);
+    HashSet<String> oldMethodNames=oldClass.getApiMemberNames(methodType);
+    intersection=ApiDiffGenerator.findCommonElements(newMethodNames,oldMethodNames,className);
+    missingMethods.add(methodType.getId(),getAbstractMethodObjects(oldClass.getApiMembersBySet(oldMethodNames,methodType)));
+    processElementsInIntersection(intersection,methodType);
+  }
+}
