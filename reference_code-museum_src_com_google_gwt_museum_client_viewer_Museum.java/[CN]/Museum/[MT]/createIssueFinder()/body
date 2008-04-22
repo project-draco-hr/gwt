@@ -1,0 +1,44 @@
+{
+class IssueSuggestion extends MultiWordSuggestOracle.MultiWordSuggestion {
+    private AbstractIssue issue;
+    public IssueSuggestion(    AbstractIssue issue){
+      super("",issue.getHeadline());
+      this.issue=issue;
+    }
+    public AbstractIssue getIssue(){
+      return issue;
+    }
+  }
+  SuggestOracle oracle=new SuggestOracle(){
+    @Override public void requestSuggestions(    Request request,    Callback callback){
+      String ofInterest=("(.* )*" + request.getQuery() + ".*").toLowerCase();
+      ArrayList<Suggestion> suggestions=new ArrayList<Suggestion>();
+      HashSet s=new HashSet();
+      for (      AbstractIssue issue : issues) {
+        if (issue.getHeadline().toLowerCase().matches(ofInterest)) {
+          s.add(issue);
+          suggestions.add(new IssueSuggestion(issue));
+        }
+      }
+      for (      AbstractIssue issue : issues) {
+        if (!s.contains(issue) && issue.getInstructions().matches(ofInterest)) {
+          suggestions.add(new IssueSuggestion(issue));
+        }
+      }
+      callback.onSuggestionsReady(request,new Response(suggestions));
+    }
+  }
+;
+  SuggestBox box=new SuggestBox(oracle);
+  box.addEventHandler(new SuggestionHandler(){
+    public void onSuggestionSelected(    SuggestionEvent event){
+      AbstractIssue issue=((IssueSuggestion)event.getSelectedSuggestion()).getIssue();
+      int index=issues.indexOf(issue);
+      issueList.setSelectedIndex(index);
+      refreshIssue();
+    }
+  }
+);
+  box.setAnimationEnabled(false);
+  return box;
+}

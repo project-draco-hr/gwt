@@ -1,0 +1,60 @@
+{
+  for (  AbstractIssue issue : issues) {
+    issueList.addItem(issue.getHeadline());
+  }
+  issueList.addChangeListener(new ChangeListener(){
+    public void onChange(    Widget sender){
+      refreshIssue();
+    }
+  }
+);
+  Button refreshIssueButton=new Button("Refresh",new ClickListener(){
+    public void onClick(    Widget sender){
+      refreshIssue();
+    }
+  }
+);
+  SuggestBox suggestBox=createIssueFinder();
+  Image prevButton=IMAGES.prevButton().createImage();
+  prevButton.setStyleName("prevButton");
+  prevButton.addClickListener(new ClickListener(){
+    public void onClick(    Widget sender){
+      int selectedIndex=issueList.getSelectedIndex();
+      if (selectedIndex > 0) {
+        issueList.setSelectedIndex(selectedIndex - 1);
+        refreshIssue();
+      }
+ else {
+        Window.alert("You are already on the first issue");
+      }
+    }
+  }
+);
+  Image nextButton=IMAGES.nextButton().createImage();
+  nextButton.setStyleName("nextButton");
+  nextButton.addClickListener(new ClickListener(){
+    public void onClick(    Widget sender){
+      int selectedIndex=issueList.getSelectedIndex();
+      if (selectedIndex < issueList.getItemCount() - 1) {
+        issueList.setSelectedIndex(selectedIndex + 1);
+        refreshIssue();
+      }
+ else {
+        Window.alert("You are already on the last issue");
+      }
+    }
+  }
+);
+  HorizontalPanel hPanel=new HorizontalPanel();
+  hPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
+  hPanel.add(new HTML("Select an issue: "));
+  hPanel.add(issueList);
+  hPanel.add(prevButton);
+  hPanel.add(nextButton);
+  hPanel.add(refreshIssueButton);
+  hPanel.add(suggestBox);
+  SimplePanel wrapper=new SimplePanel();
+  wrapper.setStyleName("museum-optionsPanel");
+  wrapper.setWidget(hPanel);
+  return wrapper;
+}
