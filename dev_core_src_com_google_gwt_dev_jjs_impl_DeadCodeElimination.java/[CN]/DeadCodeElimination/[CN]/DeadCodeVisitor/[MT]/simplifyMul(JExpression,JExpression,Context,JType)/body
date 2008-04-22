@@ -1,0 +1,27 @@
+{
+  if (isLiteralOne(rhs)) {
+    ctx.replaceMe(simplifyCast(type,lhs));
+    return true;
+  }
+  if (isLiteralOne(lhs)) {
+    ctx.replaceMe(simplifyCast(type,rhs));
+    return true;
+  }
+  if (isLiteralNegativeOne(rhs)) {
+    ctx.replaceMe(simplifyNegate(simplifyCast(type,lhs)));
+    return true;
+  }
+  if (isLiteralNegativeOne(lhs)) {
+    ctx.replaceMe(simplifyNegate(simplifyCast(type,rhs)));
+    return true;
+  }
+  if (isLiteralZero(rhs) && !lhs.hasSideEffects()) {
+    ctx.replaceMe(simplifyCast(type,rhs));
+    return true;
+  }
+  if (isLiteralZero(lhs) && !rhs.hasSideEffects()) {
+    ctx.replaceMe(simplifyCast(type,lhs));
+    return true;
+  }
+  return false;
+}

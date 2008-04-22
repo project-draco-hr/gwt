@@ -2,13 +2,14 @@
   if (x.getOp().isModifying()) {
     lvalues.remove(x.getArg());
   }
+  if (x.getArg() instanceof JValueLiteral) {
+    if (evalOpOnLiteral(x.getOp(),(JValueLiteral)x.getArg(),ctx)) {
+      return;
+    }
+  }
   if (x.getOp() == JUnaryOperator.NOT) {
     JExpression arg=x.getArg();
-    if (arg instanceof JBooleanLiteral) {
-      JBooleanLiteral booleanLiteral=(JBooleanLiteral)arg;
-      ctx.replaceMe(program.getLiteralBoolean(!booleanLiteral.getValue()));
-    }
- else     if (arg instanceof JBinaryOperation) {
+    if (arg instanceof JBinaryOperation) {
       JBinaryOperation argOp=(JBinaryOperation)arg;
       JBinaryOperator op=argOp.getOp();
       JBinaryOperator newOp=null;
@@ -41,6 +42,12 @@
       if (op == JUnaryOperator.NOT) {
         ctx.replaceMe(argOp.getArg());
       }
+    }
+  }
+ else   if (x.getOp() == JUnaryOperator.NEG) {
+    JExpression updated=simplifyNegate(x,x.getArg());
+    if (updated != x) {
+      ctx.replaceMe(updated);
     }
   }
 }

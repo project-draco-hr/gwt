@@ -14,8 +14,17 @@
  else {
       removeMe(x,ctx);
     }
+    return;
   }
- else   if (isEmpty(thenStmt) && isEmpty(elseStmt)) {
+  if (isEmpty(thenStmt) && isEmpty(elseStmt)) {
     ctx.replaceMe(expr.makeStatement());
+    return;
+  }
+  if (!isEmpty(elseStmt)) {
+    JExpression unflipped=maybeUnflipBoolean(expr);
+    if (unflipped != null) {
+      ctx.replaceMe(new JIfStatement(program,x.getSourceInfo(),unflipped,elseStmt,thenStmt));
+      return;
+    }
   }
 }
