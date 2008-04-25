@@ -1,9 +1,16 @@
 {
   JClassType[] types=oracle.getTypesInCompilationUnit(cup);
-  for (int i=0; i < types.length; i++) {
-    JClassType type=types[i];
+  for (  JClassType type : types) {
     if (!type.getQualifiedSourceName().startsWith("java.")) {
       rewriteType(logger,source,changes,type,pretty);
+    }
+  }
+  for (  JClassType type : types) {
+    List<JsniMethod> jsniMethods=jsniMethodMap.get(type);
+    if (jsniMethods != null) {
+      char[] annotation=genJsniMethodsAnnotation(jsniMethods,pretty);
+      int declStart=type.getDeclStart();
+      changes.add(new Replacement(declStart,declStart,annotation));
     }
   }
 }

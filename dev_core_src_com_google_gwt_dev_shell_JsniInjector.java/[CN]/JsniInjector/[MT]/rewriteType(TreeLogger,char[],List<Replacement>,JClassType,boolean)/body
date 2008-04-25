@@ -34,11 +34,16 @@
     for (int i=0; i < patched.length; i++) {
       branch.log(TreeLogger.SPAM,patched[i].getReadableDeclaration(),null);
     }
-    char[] block=genInitializerBlock(loc,source,patched);
-    while (type.getEnclosingType() != null && !type.isStatic()) {
+    while (type.isLocalType()) {
       type=type.getEnclosingType();
     }
-    int bodyStart=type.getBodyStart();
-    changes.add(new Replacement(bodyStart,bodyStart,block));
+    List<JsniMethod> jsniMethods=jsniMethodMap.get(type);
+    if (jsniMethods == null) {
+      jsniMethods=new ArrayList<JsniMethod>();
+      jsniMethodMap.put(type,jsniMethods);
+    }
+    for (    JMethod m : patched) {
+      jsniMethods.add(createJsniMethod(m,loc,source));
+    }
   }
 }

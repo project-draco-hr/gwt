@@ -5,8 +5,8 @@
   if (isInStandardJavaPackage(className)) {
     throw new ClassNotFoundException(className);
   }
-  if (className.equals(ShellJavaScriptHost.class.getName())) {
-    return ShellJavaScriptHost.class;
+  if (BRIDGE_CLASS_NAMES.containsKey(className)) {
+    return BRIDGE_CLASS_NAMES.get(className);
   }
   byte[] classBytes;
   try {
@@ -18,7 +18,18 @@
     if (classRewriter != null) {
       classBytes=classRewriter.rewrite(className,classBytes);
     }
-    return defineClass(className,classBytes,0,classBytes.length);
+    Class<?> newClass=defineClass(className,classBytes,0,classBytes.length);
+    if (className.equals(JavaScriptHost.class.getName())) {
+      javaScriptHostClass=newClass;
+      updateJavaScriptHost();
+    }
+    JsniMethods jsniMethods=newClass.getAnnotation(JsniMethods.class);
+    if (jsniMethods != null) {
+      for (      JsniMethod jsniMethod : jsniMethods.value()) {
+        shellJavaScriptHost.createNative(jsniMethod.file(),jsniMethod.line(),jsniMethod.name(),jsniMethod.paramNames(),jsniMethod.body());
+      }
+    }
+    return newClass;
   }
  catch (  UnableToCompleteException e) {
     throw new ClassNotFoundException(className);

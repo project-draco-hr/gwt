@@ -1,0 +1,63 @@
+{
+  final String escapedFile=Jsni.escapeQuotesAndSlashes(file);
+  final int line=Jsni.countNewlines(source,0,method.getBodyStart()) + 1;
+  final String name=Jsni.getJsniSignature(method);
+  JParameter[] params=method.getParameters();
+  final String[] paramNames=new String[params.length];
+  for (int i=0; i < params.length; ++i) {
+    paramNames[i]=params[i].getName();
+  }
+  JsBlock jsniBody=parsedJsByMethod.get(method);
+  assert(jsniBody != null);
+  final String jsTry="try ";
+  final String jsCatch=" catch (e) {\\n" + "  __static[\\\"@" + Jsni.JAVASCRIPTHOST_NAME + "::exceptionCaught"+ "(Ljava/lang/Object;)\\\"]"+ "(e == null ? null : e);\\n"+ "}\\n";
+  final String body=jsTry + Jsni.generateEscapedJavaScriptForHostedMode(jsniBody) + jsCatch;
+  return new JsniMethod(){
+    public Class<? extends Annotation> annotationType(){
+      return JsniMethod.class;
+    }
+    public String body(){
+      return body;
+    }
+    public String file(){
+      return escapedFile;
+    }
+    public int line(){
+      return line;
+    }
+    public String name(){
+      return name;
+    }
+    public String[] paramNames(){
+      return paramNames;
+    }
+    @Override public String toString(){
+      StringBuffer sb=new StringBuffer();
+      sb.append("@" + JSNIMETHOD_NAME + "(file=\"");
+      sb.append(escapedFile);
+      sb.append("\",line=");
+      sb.append(line);
+      sb.append(",name=\"@");
+      sb.append(name);
+      sb.append("\",paramNames=");
+      sb.append(toStringParamArray());
+      sb.append(",body=\"");
+      sb.append(body);
+      sb.append("\")");
+      return sb.toString();
+    }
+    private String toStringParamArray(){
+      StringBuffer sb=new StringBuffer();
+      sb.append("{");
+      for (      String paramName : paramNames) {
+        sb.append('\"');
+        sb.append(paramName);
+        sb.append('\"');
+        sb.append(", ");
+      }
+      sb.append("}");
+      return sb.toString();
+    }
+  }
+;
+}
