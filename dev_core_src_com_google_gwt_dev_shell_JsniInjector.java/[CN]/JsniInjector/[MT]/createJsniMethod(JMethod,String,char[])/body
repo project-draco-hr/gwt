@@ -1,5 +1,4 @@
 {
-  final String escapedFile=Jsni.escapeQuotesAndSlashes(file);
   final int line=Jsni.countNewlines(source,0,method.getBodyStart()) + 1;
   final String name=Jsni.getJsniSignature(method);
   JParameter[] params=method.getParameters();
@@ -9,18 +8,25 @@
   }
   JsBlock jsniBody=parsedJsByMethod.get(method);
   assert(jsniBody != null);
-  final String jsTry="try ";
-  final String jsCatch=" catch (e) {\\n" + "  __static[\\\"@" + Jsni.JAVASCRIPTHOST_NAME + "::exceptionCaught"+ "(Ljava/lang/Object;)\\\"]"+ "(e == null ? null : e);\\n"+ "}\\n";
-  final String body=jsTry + Jsni.generateEscapedJavaScriptForHostedMode(jsniBody) + jsCatch;
+  String jsTry="try ";
+  String jsCatch=" catch (e) {\n  __static[\"@" + Jsni.JAVASCRIPTHOST_NAME + "::exceptionCaught(Ljava/lang/Object;)\"](e == null ? null : e);\n"+ "}\n";
+  String body=jsTry + Jsni.generateJavaScriptForHostedMode(jsniBody) + jsCatch;
+  int length=body.length();
+  final String[] bodyParts=new String[(length + BLOCK_SIZE - 1) / BLOCK_SIZE];
+  for (int i=0; i < bodyParts.length; ++i) {
+    int startIndex=i * BLOCK_SIZE;
+    int endIndex=Math.min(startIndex + BLOCK_SIZE,length);
+    bodyParts[i]=body.substring(startIndex,endIndex);
+  }
   return new JsniMethod(){
     public Class<? extends Annotation> annotationType(){
       return JsniMethod.class;
     }
-    public String body(){
-      return body;
+    public String[] body(){
+      return bodyParts;
     }
     public String file(){
-      return escapedFile;
+      return file;
     }
     public int line(){
       return line;
@@ -34,28 +40,26 @@
     @Override public String toString(){
       StringBuffer sb=new StringBuffer();
       sb.append("@" + JSNIMETHOD_NAME + "(file=\"");
-      sb.append(escapedFile);
+      sb.append(Jsni.escapedJavaScriptForStringLiteral(file));
       sb.append("\",line=");
       sb.append(line);
       sb.append(",name=\"@");
       sb.append(name);
-      sb.append("\",paramNames=");
-      sb.append(toStringParamArray());
-      sb.append(",body=\"");
-      sb.append(body);
-      sb.append("\")");
-      return sb.toString();
-    }
-    private String toStringParamArray(){
-      StringBuffer sb=new StringBuffer();
-      sb.append("{");
+      sb.append("\",paramNames={");
       for (      String paramName : paramNames) {
         sb.append('\"');
         sb.append(paramName);
         sb.append('\"');
-        sb.append(", ");
+        sb.append(',');
       }
-      sb.append("}");
+      sb.append("},body={");
+      for (      String bodyPart : bodyParts) {
+        sb.append('"');
+        sb.append(Jsni.escapedJavaScriptForStringLiteral(bodyPart));
+        sb.append('"');
+        sb.append(',');
+      }
+      sb.append("})");
       return sb.toString();
     }
   }
