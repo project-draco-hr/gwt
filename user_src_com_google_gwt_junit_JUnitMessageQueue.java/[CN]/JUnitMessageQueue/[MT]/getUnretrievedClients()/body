@@ -1,23 +1,21 @@
 {
-  int lineCount=0;
   StringBuilder buf=new StringBuilder();
-synchronized (readTestLock) {
-    Set<String> keys=clientTestRequests.keySet();
-    for (    String key : keys) {
+synchronized (clientStatusesLock) {
+    int lineCount=0;
+    for (    ClientStatus clientStatus : clientStatuses.values()) {
       if (lineCount > 0) {
         buf.append('\n');
       }
-      if (clientTestRequests.get(key) <= currentTestIndex) {
+      if (!clientStatus.hasRequestedCurrentTest) {
         buf.append(" - NO RESPONSE: ");
-        buf.append(key);
       }
  else {
         buf.append(" - (ok): ");
-        buf.append(key);
       }
+      buf.append(clientStatus.clientId);
       lineCount++;
     }
-    int difference=numClients - keys.size();
+    int difference=numClients - numClientsHaveRequestedTest;
     if (difference > 0) {
       if (lineCount > 0) {
         buf.append('\n');

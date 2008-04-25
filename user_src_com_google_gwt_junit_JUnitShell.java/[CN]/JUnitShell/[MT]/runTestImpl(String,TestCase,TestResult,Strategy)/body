@@ -1,4 +1,7 @@
 {
+  if (lastLaunchFailed) {
+    throw new UnableToCompleteException();
+  }
   String syntheticModuleName=moduleName + "." + strategy.getSyntheticModuleExtension();
   boolean sameTest=(currentModule != null) && syntheticModuleName.equals(currentModule.getName());
   if (sameTest && lastLaunchFailed) {
@@ -11,11 +14,13 @@
     Property moduleNameProp=currentModule.getProperties().create("junit.moduleName");
     moduleNameProp.addKnownValue(moduleName);
     moduleNameProp.setActiveValue(moduleName);
+    runStyle.maybeCompileModule(syntheticModuleName);
   }
-  lastLaunchFailed=false;
-  messageQueue.setNextTestName(currentModule.getName(),testCase.getClass().getName(),testCase.getName());
+  messageQueue.setNextTest(new TestInfo(currentModule.getName(),testCase.getClass().getName(),testCase.getName()));
   try {
-    runStyle.maybeLaunchModule(currentModule.getName(),!sameTest);
+    if (firstLaunch) {
+      runStyle.launchModule(currentModule.getName());
+    }
   }
  catch (  UnableToCompleteException e) {
     lastLaunchFailed=true;
@@ -32,15 +37,14 @@
     testResult.addError(testCase,e);
     return;
   }
-  List<JUnitResult> results=messageQueue.getResults(currentModule.getName());
-  if (results == null) {
-    return;
-  }
+  Map<String,JUnitResult> results=messageQueue.getResults();
   boolean parallelTesting=numClients > 1;
-  for (  JUnitResult result : results) {
+  for (  Entry<String,JUnitResult> entry : results.entrySet()) {
+    String clientId=entry.getKey();
+    JUnitResult result=entry.getValue();
     Throwable exception=result.getException();
     if (parallelTesting && exception != null) {
-      String msg="Remote test failed at " + result.getHost() + " on "+ result.getAgent();
+      String msg="Remote test failed at " + clientId;
       if (exception instanceof AssertionFailedError) {
         AssertionFailedError newException=new AssertionFailedError(msg + "\n" + exception.getMessage());
         newException.setStackTrace(exception.getStackTrace());

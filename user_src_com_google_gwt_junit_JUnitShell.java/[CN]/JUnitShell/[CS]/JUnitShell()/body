@@ -9,6 +9,7 @@
     }
     @Override public boolean setFlag(){
       runStyle=new RunStyleLocalWeb(JUnitShell.this);
+      numClients=1;
       return true;
     }
   }
@@ -28,9 +29,44 @@
     }
     @Override public boolean setString(    String str){
       String[] urls=str.split(",");
-      numClients=urls.length;
       runStyle=RunStyleRemoteWeb.create(JUnitShell.this,urls);
+      numClients=urls.length;
       return runStyle != null;
+    }
+  }
+);
+  registerHandler(new ArgHandler(){
+    @Override public String[] getDefaultArgs(){
+      return null;
+    }
+    @Override public String getPurpose(){
+      return "Causes the system to wait for a remote browser to connect";
+    }
+    @Override public String getTag(){
+      return "-wait";
+    }
+    @Override public String[] getTagArgs(){
+      return new String[]{"[numClients]"};
+    }
+    @Override public int handle(    String[] args,    int tagIndex){
+      int value=1;
+      if (tagIndex + 1 < args.length) {
+        try {
+          value=Integer.parseInt(args[tagIndex + 1]);
+          if (value >= 1) {
+            setInt(value);
+            return 1;
+          }
+        }
+ catch (        NumberFormatException e) {
+        }
+      }
+      setInt(1);
+      return 0;
+    }
+    public void setInt(    int value){
+      runStyle=new RunStyleWait(JUnitShell.this,value);
+      numClients=value;
     }
   }
 );

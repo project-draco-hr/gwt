@@ -1,9 +1,28 @@
 {
-  if (!messageQueue.haveAllClientsRetrievedCurrentTest() && testBeginTimeout < System.currentTimeMillis()) {
-    double elapsed=(System.currentTimeMillis() - testBeginTime) / 1000.0;
+  int activeClients=messageQueue.getNumClientsRetrievedCurrentTest();
+  if (firstLaunch && runStyle instanceof RunStyleWait) {
+    String[] newClients=messageQueue.getNewClients();
+    int printIndex=activeClients - newClients.length + 1;
+    for (    String newClient : newClients) {
+      System.out.println(printIndex + " - " + newClient);
+      ++printIndex;
+    }
+    if (activeClients == this.numClients) {
+      System.out.println("Starting tests");
+    }
+ else {
+      return true;
+    }
+  }
+  long currentTimeMillis=System.currentTimeMillis();
+  if (activeClients == numClients) {
+    firstLaunch=false;
+  }
+ else   if (testBeginTimeout < currentTimeMillis) {
+    double elapsed=(currentTimeMillis - testBeginTime) / 1000.0;
     throw new TimeoutException("The browser did not contact the server within " + TEST_BEGIN_TIMEOUT_MILLIS + "ms.\n"+ messageQueue.getUnretrievedClients()+ "\n Actual time elapsed: "+ elapsed+ " seconds.\n");
   }
-  if (messageQueue.hasResult(currentModule.getName())) {
+  if (messageQueue.hasResult()) {
     return false;
   }
   return !runStyle.wasInterrupted();
