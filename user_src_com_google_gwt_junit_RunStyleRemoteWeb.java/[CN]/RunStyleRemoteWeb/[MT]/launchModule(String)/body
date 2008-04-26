@@ -8,7 +8,7 @@
       if (remoteToken != 0) {
         mgr.killBrowser(remoteToken);
       }
-      remoteTokens[i]=mgr.launchNewBrowser(url,INITIAL_KEEPALIVE_MS);
+      remoteTokens[i]=mgr.launchNewBrowser(url,PING_KEEPALIVE_MS);
     }
  catch (    Exception e) {
       Throwable cause=e.getCause();
@@ -21,4 +21,19 @@
       throw new UnableToCompleteException();
     }
   }
+  Thread keepAliveThread=new Thread(){
+    public void run(){
+      do {
+        try {
+          Thread.sleep(1000);
+        }
+ catch (        InterruptedException ignored) {
+        }
+      }
+ while (doKeepAlives());
+    }
+  }
+;
+  keepAliveThread.setDaemon(true);
+  keepAliveThread.start();
 }
