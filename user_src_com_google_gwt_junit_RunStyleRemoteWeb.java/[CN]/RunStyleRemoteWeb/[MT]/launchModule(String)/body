@@ -1,23 +1,24 @@
 {
   String url=getMyUrl(moduleName);
-  for (int i=0; i < remoteTokens.length; ++i) {
+  for (  RemoteBrowser remoteBrowser : remoteBrowsers) {
     long callStart=System.currentTimeMillis();
     try {
-      int remoteToken=remoteTokens[i];
-      BrowserManager mgr=browserManagers[i];
+      int remoteToken=remoteBrowser.getToken();
+      BrowserManager mgr=remoteBrowser.getManager();
       if (remoteToken != 0) {
         mgr.killBrowser(remoteToken);
       }
-      remoteTokens[i]=mgr.launchNewBrowser(url,PING_KEEPALIVE_MS);
+      remoteToken=mgr.launchNewBrowser(url,PING_KEEPALIVE_MS);
+      remoteBrowser.setToken(remoteToken);
     }
  catch (    Exception e) {
       Throwable cause=e.getCause();
       if (cause instanceof SocketTimeoutException) {
         long elapsed=System.currentTimeMillis() - callStart;
-        getLogger().log(TreeLogger.ERROR,"Timeout: " + elapsed + "ms  launching remote browser at: "+ remoteBmsUrls[i],e.getCause());
+        getLogger().log(TreeLogger.ERROR,"Timeout: " + elapsed + "ms  launching remote browser at: "+ remoteBrowser.getRmiUrl(),e.getCause());
         throw new UnableToCompleteException();
       }
-      getLogger().log(TreeLogger.ERROR,"Error launching remote browser at " + remoteBmsUrls[i],e);
+      getLogger().log(TreeLogger.ERROR,"Error launching remote browser at " + remoteBrowser.getRmiUrl(),e);
       throw new UnableToCompleteException();
     }
   }
