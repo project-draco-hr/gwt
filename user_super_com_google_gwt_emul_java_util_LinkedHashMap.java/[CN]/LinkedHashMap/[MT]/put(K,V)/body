@@ -1,3 +1,23 @@
 {
-  return null;
+  ChainEntry old=map.get(key);
+  if (old == null) {
+    ChainEntry newEntry=new ChainEntry(key,value);
+    map.put(key,newEntry);
+    newEntry.addBefore(head);
+    ChainEntry eldest=head.next;
+    if (removeEldestEntry(eldest)) {
+      eldest.remove();
+      map.remove(eldest.getKey());
+    }
+    return null;
+  }
+ else {
+    V oldValue=old.getValue();
+    old.setValue(value);
+    if (accessOrder) {
+      old.remove();
+      old.addBefore(head);
+    }
+    return oldValue;
+  }
 }
