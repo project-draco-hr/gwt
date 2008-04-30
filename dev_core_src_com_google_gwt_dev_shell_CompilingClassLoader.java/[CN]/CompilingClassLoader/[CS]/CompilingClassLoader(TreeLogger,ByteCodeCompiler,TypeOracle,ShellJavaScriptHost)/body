@@ -34,11 +34,14 @@
     Collections.addAll(jsoTypes,jsoSubtypes);
     jsoTypes.add(jsoType);
     Set<String> jsoTypeNames=new HashSet<String>();
+    Map<String,String> jsoSuperTypes=new HashMap<String,String>();
     for (    JClassType type : jsoTypes) {
-      jsoTypeNames.add(getBinaryName(type));
+      String binaryName=getBinaryName(type);
+      jsoTypeNames.add(binaryName);
+      jsoSuperTypes.put(binaryName,getBinaryName(type.getSuperclass()));
     }
     MyInstanceMethodOracle mapper=new MyInstanceMethodOracle(jsoTypes,typeOracle.getJavaLangObject());
-    classRewriter=new HostedModeClassRewriter(jsoTypeNames,mapper);
+    classRewriter=new HostedModeClassRewriter(jsoTypeNames,jsoSuperTypes,mapper);
   }
  else {
     classRewriter=null;

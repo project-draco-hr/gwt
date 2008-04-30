@@ -11,13 +11,18 @@
   byte[] classBytes;
   try {
     ++stackDepth;
-    String lookupClassName=className;
-    if (classRewriter != null && classRewriter.isJsoImpl(className)) {
-      lookupClassName=className.substring(0,className.length() - 1);
+    if (classRewriter != null && classRewriter.isJsoIntf(className)) {
+      classBytes=classRewriter.writeJsoIntf(className);
     }
-    classBytes=compiler.getClassBytes(logger,lookupClassName);
-    if (classRewriter != null) {
-      classBytes=classRewriter.rewrite(className,classBytes);
+ else {
+      String lookupClassName=className;
+      if (classRewriter != null && classRewriter.isJsoImpl(className)) {
+        lookupClassName=className.substring(0,className.length() - 1);
+      }
+      classBytes=compiler.getClassBytes(logger,lookupClassName);
+      if (classRewriter != null) {
+        classBytes=classRewriter.rewrite(className,classBytes);
+      }
     }
     Class<?> newClass=defineClass(className,classBytes,0,classBytes.length);
     if (className.equals(JavaScriptHost.class.getName())) {
