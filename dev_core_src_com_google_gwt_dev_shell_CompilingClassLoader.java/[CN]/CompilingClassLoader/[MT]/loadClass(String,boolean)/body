@@ -1,18 +1,27 @@
 {
   Class<?> newClass=super.loadClass(name,resolve);
-  JsniMethods jsniMethods=newClass.getAnnotation(JsniMethods.class);
-  if (jsniMethods != null) {
-    for (    JsniMethod jsniMethod : jsniMethods.value()) {
-      String[] bodyParts=jsniMethod.body();
-      int size=0;
-      for (      String bodyPart : bodyParts) {
-        size+=bodyPart.length();
+  if (!newClass.isInterface() && !newClass.isLocalClass()) {
+    pendingJsniInjectionClasses.add(newClass);
+  }
+  if (stackDepth == 0 && !pendingJsniInjectionClasses.isEmpty()) {
+    Class<?>[] toCheck=pendingJsniInjectionClasses.toArray(new Class<?>[pendingJsniInjectionClasses.size()]);
+    pendingJsniInjectionClasses.clear();
+    for (    Class<?> checkClass : toCheck) {
+      JsniMethods jsniMethods=checkClass.getAnnotation(JsniMethods.class);
+      if (jsniMethods != null) {
+        for (        JsniMethod jsniMethod : jsniMethods.value()) {
+          String[] bodyParts=jsniMethod.body();
+          int size=0;
+          for (          String bodyPart : bodyParts) {
+            size+=bodyPart.length();
+          }
+          StringBuilder body=new StringBuilder(size);
+          for (          String bodyPart : bodyParts) {
+            body.append(bodyPart);
+          }
+          shellJavaScriptHost.createNative(jsniMethod.file(),jsniMethod.line(),jsniMethod.name(),jsniMethod.paramNames(),body.toString());
+        }
       }
-      StringBuilder body=new StringBuilder(size);
-      for (      String bodyPart : bodyParts) {
-        body.append(bodyPart);
-      }
-      shellJavaScriptHost.createNative(jsniMethod.file(),jsniMethod.line(),jsniMethod.name(),jsniMethod.paramNames(),body.toString());
     }
   }
   return newClass;
