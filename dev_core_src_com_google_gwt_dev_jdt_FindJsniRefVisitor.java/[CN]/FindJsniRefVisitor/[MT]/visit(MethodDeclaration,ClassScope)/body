@@ -2,48 +2,18 @@
   if (!methodDeclaration.isNative()) {
     return false;
   }
-  char[] source=methodDeclaration.compilationResult().getCompilationUnit().getContents();
-  String jsniCode=String.valueOf(source,methodDeclaration.bodyStart,methodDeclaration.bodyEnd - methodDeclaration.bodyStart + 1);
-  int startPos=jsniCode.indexOf(Jsni.JSNI_BLOCK_START);
-  int endPos=jsniCode.lastIndexOf(Jsni.JSNI_BLOCK_END);
-  if (startPos < 0 || endPos < 0) {
+  String jsniCode=getJSNICode(methodDeclaration);
+  if (jsniCode == null) {
     return false;
   }
-  startPos+=Jsni.JSNI_BLOCK_START.length() - 1;
-  endPos+=1;
-  jsniCode=jsniCode.substring(startPos,endPos);
-  String syntheticFnHeader="function(";
-  boolean first=true;
-  if (methodDeclaration.arguments != null) {
-    for (int i=0, c=methodDeclaration.arguments.length; i < c; ++i) {
-      Argument arg=methodDeclaration.arguments[i];
-      if (first) {
-        first=false;
-      }
+  if (jsniCode.indexOf('@') < 0) {
+    return false;
+  }
+  if (sloppy) {
+    findJsniRefsSloppily(jsniCode);
+  }
  else {
-        syntheticFnHeader+=',';
-      }
-      syntheticFnHeader+=String.valueOf(arg.name);
-    }
-  }
-  syntheticFnHeader+=')';
-  StringReader sr=new StringReader(syntheticFnHeader + '\n' + jsniCode);
-  try {
-    List<JsStatement> result=jsParser.parse(jsProgram.getScope(),sr,-1);
-    new JsVisitor(){
-      public void endVisit(      JsNameRef x,      JsContext<JsExpression> ctx){
-        String ident=x.getIdent();
-        if (ident.charAt(0) == '@') {
-          jsniRefs.add(ident.substring(1));
-        }
-      }
-    }
-.acceptList(result);
-  }
- catch (  IOException e) {
-    throw new InternalCompilerException("Internal error searching for JSNI references",e);
-  }
-catch (  JsParserException e) {
+    findJsniRefsAccurately(methodDeclaration,jsniCode);
   }
   return false;
 }

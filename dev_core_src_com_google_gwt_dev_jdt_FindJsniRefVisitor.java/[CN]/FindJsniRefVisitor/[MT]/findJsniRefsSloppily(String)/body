@@ -1,0 +1,25 @@
+{
+  StringReader reader=new StringReader(jsniCode);
+  int idx=0;
+  while (true) {
+    idx=jsniCode.indexOf('@',idx);
+    if (idx < 0) {
+      break;
+    }
+    try {
+      reader.reset();
+      reader.skip(idx);
+      TokenStream tokStr=new TokenStream(reader,"(memory)",0);
+      if (tokStr.getToken() != TokenStream.NAME) {
+        break;
+      }
+      String jsniRefString=tokStr.getString();
+      assert(jsniRefString.charAt(0) == '@');
+      jsniRefs.add(jsniRefString.substring(1));
+      idx+=jsniRefString.length();
+    }
+ catch (    IOException e) {
+      throw new InternalCompilerException("Unexpected IO error while reading a JS identifier",e);
+    }
+  }
+}
