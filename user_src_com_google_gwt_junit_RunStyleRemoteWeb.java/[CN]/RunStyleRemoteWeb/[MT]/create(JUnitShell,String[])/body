@@ -3,9 +3,7 @@
     RMISocketFactoryWithTimeouts.init();
   }
  catch (  IOException e) {
-    System.err.println("Error initializing RMISocketFactory");
-    e.printStackTrace();
-    System.exit(1);
+    throw new JUnitFatalLaunchException("Error initializing RMISocketFactory",e);
   }
   int numClients=urls.length;
   BrowserManager[] browserManagers=new BrowserManager[numClients];
@@ -15,16 +13,16 @@
       browserManagers[i]=(BrowserManager)Naming.lookup(urls[i]);
     }
  catch (    Exception e) {
+      String message="Error connecting to browser manager at " + urls[i];
+      Throwable cause=e;
       if (e.getCause() instanceof SocketTimeoutException) {
         long elapsed=System.currentTimeMillis() - callStart;
-        System.err.println("Timeout " + elapsed + "ms waiting for browser manager server to connect at "+ urls[i]);
-        e.getCause().printStackTrace();
+        message+=" - Timeout " + elapsed + "ms waiting to connect to browser manager.";
+        cause=e.getCause();
       }
- else {
-        System.err.println("Error connecting to browser manager at " + urls[i]);
-        e.printStackTrace();
-      }
-      System.exit(1);
+      System.err.println(message);
+      cause.printStackTrace();
+      throw new JUnitFatalLaunchException(message,cause);
     }
   }
   return new RunStyleRemoteWeb(shell,browserManagers,urls);
