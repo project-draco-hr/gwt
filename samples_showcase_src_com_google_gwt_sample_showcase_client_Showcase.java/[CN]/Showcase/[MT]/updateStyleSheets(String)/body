@@ -1,7 +1,5 @@
 {
-  if (!LocaleInfo.getCurrentLocale().isRTL()) {
-    return;
-  }
+  boolean isRTL=LocaleInfo.getCurrentLocale().isRTL();
   Element headElem=getHeadElement();
   int numChildren=DOM.getChildCount(headElem);
   for (int i=0; i < numChildren; i++) {
@@ -9,7 +7,16 @@
     if (DOM.getElementProperty(elem,"tagName").equalsIgnoreCase("link") && DOM.getElementProperty(elem,"rel").equalsIgnoreCase("stylesheet")) {
       String href=DOM.getElementProperty(elem,"href");
       DOM.removeChild(headElem,elem);
-      href=href.replaceAll(".css",".rtl.css");
+      for (      String oldTheme : STYLE_THEMES) {
+        href=href.replaceAll("/" + oldTheme + "/","/" + theme + "/");
+      }
+      if (isRTL) {
+        href=href.replaceAll("_rtl.css",".css");
+        href=href.replaceAll(".css","_rtl.css");
+      }
+      if (href.contains("GWT.")) {
+        styleTesterTimer.schedule(25);
+      }
       Element styleElem=DOM.createElement("link");
       DOM.setElementProperty(styleElem,"rel","stylesheet");
       DOM.setElementProperty(styleElem,"type","text/css");
