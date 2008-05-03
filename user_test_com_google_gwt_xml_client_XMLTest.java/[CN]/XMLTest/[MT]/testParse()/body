@@ -1,7 +1,16 @@
 {
-  Document d=XMLParser.parse("<!--hello-->   <a spam=\"ham\">\n  <?pi hello ?>dfgdfg  <b/>\t</a>");
-  XMLParser.removeWhitespace(d);
-  assertEquals("<!--hello--><a spam=\"ham\"><?pi hello ?>dfgdfg  <b/></a>",d.toString());
+  Document docA=XMLParser.parse("<!--hello-->   <a spam=\"ham\">\n  <?pi hello ?>dfgdfg  <b/>\t</a>");
+  Document docB=XMLParser.createDocument();
+  docB.appendChild(docB.createComment("hello"));
+  final Element eleB=docB.createElement("a");
+  docB.appendChild(eleB);
+  eleB.setAttribute("spam","ham");
+  eleB.appendChild(docB.createTextNode("\n  "));
+  eleB.appendChild(docB.createProcessingInstruction("pi","hello "));
+  eleB.appendChild(docB.createTextNode("dfgdfg  "));
+  eleB.appendChild(docB.createElement("b"));
+  eleB.appendChild(docB.createTextNode("\t"));
+  assertDocumentEquals(docA,docB);
   try {
     XMLParser.parse("<<<");
     fail();

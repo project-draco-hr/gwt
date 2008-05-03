@@ -12,9 +12,8 @@
   Element elementWithChildren=d.createElement("elementWithChildren");
   ProcessingInstruction createProcessingInstruction=d.createProcessingInstruction("target","processing instruction data");
   Text createTextNode=d.createTextNode("sample text node");
-  List all=asList(new Node[]{createCDATA,createComment,createDocumentFragment,elementWithChildren,createProcessingInstruction,createTextNode});
-  List canHaveChildren=asList(new Node[]{createDocumentFragment,elementWithChildren});
-  List canBeChildren=asList(new Node[]{createCDATA,createComment,elementWithChildren,createProcessingInstruction,createTextNode});
+  List<Node> canHaveChildren=asList(new Node[]{createDocumentFragment,elementWithChildren});
+  List<Node> canBeChildren=asList(new Node[]{createCDATA,createComment,elementWithChildren,createProcessingInstruction,createTextNode});
   for (int i=0; i < canHaveChildren.size(); i++) {
     Node parent=(Node)canHaveChildren.get(i);
     Node cloneParent=parent.cloneNode(false);
@@ -35,9 +34,9 @@
   }
   XMLParser.removeWhitespace(d);
   if (XMLParser.supportsCDATASection()) {
-    assertEquals("<elementWithChildren>" + "<![CDATA[sampl<<< >>e data]]>" + "<!--a sample comment-->"+ "<elementWithChildren/>"+ "<?target processing instruction data?>"+ "sample text node"+ "</elementWithChildren>",d.toString());
+    assertDocumentEquals(XMLParser.parse("<elementWithChildren>" + "<![CDATA[sampl<<< >>e data]]>" + "<!--a sample comment-->"+ "<elementWithChildren/>"+ "<?target processing instruction data?>"+ "sample text node"+ "</elementWithChildren>"),d);
   }
  else {
-    assertEquals("<elementWithChildren>" + "sample data" + "<!--a sample comment-->"+ "<elementWithChildren/>"+ "<?target processing instruction data?>"+ "sample text node"+ "</elementWithChildren>",d.toString());
+    assertDocumentEquals(XMLParser.parse("<elementWithChildren>" + "sample data" + "<!--a sample comment-->"+ "<elementWithChildren/>"+ "<?target processing instruction data?>"+ "sample text node"+ "</elementWithChildren>"),d);
   }
 }
