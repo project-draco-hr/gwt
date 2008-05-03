@@ -9,17 +9,18 @@
     try {
       reader.reset();
       reader.skip(idx);
-      TokenStream tokStr=new TokenStream(reader,"(memory)",0);
-      if (tokStr.getToken() != TokenStream.NAME) {
-        break;
-      }
-      String jsniRefString=tokStr.getString();
+    }
+ catch (    IOException e) {
+      throw new InternalCompilerException(e.getMessage(),e);
+    }
+    String jsniRefString=readJsIdentifier(reader);
+    if (jsniRefString == null) {
+      idx++;
+    }
+ else {
       assert(jsniRefString.charAt(0) == '@');
       jsniRefs.add(jsniRefString.substring(1));
       idx+=jsniRefString.length();
-    }
- catch (    IOException e) {
-      throw new InternalCompilerException("Unexpected IO error while reading a JS identifier",e);
     }
   }
 }
