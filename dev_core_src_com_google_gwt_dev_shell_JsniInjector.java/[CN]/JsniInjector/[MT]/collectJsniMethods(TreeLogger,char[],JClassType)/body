@@ -1,0 +1,27 @@
+{
+  JClassType targetType=type;
+  while (targetType.isLocalType()) {
+    targetType=targetType.getEnclosingType();
+  }
+  List<JsniMethod> jsniMethods=jsniMethodMap.get(targetType);
+  String loc=type.getCompilationUnit().getLocation();
+  for (  JMethod method : type.getMethods()) {
+    if (!method.isNative()) {
+      continue;
+    }
+    Jsni.Interval interval=Jsni.findJsniSource(method);
+    if (interval == null) {
+      String msg="No JavaScript body found for native method '" + method + "' in type '"+ type+ "'";
+      logger.log(TreeLogger.ERROR,msg,null);
+      throw new UnableToCompleteException();
+    }
+    String js=String.valueOf(source,interval.start,interval.end - interval.start);
+    int startLine=Jsni.countNewlines(source,0,interval.start) + 1;
+    JsBlock body=Jsni.parseAsFunctionBody(logger,js,loc,startLine);
+    if (jsniMethods == null) {
+      jsniMethods=new ArrayList<JsniMethod>();
+      jsniMethodMap.put(targetType,jsniMethods);
+    }
+    jsniMethods.add(createJsniMethod(method,body,loc,source));
+  }
+}

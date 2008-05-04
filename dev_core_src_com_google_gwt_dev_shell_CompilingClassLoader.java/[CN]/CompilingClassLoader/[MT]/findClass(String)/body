@@ -21,7 +21,13 @@
       }
       classBytes=compiler.getClassBytes(logger,lookupClassName);
       if (classRewriter != null) {
-        classBytes=classRewriter.rewrite(className,classBytes);
+        byte[] newBytes=classRewriter.rewrite(className,classBytes);
+        if (CLASS_DUMP) {
+          if (!Arrays.equals(classBytes,newBytes)) {
+            classDump(className,classBytes);
+          }
+        }
+        classBytes=newBytes;
       }
     }
     Class<?> newClass=defineClass(className,classBytes,0,classBytes.length);

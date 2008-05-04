@@ -1,0 +1,20 @@
+{
+  super.visitCode();
+  String jsniTarget=getJsniSignature(name,descriptor);
+  visitLdcInsn(jsniTarget);
+  if (isStatic) {
+    visitInsn(Opcodes.ACONST_NULL);
+  }
+ else {
+    loadThis();
+  }
+  loadClassArray();
+  loadArgArray();
+  Type returnType=Type.getReturnType(descriptor);
+  JavaScriptHostInfo info=JavaScriptHostInfo.get(returnType.getSort());
+  invokeStatic(JavaScriptHostInfo.TYPE,info.getMethod());
+  if (info.requiresCast()) {
+    checkCast(returnType);
+  }
+  returnValue();
+}
