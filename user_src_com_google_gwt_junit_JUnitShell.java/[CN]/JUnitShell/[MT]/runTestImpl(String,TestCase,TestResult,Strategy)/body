@@ -43,23 +43,16 @@
   for (  Entry<String,JUnitResult> entry : results.entrySet()) {
     String clientId=entry.getKey();
     JUnitResult result=entry.getValue();
-    Throwable exception=null;
-    if (result == null) {
-      String msg="Remote test returned no result from: " + clientId;
-      exception=new RuntimeException();
-    }
+    Throwable exception=result.getException();
+    if (parallelTesting && exception != null) {
+      String msg="Remote test failed at " + clientId;
+      if (exception instanceof AssertionFailedError) {
+        AssertionFailedError newException=new AssertionFailedError(msg + "\n" + exception.getMessage());
+        newException.setStackTrace(exception.getStackTrace());
+        exception=newException;
+      }
  else {
-      exception=result.getException();
-      if (parallelTesting && exception != null) {
-        String msg="Remote test failed at " + clientId;
-        if (exception instanceof AssertionFailedError) {
-          AssertionFailedError newException=new AssertionFailedError(msg + "\n" + exception.getMessage());
-          newException.setStackTrace(exception.getStackTrace());
-          exception=newException;
-        }
- else {
-          exception=new RuntimeException(msg,exception);
-        }
+        exception=new RuntimeException(msg,exception);
       }
     }
     if (exception instanceof AssertionFailedError) {
