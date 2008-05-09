@@ -1,9 +1,12 @@
 {
   numFilesCount=0;
-  TypeOracleBuilder builder=new TypeOracleBuilder(new CacheManager(null,null,ApiCompatibilityChecker.DISABLE_CHECKS));
+  TypeOracleMediator mediator=new TypeOracleMediator();
+  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
   for (Iterator<File> i=sourceTrees.iterator(); i.hasNext(); ) {
-    addCompilationUnitsInPath(builder,i.next());
+    addCompilationUnitsInPath(units,i.next());
   }
-  typeOracle=builder.build(logger);
+  JdtCompiler.compile(units);
+  mediator.refresh(logger,units);
+  typeOracle=mediator.getTypeOracle();
   logger.log(TreeLogger.INFO,"API " + name + ", Finished with building typeOracle, added "+ numFilesCount+ " files",null);
 }

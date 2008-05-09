@@ -1,0 +1,13 @@
+{
+  JdtCompiler.compile(getCompilationUnits());
+  CompilationUnitInvalidator.validateCompilationUnits(getCompilationUnits(),getClassFileMap());
+  JsniCollector.collectJsniMethods(logger,getCompilationUnits(),new JsProgram());
+  CompilationUnitInvalidator.invalidateUnitsWithErrors(logger,getCompilationUnits());
+  mediator.refresh(logger,getCompilationUnits());
+  for (  CompilationUnit unit : getCompilationUnits()) {
+    if (unit.getState() == State.COMPILED) {
+      unit.setState(State.CHECKED);
+    }
+  }
+  updateExposedUnits();
+}

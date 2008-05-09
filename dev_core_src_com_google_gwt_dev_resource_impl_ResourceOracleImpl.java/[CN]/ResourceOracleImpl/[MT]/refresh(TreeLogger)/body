@@ -1,0 +1,40 @@
+{
+  TreeLogger refreshBranch=Messages.REFRESHING_RESOURCES.branch(logger,null);
+  final Map<String,AbstractResource> newInternalMap=new HashMap<String,AbstractResource>();
+  int changeCount=0;
+  for (  ClassPathEntry pathRoot : classPath) {
+    TreeLogger branchForClassPathEntry=Messages.EXAMINING_PATH_ROOT.branch(refreshBranch,pathRoot.getLocation(),null);
+    int prevChangeCount=changeCount;
+    Set<AbstractResource> newResources=pathRoot.findApplicableResources(branchForClassPathEntry,pathPrefixSet);
+    for (    AbstractResource newResource : newResources) {
+      String resourcePath=newResource.getPath();
+      if (newInternalMap.containsKey(resourcePath)) {
+        Messages.IGNORING_SHADOWED_RESOURCE.log(branchForClassPathEntry,resourcePath,null);
+        continue;
+      }
+      AbstractResource oldResource=internalMap.get(resourcePath);
+      if (shouldUseNewResource(branchForClassPathEntry,oldResource,newResource)) {
+        newInternalMap.put(resourcePath,newResource);
+        ++changeCount;
+      }
+ else       if (oldResource != null) {
+        newInternalMap.put(resourcePath,oldResource);
+      }
+    }
+    if (changeCount == prevChangeCount) {
+      Messages.NO_RESOURCES_CHANGED.log(branchForClassPathEntry,null);
+    }
+  }
+  if (changeCount == 0) {
+    if (newInternalMap.size() == internalMap.size()) {
+      return;
+    }
+  }
+  internalMap=newInternalMap;
+  Map<String,Resource> externalMap=rerootResourcePaths(newInternalMap);
+  Set<Resource> newResources=new HashSet<Resource>(externalMap.values());
+  assert(newResources.size() == externalMap.size());
+  exposedResources=Collections.unmodifiableSet(newResources);
+  exposedResourceMap=Collections.unmodifiableMap(externalMap);
+  exposedPathNames=Collections.unmodifiableSet(externalMap.keySet());
+}

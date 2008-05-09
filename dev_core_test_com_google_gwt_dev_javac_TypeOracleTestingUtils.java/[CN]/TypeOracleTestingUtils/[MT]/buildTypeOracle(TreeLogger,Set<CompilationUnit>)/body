@@ -1,0 +1,14 @@
+{
+  JdtCompiler.compile(units);
+  Map<String,CompiledClass> classMap=new HashMap<String,CompiledClass>();
+  for (  CompilationUnit unit : units) {
+    for (    CompiledClass compiledClass : unit.getCompiledClasses()) {
+      classMap.put(compiledClass.getBinaryName(),compiledClass);
+    }
+  }
+  CompilationUnitInvalidator.validateCompilationUnits(units,classMap);
+  CompilationUnitInvalidator.invalidateUnitsWithErrors(logger,units);
+  TypeOracleMediator mediator=new TypeOracleMediator();
+  mediator.refresh(logger,units);
+  return mediator.getTypeOracle();
+}

@@ -1,0 +1,26 @@
+{
+  TypeDeclaration typeDecl=compiledClass.getTypeDeclaration();
+  int[] lineEnds=typeDecl.compilationResult.getLineSeparatorPositions();
+  List<JsniMethod> jsniMethods=new ArrayList<JsniMethod>();
+  String enclosingType=compiledClass.getBinaryName().replace('/','.');
+  AbstractMethodDeclaration[] methods=typeDecl.methods;
+  if (methods != null) {
+    for (    AbstractMethodDeclaration method : methods) {
+      if (!method.isNative()) {
+        continue;
+      }
+      Interval interval=findJsniSource(source,method);
+      if (interval == null) {
+        String msg="No JavaScript body found for native method '" + method + "' in type '"+ compiledClass.getSourceName()+ "'";
+        logger.log(TreeLogger.ERROR,msg,null);
+        continue;
+      }
+      String js=source.substring(interval.start,interval.end);
+      int startLine=Util.getLineNumber(interval.start,lineEnds,0,lineEnds.length - 1);
+      String jsniSignature=getJsniSignature(enclosingType,method);
+      String[] paramNames=getParamNames(method);
+      jsniMethods.add(new JsniMethodImpl(jsniSignature,js,paramNames,startLine,loc,program));
+    }
+  }
+  compiledClass.setJsniMethods(jsniMethods);
+}

@@ -1,9 +1,20 @@
 {
-  ICompilationUnit[] units=new ICompilationUnit[seedTypeNames.length];
+  Map<String,CompilationUnit> unitMap=compilationState.getCompilationUnitMap();
+  ICompilationUnit[] icus=new ICompilationUnit[seedTypeNames.length];
   for (int i=0; i < seedTypeNames.length; i++) {
     String seedTypeName=seedTypeNames[i];
-    units[i]=getCompilationUnitForType(logger,seedTypeName);
+    CompilationUnit unit=unitMap.get(seedTypeName);
+    while (unit == null) {
+      int pos=seedTypeName.lastIndexOf('.');
+      if (pos < 0) {
+        logger.log(TreeLogger.ERROR,"Unable to find compilation unit for type '" + seedTypeNames[i] + "'");
+        throw new UnableToCompleteException();
+      }
+      seedTypeName=seedTypeName.substring(0,pos);
+      unit=unitMap.get(seedTypeName);
+    }
+    icus[i]=new CompilationUnitAdapter(unit);
   }
-  CompilationUnitDeclaration[] cuds=compile(logger,units);
+  CompilationUnitDeclaration[] cuds=compile(logger,icus);
   return cuds;
 }

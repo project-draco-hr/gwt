@@ -1,12 +1,14 @@
 {
-  TypeOracleBuilder builder1=new TypeOracleBuilder(new CacheManager(null,null,ApiCompatibilityChecker.DISABLE_CHECKS));
-  builder1.addCompilationUnit(cuObject);
-  builder1.addCompilationUnit(cuNonApiClass);
-  builder1.addCompilationUnit(cuApiClass);
-  builder1.addCompilationUnit(cuNonApiPackage);
-  builder1.addCompilationUnit(cuNewPackage);
   AbstractTreeLogger logger=new PrintWriterTreeLogger();
   logger.setMaxDetail(TreeLogger.ERROR);
-  TypeOracle typeOracle=builder1.build(logger);
-  return typeOracle;
+  TypeOracleMediator mediator=new TypeOracleMediator();
+  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
+  units.add(cuObject);
+  units.add(cuNonApiClass);
+  units.add(cuApiClass);
+  units.add(cuNonApiPackage);
+  units.add(cuNewPackage);
+  JdtCompiler.compile(units);
+  mediator.refresh(logger,units);
+  return mediator.getTypeOracle();
 }

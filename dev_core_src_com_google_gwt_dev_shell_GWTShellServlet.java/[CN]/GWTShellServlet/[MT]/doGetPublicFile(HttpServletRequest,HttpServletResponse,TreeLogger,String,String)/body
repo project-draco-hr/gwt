@@ -4,10 +4,13 @@
   if (autoGenerateResources(request,response,logger,partialPath,moduleName)) {
     return;
   }
-  URL foundResource;
+  URL foundResource=null;
   try {
     ModuleDef moduleDef=getModuleDef(logger,moduleName);
-    foundResource=moduleDef.findPublicFile(partialPath);
+    Resource publicResource=moduleDef.findPublicFile(partialPath);
+    if (publicResource != null) {
+      foundResource=publicResource.getURL();
+    }
     if (foundResource == null) {
       File shellDir=new File(getOutputDir(),GWTShell.GWT_SHELL_PATH + File.separator + moduleName);
       File requestedFile=new File(shellDir,partialPath);

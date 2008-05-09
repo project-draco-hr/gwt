@@ -1,0 +1,38 @@
+{
+  logger=logger.branch(TreeLogger.TRACE,"Removing invalidate units");
+  Map<String,CompilationUnit> unitsByFileName=new HashMap<String,CompilationUnit>();
+  for (  CompilationUnit unit : units) {
+    unitsByFileName.put(unit.getDisplayLocation(),unit);
+  }
+  Map<CompilationUnit,Set<CompilationUnit>> refTargetToReferents=new HashMap<CompilationUnit,Set<CompilationUnit>>();
+  for (  CompilationUnit referentUnit : units) {
+    if (referentUnit.isCompiled()) {
+      Set<String> fileNameRefs=referentUnit.getFileNameRefs();
+      for (      String fileNameRef : fileNameRefs) {
+        CompilationUnit targetUnit=unitsByFileName.get(fileNameRef);
+        if (targetUnit != null) {
+          Set<CompilationUnit> referents=refTargetToReferents.get(targetUnit);
+          if (referents == null) {
+            referents=new HashSet<CompilationUnit>();
+            refTargetToReferents.put(targetUnit,referents);
+          }
+          referents.add(referentUnit);
+        }
+      }
+    }
+  }
+  for (  Entry<CompilationUnit,Set<CompilationUnit>> entry : refTargetToReferents.entrySet()) {
+    CompilationUnit maybeInvalidUnit=entry.getKey();
+    if (!maybeInvalidUnit.isCompiled()) {
+      Set<CompilationUnit> invalidReferentUnits=entry.getValue();
+      TreeLogger branch=logger.branch(TreeLogger.TRACE,"Compilation unit '" + maybeInvalidUnit + "' is invalid");
+      State why=maybeInvalidUnit.getState();
+      for (      CompilationUnit invalidReferentUnit : invalidReferentUnits) {
+        if (invalidReferentUnit.isCompiled()) {
+          invalidReferentUnit.setState(why);
+          branch.log(TreeLogger.TRACE,"Removing dependent unit '" + invalidReferentUnit + "'");
+        }
+      }
+    }
+  }
+}

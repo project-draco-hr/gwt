@@ -17,8 +17,11 @@
     logger.log(TreeLogger.WARN,"Cannot create resource '" + partialPath + "' because it already exists on the public path",null);
     return null;
   }
-  if (cacheManager.hasGeneratedResource(partialPath)) {
-    return null;
+  SortedSet<GeneratedResource> resources=artifactSet.find(GeneratedResource.class);
+  for (  GeneratedResource resource : resources) {
+    if (partialPath.equals(resource.getPartialPath())) {
+      return null;
+    }
   }
   for (Iterator<PendingResource> iter=pendingResourcesByOutputStream.values().iterator(); iter.hasNext(); ) {
     PendingResource pendingResource=iter.next();

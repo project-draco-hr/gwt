@@ -1,21 +1,21 @@
 {
   this.module=moduleDef;
+  this.compilationState=moduleDef.getCompilationState();
   checkModule(logger);
   generatorResourcesDir=new File(outDir,GWT_COMPILER_DIR + File.separator + moduleDef.getName()+ File.separator+ "generated");
   outDir=new File(outDir,module.getName());
   Util.recursiveDelete(outDir,true);
   Util.recursiveDelete(generatorResourcesDir,true);
   generatorResourcesDir.mkdirs();
+  compilationState.compile(logger);
   rules=module.getRules();
-  typeOracle=module.getTypeOracle(logger);
-  sourceOracle=new StandardSourceOracle(typeOracle);
   if (jjsOptions.isValidateOnly()) {
     logger.log(TreeLogger.INFO,"Validating compilation " + module.getName(),null);
-    CompilationUnitProvider[] compilationUnits=module.getCompilationUnits();
-    declEntryPts=new String[compilationUnits.length];
-    for (int i=0; i < compilationUnits.length; ++i) {
-      CompilationUnitProvider cup=compilationUnits[i];
-      declEntryPts[i]=makeTypeName(cup);
+    Set<CompilationUnit> compilationUnits=compilationState.getCompilationUnits();
+    declEntryPts=new String[compilationUnits.size()];
+    int i=0;
+    for (    CompilationUnit unit : compilationUnits) {
+      declEntryPts[i++]=unit.getTypeName();
     }
   }
  else {
@@ -26,7 +26,7 @@
   rebindPermOracle=new DistillerRebindPermutationOracle(generatorArtifacts);
   properties=module.getProperties();
   perms=new PropertyPermutations(properties);
-  WebModeCompilerFrontEnd frontEnd=new WebModeCompilerFrontEnd(sourceOracle,rebindPermOracle);
+  WebModeCompilerFrontEnd frontEnd=new WebModeCompilerFrontEnd(compilationState,rebindPermOracle);
   jjs=new JavaToJavaScriptCompiler(logger,frontEnd,declEntryPts,jjsOptions);
   StandardLinkerContext linkerContext=new StandardLinkerContext(logger,module,outDir,generatorResourcesDir,jjsOptions);
   compilePermutations(logger,linkerContext,generatorArtifacts);

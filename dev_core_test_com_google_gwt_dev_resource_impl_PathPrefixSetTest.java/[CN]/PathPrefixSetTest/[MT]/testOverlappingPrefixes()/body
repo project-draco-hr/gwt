@@ -1,0 +1,33 @@
+{
+{
+    PathPrefixSet pps=new PathPrefixSet();
+    pps.add(new PathPrefix("",null));
+    pps.add(new PathPrefix("a/",null));
+    pps.add(new PathPrefix("a/b/",null));
+    pps.add(new PathPrefix("a/b/c/",null));
+    assertTrue(pps.includesResource("W.java"));
+    assertTrue(pps.includesResource("a/X.java"));
+    assertTrue(pps.includesResource("a/b/Y.java"));
+    assertTrue(pps.includesResource("a/b/c/Z.java"));
+    assertTrue(pps.includesResource("a/b/c/d/V.java"));
+  }
+{
+    PathPrefixSet pps=new PathPrefixSet();
+    pps.add(new PathPrefix("",null));
+    pps.add(new PathPrefix("a/",null));
+    pps.add(new PathPrefix("a/b/",new ResourceFilter(){
+      public boolean allows(      String path){
+        return !path.endsWith("FILTERMEOUT");
+      }
+    }
+));
+    pps.add(new PathPrefix("a/b/c/",null));
+    assertTrue(pps.includesResource("W.java"));
+    assertTrue(pps.includesResource("a/X.java"));
+    assertTrue(pps.includesResource("a/b/Y.java"));
+    assertFalse(pps.includesResource("a/b/FILTERMEOUT"));
+    assertTrue(pps.includesResource("a/b/c/DONT_FILTERMEOUT"));
+    assertTrue(pps.includesResource("a/b/c/Z.java"));
+    assertTrue(pps.includesResource("a/b/c/d/V.java"));
+  }
+}

@@ -10,22 +10,18 @@
       if (branch.isLoggable(TreeLogger.DEBUG)) {
         subBranch=branch.branch(TreeLogger.DEBUG,"Generated source files...",null);
       }
-      assert(cacheManager.getTypeOracle() == typeOracle);
-      TypeOracleBuilder builder=new TypeOracleBuilder(cacheManager);
-      for (Iterator<GeneratedCompilationUnitProvider> iter=committedGeneratedCups.iterator(); iter.hasNext(); ) {
-        GeneratedCompilationUnitProvider gcup=iter.next();
-        String typeName=gcup.getTypeName();
-        String genTypeName=gcup.getPackageName() + "." + typeName;
-        genTypeNames.add(genTypeName);
-        CompilationUnitProvider cup=writeSource(logger,gcup,typeName);
-        builder.addCompilationUnit(cup);
-        cacheManager.addGeneratedCup(cup);
+      for (      GeneratedUnitWithFile gcup : committedGeneratedCups) {
+        String qualifiedTypeName=gcup.getTypeName();
+        genTypeNames.add(qualifiedTypeName);
+        maybeWriteSource(gcup,qualifiedTypeName);
+        compilationState.addGeneratedCompilationUnit(gcup);
         if (subBranch != null) {
-          subBranch.log(TreeLogger.DEBUG,cup.getLocation(),null);
+          subBranch.log(TreeLogger.DEBUG,gcup.getDisplayLocation(),null);
         }
       }
-      builder.build(branch);
+      compilationState.compile(logger);
     }
+    TypeOracle typeOracle=getTypeOracle();
     JClassType[] genTypes=new JClassType[genTypeNames.size()];
     int next=0;
     for (Iterator<String> iter=genTypeNames.iterator(); iter.hasNext(); ) {
@@ -45,10 +41,8 @@
     if (!uncommittedGeneratedCupsByPrintWriter.isEmpty()) {
       String msg="For the following type(s), generated source was never committed (did you forget to call commit()?)";
       logger=logger.branch(TreeLogger.WARN,msg,null);
-      for (Iterator<GeneratedCompilationUnitProvider> iter=uncommittedGeneratedCupsByPrintWriter.values().iterator(); iter.hasNext(); ) {
-        StaticCompilationUnitProvider cup=iter.next();
-        String typeName=cup.getPackageName() + "." + cup.getTypeName();
-        logger.log(TreeLogger.WARN,typeName,null);
+      for (      GeneratedUnitWithFile unit : uncommittedGeneratedCupsByPrintWriter.values()) {
+        logger.log(TreeLogger.WARN,unit.getTypeName(),null);
       }
     }
     uncommittedGeneratedCupsByPrintWriter.clear();

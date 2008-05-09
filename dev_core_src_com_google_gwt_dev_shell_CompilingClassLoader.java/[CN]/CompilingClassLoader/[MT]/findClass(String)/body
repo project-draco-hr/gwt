@@ -8,39 +8,18 @@
   if (BRIDGE_CLASS_NAMES.containsKey(className)) {
     return BRIDGE_CLASS_NAMES.get(className);
   }
-  byte[] classBytes;
-  try {
-    ++stackDepth;
-    if (classRewriter != null && classRewriter.isJsoIntf(className)) {
-      classBytes=classRewriter.writeJsoIntf(className);
-    }
- else {
-      String lookupClassName=className;
-      if (classRewriter != null && classRewriter.isJsoImpl(className)) {
-        lookupClassName=className.substring(0,className.length() - 1);
-      }
-      classBytes=compiler.getClassBytes(logger,lookupClassName);
-      if (classRewriter != null) {
-        byte[] newBytes=classRewriter.rewrite(className,classBytes);
-        if (CLASS_DUMP) {
-          if (!Arrays.equals(classBytes,newBytes)) {
-            classDump(className,classBytes);
-          }
-        }
-        classBytes=newBytes;
-      }
-    }
-    Class<?> newClass=defineClass(className,classBytes,0,classBytes.length);
-    if (className.equals(JavaScriptHost.class.getName())) {
-      javaScriptHostClass=newClass;
-      updateJavaScriptHost();
-    }
-    return newClass;
-  }
- catch (  UnableToCompleteException e) {
+  byte[] classBytes=findClassBytes(className);
+  if (classBytes == null) {
     throw new ClassNotFoundException(className);
   }
- finally {
-    --stackDepth;
+  Class<?> newClass=defineClass(className,classBytes,0,classBytes.length);
+  if (className.equals(JavaScriptHost.class.getName())) {
+    javaScriptHostClass=newClass;
+    updateJavaScriptHost();
   }
+  if (className.equals("com.google.gwt.core.client.GWT")) {
+    gwtClass=newClass;
+    updateGwtClass();
+  }
+  return newClass;
 }

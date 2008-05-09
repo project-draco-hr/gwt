@@ -1,0 +1,26 @@
+{
+  Map<String,Resource> externalMap;
+  externalMap=new HashMap<String,Resource>();
+  for (  AbstractResource resource : newInternalMap.values()) {
+    String path=resource.getPath();
+    if (externalMap.get(path) instanceof ResourceWrapper) {
+      continue;
+    }
+    for (    PathPrefix pathPrefix : pathPrefixSet.values()) {
+      if (pathPrefix.allows(path)) {
+        assert(path.startsWith(pathPrefix.getPrefix()));
+        if (pathPrefix.shouldReroot()) {
+          path=pathPrefix.getRerootedPath(path);
+          AbstractResource wrapper=new ResourceWrapper(path,resource);
+          externalMap.put(path,wrapper);
+        }
+ else {
+          externalMap.put(path,resource);
+        }
+        break;
+      }
+    }
+    assert(externalMap.containsKey(path));
+  }
+  return externalMap;
+}

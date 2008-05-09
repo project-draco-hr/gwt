@@ -1,18 +1,25 @@
 {
   logger=logger.branch(TreeLogger.TRACE,"Property 'catalina.base' not specified; checking for a standard catalina base image instead",null);
-  FileOracleFactory fof=new FileOracleFactory();
-  final String tomcatEtcDir="com/google/gwt/dev/etc/tomcat/";
-  fof.addRootPackage(tomcatEtcDir,null);
-  FileOracle fo=fof.create(logger);
-  if (fo.isEmpty()) {
-    logger.log(TreeLogger.WARN,"Could not find " + tomcatEtcDir,null);
-    return null;
+  String tomcatEtcDir="com/google/gwt/dev/etc/tomcat/";
+  Map<String,Resource> resourceMap=null;
+  Throwable caught=null;
+  try {
+    resourceMap=getResourcesFor(logger,tomcatEtcDir);
+  }
+ catch (  URISyntaxException e) {
+    caught=e;
+  }
+catch (  IOException e) {
+    caught=e;
   }
   File catBase=new File(workDir,"tomcat");
-  String[] allChildren=fo.getAllFiles();
-  for (int i=0; i < allChildren.length; i++) {
-    String src=allChildren[i];
-    copyFileNoOverwrite(logger,fo,src,catBase);
+  if (resourceMap == null || resourceMap.isEmpty()) {
+    logger.log(TreeLogger.WARN,"Could not find " + tomcatEtcDir,caught);
+  }
+ else {
+    for (    Entry<String,Resource> entry : resourceMap.entrySet()) {
+      copyFileNoOverwrite(logger,entry.getKey(),entry.getValue(),catBase);
+    }
   }
   return catBase.getAbsolutePath();
 }
