@@ -1,0 +1,32 @@
+{
+  if (loadingImage == null) {
+    loadingImage=new Image("images/loading.gif");
+  }
+  target.setDirection(HasDirection.Direction.LTR);
+  DOM.setStyleAttribute(target.getElement(),"textAlign","left");
+  target.setHTML("&nbsp;&nbsp;" + loadingImage.toString());
+  RequestBuilder builder=new RequestBuilder(RequestBuilder.GET,url);
+  RequestCallback realCallback=new RequestCallback(){
+    public void onError(    Request request,    Throwable exception){
+      target.setHTML("Cannot find resource");
+      if (callback != null) {
+        callback.onError(request,exception);
+      }
+    }
+    public void onResponseReceived(    Request request,    Response response){
+      target.setHTML(response.getText());
+      if (callback != null) {
+        callback.onResponseReceived(request,response);
+      }
+    }
+  }
+;
+  builder.setCallback(realCallback);
+  Request request=null;
+  try {
+    request=builder.send();
+  }
+ catch (  RequestException e) {
+    realCallback.onError(request,e);
+  }
+}

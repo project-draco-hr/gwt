@@ -1,0 +1,17 @@
+{
+  if (!type.isAnnotationPresent(ShowcaseRaw.class)) {
+    return;
+  }
+  String pkgName=type.getPackage().getName();
+  String pkgPath=pkgName.replace('.','/') + "/";
+  String[] filenames=type.getAnnotation(ShowcaseRaw.class).value();
+  for (  String filename : filenames) {
+    String fileContents=getResourceContents(pkgPath + filename);
+    fileContents=fileContents.replace("<","&lt;");
+    fileContents=fileContents.replace(">","&gt;");
+    fileContents=fileContents.replace("* \n   */\n","*/\n");
+    fileContents="<pre>" + fileContents + "</pre>";
+    String dstPath=ShowcaseConstants.DST_SOURCE_RAW + pkgName + "."+ filename+ ".html";
+    createPublicResource(dstPath,fileContents);
+  }
+}

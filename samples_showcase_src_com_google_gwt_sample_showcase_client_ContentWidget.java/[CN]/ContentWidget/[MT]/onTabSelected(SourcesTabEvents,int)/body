@@ -3,10 +3,29 @@
   String tabHTML=getTabBar().getTabHTML(tabIndex);
   if (!sourceLoaded && tabHTML.equals(constants.contentWidgetSource())) {
     sourceLoaded=true;
-    requestFileContents("source/" + this.getClass().getName() + ".html",sourceWidget,"Source code not available.");
+    requestSourceContents(ShowcaseConstants.DST_SOURCE_EXAMPLE + this.getClass().getName() + ".html",sourceWidget,null);
   }
- else   if (!styleLoaded && tabHTML.equals(constants.contentWidgetStyle())) {
-    styleLoaded=true;
-    requestFileContents("style/" + this.getClass().getName() + ".html",styleWidget,"Style not available.");
+  if (hasStyle() && tabHTML.equals(constants.contentWidgetStyle())) {
+    final String theme=Showcase.CUR_THEME;
+    if (styleDefs.containsKey(theme)) {
+      styleWidget.setHTML(styleDefs.get(theme));
+    }
+ else {
+      styleDefs.put(theme,"");
+      RequestCallback callback=new RequestCallback(){
+        public void onError(        Request request,        Throwable exception){
+          styleDefs.put(theme,"Style not available.");
+        }
+        public void onResponseReceived(        Request request,        Response response){
+          styleDefs.put(theme,response.getText());
+        }
+      }
+;
+      String srcPath=ShowcaseConstants.DST_SOURCE_STYLE + theme;
+      if (LocaleInfo.getCurrentLocale().isRTL()) {
+        srcPath+="_rtl";
+      }
+      requestSourceContents(srcPath + "/" + this.getClass().getName()+ ".html",styleWidget,callback);
+    }
   }
 }
