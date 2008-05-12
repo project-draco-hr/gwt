@@ -11,6 +11,14 @@
         assert(path.startsWith(pathPrefix.getPrefix()));
         if (pathPrefix.shouldReroot()) {
           path=pathPrefix.getRerootedPath(path);
+          Resource exposed=exposedResourceMap.get(path);
+          if (exposed instanceof ResourceWrapper) {
+            ResourceWrapper exposedWrapper=(ResourceWrapper)exposed;
+            if (exposedWrapper.resource == resource) {
+              externalMap.put(path,exposedWrapper);
+              break;
+            }
+          }
           AbstractResource wrapper=new ResourceWrapper(path,resource);
           externalMap.put(path,wrapper);
         }
