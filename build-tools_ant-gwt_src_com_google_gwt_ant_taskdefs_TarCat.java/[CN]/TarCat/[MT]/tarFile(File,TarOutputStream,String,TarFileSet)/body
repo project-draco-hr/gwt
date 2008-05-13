@@ -1,10 +1,13 @@
 {
-  int index=includeTarWrappers.indexOf(tarFileSet);
-  if (index < 0) {
+  if (!peerMap.containsKey(tarFileSet)) {
     super.tarFile(file,tOut,vPath,tarFileSet);
     return;
   }
-  IncludeTar includeTar=(IncludeTar)includeTars.get(index);
+  IncludeTar includeTar=peerMap.get(tarFileSet);
+  String prefix=tarFileSet.getPrefix();
+  if (prefix.length() > 0 && !prefix.endsWith("/")) {
+    prefix=prefix + "/";
+  }
   TarInputStream tIn=null;
   try {
     tIn=new TarInputStream(includeTar.compression.decompress(file,new BufferedInputStream(new FileInputStream(file))));
@@ -16,10 +19,6 @@
       }
       if (te.isDirectory() && !vPath.endsWith("/")) {
         vPath+="/";
-      }
-      String prefix=tarFileSet.getPrefix();
-      if (prefix.length() > 0 && !prefix.endsWith("/")) {
-        prefix=prefix + "/";
       }
       vPath=prefix + vPath;
       te.setName(vPath);
@@ -37,15 +36,15 @@
       tOut.closeEntry();
     }
   }
- catch (  IOException ioe) {
-    throw new BuildException("Error while expanding " + file.getPath(),ioe,getLocation());
+ catch (  IOException e) {
+    throw new BuildException("Error while expanding " + file.getPath(),e,getLocation());
   }
  finally {
     if (tIn != null) {
       try {
         tIn.close();
       }
- catch (      IOException e) {
+ catch (      IOException ignored) {
       }
     }
   }
