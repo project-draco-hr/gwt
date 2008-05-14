@@ -1,0 +1,65 @@
+{
+  eventMap.clear();
+  layout=new FlexTable();
+  layout.setCellPadding(3);
+  layout.setBorderWidth(2);
+  layout.setHTML(0,0,"<b>Action to Perform</b>");
+  layout.setHTML(0,1,"<b>Event</b>");
+  layout.setHTML(0,2,"<b>Status</b>");
+  Button button=new Button("Double-click me"){
+    @Override public void onBrowserEvent(    Event event){
+      passTest(event);
+    }
+  }
+;
+  button.sinkEvents(Event.ONCLICK | Event.ONDBLCLICK | Event.MOUSEEVENTS);
+  addTest(Event.ONCLICK,"click",button);
+  addDependentTest(Event.ONDBLCLICK,"dblclick");
+  addDependentTest(Event.ONMOUSEDOWN,"mousedown");
+  addDependentTest(Event.ONMOUSEUP,"mouseup");
+  addDependentTest(Event.ONMOUSEOVER,"mouseover");
+  addDependentTest(Event.ONMOUSEOUT,"mouseout");
+  addDependentTest(Event.ONMOUSEMOVE,"mousemove");
+  TextBox textBox=new TextBox(){
+    @Override public void onBrowserEvent(    Event event){
+      passTest(event);
+    }
+  }
+;
+  textBox.sinkEvents(Event.KEYEVENTS | Event.ONFOCUS | Event.ONBLUR| Event.ONCHANGE);
+  textBox.setText("Type a letter");
+  addTest(Event.ONKEYDOWN,"keydown",textBox);
+  addDependentTest(Event.ONKEYPRESS,"keypress");
+  addDependentTest(Event.ONKEYUP,"keyup");
+  addDependentTest(Event.ONFOCUS,"focus");
+  addDependentTest(Event.ONBLUR,"blur");
+  addDependentTest(Event.ONCHANGE,"change");
+  String scrollableMessage="Scroll to the bottom<br>(using mouse wheel<br>" + "if supported)";
+  HTML scrollableContents=new HTML(scrollableMessage);
+  scrollableContents.setPixelSize(400,400);
+  scrollableContents.getElement().getStyle().setProperty("textAlign","left");
+  ScrollPanel scrollable=new ScrollPanel(scrollableContents){
+    @Override public void onBrowserEvent(    Event event){
+      passTest(event);
+    }
+  }
+;
+  scrollable.sinkEvents(Event.ONSCROLL | Event.ONMOUSEWHEEL);
+  scrollable.setAlwaysShowScrollBars(true);
+  scrollable.setPixelSize(200,100);
+  addTest(Event.ONSCROLL,"scroll",scrollable);
+  addDependentTest(Event.ONMOUSEWHEEL,"mousewheel");
+  Image loadable=new Image(){
+    @Override public void onBrowserEvent(    Event event){
+      passTest(event);
+      if (DOM.eventGetType(event) == Event.ONERROR) {
+        setUrl("issues/images/gwtLogo.png");
+      }
+    }
+  }
+;
+  addTest(Event.ONERROR,"error",loadable);
+  addDependentTest(Event.ONLOAD,"load");
+  loadable.setUrl("imageDoesNotExist.abc");
+  return layout;
+}
