@@ -1,10 +1,13 @@
 {
   double power=Math.pow(10,maximumFractionDigits);
-  number=Math.round(number * power);
-  double intValue=(double)Math.floor(number / power);
-  double fracValue=(double)Math.floor(number - intValue * power);
+  double intValue=(double)Math.floor(number);
+  double fracValue=(double)Math.floor((number - intValue) * power + 0.5d);
+  if (fracValue >= power) {
+    intValue+=1.0;
+    fracValue-=power;
+  }
   boolean fractionPresent=(minimumFractionDigits > 0) || (fracValue > 0);
-  String intPart=String.valueOf(intValue);
+  String intPart=makeIntString(intValue);
   String grouping=isCurrencyFormat ? numberConstants.monetaryGroupingSeparator() : numberConstants.groupingSeparator();
   String decimal=isCurrencyFormat ? numberConstants.monetarySeparator() : numberConstants.decimalSeparator();
   int zeroDelta=numberConstants.zeroDigit().charAt(0) - '0';
@@ -26,7 +29,7 @@
   if (decimalSeparatorAlwaysShown || fractionPresent) {
     result.append(decimal);
   }
-  String fracPart=String.valueOf(fracValue + power);
+  String fracPart=makeIntString(Math.floor(fracValue + power + 0.5d));
   int fracLen=fracPart.length();
   while (fracPart.charAt(fracLen - 1) == '0' && fracLen > minimumFractionDigits + 1) {
     fracLen--;
