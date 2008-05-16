@@ -1,27 +1,24 @@
 {
-  boolean isRTL=LocaleInfo.getCurrentLocale().isRTL();
-  Element headElem=getHeadElement();
-  int numChildren=DOM.getChildCount(headElem);
-  for (int i=0; i < numChildren; i++) {
-    Element elem=DOM.getChild(headElem,i);
-    if (DOM.getElementProperty(elem,"tagName").equalsIgnoreCase("link") && DOM.getElementProperty(elem,"rel").equalsIgnoreCase("stylesheet")) {
-      String href=DOM.getElementProperty(elem,"href");
-      DOM.removeChild(headElem,elem);
-      for (      String oldTheme : ShowcaseConstants.STYLE_THEMES) {
-        href=href.replaceAll("/" + oldTheme + "/","/" + CUR_THEME + "/");
+  HeadElement headElem=getHeadElement();
+  NodeList<Node> children=headElem.getChildNodes();
+  for (int i=0; i < children.getLength(); i++) {
+    Node node=children.getItem(i);
+    if (node.getNodeType() == Node.ELEMENT_NODE) {
+      Element elem=Element.as(node);
+      if (elem.getTagName().equalsIgnoreCase("link") && elem.getPropertyString("rel").equalsIgnoreCase("stylesheet")) {
+        headElem.removeChild(elem);
+        i--;
       }
-      if (isRTL) {
-        href=href.replaceAll("_rtl.css",".css");
-        href=href.replaceAll(".css","_rtl.css");
-      }
-      if (href.contains("GWT.")) {
-        styleTesterTimer.schedule(25);
-      }
-      Element styleElem=DOM.createElement("link");
-      DOM.setElementProperty(styleElem,"rel","stylesheet");
-      DOM.setElementProperty(styleElem,"type","text/css");
-      DOM.setElementProperty(styleElem,"href",href);
-      DOM.insertChild(headElem,styleElem,i);
     }
   }
+  String modulePath=GWT.getModuleBaseURL();
+  String gwtPath=modulePath + "gwt/" + CUR_THEME+ "/"+ CUR_THEME+ ".css";
+  String showcasePath=modulePath + CUR_THEME + "/Showcase.css";
+  if (LocaleInfo.getCurrentLocale().isRTL()) {
+    gwtPath=gwtPath.replace(".css","_rtl.css");
+    showcasePath=showcasePath.replace(".css","_rtl.css");
+  }
+  styleTesterTimer.schedule(25);
+  loadStyleSheet(gwtPath);
+  loadStyleSheet(showcasePath);
 }
