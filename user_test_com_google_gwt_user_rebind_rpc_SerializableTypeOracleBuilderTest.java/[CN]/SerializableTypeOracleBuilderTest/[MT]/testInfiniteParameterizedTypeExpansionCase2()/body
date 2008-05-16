@@ -1,0 +1,40 @@
+{
+  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
+  addStandardClasses(units);
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class A<T> implements Serializable {\n");
+    code.append("  B<T> b;\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("A",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class B<T> extends A<T> implements Serializable {\n");
+    code.append("  A<B<T>> ab;\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("B",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class UnusedSerializableArgument implements Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("UnusedSerializableArgument",code));
+  }
+  TreeLogger logger=createLogger();
+  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,units);
+  JGenericType a=to.getType("A").isGenericType();
+  JGenericType b=to.getType("B").isGenericType();
+  JClassType unusedSerializableArgument=to.getType("UnusedSerializableArgument");
+  JParameterizedType aOfString=to.getParameterizedType(a,new JClassType[]{unusedSerializableArgument});
+  SerializableTypeOracleBuilder sob=new SerializableTypeOracleBuilder(logger,to);
+  sob.addRootType(logger,aOfString);
+  SerializableTypeOracle so=sob.build(logger);
+  assertInstantiable(so,a.getRawType());
+  assertInstantiable(so,b.getRawType());
+  assertNotInstantiableOrFieldSerializable(so,unusedSerializableArgument);
+  assertSerializableTypes(so,a.getRawType(),b.getRawType());
+}

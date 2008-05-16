@@ -1,0 +1,25 @@
+{
+  logger.log(TreeLogger.INFO,"Reachable types computed on: " + new Date().toString());
+  Set<JType> keySet=typeToTypeInfoComputed.keySet();
+  JType[] types=keySet.toArray(new JType[0]);
+  Arrays.sort(types,JTYPE_COMPARATOR);
+  for (  JType type : types) {
+    TypeInfoComputed tic=typeToTypeInfoComputed.get(type);
+    assert(tic != null);
+    TreeLogger typeLogger=logger.branch(TreeLogger.INFO,tic.getType().getParameterizedQualifiedSourceName());
+    TreeLogger serializationStatus=typeLogger.branch(TreeLogger.INFO,"Serialization status");
+    if (tic.isInstantiable()) {
+      serializationStatus.branch(TreeLogger.INFO,"Instantiable");
+    }
+ else {
+      if (tic.isFieldSerializable()) {
+        serializationStatus.branch(TreeLogger.INFO,"Field serializable");
+      }
+ else {
+        serializationStatus.branch(TreeLogger.INFO,"Not serializable");
+      }
+    }
+    TreeLogger pathLogger=typeLogger.branch(TreeLogger.INFO,"Path");
+    logPath(pathLogger,tic.getPath());
+  }
+}

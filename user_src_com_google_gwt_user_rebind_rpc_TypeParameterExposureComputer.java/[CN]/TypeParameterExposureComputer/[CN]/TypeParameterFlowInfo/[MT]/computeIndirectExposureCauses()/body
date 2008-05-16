@@ -1,0 +1,41 @@
+{
+  JClassType[] subtypes=baseType.getSubtypes();
+  for (  JClassType subtype : subtypes) {
+    JGenericType isGeneric=subtype.isGenericType();
+    if (isGeneric == null || isGeneric.isLocalType() || (isGeneric.isMemberType() && !isGeneric.isStatic())) {
+      continue;
+    }
+    JParameterizedType asParameterizationOf=subtype.asParameterizationOf(baseType);
+    Set<JTypeParameter> paramsUsed=new LinkedHashSet<JTypeParameter>();
+    SerializableTypeOracleBuilder.recordTypeParametersIn(asParameterizationOf.getTypeArgs()[ordinal],paramsUsed);
+    for (    JTypeParameter paramUsed : paramsUsed) {
+      recordCausesExposure(isGeneric,paramUsed.getOrdinal(),0);
+    }
+  }
+  JClassType type=baseType;
+  while (type != null) {
+    JField[] fields=type.getFields();
+    for (    JField field : fields) {
+      if (!SerializableTypeOracleBuilder.qualfiesForSerialization(TreeLogger.NULL,field)) {
+        continue;
+      }
+      JParameterizedType isParameterized=field.getType().isParameterized();
+      if (isParameterized == null) {
+        continue;
+      }
+      JClassType[] typeArgs=isParameterized.getTypeArgs();
+      for (int i=0; i < typeArgs.length; ++i) {
+        if (referencesTypeParameter(typeArgs[i],getTypeParameter())) {
+          JGenericType genericFieldType=isParameterized.getBaseType();
+          recordCausesExposure(genericFieldType,i,0);
+          JArrayType typeArgIsArray=typeArgs[i].isArray();
+          if (typeArgIsArray != null && typeArgIsArray.getLeafType() == getTypeParameter()) {
+            int dims=typeArgIsArray.getRank();
+            recordCausesExposure(genericFieldType,i,dims);
+          }
+        }
+      }
+    }
+    type=type.getSuperclass();
+  }
+}

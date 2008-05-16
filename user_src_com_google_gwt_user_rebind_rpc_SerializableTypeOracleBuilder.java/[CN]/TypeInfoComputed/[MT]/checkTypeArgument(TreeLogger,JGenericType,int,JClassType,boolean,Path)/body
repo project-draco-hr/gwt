@@ -1,0 +1,28 @@
+{
+  JArrayType typeArgAsArray=typeArg.isArray();
+  if (typeArgAsArray != null) {
+    JTypeParameter parameterOfTypeArgArray=typeArgAsArray.getLeafType().isTypeParameter();
+    if (parameterOfTypeArgArray != null) {
+      JGenericType declaringClass=parameterOfTypeArgArray.getDeclaringClass();
+      if (declaringClass != null) {
+        TypeParameterFlowInfo flowInfoForArrayParam=getFlowInfo(declaringClass,parameterOfTypeArgArray.getOrdinal());
+        TypeParameterFlowInfo otherFlowInfo=getFlowInfo(baseType,paramIndex);
+        if (otherFlowInfo.getExposure() >= 0 && flowInfoForArrayParam.infiniteArrayExpansionPathBetween(otherFlowInfo)) {
+          logger.branch(getLogLevel(isSpeculative),"Cannot serialize type '" + baseType.getParameterizedQualifiedSourceName() + "' when given an argument of type '"+ typeArg.getParameterizedQualifiedSourceName()+ "' because it appears to require serializing arrays of unbounded dimension");
+          return false;
+        }
+      }
+    }
+  }
+  Path path=createTypeArgumentPath(parent,baseType,paramIndex,typeArg);
+  int exposure=getTypeParameterExposure(baseType,paramIndex);
+switch (exposure) {
+case EXPOSURE_DIRECT:
+    return checkTypeInstantiable(logger,typeArg,true,path) || mightNotBeExposed(baseType,paramIndex);
+case EXPOSURE_NONE:
+  return true;
+default :
+assert(exposure >= EXPOSURE_MIN_BOUNDED_ARRAY);
+return checkTypeInstantiable(logger,getArrayType(typeOracle,exposure,typeArg),true,path) || mightNotBeExposed(baseType,paramIndex);
+}
+}

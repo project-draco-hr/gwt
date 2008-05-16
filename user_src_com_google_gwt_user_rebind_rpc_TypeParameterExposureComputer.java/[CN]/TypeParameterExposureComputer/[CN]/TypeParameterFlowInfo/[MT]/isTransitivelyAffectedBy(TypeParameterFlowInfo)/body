@@ -1,0 +1,23 @@
+{
+  Boolean result=isTransitivelyAffectedByCache.get(flowInfo);
+  if (result != null) {
+    return result;
+  }
+  HashSet<TypeParameterFlowInfo> affectedBy=new HashSet<TypeParameterFlowInfo>();
+  Set<TypeParameterFlowInfo> affectedByWorklist=new LinkedHashSet<TypeParameterFlowInfo>();
+  affectedByWorklist.add(this);
+  result=false;
+  while (!affectedByWorklist.isEmpty()) {
+    TypeParameterFlowInfo currFlowInfo=affectedByWorklist.iterator().next();
+    affectedByWorklist.remove(currFlowInfo);
+    if (currFlowInfo == flowInfo) {
+      result=true;
+      break;
+    }
+    if (affectedBy.add(currFlowInfo)) {
+      affectedByWorklist.addAll(currFlowInfo.getAffectedBy());
+    }
+  }
+  isTransitivelyAffectedByCache.put(flowInfo,result);
+  return result;
+}

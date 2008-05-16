@@ -1,0 +1,37 @@
+{
+  TypeInfoComputed typeInfo=getTypeInfoComputed(classOrInterface,parent);
+  JClassType superType=classOrInterface.getSuperclass();
+  if (superType != null && getTypeInfoComputed(superType,parent).isDeclaredSerializable()) {
+    boolean superTypeOk=checkFields(logger,superType,isSpeculative,parent);
+    if (!superTypeOk && !typeInfo.isDirectlySerializable()) {
+      return false;
+    }
+  }
+  if (typeInfo.isManuallySerializable()) {
+    isSpeculative=true;
+  }
+  boolean allSucceeded=true;
+  JField[] fields=classOrInterface.getFields();
+  if (fields.length > 0) {
+    TreeLogger localLogger=logger.branch(TreeLogger.DEBUG,"Analyzing Fields:",null);
+    for (    JField field : fields) {
+      if (!qualfiesForSerialization(localLogger,field)) {
+        continue;
+      }
+      TreeLogger fieldLogger=localLogger.branch(TreeLogger.DEBUG,field.toString(),null);
+      JType fieldType=field.getType();
+      Path path=createFieldPath(parent,field);
+      if (typeInfo.isManuallySerializable() && fieldType.getLeafType() == typeOracle.getJavaLangObject()) {
+        checkAllSubtypesOfObject(fieldLogger.branch(TreeLogger.WARN,"Object was reached from a manually serializable type",null),path);
+      }
+ else {
+        allSucceeded&=checkTypeInstantiable(fieldLogger,fieldType,isSpeculative,path);
+      }
+    }
+  }
+  boolean succeeded=allSucceeded || typeInfo.isManuallySerializable();
+  if (succeeded) {
+    getTypeInfoComputed(classOrInterface,parent).setFieldSerializable();
+  }
+  return succeeded;
+}

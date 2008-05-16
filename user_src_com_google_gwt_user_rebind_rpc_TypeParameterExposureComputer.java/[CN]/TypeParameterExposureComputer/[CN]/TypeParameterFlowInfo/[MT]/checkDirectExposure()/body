@@ -1,0 +1,23 @@
+{
+  boolean didChange=false;
+  JClassType type=baseType;
+  while (type != null) {
+    JField[] fields=type.getFields();
+    for (    JField field : fields) {
+      if (!SerializableTypeOracleBuilder.qualfiesForSerialization(TreeLogger.NULL,field)) {
+        continue;
+      }
+      if (field.getType().getLeafType() == getTypeParameter()) {
+        markExposedAsArray(0);
+        mightNotBeExposed=false;
+        didChange=true;
+        JArrayType fieldTypeAsArray=field.getType().isArray();
+        if (fieldTypeAsArray != null) {
+          markExposedAsArray(fieldTypeAsArray.getRank());
+        }
+      }
+    }
+    type=type.getSuperclass();
+  }
+  return didChange;
+}

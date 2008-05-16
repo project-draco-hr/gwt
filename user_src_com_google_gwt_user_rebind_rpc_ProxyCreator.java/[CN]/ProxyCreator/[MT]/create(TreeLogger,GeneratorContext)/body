@@ -17,7 +17,19 @@
   RemoteServiceAsyncValidator rsav=new RemoteServiceAsyncValidator(logger,typeOracle);
   Map<JMethod,JMethod> syncMethToAsyncMethMap=rsav.validate(logger,serviceIntf,serviceAsync);
   SerializableTypeOracleBuilder stob=new SerializableTypeOracleBuilder(logger,typeOracle);
-  SerializableTypeOracle sto=stob.build(context.getPropertyOracle(),serviceIntf);
+  try {
+    addRequiredRoots(logger,typeOracle,stob);
+    addRemoteServiceRootTypes(logger,typeOracle,stob,serviceIntf);
+  }
+ catch (  NotFoundException e) {
+    logger.log(TreeLogger.ERROR,"",e);
+    throw new UnableToCompleteException();
+  }
+  OutputStream pathInfo=context.tryCreateResource(logger,serviceIntf.getQualifiedSourceName() + ".rpc.log");
+  stob.setLogOutputStream(pathInfo);
+  SerializableTypeOracle sto=stob.build(logger);
+  GeneratedResource rpcLog=context.commitResource(logger,pathInfo);
+  rpcLog.setPrivate(true);
   TypeSerializerCreator tsc=new TypeSerializerCreator(logger,sto,context,serviceIntf);
   tsc.realize(logger);
   enforceTypeVersioning=Shared.shouldEnforceTypeVersioning(logger,context.getPropertyOracle());

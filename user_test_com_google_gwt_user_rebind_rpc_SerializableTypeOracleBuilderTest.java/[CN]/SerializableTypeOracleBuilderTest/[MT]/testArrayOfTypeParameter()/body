@@ -1,0 +1,63 @@
+{
+  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
+  addStandardClasses(units);
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class A<T> implements Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("A",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class B<T> extends A<T> implements Serializable {\n");
+    code.append("  T[][] t;\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("B",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class C<T> implements Serializable {\n");
+    code.append("  A<T[]> a1;\n");
+    code.append("  A<Ser> a2;\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("C",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class Ser implements Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("Ser",code));
+  }
+  TreeLogger logger=createLogger();
+  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,units);
+  JGenericType a=to.getType("A").isGenericType();
+  JGenericType b=to.getType("B").isGenericType();
+  JGenericType c=to.getType("C").isGenericType();
+  JClassType ser=to.getType("Ser");
+  JClassType javaLangString=to.getType(String.class.getName());
+  JParameterizedType cOfString=to.getParameterizedType(c,new JClassType[]{javaLangString});
+  SerializableTypeOracleBuilder sob=new SerializableTypeOracleBuilder(logger,to);
+  sob.addRootType(logger,cOfString);
+  assertEquals(2,sob.getTypeParameterExposure(a,0));
+  assertEquals(2,sob.getTypeParameterExposure(b,0));
+  assertEquals(3,sob.getTypeParameterExposure(c,0));
+  SerializableTypeOracle so=sob.build(logger);
+  JArrayType stringArray=to.getArrayType(javaLangString);
+  JArrayType stringArrayArray=to.getArrayType(stringArray);
+  JArrayType stringArrayArrayArray=to.getArrayType(stringArrayArray);
+  JArrayType serArray=to.getArrayType(ser);
+  JArrayType serArrayArray=to.getArrayType(serArray);
+  assertSerializableTypes(so,a.getRawType(),b.getRawType(),c,javaLangString,stringArray,stringArrayArray,stringArrayArrayArray,ser,serArray,serArrayArray);
+  assertInstantiable(so,a.getRawType());
+  assertInstantiable(so,b.getRawType());
+  assertInstantiable(so,c);
+  assertInstantiable(so,stringArray);
+  assertInstantiable(so,stringArrayArray);
+  assertInstantiable(so,stringArrayArrayArray);
+  assertInstantiable(so,serArray);
+  assertInstantiable(so,serArrayArray);
+}

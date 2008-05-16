@@ -1,0 +1,37 @@
+{
+  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
+  addStandardClasses(units);
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class A<T> implements Serializable {\n");
+    code.append("  T t;\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("A",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class B<T> extends A<T> implements Serializable {\n");
+    code.append("  A<T[]> ab;\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("B",code));
+  }
+  TreeLogger logger=createLogger();
+  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,units);
+  JGenericType a=to.getType("A").isGenericType();
+  JGenericType b=to.getType("B").isGenericType();
+  JClassType javaLangString=to.getType(String.class.getName());
+  JParameterizedType aOfString=to.getParameterizedType(a,new JClassType[]{javaLangString});
+  SerializableTypeOracleBuilder sob=new SerializableTypeOracleBuilder(logger,to);
+  assertEquals(0,sob.getTypeParameterExposure(a,0));
+  assertEquals(0,sob.getTypeParameterExposure(b,0));
+  sob.addRootType(logger,aOfString);
+  SerializableTypeOracle so=sob.build(logger);
+  assertNotFieldSerializable(so,b.getRawType());
+  assertNotInstantiable(so,b.getRawType());
+  assertSerializableTypes(so,a.getRawType(),javaLangString);
+  assertInstantiable(so,a.getRawType());
+  assertNotInstantiable(so,b.getRawType());
+  assertInstantiable(so,javaLangString);
+}
