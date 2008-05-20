@@ -18,18 +18,11 @@
   }
  else {
     assert(typeInfo.isAutoSerializable());
-    if (type.isEnum() != null) {
-      if (type.isLocalType()) {
-        return false;
-      }
- else {
-        return !type.isPrivate();
-      }
-    }
-    if (type.isPrivate()) {
+    TreeLogger.Type logLevel=isSpeculative ? TreeLogger.DEBUG : TreeLogger.WARN;
+    if (!isAccessibleToClassesInSamePackage(type)) {
+      logger.branch(logLevel,type.getParameterizedQualifiedSourceName() + " is not accessible from a class in its same package; it will be excluded from the set of serializable types",null);
       return false;
     }
-    TreeLogger.Type logLevel=isSpeculative ? TreeLogger.DEBUG : TreeLogger.WARN;
     if (type.isLocalType()) {
       logger.branch(logLevel,type.getParameterizedQualifiedSourceName() + " is a local type; it will be excluded from the set of serializable types",null);
       return false;
@@ -38,12 +31,16 @@
       logger.branch(logLevel,type.getParameterizedQualifiedSourceName() + " is nested but not static; it will be excluded from the set of serializable types",null);
       return false;
     }
-    if (type.isAbstract()) {
-      return false;
+    if (type.isEnum() == null) {
+      if (type.isAbstract()) {
+        return false;
+      }
+      if (!type.isDefaultInstantiable()) {
+        logger.log(logLevel,"Was not default instantiable (it must have a zero-argument constructor or no constructors at all)",null);
+        return false;
+      }
     }
-    if (!type.isDefaultInstantiable()) {
-      logger.log(logLevel,"Was not default instantiable (it must have a zero-argument constructor or no constructors at all)",null);
-      return false;
+ else {
     }
   }
   return true;
