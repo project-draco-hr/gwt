@@ -1,4 +1,11 @@
 {
+  PrintWriter printWriter=null;
+  if (logOutputStream != null) {
+    printWriter=new PrintWriter(logOutputStream);
+    PrintWriterTreeLogger printWriterTreeLogger=new PrintWriterTreeLogger(printWriter);
+    printWriterTreeLogger.setMaxDetail(TreeLogger.ALL);
+    logger=printWriterTreeLogger;
+  }
   logger.log(TreeLogger.INFO,"Reachable types computed on: " + new Date().toString());
   Set<JType> keySet=typeToTypeInfoComputed.keySet();
   JType[] types=keySet.toArray(new JType[0]);
@@ -21,5 +28,9 @@
     }
     TreeLogger pathLogger=typeLogger.branch(TreeLogger.INFO,"Path");
     logPath(pathLogger,tic.getPath());
+    logger.log(TreeLogger.INFO,"");
+  }
+  if (printWriter != null) {
+    printWriter.flush();
   }
 }
