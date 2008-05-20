@@ -47,6 +47,13 @@
       if (leafClass != null) {
         JClassType[] leafSubtypes=leafClass.getErasedType().getSubtypes();
         for (        JClassType leafSubtype : leafSubtypes) {
+          if (leafSubtype.isRawType() != null) {
+            JGenericType leafGenericSub=leafSubtype.isRawType().getBaseType();
+            leafSubtype=typeOracle.getParameterizedType(leafGenericSub,leafGenericSub.getTypeParameters());
+          }
+          if (!isAccessibleToClassesInSamePackage(leafSubtype)) {
+            continue;
+          }
           JArrayType covariantArray=getArrayType(typeOracle,isArray.getRank(),leafSubtype);
           checkTypeInstantiable(localLogger,covariantArray,true,path);
         }
@@ -122,6 +129,9 @@
         TreeLogger subtypeLogger=subtypesLogger.branch(TreeLogger.DEBUG,subtype.getParameterizedQualifiedSourceName(),null);
         Path subtypePath=createSubtypePath(path,subtype,originalType);
         boolean subInstantiable=checkTypeInstantiableNoSubtypes(subtypeLogger,subtype,true,subtypePath);
+        if (!subInstantiable) {
+          continue;
+        }
         JGenericType genericSub=subtype.isGenericType();
         if (genericSub != null) {
           TreeLogger paramsLogger=subtypeLogger.branch(TreeLogger.DEBUG,"Checking parameters of '" + genericSub.getParameterizedQualifiedSourceName() + "'");
@@ -143,7 +153,7 @@
           }
         }
  else {
-          if (subInstantiable && isParameterized != null) {
+          if (isParameterized != null) {
             HashSet<JTypeParameter> typeParamsInQueryType=new HashSet<JTypeParameter>();
             recordTypeParametersIn(isParameterized,typeParamsInQueryType);
             if (typeParamsInQueryType.isEmpty()) {
