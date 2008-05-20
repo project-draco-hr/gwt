@@ -1,0 +1,29 @@
+{
+  Map<JClassType,List<JClassType>> adjList=new HashMap<JClassType,List<JClassType>>();
+  Set<JClassType> seen=new HashSet<JClassType>();
+  Stack<JClassType> queue=new Stack<JClassType>();
+  queue.push(root);
+  while (!queue.isEmpty()) {
+    JClassType clazz=queue.pop();
+    JClassType[] subclasses=clazz.getSubtypes();
+    if (seen.contains(clazz)) {
+      continue;
+    }
+    seen.add(clazz);
+    for (    JClassType subclass : subclasses) {
+      if (clazz.isInterface() != null) {
+        if (TypeHierarchyUtils.directlyImplementsInterface(subclass,clazz)) {
+          TypeHierarchyUtils.addEdge(adjList,subclass,clazz);
+          queue.push(subclass);
+        }
+      }
+ else {
+        if (subclass.getSuperclass() == clazz) {
+          TypeHierarchyUtils.addEdge(adjList,subclass,clazz);
+          queue.push(subclass);
+        }
+      }
+    }
+  }
+  return adjList;
+}
