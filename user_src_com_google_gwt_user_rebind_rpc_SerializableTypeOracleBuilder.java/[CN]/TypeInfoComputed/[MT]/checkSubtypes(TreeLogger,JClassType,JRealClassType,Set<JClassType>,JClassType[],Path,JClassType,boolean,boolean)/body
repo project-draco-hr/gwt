@@ -1,0 +1,74 @@
+{
+  assert(currentSubtype instanceof JRealClassType || currentSubtype.isGenericType() != null);
+  Path subtypePath=createSubtypePath(path,currentSubtype,originalType);
+  TypeInfoComputed typeInfo=getTypeInfoComputed(currentSubtype,subtypePath);
+  TreeLogger subtypeLogger=localLogger.branch(TreeLogger.DEBUG,currentSubtype.getParameterizedQualifiedSourceName(),null);
+  boolean subInstantiable=qualifiesForSerialization(subtypeLogger,currentSubtype,true,subtypePath);
+  if (!superIsFieldSerializable) {
+    subInstantiable&=typeInfo.isDirectlySerializable();
+  }
+  if (subInstantiable) {
+    if (checkSuperFields) {
+      subInstantiable&=checkFields(subtypeLogger,typeInfo.getType(),true,subtypePath);
+    }
+ else {
+      subInstantiable&=checkDeclaredFields(subtypeLogger,typeInfo,true,subtypePath);
+    }
+  }
+  boolean anySubtypes=false;
+  List<JClassType> immediateSubtypes=TypeHierarchyUtils.getImmediateSubtypes(currentSubtype);
+  for (  JClassType immediateSubtype : immediateSubtypes) {
+    if (immediateSubtype.isRawType() != null) {
+      immediateSubtype=immediateSubtype.isRawType().getBaseType();
+    }
+    checkSuperFields=currentSubtype.isInterface() != null && immediateSubtype.isClass() != null;
+    anySubtypes|=checkSubtypes(localLogger,originalType,baseType,instSubtypes,typeArgs,path,immediateSubtype,checkSuperFields,subInstantiable);
+  }
+  if (!subInstantiable) {
+    return anySubtypes;
+  }
+  if (currentSubtype == baseType) {
+    return anySubtypes;
+  }
+  JGenericType genericSub=currentSubtype.isGenericType();
+  if (genericSub != null) {
+    TreeLogger paramsLogger=subtypeLogger.branch(TreeLogger.DEBUG,"Checking parameters of '" + genericSub.getParameterizedQualifiedSourceName() + "'");
+    Map<JTypeParameter,Set<JTypeParameter>> subParamsConstrainedBy=subParamsConstrainedBy(baseType,genericSub);
+    for (int i=0; i < genericSub.getTypeParameters().length; i++) {
+      JTypeParameter param=genericSub.getTypeParameters()[i];
+      TreeLogger paramLogger=paramsLogger.branch(TreeLogger.DEBUG,"Checking param '" + param.getParameterizedQualifiedSourceName() + "'");
+      Set<JTypeParameter> constBy=subParamsConstrainedBy.get(param);
+      if (constBy == null) {
+        subInstantiable&=checkTypeArgument(paramLogger,genericSub,i,param.getFirstBound(),true,path);
+      }
+ else {
+        boolean paramOK=false;
+        for (        JTypeParameter constrained : constBy) {
+          paramOK|=checkTypeArgument(paramLogger,genericSub,i,typeArgs[constrained.getOrdinal()],true,path);
+        }
+        subInstantiable&=paramOK;
+      }
+    }
+  }
+ else {
+    JParameterizedType isParameterized=originalType.isParameterized();
+    if (isParameterized != null) {
+      HashSet<JTypeParameter> typeParamsInQueryType=new HashSet<JTypeParameter>();
+      recordTypeParametersIn(isParameterized,typeParamsInQueryType);
+      if (typeParamsInQueryType.isEmpty()) {
+        if (!isParameterized.isAssignableFrom(currentSubtype)) {
+          subtypeLogger.log(TreeLogger.DEBUG,"Excluding type '" + currentSubtype.getParameterizedQualifiedSourceName() + "' because it is not assignable to '"+ isParameterized.getParameterizedQualifiedSourceName()+ "'");
+          subInstantiable=false;
+        }
+      }
+    }
+  }
+  if (subInstantiable) {
+    if (instSubtypes != null) {
+      instSubtypes.add(currentSubtype);
+    }
+    typeInfo.setInstantiable(true);
+    anySubtypes=true;
+  }
+  return anySubtypes;
+}

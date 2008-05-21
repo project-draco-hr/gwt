@@ -61,7 +61,6 @@
   if (isSpeculative && tic.isDirectlySerializable()) {
     isSpeculative=false;
   }
-  boolean isInstantiable=checkTypeInstantiableNoSubtypes(localLogger,baseType,isSpeculative,path);
   JClassType[] typeArgs=NO_JCLASSES;
   JParameterizedType isParameterized=originalType.isParameterized();
   JGenericType baseAsGenericType=baseType.isGenericType();
@@ -93,60 +92,11 @@
       }
     }
   }
-  isInstantiable&=parametersOkay;
+  boolean isInstantiable=parametersOkay && qualifiesForSerialization(localLogger,baseType,isSpeculative,path) && checkFields(localLogger,baseType,isSpeculative,path);
   boolean anySubtypes=false;
-  if (parametersOkay) {
-    JClassType[] subtypes=baseType.getSubtypes();
-    if (subtypes.length > 0) {
-      TreeLogger subtypesLogger=localLogger.branch(TreeLogger.DEBUG,"Analyzing subclasses:",null);
-      for (      JClassType subtype : subtypes) {
-        TreeLogger subtypeLogger=subtypesLogger.branch(TreeLogger.DEBUG,subtype.getParameterizedQualifiedSourceName(),null);
-        Path subtypePath=createSubtypePath(path,subtype,originalType);
-        boolean subInstantiable=checkTypeInstantiableNoSubtypes(subtypeLogger,subtype,true,subtypePath);
-        if (!subInstantiable) {
-          continue;
-        }
-        JGenericType genericSub=subtype.isGenericType();
-        if (genericSub != null) {
-          TreeLogger paramsLogger=subtypeLogger.branch(TreeLogger.DEBUG,"Checking parameters of '" + genericSub.getParameterizedQualifiedSourceName() + "'");
-          Map<JTypeParameter,Set<JTypeParameter>> subParamsConstrainedBy=subParamsConstrainedBy(baseType,genericSub);
-          for (int i=0; i < genericSub.getTypeParameters().length; i++) {
-            JTypeParameter param=genericSub.getTypeParameters()[i];
-            TreeLogger paramLogger=paramsLogger.branch(TreeLogger.DEBUG,"Checking param '" + param.getParameterizedQualifiedSourceName() + "'");
-            Set<JTypeParameter> constBy=subParamsConstrainedBy.get(param);
-            if (constBy == null) {
-              subInstantiable&=checkTypeArgument(paramLogger,genericSub,i,param.getFirstBound(),true,path);
-            }
- else {
-              boolean paramOK=false;
-              for (              JTypeParameter constrained : constBy) {
-                paramOK|=checkTypeArgument(paramLogger,genericSub,i,typeArgs[constrained.getOrdinal()],true,path);
-              }
-              subInstantiable&=paramOK;
-            }
-          }
-        }
- else {
-          if (isParameterized != null) {
-            HashSet<JTypeParameter> typeParamsInQueryType=new HashSet<JTypeParameter>();
-            recordTypeParametersIn(isParameterized,typeParamsInQueryType);
-            if (typeParamsInQueryType.isEmpty()) {
-              if (!isParameterized.isAssignableFrom(subtype)) {
-                subtypeLogger.log(TreeLogger.DEBUG,"Excluding type '" + subtype.getParameterizedQualifiedSourceName() + "' because it is not assignable to '"+ isParameterized.getParameterizedQualifiedSourceName()+ "'");
-                subInstantiable=false;
-              }
-            }
-          }
-        }
-        if (subInstantiable) {
-          if (instSubtypes != null) {
-            instSubtypes.add(subtype);
-          }
-          getTypeInfoComputed(subtype,path).setInstantiable(true);
-          anySubtypes=true;
-        }
-      }
-    }
+  if (parametersOkay && baseType.getSubtypes().length > 0) {
+    TreeLogger subtypesLogger=localLogger.branch(TreeLogger.DEBUG,"Analyzing subclasses:",null);
+    anySubtypes=checkSubtypes(subtypesLogger,originalType,baseType,instSubtypes,typeArgs,path,baseType,false,isInstantiable);
   }
   anySubtypes|=isInstantiable;
   tic.setInstantiable(isInstantiable);
