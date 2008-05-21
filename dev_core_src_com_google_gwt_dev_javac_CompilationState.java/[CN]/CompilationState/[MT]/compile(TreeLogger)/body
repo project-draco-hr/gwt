@@ -1,13 +1,30 @@
 {
   JdtCompiler.compile(getCompilationUnits());
-  CompilationUnitInvalidator.validateCompilationUnits(getCompilationUnits(),getClassFileMap());
-  JsniCollector.collectJsniMethods(logger,getCompilationUnits(),new JsProgram());
-  CompilationUnitInvalidator.invalidateUnitsWithErrors(logger,getCompilationUnits());
-  mediator.refresh(logger,getCompilationUnits());
+  Set<String> validBinaryTypeNames=new HashSet<String>();
   for (  CompilationUnit unit : getCompilationUnits()) {
-    if (unit.getState() == State.COMPILED) {
-      unit.setState(State.CHECKED);
-    }
+switch (unit.getState()) {
+case COMPILED:
+      for (      ClassFile classFile : unit.getJdtCud().compilationResult().getClassFiles()) {
+        char[] binaryName=CharOperation.concatWith(classFile.getCompoundName(),'/');
+        validBinaryTypeNames.add(String.valueOf(binaryName));
+      }
+    break;
+case CHECKED:
+  for (  CompiledClass compiledClass : unit.getCompiledClasses()) {
+    validBinaryTypeNames.add(compiledClass.getBinaryName());
   }
-  updateExposedUnits();
+break;
+}
+}
+CompilationUnitInvalidator.validateCompilationUnits(getCompilationUnits(),validBinaryTypeNames);
+CompilationUnitInvalidator.invalidateUnitsWithErrors(logger,getCompilationUnits());
+JsniCollector.collectJsniMethods(logger,getCompilationUnits(),new JsProgram());
+CompilationUnitInvalidator.invalidateUnitsWithErrors(logger,getCompilationUnits());
+mediator.refresh(logger,getCompilationUnits());
+for (CompilationUnit unit : getCompilationUnits()) {
+if (unit.getState() == State.COMPILED) {
+unit.setState(State.CHECKED);
+}
+}
+updateExposedUnits();
 }

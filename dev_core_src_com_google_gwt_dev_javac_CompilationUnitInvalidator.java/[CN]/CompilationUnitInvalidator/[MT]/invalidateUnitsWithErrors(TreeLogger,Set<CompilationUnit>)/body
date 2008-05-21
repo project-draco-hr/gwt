@@ -2,11 +2,10 @@
   logger=logger.branch(TreeLogger.TRACE,"Removing units with errors");
   boolean anyRemoved=false;
   for (  CompilationUnit unit : units) {
-    CompilationUnitDeclaration cud=unit.getJdtCud();
-    if (cud == null) {
+    if (unit.getState() != State.COMPILED) {
       continue;
     }
-    CompilationResult result=cud.compilationResult();
+    CompilationResult result=unit.getJdtCud().compilationResult();
     if (result.hasErrors()) {
       anyRemoved=true;
       TreeLogger branch=logger.branch(TreeLogger.ERROR,"Errors in '" + unit.getDisplayLocation() + "'",null);
