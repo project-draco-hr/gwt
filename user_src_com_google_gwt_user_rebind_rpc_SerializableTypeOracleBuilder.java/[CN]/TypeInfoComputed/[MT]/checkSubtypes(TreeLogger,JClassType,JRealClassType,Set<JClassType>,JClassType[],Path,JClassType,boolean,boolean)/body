@@ -3,16 +3,16 @@
   Path subtypePath=createSubtypePath(path,currentSubtype,originalType);
   TypeInfoComputed typeInfo=getTypeInfoComputed(currentSubtype,subtypePath);
   TreeLogger subtypeLogger=localLogger.branch(TreeLogger.DEBUG,currentSubtype.getParameterizedQualifiedSourceName(),null);
-  boolean subInstantiable=qualifiesForSerialization(subtypeLogger,currentSubtype,true,subtypePath);
+  boolean fieldSerializable=shouldConsiderFieldsForSerialization(subtypeLogger,currentSubtype,true);
   if (!superIsFieldSerializable) {
-    subInstantiable&=typeInfo.isDirectlySerializable();
+    fieldSerializable&=typeInfo.isDirectlySerializable();
   }
-  if (subInstantiable) {
+  if (fieldSerializable) {
     if (checkSuperFields) {
-      subInstantiable&=checkFields(subtypeLogger,typeInfo.getType(),true,subtypePath);
+      fieldSerializable&=checkFields(subtypeLogger,typeInfo.getType(),true,subtypePath);
     }
  else {
-      subInstantiable&=checkDeclaredFields(subtypeLogger,typeInfo,true,subtypePath);
+      fieldSerializable&=checkDeclaredFields(subtypeLogger,typeInfo,true,subtypePath);
     }
   }
   boolean anySubtypes=false;
@@ -22,9 +22,9 @@
       immediateSubtype=immediateSubtype.isRawType().getBaseType();
     }
     checkSuperFields=currentSubtype.isInterface() != null && immediateSubtype.isClass() != null;
-    anySubtypes|=checkSubtypes(localLogger,originalType,baseType,instSubtypes,typeArgs,path,immediateSubtype,checkSuperFields,subInstantiable);
+    anySubtypes|=checkSubtypes(localLogger,originalType,baseType,instSubtypes,typeArgs,path,immediateSubtype,checkSuperFields,fieldSerializable);
   }
-  if (!subInstantiable) {
+  if (!fieldSerializable) {
     return anySubtypes;
   }
   if (currentSubtype == baseType) {
@@ -39,14 +39,14 @@
       TreeLogger paramLogger=paramsLogger.branch(TreeLogger.DEBUG,"Checking param '" + param.getParameterizedQualifiedSourceName() + "'");
       Set<JTypeParameter> constBy=subParamsConstrainedBy.get(param);
       if (constBy == null) {
-        subInstantiable&=checkTypeArgument(paramLogger,genericSub,i,param.getFirstBound(),true,path);
+        fieldSerializable&=checkTypeArgument(paramLogger,genericSub,i,param.getFirstBound(),true,path);
       }
  else {
         boolean paramOK=false;
         for (        JTypeParameter constrained : constBy) {
           paramOK|=checkTypeArgument(paramLogger,genericSub,i,typeArgs[constrained.getOrdinal()],true,path);
         }
-        subInstantiable&=paramOK;
+        fieldSerializable&=paramOK;
       }
     }
   }
@@ -58,12 +58,12 @@
       if (typeParamsInQueryType.isEmpty()) {
         if (!isParameterized.isAssignableFrom(currentSubtype)) {
           subtypeLogger.log(TreeLogger.DEBUG,"Excluding type '" + currentSubtype.getParameterizedQualifiedSourceName() + "' because it is not assignable to '"+ isParameterized.getParameterizedQualifiedSourceName()+ "'");
-          subInstantiable=false;
+          fieldSerializable=false;
         }
       }
     }
   }
-  if (subInstantiable) {
+  if (fieldSerializable && canBeInstantiated(subtypeLogger,currentSubtype,TreeLogger.DEBUG)) {
     if (instSubtypes != null) {
       instSubtypes.add(currentSubtype);
     }
