@@ -3,46 +3,89 @@
   final TestAnimation animPast=new TestAnimation();
   final TestAnimation animFuture=new TestAnimation();
   double curTime=Duration.currentTimeMillis();
-  animNow.run(300);
-  animPast.run(300,curTime - 150);
-  animFuture.run(300,curTime + 150);
-  assertTrue(animNow.started);
-  assertFalse(animNow.completed);
-  assertTrue(animNow.curProgress >= 0.0 && animNow.curProgress <= 2.0);
-  assertTrue(animPast.started);
-  assertFalse(animPast.completed);
-  assertTrue(animPast.curProgress > 0.0 && animPast.curProgress <= 1.0);
-  assertFalse(animFuture.started);
-  assertFalse(animFuture.completed);
-  assertEquals(-1.0,animFuture.curProgress);
+  animNow.run(30 * DELAY_MULTIPLIER);
+  animPast.run(30 * DELAY_MULTIPLIER,curTime - 10 * DELAY_MULTIPLIER);
+  animFuture.run(30 * DELAY_MULTIPLIER,curTime + 10 * DELAY_MULTIPLIER);
+  animNow.assertStarted(true);
+  animNow.assertCompleted(false);
+  animNow.assertProgress(-1.0);
+  animPast.assertStarted(true);
+  animPast.assertCompleted(false);
+  animPast.assertProgress(-1.0);
+  animFuture.assertStarted(false);
+  animFuture.assertCompleted(false);
+  animFuture.assertProgress(-1.0);
   new Timer(){
     @Override public void run(){
-      assertTrue(animNow.started);
-      assertFalse(animNow.completed);
-      assertTrue(animNow.curProgress > 0.0 && animNow.curProgress <= 2.0);
-      assertTrue(animPast.started);
-      assertFalse(animPast.completed);
-      assertTrue(animPast.curProgress > 0.0 && animPast.curProgress <= 1.0);
-      assertFalse(animFuture.started);
-      assertFalse(animFuture.completed);
-      assertEquals(-1.0,animFuture.curProgress);
+      animNow.assertStarted(true);
+      animNow.assertCompleted(false);
+      animNow.assertProgressRange(0.0,1.0);
+      animPast.assertStarted(true);
+      animPast.assertCompleted(false);
+      animPast.assertProgressRange(0.0,1.0);
+      animFuture.assertStarted(false);
+      animFuture.assertCompleted(false);
+      animFuture.assertProgress(-1.0);
     }
   }
-.schedule(50);
+.schedule(5 * DELAY_MULTIPLIER);
   new Timer(){
     @Override public void run(){
-      assertTrue(animNow.started);
-      assertTrue(animNow.completed);
-      assertTrue(animNow.curProgress > 0.0 && animNow.curProgress <= 1.0);
-      assertTrue(animPast.started);
-      assertTrue(animPast.completed);
-      assertTrue(animPast.curProgress > 0.0 && animPast.curProgress <= 1.0);
-      assertTrue(animFuture.started);
-      assertFalse(animFuture.completed);
-      assertTrue(animFuture.curProgress > 0.0 && animFuture.curProgress <= 1.0);
+      animNow.assertStarted(true);
+      animNow.assertCompleted(false);
+      animNow.assertProgressRange(0.0,1.0);
+      animPast.assertStarted(true);
+      animPast.assertCompleted(false);
+      animPast.assertProgressRange(0.0,1.0);
+      animFuture.assertStarted(true);
+      animFuture.assertCompleted(false);
+      animFuture.assertProgressRange(0.0,1.0);
+    }
+  }
+.schedule(15 * DELAY_MULTIPLIER);
+  new Timer(){
+    @Override public void run(){
+      animNow.assertStarted(true);
+      animNow.assertCompleted(false);
+      animNow.assertProgressRange(0.0,1.0);
+      animPast.assertStarted(true);
+      animPast.assertCompleted(true);
+      animPast.assertProgressRange(0.0,1.0);
+      animFuture.assertStarted(true);
+      animFuture.assertCompleted(false);
+      animFuture.assertProgressRange(0.0,1.0);
+    }
+  }
+.schedule(25 * DELAY_MULTIPLIER);
+  new Timer(){
+    @Override public void run(){
+      animNow.assertStarted(true);
+      animNow.assertCompleted(true);
+      animNow.assertProgressRange(0.0,1.0);
+      animPast.assertStarted(true);
+      animPast.assertCompleted(true);
+      animPast.assertProgressRange(0.0,1.0);
+      animFuture.assertStarted(true);
+      animFuture.assertCompleted(false);
+      animFuture.assertProgressRange(0.0,1.0);
       finishTest();
     }
   }
-.schedule(350);
-  delayTestFinish(500);
+.schedule(35 * DELAY_MULTIPLIER);
+  new Timer(){
+    @Override public void run(){
+      animNow.assertStarted(true);
+      animNow.assertCompleted(true);
+      animNow.assertProgressRange(0.0,1.0);
+      animPast.assertStarted(true);
+      animPast.assertCompleted(true);
+      animPast.assertProgressRange(0.0,1.0);
+      animFuture.assertStarted(true);
+      animFuture.assertCompleted(true);
+      animFuture.assertProgressRange(0.0,1.0);
+      finishTest();
+    }
+  }
+.schedule(45 * DELAY_MULTIPLIER);
+  delayTestFinish(50 * DELAY_MULTIPLIER);
 }
