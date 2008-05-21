@@ -2,6 +2,9 @@
   String installPath=Utility.getInstallPath();
   String gwtUserPath=installPath + '/' + "gwt-user.jar";
   String gwtDevPath=installPath + '/' + Utility.getDevJarName();
+  if (!CreatorUtilities.validatePathsAndModules(gwtUserPath,extraClassPaths,null)) {
+    return;
+  }
   boolean isWindows=gwtDevPath.substring(gwtDevPath.lastIndexOf('/') + 1).indexOf("windows") >= 0;
   boolean isMacOsX=gwtDevPath.substring(gwtDevPath.lastIndexOf('/') + 1).indexOf("mac") >= 0;
   String basePathEnv;
@@ -48,6 +51,9 @@
   replacements.put("@gwtUserPath",basePathEnv + gwtUserPath);
   replacements.put("@gwtDevPath",basePathEnv + gwtDevPath);
   replacements.put("@vmargs",isMacOsX ? "-XstartOnFirstThread" : "");
+  replacements.put("@eclipseExtraLaunchPaths",CreatorUtilities.createEclipseExtraLaunchPaths(extraClassPaths));
+  replacements.put("@extraClassPathsColon",CreatorUtilities.appendPaths(":",extraClassPaths));
+  replacements.put("@extraClassPathsSemicolon",CreatorUtilities.appendPaths(";",extraClassPaths));
 {
     File javaClass=Utility.createNormalFile(clientDir,className + ".java",overwrite,ignore);
     if (javaClass != null) {

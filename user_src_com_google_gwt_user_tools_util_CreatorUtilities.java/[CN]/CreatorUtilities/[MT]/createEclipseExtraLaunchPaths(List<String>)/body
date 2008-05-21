@@ -1,0 +1,34 @@
+{
+  if (extraClassPaths == null) {
+    return "";
+  }
+  StringBuilder buf=new StringBuilder();
+  for (  String path : extraClassPaths) {
+    File f=new File(path);
+    if (!f.exists()) {
+      throw new FileNotFoundException("extraClassPath: " + path + "Must be present before .launch file can be created");
+    }
+    String lcPath=path.toLowerCase();
+    if (f.isDirectory()) {
+      buf.append("<listEntry value=\"&lt;?xml version=&quot;1.0&quot; ");
+      buf.append("encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;");
+      buf.append("?&gt;&#13;&#10;&lt;runtimeClasspathEntry ");
+      buf.append("internalArchive=&quot;");
+      buf.append(path);
+      buf.append("&quot; path=&quot;3&quot; type=&quot;2&quot;/&gt;&#13;&#10;\"/>");
+      buf.append("\n");
+    }
+ else     if (lcPath.endsWith(".jar") || lcPath.endsWith(".zip")) {
+      buf.append("<listEntry value=\"&lt;?xml version=&quot;1.0&quot; ");
+      buf.append("encoding=&quot;UTF-8&quot;?&gt;&#13;&#10;&lt;runtimeClasspathEntry ");
+      buf.append("externalArchive=&quot;");
+      buf.append(path);
+      buf.append("&quot; path=&quot;3&quot; type=&quot;2&quot;/&gt;&#13;&#10;\"/>");
+      buf.append("\n");
+    }
+ else {
+      throw new RuntimeException("Don't know how to handle path: " + path + ". It doesn't appear to be a directory or a .jar/.zip file");
+    }
+  }
+  return buf.toString();
+}

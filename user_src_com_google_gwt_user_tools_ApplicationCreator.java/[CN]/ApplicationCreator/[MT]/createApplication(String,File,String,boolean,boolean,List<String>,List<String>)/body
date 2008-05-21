@@ -1,0 +1,115 @@
+{
+  String installPath=Utility.getInstallPath();
+  String gwtUserPath=installPath + '/' + "gwt-user.jar";
+  String gwtDevPath=installPath + '/' + Utility.getDevJarName();
+  if (!CreatorUtilities.validatePathsAndModules(gwtUserPath,extraClassPaths,extraModules)) {
+    return;
+  }
+  boolean isWindows=gwtDevPath.substring(gwtDevPath.lastIndexOf('/') + 1).indexOf("windows") >= 0;
+  boolean isMacOsX=gwtDevPath.substring(gwtDevPath.lastIndexOf('/') + 1).indexOf("mac") >= 0;
+  String basePathEnv;
+  if (!new File(installPath).isAbsolute()) {
+    if (isWindows) {
+      basePathEnv="%~dp0\\";
+    }
+ else {
+      basePathEnv="$APPDIR/";
+    }
+  }
+ else {
+    basePathEnv="";
+  }
+  int pos=fullClassName.lastIndexOf('.');
+  String clientPackageName=fullClassName.substring(0,pos);
+  String className=fullClassName.substring(pos + 1);
+  pos=clientPackageName.lastIndexOf('.');
+  File basePackageDir;
+  String moduleName;
+  File javaDir=Utility.getDirectory(outDir,"src",true);
+  if (pos >= 0) {
+    String basePackage=clientPackageName.substring(0,pos);
+    moduleName=basePackage + "." + className;
+    basePackage=basePackage.replace('.','/');
+    basePackageDir=Utility.getDirectory(javaDir,basePackage,true);
+  }
+ else {
+    moduleName=className;
+    basePackageDir=javaDir;
+  }
+  File clientDir=Utility.getDirectory(basePackageDir,"client",true);
+  File publicDir=Utility.getDirectory(basePackageDir,"public",true);
+  String startupUrl=moduleName + "/" + className+ ".html";
+  Map<String,String> replacements=new HashMap<String,String>();
+  replacements.put("@className",className);
+  replacements.put("@moduleName",moduleName);
+  replacements.put("@clientPackage",clientPackageName);
+  replacements.put("@gwtUserPath",basePathEnv + gwtUserPath);
+  replacements.put("@gwtDevPath",basePathEnv + gwtDevPath);
+  replacements.put("@shellClass","com.google.gwt.dev.GWTShell");
+  replacements.put("@compileClass","com.google.gwt.dev.GWTCompiler");
+  replacements.put("@startupUrl",startupUrl);
+  replacements.put("@vmargs",isMacOsX ? "-XstartOnFirstThread" : "");
+  replacements.put("@eclipseExtraLaunchPaths",CreatorUtilities.createEclipseExtraLaunchPaths(extraClassPaths));
+  replacements.put("@extraModuleInherits",createExtraModuleInherits(extraModules));
+  replacements.put("@extraClassPathsColon",CreatorUtilities.appendPaths(":",extraClassPaths));
+  replacements.put("@extraClassPathsSemicolon",CreatorUtilities.appendPaths(";",extraClassPaths));
+{
+    File moduleXML=Utility.createNormalFile(basePackageDir,className + ModuleDefLoader.GWT_MODULE_XML_SUFFIX,overwrite,ignore);
+    if (moduleXML != null) {
+      String out=Utility.getFileFromClassPath(PACKAGE_PATH + "Module.gwt.xmlsrc");
+      Utility.writeTemplateFile(moduleXML,out,replacements);
+    }
+  }
+{
+    File publicHTML=Utility.createNormalFile(publicDir,className + ".html",overwrite,ignore);
+    if (publicHTML != null) {
+      String out=Utility.getFileFromClassPath(PACKAGE_PATH + "AppHtml.htmlsrc");
+      Utility.writeTemplateFile(publicHTML,out,replacements);
+    }
+  }
+{
+    File publicCSS=Utility.createNormalFile(publicDir,className + ".css",overwrite,ignore);
+    if (publicCSS != null) {
+      String out=Utility.getFileFromClassPath(PACKAGE_PATH + "AppCss.csssrc");
+      Utility.writeTemplateFile(publicCSS,out,replacements);
+    }
+  }
+{
+    File javaClass=Utility.createNormalFile(clientDir,className + ".java",overwrite,ignore);
+    if (javaClass != null) {
+      String out=Utility.getFileFromClassPath(PACKAGE_PATH + "AppClassTemplate.javasrc");
+      Utility.writeTemplateFile(javaClass,out,replacements);
+    }
+  }
+  if (eclipse != null) {
+    replacements.put("@projectName",eclipse);
+    File launchConfig=Utility.createNormalFile(outDir,className + ".launch",overwrite,ignore);
+    if (launchConfig != null) {
+      String out=Utility.getFileFromClassPath(PACKAGE_PATH + "App.launchsrc");
+      Utility.writeTemplateFile(launchConfig,out,replacements);
+    }
+  }
+  String extension;
+  if (isWindows) {
+    extension=".cmd";
+  }
+ else {
+    extension="";
+  }
+  File gwtshell=Utility.createNormalFile(outDir,className + "-shell" + extension,overwrite,ignore);
+  if (gwtshell != null) {
+    String out=Utility.getFileFromClassPath(PACKAGE_PATH + "gwtshell" + extension+ "src");
+    Utility.writeTemplateFile(gwtshell,out,replacements);
+    if (extension.length() == 0) {
+      chmodExecutable(gwtshell);
+    }
+  }
+  File gwtcompile=Utility.createNormalFile(outDir,className + "-compile" + extension,overwrite,ignore);
+  if (gwtcompile != null) {
+    String out=Utility.getFileFromClassPath(PACKAGE_PATH + "gwtcompile" + extension+ "src");
+    Utility.writeTemplateFile(gwtcompile,out,replacements);
+    if (extension.length() == 0) {
+      chmodExecutable(gwtcompile);
+    }
+  }
+}
