@@ -1,6 +1,6 @@
 {
   w.println();
-  JType asyncReturnType=asyncMethod.getReturnType();
+  JType asyncReturnType=asyncMethod.getReturnType().getErasedType();
   w.print("public ");
   w.print(asyncReturnType.getQualifiedSourceName());
   w.print(" ");
@@ -18,10 +18,11 @@
       needsComma=true;
     }
     JType paramType=param.getType();
+    paramType=paramType.getErasedType();
     if (i < asyncParams.length - 1 && paramType.isPrimitive() == null && !paramType.getQualifiedSourceName().equals(String.class.getCanonicalName())) {
       needsTryCatchBlock=true;
     }
-    w.print(paramType.getParameterizedQualifiedSourceName());
+    w.print(paramType.getQualifiedSourceName());
     w.print(" ");
     String paramName=param.getName();
     nameFactory.addName(paramName);
@@ -51,7 +52,7 @@
   JParameter[] syncParams=syncMethod.getParameters();
   w.println(streamWriterName + ".writeInt(" + syncParams.length+ ");");
   for (  JParameter param : syncParams) {
-    w.println(streamWriterName + ".writeString(\"" + serializableTypeOracle.getSerializedTypeName(param.getType())+ "\");");
+    w.println(streamWriterName + ".writeString(\"" + serializableTypeOracle.getSerializedTypeName(param.getType().getErasedType())+ "\");");
   }
   for (int i=0; i < asyncParams.length - 1; ++i) {
     JParameter asyncParam=asyncParams[i];
