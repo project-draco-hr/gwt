@@ -7,21 +7,15 @@
   if (sameTest && lastLaunchFailed) {
     throw new UnableToCompleteException();
   }
-  TreeLogger log=getTopLogger();
   if (!sameTest) {
-    log.log(TreeLogger.TRACE,"Switching to module " + syntheticModuleName);
-    currentModule=ModuleDefLoader.createSyntheticModule(log,syntheticModuleName,new String[]{moduleName,strategy.getModuleInherit()},true);
+    currentModule=ModuleDefLoader.createSyntheticModule(getTopLogger(),syntheticModuleName,new String[]{moduleName,strategy.getModuleInherit()},true);
     currentModule.clearEntryPoints();
     currentModule.addEntryPointTypeName(GWTRunner.class.getName());
     Property moduleNameProp=currentModule.getProperties().create("junit.moduleName");
     moduleNameProp.addKnownValue(moduleName);
     moduleNameProp.setActiveValue(moduleName);
-    long startCompile=System.currentTimeMillis();
     runStyle.maybeCompileModule(syntheticModuleName);
-    double compileTime=(System.currentTimeMillis() - startCompile) / 1000.0D;
-    log.log(TreeLogger.INFO,"Switched to module " + syntheticModuleName + " (compiled in "+ compileTime+ "sec)");
   }
-  log.log(TreeLogger.TRACE,"Queueing test " + testCase.getClass().getName() + "."+ testCase.getName());
   messageQueue.setNextTest(new TestInfo(currentModule.getName(),testCase.getClass().getName(),testCase.getName()));
   try {
     if (firstLaunch) {
@@ -44,13 +38,11 @@
     return;
   }
   assert(messageQueue.hasResult());
-  log.log(TreeLogger.TRACE,"Completed test, fetching results...");
   Map<String,JUnitResult> results=messageQueue.getResults();
   boolean parallelTesting=numClients > 1;
   for (  Entry<String,JUnitResult> entry : results.entrySet()) {
     String clientId=entry.getKey();
     JUnitResult result=entry.getValue();
-    log.log(TreeLogger.TRACE,"Got result from " + clientId + ": "+ result);
     assert(result != null);
     Throwable exception=result.getException();
     if (parallelTesting && exception != null) {
