@@ -1,32 +1,6 @@
 {
-  JExpression expr=x.getIfExpr();
-  JStatement thenStmt=x.getThenStmt();
-  JStatement elseStmt=x.getElseStmt();
-  if (expr instanceof JBooleanLiteral) {
-    JBooleanLiteral booleanLiteral=(JBooleanLiteral)expr;
-    boolean boolVal=booleanLiteral.getValue();
-    if (boolVal && !isEmpty(thenStmt)) {
-      ctx.replaceMe(thenStmt);
-    }
- else     if (!boolVal && !isEmpty(elseStmt)) {
-      ctx.replaceMe(elseStmt);
-    }
- else {
-      removeMe(x,ctx);
-    }
-    return;
-  }
-  if (isEmpty(thenStmt) && isEmpty(elseStmt)) {
-    ctx.replaceMe(expr.makeStatement());
-    return;
-  }
-  if (!isEmpty(elseStmt)) {
-    JExpression unflipped=maybeUnflipBoolean(expr);
-    if (unflipped != null) {
-      thenStmt=ensureBlock(thenStmt);
-      elseStmt=ensureBlock(elseStmt);
-      ctx.replaceMe(new JIfStatement(program,x.getSourceInfo(),unflipped,elseStmt,thenStmt));
-      return;
-    }
+  JStatement updated=simplifier.ifStatement(x,x.getSourceInfo(),x.getIfExpr(),x.getThenStmt(),x.getElseStmt());
+  if (updated != x) {
+    ctx.replaceMe(updated);
   }
 }
