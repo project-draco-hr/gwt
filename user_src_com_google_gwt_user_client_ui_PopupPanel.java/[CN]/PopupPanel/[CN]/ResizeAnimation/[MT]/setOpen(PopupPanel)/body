@@ -7,7 +7,21 @@
   showing=panel.showing;
   curPanel=panel;
   if (animate) {
-    run(ANIMATION_DURATION);
+    if (showing) {
+      DOM.setStyleAttribute(curPanel.getElement(),"position","absolute");
+      if (curPanel.topPosition != -1) {
+        curPanel.setPopupPosition(curPanel.leftPosition,curPanel.topPosition);
+      }
+      impl.setClip(curPanel.getElement(),getRectString(0,0,0,0));
+      RootPanel.get().add(curPanel);
+      impl.onShow(curPanel.getElement());
+    }
+    DeferredCommand.addCommand(new Command(){
+      public void execute(){
+        run(ANIMATION_DURATION);
+      }
+    }
+);
   }
  else {
     onInstantaneousRun();

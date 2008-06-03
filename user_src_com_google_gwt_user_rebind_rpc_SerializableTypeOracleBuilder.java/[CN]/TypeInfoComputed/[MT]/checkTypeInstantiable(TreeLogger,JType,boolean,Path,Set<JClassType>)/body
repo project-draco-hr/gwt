@@ -92,11 +92,12 @@
       }
     }
   }
-  boolean isInstantiable=parametersOkay && shouldConsiderFieldsForSerialization(localLogger,baseType,isSpeculative) && canBeInstantiated(localLogger,baseType,TreeLogger.WARN)&& checkFields(localLogger,baseType,isSpeculative,path);
+  boolean isFieldSerializable=parametersOkay && shouldConsiderFieldsForSerialization(localLogger,baseType,isSpeculative) && checkFields(localLogger,baseType,isSpeculative,path);
+  boolean isInstantiable=isFieldSerializable && canBeInstantiated(localLogger,baseType,TreeLogger.WARN);
   boolean anySubtypes=false;
   if (parametersOkay && baseType.getSubtypes().length > 0) {
     TreeLogger subtypesLogger=localLogger.branch(TreeLogger.DEBUG,"Analyzing subclasses:",null);
-    anySubtypes=checkSubtypes(subtypesLogger,originalType,baseType,instSubtypes,typeArgs,path,baseType,false,isInstantiable);
+    anySubtypes=checkSubtypes(subtypesLogger,originalType,baseType,instSubtypes,typeArgs,path,baseType,false,isFieldSerializable);
   }
   anySubtypes|=isInstantiable;
   tic.setInstantiable(isInstantiable);
