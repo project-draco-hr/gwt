@@ -1,22 +1,25 @@
 {
   assertValidAbstractResourcePathName(resourceAbstractPathName);
-  TrieNode parentNode=rootTrieNode;
-  PathPrefix matchingPrefix=rootTrieNode.getPathPrefix();
+  TrieNode currentNode=rootTrieNode;
+  PathPrefix mostSpecificPrefix=rootTrieNode.getPathPrefix();
   String[] parts=resourceAbstractPathName.split("/");
   for (int i=0, n=parts.length - 1; i < n; ++i) {
     String part=parts[i];
     assert(!"".equals(part));
-    TrieNode childNode=parentNode.findChild(part);
+    TrieNode childNode=currentNode.findChild(part);
     if (childNode != null) {
-      matchingPrefix=childNode.getPathPrefix();
-      parentNode=childNode;
+      PathPrefix moreSpecificPrefix=childNode.getPathPrefix();
+      if (moreSpecificPrefix != null) {
+        mostSpecificPrefix=moreSpecificPrefix;
+      }
+      currentNode=childNode;
     }
  else {
       break;
     }
   }
-  if (matchingPrefix == null) {
+  if (mostSpecificPrefix == null) {
     return false;
   }
-  return matchingPrefix.allows(resourceAbstractPathName);
+  return mostSpecificPrefix.allows(resourceAbstractPathName);
 }
