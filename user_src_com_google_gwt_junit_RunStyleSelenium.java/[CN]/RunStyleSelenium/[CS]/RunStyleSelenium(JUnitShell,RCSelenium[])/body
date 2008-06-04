@@ -1,0 +1,34 @@
+{
+  super(shell);
+  this.remotes=targets;
+  Runtime.getRuntime().addShutdownHook(new Thread(){
+    @Override public void run(){
+      for (      RCSelenium remote : remotes) {
+        if (remote.getSelenium() != null) {
+          try {
+            remote.getSelenium().stop();
+          }
+ catch (          SeleniumException se) {
+            shell.getTopLogger().log(TreeLogger.WARN,"Error stoping selenium session",se);
+          }
+        }
+      }
+    }
+  }
+);
+  Thread keepAliveThread=new Thread(){
+    @Override public void run(){
+      do {
+        try {
+          Thread.sleep(1000);
+        }
+ catch (        InterruptedException ignored) {
+        }
+      }
+ while (doKeepAlives());
+    }
+  }
+;
+  keepAliveThread.setDaemon(true);
+  keepAliveThread.start();
+}
