@@ -5,7 +5,8 @@
     gwtStyleSheet=gwtStyleSheet.replace(".css","_rtl.css");
     showcaseStyleSheet=showcaseStyleSheet.replace(".css","_rtl.css");
   }
-  HeadElement headElem=getHeadElement();
+  final HeadElement headElem=StyleSheetLoader.getHeadElement();
+  final List<Element> toRemove=new ArrayList<Element>();
   NodeList<Node> children=headElem.getChildNodes();
   for (int i=0; i < children.getLength(); i++) {
     Node node=children.getItem(i);
@@ -13,25 +14,28 @@
       Element elem=Element.as(node);
       if (elem.getTagName().equalsIgnoreCase("link") && elem.getPropertyString("rel").equalsIgnoreCase("stylesheet")) {
         String href=elem.getPropertyString("href");
-        if (gwtStyleSheet != null && href.contains(gwtStyleSheet)) {
-          gwtStyleSheet=null;
-        }
- else         if (showcaseStyleSheet != null && href.contains(showcaseStyleSheet)) {
-          showcaseStyleSheet=null;
-        }
- else {
-          headElem.removeChild(elem);
-          i--;
+        if (!href.contains(gwtStyleSheet) && !href.contains(showcaseStyleSheet)) {
+          toRemove.add(elem);
         }
       }
     }
   }
-  styleTesterTimer.schedule(25);
+  if (toRemove.size() == 0) {
+    return;
+  }
+  RootPanel.get().remove(app);
+  for (  Element elem : toRemove) {
+    headElem.removeChild(elem);
+  }
   String modulePath=GWT.getModuleBaseURL();
-  if (gwtStyleSheet != null) {
-    loadStyleSheet(modulePath + gwtStyleSheet);
+  Command callback=new Command(){
+    public void execute(){
+      RootPanel.getBodyElement().getStyle().setProperty("display","none");
+      RootPanel.getBodyElement().getStyle().setProperty("display","");
+      RootPanel.get().add(app);
+    }
   }
-  if (showcaseStyleSheet != null) {
-    loadStyleSheet(modulePath + showcaseStyleSheet);
-  }
+;
+  StyleSheetLoader.loadStyleSheet(modulePath + gwtStyleSheet,getCurrentReferenceStyleName(),callback);
+  StyleSheetLoader.loadStyleSheet(modulePath + showcaseStyleSheet);
 }

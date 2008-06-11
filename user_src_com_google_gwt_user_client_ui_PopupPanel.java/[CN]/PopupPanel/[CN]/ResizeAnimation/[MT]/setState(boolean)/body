@@ -1,0 +1,28 @@
+{
+  cancel();
+  boolean animate=curPanel.isAnimationEnabled;
+  if (curPanel.animType == AnimationType.ONE_WAY_CORNER && !showing) {
+    animate=false;
+  }
+  this.showing=showing;
+  if (animate) {
+    if (showing) {
+      DOM.setStyleAttribute(curPanel.getElement(),"position","absolute");
+      if (curPanel.topPosition != -1) {
+        curPanel.setPopupPosition(curPanel.leftPosition,curPanel.topPosition);
+      }
+      impl.setClip(curPanel.getElement(),getRectString(0,0,0,0));
+      RootPanel.get().add(curPanel);
+      impl.onShow(curPanel.getElement());
+    }
+    DeferredCommand.addCommand(new Command(){
+      public void execute(){
+        run(ANIMATION_DURATION);
+      }
+    }
+);
+  }
+ else {
+    onInstantaneousRun();
+  }
+}

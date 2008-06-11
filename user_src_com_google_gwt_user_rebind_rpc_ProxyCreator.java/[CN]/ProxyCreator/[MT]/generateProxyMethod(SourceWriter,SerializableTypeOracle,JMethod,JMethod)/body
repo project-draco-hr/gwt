@@ -31,10 +31,10 @@
   w.println(") {");
   w.indent();
   String requestIdName=nameFactory.createName("requestId");
-  w.println("long " + requestIdName + " = getNextRequestId();");
-  String statsMethodExpr=getProxySimpleName() + "." + syncMethod.getName()+ ":\" + getRequestId() + \"";
+  w.println("int " + requestIdName + " = getNextRequestId();");
+  String statsMethodExpr=getProxySimpleName() + "." + syncMethod.getName();
   String tossName=nameFactory.createName("toss");
-  w.println("boolean " + tossName + " = isStatsAvailable() && stats(\""+ statsMethodExpr+ ":requestStart\", timeStat(\""+ getProxySimpleName()+ "."+ syncMethod.getName()+ "\", getRequestId()));");
+  w.println("boolean " + tossName + " = isStatsAvailable() && stats("+ "timeStat(\""+ statsMethodExpr+ "\", getRequestId(), \"begin\"));");
   w.print(ClientSerializationStreamWriter.class.getSimpleName());
   w.print(" ");
   String streamWriterName=nameFactory.createName("streamWriter");
@@ -75,7 +75,7 @@
   w.println();
   String payloadName=nameFactory.createName("payload");
   w.println("String " + payloadName + " = "+ streamWriterName+ ".toString();");
-  w.println(tossName + " = isStatsAvailable() && stats(\"" + statsMethodExpr+ ":requestSerialized\", timeStat(\""+ getProxySimpleName()+ "."+ syncMethod.getName()+ "\", getRequestId()));");
+  w.println(tossName + " = isStatsAvailable() && stats(" + "timeStat(\""+ statsMethodExpr+ "\", getRequestId(), \"requestSerialized\"));");
   if (asyncReturnType == JPrimitiveType.VOID) {
     w.print("doInvoke(");
   }
