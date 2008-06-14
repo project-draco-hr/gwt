@@ -1,30 +1,22 @@
 {
-  JdtCompiler.compile(getCompilationUnits());
-  Set<String> validBinaryTypeNames=new HashSet<String>();
-  for (  CompilationUnit unit : getCompilationUnits()) {
-switch (unit.getState()) {
-case COMPILED:
-      for (      ClassFile classFile : unit.getJdtCud().compilationResult().getClassFiles()) {
-        char[] binaryName=CharOperation.concatWith(classFile.getCompoundName(),'/');
-        validBinaryTypeNames.add(String.valueOf(binaryName));
-      }
-    break;
-case CHECKED:
-  for (  CompiledClass compiledClass : unit.getCompiledClasses()) {
-    validBinaryTypeNames.add(compiledClass.getBinaryName());
+  Set<CompilationUnit> units=getCompilationUnits();
+  JdtCompiler.compile(units);
+  Set<String> validBinaryTypeNames=getValidBinaryTypeNames(units);
+  boolean anyErrors=CompilationUnitInvalidator.invalidateUnitsWithErrors(logger,units);
+  CompilationUnitInvalidator.validateCompilationUnits(units,validBinaryTypeNames);
+  anyErrors|=CompilationUnitInvalidator.invalidateUnitsWithErrors(logger,units);
+  if (anyErrors) {
+    CompilationUnitInvalidator.invalidateUnitsWithInvalidRefs(logger,units);
   }
-break;
-}
-}
-CompilationUnitInvalidator.validateCompilationUnits(getCompilationUnits(),validBinaryTypeNames);
-CompilationUnitInvalidator.invalidateUnitsWithErrors(logger,getCompilationUnits());
-JsniCollector.collectJsniMethods(logger,getCompilationUnits(),new JsProgram());
-CompilationUnitInvalidator.invalidateUnitsWithErrors(logger,getCompilationUnits());
-mediator.refresh(logger,getCompilationUnits());
-for (CompilationUnit unit : getCompilationUnits()) {
-if (unit.getState() == State.COMPILED) {
-unit.setState(State.CHECKED);
-}
-}
-updateExposedUnits();
+  JsniCollector.collectJsniMethods(logger,units,new JsProgram());
+  if (CompilationUnitInvalidator.invalidateUnitsWithErrors(logger,units)) {
+    CompilationUnitInvalidator.invalidateUnitsWithInvalidRefs(logger,units);
+  }
+  mediator.refresh(logger,units);
+  for (  CompilationUnit unit : units) {
+    if (unit.getState() == State.COMPILED) {
+      unit.setState(State.CHECKED);
+    }
+  }
+  updateExposedUnits();
 }

@@ -3,22 +3,15 @@
   if (op.getNonAssignmentOf() == null) {
     return;
   }
-  boolean doIt=false;
-  if (x.getType() == program.getTypePrimitiveLong()) {
-    doIt=true;
-  }
-  if (op == JBinaryOperator.ASG_DIV && x.getType() != program.getTypePrimitiveFloat() && x.getType() != program.getTypePrimitiveDouble()) {
-    doIt=true;
-  }
-  if (!doIt) {
+  if (!shouldBreakUp(x)) {
     return;
   }
-  final int pushLocalIndex=localIndex;
+  enterTempUsageScope();
   ReplaceSideEffectsInLvalue replacer=new ReplaceSideEffectsInLvalue(new JMultiExpression(program,x.getSourceInfo()));
   JExpression newLhs=replacer.accept(x.getLhs());
-  localIndex=pushLocalIndex;
+  exitTempUsageScope();
   JBinaryOperation operation=new JBinaryOperation(program,x.getSourceInfo(),newLhs.getType(),op.getNonAssignmentOf(),newLhs,x.getRhs());
-  JBinaryOperation asg=new JBinaryOperation(program,x.getSourceInfo(),newLhs.getType(),JBinaryOperator.ASG,newLhs,operation);
+  JBinaryOperation asg=new JBinaryOperation(program,x.getSourceInfo(),newLhs.getType(),JBinaryOperator.ASG,cloner.cloneExpression(newLhs),operation);
   JMultiExpression multiExpr=replacer.getMultiExpr();
   if (multiExpr.exprs.isEmpty()) {
     ctx.replaceMe(asg);

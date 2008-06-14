@@ -2,19 +2,24 @@
   String methodName=method.getName();
   enableCache();
   println("String args[] = (String[]) cache.get(" + wrap(methodName) + ");");
-  print("if (args == null){\n  String [] writer= {");
+  println("if (args == null) {");
+  indent();
+  println("String [] writer= {");
+  indent();
   String template=resource.getRequiredStringExt(logger,key,null);
   String[] args=split(template);
   for (int i=0; i < args.length; i++) {
-    if (i != 0) {
-      print(", ");
-    }
     String toPrint=args[i].replaceAll("\\,",",");
-    print(wrap(toPrint));
+    println(wrap(toPrint) + ",");
   }
-  println("}; ");
+  outdent();
+  println("};");
   println("cache.put(" + wrap(methodName) + ", writer);");
   println("return writer;");
-  println("} else");
+  outdent();
+  println("} else {");
+  indent();
   println("return args;");
+  outdent();
+  println("}");
 }

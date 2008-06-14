@@ -4,10 +4,11 @@
     error(logger,methodName + " cannot have parameters; extend Messages instead if you need to create " + "parameterized messages");
   }
   enableCache();
-  println("java.util.Map args = (java.util.Map) cache.get(" + wrap(methodName) + ");");
-  println("if (args == null){");
+  String constantMapClassName=ConstantMap.class.getCanonicalName();
+  println(constantMapClassName + " args = (" + constantMapClassName+ ") cache.get("+ wrap(methodName)+ ");");
+  println("if (args == null) {");
   indent();
-  println("args = new " + ConstantMap.class.getCanonicalName() + "();");
+  println("args = new " + constantMapClassName + "();");
   String value;
   try {
     value=resource.getRequiredStringExt(logger,key,null);
@@ -29,7 +30,7 @@
     }
   }
   println("cache.put(" + wrap(methodName) + ", args);");
-  println("}; ");
   outdent();
+  println("};");
   println("return args;");
 }

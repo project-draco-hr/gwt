@@ -7,7 +7,7 @@
         println("return target.booleanValue();");
       }
       @Override public String returnTemplate(){
-        return "boolean answer = {0}();\n cache.put(\"{0}\",new Boolean(answer));return answer;";
+        return "boolean answer = {0}();\ncache.put(\"{0}\",new Boolean(answer));\nreturn answer;";
       }
     }
 ;
@@ -18,7 +18,7 @@
         println("return target.doubleValue();");
       }
       @Override public String returnTemplate(){
-        return "double answer = {0}();\n cache.put(\"{0}\",new Double(answer));return answer;";
+        return "double answer = {0}();\ncache.put(\"{0}\",new Double(answer));\nreturn answer;";
       }
     }
 ;
@@ -29,7 +29,7 @@
         println("return target.intValue();");
       }
       @Override public String returnTemplate(){
-        return "int answer = {0}();\n cache.put(\"{0}\",new Integer(answer));return answer;";
+        return "int answer = {0}();\ncache.put(\"{0}\",new Integer(answer));\nreturn answer;";
       }
     }
 ;
@@ -37,7 +37,7 @@
     JType floatType=oracle.parse(float.class.getName());
     LookupMethodCreator floatMethod=new LookupMethodCreator(this,floatType){
       @Override public String returnTemplate(){
-        String val="float v ={0}(); cache.put(\"{0}\", new Float(v));return v;";
+        String val="float answer = {0}();\ncache.put(\"{0}\", new Float(answer));\nreturn answer;";
         return val;
       }
       @Override protected void printReturnTarget(){
@@ -46,12 +46,17 @@
     }
 ;
     namesToMethodCreators.put("getFloat",floatMethod);
-    JType mapType=oracle.parse(Map.class.getName());
-    namesToMethodCreators.put("getMap",new LookupMethodCreator(this,mapType));
+    JType mapType=oracle.parse(Map.class.getName()).getErasedType();
+    namesToMethodCreators.put("getMap",new LookupMethodCreator(this,mapType){
+      @Override public String getReturnTypeName(){
+        return ConstantMap.class.getCanonicalName();
+      }
+    }
+);
     JType stringType=oracle.parse(String.class.getName());
     LookupMethodCreator stringMethod=new LookupMethodCreator(this,stringType){
       @Override public String returnTemplate(){
-        return "String answer = {0}();\n cache.put(\"{0}\",answer);return answer;";
+        return "String answer = {0}();\ncache.put(\"{0}\",answer);\nreturn answer;";
       }
     }
 ;
