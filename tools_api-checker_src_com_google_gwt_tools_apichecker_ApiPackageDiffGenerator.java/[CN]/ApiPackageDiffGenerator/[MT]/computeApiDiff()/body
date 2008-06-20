@@ -1,12 +1,10 @@
 {
-  HashSet<String> newClassNames=newPackage.getApiClassNames();
+  Set<String> newClassNames=newPackage.getApiClassNames();
   missingClassNames=oldPackage.getApiClassNames();
-  HashSet<String> intersection=ApiDiffGenerator.extractCommonElements(newClassNames,missingClassNames);
-  Iterator<String> tempIterator=intersection.iterator();
-  while (tempIterator.hasNext()) {
-    String className=tempIterator.next();
-    ApiClassDiffGenerator temp=new ApiClassDiffGenerator(className,this);
-    intersectingClasses.put(className,temp);
-    temp.computeApiDiff();
+  Set<String> intersection=ApiDiffGenerator.removeIntersection(newClassNames,missingClassNames);
+  for (  String className : intersection) {
+    ApiClassDiffGenerator tempClassDiffGenerator=new ApiClassDiffGenerator(className,this);
+    intersectingClasses.put(className,tempClassDiffGenerator);
+    tempClassDiffGenerator.computeApiDiff();
   }
 }

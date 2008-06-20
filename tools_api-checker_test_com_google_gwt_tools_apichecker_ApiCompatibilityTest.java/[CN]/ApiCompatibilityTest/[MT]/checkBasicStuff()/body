@@ -1,0 +1,28 @@
+{
+  HashSet<String> hashSet=new HashSet<String>();
+  assertEquals(0,ApiCompatibilityChecker.getApiDiff(api1,apiSameAs1,hashSet).size());
+  ApiDiffGenerator apiDiff=new ApiDiffGenerator(api2,api1);
+  boolean removeDuplicates=false;
+  String strWithDuplicates=getStringRepresentation(ApiCompatibilityChecker.getApiDiff(apiDiff,hashSet,removeDuplicates));
+  String strWithoutDuplicates=getStringRepresentation(ApiCompatibilityChecker.getApiDiff(apiDiff,hashSet,!removeDuplicates));
+  String delimiter=ApiDiffGenerator.DELIMITER;
+  String status="java.newpackage" + delimiter + ApiChange.Status.MISSING;
+  assertEquals(1,countPresence(status,strWithDuplicates));
+  assertEquals(1,countPresence(status,strWithoutDuplicates));
+  assertEquals(1,countPresence("test.apicontainer.NonApiClass.AnotherApiClassInNonApiClass" + delimiter + ApiChange.Status.MISSING,strWithoutDuplicates));
+  assertEquals(1,countPresence("test.apicontainer.NonApiClass.ApiClassInNonApiClass" + delimiter + ApiChange.Status.ABSTRACT_ADDED,strWithoutDuplicates));
+  assertEquals(0,countPresence("test.apicontainer.NonApiClass.ApiClassInNonApiClass::ApiClassInNonApiClass()" + delimiter + ApiChange.Status.MISSING,strWithoutDuplicates));
+  assertEquals(0,countPresence("test.apicontainer.NonApiClass.ApiClassInNonApiClass::protectedMethod()" + delimiter + ApiChange.Status.MISSING,strWithoutDuplicates));
+  assertEquals(1,countPresence("java.lang.Object::apiField" + delimiter + ApiChange.Status.FINAL_ADDED,strWithoutDuplicates));
+  assertEquals(1,countPresence("java.lang.Object::protectedMethod()" + delimiter + ApiChange.Status.FINAL_ADDED,strWithoutDuplicates));
+  assertEquals(3,countPresence("protectedMethod()" + delimiter + ApiChange.Status.FINAL_ADDED,strWithDuplicates));
+  assertEquals(1,countPresence("protectedMethod()" + delimiter + ApiChange.Status.FINAL_ADDED,strWithoutDuplicates));
+  assertEquals(3,countPresence("apiFieldWillBeMissing" + delimiter + ApiChange.Status.MISSING,strWithDuplicates));
+  assertEquals(1,countPresence("apiFieldWillBeMissing" + delimiter + ApiChange.Status.MISSING,strWithoutDuplicates));
+  String methodSignature="checkParametersAndReturnTypes(Ltest/apicontainer/ApiClass;)";
+  assertEquals(1,countPresence(methodSignature + delimiter + ApiChange.Status.RETURN_TYPE_ERROR,strWithoutDuplicates));
+  assertEquals(1,countPresence(methodSignature + delimiter + ApiChange.Status.EXCEPTION_TYPE_ERROR,strWithoutDuplicates));
+  assertEquals(2,countPresence(methodSignature,strWithoutDuplicates));
+  methodSignature="methodInNonApiClass(Ljava/lang/Object;)";
+  assertEquals(1,countPresence(methodSignature + delimiter + ApiChange.Status.OVERLOADED_METHOD_CALL,strWithoutDuplicates));
+}

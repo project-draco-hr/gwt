@@ -1,8 +1,35 @@
 {
-  if (true) {
-    computeUnionsAndCleanApiDiff();
+  if (allMissingMethods != null) {
+    return;
   }
- else {
-    cleanApiDiff2();
+  ApiClassDiffGenerator other=getSuperclassApiClassDiffGenerator();
+  if (other != null) {
+    other.cleanApiDiff();
+  }
+  allIntersectingMethods=new EnumMap<ApiClass.MethodType,Set<ApiAbstractMethod>>(ApiClass.MethodType.class);
+  allMissingMethods=new EnumMap<ApiClass.MethodType,Set<ApiAbstractMethod>>(ApiClass.MethodType.class);
+  for (  ApiClass.MethodType methodType : ApiClass.MethodType.values()) {
+    if (other != null) {
+      removeAll(intersectingMethods.get(methodType),other.allIntersectingMethods.get(methodType));
+      missingMethods.get(methodType).removeAll(other.allMissingMethods.get(methodType));
+    }
+    HashSet<ApiAbstractMethod> tempSet1=new HashSet<ApiAbstractMethod>(intersectingMethods.get(methodType).keySet());
+    HashSet<ApiAbstractMethod> tempSet2=new HashSet<ApiAbstractMethod>(missingMethods.get(methodType));
+    if (other != null) {
+      tempSet1.addAll(other.allIntersectingMethods.get(methodType));
+      tempSet2.addAll(other.allMissingMethods.get(methodType));
+    }
+    allIntersectingMethods.put(methodType,tempSet1);
+    allMissingMethods.put(methodType,tempSet2);
+  }
+  if (other != null) {
+    removeAll(intersectingFields,other.allIntersectingFields);
+    missingFields.removeAll(other.allMissingFields);
+  }
+  allIntersectingFields=new HashSet<ApiField>(intersectingFields.keySet());
+  allMissingFields=new HashSet<ApiField>(missingFields);
+  if (other != null) {
+    allIntersectingFields.addAll(other.allIntersectingFields);
+    allMissingFields.addAll(other.allMissingFields);
   }
 }

@@ -1,16 +1,15 @@
 {
   this.className=className;
-  this.apiPackageDiffGenerator=apiPackageDiffGenerator;
   apiDiffGenerator=apiPackageDiffGenerator.getApiDiffGenerator();
   this.newClass=apiPackageDiffGenerator.getNewApiPackage().getApiClass(className);
   this.oldClass=apiPackageDiffGenerator.getOldApiPackage().getApiClass(className);
   if (newClass == null || oldClass == null) {
     throw new NotFoundException("for class " + className + ", one of the class objects is null");
   }
-  intersectingFields=new HashMap<JField,HashSet<ApiChange.Status>>();
-  intersectingMethods=new ArrayList<HashMap<JAbstractMethod,HashSet<ApiChange>>>(ApiClass.MethodType.values().length);
-  missingMethods=new ArrayList<HashSet<JAbstractMethod>>(ApiClass.MethodType.values().length);
+  intersectingFields=new HashMap<ApiField,Set<ApiChange.Status>>();
+  intersectingMethods=new EnumMap<ApiClass.MethodType,Map<ApiAbstractMethod,Set<ApiChange>>>(ApiClass.MethodType.class);
+  missingMethods=new EnumMap<ApiClass.MethodType,Set<ApiAbstractMethod>>(ApiClass.MethodType.class);
   for (  ApiClass.MethodType methodType : ApiClass.MethodType.values()) {
-    intersectingMethods.add(methodType.getId(),new HashMap<JAbstractMethod,HashSet<ApiChange>>());
+    intersectingMethods.put(methodType,new HashMap<ApiAbstractMethod,Set<ApiChange>>());
   }
 }

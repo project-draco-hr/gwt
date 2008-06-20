@@ -1,12 +1,10 @@
 {
-  HashSet<String> newApiPackageNames=newApi.getApiPackageNames();
+  Set<String> newApiPackageNames=newApi.getApiPackageNames();
   missingPackageNames=oldApi.getApiPackageNames();
-  HashSet<String> intersection=extractCommonElements(newApiPackageNames,missingPackageNames);
-  Iterator<String> tempIterator=intersection.iterator();
-  while (tempIterator.hasNext()) {
-    String packageName=tempIterator.next();
-    ApiPackageDiffGenerator temp=new ApiPackageDiffGenerator(packageName,this);
-    intersectingPackages.put(packageName,temp);
-    temp.computeApiDiff();
+  Set<String> intersection=removeIntersection(newApiPackageNames,missingPackageNames);
+  for (  String packageName : intersection) {
+    ApiPackageDiffGenerator tempPackageDiffGenerator=new ApiPackageDiffGenerator(packageName,this);
+    intersectingPackages.put(packageName,tempPackageDiffGenerator);
+    tempPackageDiffGenerator.computeApiDiff();
   }
 }

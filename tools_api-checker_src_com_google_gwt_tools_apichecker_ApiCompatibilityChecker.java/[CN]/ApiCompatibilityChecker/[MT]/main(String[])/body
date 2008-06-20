@@ -1,32 +1,34 @@
 {
   try {
     ApiContainer newApi=null, existingApi=null;
-    boolean processNewApi=true;
-    boolean processExistingApi=true;
     if (args.length < 1) {
       printHelp();
       System.exit(-1);
     }
-    if (processNewApi) {
-      newApi=new ApiContainer(args[0],"_new",logger1);
-    }
-    if (processExistingApi) {
-      existingApi=new ApiContainer(args[0],"_old",logger1);
-    }
-    if ((processNewApi && processExistingApi) && (newApi != null && existingApi != null)) {
-      HashSet<String> whiteList=new HashSet<String>();
-      if (!IGNORE_WHITELIST) {
-        whiteList=readStringFromFile(args[0]);
+    AbstractTreeLogger logger=new PrintWriterTreeLogger();
+    logger.setMaxDetail(type);
+    if (PROCESS_NEW_API) {
+      newApi=new ApiContainer(args[0],"_new",logger);
+      if (ApiCompatibilityChecker.DEBUG_PRINT_ALL_API) {
+        logger.log(TreeLogger.INFO,newApi.getApiAsString());
       }
-      ApiDiffGenerator apiDiff=new ApiDiffGenerator(newApi,existingApi);
-      String apiDifferences=getApiDiff(apiDiff,whiteList,REMOVE_DUPLICATES);
-      System.out.println(apiDifferences);
+    }
+    if (PROCESS_EXISTING_API) {
+      existingApi=new ApiContainer(args[0],"_old",logger);
+      if (ApiCompatibilityChecker.DEBUG_PRINT_ALL_API) {
+        logger.log(TreeLogger.INFO,existingApi.getApiAsString());
+      }
+    }
+    if (PROCESS_NEW_API && PROCESS_EXISTING_API) {
+      Collection<ApiChange> apiDifferences=getApiDiff(newApi,existingApi,readWhiteListFromFile(args[0]));
+      for (      ApiChange apiChange : apiDifferences) {
+        System.out.println(apiChange);
+      }
       System.out.println("\t\t\t\tApi Compatibility Checker tool, Copyright Google Inc. 2008");
-      System.exit(apiDifferences.length() == 0 ? 0 : 1);
+      System.exit(apiDifferences.size() == 0 ? 0 : 1);
     }
   }
  catch (  Exception e) {
-    System.err.println("Exception " + e.getMessage() + ", printing stacktrace");
     e.printStackTrace();
     System.exit(-1);
   }

@@ -1,0 +1,26 @@
+{
+  Collection<ApiChange> collection=apiDiff.getApiDiff(removeDuplicates);
+  Set<ApiChange> prunedCollection=new HashSet<ApiChange>();
+  for (  ApiChange apiChange : collection) {
+    String apiChangeAsString=apiChange.toString();
+    apiChangeAsString=apiChangeAsString.trim();
+    if (whiteList.remove(apiChangeAsString)) {
+      continue;
+    }
+    if (!PRINT_COMPATIBLE && apiChange.getStatus().equals(ApiChange.Status.COMPATIBLE)) {
+      continue;
+    }
+    if (!PRINT_COMPATIBLE_WITH && apiChange.getStatus().equals(ApiChange.Status.COMPATIBLE_WITH)) {
+      continue;
+    }
+    prunedCollection.add(apiChange);
+  }
+  if (whiteList.size() > 0) {
+    List<String> al=new ArrayList<String>(whiteList);
+    Collections.sort(al);
+    System.err.println("ApiChanges " + al + ",  not found. Are you using a properly formatted configuration file?");
+  }
+  List<ApiChange> apiChangeList=new ArrayList<ApiChange>(prunedCollection);
+  Collections.sort(apiChangeList);
+  return apiChangeList;
+}

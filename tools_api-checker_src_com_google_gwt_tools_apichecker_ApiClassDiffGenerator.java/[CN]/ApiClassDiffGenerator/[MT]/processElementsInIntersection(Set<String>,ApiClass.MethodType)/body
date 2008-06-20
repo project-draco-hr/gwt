@@ -1,0 +1,45 @@
+{
+  Set<ApiAbstractMethod> missingElements=missingMethods.get(methodType);
+  Map<ApiAbstractMethod,Set<ApiChange>> intersectingElements=intersectingMethods.get(methodType);
+  Set<ApiAbstractMethod> onlyInExisting=new HashSet<ApiAbstractMethod>();
+  Set<ApiAbstractMethod> onlyInNew=new HashSet<ApiAbstractMethod>();
+  Set<String> commonSignature=new HashSet<String>();
+  for (  String elementName : intersection) {
+    Set<ApiAbstractMethod> methodsInNew=newClass.getApiMethodsByName(elementName,methodType);
+    Set<ApiAbstractMethod> methodsInExisting=oldClass.getApiMethodsByName(elementName,methodType);
+    onlyInNew.addAll(methodsInNew);
+    onlyInExisting.addAll(methodsInExisting);
+    if (isIncompatibileDueToMethodOverloading(methodsInNew,methodsInExisting)) {
+      ApiAbstractMethod methodInExisting=methodsInExisting.toArray(new ApiAbstractMethod[0])[0];
+      addProperty(intersectingElements,methodInExisting,new ApiChange(methodInExisting,ApiChange.Status.OVERLOADED_METHOD_CALL,"Many methods in the new API with similar signatures. Methods = " + methodsInNew + " This might break API source compatibility"));
+    }
+    for (    ApiAbstractMethod methodInExisting : methodsInExisting) {
+      for (      ApiAbstractMethod methodInNew : methodsInNew) {
+        if (methodInExisting.isCompatible(methodInNew)) {
+          ApiChange returnType=methodInExisting.checkReturnTypeCompatibility(methodInNew);
+          if (returnType != null) {
+            addProperty(intersectingElements,methodInExisting,returnType);
+          }
+          for (          ApiChange apiChange : checkExceptions(methodInNew,methodInExisting)) {
+            addProperty(intersectingElements,methodInExisting,apiChange);
+          }
+          for (          ApiChange.Status status : methodInExisting.getModifierChanges(methodInNew)) {
+            addProperty(intersectingElements,methodInExisting,new ApiChange(methodInExisting,status));
+          }
+          onlyInNew.remove(methodInNew);
+          onlyInExisting.remove(methodInExisting);
+          String signatureInNew=methodInNew.getApiSignature();
+          String signatureInExisting=methodInExisting.getApiSignature();
+          if (signatureInNew.equals(signatureInExisting)) {
+            commonSignature.add(signatureInNew);
+            addProperty(intersectingElements,methodInExisting,new ApiChange(methodInExisting,ApiChange.Status.COMPATIBLE));
+          }
+ else {
+            addProperty(intersectingElements,methodInExisting,new ApiChange(methodInExisting,ApiChange.Status.COMPATIBLE_WITH,signatureInNew));
+          }
+        }
+      }
+    }
+  }
+  missingElements.addAll(onlyInExisting);
+}

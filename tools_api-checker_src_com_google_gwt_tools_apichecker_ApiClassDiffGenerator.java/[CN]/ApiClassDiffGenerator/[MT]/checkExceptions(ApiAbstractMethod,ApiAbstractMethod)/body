@@ -1,0 +1,18 @@
+{
+  JType newExceptions[]=newMethod.getMethod().getThrows();
+  JType oldExceptions[]=oldMethod.getMethod().getThrows();
+  List<ApiChange> ret=new ArrayList<ApiChange>();
+  for (  JType newException : newExceptions) {
+    boolean isSubclass=false;
+    for (    JType oldException : oldExceptions) {
+      if (ApiDiffGenerator.isFirstTypeAssignableToSecond(newException,oldException)) {
+        isSubclass=true;
+        break;
+      }
+    }
+    if (!isSubclass) {
+      ret.add(new ApiChange(oldMethod,ApiChange.Status.EXCEPTION_TYPE_ERROR,"unhandled exception in new code " + newException));
+    }
+  }
+  return ret;
+}

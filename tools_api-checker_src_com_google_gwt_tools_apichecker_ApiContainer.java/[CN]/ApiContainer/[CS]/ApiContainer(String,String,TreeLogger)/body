@@ -3,34 +3,58 @@
   if (fileName == null) {
     throw new IllegalArgumentException("fileName is null");
   }
-  FileInputStream fis=new FileInputStream(fileName);
-  Properties config=new Properties();
-  config.load(fis);
-  String apiName=config.getProperty("name" + suffix);
-  String allSourceFiles=config.getProperty("sourceFiles" + suffix);
-  String allExcludedFiles=config.getProperty("excludedFiles" + suffix);
-  if (allExcludedFiles == null) {
-    allExcludedFiles="";
-  }
-  if (apiName == null || allSourceFiles == null) {
-    throw new IllegalArgumentException("in apiContainer constructor, either name (" + apiName + ") or sourceFiles ("+ allSourceFiles+ ") is null");
-  }
-  logger.log(TreeLogger.DEBUG,"read from config file " + fileName + ", name = "+ apiName+ ", allSourceFiles = "+ allSourceFiles+ ", allExcludedFiles = "+ allExcludedFiles,null);
-  String sourceFilesArray[]=allSourceFiles.split(":");
-  Collection<File> fileCollection=new Vector<File>();
-  for (  String tempStr : sourceFilesArray) {
-    tempStr=tempStr.trim();
-    fileCollection.add(new File(tempStr));
-  }
-  this.sourceTrees=fileCollection;
-  if (allExcludedFiles.equals("")) {
-    this.excludedFiles=generateCanonicalHashmap(new String[0]);
-  }
+  try {
+    FileInputStream fis=new FileInputStream(fileName);
+    Properties config=new Properties();
+    config.load(fis);
+    String apiName=config.getProperty("name" + suffix);
+    String allSourceFiles=config.getProperty("sourceFiles" + suffix);
+    String allExcludedFiles=config.getProperty("excludedFiles" + suffix);
+    if (allExcludedFiles == null) {
+      allExcludedFiles="";
+    }
+    if (apiName == null || allSourceFiles == null) {
+      throw new IllegalArgumentException("in apiContainer constructor, either name (" + apiName + ") or sourceFiles ("+ allSourceFiles+ ") is null");
+    }
+    logger.log(TreeLogger.DEBUG,"read from config file " + fileName + ", name = "+ apiName+ ", allSourceFiles = "+ allSourceFiles+ ", allExcludedFiles = "+ allExcludedFiles,null);
+    String dirRoot=config.getProperty("dirRoot" + suffix);
+    if (dirRoot == null) {
+      dirRoot="";
+    }
+    String sourceFilesArray[]=allSourceFiles.split(":");
+    Collection<File> fileCollection=new Vector<File>();
+    for (    String tempStr : sourceFilesArray) {
+      tempStr=tempStr.trim();
+      checkFileExistence("source file: ",dirRoot + tempStr);
+      fileCollection.add(new File(dirRoot + tempStr));
+    }
+    logger.log(TreeLogger.DEBUG,"fileCollection " + fileCollection,null);
+    this.sourceTrees=fileCollection;
+    if (allExcludedFiles.equals("")) {
+      this.excludedFiles=generateCanonicalHashmap(new String[0],dirRoot);
+    }
  else {
-    String excludedFilesArray[]=allExcludedFiles.split(":");
-    this.excludedFiles=generateCanonicalHashmap(excludedFilesArray);
+      String excludedFilesArray[]=allExcludedFiles.split(":");
+      for (      String excludedFile : excludedFilesArray) {
+        checkFileExistence("excluded file: ",dirRoot + excludedFile);
+      }
+      this.excludedFiles=generateCanonicalHashmap(excludedFilesArray,dirRoot);
+    }
+    this.name=apiName;
+    createTypeOracleFromSources();
+    initializeApiPackages();
   }
-  this.name=apiName;
-  createTypeOracleFromSources();
-  initializeApiPackages();
+ catch (  MalformedURLException e1) {
+    throw new IllegalArgumentException(e1);
+  }
+catch (  FileNotFoundException e2) {
+    throw new IllegalArgumentException(e2);
+  }
+catch (  IOException e3) {
+    throw new IllegalArgumentException(e3);
+  }
+catch (  NotFoundException e4) {
+    logger.log(TreeLogger.ERROR,"logged a NotFoundException",e4);
+    throw new UnableToCompleteException();
+  }
 }
