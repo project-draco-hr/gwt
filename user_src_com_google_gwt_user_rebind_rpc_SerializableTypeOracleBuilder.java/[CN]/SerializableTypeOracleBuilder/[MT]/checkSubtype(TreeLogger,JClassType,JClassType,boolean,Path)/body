@@ -1,0 +1,38 @@
+{
+  if (classOrInterface.isEnum() != null) {
+    return true;
+  }
+  JParameterizedType isParameterized=classOrInterface.isParameterized();
+  if (isParameterized != null) {
+    if (isRawMapOrRawCollection(classOrInterface)) {
+      checkAllSubtypesOfObject(logger,parent);
+    }
+ else {
+      TreeLogger paramsLogger=logger.branch(TreeLogger.DEBUG,"Checking parameters of '" + isParameterized.getParameterizedQualifiedSourceName() + "'");
+      for (      JTypeParameter param : isParameterized.getBaseType().getTypeParameters()) {
+        if (!checkTypeArgument(paramsLogger,isParameterized.getBaseType(),param.getOrdinal(),isParameterized.getTypeArgs()[param.getOrdinal()],true,parent)) {
+          return false;
+        }
+      }
+    }
+  }
+  JClassType superType=classOrInterface.getSuperclass();
+  if (superType != null && superType.isRawType() != null) {
+    superType=superType.isRawType().asParameterizedByWildcards();
+  }
+  if (superType != null && isDeclaredSerializable(superType)) {
+    superType=constrainTypeBy(superType,originalType);
+    if (superType == null) {
+      return false;
+    }
+    boolean superTypeOk=false;
+    if (superType != null) {
+      superTypeOk=checkSubtype(logger,superType,originalType,isSpeculative,createSupertypePath(parent,superType,classOrInterface));
+    }
+    if (!superTypeOk && !isDirectlySerializable(classOrInterface)) {
+      return false;
+    }
+  }
+  TypeInfoComputed tic=getTypeInfoComputed(classOrInterface,parent);
+  return checkDeclaredFields(logger,tic,isSpeculative,parent);
+}

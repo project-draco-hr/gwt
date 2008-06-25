@@ -1,0 +1,34 @@
+{
+  Element bodyElement=RootPanel.getBodyElement();
+  htmlElement=DOM.getParent(RootPanel.getBodyElement());
+  final SimplePanel positioner=new SimplePanel();
+  positioner.setPixelSize(30,30);
+  positioner.getElement().getStyle().setProperty("borderLeft","1px solid red");
+  positioner.getElement().getStyle().setProperty("borderTop","1px solid red");
+  positioner.getElement().getStyle().setProperty("cursor","crosshair");
+  final Label sandbox=new Label();
+  sandbox.sinkEvents(Event.ONMOUSEMOVE);
+  sandbox.setPixelSize(300,300);
+  sandbox.getElement().getStyle().setProperty("border","3px solid blue");
+  sandbox.getElement().getStyle().setProperty("cursor","crosshair");
+  DOM.addEventPreview(new EventPreview(){
+    public boolean onEventPreview(    Event event){
+      Element target=DOM.eventGetTarget(event);
+      if (!sandbox.getElement().isOrHasChild(target) && !positioner.getElement().isOrHasChild(target)) {
+        positioner.removeFromParent();
+        return true;
+      }
+switch (DOM.eventGetType(event)) {
+case Event.ONMOUSEMOVE:
+        RootPanel.get().add(positioner,event.getClientX(),event.getClientY());
+      break;
+  }
+  return true;
+}
+}
+);
+VerticalPanel vPanel=new VerticalPanel();
+vPanel.add(new ControlPanel());
+vPanel.add(sandbox);
+return vPanel;
+}

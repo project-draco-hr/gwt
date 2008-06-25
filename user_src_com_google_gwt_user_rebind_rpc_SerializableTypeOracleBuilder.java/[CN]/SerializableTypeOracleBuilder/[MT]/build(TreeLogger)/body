@@ -1,0 +1,31 @@
+{
+  alreadyCheckedObject=false;
+  boolean allSucceeded=true;
+  for (  Entry<JClassType,TreeLogger> entry : rootTypes.entrySet()) {
+    allSucceeded&=checkTypeInstantiable(entry.getValue(),entry.getKey(),false,createRootPath(entry.getKey()));
+  }
+  if (!allSucceeded) {
+    throw new UnableToCompleteException();
+  }
+  for (  TypeInfoComputed tic : typeToTypeInfoComputed.values()) {
+    assert(!tic.isPendingInstantiable());
+  }
+  pruneUnreachableTypes();
+  logReachableTypes(logger);
+  Set<JClassType> possiblyInstantiatedTypes=new TreeSet<JClassType>(JTYPE_COMPARATOR);
+  Set<JClassType> fieldSerializableTypes=new TreeSet<JClassType>(JTYPE_COMPARATOR);
+  for (  TypeInfoComputed tic : typeToTypeInfoComputed.values()) {
+    JClassType type=tic.getType();
+    type=type.getErasedType();
+    if (tic.isInstantiable()) {
+      assert(!type.isAbstract() || type.isEnum() != null);
+      possiblyInstantiatedTypes.add(type);
+    }
+    if (tic.isFieldSerializable()) {
+      assert(type.isInterface() == null);
+      fieldSerializableTypes.add(type);
+    }
+  }
+  logSerializableTypes(logger,fieldSerializableTypes);
+  return new SerializableTypeOracleImpl(typeOracle,fieldSerializableTypes,possiblyInstantiatedTypes);
+}

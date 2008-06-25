@@ -1,0 +1,108 @@
+{
+  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
+  addStandardClasses(units);
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public interface Intf1 extends Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("Intf1",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public interface Intf2 extends Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("Intf2",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public interface Intf3 extends Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("Intf3",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class Implements12 implements Intf1, Intf2 {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("Implements12",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class ImplementsNeither implements Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("ImplementsNeither",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public interface List<T> extends Serializable  {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("List",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class ListOfIntf1 implements List<Intf1>  {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("ListOfIntf1",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class ListOfIntf2 implements List<Intf2>  {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("ListOfIntf2",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class ListOfIntf3 implements List<Intf3>  {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("ListOfIntf3",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class ListOfImplements12 implements List<Implements12>  {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("ListOfImplements12",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class ListOfImplementsNeither implements List<ImplementsNeither>  {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("ListOfImplementsNeither",code));
+  }
+  TreeLogger logger=createLogger();
+  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,units);
+  JClassType intf1=to.getType("Intf1");
+  JClassType intf2=to.getType("Intf2");
+  JClassType intf3=to.getType("Intf3");
+  JClassType implements12=to.getType("Implements12");
+  JClassType implementsNeither=to.getType("ImplementsNeither");
+  JGenericType list=to.getType("List").isGenericType();
+  JClassType listOfIntf1=to.getType("ListOfIntf1");
+  JClassType listOfIntf2=to.getType("ListOfIntf2");
+  JClassType listOfIntf3=to.getType("ListOfIntf3");
+  JClassType listOfImplements12=to.getType("ListOfImplements12");
+  JClassType listOfImplementsNeither=to.getType("ListOfImplementsNeither");
+  TypeConstrainer typeConstrainer=new TypeConstrainer(to);
+  Map<JTypeParameter,JClassType> emptyConstraints=new HashMap<JTypeParameter,JClassType>();
+  assertTrue(typeConstrainer.typesMatch(intf1,intf2,emptyConstraints));
+  assertFalse(typeConstrainer.typesMatch(intf1,intf3,emptyConstraints));
+  assertTrue(typeConstrainer.typesMatch(implements12,intf1,emptyConstraints));
+  assertFalse(typeConstrainer.typesMatch(implements12,intf3,emptyConstraints));
+  assertFalse(typeConstrainer.typesMatch(implementsNeither,intf1,emptyConstraints));
+  JParameterizedType parameterizedListOfIntf1=to.getParameterizedType(list,makeArray(intf1));
+  SerializableTypeOracleBuilder sob=new SerializableTypeOracleBuilder(logger,to);
+  sob.addRootType(logger,parameterizedListOfIntf1);
+  SerializableTypeOracle so=sob.build(logger);
+  assertSerializableTypes(so,listOfIntf1,listOfIntf2,listOfImplements12);
+  assertNotFieldSerializable(so,listOfIntf3);
+  assertNotFieldSerializable(so,listOfImplementsNeither);
+}

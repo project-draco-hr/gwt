@@ -1,0 +1,32 @@
+{
+  JClassType classOrInterface=typeInfo.getType();
+  if (classOrInterface.isEnum() != null) {
+    return true;
+  }
+  isSpeculative|=typeInfo.isManuallySerializable();
+  JClassType baseType=getBaseType(classOrInterface);
+  boolean allSucceeded=true;
+  JField[] fields=baseType.getFields();
+  if (fields.length > 0) {
+    TreeLogger localLogger=logger.branch(TreeLogger.DEBUG,"Analyzing the fields of type '" + classOrInterface.getParameterizedQualifiedSourceName() + "' that qualify for serialization",null);
+    for (    JField field : fields) {
+      if (!shouldConsiderForSerialization(localLogger,field)) {
+        continue;
+      }
+      TreeLogger fieldLogger=localLogger.branch(TreeLogger.DEBUG,field.toString(),null);
+      JType fieldType=field.getType();
+      Path path=createFieldPath(parent,field);
+      if (typeInfo.isManuallySerializable() && fieldType.getLeafType() == typeOracle.getJavaLangObject()) {
+        checkAllSubtypesOfObject(fieldLogger.branch(TreeLogger.WARN,"Object was reached from a manually serializable type",null),path);
+      }
+ else {
+        allSucceeded&=checkTypeInstantiable(fieldLogger,fieldType,isSpeculative,path);
+      }
+    }
+  }
+  boolean succeeded=allSucceeded || typeInfo.isManuallySerializable();
+  if (succeeded) {
+    typeInfo.setFieldSerializable();
+  }
+  return succeeded;
+}
