@@ -1,15 +1,12 @@
 {
   FindStaticDispatchSitesVisitor finder=new FindStaticDispatchSitesVisitor();
   finder.accept(program);
-  if (toBeMadeStatic.isEmpty()) {
-    return false;
-  }
   CreateStaticImplsVisitor creator=new CreateStaticImplsVisitor();
   for (  JMethod method : toBeMadeStatic) {
     creator.accept(method);
   }
   RewriteCallSites rewriter=new RewriteCallSites();
   rewriter.accept(program);
-  assert(rewriter.didChange());
-  return true;
+  assert(rewriter.didChange() || toBeMadeStatic.isEmpty());
+  return rewriter.didChange();
 }
