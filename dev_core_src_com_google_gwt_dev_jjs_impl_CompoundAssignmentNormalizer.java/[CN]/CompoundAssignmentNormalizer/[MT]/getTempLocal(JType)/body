@@ -1,10 +1,16 @@
 {
-  if (reuseTemps) {
-    if (tempLocalsIndex < tempLocals.size()) {
-      return tempLocals.get(tempLocalsIndex++);
-    }
+  TempLocalTracker tracker=localTrackers.get(type);
+  if (tracker == null) {
+    tracker=new TempLocalTracker();
+    localTrackers.put(type,tracker);
   }
-  JLocal newTemp=program.createLocal(null,("$t" + localCounter++).toCharArray(),type,false,currentMethodBody);
-  tempLocals.add(newTemp);
-  return newTemp;
+  JLocal temp=null;
+  if (reuseTemps) {
+    temp=tracker.tryGetReusableLocal();
+  }
+  if (temp == null) {
+    temp=program.createLocal(null,(getTempPrefix() + localCounter++).toCharArray(),type,false,currentMethodBody);
+  }
+  tracker.useLocal(temp);
+  return temp;
 }

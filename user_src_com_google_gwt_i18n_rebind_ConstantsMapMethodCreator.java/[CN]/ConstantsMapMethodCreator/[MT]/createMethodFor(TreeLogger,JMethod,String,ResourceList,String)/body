@@ -1,0 +1,36 @@
+{
+  String methodName=method.getName();
+  if (method.getParameters().length > 0) {
+    error(logger,methodName + " cannot have parameters; extend Messages instead if you need to create " + "parameterized messages");
+  }
+  enableCache();
+  String constantMapClassName=ConstantMap.class.getCanonicalName();
+  println(constantMapClassName + " args = (" + constantMapClassName+ ") cache.get("+ wrap(methodName)+ ");");
+  println("if (args == null) {");
+  indent();
+  println("args = new " + constantMapClassName + "();");
+  String value;
+  try {
+    value=resourceList.getRequiredStringExt(key,null);
+  }
+ catch (  MissingResourceException e) {
+    e.setDuring("getting key list");
+    throw e;
+  }
+  String[] args=ConstantsStringArrayMethodCreator.split(value);
+  for (int i=0; i < args.length; i++) {
+    try {
+      key=args[i];
+      String keyValue=getResources().getString(key);
+      println("args.put(" + wrap(key) + ", "+ wrap(keyValue)+ ");");
+    }
+ catch (    MissingResourceException e) {
+      e.setDuring("implementing map");
+      throw e;
+    }
+  }
+  println("cache.put(" + wrap(methodName) + ", args);");
+  outdent();
+  println("};");
+  println("return args;");
+}

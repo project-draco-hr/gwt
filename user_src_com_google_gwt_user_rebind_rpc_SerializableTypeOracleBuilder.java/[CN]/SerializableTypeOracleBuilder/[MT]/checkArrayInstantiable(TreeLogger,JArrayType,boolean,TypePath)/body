@@ -1,0 +1,43 @@
+{
+  JType leafType=array.getLeafType();
+  JWildcardType leafWild=leafType.isWildcard();
+  if (leafWild != null) {
+    JArrayType arrayType=getArrayType(typeOracle,array.getRank(),leafWild.getUpperBound());
+    return checkArrayInstantiable(logger,arrayType,isSpeculative,path);
+  }
+  JClassType leafClass=leafType.isClassOrInterface();
+  JTypeParameter isLeafTypeParameter=leafType.isTypeParameter();
+  if (isLeafTypeParameter != null && !typeParametersInRootTypes.contains(isLeafTypeParameter)) {
+    return true;
+  }
+  if (!isAllowedByFilter(logger,array,isSpeculative)) {
+    return false;
+  }
+  TypeInfoComputed tic=getTypeInfoComputed(array,path);
+  if (tic.isDone()) {
+    return tic.hasInstantiableSubtypes();
+  }
+ else   if (tic.isPendingInstantiable()) {
+    return true;
+  }
+  tic.setPendingInstantiable();
+  TreeLogger branch=logger.branch(TreeLogger.DEBUG,"Analyzing component type:",null);
+  Set<JClassType> instantiableTypes=new HashSet<JClassType>();
+  boolean succeeded=checkTypeInstantiable(branch,array.getComponentType(),isSpeculative,TypePaths.createArrayComponentPath(array,path),instantiableTypes);
+  if (succeeded && leafClass != null) {
+    TreeLogger covariantArrayLogger=logger.branch(TreeLogger.DEBUG,"Covariant array types");
+    for (    JClassType instantiableType : TypeHierarchyUtils.getAllTypesBetweenRootTypeAndLeaves(leafClass,instantiableTypes)) {
+      if (!isAccessibleToSerializer(instantiableType)) {
+        continue;
+      }
+      covariantArrayLogger.branch(TreeLogger.DEBUG,getArrayType(typeOracle,array.getRank(),instantiableType).getParameterizedQualifiedSourceName());
+      for (int rank=1; rank <= array.getRank(); ++rank) {
+        JArrayType covariantArray=getArrayType(typeOracle,rank,instantiableType);
+        TypeInfoComputed covariantArrayTic=getTypeInfoComputed(covariantArray,path);
+        covariantArrayTic.setInstantiable(true);
+      }
+    }
+  }
+  tic.setInstantiable(succeeded);
+  return succeeded;
+}

@@ -1,0 +1,25 @@
+{
+  String methodName=method.getName();
+  enableCache();
+  println("String args[] = (String[]) cache.get(" + wrap(methodName) + ");");
+  println("if (args == null) {");
+  indent();
+  println("String [] writer= {");
+  indent();
+  String template=resource.getRequiredStringExt(key,null);
+  String[] args=split(template);
+  for (int i=0; i < args.length; i++) {
+    String toPrint=args[i].replaceAll("\\,",",");
+    println(wrap(toPrint) + ",");
+  }
+  outdent();
+  println("};");
+  println("cache.put(" + wrap(methodName) + ", writer);");
+  println("return writer;");
+  outdent();
+  println("} else {");
+  indent();
+  println("return args;");
+  outdent();
+  println("}");
+}
