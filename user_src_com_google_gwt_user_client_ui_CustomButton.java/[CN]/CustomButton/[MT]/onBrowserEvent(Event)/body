@@ -5,19 +5,21 @@
   int type=DOM.eventGetType(event);
 switch (type) {
 case Event.ONMOUSEDOWN:
-    setFocus(true);
-  onClickStart();
-DOM.setCapture(getElement());
-isCapturing=true;
-DOM.eventPreventDefault(event);
-break;
+    if (event.getButton() == Event.BUTTON_LEFT) {
+      setFocus(true);
+      onClickStart();
+      DOM.setCapture(getElement());
+      isCapturing=true;
+      DOM.eventPreventDefault(event);
+    }
+  break;
 case Event.ONMOUSEUP:
 if (isCapturing) {
-isCapturing=false;
-DOM.releaseCapture(getElement());
-if (isHovering()) {
-onClick();
-}
+  isCapturing=false;
+  DOM.releaseCapture(getElement());
+  if (isHovering() && event.getButton() == Event.BUTTON_LEFT) {
+    onClick();
+  }
 }
 break;
 case Event.ONMOUSEMOVE:
