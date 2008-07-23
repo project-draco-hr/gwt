@@ -1,0 +1,22 @@
+{
+  StandardCompilationResult compilation;
+  try {
+    compilation=linkerContext.getCompilation(perm.logger,js);
+  }
+ catch (  UnableToCompleteException e) {
+    recordFailure();
+    return;
+  }
+  StaticPropertyOracle propOracle=perm.rebindOracle.getPropertyOracle();
+  Property[] orderedProps=propOracle.getOrderedProps();
+  String[] orderedPropValues=propOracle.getOrderedPropValues();
+  Map<SelectionProperty,String> unboundProperties=new HashMap<SelectionProperty,String>();
+  for (int i=0; i < orderedProps.length; i++) {
+    SelectionProperty key=linkerContext.getProperty(orderedProps[i].getName());
+    if (key.tryGetValue() != null) {
+      continue;
+    }
+    unboundProperties.put(key,orderedPropValues[i]);
+  }
+  compilation.addSelectionPermutation(unboundProperties);
+}

@@ -1,50 +1,42 @@
 {
+  JProgram jprogram=null;
+  JsProgram jsProgram=null;
+synchronized (myLockObject) {
+    if (savedJProgram != null && savedJsProgram != null) {
+      jprogram=savedJProgram;
+      jsProgram=savedJsProgram;
+      savedJProgram=null;
+      savedJsProgram=null;
+    }
+  }
+  if (jprogram == null || jsProgram == null) {
+    if (serializedAst == null) {
+      throw new IllegalStateException("No serialized AST was cached.");
+    }
+    try {
+      PerfLogger.start("deserialize");
+      ByteArrayInputStream bais=new ByteArrayInputStream(serializedAst);
+      ObjectInputStream is;
+      is=new ObjectInputStream(bais);
+      jprogram=(JProgram)is.readObject();
+      jsProgram=(JsProgram)is.readObject();
+      PerfLogger.end();
+    }
+ catch (    IOException e) {
+      throw new RuntimeException("Should be impossible for memory based streams",e);
+    }
+catch (    ClassNotFoundException e) {
+      throw new RuntimeException("Should be impossible when deserializing in process",e);
+    }
+  }
   try {
-    JProgram jprogram=new JProgram(logger,rebindOracle);
-    JsProgram jsProgram=new JsProgram();
     if (JProgram.isTracingEnabled()) {
       System.out.println("------------------------------------------------------------");
       System.out.println("|                     (new permuation)                     |");
       System.out.println("------------------------------------------------------------");
     }
-{
-      TypeMap typeMap=new TypeMap(jprogram);
-      TypeDeclaration[] allTypeDeclarations=BuildTypeMap.exec(typeMap,goldenCuds,jsProgram);
-      checkForErrors(logger,true);
-      jprogram.typeOracle.computeBeforeAST();
-      GenerateJavaAST.exec(allTypeDeclarations,typeMap,jprogram,jsProgram,options.isEnableAssertions());
-      checkForErrors(logger,true);
-      typeMap=null;
-      allTypeDeclarations=null;
-    }
-    FixAssignmentToUnbox.exec(jprogram);
-    if (options.isEnableAssertions()) {
-      AssertionNormalizer.exec(jprogram);
-    }
- else {
-      AssertionRemover.exec(jprogram);
-    }
-    ReplaceRebinds.exec(jprogram);
-    if (options.isValidateOnly()) {
-      return null;
-    }
-    findEntryPoints(logger,rebindOracle,declEntryPoints,jprogram);
-    JavaScriptObjectNormalizer.exec(jprogram);
-    boolean didChange;
-    do {
-      jprogram.typeOracle.recomputeClinits();
-      didChange=false;
-      didChange=Pruner.exec(jprogram,true) || didChange;
-      didChange=Finalizer.exec(jprogram) || didChange;
-      didChange=MakeCallsStatic.exec(jprogram) || didChange;
-      didChange=TypeTightener.exec(jprogram) || didChange;
-      didChange=MethodCallTightener.exec(jprogram) || didChange;
-      didChange=DeadCodeElimination.exec(jprogram) || didChange;
-      if (options.isAggressivelyOptimize()) {
-        didChange=MethodInliner.exec(jprogram) || didChange;
-      }
-    }
- while (didChange);
+    ResolveRebinds.exec(logger,jprogram,rebindOracle);
+    optimize(jprogram);
     LongCastNormalizer.exec(jprogram);
     JsoDevirtualizer.exec(jprogram);
     CatchBlockNormalizer.exec(jprogram);
@@ -56,13 +48,15 @@
     Pruner.exec(jprogram,false);
     jprogram.typeOracle.recomputeClinits();
     GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput());
+    jprogram=null;
     JsNormalizer.exec(jsProgram);
     JsSymbolResolver.exec(jsProgram);
     if (options.isAggressivelyOptimize()) {
+      boolean didChange;
       do {
         didChange=false;
         didChange=JsStaticEval.exec(jsProgram) || didChange;
-        didChange=options.isAggressivelyOptimize() && JsInliner.exec(jsProgram) || didChange;
+        didChange=JsInliner.exec(jsProgram) || didChange;
         didChange=JsUnusedFunctionRemover.exec(jsProgram) || didChange;
       }
  while (didChange);
@@ -88,41 +82,7 @@ JsSourceGenerationVisitor v=new JsSourceGenerationVisitor(out);
 v.accept(jsProgram);
 return out.toString();
 }
- catch (UnableToCompleteException e) {
-throw e;
-}
-catch (InternalCompilerException e) {
-TreeLogger topBranch=logger.branch(TreeLogger.ERROR,"An internal compiler exception occurred",e);
-List<NodeInfo> nodeTrace=e.getNodeTrace();
-for (NodeInfo nodeInfo : nodeTrace) {
-SourceInfo info=nodeInfo.getSourceInfo();
-String msg;
-if (info != null) {
-String fileName=info.getFileName();
-fileName=fileName.substring(fileName.lastIndexOf('/') + 1);
-fileName=fileName.substring(fileName.lastIndexOf('\\') + 1);
-msg="at " + fileName + "("+ info.getStartLine()+ "): ";
-}
- else {
-msg="<no source info>: ";
-}
-String description=nodeInfo.getDescription();
-if (description != null) {
-msg+=description;
-}
- else {
-msg+="<no description available>";
-}
-TreeLogger nodeBranch=topBranch.branch(TreeLogger.ERROR,msg,null);
-String className=nodeInfo.getClassName();
-if (className != null) {
-nodeBranch.log(TreeLogger.INFO,className,null);
-}
-}
-throw new UnableToCompleteException();
-}
-catch (Throwable e) {
-logger.log(TreeLogger.ERROR,"Unexpected internal compiler error",e);
-throw new UnableToCompleteException();
+ catch (Throwable e) {
+throw logAndTranslateException(logger,e);
 }
 }
