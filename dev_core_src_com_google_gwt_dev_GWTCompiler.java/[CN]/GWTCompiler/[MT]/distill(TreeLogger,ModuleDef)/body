@@ -9,6 +9,7 @@
   generatorResourcesDir.mkdirs();
   compilationState.compile(logger);
   rules=module.getRules();
+  String[] declEntryPts;
   if (jjsOptions.isValidateOnly()) {
     logger.log(TreeLogger.INFO,"Validating compilation " + module.getName(),null);
     Set<CompilationUnit> compilationUnits=compilationState.getCompilationUnits();
@@ -23,17 +24,15 @@
     declEntryPts=module.getEntryPointTypeNames();
   }
   ArtifactSet generatorArtifacts=new ArtifactSet();
-  properties=module.getProperties();
-  perms=new PropertyPermutations(properties);
-  rebindPermOracle=new DistillerRebindPermutationOracle(generatorArtifacts,perms);
-  WebModeCompilerFrontEnd frontEnd=new WebModeCompilerFrontEnd(compilationState,rebindPermOracle);
+  DistillerRebindPermutationOracle rpo=new DistillerRebindPermutationOracle(generatorArtifacts,new PropertyPermutations(module.getProperties()));
+  WebModeCompilerFrontEnd frontEnd=new WebModeCompilerFrontEnd(compilationState,rpo);
   JavaToJavaScriptCompiler jjs=new JavaToJavaScriptCompiler(logger,frontEnd,declEntryPts,jjsOptions);
   if (jjsOptions.isValidateOnly()) {
     logger.log(TreeLogger.INFO,"Validation succeeded",null);
     return;
   }
   StandardLinkerContext linkerContext=new StandardLinkerContext(logger,module,outDir,generatorResourcesDir,jjsOptions);
-  compilePermutations(logger,jjs,linkerContext);
+  compilePermutations(logger,jjs,rpo,linkerContext);
   logger.log(TreeLogger.INFO,"Compilation succeeded",null);
   linkerContext.addOrReplaceArtifacts(generatorArtifacts);
   linkerContext.link(logger,linkerContext,null);
