@@ -1,11 +1,20 @@
 {
-  JType newExceptions[]=newMethod.getMethod().getThrows();
-  JType oldExceptions[]=oldMethod.getMethod().getThrows();
+  ArrayList<JType> legalTypes=new ArrayList<JType>();
+  TypeOracle newTypeOracle=newMethod.getMethod().getEnclosingType().getOracle();
+  JClassType errorType=newTypeOracle.findType(Error.class.getName());
+  if (errorType != null) {
+    legalTypes.add(errorType);
+  }
+  JClassType rteType=newTypeOracle.findType(RuntimeException.class.getName());
+  if (rteType != null) {
+    legalTypes.add(rteType);
+  }
+  legalTypes.addAll(Arrays.asList(oldMethod.getMethod().getThrows()));
   List<ApiChange> ret=new ArrayList<ApiChange>();
-  for (  JType newException : newExceptions) {
+  for (  JType newException : newMethod.getMethod().getThrows()) {
     boolean isSubclass=false;
-    for (    JType oldException : oldExceptions) {
-      if (ApiDiffGenerator.isFirstTypeAssignableToSecond(newException,oldException)) {
+    for (    JType legalType : legalTypes) {
+      if (ApiDiffGenerator.isFirstTypeAssignableToSecond(newException,legalType)) {
         isSubclass=true;
         break;
       }
