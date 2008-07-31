@@ -14,10 +14,14 @@
     if (allExcludedFiles == null) {
       allExcludedFiles="";
     }
+    String allExcludedPackages=config.getProperty("excludedPackages");
+    if (allExcludedPackages == null) {
+      allExcludedPackages="";
+    }
     if (apiName == null || allSourceFiles == null) {
       throw new IllegalArgumentException("in apiContainer constructor, either name (" + apiName + ") or sourceFiles ("+ allSourceFiles+ ") is null");
     }
-    logger.log(TreeLogger.DEBUG,"read from config file " + fileName + ", name = "+ apiName+ ", allSourceFiles = "+ allSourceFiles+ ", allExcludedFiles = "+ allExcludedFiles,null);
+    logger.log(TreeLogger.DEBUG,"read from config file " + fileName + ", name = "+ apiName+ ", allSourceFiles = "+ allSourceFiles+ ", allExcludedFiles = "+ allExcludedFiles+ ", allExcludedPackages = "+ allExcludedPackages,null);
     String dirRoot=config.getProperty("dirRoot" + suffix);
     if (dirRoot == null) {
       dirRoot="";
@@ -31,16 +35,13 @@
     }
     logger.log(TreeLogger.DEBUG,"fileCollection " + fileCollection,null);
     this.sourceTrees=fileCollection;
-    if (allExcludedFiles.equals("")) {
-      this.excludedFiles=generateCanonicalHashmap(new String[0],dirRoot);
+    String excludedFilesArray[]=allExcludedFiles.split(":");
+    for (    String excludedFile : excludedFilesArray) {
+      checkFileExistence("excluded file: ",dirRoot + excludedFile);
     }
- else {
-      String excludedFilesArray[]=allExcludedFiles.split(":");
-      for (      String excludedFile : excludedFilesArray) {
-        checkFileExistence("excluded file: ",dirRoot + excludedFile);
-      }
-      this.excludedFiles=generateCanonicalHashmap(excludedFilesArray,dirRoot);
-    }
+    this.excludedFiles=generateCanonicalFileSet(excludedFilesArray,dirRoot);
+    String excludedPackagesArray[]=allExcludedPackages.split(":");
+    this.excludedPackages=new HashSet<String>(Arrays.asList(excludedPackagesArray));
     this.name=apiName;
     createTypeOracleFromSources();
     initializeApiPackages();
