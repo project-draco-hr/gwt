@@ -3,8 +3,12 @@
     currentTask=tasks.poll();
     if (currentTask == null) {
       tryToExitNonFinalThread(null);
-      results.add(FINISHED_RESULT);
-      exitFinalThread();
+      exitFinalThread(new Runnable(){
+        public void run(){
+          results.add(FINISHED_RESULT);
+        }
+      }
+);
     }
     if (!hasEnoughMemory()) {
       tryToExitNonFinalThread(outOfMemoryRetryAction);
@@ -17,8 +21,12 @@
  catch (    OutOfMemoryError e) {
       if (definitelyFinalThread) {
         currentTask.logger.log(TreeLogger.ERROR,"Out of memory",e);
-        results.add(new FailedResult(currentTask.getPermutation(),new UnableToCompleteException()));
-        exitFinalThread();
+        exitFinalThread(new Runnable(){
+          public void run(){
+            results.add(new FailedResult(currentTask.getPermutation(),new UnableToCompleteException()));
+          }
+        }
+);
       }
       tryToExitNonFinalThread(outOfMemoryRetryAction);
       outOfMemoryRetryAction.run();
