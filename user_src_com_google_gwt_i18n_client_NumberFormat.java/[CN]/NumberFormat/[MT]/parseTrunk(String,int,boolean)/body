@@ -1,0 +1,99 @@
+{
+  int decimalPos=-1;
+  int digitLeftCount=0, zeroDigitCount=0, digitRightCount=0;
+  byte groupingCount=-1;
+  int len=pattern.length();
+  int pos=start;
+  boolean loop=true;
+  for (; (pos < len) && loop; ++pos) {
+    char ch=pattern.charAt(pos);
+switch (ch) {
+case PATTERN_DIGIT:
+      if (zeroDigitCount > 0) {
+        ++digitRightCount;
+      }
+ else {
+        ++digitLeftCount;
+      }
+    if (groupingCount >= 0 && decimalPos < 0) {
+      ++groupingCount;
+    }
+  break;
+case PATTERN_ZERO_DIGIT:
+if (digitRightCount > 0) {
+  throw new IllegalArgumentException("Unexpected '0' in pattern \"" + pattern + '"');
+}
+++zeroDigitCount;
+if (groupingCount >= 0 && decimalPos < 0) {
+++groupingCount;
+}
+break;
+case PATTERN_GROUPING_SEPARATOR:
+groupingCount=0;
+break;
+case PATTERN_DECIMAL_SEPARATOR:
+if (decimalPos >= 0) {
+throw new IllegalArgumentException("Multiple decimal separators in pattern \"" + pattern + '"');
+}
+decimalPos=digitLeftCount + zeroDigitCount + digitRightCount;
+break;
+case PATTERN_EXPONENT:
+if (!ignorePattern) {
+if (useExponentialNotation) {
+throw new IllegalArgumentException("Multiple exponential " + "symbols in pattern \"" + pattern + '"');
+}
+useExponentialNotation=true;
+minExponentDigits=0;
+}
+while ((pos + 1) < len && pattern.charAt(pos + 1) == PATTERN_ZERO_DIGIT) {
+++pos;
+if (!ignorePattern) {
+++minExponentDigits;
+}
+}
+if (!ignorePattern && (digitLeftCount + zeroDigitCount) < 1 || minExponentDigits < 1) {
+throw new IllegalArgumentException("Malformed exponential " + "pattern \"" + pattern + '"');
+}
+loop=false;
+break;
+default :
+--pos;
+loop=false;
+break;
+}
+}
+if (zeroDigitCount == 0 && digitLeftCount > 0 && decimalPos >= 0) {
+int n=decimalPos;
+if (n == 0) {
+++n;
+}
+digitRightCount=digitLeftCount - n;
+digitLeftCount=n - 1;
+zeroDigitCount=1;
+}
+if ((decimalPos < 0 && digitRightCount > 0) || (decimalPos >= 0 && (decimalPos < digitLeftCount || decimalPos > (digitLeftCount + zeroDigitCount))) || groupingCount == 0) {
+throw new IllegalArgumentException("Malformed pattern \"" + pattern + '"');
+}
+if (ignorePattern) {
+return pos - start;
+}
+int totalDigits=digitLeftCount + zeroDigitCount + digitRightCount;
+maximumFractionDigits=(decimalPos >= 0 ? (totalDigits - decimalPos) : 0);
+if (decimalPos >= 0) {
+minimumFractionDigits=digitLeftCount + zeroDigitCount - decimalPos;
+if (minimumFractionDigits < 0) {
+minimumFractionDigits=0;
+}
+}
+int effectiveDecimalPos=decimalPos >= 0 ? decimalPos : totalDigits;
+minimumIntegerDigits=effectiveDecimalPos - digitLeftCount;
+if (useExponentialNotation) {
+maximumIntegerDigits=digitLeftCount + minimumIntegerDigits;
+if (maximumFractionDigits == 0 && minimumIntegerDigits == 0) {
+minimumIntegerDigits=1;
+}
+}
+this.groupingSize=(groupingCount > 0) ? groupingCount : 0;
+decimalSeparatorAlwaysShown=(decimalPos == 0 || decimalPos == totalDigits);
+return pos - start;
+}

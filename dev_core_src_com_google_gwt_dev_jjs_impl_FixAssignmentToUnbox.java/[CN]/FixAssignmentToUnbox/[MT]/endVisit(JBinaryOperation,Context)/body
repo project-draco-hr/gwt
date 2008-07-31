@@ -2,10 +2,16 @@
   if (x.getOp() != JBinaryOperator.ASG) {
     return;
   }
-  JExpression boxed=autoboxUtils.undoUnbox(x.getLhs());
-  if (boxed == null) {
+  JExpression lhs=x.getLhs();
+  JExpression boxed=autoboxUtils.undoUnbox(lhs);
+  if (boxed != null) {
+    JClassType boxedType=(JClassType)boxed.getType();
+    ctx.replaceMe(new JBinaryOperation(program,x.getSourceInfo(),boxedType,JBinaryOperator.ASG,boxed,autoboxUtils.box(x.getRhs(),boxedType)));
     return;
   }
-  JClassType boxedType=(JClassType)boxed.getType();
-  ctx.replaceMe(new JBinaryOperation(program,x.getSourceInfo(),boxedType,JBinaryOperator.ASG,boxed,autoboxUtils.box(x.getRhs(),boxedType)));
+  if (lhs instanceof JCastOperation) {
+    JCastOperation cast=(JCastOperation)lhs;
+    JBinaryOperation newAsg=new JBinaryOperation(program,x.getSourceInfo(),x.getType(),JBinaryOperator.ASG,cast.getExpr(),x.getRhs());
+    ctx.replaceMe(newAsg);
+  }
 }
