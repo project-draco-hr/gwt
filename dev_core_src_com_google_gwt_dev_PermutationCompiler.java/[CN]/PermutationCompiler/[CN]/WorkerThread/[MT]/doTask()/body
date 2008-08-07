@@ -1,0 +1,37 @@
+{
+  currentTask=tasks.poll();
+  if (currentTask == null) {
+    tryToExitNonFinalThread(null);
+    exitFinalThread(new Runnable(){
+      public void run(){
+        results.add(FINISHED_RESULT);
+      }
+    }
+);
+  }
+  if (!hasEnoughMemory()) {
+    tryToExitNonFinalThread(outOfMemoryRetryAction);
+  }
+  boolean definitelyFinalThread=(threadCount.get() == 1);
+  try {
+    String result=currentTask.call();
+    results.add(new SuccessResult(currentTask.getPermutation(),result));
+  }
+ catch (  OutOfMemoryError e) {
+    if (definitelyFinalThread) {
+      currentTask.logger.log(TreeLogger.ERROR,"Out of memory",e);
+      exitFinalThread(new Runnable(){
+        public void run(){
+          results.add(new FailedResult(currentTask.getPermutation(),new UnableToCompleteException()));
+        }
+      }
+);
+    }
+    tryToExitNonFinalThread(outOfMemoryRetryAction);
+    outOfMemoryRetryAction.run();
+  }
+catch (  Throwable e) {
+    results.add(new FailedResult(currentTask.getPermutation(),e));
+    throw new ThreadDeath();
+  }
+}
