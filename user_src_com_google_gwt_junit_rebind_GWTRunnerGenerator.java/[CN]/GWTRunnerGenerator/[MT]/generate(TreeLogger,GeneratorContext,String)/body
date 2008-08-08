@@ -19,12 +19,12 @@
     logger.log(TreeLogger.ERROR,"Could not resolve junit.moduleName property",e);
     throw new UnableToCompleteException();
   }
-  String generatedClass=requestedClass.getSimpleSourceName() + "Impl";
+  String generatedClass=requestedClass.getName().replace('.','_') + "Impl";
   String packageName=requestedClass.getPackage().getName();
   String qualifiedStubClassName=packageName + "." + generatedClass;
   SourceWriter sourceWriter=getSourceWriter(logger,context,packageName,generatedClass,GWT_RUNNER_NAME);
   if (sourceWriter != null) {
-    JClassType[] allTestTypes=getAllTestTypes(context.getTypeOracle());
+    JClassType[] allTestTypes=getAllPossibleTestTypes(context.getTypeOracle());
     Set<String> testClasses=getTestTypesForModule(logger,moduleName,allTestTypes);
     writeCreateNewTestCaseMethod(testClasses,sourceWriter);
     sourceWriter.commit(logger);

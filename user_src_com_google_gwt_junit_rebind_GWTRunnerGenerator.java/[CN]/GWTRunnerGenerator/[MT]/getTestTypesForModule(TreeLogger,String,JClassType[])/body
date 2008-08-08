@@ -4,7 +4,7 @@
     if (!classType.isPublic() || classType.isAbstract() || !classType.isDefaultInstantiable()) {
       continue;
     }
-    String className=classType.getQualifiedSourceName();
+    String className=getPackagePrefix(classType) + classType.getName().replace('.','$');
     try {
       Class<?> testClass=Class.forName(className);
       GWTTestCase instantiated=(GWTTestCase)testClass.newInstance();
@@ -16,7 +16,7 @@
       logger.log(TreeLogger.INFO,"Error determining if test class '" + className + "' is a part of the current module; skipping; expect subsequent errors if this test class is run",e);
       continue;
     }
-    testClasses.add(className);
+    testClasses.add(classType.getQualifiedSourceName());
   }
   return testClasses;
 }
