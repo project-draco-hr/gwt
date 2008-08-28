@@ -5,9 +5,14 @@
  else   if (dispId == 1) {
     if ((flags & COM.DISPATCH_METHOD) != 0) {
       try {
+        if (params.length < 2) {
+          reportIncorrectGwtOnLoadInvocation(params.length);
+          throw new HResultException(COM.E_INVALIDARG);
+        }
         IDispatch frameWnd=(params[0].getType() == COM.VT_DISPATCH) ? params[0].getDispatch() : null;
         String moduleName=(params[1].getType() == COM.VT_BSTR) ? params[1].getString() : null;
-        boolean success=gwtOnLoad(frameWnd,moduleName);
+        String version=(params.length > 2 && params[2].getType() == COM.VT_BSTR) ? params[2].getString() : null;
+        boolean success=gwtOnLoad(frameWnd,moduleName,version);
         return new Variant(success);
       }
  catch (      SWTException e) {
@@ -16,7 +21,7 @@
     }
  else     if ((flags & COM.DISPATCH_PROPERTYGET) != 0) {
       try {
-        Method gwtOnLoadMethod=getClass().getMethod("gwtOnLoad",new Class[]{IDispatch.class,String.class});
+        Method gwtOnLoadMethod=getClass().getMethod("gwtOnLoad",new Class[]{IDispatch.class,String.class,String.class});
         MethodAdaptor methodAdaptor=new MethodAdaptor(gwtOnLoadMethod);
         IDispatchImpl funcObj=new MethodDispatch(null,methodAdaptor);
         IDispatch disp=new IDispatch(funcObj.getAddress());

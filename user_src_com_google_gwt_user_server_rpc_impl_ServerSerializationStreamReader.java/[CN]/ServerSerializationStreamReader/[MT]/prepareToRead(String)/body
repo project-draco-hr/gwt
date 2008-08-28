@@ -9,15 +9,16 @@
     idx=nextIdx + 1;
   }
   super.prepareToRead(encodedTokens);
+  if (getVersion() != SERIALIZATION_STREAM_VERSION) {
+    throw new IncompatibleRemoteServiceException("Expecting version " + SERIALIZATION_STREAM_VERSION + " from client, got "+ getVersion()+ ".");
+  }
   deserializeStringTable();
-  if (hasSerializationPolicyInfo()) {
-    String moduleBaseURL=readString();
-    String strongName=readString();
-    if (serializationPolicyProvider != null) {
-      serializationPolicy=serializationPolicyProvider.getSerializationPolicy(moduleBaseURL,strongName);
-      if (serializationPolicy == null) {
-        throw new NullPointerException("serializationPolicyProvider.getSerializationPolicy()");
-      }
+  String moduleBaseURL=readString();
+  String strongName=readString();
+  if (serializationPolicyProvider != null) {
+    serializationPolicy=serializationPolicyProvider.getSerializationPolicy(moduleBaseURL,strongName);
+    if (serializationPolicy == null) {
+      throw new NullPointerException("serializationPolicyProvider.getSerializationPolicy()");
     }
   }
 }
