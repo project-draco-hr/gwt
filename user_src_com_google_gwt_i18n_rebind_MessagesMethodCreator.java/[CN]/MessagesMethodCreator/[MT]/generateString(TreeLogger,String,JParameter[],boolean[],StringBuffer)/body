@@ -1,67 +1,40 @@
 {
   StringGenerator buf=new StringGenerator(outputBuf);
   Matcher match=argPattern.matcher(template);
-  int curPos=0;
-  boolean inQuote=false;
-  int templateLen=template.length();
-  while (curPos < templateLen) {
-    char ch=template.charAt(curPos++);
-switch (ch) {
-case '\'':
-      if (curPos < templateLen && template.charAt(curPos) == '\'') {
-        buf.appendStringLiteral(ch);
-        ++curPos;
-        break;
+  try {
+    for (    TemplateChunk chunk : MessageFormatParser.parse(template)) {
+      if (chunk.isLiteral()) {
+        buf.appendStringLiteral(chunk.getString());
       }
-    inQuote=!inQuote;
-  break;
-case '{':
-if (!inQuote) {
-  if (match.find(curPos - 1) && match.start() == curPos - 1) {
-    int argNumber=Integer.valueOf(match.group(1));
-    if (argNumber >= params.length) {
-      throw error(logger,"Argument " + argNumber + " beyond range of arguments: "+ template);
-    }
-    seenFlag[argNumber]=true;
-    String arg="arg" + match.group(1);
-    curPos=match.end();
-    String format=match.group(3);
-    if (format != null) {
-      String subformat=match.group(5);
-      ValueFormatter formatter=formatters.get(format);
-      if (formatter != null) {
-        String err=formatter.format(buf,subformat,arg,params[argNumber].getType());
-        if (err != null) {
-          throw error(logger,err);
+ else       if (chunk instanceof ArgumentChunk) {
+        ArgumentChunk argChunk=(ArgumentChunk)chunk;
+        int argNumber=argChunk.getArgumentNumber();
+        if (argNumber >= params.length) {
+          throw error(logger,"Argument " + argNumber + " beyond range of arguments: "+ template);
         }
-        continue;
+        seenFlag[argNumber]=true;
+        String arg="arg" + argNumber;
+        String format=argChunk.getFormat();
+        if (format != null) {
+          String subformat=argChunk.getSubFormat();
+          ValueFormatter formatter=formatters.get(format);
+          if (formatter != null) {
+            String err=formatter.format(buf,subformat,arg,params[argNumber].getType());
+            if (err != null) {
+              throw error(logger,err);
+            }
+            continue;
+          }
+        }
+        buf.appendExpression(arg,"java.lang.String".equals(params[argNumber].getType().getQualifiedSourceName()));
+      }
+ else {
+        throw error(logger,"Unexpected result from parsing template " + template);
       }
     }
-    buf.appendExpression(arg,"java.lang.String".equals(params[argNumber].getType().getQualifiedSourceName()));
   }
- else {
-    throw error(logger,"Invalid message format - { not start of valid argument" + template);
+ catch (  ParseException e) {
+    throw error(logger,e);
   }
-  break;
-}
-buf.appendStringLiteral(ch);
-break;
-case '\n':
-buf.appendStringLiteral("\\n");
-break;
-case '\r':
-buf.appendStringLiteral("\\r");
-break;
-case '\\':
-case '"':
-buf.appendStringLiteral('\\');
-default :
-buf.appendStringLiteral(ch);
-break;
-}
-}
-if (inQuote) {
-throw error(logger,"Unterminated single quote: " + template);
-}
-buf.completeString();
+  buf.completeString();
 }

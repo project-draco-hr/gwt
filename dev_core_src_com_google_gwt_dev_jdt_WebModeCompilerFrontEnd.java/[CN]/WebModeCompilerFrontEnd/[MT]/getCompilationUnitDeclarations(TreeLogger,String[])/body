@@ -1,19 +1,14 @@
 {
-  Map<String,CompilationUnit> unitMap=compilationState.getCompilationUnitMap();
+  Map<String,CompiledClass> classMapBySource=compilationState.getClassFileMapBySource();
   ICompilationUnit[] icus=new ICompilationUnit[seedTypeNames.length];
   for (int i=0; i < seedTypeNames.length; i++) {
     String seedTypeName=seedTypeNames[i];
-    CompilationUnit unit=unitMap.get(seedTypeName);
-    while (unit == null) {
-      int pos=seedTypeName.lastIndexOf('.');
-      if (pos < 0) {
-        logger.log(TreeLogger.ERROR,"Unable to find compilation unit for type '" + seedTypeNames[i] + "'");
-        throw new UnableToCompleteException();
-      }
-      seedTypeName=seedTypeName.substring(0,pos);
-      unit=unitMap.get(seedTypeName);
+    CompiledClass compiledClass=classMapBySource.get(seedTypeName);
+    if (compiledClass == null) {
+      logger.log(TreeLogger.ERROR,"Unable to find compilation unit for type '" + seedTypeName + "'");
+      throw new UnableToCompleteException();
     }
-    icus[i]=new CompilationUnitAdapter(unit);
+    icus[i]=new CompilationUnitAdapter(compiledClass.getUnit());
   }
   CompilationUnitDeclaration[] cuds=compile(logger,icus);
   return cuds;

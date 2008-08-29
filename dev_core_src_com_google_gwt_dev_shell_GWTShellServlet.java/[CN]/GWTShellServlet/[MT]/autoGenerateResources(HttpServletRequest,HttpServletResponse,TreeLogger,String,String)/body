@@ -1,6 +1,5 @@
 {
-  boolean generateScript=partialPath.equals(moduleName + ".nocache.js");
-  if (generateScript) {
+  if (partialPath.equals(moduleName + ".nocache.js")) {
     if (request.getParameter("compiled") == null) {
       try {
         String js=genSelectionScript(logger,moduleName);
@@ -13,6 +12,14 @@
  catch (      UnableToCompleteException e) {
       }
     }
+  }
+ else   if (partialPath.equals("hosted.html")) {
+    String html=HostedModeLinker.getHostedHtml();
+    setResponseCacheHeaders(response,DEFAULT_CACHE_SECONDS);
+    response.setStatus(HttpServletResponse.SC_OK);
+    response.setContentType("text/html");
+    response.getWriter().println(html);
+    return true;
   }
   return false;
 }
