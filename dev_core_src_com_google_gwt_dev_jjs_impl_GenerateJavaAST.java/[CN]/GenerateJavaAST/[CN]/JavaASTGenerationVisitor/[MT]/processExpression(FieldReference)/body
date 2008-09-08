@@ -1,7 +1,6 @@
 {
   SourceInfo info=makeSourceInfo(x);
   FieldBinding fieldBinding=x.binding;
-  JType type=(JType)typeMap.get(x.resolvedType);
   JField field;
   if (fieldBinding.declaringClass == null) {
     field=program.getIndexedField("Array.length");
@@ -14,5 +13,9 @@
   }
   JExpression instance=dispProcessExpression(x.receiver);
   JExpression fieldRef=new JFieldRef(program,info,instance,field,currentClass);
-  return maybeCast(type,fieldRef);
+  if (x.genericCast != null) {
+    JType castType=(JType)typeMap.get(x.genericCast);
+    return maybeCast(castType,fieldRef);
+  }
+  return fieldRef;
 }

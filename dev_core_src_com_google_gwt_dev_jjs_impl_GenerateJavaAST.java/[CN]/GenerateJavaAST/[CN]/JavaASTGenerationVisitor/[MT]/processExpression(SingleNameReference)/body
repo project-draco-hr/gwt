@@ -6,12 +6,20 @@
     return null;
   }
   JVariable variable=(JVariable)target;
+  JExpression result=null;
   if (x.syntheticAccessors != null) {
     JField field=(JField)variable;
     if (!field.isStatic()) {
       JExpression instance=createThisRef(info,field.getEnclosingType());
-      return new JFieldRef(program,info,instance,field,currentClass);
+      result=new JFieldRef(program,info,instance,field,currentClass);
     }
   }
-  return createVariableRef(info,variable,binding);
+  if (result == null) {
+    result=createVariableRef(info,variable,binding);
+  }
+  if (x.genericCast != null) {
+    JType castType=(JType)typeMap.get(x.genericCast);
+    result=maybeCast(castType,result);
+  }
+  return result;
 }

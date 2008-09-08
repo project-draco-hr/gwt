@@ -1,6 +1,5 @@
 {
   SourceInfo info=makeSourceInfo(x);
-  JType type=(JType)typeMap.get(x.resolvedType);
   JMethod method=(JMethod)typeMap.get(x.binding);
   JExpression qualifier;
   if (x.receiver instanceof ThisReference) {
@@ -23,5 +22,9 @@
     call.setStaticDispatchOnly();
   }
   addCallArgs(x.arguments,call,x.binding);
-  return maybeCast(type,call);
+  if (x.valueCast != null) {
+    JType castType=(JType)typeMap.get(x.valueCast);
+    return maybeCast(castType,call);
+  }
+  return call;
 }

@@ -7,8 +7,13 @@
   }
   JVariable variable=(JVariable)node;
   JExpression curRef=createVariableRef(info,variable,binding);
+  if (x.genericCast != null) {
+    JType castType=(JType)typeMap.get(x.genericCast);
+    curRef=maybeCast(castType,curRef);
+  }
   if (x.otherBindings != null) {
-    for (    FieldBinding fieldBinding : x.otherBindings) {
+    for (int i=0; i < x.otherBindings.length; ++i) {
+      FieldBinding fieldBinding=x.otherBindings[i];
       JField field;
       if (fieldBinding.declaringClass == null) {
         field=program.getIndexedField("Array.length");
@@ -20,6 +25,10 @@
         field=(JField)typeMap.get(fieldBinding);
       }
       curRef=new JFieldRef(program,info,curRef,field,currentClass);
+      if (x.otherGenericCasts != null && x.otherGenericCasts[i] != null) {
+        JType castType=(JType)typeMap.get(x.otherGenericCasts[i]);
+        curRef=maybeCast(castType,curRef);
+      }
     }
   }
   return curRef;
