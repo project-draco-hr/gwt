@@ -4,7 +4,16 @@
     return prevAnswers.get(propertyName);
   }
  else {
-    String value=computePropertyValue(logger,propertyName,prop);
+    String value;
+    if (prop instanceof ConfigurationProperty) {
+      value=((ConfigurationProperty)prop).getValue();
+    }
+ else     if (prop instanceof BindingProperty) {
+      value=computePropertyValue(logger,propertyName,(BindingProperty)prop);
+    }
+ else {
+      throw new BadPropertyValueException(propertyName);
+    }
     prevAnswers.put(propertyName,value);
     return value;
   }

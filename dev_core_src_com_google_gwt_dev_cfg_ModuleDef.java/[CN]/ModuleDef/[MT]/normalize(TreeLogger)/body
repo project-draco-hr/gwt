@@ -1,17 +1,10 @@
 {
   PerfLogger.start("ModuleDef.normalize");
-  for (Iterator<Property> iter=getProperties().iterator(); iter.hasNext(); ) {
-    Property prop=iter.next();
-    if (prop.getActiveValue() == null) {
-      String[] knownValues=prop.getKnownValues();
-      assert(knownValues.length > 0);
-      if (knownValues.length > 1) {
-        if (prop.getProvider() == null) {
-          prop.setProvider(new DefaultPropertyProvider(this,prop));
-        }
-      }
- else {
-        prop.setActiveValue(knownValues[0]);
+  for (  Property current : getProperties()) {
+    if (current instanceof BindingProperty) {
+      BindingProperty prop=(BindingProperty)current;
+      if (prop.getProvider() == null && prop.getAllowedValues().length > 1) {
+        prop.setProvider(new DefaultPropertyProvider(this,prop));
       }
     }
   }
