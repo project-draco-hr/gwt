@@ -1,44 +1,4 @@
 {
-  StringBuffer toAppendTo=new StringBuffer(64);
-  int j, n=pattern.length();
-  for (int i=0; i < n; ) {
-    char ch=pattern.charAt(i);
-    if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {
-      for (j=i + 1; j < n && pattern.charAt(j) == ch; ++j) {
-      }
-      subFormat(toAppendTo,ch,j - i,date);
-      i=j;
-    }
- else     if (ch == '\'') {
-      ++i;
-      if (i < n && pattern.charAt(i) == '\'') {
-        toAppendTo.append('\'');
-        ++i;
-        continue;
-      }
-      boolean trailQuote=false;
-      while (!trailQuote) {
-        j=i;
-        while (j < n && pattern.charAt(j) != '\'') {
-          ++j;
-        }
-        if (j >= n) {
-          throw new IllegalArgumentException("Missing trailing \'");
-        }
-        if (j + 1 < n && pattern.charAt(j + 1) == '\'') {
-          ++j;
-        }
- else {
-          trailQuote=true;
-        }
-        toAppendTo.append(pattern.substring(i,j));
-        i=j + 1;
-      }
-    }
- else {
-      toAppendTo.append(ch);
-      ++i;
-    }
-  }
-  return toAppendTo.toString();
+  TimeZone timeZone=TimeZone.createTimeZone(date.getTimezoneOffset());
+  return format(date,timeZone);
 }
