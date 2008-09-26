@@ -1,11 +1,11 @@
 {
-  JsSwitch toSwitch=new JsSwitch();
+  JsSwitch toSwitch=new JsSwitch(makeSourceInfo(switchNode));
   Node fromSwitchExpr=switchNode.getFirstChild();
   toSwitch.setExpr(mapExpression(fromSwitchExpr));
   Node fromMember=fromSwitchExpr.getNext();
   while (fromMember != null) {
     if (fromMember.getType() == TokenStream.CASE) {
-      JsCase toCase=new JsCase();
+      JsCase toCase=new JsCase(makeSourceInfo(fromMember));
       Node fromCaseExpr=fromMember.getFirstChild();
       toCase.setCaseExpr(mapExpression(fromCaseExpr));
       Node fromCaseBlock=fromCaseExpr.getNext();
@@ -14,7 +14,7 @@
     }
  else {
       assert(fromMember.getType() == TokenStream.DEFAULT);
-      JsDefault toDefault=new JsDefault();
+      JsDefault toDefault=new JsDefault(makeSourceInfo(fromMember));
       Node fromDefaultBlock=fromMember.getFirstChild();
       mapStatements(toDefault.getStmts(),fromDefaultBlock);
       toSwitch.getCases().add(toDefault);

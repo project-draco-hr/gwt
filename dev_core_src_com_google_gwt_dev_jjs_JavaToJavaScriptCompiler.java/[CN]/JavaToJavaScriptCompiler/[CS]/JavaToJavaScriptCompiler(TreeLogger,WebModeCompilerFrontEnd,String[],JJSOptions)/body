@@ -18,8 +18,11 @@
   CompilationUnitDeclaration[] goldenCuds=compiler.getCompilationUnitDeclarations(logger,declEntryPts);
   checkForErrors(logger,goldenCuds,false);
   PerfLogger.start("Build AST");
+  boolean enableDescendants=compilerOptions.getSoycOutputDir() != null;
   JProgram jprogram=savedJProgram=new JProgram();
+  jprogram.setEnableSourceInfoDescendants(enableDescendants);
   JsProgram jsProgram=savedJsProgram=new JsProgram();
+  jsProgram.setEnableSourceInfoDescendants(enableDescendants);
   long memoryDelta;
   try {
     System.gc();
@@ -27,6 +30,12 @@
     TypeMap typeMap=new TypeMap(jprogram);
     TypeDeclaration[] allTypeDeclarations=BuildTypeMap.exec(typeMap,goldenCuds,jsProgram);
     checkForErrors(logger,goldenCuds,true);
+    if (enableDescendants) {
+      histogramData=SourceInfoHistogram.exec(jprogram);
+    }
+ else {
+      histogramData=null;
+    }
     jprogram.typeOracle.computeBeforeAST();
     GenerateJavaAST.exec(allTypeDeclarations,typeMap,jprogram,jsProgram,options.isEnableAssertions());
     System.gc();

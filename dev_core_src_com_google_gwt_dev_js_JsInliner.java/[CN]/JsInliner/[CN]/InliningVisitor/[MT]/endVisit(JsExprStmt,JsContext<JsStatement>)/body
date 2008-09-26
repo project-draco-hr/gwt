@@ -11,12 +11,12 @@
       break;
     }
     if (op.getArg2().hasSideEffects()) {
-      statements.add(0,new JsExprStmt(op.getArg2()));
+      statements.add(0,op.getArg2().makeStmt());
     }
     e=op.getArg1();
   }
   if (e.hasSideEffects()) {
-    statements.add(0,new JsExprStmt(e));
+    statements.add(0,e.makeStmt());
   }
   if (statements.size() == 0) {
     if (ctx.canRemove()) {
@@ -28,7 +28,7 @@
   }
  else   if (x.getExpression() != statements.get(0).getExpression()) {
     if (!ctx.canInsert()) {
-      JsBlock b=new JsBlock();
+      JsBlock b=new JsBlock(x.getSourceInfo().makeChild("Block required for control function"));
       b.getStatements().addAll(statements);
       ctx.replaceMe(b);
       return;

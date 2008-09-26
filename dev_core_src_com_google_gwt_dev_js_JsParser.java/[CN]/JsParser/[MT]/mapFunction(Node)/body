@@ -7,12 +7,13 @@
   if (fromFnName != null && fromFnName.length() > 0) {
     toFnName=getScope().declareName(fromFnName);
   }
-  JsFunction toFn=new JsFunction(getScope(),toFnName);
+  SourceInfo fnSourceInfo=makeSourceInfo(fnNode);
+  JsFunction toFn=new JsFunction(fnSourceInfo,getScope(),toFnName);
   pushScope(toFn.getScope());
   while (fromParamNode != null) {
     String fromParamName=fromParamNode.getString();
     JsName paramName=toFn.getScope().declareName(fromParamName);
-    toFn.getParameters().add(new JsParameter(paramName));
+    toFn.getParameters().add(new JsParameter(fnSourceInfo,paramName));
     fromParamNode=fromParamNode.getNext();
   }
   JsBlock toBody=mapBlock(fromBodyNode);

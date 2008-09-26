@@ -1,44 +1,45 @@
 {
+  SourceInfo sourceInfo=program.createSourceInfoSynthetic("gwtOnLoad");
   JsName gwtOnLoadName=topScope.declareName("gwtOnLoad");
   gwtOnLoadName.setObfuscatable(false);
-  JsFunction gwtOnLoad=new JsFunction(topScope,gwtOnLoadName,true);
+  JsFunction gwtOnLoad=new JsFunction(sourceInfo,topScope,gwtOnLoadName,true);
   globalStmts.add(gwtOnLoad.makeStmt());
-  JsBlock body=new JsBlock();
+  JsBlock body=new JsBlock(sourceInfo);
   gwtOnLoad.setBody(body);
   JsScope fnScope=gwtOnLoad.getScope();
   List<JsParameter> params=gwtOnLoad.getParameters();
   JsName errFn=fnScope.declareName("errFn");
   JsName modName=fnScope.declareName("modName");
   JsName modBase=fnScope.declareName("modBase");
-  params.add(new JsParameter(errFn));
-  params.add(new JsParameter(modName));
-  params.add(new JsParameter(modBase));
-  JsExpression asg=createAssignment(topScope.findExistingUnobfuscatableName("$moduleName").makeRef(),modName.makeRef());
+  params.add(new JsParameter(sourceInfo,errFn));
+  params.add(new JsParameter(sourceInfo,modName));
+  params.add(new JsParameter(sourceInfo,modBase));
+  JsExpression asg=createAssignment(topScope.findExistingUnobfuscatableName("$moduleName").makeRef(sourceInfo),modName.makeRef(sourceInfo));
   body.getStatements().add(asg.makeStmt());
-  asg=createAssignment(topScope.findExistingUnobfuscatableName("$moduleBase").makeRef(),modBase.makeRef());
+  asg=createAssignment(topScope.findExistingUnobfuscatableName("$moduleBase").makeRef(sourceInfo),modBase.makeRef(sourceInfo));
   body.getStatements().add(asg.makeStmt());
-  JsIf jsIf=new JsIf();
+  JsIf jsIf=new JsIf(sourceInfo);
   body.getStatements().add(jsIf);
-  jsIf.setIfExpr(errFn.makeRef());
-  JsTry jsTry=new JsTry();
+  jsIf.setIfExpr(errFn.makeRef(sourceInfo));
+  JsTry jsTry=new JsTry(sourceInfo);
   jsIf.setThenStmt(jsTry);
-  JsBlock callBlock=new JsBlock();
+  JsBlock callBlock=new JsBlock(sourceInfo);
   jsIf.setElseStmt(callBlock);
   jsTry.setTryBlock(callBlock);
   for (int i=0; i < entryFuncs.size(); ++i) {
     JsFunction func=entryFuncs.get(i);
     if (func != null) {
-      JsInvocation call=new JsInvocation();
-      call.setQualifier(func.getName().makeRef());
+      JsInvocation call=new JsInvocation(sourceInfo);
+      call.setQualifier(func.getName().makeRef(sourceInfo));
       callBlock.getStatements().add(call.makeStmt());
     }
   }
-  JsCatch jsCatch=new JsCatch(fnScope,"e");
+  JsCatch jsCatch=new JsCatch(sourceInfo,fnScope,"e");
   jsTry.getCatches().add(jsCatch);
-  JsBlock catchBlock=new JsBlock();
+  JsBlock catchBlock=new JsBlock(sourceInfo);
   jsCatch.setBody(catchBlock);
-  JsInvocation errCall=new JsInvocation();
+  JsInvocation errCall=new JsInvocation(sourceInfo);
   catchBlock.getStatements().add(errCall.makeStmt());
-  errCall.setQualifier(errFn.makeRef());
-  errCall.getArguments().add(modName.makeRef());
+  errCall.setQualifier(errFn.makeRef(sourceInfo));
+  errCall.getArguments().add(modName.makeRef(sourceInfo));
 }

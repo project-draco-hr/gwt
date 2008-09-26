@@ -1,0 +1,27 @@
+{
+  boolean openNode=false;
+  if (node instanceof HasSourceInfo) {
+    SourceInfo info=((HasSourceInfo)node).getSourceInfo();
+    openNode=context.isEmpty() || SOURCE_INFO_COMPARATOR.compare(context.peek(),info) != 0;
+    if (openNode) {
+      String color;
+      if (context.contains(info)) {
+        color=HSVUtils.color(context.indexOf(info));
+      }
+ else {
+        color=HSVUtils.color(context.size());
+      }
+      context.push(info);
+      out.printRaw("<div class=\"node\" style=\"background:#" + color + ";\">");
+      out.printRaw("<div class=\"story\">");
+      out.print(info.getStory());
+      out.printRaw("</div>");
+    }
+  }
+  T toReturn=super.doAccept(node);
+  if (openNode) {
+    out.printRaw("</div>");
+    context.pop();
+  }
+  return toReturn;
+}

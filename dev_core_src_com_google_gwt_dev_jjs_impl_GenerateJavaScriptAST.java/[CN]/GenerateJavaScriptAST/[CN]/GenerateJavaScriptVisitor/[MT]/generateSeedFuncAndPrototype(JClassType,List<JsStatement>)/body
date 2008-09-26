@@ -1,29 +1,30 @@
 {
+  SourceInfo sourceInfo=x.getSourceInfo().makeChild("Seed and function prototype");
   if (x != program.getTypeJavaLangString()) {
     JsName seedFuncName=names.get(x);
-    JsFunction seedFunc=new JsFunction(topScope,seedFuncName,true);
-    JsBlock body=new JsBlock();
+    JsFunction seedFunc=new JsFunction(sourceInfo,topScope,seedFuncName,true);
+    JsBlock body=new JsBlock(sourceInfo);
     seedFunc.setBody(body);
     globalStmts.add(seedFunc.makeStmt());
-    JsNameRef lhs=prototype.makeRef();
-    lhs.setQualifier(seedFuncName.makeRef());
+    JsNameRef lhs=prototype.makeRef(sourceInfo);
+    lhs.setQualifier(seedFuncName.makeRef(sourceInfo));
     JsExpression rhs;
     if (x.extnds != null) {
-      JsNew newExpr=new JsNew();
-      newExpr.setConstructorExpression(names.get(x.extnds).makeRef());
+      JsNew newExpr=new JsNew(sourceInfo);
+      newExpr.setConstructorExpression(names.get(x.extnds).makeRef(sourceInfo));
       rhs=newExpr;
     }
  else {
-      rhs=new JsObjectLiteral();
+      rhs=new JsObjectLiteral(sourceInfo);
     }
     JsExpression protoAsg=createAssignment(lhs,rhs);
-    JsExpression tmpAsg=createAssignment(globalTemp.makeRef(),protoAsg);
+    JsExpression tmpAsg=createAssignment(globalTemp.makeRef(sourceInfo),protoAsg);
     globalStmts.add(tmpAsg.makeStmt());
   }
  else {
-    JsNameRef rhs=prototype.makeRef();
-    rhs.setQualifier(jsProgram.getRootScope().declareName("String").makeRef());
-    JsExpression tmpAsg=createAssignment(globalTemp.makeRef(),rhs);
+    JsNameRef rhs=prototype.makeRef(sourceInfo);
+    rhs.setQualifier(jsProgram.getRootScope().declareName("String").makeRef(sourceInfo));
+    JsExpression tmpAsg=createAssignment(globalTemp.makeRef(sourceInfo),rhs);
     globalStmts.add(tmpAsg.makeStmt());
   }
 }

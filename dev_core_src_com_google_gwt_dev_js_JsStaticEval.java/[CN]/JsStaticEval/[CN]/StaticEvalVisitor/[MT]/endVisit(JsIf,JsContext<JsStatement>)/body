@@ -3,6 +3,7 @@
   JsExpression expr=x.getIfExpr();
   JsStatement thenStmt=x.getThenStmt();
   JsStatement elseStmt=x.getElseStmt();
+  SourceInfo sourceInfo;
   if (expr instanceof CanBooleanEval) {
     CanBooleanEval cond=(CanBooleanEval)expr;
     JsStatement onlyStmtToExecute;
@@ -10,15 +11,17 @@
     if (cond.isBooleanTrue()) {
       onlyStmtToExecute=thenStmt;
       removed=elseStmt;
+      sourceInfo=x.getSourceInfo().makeChild("Simplified always-true condition");
     }
  else     if (cond.isBooleanFalse()) {
       onlyStmtToExecute=elseStmt;
       removed=thenStmt;
+      sourceInfo=x.getSourceInfo().makeChild("Simplified always-false condition");
     }
  else {
       return;
     }
-    JsBlock block=new JsBlock();
+    JsBlock block=new JsBlock(sourceInfo);
     block.getStatements().add(expr.makeStmt());
     if (onlyStmtToExecute != null) {
       block.getStatements().add(onlyStmtToExecute);

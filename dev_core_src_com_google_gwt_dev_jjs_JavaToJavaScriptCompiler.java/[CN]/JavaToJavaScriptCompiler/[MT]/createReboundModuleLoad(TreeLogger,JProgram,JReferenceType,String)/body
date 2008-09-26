@@ -17,13 +17,14 @@
     logger.log(TreeLogger.ERROR,"Entry method 'onModuleLoad' in entry point class '" + originalMainClassName + "' must not be abstract",null);
     throw new UnableToCompleteException();
   }
+  SourceInfo sourceInfo=reboundEntryType.getSourceInfo().makeChild("Rebound entry point");
   JExpression qualifier=null;
   if (!entryMethod.isStatic()) {
-    qualifier=JGwtCreate.createInstantiationExpression(program,null,entryClass);
+    qualifier=JGwtCreate.createInstantiationExpression(program,sourceInfo,entryClass);
     if (qualifier == null) {
       logger.log(TreeLogger.ERROR,"No default (zero argument) constructor could be found in entry point class '" + originalMainClassName + "' to qualify a call to non-static entry method 'onModuleLoad'",null);
       throw new UnableToCompleteException();
     }
   }
-  return new JMethodCall(program,null,qualifier,entryMethod);
+  return new JMethodCall(program,sourceInfo,qualifier,entryMethod);
 }

@@ -1,0 +1,14 @@
+{
+  String sourceInfoClassName=SourceInfo.class.getName();
+  boolean wasInFindCaller=false;
+  for (  StackTraceElement e : Thread.currentThread().getStackTrace()) {
+    boolean inSourceInfo=e.getClassName().equals(SourceInfo.class.getName());
+    if (inSourceInfo && "findCaller".equals(e.getMethodName())) {
+      wasInFindCaller=true;
+    }
+ else     if (wasInFindCaller && !"createSourceInfoSynthetic".equals(e.getMethodName()) && !sourceInfoClassName.equals(e.getClassName())) {
+      return e.getClassName() + "." + e.getMethodName();
+    }
+  }
+  return "Unknown caller";
+}

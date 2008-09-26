@@ -1,6 +1,6 @@
 {
   JMethod method=x.getTarget();
-  JsInvocation jsInvocation=new JsInvocation();
+  JsInvocation jsInvocation=new JsInvocation(x.getSourceInfo());
   popList(jsInvocation.getArguments(),x.getArgs().size());
   JsNameRef qualifier;
   JsExpression unnecessaryQualifier=null;
@@ -8,18 +8,18 @@
     if (x.getInstance() != null) {
       unnecessaryQualifier=(JsExpression)pop();
     }
-    qualifier=names.get(method).makeRef();
+    qualifier=names.get(method).makeRef(x.getSourceInfo());
   }
  else {
     if (x.isStaticDispatchOnly()) {
       JsName callName=objectScope.declareName("call");
       callName.setObfuscatable(false);
-      qualifier=callName.makeRef();
-      qualifier.setQualifier(names.get(method).makeRef());
+      qualifier=callName.makeRef(x.getSourceInfo());
+      qualifier.setQualifier(names.get(method).makeRef(x.getSourceInfo()));
       jsInvocation.getArguments().add(0,(JsExpression)pop());
     }
  else {
-      qualifier=polymorphicNames.get(method).makeRef();
+      qualifier=polymorphicNames.get(method).makeRef(x.getSourceInfo());
       qualifier.setQualifier((JsExpression)pop());
     }
   }

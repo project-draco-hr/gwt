@@ -1,0 +1,55 @@
+{
+  JavaNormalReportVisitor v=new JavaNormalReportVisitor(new SwitchTextOutput());
+  v.accept(program);
+  Map<String,StringBuffer> contentsByFile=new TreeMap<String,StringBuffer>();
+  for (  Map.Entry<SourceInfo,StringBuilder> contents : v.infoToSource.entrySet()) {
+    SourceInfo sourceInfo=contents.getKey();
+    String currentFile=sourceInfo.getFileName();
+    StringBuffer buffer=contentsByFile.get(currentFile);
+    if (buffer == null) {
+      buffer=new StringBuffer();
+      contentsByFile.put(currentFile,buffer);
+      buffer.append("<div class=\"fileHeader\">\n");
+      buffer.append(Util.escapeXml(String.format("%s : %2.1f%%",currentFile,(100.0 * v.totalsByFileName.get(currentFile) / v.total))));
+      buffer.append("</div>\n");
+    }
+    buffer.append("<div class=\"jsLine\">");
+    buffer.append("<div class=\"story\">");
+    buffer.append(Util.escapeXml(sourceInfo.getStory()));
+    buffer.append("</div>");
+    buffer.append(Util.escapeXml(contents.getValue().toString()));
+    buffer.append("</div>\n");
+  }
+  Map<Integer,StringBuffer> orderedContents=new TreeMap<Integer,StringBuffer>();
+  for (  Map.Entry<String,StringBuffer> entry : contentsByFile.entrySet()) {
+    int size=-v.totalsByFileName.get(entry.getKey());
+    StringBuffer appendTo=orderedContents.get(size);
+    if (appendTo != null) {
+      appendTo.append(entry.getValue());
+    }
+ else {
+      orderedContents.put(size,entry.getValue());
+    }
+  }
+  PrintWriter out;
+  try {
+    File outputPathDir=new File(outputPath);
+    outputPathDir.mkdirs();
+    out=new PrintWriter(new FileWriter(File.createTempFile("soyc","-java.html",outputPathDir)));
+  }
+ catch (  IOException e) {
+    out=null;
+  }
+  out.println("<html><head>");
+  out.println("<style>" + "* {font-family: monospace;}" + ".file {clear: both;}"+ ".file * {display: none;}"+ ".file .fileHeader {display: block; cursor: pointer;}"+ ".fileOpen .fileHeader {clear: both;}"+ ".fileOpen .javaLine {clear: both; float: left; white-space: pre; background: #efe;}"+ ".fileOpen .jsLine {outline: thin solid black; float: right; clear: right; white-space: pre; background: #ddd;}"+ ".story {display:none;}"+ "div.jsLine:hover .story{display:block; position: absolute; left:0; background: #eef;}"+ "</style>");
+  out.println("</head><body>");
+  out.println(String.format("<h1>Total bytes: %d</h1>",v.total));
+  for (  StringBuffer buffer : orderedContents.values()) {
+    out.println("<div class=\"file\" onclick=\"this.className=(this.className=='file'?'fileOpen':'file')\">");
+    out.println(buffer.toString());
+    out.println("</div>");
+  }
+  out.println("<h1>Done</h1>");
+  out.println("</body></html>");
+  out.close();
+}

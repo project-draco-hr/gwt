@@ -1,25 +1,25 @@
 {
   JClassType type=(JClassType)constructor.getEnclosingType();
-  JMethod synthetic=program.createMethod(null,"new".toCharArray(),type,type,false,true,true,false,false);
-  JNewInstance newInstance=new JNewInstance(program,null,type);
-  JMethodCall call=new JMethodCall(program,null,newInstance,constructor);
+  JMethod synthetic=program.createMethod(type.getSourceInfo().makeChild("Synthetic constructor"),"new".toCharArray(),type,type,false,true,true,false,false);
+  JNewInstance newInstance=new JNewInstance(program,type.getSourceInfo().makeChild("new instance"),type);
+  JMethodCall call=new JMethodCall(program,type.getSourceInfo().makeChild("constructor invocation"),newInstance,constructor);
   List<JExpression> args=call.getArgs();
   JParameter enclosingInstance=null;
   if (!staticClass) {
-    enclosingInstance=program.createParameter(null,"this$outer".toCharArray(),enclosingType,false,false,synthetic);
+    enclosingInstance=program.createParameter(synthetic.getSourceInfo().makeChild("outer instance"),"this$outer".toCharArray(),enclosingType,false,false,synthetic);
   }
   for (Iterator<JParameter> i=constructor.params.iterator(); i.hasNext(); ) {
     JParameter param=i.next();
     if (enclosingInstance != null && !i.hasNext()) {
-      args.add(new JParameterRef(program,null,enclosingInstance));
+      args.add(new JParameterRef(program,synthetic.getSourceInfo().makeChild("enclosing instance"),enclosingInstance));
     }
  else {
-      JParameter syntheticParam=program.createParameter(null,param.getName().toCharArray(),param.getType(),true,false,synthetic);
-      args.add(new JParameterRef(program,null,syntheticParam));
+      JParameter syntheticParam=program.createParameter(synthetic.getSourceInfo().makeChild("Argument " + param.getName()),param.getName().toCharArray(),param.getType(),true,false,synthetic);
+      args.add(new JParameterRef(program,syntheticParam.getSourceInfo().makeChild("reference"),syntheticParam));
     }
   }
   synthetic.freezeParamTypes();
-  JReturnStatement ret=new JReturnStatement(program,null,call);
+  JReturnStatement ret=new JReturnStatement(program,synthetic.getSourceInfo().makeChild("Return statement"),call);
   JMethodBody body=(JMethodBody)synthetic.getBody();
   List<JStatement> statements=body.getStatements();
   statements.add(ret);
