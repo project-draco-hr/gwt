@@ -1,0 +1,18 @@
+{
+  ArrayList<JType> filteredTypes=new ArrayList<JType>();
+  JType[] types=getSerializableTypes();
+  int n=types.length;
+  for (int index=0; index < n; ++index) {
+    JType type=types[index];
+    if (serializationOracle.maybeInstantiated(type)) {
+      filteredTypes.add(type);
+    }
+  }
+  if (shardSize > 0 && filteredTypes.size() > shardSize) {
+    writeShardedCreateMethodMapMethod(filteredTypes,shardSize);
+  }
+ else {
+    writeSingleCreateMethodMapMethod(filteredTypes);
+  }
+  srcWriter.println();
+}

@@ -1,0 +1,40 @@
+{
+  srcWriter.indent();
+  String serializerName=serializationOracle.getFieldSerializerName(type);
+{
+    srcWriter.print("@");
+    if (needsCreateMethod(type)) {
+      srcWriter.print(getTypeSerializerClassName());
+      srcWriter.print("::");
+      srcWriter.print(getCreateMethodName(type));
+    }
+ else {
+      srcWriter.print(serializerName);
+      srcWriter.print("::instantiate");
+    }
+    srcWriter.print("(L" + SerializationStreamReader.class.getName().replace('.','/') + ";)");
+    srcWriter.println(",");
+  }
+  JClassType customSerializer=serializationOracle.hasCustomFieldSerializer(type);
+{
+    JType paramType=type;
+    if (customSerializer != null) {
+      JMethod deserializationMethod=CustomFieldSerializerValidator.getDeserializationMethod(customSerializer,(JClassType)type);
+      paramType=deserializationMethod.getParameters()[1].getType();
+    }
+    srcWriter.print("@" + serializerName);
+    srcWriter.print("::deserialize(L" + SerializationStreamReader.class.getName().replace('.','/') + ";"+ paramType.getJNISignature()+ ")");
+    srcWriter.println(",");
+  }
+{
+    JType paramType=type;
+    if (customSerializer != null) {
+      JMethod serializationMethod=CustomFieldSerializerValidator.getSerializationMethod(customSerializer,(JClassType)type);
+      paramType=serializationMethod.getParameters()[1].getType();
+    }
+    srcWriter.print("@" + serializerName);
+    srcWriter.print("::serialize(L" + SerializationStreamWriter.class.getName().replace('.','/') + ";"+ paramType.getJNISignature()+ ")");
+    srcWriter.println();
+  }
+  srcWriter.outdent();
+}
