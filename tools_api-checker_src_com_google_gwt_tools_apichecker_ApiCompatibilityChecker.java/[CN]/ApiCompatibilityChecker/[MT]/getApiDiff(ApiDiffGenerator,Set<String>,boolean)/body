@@ -1,8 +1,11 @@
 {
-  Collection<ApiChange> collection=apiDiff.getApiDiff(removeDuplicates);
-  Set<ApiChange> prunedCollection=new HashSet<ApiChange>();
+  Collection<ApiChange> collection=apiDiff.getApiDiff();
+  if (removeDuplicates) {
+    collection=apiDiff.removeDuplicates(collection);
+  }
+  Collection<ApiChange> prunedCollection=new ArrayList<ApiChange>();
   for (  ApiChange apiChange : collection) {
-    String apiChangeAsString=apiChange.toString();
+    String apiChangeAsString=apiChange.getStringRepresentationWithoutMessage();
     apiChangeAsString=apiChangeAsString.trim();
     if (whiteList.remove(apiChangeAsString)) {
       continue;
@@ -18,7 +21,11 @@
   if (whiteList.size() > 0) {
     List<String> al=new ArrayList<String>(whiteList);
     Collections.sort(al);
-    System.err.println("ApiChanges " + al + ",  not found. Are you using a properly formatted configuration file?");
+    System.err.println("ApiChanges [");
+    for (    String apiChange : al) {
+      System.err.println(apiChange);
+    }
+    System.err.println("],  not found. Are you using a properly formatted configuration file?");
   }
   List<ApiChange> apiChangeList=new ArrayList<ApiChange>(prunedCollection);
   Collections.sort(apiChangeList);
