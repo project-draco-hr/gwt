@@ -10,8 +10,17 @@
   if (!workDirFile.isDirectory()) {
     throw new BuildException(workdir + " is not a directory");
   }
-  String branch=getSvnBranch(workDirFile);
-  String revision=getSvnVersion(workDirFile);
+  String branch;
+  String revision;
+  File svnDirFile=new File(workdir,".svn");
+  if (!svnDirFile.exists()) {
+    branch="unknown";
+    revision="unknown";
+  }
+ else {
+    branch=getSvnBranch(workDirFile);
+    revision=getSvnVersion(workDirFile);
+  }
   getProject().setNewProperty(outprop,branch + "@" + revision);
   if (fileprop != null) {
     getProject().setNewProperty(fileprop,branch + "-" + revision.replaceAll(":","-"));
