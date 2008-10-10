@@ -14,28 +14,65 @@
       addProperty(intersectingElements,methodInExisting,new ApiChange(methodInExisting,ApiChange.Status.OVERLOADED_METHOD_CALL,"Many methods in the new API with similar signatures. Methods = " + methodsInNew + " This might break API source compatibility"));
     }
     for (    ApiAbstractMethod methodInExisting : methodsInExisting) {
+      Set<ApiChange> allPossibleApiChanges=new HashSet<ApiChange>();
+      ApiAbstractMethod sameSignatureMethod=null;
       for (      ApiAbstractMethod methodInNew : methodsInNew) {
+        Set<ApiChange> currentApiChange=new HashSet<ApiChange>();
+        boolean hasSameSignature=false;
         if (methodInExisting.isCompatible(methodInNew)) {
-          ApiChange returnType=methodInExisting.checkReturnTypeCompatibility(methodInNew);
-          if (returnType != null) {
-            addProperty(intersectingElements,methodInExisting,returnType);
-          }
-          for (          ApiChange apiChange : methodInExisting.checkExceptions(methodInNew)) {
-            addProperty(intersectingElements,methodInExisting,apiChange);
-          }
-          for (          ApiChange.Status status : methodInExisting.getModifierChanges(methodInNew)) {
-            addProperty(intersectingElements,methodInExisting,new ApiChange(methodInExisting,status));
-          }
-          onlyInNew.remove(methodInNew);
-          onlyInExisting.remove(methodInExisting);
-          String signatureInNew=methodInNew.getApiSignature();
-          String signatureInExisting=methodInExisting.getApiSignature();
-          if (signatureInNew.equals(signatureInExisting)) {
-            commonSignature.add(signatureInNew);
-            addProperty(intersectingElements,methodInExisting,new ApiChange(methodInExisting,ApiChange.Status.COMPATIBLE));
+          if (methodInExisting.isOverridable()) {
+            currentApiChange.addAll(methodInExisting.getAllChangesInApi(methodInNew));
           }
  else {
-            addProperty(intersectingElements,methodInExisting,new ApiChange(methodInExisting,ApiChange.Status.COMPATIBLE_WITH,signatureInNew));
+            currentApiChange.addAll(methodInExisting.checkExceptionsAndReturnType(methodInNew));
+          }
+          for (          ApiChange.Status status : methodInExisting.getModifierChanges(methodInNew)) {
+            currentApiChange.add(new ApiChange(methodInExisting,status));
+          }
+          if (methodInNew.getInternalSignature().equals(methodInExisting.getInternalSignature())) {
+            currentApiChange.add(new ApiChange(methodInExisting,ApiChange.Status.COMPATIBLE));
+            hasSameSignature=true;
+          }
+ else {
+            currentApiChange.add(new ApiChange(methodInExisting,ApiChange.Status.COMPATIBLE_WITH,methodInNew.getApiSignature()));
+          }
+        }
+        if (currentApiChange.size() > 0) {
+          if (hasSameSignature) {
+            allPossibleApiChanges=currentApiChange;
+            sameSignatureMethod=methodInNew;
+          }
+ else           if (sameSignatureMethod == null) {
+            allPossibleApiChanges.addAll(currentApiChange);
+          }
+        }
+      }
+      if (allPossibleApiChanges.size() > 0) {
+        onlyInExisting.remove(methodInExisting);
+        String signatureInExisting=methodInExisting.getInternalSignature();
+        if (sameSignatureMethod != null && signatureInExisting.equals(sameSignatureMethod.getInternalSignature())) {
+          commonSignature.add(signatureInExisting);
+        }
+        for (        ApiChange apiChange : allPossibleApiChanges) {
+          addProperty(intersectingElements,methodInExisting,apiChange);
+        }
+      }
+    }
+    for (    ApiAbstractMethod methodInNew : methodsInNew) {
+      ApiAbstractMethod sameSignatureMethod=null;
+      for (      ApiAbstractMethod methodInExisting : methodsInExisting) {
+        if (methodInNew.getInternalSignature().equals(methodInExisting.getInternalSignature())) {
+          sameSignatureMethod=methodInExisting;
+          break;
+        }
+      }
+      if (sameSignatureMethod != null) {
+        continue;
+      }
+      for (      ApiAbstractMethod methodInExisting : methodsInExisting) {
+        if (methodInNew.isCompatible(methodInExisting)) {
+          for (          ApiChange apiChange : methodInExisting.checkExceptionsAndReturnType(methodInNew)) {
+            addProperty(intersectingElements,methodInExisting,apiChange);
           }
         }
       }
