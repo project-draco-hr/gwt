@@ -1,0 +1,21 @@
+{
+  try {
+    String[] declEntryPts=module.getEntryPointTypeNames();
+    if (declEntryPts.length == 0) {
+      Set<CompilationUnit> compilationUnits=module.getCompilationState().getCompilationUnits();
+      declEntryPts=new String[compilationUnits.size()];
+      int i=0;
+      for (      CompilationUnit unit : compilationUnits) {
+        declEntryPts[i++]=unit.getTypeName();
+      }
+    }
+    ArtifactSet generatorArtifacts=new ArtifactSet();
+    DistillerRebindPermutationOracle rpo=new DistillerRebindPermutationOracle(module,generatorArtifacts,new PropertyPermutations(module.getProperties()),genDir,generatorResourcesDir);
+    WebModeCompilerFrontEnd frontEnd=new WebModeCompilerFrontEnd(module.getCompilationState(),rpo);
+    JavaToJavaScriptCompiler.precompile(logger,frontEnd,declEntryPts,jjsOptions,true);
+    return true;
+  }
+ catch (  UnableToCompleteException e) {
+    return false;
+  }
+}

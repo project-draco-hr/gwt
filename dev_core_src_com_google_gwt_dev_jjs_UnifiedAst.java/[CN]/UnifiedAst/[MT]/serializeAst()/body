@@ -1,0 +1,20 @@
+{
+  try {
+    assert(initialAst != null);
+    assert(serializedAst == null);
+    PerfLogger.start("serialize");
+    ByteArrayOutputStream baos=new ByteArrayOutputStream();
+    ObjectOutputStream os=new ObjectOutputStream(baos);
+    os.writeObject(initialAst.getJProgram());
+    os.writeObject(initialAst.getJsProgram());
+    os.close();
+    serializedAst=baos.toByteArray();
+    astMemoryUsage=Math.max(astMemoryUsage,serializedAst.length * 4);
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Should be impossible for memory based streams",e);
+  }
+ finally {
+    PerfLogger.end();
+  }
+}
