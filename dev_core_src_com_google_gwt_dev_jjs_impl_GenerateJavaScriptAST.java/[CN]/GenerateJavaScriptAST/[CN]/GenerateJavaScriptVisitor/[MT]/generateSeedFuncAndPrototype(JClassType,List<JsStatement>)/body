@@ -3,6 +3,8 @@
   if (x != program.getTypeJavaLangString()) {
     JsName seedFuncName=names.get(x);
     JsFunction seedFunc=new JsFunction(sourceInfo,topScope,seedFuncName,true);
+    seedFuncName.setStaticRef(seedFunc);
+    sourceInfo.addCorrelation(Correlation.by(seedFunc));
     JsBlock body=new JsBlock(sourceInfo);
     seedFunc.setBody(body);
     globalStmts.add(seedFunc.makeStmt());
@@ -11,7 +13,12 @@
     JsExpression rhs;
     if (x.extnds != null) {
       JsNew newExpr=new JsNew(sourceInfo);
-      newExpr.setConstructorExpression(names.get(x.extnds).makeRef(sourceInfo));
+      JsNameRef superPrototypeRef=names.get(x.extnds).makeRef(sourceInfo);
+      newExpr.setConstructorExpression(superPrototypeRef);
+      JsNode<?> staticRef=superPrototypeRef.getName().getStaticRef();
+      if (staticRef != null) {
+        seedFunc.getSourceInfo().addSupertypeAncestors(staticRef.getSourceInfo());
+      }
       rhs=newExpr;
     }
  else {

@@ -1,13 +1,26 @@
 {
-  StringBuilder builder=infoToSource.get(x.getSourceInfo());
-  if (builder == null) {
-    builder=new StringBuilder();
-    infoToSource.put(x.getSourceInfo(),builder);
+  SourceInfo info=x.getSourceInfo();
+  List<StringBuilder> builders=new ArrayList<StringBuilder>();
+  for (  Correlation c : info.getPrimaryCorrelations()) {
+    StringBuilder builder=sourceByCorrelation.get(c);
+    if (builder == null) {
+      builder=new StringBuilder();
+      sourceByCorrelation.put(c,builder);
+    }
+    builders.add(builder);
+  }
+  for (  Correlation c : info.getAllCorrelations()) {
+    StringBuilder builder=sourceByAllCorrelation.get(c);
+    if (builder == null) {
+      builder=new StringBuilder();
+      sourceByAllCorrelation.put(c,builder);
+    }
+    builders.add(builder);
   }
   if (expectMore) {
-    return out.flush(builder);
+    return out.flush(builders);
   }
  else {
-    return out.commit(builder);
+    return out.commit(builders);
   }
 }
