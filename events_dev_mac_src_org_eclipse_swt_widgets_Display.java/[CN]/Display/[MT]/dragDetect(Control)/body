@@ -1,0 +1,29 @@
+{
+  if (!dragging && control.hooks(SWT.DragDetect) && dragMouseStart != null) {
+    if (OS.WaitMouseMoved(dragMouseStart)) {
+      dragging=true;
+      Rect rect=new Rect();
+      int window=OS.GetControlOwner(control.handle);
+      int x, y;
+      if (OS.HIVIEW) {
+        CGPoint pt=new CGPoint();
+        pt.x=dragMouseStart.h;
+        pt.y=dragMouseStart.v;
+        OS.HIViewConvertPoint(pt,0,control.handle);
+        x=(int)pt.x;
+        y=(int)pt.y;
+        OS.GetWindowBounds(window,(short)OS.kWindowStructureRgn,rect);
+      }
+ else {
+        OS.GetControlBounds(control.handle,rect);
+        x=dragMouseStart.h - rect.left;
+        y=dragMouseStart.v - rect.top;
+        OS.GetWindowBounds(window,(short)OS.kWindowContentRgn,rect);
+      }
+      x-=rect.left;
+      y-=rect.top;
+      control.sendDragEvent(x,y);
+      dragMouseStart=null;
+    }
+  }
+}

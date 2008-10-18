@@ -1,0 +1,22 @@
+{
+  PerfLogger.start("CompilationState.compile");
+  Set<CompilationUnit> units=getCompilationUnits();
+  if (JdtCompiler.compile(units)) {
+    Set<String> validBinaryTypeNames=getValidBinaryTypeNames(units);
+    boolean anyErrors=CompilationUnitInvalidator.invalidateUnitsWithErrors(logger,units);
+    CompilationUnitInvalidator.validateCompilationUnits(units,validBinaryTypeNames);
+    anyErrors|=CompilationUnitInvalidator.invalidateUnitsWithErrors(logger,units);
+    if (anyErrors) {
+      CompilationUnitInvalidator.invalidateUnitsWithInvalidRefs(logger,units);
+    }
+    JsniCollector.collectJsniMethods(logger,units,new JsProgram());
+  }
+  mediator.refresh(logger,units);
+  for (  CompilationUnit unit : units) {
+    if (unit.getState() == State.COMPILED) {
+      unit.setState(State.CHECKED);
+    }
+  }
+  updateExposedUnits();
+  PerfLogger.end();
+}

@@ -1,0 +1,51 @@
+{
+  if (ew == null) {
+    return null;
+  }
+  Throwable ex=null;
+  Throwable cause=deserialize(ew.cause);
+  try {
+    Class<?> exClass=Class.forName(ew.typeName);
+    try {
+      Constructor<?> ctor=exClass.getDeclaredConstructor(String.class,Throwable.class);
+      ctor.setAccessible(true);
+      ex=(Throwable)ctor.newInstance(ew.message,cause);
+    }
+ catch (    Throwable e) {
+      try {
+        Constructor<?> ctor=exClass.getDeclaredConstructor(String.class);
+        ctor.setAccessible(true);
+        ex=(Throwable)ctor.newInstance(ew.message);
+        ex.initCause(cause);
+      }
+ catch (      Throwable e2) {
+        try {
+          Constructor<?> ctor=exClass.getDeclaredConstructor(Throwable.class);
+          ctor.setAccessible(true);
+          ex=(Throwable)ctor.newInstance(cause);
+          setField(Throwable.class,"detailMessage",ex,ew.message);
+        }
+ catch (        Throwable e3) {
+          try {
+            Constructor<?> ctor=exClass.getDeclaredConstructor();
+            ctor.setAccessible(true);
+            ex=(Throwable)ctor.newInstance();
+            ex.initCause(cause);
+            setField(Throwable.class,"detailMessage",ex,ew.message);
+          }
+ catch (          Throwable e4) {
+            this.log("Failed to deserialize getException of type '" + ew.typeName + "'; no available constructor",e4);
+          }
+        }
+      }
+    }
+  }
+ catch (  Throwable e) {
+    this.log("Failed to deserialize getException of type '" + ew.typeName + "'",e);
+  }
+  if (ex == null) {
+    ex=new RuntimeException(ew.typeName + ": " + ew.message,cause);
+  }
+  ex.setStackTrace(deserialize(ew.stackTrace));
+  return ex;
+}

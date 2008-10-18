@@ -1,0 +1,38 @@
+{
+  Object instance=null;
+  SerializedInstanceReference serializedInstRef=SerializabilityUtil.decodeSerializedInstanceReference(typeSignature);
+  try {
+    Class<?> instanceClass=Class.forName(serializedInstRef.getName(),false,classLoader);
+    assert(serializationPolicy != null);
+    serializationPolicy.validateDeserialize(instanceClass);
+    validateTypeVersions(instanceClass,serializedInstRef);
+    Class<?> customSerializer=SerializabilityUtil.hasCustomFieldSerializer(instanceClass);
+    int index=reserveDecodedObjectIndex();
+    instance=instantiate(customSerializer,instanceClass);
+    rememberDecodedObject(index,instance);
+    Object replacement=deserializeImpl(customSerializer,instanceClass,instance);
+    if (instance != replacement) {
+      rememberDecodedObject(index,replacement);
+      instance=replacement;
+    }
+    return instance;
+  }
+ catch (  ClassNotFoundException e) {
+    throw new SerializationException(e);
+  }
+catch (  InstantiationException e) {
+    throw new SerializationException(e);
+  }
+catch (  IllegalAccessException e) {
+    throw new SerializationException(e);
+  }
+catch (  IllegalArgumentException e) {
+    throw new SerializationException(e);
+  }
+catch (  InvocationTargetException e) {
+    throw new SerializationException(e);
+  }
+catch (  NoSuchMethodException e) {
+    throw new SerializationException(e);
+  }
+}

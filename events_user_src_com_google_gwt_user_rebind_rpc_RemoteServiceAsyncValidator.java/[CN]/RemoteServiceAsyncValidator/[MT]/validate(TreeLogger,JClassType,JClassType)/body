@@ -1,0 +1,35 @@
+{
+  TreeLogger branch=logger.branch(TreeLogger.DEBUG,"Checking the synchronous interface '" + remoteService.getQualifiedSourceName() + "' against its asynchronous version '"+ remoteServiceAsync.getQualifiedSourceName()+ "'",null);
+  JMethod[] asyncMethods=remoteServiceAsync.getOverridableMethods();
+  JMethod[] syncMethods=remoteService.getOverridableMethods();
+  if (asyncMethods.length != syncMethods.length) {
+    branch.branch(TreeLogger.ERROR,"The asynchronous version of " + remoteService.getQualifiedSourceName() + " has "+ (asyncMethods.length > syncMethods.length ? "more" : "less")+ " methods than the synchronous version",null);
+    validationFailed(branch,remoteService);
+  }
+  boolean failed=false;
+  Map<String,JMethod> asyncMethodMap=initializeAsyncMethodMap(asyncMethods);
+  Map<JMethod,JMethod> syncMethodToAsyncMethodMap=new HashMap<JMethod,JMethod>();
+  for (  JMethod syncMethod : syncMethods) {
+    String asyncSig=computeAsyncMethodSignature(syncMethod,asyncCallbackClass);
+    JMethod asyncMethod=asyncMethodMap.get(asyncSig);
+    if (asyncMethod == null) {
+      branch.branch(TreeLogger.ERROR,"Missing asynchronous version of the synchronous method '" + syncMethod.getReadableDeclaration() + "'",null);
+      failed=true;
+    }
+ else {
+      JType returnType=asyncMethod.getReturnType();
+      if (returnType != JPrimitiveType.VOID && returnType != requestType && returnType != requestBuilderType) {
+        branch.branch(TreeLogger.ERROR,"The asynchronous version of the synchronous method '" + syncMethod.getReadableDeclaration() + "' must have a return type of 'void' or '"+ Request.class.getCanonicalName()+ "' or '"+ RequestBuilder.class.getCanonicalName()+ "'",null);
+        failed=true;
+      }
+ else {
+        syncMethodToAsyncMethodMap.put(syncMethod,asyncMethod);
+      }
+    }
+  }
+  if (failed) {
+    validationFailed(branch,remoteService);
+  }
+  branch.log(TreeLogger.DEBUG,"Interfaces are in sync");
+  return syncMethodToAsyncMethodMap;
+}

@@ -1,0 +1,16 @@
+{
+  Collection<ApiChange.Status> apiStatusChanges=oldClass.getModifierChanges(newClass);
+  Collection<ApiChange> apiChangeCollection=new ArrayList<ApiChange>();
+  for (  ApiChange.Status apiStatus : apiStatusChanges) {
+    apiChangeCollection.add(new ApiChange(oldClass,apiStatus));
+  }
+  for (  ApiElement element : missingFields) {
+    apiChangeCollection.add(new ApiChange(element,ApiChange.Status.MISSING));
+  }
+  apiChangeCollection.addAll(getIntersectingFields());
+  for (  ApiClass.MethodType methodType : ApiClass.MethodType.values()) {
+    apiChangeCollection.addAll(getMissingMethods(methodType));
+    apiChangeCollection.addAll(getIntersectingMethods(methodType));
+  }
+  return apiChangeCollection;
+}

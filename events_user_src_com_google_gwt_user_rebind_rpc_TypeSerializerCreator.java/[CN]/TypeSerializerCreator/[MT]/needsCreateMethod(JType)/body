@@ -1,0 +1,17 @@
+{
+  if (!serializationOracle.maybeInstantiated(type)) {
+    return false;
+  }
+  if (type.isArray() != null) {
+    return false;
+  }
+  JClassType customSerializer=serializationOracle.hasCustomFieldSerializer(type);
+  if (customSerializer == null) {
+    return false;
+  }
+  JMethod customInstantiate=customSerializer.findMethod("instantiate",new JType[]{typeOracle.findType(SerializationStreamReader.class.getName())});
+  if (customInstantiate != null) {
+    return false;
+  }
+  return true;
+}

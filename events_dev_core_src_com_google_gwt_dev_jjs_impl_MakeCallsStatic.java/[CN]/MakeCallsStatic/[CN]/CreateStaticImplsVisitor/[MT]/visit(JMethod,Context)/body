@@ -1,0 +1,53 @@
+{
+  JClassType enclosingType=(JClassType)x.getEnclosingType();
+  JType returnType=x.getType();
+  SourceInfo sourceInfo=x.getSourceInfo();
+  int myIndexInClass=enclosingType.methods.indexOf(x);
+  assert(myIndexInClass > 0);
+  String newName="$" + x.getName();
+  JProgram program=x.getProgram();
+  JMethod newMethod=new JMethod(program,sourceInfo,newName,enclosingType,returnType,false,true,true,x.isPrivate());
+  JParameter thisParam=program.createParameter(null,"this$static".toCharArray(),enclosingType,true,true,newMethod);
+  Map<JParameter,JParameter> varMap=new IdentityHashMap<JParameter,JParameter>();
+  for (int i=0; i < x.params.size(); ++i) {
+    JParameter oldVar=x.params.get(i);
+    JParameter newVar=program.createParameter(oldVar.getSourceInfo(),oldVar.getName().toCharArray(),oldVar.getType(),oldVar.isFinal(),false,newMethod);
+    varMap.put(oldVar,newVar);
+  }
+  List<JType> originalParamTypes=new ArrayList<JType>();
+  originalParamTypes.add(enclosingType);
+  originalParamTypes.addAll(x.getOriginalParamTypes());
+  newMethod.setOriginalParamTypes(originalParamTypes);
+  JAbstractMethodBody movedBody=x.getBody();
+  newMethod.setBody(movedBody);
+  JMethodBody newBody=new JMethodBody(program,sourceInfo);
+  x.setBody(newBody);
+  JMethodCall newCall=new JMethodCall(program,sourceInfo,null,newMethod);
+  newCall.getArgs().add(program.getExprThisRef(sourceInfo,enclosingType));
+  for (int i=0; i < x.params.size(); ++i) {
+    JParameter param=x.params.get(i);
+    newCall.getArgs().add(new JParameterRef(program,sourceInfo,param));
+  }
+  JStatement statement;
+  if (returnType == program.getTypeVoid()) {
+    statement=newCall.makeStatement();
+  }
+ else {
+    statement=new JReturnStatement(program,sourceInfo,newCall);
+  }
+  newBody.getStatements().add(statement);
+  if (newMethod.isNative()) {
+    JsFunction jsFunc=((JsniMethodBody)movedBody).getFunc();
+    JsName paramName=jsFunc.getScope().declareName("this$static");
+    jsFunc.getParameters().add(0,new JsParameter(paramName));
+    RewriteJsniMethodBody rewriter=new RewriteJsniMethodBody(paramName);
+    rewriter.accept(jsFunc.getBody());
+  }
+ else {
+    RewriteMethodBody rewriter=new RewriteMethodBody(thisParam,varMap);
+    rewriter.accept(movedBody);
+  }
+  program.putStaticImpl(x,newMethod);
+  enclosingType.methods.add(myIndexInClass + 1,newMethod);
+  return false;
+}

@@ -1,0 +1,49 @@
+{
+  String contextPath=request.getContextPath();
+  String modulePath=null;
+  if (moduleBaseURL != null) {
+    try {
+      modulePath=new URL(moduleBaseURL).getPath();
+    }
+ catch (    MalformedURLException ex) {
+      getServletContext().log("Malformed moduleBaseURL: " + moduleBaseURL,ex);
+    }
+  }
+  SerializationPolicy serializationPolicy=null;
+  if (modulePath == null || !modulePath.startsWith(contextPath)) {
+    String message="ERROR: The module path requested, " + modulePath + ", is not in the same web application as this servlet, "+ contextPath+ ".  Your module may not be properly configured or your client and server code maybe out of date.";
+    getServletContext().log(message);
+  }
+ else {
+    String contextRelativePath=modulePath.substring(contextPath.length());
+    String serializationPolicyFilePath=SerializationPolicyLoader.getSerializationPolicyFileName(contextRelativePath + strongName);
+    InputStream is=getServletContext().getResourceAsStream(serializationPolicyFilePath);
+    try {
+      if (is != null) {
+        try {
+          serializationPolicy=SerializationPolicyLoader.loadFromStream(is,null);
+        }
+ catch (        ParseException e) {
+          getServletContext().log("ERROR: Failed to parse the policy file '" + serializationPolicyFilePath + "'",e);
+        }
+catch (        IOException e) {
+          getServletContext().log("ERROR: Could not read the policy file '" + serializationPolicyFilePath + "'",e);
+        }
+      }
+ else {
+        String message="ERROR: The serialization policy file '" + serializationPolicyFilePath + "' was not found; did you forget to include it in this deployment?";
+        getServletContext().log(message);
+      }
+    }
+  finally {
+      if (is != null) {
+        try {
+          is.close();
+        }
+ catch (        IOException e) {
+        }
+      }
+    }
+  }
+  return serializationPolicy;
+}

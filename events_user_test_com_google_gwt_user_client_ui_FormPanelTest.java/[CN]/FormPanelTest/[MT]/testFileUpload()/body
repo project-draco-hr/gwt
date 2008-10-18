@@ -1,0 +1,22 @@
+{
+  final FormPanel form=new FormPanel();
+  form.setMethod(FormPanel.METHOD_POST);
+  form.setEncoding(FormPanel.ENCODING_MULTIPART);
+  assertEquals(FormPanel.ENCODING_MULTIPART,form.getEncoding());
+  form.setAction(GWT.getModuleBaseURL() + "formHandler");
+  FileUpload file=new FileUpload();
+  file.setName("file0");
+  form.setWidget(file);
+  RootPanel.get().add(form);
+  delayTestFinish(5000);
+  form.addFormHandler(new FormHandler(){
+    public void onSubmit(    FormSubmitEvent event){
+    }
+    public void onSubmitComplete(    FormSubmitCompleteEvent event){
+      assertTrue(event.getResults().indexOf("Content-Disposition: form-data; name=\"file0\";") != -1);
+      finishTest();
+    }
+  }
+);
+  form.submit();
+}

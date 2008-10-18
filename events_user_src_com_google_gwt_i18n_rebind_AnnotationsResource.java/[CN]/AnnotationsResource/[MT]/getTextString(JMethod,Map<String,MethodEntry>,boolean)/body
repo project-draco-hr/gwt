@@ -1,0 +1,147 @@
+{
+  JType returnType=method.getReturnType();
+  DefaultMessage defaultText=method.getAnnotation(DefaultMessage.class);
+  DefaultStringValue stringValue=method.getAnnotation(DefaultStringValue.class);
+  DefaultStringArrayValue stringArrayValue=method.getAnnotation(DefaultStringArrayValue.class);
+  DefaultStringMapValue stringMapValue=method.getAnnotation(DefaultStringMapValue.class);
+  DefaultIntValue intValue=method.getAnnotation(DefaultIntValue.class);
+  DefaultFloatValue floatValue=method.getAnnotation(DefaultFloatValue.class);
+  DefaultDoubleValue doubleValue=method.getAnnotation(DefaultDoubleValue.class);
+  DefaultBooleanValue booleanValue=method.getAnnotation(DefaultBooleanValue.class);
+  int constantsCount=0;
+  if (stringValue != null) {
+    constantsCount++;
+    if (!returnType.getQualifiedSourceName().equals("java.lang.String")) {
+      throw new AnnotationsError("@DefaultStringValue can only be used with a method returning String");
+    }
+  }
+  if (stringArrayValue != null) {
+    constantsCount++;
+    JArrayType arrayType=returnType.isArray();
+    if (arrayType == null || !arrayType.getComponentType().getQualifiedSourceName().equals("java.lang.String")) {
+      throw new AnnotationsError("@DefaultStringArrayValue can only be used with a method returning String[]");
+    }
+  }
+  if (stringMapValue != null) {
+    constantsCount++;
+    JRawType rawType=returnType.getErasedType().isRawType();
+    boolean error=false;
+    if (rawType == null || !rawType.getQualifiedSourceName().equals("java.util.Map")) {
+      error=true;
+    }
+ else {
+      JParameterizedType paramType=returnType.isParameterized();
+      if (paramType != null) {
+        JType[] args=paramType.getTypeArgs();
+        if (args.length != 2 || !args[0].getQualifiedSourceName().equals("java.lang.String") || !args[1].getQualifiedSourceName().equals("java.lang.String")) {
+          error=true;
+        }
+      }
+    }
+    if (error) {
+      throw new AnnotationsError("@DefaultStringMapValue can only be used with a method " + "returning Map or Map<String,String>");
+    }
+  }
+  if (intValue != null) {
+    constantsCount++;
+    JPrimitiveType primType=returnType.isPrimitive();
+    if (primType != JPrimitiveType.INT) {
+      throw new AnnotationsError("@DefaultIntValue can only be used with a method returning int");
+    }
+  }
+  if (floatValue != null) {
+    constantsCount++;
+    JPrimitiveType primType=returnType.isPrimitive();
+    if (primType != JPrimitiveType.FLOAT) {
+      throw new AnnotationsError("@DefaultFloatValue can only be used with a method returning float");
+    }
+  }
+  if (doubleValue != null) {
+    constantsCount++;
+    JPrimitiveType primType=returnType.isPrimitive();
+    if (primType != JPrimitiveType.DOUBLE) {
+      throw new AnnotationsError("@DefaultDoubleValue can only be used with a method returning double");
+    }
+  }
+  if (booleanValue != null) {
+    constantsCount++;
+    JPrimitiveType primType=returnType.isPrimitive();
+    if (primType != JPrimitiveType.BOOLEAN) {
+      throw new AnnotationsError("@DefaultBooleanValue can only be used with a method returning boolean");
+    }
+  }
+  if (!isConstants) {
+    if (constantsCount > 0) {
+      throw new AnnotationsError("@Default*Value is not permitted on a Messages interface; see @DefaultText");
+    }
+    if (defaultText != null) {
+      return defaultText.value();
+    }
+  }
+ else {
+    if (defaultText != null) {
+      throw new AnnotationsError("@DefaultText is not permitted on a Constants interface; see @Default*Value");
+    }
+    if (constantsCount > 1) {
+      throw new AnnotationsError("No more than one @Default*Value annotation may be used on a method");
+    }
+    if (stringValue != null) {
+      return stringValue.value();
+    }
+ else     if (intValue != null) {
+      return Integer.toString(intValue.value());
+    }
+ else     if (floatValue != null) {
+      return Float.toString(floatValue.value());
+    }
+ else     if (doubleValue != null) {
+      return Double.toString(doubleValue.value());
+    }
+ else     if (booleanValue != null) {
+      return Boolean.toString(booleanValue.value());
+    }
+ else     if (stringArrayValue != null) {
+      StringBuilder buf=new StringBuilder();
+      boolean firstString=true;
+      for (      String str : stringArrayValue.value()) {
+        str=str.replace("\\","\\\\");
+        str=str.replace(",","\\,");
+        if (!firstString) {
+          buf.append(',');
+        }
+ else {
+          firstString=false;
+        }
+        buf.append(str);
+      }
+      return buf.toString();
+    }
+ else     if (stringMapValue != null) {
+      StringBuilder buf=new StringBuilder();
+      boolean firstString=true;
+      String[] entries=stringMapValue.value();
+      if ((entries.length & 1) != 0) {
+        throw new AnnotationsError("Odd number of strings supplied to @DefaultStringMapValue");
+      }
+      for (int i=0; i < entries.length; i+=2) {
+        String key=entries[i];
+        String value=entries[i + 1];
+        if (map != null) {
+          MethodEntry entry=new MethodEntry(value,null);
+          map.put(key,entry);
+        }
+        key=key.replace("\\","\\\\");
+        key=key.replace(",","\\,");
+        if (!firstString) {
+          buf.append(',');
+        }
+ else {
+          firstString=false;
+        }
+        buf.append(key);
+      }
+      return buf.toString();
+    }
+  }
+  return null;
+}

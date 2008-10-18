@@ -1,0 +1,78 @@
+{
+  String installPath=Utility.getInstallPath();
+  String gwtUserPath=installPath + '/' + "gwt-user.jar";
+  String gwtDevPath=installPath + '/' + Utility.getDevJarName();
+  boolean isWindows=gwtDevPath.substring(gwtDevPath.lastIndexOf('/') + 1).indexOf("windows") >= 0;
+  String basePathEnv;
+  if (!new File(installPath).isAbsolute()) {
+    if (isWindows) {
+      basePathEnv="%~dp0\\";
+    }
+ else {
+      basePathEnv="$APPDIR/";
+    }
+  }
+ else {
+    basePathEnv="";
+  }
+  int pos=fullInterfaceName.lastIndexOf('.');
+  String clientPackageName=fullInterfaceName.substring(0,pos);
+  String interfaceName=fullInterfaceName.substring(pos + 1);
+  pos=clientPackageName.lastIndexOf('.');
+  File clientDir=Utility.getDirectory(outDir,"src",true);
+  if (pos >= 0) {
+    String clientPackage=clientPackageName.replace('.','/');
+    clientDir=Utility.getDirectory(clientDir,clientPackage,true);
+  }
+  Map<String,String> replacements=new HashMap<String,String>();
+  replacements.put("@className",fullInterfaceName);
+  replacements.put("@shortClassName",interfaceName);
+  replacements.put("@gwtUserPath",basePathEnv + gwtUserPath);
+  replacements.put("@gwtDevPath",basePathEnv + gwtDevPath);
+  replacements.put("@compileClass","com.google.gwt.dev.GWTCompiler");
+  replacements.put("@i18nClass","com.google.gwt.i18n.tools.I18NSync");
+  String templateData=null;
+  if (Messages.class == interfaceToCreate) {
+    replacements.put("@createMessages","-createMessages");
+    templateData=Utility.getFileFromClassPath(PACKAGE_PATH + "i18nMessages.propertiessrc");
+  }
+ else {
+    if (ConstantsWithLookup.class == interfaceToCreate) {
+      replacements.put("@createMessages","-createConstantsWithLookup");
+    }
+ else     if (Constants.class == interfaceToCreate) {
+      replacements.put("@createMessages","");
+    }
+ else {
+      throw new RuntimeException("Internal Error: Unable to create i18n class derived from " + interfaceToCreate.getName());
+    }
+    templateData=Utility.getFileFromClassPath(PACKAGE_PATH + "i18nConstants.propertiessrc");
+  }
+  File i18nPropertiesFile=Utility.createNormalFile(clientDir,interfaceName + ".properties",overwrite,ignore);
+  if (i18nPropertiesFile != null && templateData != null) {
+    Utility.writeTemplateFile(i18nPropertiesFile,templateData,replacements);
+  }
+  if (eclipse != null) {
+    replacements.put("@projectName",eclipse);
+    File updateLaunchConfig=Utility.createNormalFile(outDir,interfaceName + "-i18n" + ".launch",overwrite,ignore);
+    if (updateLaunchConfig != null) {
+      String out=Utility.getFileFromClassPath(PACKAGE_PATH + "I18N-update.launchsrc");
+      Utility.writeTemplateFile(updateLaunchConfig,out,replacements);
+    }
+  }
+  String extension;
+  if (isWindows) {
+    extension=".cmd";
+  }
+ else {
+    extension="";
+  }
+  File gwti18n=Utility.createNormalFile(outDir,interfaceName + "-i18n" + extension,overwrite,ignore);
+  if (gwti18n != null) {
+    String out=Utility.getFileFromClassPath(PACKAGE_PATH + "gwti18n" + extension+ "src");
+    Utility.writeTemplateFile(gwti18n,out,replacements);
+    if (extension.length() == 0) {
+      Runtime.getRuntime().exec("chmod u+x " + gwti18n.getAbsolutePath());
+    }
+  }
+}

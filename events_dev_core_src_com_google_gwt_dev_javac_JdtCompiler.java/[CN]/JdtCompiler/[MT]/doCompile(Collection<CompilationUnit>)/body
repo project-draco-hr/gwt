@@ -1,0 +1,24 @@
+{
+  List<ICompilationUnit> icus=new ArrayList<ICompilationUnit>();
+  for (  CompilationUnit unit : units) {
+    String packageName=Shared.getPackageName(unit.getTypeName());
+    addPackages(packageName);
+    Set<CompiledClass> compiledClasses=unit.getCompiledClasses();
+    if (compiledClasses == null) {
+      icus.add(new CompilationUnitAdapter(unit));
+      activeUnits.add(unit);
+    }
+ else {
+      for (      CompiledClass compiledClass : compiledClasses) {
+        binaryTypes.put(compiledClass.getBinaryName().replace('/','.'),compiledClass);
+      }
+    }
+  }
+  if (icus.isEmpty()) {
+    return false;
+  }
+  PerfLogger.start("JdtCompiler.compile");
+  compiler.compile(icus.toArray(new ICompilationUnit[icus.size()]));
+  PerfLogger.end();
+  return true;
+}

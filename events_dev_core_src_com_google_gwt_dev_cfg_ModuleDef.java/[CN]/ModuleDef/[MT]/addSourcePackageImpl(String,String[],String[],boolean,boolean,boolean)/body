@@ -1,0 +1,17 @@
+{
+  if (lazySourceOracle != null) {
+    throw new IllegalStateException("Already normalized");
+  }
+  if (includeList.length == 0) {
+    includeList=DEFAULT_SOURCE_FILE_INCLUDES_LIST;
+  }
+  final ZipScanner scanner=getScanner(includeList,excludeList,defaultExcludes,caseSensitive);
+  ResourceFilter sourceFileFilter=new ResourceFilter(){
+    public boolean allows(    String path){
+      return path.endsWith(".java") && scanner.match(path);
+    }
+  }
+;
+  PathPrefix pathPrefix=new PathPrefix(sourcePackage,sourceFileFilter,isSuperSource);
+  sourcePrefixSet.add(pathPrefix);
+}

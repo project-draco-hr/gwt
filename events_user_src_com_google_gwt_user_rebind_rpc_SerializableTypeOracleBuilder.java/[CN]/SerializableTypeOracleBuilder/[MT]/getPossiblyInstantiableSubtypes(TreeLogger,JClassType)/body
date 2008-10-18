@@ -1,0 +1,24 @@
+{
+  assert(baseType == getBaseType(baseType));
+  List<JClassType> possiblyInstantiableTypes=new ArrayList<JClassType>();
+  if (baseType == typeOracle.getJavaLangObject()) {
+    return possiblyInstantiableTypes;
+  }
+  List<JClassType> candidates=new ArrayList<JClassType>();
+  candidates.add(baseType);
+  candidates.addAll(Arrays.asList(baseType.getSubtypes()));
+  for (  JClassType subtype : candidates) {
+    JClassType subtypeBase=getBaseType(subtype);
+    if (maybeInstantiable(logger,subtypeBase)) {
+      JGenericType isGeneric=subtype.isGenericType();
+      if (isGeneric != null) {
+        subtype=isGeneric.asParameterizedByWildcards();
+      }
+ else {
+        assert(subtype instanceof JRealClassType);
+      }
+      possiblyInstantiableTypes.add(subtype);
+    }
+  }
+  return possiblyInstantiableTypes;
+}

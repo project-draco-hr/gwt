@@ -1,0 +1,71 @@
+{
+  srcWriter.println("@SuppressWarnings(\"restriction\")");
+  srcWriter.println("private static native JavaScriptObject createMethodMap() /*-" + '{');
+{
+    srcWriter.indent();
+    srcWriter.println("return {");
+    JType[] types=getSerializableTypes();
+    boolean needComma=false;
+    for (int index=0; index < types.length; ++index) {
+      JType type=types[index];
+      if (!serializationOracle.maybeInstantiated(type)) {
+        continue;
+      }
+      if (needComma) {
+        srcWriter.println(",");
+      }
+ else {
+        needComma=true;
+      }
+      String typeString=serializationOracle.getSerializedTypeName(type) + "/" + serializationOracle.getSerializationSignature(type);
+      srcWriter.print("\"" + typeString + "\":");
+      srcWriter.println("[");
+{
+        srcWriter.indent();
+        String serializerName=serializationOracle.getFieldSerializerName(type);
+{
+          srcWriter.print("@");
+          if (needsCreateMethod(type)) {
+            srcWriter.print(getTypeSerializerClassName());
+            srcWriter.print("::");
+            srcWriter.print(getCreateMethodName(type));
+          }
+ else {
+            srcWriter.print(serializerName);
+            srcWriter.print("::instantiate");
+          }
+          srcWriter.print("(L" + SerializationStreamReader.class.getName().replace('.','/') + ";)");
+          srcWriter.println(",");
+        }
+        JClassType customSerializer=serializationOracle.hasCustomFieldSerializer(type);
+{
+          JType paramType=type;
+          if (customSerializer != null) {
+            JMethod deserializationMethod=CustomFieldSerializerValidator.getDeserializationMethod(customSerializer,(JClassType)type);
+            paramType=deserializationMethod.getParameters()[1].getType();
+          }
+          srcWriter.print("@" + serializerName);
+          srcWriter.print("::deserialize(L" + SerializationStreamReader.class.getName().replace('.','/') + ";"+ paramType.getJNISignature()+ ")");
+          srcWriter.println(",");
+        }
+{
+          JType paramType=type;
+          if (customSerializer != null) {
+            JMethod serializationMethod=CustomFieldSerializerValidator.getSerializationMethod(customSerializer,(JClassType)type);
+            paramType=serializationMethod.getParameters()[1].getType();
+          }
+          srcWriter.print("@" + serializerName);
+          srcWriter.print("::serialize(L" + SerializationStreamWriter.class.getName().replace('.','/') + ";"+ paramType.getJNISignature()+ ")");
+          srcWriter.println();
+        }
+        srcWriter.outdent();
+      }
+      srcWriter.print("]");
+    }
+    srcWriter.println();
+    srcWriter.println("};");
+    srcWriter.outdent();
+  }
+  srcWriter.println("}-*/;");
+  srcWriter.println();
+}

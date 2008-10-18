@@ -1,0 +1,31 @@
+{
+  Menu menubar=getShell().getMenuBar();
+  if (menubar != null && !menubar.isDisposed() && menubar.isEnabled()) {
+    Shell shell=menubar.getShell();
+    int hwnd=shell.handle;
+    int hAccel=OS.SendMessage(hwnd,OS.WM_APP + 1,0,0);
+    if (hAccel != 0) {
+      MSG msg=new MSG();
+      OS.MoveMemory(msg,lpMsg,MSG.sizeof);
+      if (OS.TranslateAccelerator(hwnd,hAccel,msg) != 0)       return COM.S_OK;
+    }
+  }
+  OleAutomation auto=new OleAutomation(this);
+  int[] rgdispid=auto.getIDsOfNames(new String[]{"LocationURL"});
+  Variant pVarResult=auto.getProperty(rgdispid[0]);
+  auto.dispose();
+  int result=COM.S_FALSE;
+  if (pVarResult != null) {
+    if (pVarResult.getType() == OLE.VT_BSTR) {
+      String url=pVarResult.getString();
+      if (url.equals(Browser.ABOUT_BLANK)) {
+        MSG msg=new MSG();
+        OS.MoveMemory(msg,lpMsg,MSG.sizeof);
+        if (msg.message == OS.WM_KEYDOWN && msg.wParam == OS.VK_F5)         result=COM.S_OK;
+        if (msg.message == OS.WM_KEYDOWN && msg.wParam == OS.VK_N && OS.GetKeyState(OS.VK_CONTROL) < 0)         result=COM.S_OK;
+      }
+    }
+    pVarResult.dispose();
+  }
+  return result;
+}

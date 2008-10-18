@@ -1,0 +1,64 @@
+{
+  File outputFile=null;
+  try {
+    outputFile=new File(outputPath).getCanonicalFile();
+  }
+ catch (  IOException e) {
+    e.printStackTrace();
+    return;
+  }
+  boolean skipMerge=true;
+  if (!outputFile.exists()) {
+    skipMerge=false;
+  }
+ else {
+    long outputFileLastModified=outputFile.lastModified();
+    for (int i=0, n=files.length; i < n; ++i) {
+      if (isNewerThan(new File(files[i]),outputFileLastModified)) {
+        skipMerge=false;
+        break;
+      }
+    }
+  }
+  if (skipMerge) {
+    return;
+  }
+  try {
+    PrintWriter out=new PrintWriter(new FileWriter(outputFile),true);
+    out.println("<?xml version='1.0'?>");
+    out.println("<" + tag + ">");
+    for (int i=0; i < files.length; i++) {
+      File file=new File(files[i]);
+      if (file.isFile()) {
+        emitFile(out,outputFile,file);
+      }
+ else {
+        File[] children=file.listFiles();
+        if (children != null) {
+          for (int j=0; j < children.length; ++j) {
+            if (children[j].isFile() && children[j].getPath().endsWith(".xml")) {
+              emitFile(out,outputFile,children[j]);
+            }
+          }
+        }
+      }
+    }
+    out.println("</" + tag + ">");
+    out.close();
+  }
+ catch (  IOException e) {
+    outputFile.deleteOnExit();
+    e.printStackTrace();
+  }
+catch (  ParserConfigurationException e) {
+    outputFile.deleteOnExit();
+    e.printStackTrace();
+  }
+catch (  SAXException e) {
+    outputFile.deleteOnExit();
+    e.printStackTrace();
+  }
+catch (  TransformerException e) {
+    e.printStackTrace();
+  }
+}

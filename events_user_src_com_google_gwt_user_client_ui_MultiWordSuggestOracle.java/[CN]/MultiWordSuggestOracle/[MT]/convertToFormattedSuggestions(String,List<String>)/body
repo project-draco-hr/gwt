@@ -1,0 +1,32 @@
+{
+  List<MultiWordSuggestion> suggestions=new ArrayList<MultiWordSuggestion>();
+  for (int i=0; i < candidates.size(); i++) {
+    String candidate=candidates.get(i);
+    int index=0;
+    int cursor=0;
+    String formattedSuggestion=toRealSuggestions.get(candidate);
+    StringBuffer accum=new StringBuffer();
+    while (true) {
+      index=candidate.indexOf(query,index);
+      if (index == -1) {
+        break;
+      }
+      int endIndex=index + query.length();
+      if (index == 0 || (WHITESPACE_CHAR == candidate.charAt(index - 1))) {
+        String part1=escapeText(formattedSuggestion.substring(cursor,index));
+        String part2=escapeText(formattedSuggestion.substring(index,endIndex));
+        cursor=endIndex;
+        accum.append(part1).append("<strong>").append(part2).append("</strong>");
+      }
+      index=endIndex;
+    }
+    if (cursor == 0) {
+      continue;
+    }
+    String end=escapeText(formattedSuggestion.substring(cursor));
+    accum.append(end);
+    MultiWordSuggestion suggestion=new MultiWordSuggestion(formattedSuggestion,accum.toString());
+    suggestions.add(suggestion);
+  }
+  return suggestions;
+}

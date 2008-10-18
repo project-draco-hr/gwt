@@ -1,0 +1,17 @@
+{
+  Set<JInterfaceType> couldImplementSet=getOrCreate(couldImplementMap,type);
+  couldImplementSet.addAll(getOrCreate(implementsMap,type));
+  List<JClassType> subclasses=new ArrayList<JClassType>();
+  subclasses.addAll(getOrCreate(subClassMap,type));
+  for (  JClassType subclass : subclasses) {
+    for (    JInterfaceType intf : subclass.implments) {
+      couldImplementSet.add(intf);
+      for (      JInterfaceType isup : getOrCreate(superInterfaceMap,intf)) {
+        couldImplementSet.add(isup);
+      }
+    }
+  }
+  for (  JInterfaceType couldImpl : couldImplementSet) {
+    add(couldBeImplementedMap,couldImpl,type);
+  }
+}

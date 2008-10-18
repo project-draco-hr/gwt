@@ -1,0 +1,18 @@
+{
+  if (lazyAnnotations != null) {
+    return;
+  }
+  if (parent != null) {
+    lazyAnnotations=new HashMap<Class<? extends Annotation>,Annotation>();
+    parent.initializeAnnotations();
+    for (    Entry<Class<? extends Annotation>,Annotation> entry : parent.lazyAnnotations.entrySet()) {
+      if (entry.getValue().annotationType().isAnnotationPresent(Inherited.class)) {
+        lazyAnnotations.put(entry.getKey(),entry.getValue());
+      }
+    }
+    lazyAnnotations.putAll(declaredAnnotations);
+  }
+ else {
+    lazyAnnotations=declaredAnnotations;
+  }
+}

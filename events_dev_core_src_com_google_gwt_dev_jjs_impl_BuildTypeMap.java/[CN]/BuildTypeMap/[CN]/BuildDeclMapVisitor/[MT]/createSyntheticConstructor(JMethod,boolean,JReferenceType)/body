@@ -1,0 +1,27 @@
+{
+  JClassType type=(JClassType)constructor.getEnclosingType();
+  JMethod synthetic=program.createMethod(null,"new".toCharArray(),type,type,false,true,true,false,false);
+  JNewInstance newInstance=new JNewInstance(program,null,type);
+  JMethodCall call=new JMethodCall(program,null,newInstance,constructor);
+  List<JExpression> args=call.getArgs();
+  JParameter enclosingInstance=null;
+  if (!staticClass) {
+    enclosingInstance=program.createParameter(null,"this$outer".toCharArray(),enclosingType,false,false,synthetic);
+  }
+  for (Iterator<JParameter> i=constructor.params.iterator(); i.hasNext(); ) {
+    JParameter param=i.next();
+    if (enclosingInstance != null && !i.hasNext()) {
+      args.add(new JParameterRef(program,null,enclosingInstance));
+    }
+ else {
+      JParameter syntheticParam=program.createParameter(null,param.getName().toCharArray(),param.getType(),true,false,synthetic);
+      args.add(new JParameterRef(program,null,syntheticParam));
+    }
+  }
+  synthetic.freezeParamTypes();
+  JReturnStatement ret=new JReturnStatement(program,null,call);
+  JMethodBody body=(JMethodBody)synthetic.getBody();
+  List<JStatement> statements=body.getStatements();
+  statements.add(ret);
+  return synthetic;
+}

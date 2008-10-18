@@ -1,0 +1,34 @@
+{
+  assert(outInvokeArgs.length == args.getArgCount());
+  for (int i=0, n=args.getArgCount(); i < n; ++i) {
+    Object invokeArg=args.convertToArg(i);
+    outInvokeArgs[i]=invokeArg;
+  }
+  Schema nextSchemaLevel=null;
+  Throwable caught=null;
+  try {
+    target.setLineNumber(lineNumber);
+    nextSchemaLevel=(Schema)method.invoke(target,outInvokeArgs);
+  }
+ catch (  IllegalArgumentException e) {
+    caught=e;
+  }
+catch (  IllegalAccessException e) {
+    caught=e;
+  }
+catch (  InvocationTargetException e) {
+    caught=e.getTargetException();
+  }
+  if (caught != null) {
+    target.onHandlerException(lineNumber,elemLocalName,method,caught);
+  }
+  if (nextSchemaLevel != null) {
+    return nextSchemaLevel;
+  }
+ else   if (arbitraryChildren) {
+    return sArbitraryChildHandler;
+  }
+ else {
+    return null;
+  }
+}

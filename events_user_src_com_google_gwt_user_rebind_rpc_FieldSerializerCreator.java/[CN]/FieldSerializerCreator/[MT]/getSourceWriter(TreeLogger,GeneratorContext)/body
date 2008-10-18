@@ -1,0 +1,20 @@
+{
+  String qualifiedSerializerName=serializationOracle.getFieldSerializerName(serializableClass);
+  int packageNameEnd=qualifiedSerializerName.lastIndexOf('.');
+  String className;
+  String packageName;
+  if (packageNameEnd != -1) {
+    className=qualifiedSerializerName.substring(packageNameEnd + 1);
+    packageName=qualifiedSerializerName.substring(0,packageNameEnd);
+  }
+ else {
+    className=qualifiedSerializerName;
+    packageName="";
+  }
+  PrintWriter printWriter=ctx.tryCreate(logger,packageName,className);
+  if (printWriter == null) {
+    return null;
+  }
+  ClassSourceFileComposerFactory composerFactory=new ClassSourceFileComposerFactory(packageName,className);
+  return composerFactory.createSourceWriter(ctx,printWriter);
+}

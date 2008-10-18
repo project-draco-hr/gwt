@@ -1,0 +1,20 @@
+{
+  ApiClass object=apiCheck.getApiPackage("java.lang").getApiClass("java.lang.Object");
+  ApiClass apiClass=apiCheck.getApiPackage("test.apicontainer").getApiClass("test.apicontainer.ApiClass");
+  ApiClass innerClass=apiCheck.getApiPackage("test.apicontainer").getApiClass("test.apicontainer.NonApiClass.ApiClassInNonApiClass");
+  ApiClass oneMoreApiClass=apiCheck.getApiPackage("test.apicontainer").getApiClass("test.apicontainer.OneMoreApiClass");
+  assertEquals(1,innerClass.getApiMemberNames(ApiClass.MethodType.CONSTRUCTOR).size());
+  assertEquals(3,object.getApiFieldNames().size());
+  assertEquals(4,apiClass.getApiFieldNames().size());
+  assertEquals(3,oneMoreApiClass.getApiFieldNames().size());
+  assertEquals(4,object.getApiMemberNames(ApiClass.MethodType.METHOD).size());
+  assertEquals(7,apiClass.getApiMemberNames(ApiClass.MethodType.METHOD).size());
+  assertNotSame(getMethodByName("apiMethod0",apiClass),getMethodByName("apiMethod0",object));
+  assertEquals(getMethodByName("protectedMethod0",apiClass),getMethodByName("protectedMethod0",object));
+  assertNotNull(getMethodByName("methodInNonApiClass1",apiClass));
+  assertEquals(5,oneMoreApiClass.getApiMemberNames(ApiClass.MethodType.METHOD).size());
+  Set<String> methodNames=new HashSet<String>(Arrays.asList(new String[]{"checkOverloadedAndOverridableDetection1"}));
+  assertEquals(1,oneMoreApiClass.getApiMembersBySet(methodNames,ApiClass.MethodType.METHOD).size());
+  methodNames=new HashSet<String>(Arrays.asList(new String[]{"checkOverloadedMethodAccounted1"}));
+  assertEquals(2,oneMoreApiClass.getApiMembersBySet(methodNames,ApiClass.MethodType.METHOD).size());
+}

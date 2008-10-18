@@ -1,0 +1,27 @@
+{
+  ArrayList<JType> legalTypes=new ArrayList<JType>();
+  TypeOracle newTypeOracle=newMethod.getMethod().getEnclosingType().getOracle();
+  JClassType errorType=newTypeOracle.findType(Error.class.getName());
+  if (errorType != null) {
+    legalTypes.add(errorType);
+  }
+  JClassType rteType=newTypeOracle.findType(RuntimeException.class.getName());
+  if (rteType != null) {
+    legalTypes.add(rteType);
+  }
+  legalTypes.addAll(Arrays.asList(getMethod().getThrows()));
+  List<ApiChange> ret=new ArrayList<ApiChange>();
+  for (  JType newException : newMethod.getMethod().getThrows()) {
+    boolean isSubclass=false;
+    for (    JType legalType : legalTypes) {
+      if (ApiDiffGenerator.isFirstTypeAssignableToSecond(newException,legalType)) {
+        isSubclass=true;
+        break;
+      }
+    }
+    if (!isSubclass) {
+      ret.add(new ApiChange(this,ApiChange.Status.EXCEPTION_TYPE_ERROR,"unhandled exception in new code " + newException));
+    }
+  }
+  return ret;
+}

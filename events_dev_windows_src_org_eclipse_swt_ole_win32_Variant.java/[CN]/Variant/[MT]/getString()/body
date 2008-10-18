@@ -1,0 +1,24 @@
+{
+  if (type == COM.VT_EMPTY) {
+    OLE.error(OLE.ERROR_CANNOT_CHANGE_VARIANT_TYPE,-1);
+  }
+  if (type == COM.VT_BSTR) {
+    return stringData;
+  }
+  int oldPtr=OS.GlobalAlloc(COM.GMEM_FIXED | COM.GMEM_ZEROINIT,sizeof);
+  int newPtr=OS.GlobalAlloc(COM.GMEM_FIXED | COM.GMEM_ZEROINIT,sizeof);
+  try {
+    getData(oldPtr);
+    int result=COM.VariantChangeType(newPtr,oldPtr,(short)0,COM.VT_BSTR);
+    if (result != COM.S_OK)     OLE.error(OLE.ERROR_CANNOT_CHANGE_VARIANT_TYPE,result);
+    Variant stringVar=new Variant();
+    stringVar.setData(newPtr);
+    return stringVar.getString();
+  }
+  finally {
+    COM.VariantClear(oldPtr);
+    OS.GlobalFree(oldPtr);
+    COM.VariantClear(newPtr);
+    OS.GlobalFree(newPtr);
+  }
+}

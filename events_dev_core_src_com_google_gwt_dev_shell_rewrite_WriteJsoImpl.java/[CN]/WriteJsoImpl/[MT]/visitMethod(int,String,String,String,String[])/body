@@ -1,0 +1,12 @@
+{
+  boolean isCtor="<init>".equals(name);
+  if (!isJavaScriptObject() && isCtor) {
+    return null;
+  }
+  if (!isCtor && !isStatic(access) && !isObjectMethod(name + desc)) {
+    access|=Opcodes.ACC_STATIC;
+    desc=HostedModeClassRewriter.addSyntheticThisParam(originalName,desc);
+    name=name + "$";
+  }
+  return super.visitMethod(access,name,desc,signature,exceptions);
+}

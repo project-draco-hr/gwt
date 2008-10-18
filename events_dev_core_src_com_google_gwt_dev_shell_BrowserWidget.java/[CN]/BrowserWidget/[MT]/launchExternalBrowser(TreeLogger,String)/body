@@ -1,0 +1,39 @@
+{
+  LowLevel.init();
+  String browserCmd=LowLevel.getEnv("GWT_EXTERNAL_BROWSER");
+  if (browserCmd != null) {
+    browserCmd+=" " + location;
+    try {
+      Runtime.getRuntime().exec(browserCmd);
+      return;
+    }
+ catch (    IOException e) {
+      logger.log(TreeLogger.ERROR,"Error launching GWT_EXTERNAL_BROWSER executable '" + browserCmd + "'",e);
+      return;
+    }
+  }
+  browserCmd=System.getProperty("gwt.browser.default");
+  if (browserCmd != null) {
+    browserCmd+=" " + location;
+    try {
+      Runtime.getRuntime().exec(browserCmd);
+      return;
+    }
+ catch (    IOException e) {
+      logger.log(TreeLogger.ERROR,"Error launching gwt.browser.default executable '" + browserCmd + "'",e);
+      return;
+    }
+  }
+  Program browserProgram=Program.findProgram("html");
+  if (browserProgram != null) {
+    if (browserProgram.execute(location)) {
+      return;
+    }
+ else {
+      logger.log(TreeLogger.ERROR,"Error launching external HTML program '" + browserProgram.getName() + "'",null);
+      return;
+    }
+  }
+  logger.log(TreeLogger.ERROR,"Unable to find a default external web browser",null);
+  logger.log(TreeLogger.WARN,"Try setting the environment variable " + "GWT_EXTERNAL_BROWSER to your web browser executable before " + "launching the GWT shell",null);
+}

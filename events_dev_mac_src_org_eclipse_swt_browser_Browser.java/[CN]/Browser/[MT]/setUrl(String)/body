@@ -1,0 +1,24 @@
+{
+  checkWidget();
+  if (url == null)   SWT.error(SWT.ERROR_NULL_ARGUMENT);
+  html=null;
+  StringBuffer buffer=new StringBuffer();
+  if (url.indexOf('/') == 0)   buffer.append("file://");
+ else   if (url.indexOf(':') == -1)   buffer.append("http://");
+  for (int i=0; i < url.length(); i++) {
+    char c=url.charAt(i);
+    if (c == ' ')     buffer.append("%20");
+ else     buffer.append(c);
+  }
+  int length=buffer.length();
+  char[] chars=new char[length];
+  buffer.getChars(0,length,chars,0);
+  int sHandle=OS.CFStringCreateWithCharacters(0,chars,length);
+  int inURL=WebKit.objc_msgSend(WebKit.C_NSURL,WebKit.S_URLWithString,sHandle);
+  OS.CFRelease(sHandle);
+  int request=WebKit.objc_msgSend(WebKit.C_NSURLRequest,WebKit.S_requestWithURL,inURL);
+  int webView=WebKit.HIWebViewGetWebView(webViewHandle);
+  int mainFrame=WebKit.objc_msgSend(webView,WebKit.S_mainFrame);
+  WebKit.objc_msgSend(mainFrame,WebKit.S_loadRequest,request);
+  return true;
+}

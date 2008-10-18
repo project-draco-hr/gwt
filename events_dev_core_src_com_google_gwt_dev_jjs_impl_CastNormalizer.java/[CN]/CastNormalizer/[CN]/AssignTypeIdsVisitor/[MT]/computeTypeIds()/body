@@ -1,0 +1,20 @@
+{
+  classes.add(null);
+  jsonObjects.add(new JsonObject(program));
+  computeSourceClass(program.getTypeJavaLangString());
+  assert(classes.size() == 3);
+  for (  JReferenceType type : program.getDeclaredTypes()) {
+    if (type instanceof JClassType) {
+      computeSourceClass((JClassType)type);
+    }
+  }
+  for (  JArrayType type : program.getAllArrayTypes()) {
+    computeSourceClass(type);
+  }
+  program.initTypeInfo(classes,jsonObjects);
+  JClassType jsoType=program.getJavaScriptObject();
+  if (jsoType != null) {
+    queryIds.put(jsoType,-1);
+  }
+  program.recordQueryIds(queryIds);
+}

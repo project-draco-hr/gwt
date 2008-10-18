@@ -1,0 +1,29 @@
+{
+  if (!type.isAnnotationPresent(ShowcaseStyle.class)) {
+    return;
+  }
+  String[] prefixes=type.getAnnotation(ShowcaseStyle.class).value();
+  Map<String,String> matched=new LinkedHashMap<String,String>();
+  for (  String prefix : prefixes) {
+    boolean foundStyle=false;
+    int start=styleDefs.indexOf("\n" + prefix);
+    while (start >= 0) {
+      int end=styleDefs.indexOf("{",start);
+      String matchedName=styleDefs.substring(start,end).trim();
+      end=styleDefs.indexOf("}",start) + 1;
+      String styleDef="<pre>" + styleDefs.substring(start,end) + "</pre>";
+      matched.put(matchedName,styleDef);
+      foundStyle=true;
+      start=styleDefs.indexOf("\n" + prefix,end);
+    }
+    if (!foundStyle) {
+      matched.put(prefix,"<pre>" + prefix + " {\n}</pre>");
+    }
+  }
+  String formattedStyle="";
+  for (  String styleDef : matched.values()) {
+    formattedStyle+=styleDef;
+  }
+  String dstPath=outDir + type.getSimpleSourceName() + ".html";
+  createPublicResource(dstPath,formattedStyle);
+}

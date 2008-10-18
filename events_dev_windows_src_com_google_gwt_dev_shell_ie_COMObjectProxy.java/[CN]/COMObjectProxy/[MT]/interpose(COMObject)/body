@@ -1,0 +1,13 @@
+{
+  if (this.target != null) {
+    throw new IllegalStateException("interpose() can only be called once");
+  }
+  this.target=victim;
+  Map<Integer,COMObject> objectMap=LowLevel.snatchFieldObjectValue(COMObject.class,null,"ObjectMap");
+  Integer ppVtableTarget=new Integer(target.getAddress());
+  COMObject currValue=objectMap.get(ppVtableTarget);
+  if (currValue != target) {
+    throw new IllegalStateException("target object is not currently mapped");
+  }
+  objectMap.put(ppVtableTarget,this);
+}

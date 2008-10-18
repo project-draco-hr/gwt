@@ -1,0 +1,29 @@
+{
+  if (x != program.getTypeJavaLangString()) {
+    JsName seedFuncName=names.get(x);
+    JsFunction seedFunc=new JsFunction(topScope,seedFuncName,true);
+    JsBlock body=new JsBlock();
+    seedFunc.setBody(body);
+    globalStmts.add(seedFunc.makeStmt());
+    JsNameRef lhs=prototype.makeRef();
+    lhs.setQualifier(seedFuncName.makeRef());
+    JsExpression rhs;
+    if (x.extnds != null) {
+      JsNew newExpr=new JsNew();
+      newExpr.setConstructorExpression(names.get(x.extnds).makeRef());
+      rhs=newExpr;
+    }
+ else {
+      rhs=new JsObjectLiteral();
+    }
+    JsExpression protoAsg=createAssignment(lhs,rhs);
+    JsExpression tmpAsg=createAssignment(globalTemp.makeRef(),protoAsg);
+    globalStmts.add(tmpAsg.makeStmt());
+  }
+ else {
+    JsNameRef rhs=prototype.makeRef();
+    rhs.setQualifier(jsProgram.getRootScope().declareName("String").makeRef());
+    JsExpression tmpAsg=createAssignment(globalTemp.makeRef(),rhs);
+    globalStmts.add(tmpAsg.makeStmt());
+  }
+}

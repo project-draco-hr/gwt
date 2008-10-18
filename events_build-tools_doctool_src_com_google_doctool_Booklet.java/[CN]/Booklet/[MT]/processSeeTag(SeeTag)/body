@@ -1,0 +1,60 @@
+{
+  String ref=null;
+  ClassDoc cd=null;
+  PackageDoc pd=null;
+  MemberDoc md=null;
+  String title=null;
+  if (seeTag.text().startsWith("<")) {
+    return;
+  }
+  if (null != (md=seeTag.referencedMember())) {
+    ref=getId(md);
+  }
+ else   if (null != (cd=seeTag.referencedClass())) {
+    ref=getId(cd);
+    Tag[] titleTag=cd.tags("@title");
+    if (titleTag.length > 0) {
+      title=titleTag[0].text().trim();
+      if (title.length() == 0) {
+        title=null;
+      }
+    }
+  }
+ else   if (null != (pd=seeTag.referencedPackage())) {
+    ref=getId(pd);
+  }
+  String label=seeTag.label();
+  if (label == null || label.trim().length() == 0) {
+    if (title != null) {
+      label=title;
+    }
+ else {
+      label=seeTag.text();
+      if (label.endsWith(".")) {
+        label=label.substring(0,label.length() - 1);
+      }
+      int last1=label.lastIndexOf('.');
+      int last2=label.lastIndexOf('#');
+      if (last2 > last1) {
+        label=label.substring(last1 + 1).replace('#','.');
+      }
+ else       if (last1 != -1) {
+        label=label.substring(last1 + 1);
+      }
+      if (label.charAt(0) == '.') {
+        label=label.substring(1);
+      }
+    }
+  }
+  if (ref != null) {
+    begin("link","ref",ref);
+    text(label != null ? label.trim() : "");
+    end();
+  }
+ else {
+    initialRootDoc.printWarning(seeTag.position(),"Unverifiable cross-reference to '" + seeTag.text() + "'");
+    begin("link");
+    text(label != null ? label.trim() : "");
+    end();
+  }
+}

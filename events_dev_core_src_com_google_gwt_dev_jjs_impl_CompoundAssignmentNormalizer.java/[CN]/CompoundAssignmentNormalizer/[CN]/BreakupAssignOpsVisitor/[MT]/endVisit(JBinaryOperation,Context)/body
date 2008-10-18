@@ -1,0 +1,23 @@
+{
+  JBinaryOperator op=x.getOp();
+  if (op.getNonAssignmentOf() == null) {
+    return;
+  }
+  if (!shouldBreakUp(x)) {
+    return;
+  }
+  enterTempUsageScope();
+  ReplaceSideEffectsInLvalue replacer=new ReplaceSideEffectsInLvalue(new JMultiExpression(program,x.getSourceInfo()));
+  JExpression newLhs=replacer.accept(x.getLhs());
+  exitTempUsageScope();
+  JBinaryOperation operation=new JBinaryOperation(program,x.getSourceInfo(),newLhs.getType(),op.getNonAssignmentOf(),newLhs,x.getRhs());
+  JBinaryOperation asg=new JBinaryOperation(program,x.getSourceInfo(),newLhs.getType(),JBinaryOperator.ASG,cloner.cloneExpression(newLhs),operation);
+  JMultiExpression multiExpr=replacer.getMultiExpr();
+  if (multiExpr.exprs.isEmpty()) {
+    ctx.replaceMe(asg);
+  }
+ else {
+    multiExpr.exprs.add(asg);
+    ctx.replaceMe(multiExpr);
+  }
+}

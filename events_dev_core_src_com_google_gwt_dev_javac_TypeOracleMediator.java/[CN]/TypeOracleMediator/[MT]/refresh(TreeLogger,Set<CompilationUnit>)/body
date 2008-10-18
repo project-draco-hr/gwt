@@ -1,0 +1,45 @@
+{
+  PerfLogger.start("TypeOracleMediator.refresh");
+  typeOracle.removeInvalidatedTypes();
+  clear();
+  PerfLogger.start("TypeOracleMediator.refresh (shallow)");
+  for (  CompilationUnit unit : units) {
+    if (!unit.isCompiled()) {
+      continue;
+    }
+    Set<CompiledClass> compiledClasses=unit.getCompiledClasses();
+    for (    CompiledClass compiledClass : compiledClasses) {
+      JRealClassType type=compiledClass.getRealClassType();
+      if (type == null) {
+        type=createType(compiledClass);
+      }
+      binaryMapper.put(compiledClass.getBinaryName(),type);
+    }
+  }
+  PerfLogger.end();
+  PerfLogger.start("TypeOracleMediator.refresh (deep)");
+  for (  CompilationUnit unit : units) {
+    if (!unit.isCompiled()) {
+      continue;
+    }
+    TreeLogger cudLogger=logger.branch(TreeLogger.SPAM,"Processing types in compilation unit: " + unit.getDisplayLocation());
+    Set<CompiledClass> compiledClasses=unit.getCompiledClasses();
+    for (    CompiledClass compiledClass : compiledClasses) {
+      if (unresolvedTypes.contains(compiledClass.getRealClassType())) {
+        TypeDeclaration typeDeclaration=compiledClass.getTypeDeclaration();
+        if (!resolveTypeDeclaration(cudLogger,unit.getSource(),typeDeclaration)) {
+          logger.log(TreeLogger.WARN,"Unexpectedly unable to fully resolve type " + compiledClass.getSourceName());
+        }
+      }
+    }
+  }
+  clear();
+  PerfLogger.end();
+  try {
+    typeOracle.refresh(logger);
+  }
+ catch (  NotFoundException e) {
+    e.printStackTrace();
+  }
+  PerfLogger.end();
+}

@@ -1,0 +1,398 @@
+{
+  super(parent,style & ~SWT.BORDER);
+  info=Browser.DOCHOSTUIFLAG_THEME;
+  if ((style & SWT.BORDER) == 0)   info|=Browser.DOCHOSTUIFLAG_NO3DOUTERBORDER;
+  frame=new OleFrame(this,SWT.NONE);
+  String progId="Shell.Explorer";
+  TCHAR key=new TCHAR(0,"Shell.Explorer\\CLSID",true);
+  int[] phkResult=new int[1];
+  if (OS.RegOpenKeyEx(OS.HKEY_CLASSES_ROOT,key,0,OS.KEY_READ,phkResult) == 0) {
+    int[] lpcbData=new int[1];
+    int result=OS.RegQueryValueEx(phkResult[0],null,0,null,(TCHAR)null,lpcbData);
+    if (result == 0) {
+      TCHAR lpData=new TCHAR(0,lpcbData[0] / TCHAR.sizeof);
+      result=OS.RegQueryValueEx(phkResult[0],null,0,null,lpData,lpcbData);
+      if (result == 0) {
+        String clsid=lpData.toString(0,lpData.strlen());
+        if (clsid.equals(CLSID_SHELLEXPLORER1)) {
+          key=new TCHAR(0,"Shell.Explorer.2",true);
+          int[] phkResult2=new int[1];
+          if (OS.RegOpenKeyEx(OS.HKEY_CLASSES_ROOT,key,0,OS.KEY_READ,phkResult2) == 0) {
+            OS.RegCloseKey(phkResult2[0]);
+            progId="Shell.Explorer.2";
+          }
+        }
+      }
+    }
+    OS.RegCloseKey(phkResult[0]);
+  }
+  try {
+    site=new WebSite(frame,SWT.NONE,progId);
+  }
+ catch (  SWTException e) {
+    dispose();
+    SWT.error(SWT.ERROR_NO_HANDLES);
+  }
+  site.doVerb(OLE.OLEIVERB_INPLACEACTIVATE);
+  auto=new OleAutomation(site);
+  Listener listener=new Listener(){
+    public void handleEvent(    Event e){
+switch (e.type) {
+case SWT.Dispose:
+{
+          if (ignoreDispose) {
+            ignoreDispose=false;
+            break;
+          }
+          ignoreDispose=true;
+          notifyListeners(e.type,e);
+          e.type=SWT.NONE;
+          if (auto != null)           auto.dispose();
+          auto=null;
+          break;
+        }
+case SWT.Resize:
+{
+        frame.setBounds(getClientArea());
+        break;
+      }
+case SWT.KeyDown:
+case SWT.KeyUp:
+{
+      notifyListeners(e.type,e);
+      break;
+    }
+}
+}
+}
+;
+addListener(SWT.Dispose,listener);
+addListener(SWT.Resize,listener);
+site.addListener(SWT.KeyDown,listener);
+site.addListener(SWT.KeyUp,listener);
+OleListener oleListener=new OleListener(){
+public void handleEvent(OleEvent event){
+if (auto == null) return;
+switch (event.type) {
+case BeforeNavigate2:
+{
+    Variant varResult=event.arguments[1];
+    String url=varResult.getString();
+    LocationEvent newEvent=new LocationEvent(Browser.this);
+    newEvent.display=getDisplay();
+    newEvent.widget=Browser.this;
+    newEvent.location=url;
+    newEvent.doit=true;
+    for (int i=0; i < locationListeners.length; i++) {
+      locationListeners[i].changing(newEvent);
+    }
+    Variant cancel=event.arguments[6];
+    if (cancel != null) {
+      int pCancel=cancel.getByRef();
+      COM.MoveMemory(pCancel,new short[]{newEvent.doit ? COM.VARIANT_FALSE : COM.VARIANT_TRUE},2);
+    }
+    break;
+  }
+case CommandStateChange:
+{
+  boolean enabled=false;
+  Variant varResult=event.arguments[0];
+  int command=varResult.getInt();
+  varResult=event.arguments[1];
+  enabled=varResult.getBoolean();
+switch (command) {
+case CSC_NAVIGATEBACK:
+    back=enabled;
+  break;
+case CSC_NAVIGATEFORWARD:
+forward=enabled;
+break;
+}
+break;
+}
+case DocumentComplete:
+{
+Variant varResult=event.arguments[0];
+IDispatch dispatch=varResult.getDispatch();
+varResult=event.arguments[1];
+String url=varResult.getString();
+if (html != null && url.equals(ABOUT_BLANK)) {
+Runnable runnable=new Runnable(){
+public void run(){
+if (isDisposed() || html == null) return;
+int charCount=html.length();
+char[] chars=new char[charCount];
+html.getChars(0,charCount,chars,0);
+html=null;
+int byteCount=OS.WideCharToMultiByte(OS.CP_UTF8,0,chars,charCount,null,0,null,null);
+byte[] UTF8BOM={(byte)0xEF,(byte)0xBB,(byte)0xBF};
+int hGlobal=OS.GlobalAlloc(OS.GMEM_FIXED | OS.GMEM_ZEROINIT,UTF8BOM.length + byteCount);
+if (hGlobal != 0) {
+OS.MoveMemory(hGlobal,UTF8BOM,UTF8BOM.length);
+OS.WideCharToMultiByte(OS.CP_UTF8,0,chars,charCount,hGlobal + UTF8BOM.length,byteCount,null,null);
+int[] ppstm=new int[1];
+if (OS.CreateStreamOnHGlobal(hGlobal,true,ppstm) == OS.S_OK) {
+  int[] rgdispid=auto.getIDsOfNames(new String[]{"Document"});
+  Variant pVarResult=auto.getProperty(rgdispid[0]);
+  IDispatch dispatchDocument=pVarResult.getDispatch();
+  int[] ppvObject=new int[1];
+  int result=dispatchDocument.QueryInterface(COM.IIDIPersistStreamInit,ppvObject);
+  if (result == OS.S_OK) {
+    IPersistStreamInit persistStreamInit=new IPersistStreamInit(ppvObject[0]);
+    if (persistStreamInit.InitNew() == OS.S_OK) {
+      persistStreamInit.Load(ppstm[0]);
+    }
+    persistStreamInit.Release();
+  }
+  pVarResult.dispose();
+  IUnknown stream=new IUnknown(ppstm[0]);
+  stream.Release();
+}
+ else {
+  OS.GlobalFree(hGlobal);
+}
+}
+}
+}
+;
+if (delaySetText) {
+delaySetText=false;
+getDisplay().asyncExec(runnable);
+}
+ else {
+runnable.run();
+}
+}
+ else {
+Variant variant=new Variant(auto);
+IDispatch top=variant.getDispatch();
+LocationEvent locationEvent=new LocationEvent(Browser.this);
+locationEvent.display=getDisplay();
+locationEvent.widget=Browser.this;
+locationEvent.location=url;
+locationEvent.top=top.getAddress() == dispatch.getAddress();
+for (int i=0; i < locationListeners.length; i++) {
+locationListeners[i].changed(locationEvent);
+}
+if (globalDispatch != 0 && dispatch.getAddress() == globalDispatch) {
+globalDispatch=0;
+ProgressEvent progressEvent=new ProgressEvent(Browser.this);
+progressEvent.display=getDisplay();
+progressEvent.widget=Browser.this;
+for (int i=0; i < progressListeners.length; i++) {
+progressListeners[i].completed(progressEvent);
+}
+}
+}
+break;
+}
+case NavigateComplete2:
+{
+Variant varResult=event.arguments[0];
+IDispatch dispatch=varResult.getDispatch();
+if (globalDispatch == 0) globalDispatch=dispatch.getAddress();
+break;
+}
+case NewWindow2:
+{
+Variant cancel=event.arguments[1];
+int pCancel=cancel.getByRef();
+WindowEvent newEvent=new WindowEvent(Browser.this);
+newEvent.display=getDisplay();
+newEvent.widget=Browser.this;
+newEvent.required=false;
+for (int i=0; i < openWindowListeners.length; i++) {
+openWindowListeners[i].open(newEvent);
+}
+Browser browser=newEvent.browser;
+boolean doit=browser != null && !browser.isDisposed();
+if (doit) {
+Variant variant=new Variant(browser.auto);
+IDispatch iDispatch=variant.getDispatch();
+Variant ppDisp=event.arguments[0];
+int byref=ppDisp.getByRef();
+if (byref != 0) COM.MoveMemory(byref,new int[]{iDispatch.getAddress()},4);
+}
+if (newEvent.required) {
+COM.MoveMemory(pCancel,new short[]{doit ? COM.VARIANT_FALSE : COM.VARIANT_TRUE},2);
+}
+break;
+}
+case OnMenuBar:
+{
+Variant arg0=event.arguments[0];
+menuBar=arg0.getBoolean();
+break;
+}
+case OnStatusBar:
+{
+Variant arg0=event.arguments[0];
+statusBar=arg0.getBoolean();
+break;
+}
+case OnToolBar:
+{
+Variant arg0=event.arguments[0];
+toolBar=arg0.getBoolean();
+if (!toolBar) {
+addressBar=false;
+menuBar=false;
+}
+break;
+}
+case OnVisible:
+{
+Variant arg1=event.arguments[0];
+boolean visible=arg1.getBoolean();
+WindowEvent newEvent=new WindowEvent(Browser.this);
+newEvent.display=getDisplay();
+newEvent.widget=Browser.this;
+if (visible) {
+if (addressBar) {
+int[] rgdispid=auto.getIDsOfNames(new String[]{"AddressBar"});
+Variant pVarResult=auto.getProperty(rgdispid[0]);
+if (pVarResult != null && pVarResult.getType() == OLE.VT_BOOL) addressBar=pVarResult.getBoolean();
+}
+newEvent.addressBar=addressBar;
+newEvent.menuBar=menuBar;
+newEvent.statusBar=statusBar;
+newEvent.toolBar=toolBar;
+newEvent.location=location;
+newEvent.size=size;
+for (int i=0; i < visibilityWindowListeners.length; i++) {
+visibilityWindowListeners[i].show(newEvent);
+}
+location=null;
+size=null;
+}
+ else {
+for (int i=0; i < visibilityWindowListeners.length; i++) {
+visibilityWindowListeners[i].hide(newEvent);
+}
+}
+break;
+}
+case ProgressChange:
+{
+Variant arg1=event.arguments[0];
+int nProgress=arg1.getType() != OLE.VT_I4 ? 0 : arg1.getInt();
+Variant arg2=event.arguments[1];
+int nProgressMax=arg2.getType() != OLE.VT_I4 ? 0 : arg2.getInt();
+ProgressEvent newEvent=new ProgressEvent(Browser.this);
+newEvent.display=getDisplay();
+newEvent.widget=Browser.this;
+newEvent.current=nProgress;
+newEvent.total=nProgressMax;
+if (nProgress != -1) {
+for (int i=0; i < progressListeners.length; i++) {
+progressListeners[i].changed(newEvent);
+}
+}
+break;
+}
+case StatusTextChange:
+{
+Variant arg1=event.arguments[0];
+if (arg1.getType() == OLE.VT_BSTR) {
+String text=arg1.getString();
+StatusTextEvent newEvent=new StatusTextEvent(Browser.this);
+newEvent.display=getDisplay();
+newEvent.widget=Browser.this;
+newEvent.text=text;
+for (int i=0; i < statusTextListeners.length; i++) {
+statusTextListeners[i].changed(newEvent);
+}
+}
+break;
+}
+case TitleChange:
+{
+Variant arg1=event.arguments[0];
+if (arg1.getType() == OLE.VT_BSTR) {
+String title=arg1.getString();
+TitleEvent newEvent=new TitleEvent(Browser.this);
+newEvent.display=getDisplay();
+newEvent.widget=Browser.this;
+newEvent.title=title;
+for (int i=0; i < titleListeners.length; i++) {
+titleListeners[i].changed(newEvent);
+}
+}
+break;
+}
+case WindowClosing:
+{
+WindowEvent newEvent=new WindowEvent(Browser.this);
+newEvent.display=getDisplay();
+newEvent.widget=Browser.this;
+for (int i=0; i < closeWindowListeners.length; i++) {
+closeWindowListeners[i].close(newEvent);
+}
+Variant cancel=event.arguments[1];
+int pCancel=cancel.getByRef();
+Variant arg1=event.arguments[0];
+boolean isChildWindow=arg1.getBoolean();
+COM.MoveMemory(pCancel,new short[]{isChildWindow ? COM.VARIANT_FALSE : COM.VARIANT_TRUE},2);
+dispose();
+break;
+}
+case WindowSetHeight:
+{
+if (size == null) size=new Point(0,0);
+Variant arg1=event.arguments[0];
+size.y=arg1.getInt();
+break;
+}
+case WindowSetLeft:
+{
+if (location == null) location=new Point(0,0);
+Variant arg1=event.arguments[0];
+location.x=arg1.getInt();
+break;
+}
+case WindowSetTop:
+{
+if (location == null) location=new Point(0,0);
+Variant arg1=event.arguments[0];
+location.y=arg1.getInt();
+break;
+}
+case WindowSetWidth:
+{
+if (size == null) size=new Point(0,0);
+Variant arg1=event.arguments[0];
+size.x=arg1.getInt();
+break;
+}
+}
+Variant[] arguments=event.arguments;
+for (int i=0; i < arguments.length; i++) arguments[i].dispose();
+}
+}
+;
+site.addEventListener(BeforeNavigate2,oleListener);
+site.addEventListener(CommandStateChange,oleListener);
+site.addEventListener(DocumentComplete,oleListener);
+site.addEventListener(NavigateComplete2,oleListener);
+site.addEventListener(NewWindow2,oleListener);
+site.addEventListener(OnMenuBar,oleListener);
+site.addEventListener(OnStatusBar,oleListener);
+site.addEventListener(OnToolBar,oleListener);
+site.addEventListener(OnVisible,oleListener);
+site.addEventListener(ProgressChange,oleListener);
+site.addEventListener(StatusTextChange,oleListener);
+site.addEventListener(TitleChange,oleListener);
+site.addEventListener(WindowClosing,oleListener);
+site.addEventListener(WindowSetHeight,oleListener);
+site.addEventListener(WindowSetLeft,oleListener);
+site.addEventListener(WindowSetTop,oleListener);
+site.addEventListener(WindowSetWidth,oleListener);
+Variant variant=new Variant(true);
+auto.setProperty(RegisterAsBrowser,variant);
+variant.dispose();
+variant=new Variant(false);
+int[] rgdispid=auto.getIDsOfNames(new String[]{"RegisterAsDropTarget"});
+if (rgdispid != null) auto.setProperty(rgdispid[0],variant);
+variant.dispose();
+((WebSite)site).startGears();
+}

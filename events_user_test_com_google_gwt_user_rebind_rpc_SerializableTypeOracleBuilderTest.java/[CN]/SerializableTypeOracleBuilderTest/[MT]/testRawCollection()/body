@@ -1,0 +1,39 @@
+{
+  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
+  addStandardClasses(units);
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("import java.util.Collection;\n");
+    code.append("public interface List<T> extends Serializable, Collection<T> {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("List",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("import java.util.Collection;\n");
+    code.append("public class LinkedList<T> implements List<T> {\n");
+    code.append("  T head;");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("LinkedList",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("import java.util.Collection;\n");
+    code.append("public class RandomClass implements Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("RandomClass",code));
+  }
+  TreeLogger logger=createLogger();
+  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,units);
+  JGenericType list=to.getType("List").isGenericType();
+  JGenericType linkedList=to.getType("LinkedList").isGenericType();
+  JClassType randomClass=to.getType("RandomClass");
+  SerializableTypeOracleBuilder sob=createSerializableTypeOracleBuilder(logger,to);
+  sob.addRootType(logger,list.getRawType());
+  SerializableTypeOracle so=sob.build(logger);
+  assertInstantiable(so,linkedList.getRawType());
+  assertInstantiable(so,randomClass);
+}

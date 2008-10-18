@@ -1,0 +1,41 @@
+{
+  if (isSafari2()) {
+    return;
+  }
+  delayTestFinish(5000);
+  addHistoryListenerImpl(new HistoryListener(){
+    private int state=0;
+    public void onHistoryChanged(    String historyToken){
+switch (state) {
+case 0:
+{
+          if (!historyToken.equals("foo bar")) {
+            fail("Expecting token 'foo bar', but got: " + historyToken);
+          }
+          state=1;
+          History.newItem("baz");
+          break;
+        }
+case 1:
+{
+        if (!historyToken.equals("baz")) {
+          fail("Expecting token 'baz', but got: " + historyToken);
+        }
+        state=2;
+        History.back();
+        break;
+      }
+case 2:
+{
+      if (!historyToken.equals("foo bar")) {
+        fail("Expecting token 'foo bar' after back, but got: " + historyToken);
+      }
+      finishTest();
+      break;
+    }
+}
+}
+}
+);
+History.newItem("foo bar");
+}

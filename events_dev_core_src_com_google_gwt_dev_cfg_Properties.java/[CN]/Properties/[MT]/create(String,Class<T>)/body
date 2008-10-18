@@ -1,0 +1,36 @@
+{
+  if (clazz == null) {
+    throw new NullPointerException("clazz");
+  }
+ else   if (name == null) {
+    throw new NullPointerException("name");
+  }
+  Property property=find(name);
+  if (property != null) {
+    try {
+      return clazz.cast(property);
+    }
+ catch (    ClassCastException e) {
+      throw new IllegalArgumentException("Cannot create property " + name + " because one of another type ("+ property.getClass().getSimpleName()+ ") already exists.");
+    }
+  }
+  Exception ex=null;
+  try {
+    T newInstance=clazz.getConstructor(String.class).newInstance(name);
+    map.put(name,newInstance);
+    return newInstance;
+  }
+ catch (  NoSuchMethodException e) {
+    ex=e;
+  }
+catch (  InstantiationException e) {
+    ex=e;
+  }
+catch (  IllegalAccessException e) {
+    ex=e;
+  }
+catch (  InvocationTargetException e) {
+    ex=e;
+  }
+  throw new RuntimeException("Unable to create Property instance",ex);
+}

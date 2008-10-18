@@ -1,0 +1,12 @@
+{
+  JModTypeVisitor replacer=new JModTypeVisitor(){
+    @Override public void endVisit(    JWildcardType wildcardType){
+      JTypeParameter newParam=new JTypeParameter("TP$" + freshTypeVariableCounter++,-1);
+      newParam.setBounds(makeArray(typeOracle.getJavaLangObject()));
+      constraints.put(newParam,wildcardType.getUpperBound());
+      replacement=newParam;
+    }
+  }
+;
+  return replacer.transform(type);
+}

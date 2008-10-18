@@ -1,0 +1,24 @@
+{
+  try {
+    GUID appClsid=getClassID("gears.BHO");
+    if (appClsid == null) {
+      return false;
+    }
+  }
+ catch (  SWTException e) {
+    return false;
+  }
+  int[] address=new int[1];
+  if (COM.CoCreateInstance(appClsid,0,COM.CLSCTX_INPROC_SERVER,COM.IIDIUnknown,address) != COM.S_OK) {
+    return false;
+  }
+  IUnknown obj=new IUnknown(address[0]);
+  int[] ppvObject=new int[1];
+  if (obj.QueryInterface(COM.IIDIObjectWithSite,ppvObject) == COM.S_OK) {
+    IObjectWithSite objectWithSite=new IObjectWithSite(ppvObject[0]);
+    objectWithSite.SetSite(objIUnknown);
+    objectWithSite.Release();
+    return true;
+  }
+  return false;
+}

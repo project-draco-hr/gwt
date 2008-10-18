@@ -1,0 +1,62 @@
+{
+  int start=inOutPos[0];
+  double ret=0.0;
+  boolean gotPositivePrefix=text.startsWith(positivePrefix,inOutPos[0]);
+  boolean gotNegativePrefix=text.startsWith(negativePrefix,inOutPos[0]);
+  boolean gotPositiveSuffix=text.endsWith(positiveSuffix);
+  boolean gotNegativeSuffix=text.endsWith(negativeSuffix);
+  boolean gotPositive=gotPositivePrefix && gotPositiveSuffix;
+  boolean gotNegative=gotNegativePrefix && gotNegativeSuffix;
+  if (gotPositive && gotNegative) {
+    if (positivePrefix.length() > negativePrefix.length()) {
+      gotNegative=false;
+    }
+ else     if (positivePrefix.length() < negativePrefix.length()) {
+      gotPositive=false;
+    }
+ else     if (positiveSuffix.length() > negativeSuffix.length()) {
+      gotNegative=false;
+    }
+ else     if (positiveSuffix.length() < negativeSuffix.length()) {
+      gotPositive=false;
+    }
+ else {
+      gotNegative=false;
+    }
+  }
+ else   if (!gotPositive && !gotNegative) {
+    throw new NumberFormatException(text + " does not have either positive or negative affixes");
+  }
+  String valueOnly=null;
+  if (gotPositive) {
+    inOutPos[0]+=positivePrefix.length();
+    valueOnly=text.substring(inOutPos[0],text.length() - positiveSuffix.length());
+  }
+ else {
+    inOutPos[0]+=negativePrefix.length();
+    valueOnly=text.substring(inOutPos[0],text.length() - negativeSuffix.length());
+  }
+  if (valueOnly.equals(numberConstants.infinity())) {
+    inOutPos[0]+=numberConstants.infinity().length();
+    ret=Double.POSITIVE_INFINITY;
+  }
+ else   if (valueOnly.equals(numberConstants.notANumber())) {
+    inOutPos[0]+=numberConstants.notANumber().length();
+    ret=Double.NaN;
+  }
+ else {
+    int[] tempPos={0};
+    ret=parseNumber(valueOnly,tempPos);
+    inOutPos[0]+=tempPos[0];
+  }
+  if (gotPositive) {
+    inOutPos[0]+=positiveSuffix.length();
+  }
+ else   if (gotNegative) {
+    inOutPos[0]+=negativeSuffix.length();
+  }
+  if (gotNegative) {
+    ret=-ret;
+  }
+  return ret;
+}

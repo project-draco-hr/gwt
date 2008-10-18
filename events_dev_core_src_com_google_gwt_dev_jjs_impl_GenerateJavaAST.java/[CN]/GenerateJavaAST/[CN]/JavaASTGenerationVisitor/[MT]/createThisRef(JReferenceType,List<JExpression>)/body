@@ -1,0 +1,15 @@
+{
+  LinkedList<JExpression> workList=new LinkedList<JExpression>();
+  workList.addAll(list);
+  while (!workList.isEmpty()) {
+    JExpression expr=workList.removeFirst();
+    JClassType classType=(JClassType)expr.getType();
+    for (; classType != null; classType=classType.extnds) {
+      if (program.typeOracle.canTriviallyCast(classType,qualType)) {
+        return expr;
+      }
+      addAllOuterThisRefs(workList,expr,classType);
+    }
+  }
+  throw new InternalCompilerException("Cannot create a ThisRef of the appropriate type.");
+}

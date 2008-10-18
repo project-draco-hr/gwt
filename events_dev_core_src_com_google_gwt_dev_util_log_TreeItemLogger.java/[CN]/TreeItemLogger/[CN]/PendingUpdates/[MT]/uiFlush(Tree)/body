@@ -1,0 +1,17 @@
+{
+  List<LogEvent> toFlush=null;
+synchronized (updatesLock) {
+    if (updates.isEmpty()) {
+      return false;
+    }
+    toFlush=updates;
+    updates=new LinkedList<LogEvent>();
+  }
+  for (Iterator<LogEvent> iter=toFlush.iterator(); iter.hasNext(); ) {
+    LogEvent update=iter.next();
+    if (!update.logger.isLoggerDead()) {
+      update.uiFlush(tree);
+    }
+  }
+  return true;
+}

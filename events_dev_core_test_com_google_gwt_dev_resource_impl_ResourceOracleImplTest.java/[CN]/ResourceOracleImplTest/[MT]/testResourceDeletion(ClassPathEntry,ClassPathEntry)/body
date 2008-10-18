@@ -1,0 +1,42 @@
+{
+  TreeLogger logger=createTestTreeLogger();
+  MOCK_CPE0 cpe0=new MOCK_CPE0();
+  MOCK_CPE3 cpe3=new MOCK_CPE3();
+  ResourceOracleImpl oracle=createResourceOracle(cpe0,cpe1,cpe2,cpe3);
+  cpe0.addResource("com/google/gwt/user/client/Command.java");
+  cpe0.addResource("com/google/gwt/i18n/client/Constants.java");
+  cpe3.addResource("com/google/gwt/user/client/Command.java");
+  cpe3.addResource("com/google/gwt/i18n/client/Constants.java");
+{
+    ResourceOracleSnapshot s=refreshAndSnapshot(logger,oracle);
+    s.assertCollectionsConsistent(10);
+    s.assertPathIncluded("com/google/gwt/user/client/Command.java");
+    s.assertPathIncluded("com/google/gwt/user/client/Timer.java");
+    s.assertPathIncluded("com/google/gwt/user/client/ui/Widget.java");
+    s.assertPathIncluded("org/example/bar/client/BarClient1.txt");
+    s.assertPathIncluded("org/example/bar/client/BarClient2.txt");
+    s.assertPathIncluded("org/example/bar/client/BarClient3.txt");
+    s.assertPathIncluded("org/example/bar/client/etc/BarEtc.txt");
+    s.assertPathIncluded("org/example/foo/client/FooClient.java");
+    s.assertPathIncluded("com/google/gwt/i18n/client/Messages.java");
+    s.assertPathIncluded("com/google/gwt/i18n/client/Constants.java");
+  }
+{
+    cpe3.removeResource("com/google/gwt/user/client/Command.java");
+    cpe3.removeResource("com/google/gwt/i18n/client/Constants.java");
+    ResourceOracleSnapshot before=new ResourceOracleSnapshot(oracle);
+    ResourceOracleSnapshot after=refreshAndSnapshot(logger,oracle);
+    after.assertCollectionsConsistent(10);
+    after.assertSameCollections(before);
+  }
+{
+    cpe0.removeResource("com/google/gwt/i18n/client/Constants.java");
+    cpe3.addResource("com/google/gwt/user/client/Window.java");
+    ResourceOracleSnapshot before=new ResourceOracleSnapshot(oracle);
+    ResourceOracleSnapshot after=refreshAndSnapshot(logger,oracle);
+    after.assertCollectionsConsistent(10);
+    after.assertNotSameCollections(before);
+    after.assertPathIncluded("com/google/gwt/user/client/Window.java");
+    after.assertPathNotIncluded("com/google/gwt/i18n/client/Constants.java");
+  }
+}

@@ -1,0 +1,22 @@
+{
+  Annotation annotation=(Annotation)expression;
+  TypeBinding resolvedType=annotation.resolvedType;
+  Class<?> classLiteral=getClassLiteral(logger,resolvedType);
+  if (classLiteral == null) {
+    return null;
+  }
+  Class<? extends java.lang.annotation.Annotation> clazz=classLiteral.asSubclass(java.lang.annotation.Annotation.class);
+  Map<String,Object> identifierToValue=new HashMap<String,Object>();
+  for (  MemberValuePair mvp : annotation.memberValuePairs()) {
+    String identifier=String.valueOf(mvp.name);
+    Expression expressionValue=mvp.value;
+    TypeBinding expectedElementValueType=mvp.binding.returnType;
+    Object elementValue=getAnnotationElementValue(logger,expectedElementValueType,expressionValue);
+    if (elementValue == null) {
+      return null;
+    }
+    assert(expectedElementValueType.isArrayType() == false || expectedElementValueType.isArrayType() && elementValue.getClass().isArray());
+    identifierToValue.put(identifier,elementValue);
+  }
+  return AnnotationProxyFactory.create(clazz,identifierToValue);
+}

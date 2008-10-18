@@ -1,0 +1,37 @@
+{
+  logger=logger.branch(TreeLogger.DEBUG,"Preparing pending output resource '" + partialPath + "'",null);
+  if (partialPath == null || partialPath.trim().equals("")) {
+    logger.log(TreeLogger.ERROR,"The resource name must be a non-empty string",null);
+    throw new UnableToCompleteException();
+  }
+  File f=new File(partialPath);
+  if (f.isAbsolute()) {
+    logger.log(TreeLogger.ERROR,"Resource paths are intended to be relative to the compiled output directory and cannot be absolute",null);
+    throw new UnableToCompleteException();
+  }
+  if (partialPath.indexOf('\\') >= 0) {
+    logger.log(TreeLogger.ERROR,"Resource paths must contain forward slashes (not backslashes) to denote subdirectories",null);
+    throw new UnableToCompleteException();
+  }
+  if (publicOracle.findPublicFile(partialPath) != null) {
+    logger.log(TreeLogger.WARN,"Cannot create resource '" + partialPath + "' because it already exists on the public path",null);
+    return null;
+  }
+  SortedSet<GeneratedResource> resources=artifactSet.find(GeneratedResource.class);
+  for (  GeneratedResource resource : resources) {
+    if (partialPath.equals(resource.getPartialPath())) {
+      return null;
+    }
+  }
+  for (Iterator<PendingResource> iter=pendingResourcesByOutputStream.values().iterator(); iter.hasNext(); ) {
+    PendingResource pendingResource=iter.next();
+    if (pendingResource.getPartialPath().equals(partialPath)) {
+      logger.log(TreeLogger.WARN,"The file '" + partialPath + "' is already a pending resource",null);
+      return null;
+    }
+  }
+  PendingResource pendingResource=new PendingResource(outDir,partialPath);
+  OutputStream os=pendingResource.getOutputStream();
+  pendingResourcesByOutputStream.put(os,pendingResource);
+  return os;
+}

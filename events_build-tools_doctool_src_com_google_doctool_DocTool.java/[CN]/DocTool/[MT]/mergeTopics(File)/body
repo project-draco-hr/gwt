@@ -1,0 +1,34 @@
+{
+  try {
+    List args=new ArrayList();
+    args.add("join");
+    args.add("topics");
+    args.add(mergedTopicsFile.getAbsolutePath());
+    boolean foundAny=false;
+    for (int i=0, n=htmlFileBases.length; i < n; ++i) {
+      String filebase=htmlFileBases[i];
+      File fileToMerge=new File(outDir,filebase + ".topics.xml");
+      if (fileToMerge.exists()) {
+        foundAny=true;
+        args.add(fileToMerge.getAbsolutePath());
+      }
+ else {
+        err.println("Unable to find " + fileToMerge.getName());
+      }
+    }
+    if (foundAny) {
+      String[] argArray=(String[])args.toArray(new String[0]);
+      traceCommand("SplitterJoiner",argArray);
+      SplitterJoiner.main(argArray);
+    }
+ else {
+      err.println("No topics found");
+      return false;
+    }
+  }
+ catch (  IOException e) {
+    e.printStackTrace(err);
+    return false;
+  }
+  return true;
+}

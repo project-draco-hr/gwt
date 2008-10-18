@@ -1,0 +1,16 @@
+{
+  TempLocalTracker tracker=localTrackers.get(type);
+  if (tracker == null) {
+    tracker=new TempLocalTracker();
+    localTrackers.put(type,tracker);
+  }
+  JLocal temp=null;
+  if (reuseTemps) {
+    temp=tracker.tryGetReusableLocal();
+  }
+  if (temp == null) {
+    temp=program.createLocal(null,(getTempPrefix() + localCounter++).toCharArray(),type,false,currentMethodBody);
+  }
+  tracker.useLocal(temp);
+  return temp;
+}

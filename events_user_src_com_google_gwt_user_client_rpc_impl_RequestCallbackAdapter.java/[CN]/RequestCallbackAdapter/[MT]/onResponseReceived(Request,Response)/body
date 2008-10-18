@@ -1,0 +1,44 @@
+{
+  T result=null;
+  Throwable caught=null;
+  try {
+    String encodedResponse=response.getText();
+    int statusCode=response.getStatusCode();
+    boolean toss=RemoteServiceProxy.isStatsAvailable() && RemoteServiceProxy.stats(RemoteServiceProxy.bytesStat(methodName,requestId,encodedResponse.length(),"responseReceived"));
+    if (statusCode != Response.SC_OK) {
+      caught=new StatusCodeException(statusCode,encodedResponse);
+    }
+ else     if (encodedResponse == null) {
+      caught=new InvocationException("No response payload");
+    }
+ else     if (RemoteServiceProxy.isReturnValue(encodedResponse)) {
+      result=(T)responseReader.read(streamFactory.createStreamReader(encodedResponse));
+    }
+ else     if (RemoteServiceProxy.isThrownException(encodedResponse)) {
+      caught=(Throwable)streamFactory.createStreamReader(encodedResponse).readObject();
+    }
+ else {
+      caught=new InvocationException(encodedResponse);
+    }
+  }
+ catch (  com.google.gwt.user.client.rpc.SerializationException e) {
+    caught=new IncompatibleRemoteServiceException();
+  }
+catch (  Throwable e) {
+    caught=e;
+  }
+ finally {
+    boolean toss=RemoteServiceProxy.isStatsAvailable() && RemoteServiceProxy.stats(RemoteServiceProxy.timeStat(methodName,requestId,"responseDeserialized"));
+  }
+  try {
+    if (caught == null) {
+      callback.onSuccess(result);
+    }
+ else {
+      callback.onFailure(caught);
+    }
+  }
+  finally {
+    boolean toss=RemoteServiceProxy.isStatsAvailable() && RemoteServiceProxy.stats(RemoteServiceProxy.timeStat(methodName,requestId,"end"));
+  }
+}

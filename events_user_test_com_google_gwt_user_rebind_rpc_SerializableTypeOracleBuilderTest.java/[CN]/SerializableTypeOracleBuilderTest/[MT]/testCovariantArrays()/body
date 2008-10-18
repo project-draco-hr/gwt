@@ -1,0 +1,41 @@
+{
+  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
+  addStandardClasses(units);
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class Sup implements Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("Sup",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class Sub extends Sup {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("Sub",code));
+  }
+  TreeLogger logger=createLogger();
+  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,units);
+  JClassType sup=to.getType("Sup");
+  JClassType sub=to.getType("Sub");
+  JPrimitiveType primFloat=JPrimitiveType.FLOAT;
+  JArrayType subArray=to.getArrayType(sub);
+  JArrayType subArrayArray=to.getArrayType(subArray);
+  JArrayType supArray=to.getArrayType(sup);
+  JArrayType supArrayArray=to.getArrayType(supArray);
+  JArrayType primFloatArray=to.getArrayType(primFloat);
+  JArrayType primFloatArrayArray=to.getArrayType(primFloatArray);
+  SerializableTypeOracleBuilder stob=createSerializableTypeOracleBuilder(logger,to);
+  stob.addRootType(logger,sub);
+  stob.addRootType(logger,supArrayArray);
+  stob.addRootType(logger,primFloatArrayArray);
+  SerializableTypeOracle sto=stob.build(logger);
+  assertSerializableTypes(sto,sup,sub,supArray,subArray,primFloatArray,supArrayArray,subArrayArray,primFloatArrayArray);
+  assertInstantiable(sto,primFloatArrayArray);
+  assertInstantiable(sto,primFloatArray);
+  assertInstantiable(sto,subArrayArray);
+  assertInstantiable(sto,subArray);
+  assertInstantiable(sto,supArrayArray);
+  assertInstantiable(sto,supArray);
+}

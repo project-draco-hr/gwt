@@ -1,0 +1,64 @@
+{
+  SourceInfo info=makeSourceInfo(x);
+  JBlock body;
+  JStatement action=dispProcessStatement(x.action);
+  if (action instanceof JBlock) {
+    body=(JBlock)action;
+  }
+ else {
+    body=new JBlock(program,info);
+    body.statements.add(action);
+  }
+  JLocal elementVar=(JLocal)typeMap.get(x.elementVariable.binding);
+  String elementVarName=elementVar.getName();
+  JDeclarationStatement elementDecl=(JDeclarationStatement)processStatement(x.elementVariable);
+  assert(elementDecl.initializer == null);
+  JForStatement result;
+  if (x.collection.resolvedType.isArrayType()) {
+    JLocal arrayVar=createSyntheticLocal(info,elementVarName + "$array",(JType)typeMap.get(x.collection.resolvedType));
+    JLocal indexVar=createSyntheticLocal(info,elementVarName + "$index",program.getTypePrimitiveInt());
+    JLocal maxVar=createSyntheticLocal(info,elementVarName + "$max",program.getTypePrimitiveInt());
+    List<JStatement> initializers=new ArrayList<JStatement>(3);
+    initializers.add(createDeclaration(info,arrayVar,dispProcessExpression(x.collection)));
+    initializers.add(createDeclaration(info,indexVar,program.getLiteralInt(0)));
+    initializers.add(createDeclaration(info,maxVar,new JFieldRef(program,info,createVariableRef(info,arrayVar),program.getIndexedField("Array.length"),currentClass)));
+    JExpression condition=new JBinaryOperation(program,info,program.getTypePrimitiveBoolean(),JBinaryOperator.LT,createVariableRef(info,indexVar),createVariableRef(info,maxVar));
+    List<JExpressionStatement> increments=new ArrayList<JExpressionStatement>(1);
+    increments.add(new JPrefixOperation(program,info,JUnaryOperator.INC,createVariableRef(info,indexVar)).makeStatement());
+    elementDecl.initializer=new JArrayRef(program,info,createVariableRef(info,arrayVar),createVariableRef(info,indexVar));
+    body.statements.add(0,elementDecl);
+    result=new JForStatement(program,info,initializers,condition,increments,body);
+  }
+ else {
+    JLocal iteratorVar=createSyntheticLocal(info,elementVarName + "$iterator",program.getIndexedType("Iterator"));
+    List<JStatement> initializers=new ArrayList<JStatement>(1);
+    initializers.add(createDeclaration(info,iteratorVar,new JMethodCall(program,info,dispProcessExpression(x.collection),program.getIndexedMethod("Iterable.iterator"))));
+    JExpression condition=new JMethodCall(program,info,createVariableRef(info,iteratorVar),program.getIndexedMethod("Iterator.hasNext"));
+    elementDecl.initializer=new JMethodCall(program,info,createVariableRef(info,iteratorVar),program.getIndexedMethod("Iterator.next"));
+    if (elementVar.getType() != program.getTypeJavaLangObject()) {
+      TypeBinding collectionType;
+      try {
+        Field privateField=ForeachStatement.class.getDeclaredField("collectionElementType");
+        privateField.setAccessible(true);
+        collectionType=(TypeBinding)privateField.get(x);
+      }
+ catch (      Exception e) {
+        throw new InternalCompilerException(elementDecl,"Failed to retreive collectionElementType through reflection",e);
+      }
+      JType toType=(JType)typeMap.get(collectionType);
+      assert(toType instanceof JReferenceType);
+      elementDecl.initializer=maybeCast(toType,elementDecl.initializer);
+    }
+    body.statements.add(0,elementDecl);
+    result=new JForStatement(program,info,initializers,condition,Collections.<JExpressionStatement>emptyList(),body);
+  }
+  if (x.elementVariableImplicitWidening != -1) {
+    if ((x.elementVariableImplicitWidening & TypeIds.BOXING) != 0) {
+      elementDecl.initializer=autoboxUtils.box(elementDecl.initializer,((JPrimitiveType)elementDecl.initializer.getType()));
+    }
+ else     if ((x.elementVariableImplicitWidening & TypeIds.UNBOXING) != 0) {
+      elementDecl.initializer=unbox(elementDecl.initializer,(JClassType)elementDecl.initializer.getType());
+    }
+  }
+  return result;
+}

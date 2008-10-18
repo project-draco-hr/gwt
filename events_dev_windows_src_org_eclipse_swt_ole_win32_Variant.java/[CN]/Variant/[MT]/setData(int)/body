@@ -1,0 +1,114 @@
+{
+  if (pData == 0)   OLE.error(OLE.ERROR_INVALID_ARGUMENT);
+  short[] dataType=new short[1];
+  COM.MoveMemory(dataType,pData,2);
+  type=dataType[0];
+  if ((type & COM.VT_BYREF) == COM.VT_BYREF) {
+    int[] newByRefPtr=new int[1];
+    OS.MoveMemory(newByRefPtr,pData + 8,4);
+    byRefPtr=newByRefPtr[0];
+    return;
+  }
+switch (type) {
+case COM.VT_EMPTY:
+case COM.VT_NULL:
+    break;
+case COM.VT_BOOL:
+  short[] newBooleanData=new short[1];
+COM.MoveMemory(newBooleanData,pData + 8,2);
+booleanData=(newBooleanData[0] != COM.VARIANT_FALSE);
+break;
+case COM.VT_I1:
+byte[] newByteData=new byte[1];
+COM.MoveMemory(newByteData,pData + 8,1);
+byteData=newByteData[0];
+break;
+case COM.VT_I2:
+short[] newShortData=new short[1];
+COM.MoveMemory(newShortData,pData + 8,2);
+shortData=newShortData[0];
+break;
+case COM.VT_I4:
+int[] newIntData=new int[1];
+OS.MoveMemory(newIntData,pData + 8,4);
+intData=newIntData[0];
+break;
+case COM.VT_I8:
+long[] newLongData=new long[1];
+OS.MoveMemory(newLongData,pData + 8,8);
+longData=newLongData[0];
+break;
+case COM.VT_UI2:
+char[] newCharData=new char[1];
+COM.MoveMemory(newCharData,pData + 8,2);
+charData=newCharData[0];
+break;
+case COM.VT_R4:
+float[] newFloatData=new float[1];
+COM.MoveMemory(newFloatData,pData + 8,4);
+floatData=newFloatData[0];
+break;
+case COM.VT_R8:
+double[] newDoubleData=new double[1];
+COM.MoveMemory(newDoubleData,pData + 8,8);
+doubleData=newDoubleData[0];
+break;
+case COM.VT_DISPATCH:
+{
+int[] ppvObject=new int[1];
+OS.MoveMemory(ppvObject,pData + 8,4);
+if (ppvObject[0] == 0) {
+type=COM.VT_EMPTY;
+break;
+}
+dispatchData=new IDispatch(ppvObject[0]);
+dispatchData.AddRef();
+break;
+}
+case COM.VT_UNKNOWN:
+{
+int[] ppvObject=new int[1];
+OS.MoveMemory(ppvObject,pData + 8,4);
+if (ppvObject[0] == 0) {
+type=COM.VT_EMPTY;
+break;
+}
+unknownData=new IUnknown(ppvObject[0]);
+unknownData.AddRef();
+break;
+}
+case COM.VT_WEIRD_IE7_BSTR:
+type=COM.VT_BSTR;
+case COM.VT_BSTR:
+int[] hMem=new int[1];
+OS.MoveMemory(hMem,pData + 8,4);
+if (hMem[0] == 0) {
+stringData="";
+break;
+}
+int size=COM.SysStringByteLen(hMem[0]);
+if (size > 0) {
+char[] buffer=new char[(size + 1) / 2];
+COM.MoveMemory(buffer,hMem[0],size);
+stringData=new String(buffer);
+}
+ else {
+stringData="";
+}
+break;
+default :
+int newPData=OS.GlobalAlloc(OS.GMEM_FIXED | OS.GMEM_ZEROINIT,Variant.sizeof);
+if (COM.VariantChangeType(newPData,pData,(short)0,COM.VT_R4) == COM.S_OK) {
+setData(newPData);
+}
+ else if (COM.VariantChangeType(newPData,pData,(short)0,COM.VT_I4) == COM.S_OK) {
+setData(newPData);
+}
+ else if (COM.VariantChangeType(newPData,pData,(short)0,COM.VT_BSTR) == COM.S_OK) {
+setData(newPData);
+}
+COM.VariantClear(newPData);
+OS.GlobalFree(newPData);
+break;
+}
+}

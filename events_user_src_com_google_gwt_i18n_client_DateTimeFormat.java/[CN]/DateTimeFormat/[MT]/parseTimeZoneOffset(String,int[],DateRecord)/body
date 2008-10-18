@@ -1,0 +1,47 @@
+{
+  if (pos[0] >= text.length()) {
+    cal.setTzOffset(0);
+    return true;
+  }
+  int sign;
+switch (text.charAt(pos[0])) {
+case '+':
+    sign=1;
+  break;
+case '-':
+sign=-1;
+break;
+default :
+cal.setTzOffset(0);
+return true;
+}
+++(pos[0]);
+int st=pos[0];
+int value=parseInt(text,pos);
+if (value == 0 && pos[0] == st) {
+return false;
+}
+int offset;
+if (pos[0] < text.length() && text.charAt(pos[0]) == ':') {
+offset=value * MINUTES_PER_HOUR;
+++(pos[0]);
+st=pos[0];
+value=parseInt(text,pos);
+if (value == 0 && pos[0] == st) {
+return false;
+}
+offset+=value;
+}
+ else {
+offset=value;
+if (offset < 24 && (pos[0] - st) <= 2) {
+offset*=MINUTES_PER_HOUR;
+}
+ else {
+offset=offset % 100 + offset / 100 * MINUTES_PER_HOUR;
+}
+}
+offset*=sign;
+cal.setTzOffset(-offset);
+return true;
+}

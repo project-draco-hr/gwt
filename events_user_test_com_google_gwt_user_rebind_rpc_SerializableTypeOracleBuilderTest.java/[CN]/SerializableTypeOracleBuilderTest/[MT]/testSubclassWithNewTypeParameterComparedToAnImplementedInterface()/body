@@ -1,0 +1,45 @@
+{
+  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
+  addStandardClasses(units);
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public interface Intf<T> extends Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("Intf",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class Bar<T> implements Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("Bar",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class Foo<T extends Ser> extends Bar<T> implements Intf<String> {\n");
+    code.append("  T x;\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("Foo",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class Ser implements Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("Ser",code));
+  }
+  TreeLogger logger=createLogger();
+  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,units);
+  JGenericType intf=to.getType("Intf").isGenericType();
+  JClassType foo=to.getType("Foo");
+  JClassType bar=to.getType("Bar");
+  JClassType intfOfString=to.getParameterizedType(intf,new JClassType[]{to.getType(String.class.getName())});
+  JClassType ser=to.getType("Ser");
+  SerializableTypeOracleBuilder sob=createSerializableTypeOracleBuilder(logger,to);
+  sob.addRootType(logger,intfOfString);
+  SerializableTypeOracle so=sob.build(logger);
+  assertInstantiable(so,ser);
+  assertSerializableTypes(so,foo.getErasedType(),bar.getErasedType(),ser.getErasedType());
+}

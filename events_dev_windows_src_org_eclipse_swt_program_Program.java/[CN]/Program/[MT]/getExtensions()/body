@@ -1,0 +1,26 @@
+{
+  String[] extensions=new String[1024];
+  TCHAR lpName=new TCHAR(0,1024);
+  int[] lpcName=new int[]{lpName.length()};
+  FILETIME ft=new FILETIME();
+  int dwIndex=0, count=0;
+  while (OS.RegEnumKeyEx(OS.HKEY_CLASSES_ROOT,dwIndex,lpName,lpcName,null,null,null,ft) != OS.ERROR_NO_MORE_ITEMS) {
+    String extension=lpName.toString(0,lpcName[0]);
+    lpcName[0]=lpName.length();
+    if (extension.length() > 0 && extension.charAt(0) == '.') {
+      if (count == extensions.length) {
+        String[] newExtensions=new String[extensions.length + 1024];
+        System.arraycopy(extensions,0,newExtensions,0,extensions.length);
+        extensions=newExtensions;
+      }
+      extensions[count++]=extension;
+    }
+    dwIndex++;
+  }
+  if (count != extensions.length) {
+    String[] newExtension=new String[count];
+    System.arraycopy(extensions,0,newExtension,0,count);
+    extensions=newExtension;
+  }
+  return extensions;
+}

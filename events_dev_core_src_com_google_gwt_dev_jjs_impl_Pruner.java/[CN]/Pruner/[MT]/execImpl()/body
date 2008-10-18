@@ -1,0 +1,30 @@
+{
+  boolean madeChanges=false;
+  while (true) {
+    RescueVisitor rescuer=new RescueVisitor();
+    for (    JReferenceType type : program.codeGenTypes) {
+      rescuer.rescue(type,true,saveCodeGenTypes);
+    }
+    for (    JMethod method : program.entryMethods) {
+      rescuer.rescue(method);
+    }
+    UpRefVisitor upRefer=new UpRefVisitor(rescuer);
+    do {
+      rescuer.commitInstantiatedTypes();
+      upRefer.accept(program);
+    }
+ while (upRefer.didRescue());
+    PruneVisitor pruner=new PruneVisitor();
+    pruner.accept(program);
+    if (!pruner.didChange()) {
+      break;
+    }
+    CleanupRefsVisitor cleaner=new CleanupRefsVisitor();
+    cleaner.accept(program);
+    referencedTypes.clear();
+    referencedNonTypes.clear();
+    methodToOriginalParamsMap.clear();
+    madeChanges=true;
+  }
+  return madeChanges;
+}

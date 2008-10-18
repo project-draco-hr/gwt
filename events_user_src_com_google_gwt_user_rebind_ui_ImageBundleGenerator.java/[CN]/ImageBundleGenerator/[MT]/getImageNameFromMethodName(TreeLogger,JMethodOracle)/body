@@ -1,0 +1,22 @@
+{
+  String pkgName=method.getPackageName();
+  String pkgPrefix=pkgName.replace('.','/');
+  if (pkgPrefix.length() > 0) {
+    pkgPrefix+="/";
+  }
+  String methodName=method.getName();
+  String pkgAndMethodName=pkgPrefix + methodName;
+  List<String> testImgNames=new ArrayList<String>();
+  for (int i=0; i < IMAGE_FILE_EXTENSIONS.length; i++) {
+    String testImgName=pkgAndMethodName + '.' + IMAGE_FILE_EXTENSIONS[i];
+    if (resLocator.isResourcePresent(testImgName)) {
+      return testImgName;
+    }
+    testImgNames.add(testImgName);
+  }
+  TreeLogger branch=logger.branch(TreeLogger.ERROR,MSG_NO_FILE_BASED_ON_METHOD_NAME,null);
+  for (  String testImgName : testImgNames) {
+    branch.log(TreeLogger.ERROR,testImgName,null);
+  }
+  throw new UnableToCompleteException();
+}

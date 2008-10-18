@@ -1,0 +1,26 @@
+{
+  StringReader reader=new StringReader(jsniCode);
+  int idx=0;
+  while (true) {
+    idx=jsniCode.indexOf('@',idx);
+    if (idx < 0) {
+      break;
+    }
+    try {
+      reader.reset();
+      reader.skip(idx);
+    }
+ catch (    IOException e) {
+      throw new InternalCompilerException(e.getMessage(),e);
+    }
+    String jsniRefString=readJsIdentifier(reader);
+    if (jsniRefString == null) {
+      idx++;
+    }
+ else {
+      assert(jsniRefString.charAt(0) == '@');
+      jsniRefs.add(jsniRefString.substring(1));
+      idx+=jsniRefString.length();
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  deckPanel.showWidget(tabIndex);
+  String tabHTML=getTabBar().getTabHTML(tabIndex);
+  if (!sourceLoaded && tabHTML.equals(constants.contentWidgetSource())) {
+    sourceLoaded=true;
+    String className=this.getClass().getName();
+    className=className.substring(className.lastIndexOf(".") + 1);
+    requestSourceContents(ShowcaseConstants.DST_SOURCE_EXAMPLE + className + ".html",sourceWidget,null);
+  }
+  if (hasStyle() && tabHTML.equals(constants.contentWidgetStyle())) {
+    final String theme=Showcase.CUR_THEME;
+    if (styleDefs.containsKey(theme)) {
+      styleWidget.setHTML(styleDefs.get(theme));
+    }
+ else {
+      styleDefs.put(theme,"");
+      RequestCallback callback=new RequestCallback(){
+        public void onError(        Request request,        Throwable exception){
+          styleDefs.put(theme,"Style not available.");
+        }
+        public void onResponseReceived(        Request request,        Response response){
+          styleDefs.put(theme,response.getText());
+        }
+      }
+;
+      String srcPath=ShowcaseConstants.DST_SOURCE_STYLE + theme;
+      if (LocaleInfo.getCurrentLocale().isRTL()) {
+        srcPath+="_rtl";
+      }
+      String className=this.getClass().getName();
+      className=className.substring(className.lastIndexOf(".") + 1);
+      requestSourceContents(srcPath + "/" + className+ ".html",styleWidget,callback);
+    }
+  }
+}

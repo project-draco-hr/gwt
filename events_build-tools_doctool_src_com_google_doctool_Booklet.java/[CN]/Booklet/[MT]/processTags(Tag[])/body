@@ -1,0 +1,45 @@
+{
+  for (int i=0; i < tags.length; i++) {
+    Tag tag=tags[i];
+    String tagKind=tag.kind();
+    if (tagKind.equals("Text")) {
+      text(tag.text());
+    }
+ else     if (tagKind.equals("@see")) {
+      processSeeTag((SeeTag)tag);
+    }
+ else     if (tagKind.equals("@param")) {
+      ParamTag paramTag=(ParamTag)tag;
+      beginln("param");
+      begin("name");
+      text(paramTag.parameterName());
+      end();
+      begin("description");
+      processTags(paramTag.inlineTags());
+      end();
+      endln();
+    }
+ else     if (tagKind.equals("@example")) {
+      ExtraClassResolver extraClassResolver=getExtraClassResolver(tag);
+      SourcePosition pos=LinkResolver.resolveLink(tag,extraClassResolver);
+      String source=slurpSource(pos);
+      begin("pre","class","code");
+      beginCDATA();
+      text(source);
+      endCDATA();
+      endln();
+    }
+ else     if (tagKind.equals("@gwt.include")) {
+      String contents=ResourceIncluder.getResourceFromClasspathScrubbedForHTML(tag);
+      begin("pre","class","code");
+      text(contents);
+      endln();
+    }
+ else     if (!standardTagKinds.contains(tag.name())) {
+      String tagName=tag.name().substring(1);
+      begin(tagName);
+      processTags(tag.inlineTags());
+      end();
+    }
+  }
+}

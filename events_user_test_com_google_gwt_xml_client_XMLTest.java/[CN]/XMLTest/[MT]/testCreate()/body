@@ -1,0 +1,42 @@
+{
+  Document d=XMLParser.createDocument();
+  CDATASection createCDATA;
+  if (XMLParser.supportsCDATASection()) {
+    createCDATA=d.createCDATASection("sampl<<< >>e data");
+  }
+ else {
+    createCDATA=d.createCDATASection("sample data");
+  }
+  Comment createComment=d.createComment("a sample comment");
+  DocumentFragment createDocumentFragment=d.createDocumentFragment();
+  Element elementWithChildren=d.createElement("elementWithChildren");
+  ProcessingInstruction createProcessingInstruction=d.createProcessingInstruction("target","processing instruction data");
+  Text createTextNode=d.createTextNode("sample text node");
+  List<Node> canHaveChildren=asList(new Node[]{createDocumentFragment,elementWithChildren});
+  List<Node> canBeChildren=asList(new Node[]{createCDATA,createComment,elementWithChildren,createProcessingInstruction,createTextNode});
+  for (int i=0; i < canHaveChildren.size(); i++) {
+    Node parent=(Node)canHaveChildren.get(i);
+    Node cloneParent=parent.cloneNode(false);
+    if (canBeChildren.contains(parent)) {
+      d.appendChild(cloneParent);
+    }
+    for (int j=0; j < canBeChildren.size(); j++) {
+      Node child=(Node)canBeChildren.get(j);
+      cloneParent.appendChild(child.cloneNode(false));
+    }
+    for (int j=0; j < canBeChildren.size(); j++) {
+      Node clonedChild=cloneParent.getChildNodes().item(j);
+      Node hopefullySameChild=(Node)canBeChildren.get(j);
+      assertEquals(hopefullySameChild.cloneNode(false).toString(),clonedChild.toString());
+    }
+    Node deepClonedNode=parent.cloneNode(true);
+    assertEquals(parent.toString(),deepClonedNode.toString());
+  }
+  XMLParser.removeWhitespace(d);
+  if (XMLParser.supportsCDATASection()) {
+    assertDocumentEquals(XMLParser.parse("<elementWithChildren>" + "<![CDATA[sampl<<< >>e data]]>" + "<!--a sample comment-->"+ "<elementWithChildren/>"+ "<?target processing instruction data?>"+ "sample text node"+ "</elementWithChildren>"),d);
+  }
+ else {
+    assertDocumentEquals(XMLParser.parse("<elementWithChildren>" + "sample data" + "<!--a sample comment-->"+ "<elementWithChildren/>"+ "<?target processing instruction data?>"+ "sample text node"+ "</elementWithChildren>"),d);
+  }
+}

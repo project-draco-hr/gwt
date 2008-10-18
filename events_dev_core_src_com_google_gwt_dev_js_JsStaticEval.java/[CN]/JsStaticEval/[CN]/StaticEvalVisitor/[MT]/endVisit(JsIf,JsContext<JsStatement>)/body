@@ -1,0 +1,35 @@
+{
+  evalBooleanContext.remove(x.getIfExpr());
+  JsExpression expr=x.getIfExpr();
+  JsStatement thenStmt=x.getThenStmt();
+  JsStatement elseStmt=x.getElseStmt();
+  if (expr instanceof CanBooleanEval) {
+    CanBooleanEval cond=(CanBooleanEval)expr;
+    JsStatement onlyStmtToExecute;
+    JsStatement removed;
+    if (cond.isBooleanTrue()) {
+      onlyStmtToExecute=thenStmt;
+      removed=elseStmt;
+    }
+ else     if (cond.isBooleanFalse()) {
+      onlyStmtToExecute=elseStmt;
+      removed=thenStmt;
+    }
+ else {
+      return;
+    }
+    JsBlock block=new JsBlock();
+    block.getStatements().add(expr.makeStmt());
+    if (onlyStmtToExecute != null) {
+      block.getStatements().add(onlyStmtToExecute);
+    }
+    JsStatement decls=ensureDeclarations(removed);
+    if (decls != null) {
+      block.getStatements().add(decls);
+    }
+    ctx.replaceMe(accept(block));
+  }
+ else   if (isEmpty(thenStmt) && isEmpty(elseStmt)) {
+    ctx.replaceMe(expr.makeStmt());
+  }
+}

@@ -1,0 +1,25 @@
+{
+  ++modCount;
+  String pathPrefix=prefix.getPrefix();
+  prefixes.put(pathPrefix,prefix);
+  if ("".equals(pathPrefix)) {
+    rootTrieNode.setPathPrefix(prefix);
+    return false;
+  }
+  String[] parts=pathPrefix.split("/");
+  TrieNode parentNode=rootTrieNode;
+  boolean didAdd=false;
+  for (  String part : parts) {
+    TrieNode childNode=parentNode.findChild(part);
+    if (childNode != null) {
+      parentNode=childNode;
+    }
+ else {
+      parentNode=parentNode.addChild(part);
+      didAdd=true;
+    }
+  }
+  assert(parentNode != null);
+  parentNode.setPathPrefix(prefix);
+  return didAdd;
+}

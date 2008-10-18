@@ -1,0 +1,17 @@
+{
+  for (  CompilationUnit unit : compilationState.getCompilationUnits()) {
+    String packageName=Shared.getPackageName(unit.getTypeName());
+    addPackages(packageName);
+  }
+  TreeLogger oldLogger=threadLogger.push(logger);
+  try {
+    Set<CompilationUnitDeclaration> cuds=new TreeSet<CompilationUnitDeclaration>(CUD_COMPARATOR);
+    compiler.compile(units,cuds);
+    int size=cuds.size();
+    CompilationUnitDeclaration[] cudArray=new CompilationUnitDeclaration[size];
+    return cuds.toArray(cudArray);
+  }
+  finally {
+    threadLogger.pop(oldLogger);
+  }
+}

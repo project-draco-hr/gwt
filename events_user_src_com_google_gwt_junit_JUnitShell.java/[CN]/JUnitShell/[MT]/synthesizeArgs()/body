@@ -1,0 +1,20 @@
+{
+  ArrayList<String> argList=new ArrayList<String>();
+  String args=System.getProperty(PROP_GWT_ARGS);
+  if (args != null) {
+    Pattern pattern=Pattern.compile("[^\\s\"]+|\"[^\"\\\\]*(\\\\.[^\"\\\\]*)*\"");
+    Matcher matcher=pattern.matcher(args);
+    Pattern quotedArgsPattern=Pattern.compile("^([\"'])(.*)([\"'])$");
+    while (matcher.find()) {
+      String arg=matcher.group();
+      Matcher qmatcher=quotedArgsPattern.matcher(arg);
+      if (qmatcher.matches()) {
+        argList.add(qmatcher.group(2));
+      }
+ else {
+        argList.add(arg);
+      }
+    }
+  }
+  return argList.toArray(new String[argList.size()]);
+}

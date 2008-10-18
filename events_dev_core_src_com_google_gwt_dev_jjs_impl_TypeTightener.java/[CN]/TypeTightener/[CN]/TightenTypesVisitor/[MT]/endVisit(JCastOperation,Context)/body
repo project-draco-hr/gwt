@@ -1,0 +1,34 @@
+{
+  JType argType=x.getExpr().getType();
+  if (!(x.getCastType() instanceof JReferenceType) || !(argType instanceof JReferenceType)) {
+    return;
+  }
+  JReferenceType toType=(JReferenceType)x.getCastType();
+  JReferenceType fromType=(JReferenceType)argType;
+  boolean triviallyTrue=false;
+  boolean triviallyFalse=false;
+  JTypeOracle typeOracle=program.typeOracle;
+  if (typeOracle.canTriviallyCast(fromType,toType)) {
+    triviallyTrue=true;
+  }
+ else   if (!typeOracle.isInstantiatedType(toType)) {
+    triviallyFalse=true;
+  }
+ else   if (!typeOracle.canTheoreticallyCast(fromType,toType)) {
+    triviallyFalse=true;
+  }
+  if (triviallyTrue) {
+    ctx.replaceMe(x.getExpr());
+  }
+ else   if (triviallyFalse) {
+    JCastOperation newOp=new JCastOperation(program,x.getSourceInfo(),program.getTypeNull(),x.getExpr());
+    ctx.replaceMe(newOp);
+  }
+ else {
+    JClassType concreteType=getSingleConcreteType(toType);
+    if (concreteType != null) {
+      JCastOperation newOp=new JCastOperation(program,x.getSourceInfo(),concreteType,x.getExpr());
+      ctx.replaceMe(newOp);
+    }
+  }
+}

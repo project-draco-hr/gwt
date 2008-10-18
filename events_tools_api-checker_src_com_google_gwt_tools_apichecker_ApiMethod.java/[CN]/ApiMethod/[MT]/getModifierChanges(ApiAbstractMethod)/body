@@ -1,0 +1,22 @@
+{
+  JMethod newjmethod=null;
+  JMethod oldjmethod=null;
+  if (newMethod.getMethod() instanceof JMethod && method instanceof JMethod) {
+    newjmethod=(JMethod)newMethod.getMethod();
+    oldjmethod=(JMethod)method;
+  }
+ else {
+    throw new AssertionError("Different types for method = " + method.getClass() + " and newMethod = "+ newMethod.getMethod().getClass()+ ", signature = "+ getApiSignature());
+  }
+  List<ApiChange.Status> statuses=new ArrayList<ApiChange.Status>();
+  if (!oldjmethod.isFinal() && newjmethod.isFinal()) {
+    statuses.add(ApiChange.Status.FINAL_ADDED);
+  }
+  if (!oldjmethod.isAbstract() && newjmethod.isAbstract()) {
+    statuses.add(ApiChange.Status.ABSTRACT_ADDED);
+  }
+  if ((oldjmethod.isStatic() && !newjmethod.isStatic())) {
+    statuses.add(ApiChange.Status.STATIC_REMOVED);
+  }
+  return statuses;
+}

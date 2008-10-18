@@ -1,0 +1,59 @@
+{
+  if (method.getType() == program.getTypeVoid()) {
+    return;
+  }
+  if (method.getOriginalParamTypes().size() != method.params.size()) {
+    return;
+  }
+  if (method.getName().endsWith("hashCode")) {
+    return;
+  }
+  int skip=0;
+  Object instance;
+  if (program.isStaticImpl(method)) {
+    method=program.staticImplFor(method);
+    instance=tryTranslateLiteral(x.getArgs().get(0),String.class);
+    skip=1;
+  }
+ else {
+    instance=tryTranslateLiteral(x.getInstance(),String.class);
+  }
+  if (instance == null && !method.isStatic()) {
+    return;
+  }
+  List<JType> params=method.getOriginalParamTypes();
+  Class<?> paramTypes[]=new Class<?>[params.size()];
+  Object paramValues[]=new Object[params.size()];
+  ArrayList<JExpression> args=x.getArgs();
+  for (int i=0; i != params.size(); ++i) {
+    paramTypes[i]=mapType(params.get(i));
+    if (paramTypes[i] == null) {
+      return;
+    }
+    paramValues[i]=tryTranslateLiteral(args.get(i + skip),paramTypes[i]);
+    if (paramValues[i] == null) {
+      return;
+    }
+  }
+  try {
+    Method actual=String.class.getMethod(method.getName(),paramTypes);
+    if (actual == null) {
+      return;
+    }
+    Object result=actual.invoke(instance,paramValues);
+    if (result instanceof String) {
+      ctx.replaceMe(program.getLiteralString((String)result));
+    }
+ else     if (result instanceof Boolean) {
+      ctx.replaceMe(program.getLiteralBoolean(((Boolean)result).booleanValue()));
+    }
+ else     if (result instanceof Character) {
+      ctx.replaceMe(program.getLiteralChar(((Character)result).charValue()));
+    }
+ else     if (result instanceof Integer) {
+      ctx.replaceMe(program.getLiteralInt(((Integer)result).intValue()));
+    }
+  }
+ catch (  Exception e) {
+  }
+}

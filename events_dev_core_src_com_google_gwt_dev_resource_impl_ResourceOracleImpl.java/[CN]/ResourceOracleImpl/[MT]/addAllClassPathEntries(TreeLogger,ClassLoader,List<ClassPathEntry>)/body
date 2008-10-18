@@ -1,0 +1,25 @@
+{
+  for (; classLoader != null; classLoader=classLoader.getParent()) {
+    if (classLoader instanceof URLClassLoader) {
+      URLClassLoader urlClassLoader=(URLClassLoader)classLoader;
+      URL[] urls=urlClassLoader.getURLs();
+      for (      URL url : urls) {
+        Throwable caught;
+        try {
+          ClassPathEntry entry=createEntryForUrl(logger,url);
+          if (entry != null) {
+            classPath.add(entry);
+          }
+          continue;
+        }
+ catch (        URISyntaxException e) {
+          caught=e;
+        }
+catch (        IOException e) {
+          caught=e;
+        }
+        logger.log(TreeLogger.WARN,"Error processing classpath URL '" + url + "'",caught);
+      }
+    }
+  }
+}

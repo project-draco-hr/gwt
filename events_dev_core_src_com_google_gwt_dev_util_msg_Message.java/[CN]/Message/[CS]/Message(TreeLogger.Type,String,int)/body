@@ -1,0 +1,31 @@
+{
+  assert(type != null);
+  assert(fmt != null);
+  assert(args >= 0);
+  this.type=type;
+  fmtParts=new char[args + 1][];
+  argIndices=new int[args];
+  int from=0;
+  for (int i=0; i < args; ++i) {
+    int to=fmt.indexOf('$',from);
+    if (to != -1) {
+      if (to < fmt.length() - 1) {
+        char charDigit=fmt.charAt(to + 1);
+        if (Character.isDigit(charDigit)) {
+          int digit=Character.digit(charDigit,10);
+          fmtParts[i]=fmt.substring(from,to).toCharArray();
+          argIndices[i]=digit;
+          from=to + 2;
+          continue;
+        }
+      }
+    }
+    throw new IllegalArgumentException("Expected arg $" + i);
+  }
+  fmtParts[args]=fmt.substring(from).toCharArray();
+  int minNumChars=0;
+  for (int i=0, n=fmtParts.length; i < n; ++i) {
+    minNumChars+=fmtParts[i].length;
+  }
+  this.minChars=minNumChars;
+}

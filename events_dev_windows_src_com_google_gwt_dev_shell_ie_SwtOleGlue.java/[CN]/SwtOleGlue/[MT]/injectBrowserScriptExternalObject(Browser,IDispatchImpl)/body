@@ -1,0 +1,38 @@
+{
+  Object webSite=LowLevel.snatchFieldObjectValue(browser,"site");
+  COMObject iDocHostUIHandler=(COMObject)LowLevel.snatchFieldObjectValue(webSite,"iDocHostUIHandler");
+  COMObjectProxy webSiteProxy=new COMObjectProxy(new int[]{2,0,0,4,1,5,0,0,1,1,1,3,3,2,2,1,3,2}){
+{
+      external.AddRef();
+    }
+    @Override public int method15(    int[] args){
+      return GetExternal(args[0]);
+    }
+    @Override public int method2(    int[] args){
+      int result=super.method2(args);
+      if (result == 0) {
+        external.Release();
+      }
+      return result;
+    }
+    int GetExternal(    int ppDispatch){
+      if (ppDispatch != 0) {
+        try {
+          external.AddRef();
+          OS.MoveMemory(ppDispatch,new int[]{external.getAddress()},4);
+          return COM.S_OK;
+        }
+ catch (        Throwable e) {
+          e.printStackTrace();
+          return COM.E_FAIL;
+        }
+      }
+ else {
+        OS.MoveMemory(ppDispatch,new int[]{0},4);
+        return COM.E_NOTIMPL;
+      }
+    }
+  }
+;
+  webSiteProxy.interpose(iDocHostUIHandler);
+}

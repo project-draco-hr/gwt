@@ -1,0 +1,19 @@
+{
+  if (!file.isFile()) {
+    return;
+  }
+  String name=file.getName();
+  Matcher matcher=IN_XML_FILENAME.matcher(name);
+  if (matcher.matches()) {
+    String suffix="." + matcher.group(2) + ".xml";
+    File topicFile=tryReplaceSuffix(file,suffix,".topics.xml");
+    if (topicFile != null) {
+      if (file.lastModified() > topicFile.lastModified()) {
+        String xsltFileName=matcher.group(2) + "-" + "topics.xslt";
+        String xslt=getFileFromClassPath(xsltFileName);
+        out.println(file + " -> " + topicFile);
+        transform(xslt,file,topicFile,null);
+      }
+    }
+  }
+}

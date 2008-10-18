@@ -1,0 +1,17 @@
+{
+  int length=html.length();
+  char[] buffer=new char[length];
+  html.getChars(0,length,buffer,0);
+  int string=OS.CFStringCreateWithCharacters(0,buffer,length);
+  String baseURL="about:blank";
+  length=baseURL.length();
+  buffer=new char[length];
+  baseURL.getChars(0,length,buffer,0);
+  int URLString=OS.CFStringCreateWithCharacters(0,buffer,length);
+  int URL=WebKit.objc_msgSend(WebKit.C_NSURL,WebKit.S_URLWithString,URLString);
+  OS.CFRelease(URLString);
+  int webView=WebKit.HIWebViewGetWebView(webViewHandle);
+  int mainFrame=WebKit.objc_msgSend(webView,WebKit.S_mainFrame);
+  WebKit.objc_msgSend(mainFrame,WebKit.S_loadHTMLStringbaseURL,string,URL);
+  OS.CFRelease(string);
+}

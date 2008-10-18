@@ -1,0 +1,60 @@
+{
+  FileReader fr=null;
+  try {
+    fr=new FileReader(position.file());
+    BufferedReader br=new BufferedReader(fr);
+    for (int i=0, n=position.line() - 1; i < n; ++i) {
+      br.readLine();
+    }
+    StringBuffer lines=new StringBuffer();
+    String line=br.readLine();
+    int braceDepth=0;
+    int indent=-1;
+    boolean seenSemiColonOrBrace=false;
+    while (line != null) {
+      if (indent == -1) {
+        for (indent=0; Character.isWhitespace(line.charAt(indent)); ++indent) {
+        }
+      }
+      if (line.length() >= indent) {
+        line=line.substring(indent);
+      }
+      lines.append(line + "\n");
+      for (int i=0, n=line.length(); i < n; ++i) {
+        char c=line.charAt(i);
+        if (c == '{') {
+          seenSemiColonOrBrace=true;
+          ++braceDepth;
+        }
+ else         if (c == '}') {
+          --braceDepth;
+        }
+ else         if (c == ';') {
+          seenSemiColonOrBrace=true;
+        }
+      }
+      if (braceDepth > 0 || !seenSemiColonOrBrace) {
+        line=br.readLine();
+      }
+ else {
+        break;
+      }
+    }
+    String code=lines.toString();
+    return code;
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+ finally {
+    try {
+      if (fr != null) {
+        fr.close();
+      }
+    }
+ catch (    IOException e) {
+      e.printStackTrace();
+    }
+  }
+  return "";
+}

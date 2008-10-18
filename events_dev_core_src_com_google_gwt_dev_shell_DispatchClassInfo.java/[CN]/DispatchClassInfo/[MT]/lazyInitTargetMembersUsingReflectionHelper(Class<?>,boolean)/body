@@ -1,0 +1,26 @@
+{
+  Class<?> superclass=targetClass.getSuperclass();
+  if (superclass != null) {
+    lazyInitTargetMembersUsingReflectionHelper(superclass,false);
+  }
+  for (  Class<?> intf : targetClass.getInterfaces()) {
+    lazyInitTargetMembersUsingReflectionHelper(intf,false);
+  }
+  if (addConstructors) {
+    for (    Constructor<?> ctor : targetClass.getDeclaredConstructors()) {
+      ctor.setAccessible(true);
+      String sig=getJsniSignature(ctor);
+      addMember(ctor,sig);
+    }
+  }
+  for (  Method method : targetClass.getDeclaredMethods()) {
+    method.setAccessible(true);
+    String sig=getJsniSignature(method);
+    addMember(method,sig);
+  }
+  Field[] fields=targetClass.getDeclaredFields();
+  for (  Field field : fields) {
+    field.setAccessible(true);
+    addMember(field,field.getName());
+  }
+}

@@ -1,0 +1,25 @@
+{
+  TimeZone tz=new TimeZone();
+  tz.timezoneID=timezoneData.getID();
+  tz.standardOffset=-timezoneData.getStandardOffset();
+  JsArrayString jsTimezoneNames=timezoneData.getNames();
+  tz.tzNames=new String[jsTimezoneNames.length()];
+  for (int i=0; i < jsTimezoneNames.length(); i++) {
+    tz.tzNames[i]=jsTimezoneNames.get(i);
+  }
+  JsArrayInteger transitions=timezoneData.getTransitions();
+  if (transitions == null || transitions.length() == 0) {
+    tz.transitionPoints=null;
+    tz.adjustments=null;
+  }
+ else {
+    int transitionNum=transitions.length() / 2;
+    tz.transitionPoints=new int[transitionNum];
+    tz.adjustments=new int[transitionNum];
+    for (int i=0; i < transitionNum; ++i) {
+      tz.transitionPoints[i]=transitions.get(i * 2);
+      tz.adjustments[i]=transitions.get(i * 2 + 1);
+    }
+  }
+  return tz;
+}

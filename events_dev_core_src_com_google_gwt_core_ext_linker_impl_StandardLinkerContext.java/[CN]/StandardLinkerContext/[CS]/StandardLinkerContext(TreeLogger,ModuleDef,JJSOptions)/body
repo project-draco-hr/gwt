@@ -1,0 +1,54 @@
+{
+  logger=logger.branch(TreeLogger.DEBUG,"Constructing StandardLinkerContext",null);
+  this.jjsOptions=jjsOptions;
+  this.moduleFunctionName=module.getFunctionName();
+  this.moduleName=module.getName();
+  this.linkerClasses=new ArrayList<Class<? extends Linker>>(module.getActiveLinkers());
+  linkerClasses.add(module.getActivePrimaryLinker());
+  for (  Map.Entry<String,Class<? extends Linker>> entry : module.getLinkers().entrySet()) {
+    linkerShortNames.put(entry.getValue(),entry.getKey());
+  }
+  linkerShortNames.put(this.getClass(),"");
+{
+    SortedSet<ConfigurationProperty> mutableConfigurationProperties=new TreeSet<ConfigurationProperty>(CONFIGURATION_PROPERTY_COMPARATOR);
+    SortedSet<SelectionProperty> mutableSelectionProperties=new TreeSet<SelectionProperty>(SELECTION_PROPERTY_COMPARATOR);
+    for (    Property p : module.getProperties()) {
+      if (p instanceof com.google.gwt.dev.cfg.ConfigurationProperty) {
+        StandardConfigurationProperty newProp=new StandardConfigurationProperty((com.google.gwt.dev.cfg.ConfigurationProperty)p);
+        mutableConfigurationProperties.add(newProp);
+        logger.log(TreeLogger.SPAM,"Added configuration property " + newProp,null);
+      }
+ else       if (p instanceof BindingProperty) {
+        StandardSelectionProperty newProp=new StandardSelectionProperty((BindingProperty)p);
+        mutableSelectionProperties.add(newProp);
+        propertiesByName.put(newProp.getName(),newProp);
+        logger.log(TreeLogger.SPAM,"Added selection property " + newProp,null);
+      }
+ else {
+        logger.log(TreeLogger.ERROR,"Unknown property type " + p.getClass().getName());
+      }
+    }
+    selectionProperties=Collections.unmodifiableSortedSet(mutableSelectionProperties);
+    configurationProperties=Collections.unmodifiableSortedSet(mutableConfigurationProperties);
+  }
+{
+    int index=0;
+    for (    Script script : module.getScripts()) {
+      artifacts.add(new StandardScriptReference(script.getSrc(),index++));
+      logger.log(TreeLogger.SPAM,"Added script " + script.getSrc(),null);
+    }
+  }
+{
+    int index=0;
+    for (    String style : module.getStyles()) {
+      artifacts.add(new StandardStylesheetReference(style,index++));
+      logger.log(TreeLogger.SPAM,"Added style " + style,null);
+    }
+  }
+  for (  String path : module.getAllPublicFiles()) {
+    String partialPath=path.replace(File.separatorChar,'/');
+    PublicResource resource=new StandardPublicResource(partialPath,module.findPublicFile(path));
+    artifacts.add(resource);
+    logger.log(TreeLogger.SPAM,"Added public resource " + resource,null);
+  }
+}

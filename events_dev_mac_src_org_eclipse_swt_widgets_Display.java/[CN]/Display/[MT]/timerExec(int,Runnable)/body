@@ -1,0 +1,44 @@
+{
+  checkDevice();
+  if (runnable == null)   error(SWT.ERROR_NULL_ARGUMENT);
+  if (timerList == null)   timerList=new Runnable[4];
+  if (timerIds == null)   timerIds=new int[4];
+  int index=0;
+  while (index < timerList.length) {
+    if (timerList[index] == runnable)     break;
+    index++;
+  }
+  if (index != timerList.length) {
+    int timerId=timerIds[index];
+    if (milliseconds < 0) {
+      OS.RemoveEventLoopTimer(timerId);
+      timerList[index]=null;
+      timerIds[index]=0;
+    }
+ else {
+      OS.SetEventLoopTimerNextFireTime(timerId,milliseconds / 1000.0);
+    }
+    return;
+  }
+  if (milliseconds < 0)   return;
+  index=0;
+  while (index < timerList.length) {
+    if (timerList[index] == null)     break;
+    index++;
+  }
+  if (index == timerList.length) {
+    Runnable[] newTimerList=new Runnable[timerList.length + 4];
+    System.arraycopy(timerList,0,newTimerList,0,timerList.length);
+    timerList=newTimerList;
+    int[] newTimerIds=new int[timerIds.length + 4];
+    System.arraycopy(timerIds,0,newTimerIds,0,timerIds.length);
+    timerIds=newTimerIds;
+  }
+  int[] timerId=new int[1];
+  int eventLoop=OS.GetCurrentEventLoop();
+  OS.InstallEventLoopTimer(eventLoop,milliseconds / 1000.0,0.0,timerProc,index,timerId);
+  if (timerId[0] != 0) {
+    timerIds[index]=timerId[0];
+    timerList[index]=runnable;
+  }
+}

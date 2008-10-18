@@ -1,0 +1,40 @@
+{
+  String myId;
+  String myTitle;
+  if (doc instanceof MemberDoc) {
+    MemberDoc memberDoc=(MemberDoc)doc;
+    myId=getId(memberDoc);
+    myTitle=memberDoc.name();
+  }
+ else   if (doc instanceof ClassDoc) {
+    ClassDoc classDoc=(ClassDoc)doc;
+    myId=getId(classDoc);
+    myTitle=classDoc.name();
+  }
+ else   if (doc instanceof PackageDoc) {
+    PackageDoc pkgDoc=(PackageDoc)doc;
+    myId=getId(pkgDoc);
+    myTitle=pkgDoc.name();
+  }
+ else   if (doc instanceof RootDoc) {
+    myId=rootDocId;
+    myTitle=initialRootDoc.name();
+  }
+ else {
+    throw new IllegalStateException("Expected only a member, type, or package");
+  }
+  Doc parent=getParentDoc(doc);
+  if (parent != null) {
+    emitLocationLink(parent);
+  }
+  beginln("link","ref",myId);
+  Tag[] titleTag=doc.tags("@title");
+  if (titleTag.length > 0) {
+    myTitle=titleTag[0].text().trim();
+  }
+  if (myTitle == null || myTitle.length() == 0) {
+    myTitle="[NO TITLE]";
+  }
+  text(myTitle);
+  endln();
+}

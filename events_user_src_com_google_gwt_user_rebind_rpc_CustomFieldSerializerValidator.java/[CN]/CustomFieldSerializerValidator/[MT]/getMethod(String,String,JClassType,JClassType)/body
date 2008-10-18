@@ -1,0 +1,24 @@
+{
+  JMethod[] overloads=serializer.getOverloads(methodName);
+  for (  JMethod overload : overloads) {
+    JParameter[] parameters=overload.getParameters();
+    if (parameters.length != 2) {
+      continue;
+    }
+    if (!parameters[0].getType().getQualifiedSourceName().equals(streamClassName)) {
+      continue;
+    }
+    JParameter serializeeParam=parameters[1];
+    JType type=serializeeParam.getType();
+    if (type.isPrimitive() != null) {
+      continue;
+    }
+    JClassType clazz=(JClassType)type;
+    if (clazz.isAssignableFrom(serializee)) {
+      if (isValidCustomFieldSerializerMethod(overload) && overload.getReturnType() == JPrimitiveType.VOID) {
+        return overload;
+      }
+    }
+  }
+  return null;
+}

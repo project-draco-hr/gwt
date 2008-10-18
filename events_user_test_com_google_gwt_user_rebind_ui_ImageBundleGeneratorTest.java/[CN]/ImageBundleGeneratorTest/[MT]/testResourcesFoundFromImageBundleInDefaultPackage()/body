@@ -1,0 +1,29 @@
+{
+  UnitTestTreeLogger.Builder b=new UnitTestTreeLogger.Builder();
+  if (GenUtil.warnAboutMetadata()) {
+    b.expectWarn(ImageBundleGenerator.MSG_JAVADOC_FORM_DEPRECATED,null);
+    b.expectWarn(ImageBundleGenerator.MSG_JAVADOC_FORM_DEPRECATED,null);
+  }
+  UnitTestTreeLogger logger=b.createLogger();
+{
+    String imgName=getImageName(logger,new String[]{"cabbage.jpg","lettuce.jpg"},"cabbage","",new String[0][],null);
+    assertEquals("cabbage.jpg",imgName);
+  }
+{
+    String imgName=getImageName(logger,new String[]{"car.png","dunebuggy.gif"},"vehicleImage","",new String[][]{{"dunebuggy.gif"}},null);
+    assertEquals("dunebuggy.gif",imgName);
+  }
+{
+    String imgName=getImageName(logger,new String[]{"car.png","dunebuggy.gif"},"vehicleImage","",new String[0][],getResourceAnnotation("duneBuggyInDefaultPackage"));
+    assertEquals("dunebuggy.gif",imgName);
+  }
+{
+    String imgName=getImageName(logger,new String[]{"car.png","dunebuggy.gif","a/b/c/dunebuggy.gif"},"vehicleImage","",new String[][]{{"a/b/c/dunebuggy.gif"}},null);
+    assertEquals("a/b/c/dunebuggy.gif",imgName);
+  }
+{
+    String imgName=getImageName(logger,new String[]{"car.png","dunebuggy.gif","a/b/c/dunebuggy.gif"},"vehicleImage","",new String[0][],getResourceAnnotation("duneBuggyInNonDefaultPackage"));
+    assertEquals("a/b/c/dunebuggy.gif",imgName);
+  }
+  logger.assertCorrectLogEntries();
+}

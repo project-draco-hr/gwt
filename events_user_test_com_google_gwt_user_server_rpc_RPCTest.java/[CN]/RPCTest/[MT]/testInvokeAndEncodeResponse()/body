@@ -1,0 +1,64 @@
+{
+  try {
+    RPC.invokeAndEncodeResponse(null,null,null);
+    fail("Expected NullPointerException");
+  }
+ catch (  NullPointerException e) {
+  }
+  Method A_method1=A.class.getMethod("method1");
+  try {
+    RPC.invokeAndEncodeResponse(new B(){
+      public void method1(){
+      }
+    }
+,A_method1,null);
+    fail("Expected a SecurityException");
+  }
+ catch (  SecurityException e) {
+  }
+  try {
+    RPC.invokeAndEncodeResponse(new A(){
+      public void method1() throws SerializableException {
+      }
+      public int method2(){
+        return 0;
+      }
+      public int method3(      int val){
+        return 0;
+      }
+    }
+,A_method1,new Integer[]{new Integer(1)});
+    fail("Expected a SecurityException");
+  }
+ catch (  SecurityException e) {
+  }
+  try {
+    RPC.invokeAndEncodeResponse(new A(){
+      public void method1() throws SerializableException {
+        throw new IllegalArgumentException();
+      }
+      public int method2(){
+        return 0;
+      }
+      public int method3(      int val){
+        return 0;
+      }
+    }
+,A_method1,null);
+    fail("Expected an UnexpectedException");
+  }
+ catch (  UnexpectedException e) {
+  }
+  RPC.invokeAndEncodeResponse(new A(){
+    public void method1() throws SerializableException {
+      throw new SerializableException();
+    }
+    public int method2(){
+      return 0;
+    }
+    public int method3(    int val){
+      return 0;
+    }
+  }
+,A_method1,null);
+}

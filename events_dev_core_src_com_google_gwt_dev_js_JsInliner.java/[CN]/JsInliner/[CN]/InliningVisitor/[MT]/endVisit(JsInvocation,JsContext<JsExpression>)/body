@@ -1,0 +1,71 @@
+{
+  if (functionStack.isEmpty()) {
+    return;
+  }
+  JsFunction f=isFunction(x.getQualifier());
+  if (f == null) {
+    return;
+  }
+  if (blacklist.contains(f)) {
+    return;
+  }
+  List<JsName> localVariableNames=new ArrayList<JsName>();
+  List<JsStatement> statements=new ArrayList<JsStatement>(f.getBody().getStatements());
+  List<JsExpression> hoisted=new ArrayList<JsExpression>(statements.size());
+  boolean sawReturnStatement=false;
+  for (  JsStatement statement : statements) {
+    if (sawReturnStatement) {
+      return;
+    }
+    JsExpression h=hoistedExpression(program,statement,localVariableNames);
+    if (h == null) {
+      return;
+    }
+    hoisted.add(h);
+    if (isReturnStatement(statement)) {
+      sawReturnStatement=true;
+    }
+  }
+  if (!sawReturnStatement) {
+    hoisted.add(program.getUndefinedLiteral());
+  }
+  assert(hoisted.size() > 0);
+  ListIterator<JsExpression> i=hoisted.listIterator(hoisted.size());
+  JsExpression op=i.previous();
+  while (i.hasPrevious()) {
+    JsBinaryOperation outerOp=new JsBinaryOperation(JsBinaryOperator.COMMA);
+    outerOp.setArg1(i.previous());
+    outerOp.setArg2(op);
+    op=outerOp;
+  }
+  if (!isInlinable(program,functionStack.peek(),x,f,op)) {
+    return;
+  }
+  NameRefReplacerVisitor v=new NameRefReplacerVisitor(x,f);
+  for (ListIterator<JsName> nameIterator=localVariableNames.listIterator(); nameIterator.hasNext(); ) {
+    JsName name=nameIterator.next();
+    String ident;
+    int count=0;
+    JsScope scope=functionStack.peek().getScope();
+    do {
+      ident=f.getName() + "_" + name.getIdent()+ "_"+ count++;
+    }
+ while (scope.findExistingName(ident) != null);
+    JsName newName=scope.declareName(ident,name.getShortIdent());
+    v.setReplacementName(name,newName);
+    nameIterator.set(newName);
+  }
+  op=v.accept(op);
+  op=(new CommaNormalizer()).accept(op);
+  int originalComplexity=complexity(x);
+  int inlinedComplexity=complexity(op);
+  double ratio=((double)inlinedComplexity) / originalComplexity;
+  if (ratio > MAX_COMPLEXITY_INCREASE && isInvokedMoreThanOnce(f)) {
+    return;
+  }
+  newLocalVariableStack.peek().addAll(localVariableNames);
+  invocationCountingVisitor.removeCountsFor(x);
+  invocationCountingVisitor.accept(op);
+  op=accept(op);
+  ctx.replaceMe(op);
+}

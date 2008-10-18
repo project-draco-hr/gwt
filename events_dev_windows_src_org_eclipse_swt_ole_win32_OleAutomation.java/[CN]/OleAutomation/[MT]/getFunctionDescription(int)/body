@@ -1,0 +1,49 @@
+{
+  if (objITypeInfo == null)   return null;
+  int[] ppFuncDesc=new int[1];
+  int rc=objITypeInfo.GetFuncDesc(index,ppFuncDesc);
+  if (rc != OLE.S_OK)   return null;
+  FUNCDESC funcdesc=new FUNCDESC();
+  COM.MoveMemory(funcdesc,ppFuncDesc[0],FUNCDESC.sizeof);
+  OleFunctionDescription data=new OleFunctionDescription();
+  data.id=funcdesc.memid;
+  data.optionalArgCount=funcdesc.cParamsOpt;
+  data.invokeKind=funcdesc.invkind;
+  data.funcKind=funcdesc.funckind;
+  data.flags=funcdesc.wFuncFlags;
+  data.callingConvention=funcdesc.callconv;
+  data.documentation=getDocumentation(funcdesc.memid);
+  data.helpFile=getHelpFile(funcdesc.memid);
+  String[] names=getNames(funcdesc.memid,funcdesc.cParams + 1);
+  if (names.length > 0) {
+    data.name=names[0];
+  }
+  data.args=new OleParameterDescription[funcdesc.cParams];
+  for (int i=0; i < data.args.length; i++) {
+    data.args[i]=new OleParameterDescription();
+    if (names.length > i + 1) {
+      data.args[i].name=names[i + 1];
+    }
+    short[] vt=new short[1];
+    COM.MoveMemory(vt,funcdesc.lprgelemdescParam + i * 16 + 4,2);
+    if (vt[0] == OLE.VT_PTR) {
+      int[] pTypedesc=new int[1];
+      COM.MoveMemory(pTypedesc,funcdesc.lprgelemdescParam + i * 16,4);
+      short[] vt2=new short[1];
+      COM.MoveMemory(vt2,pTypedesc[0] + 4,2);
+      vt[0]=(short)(vt2[0] | COM.VT_BYREF);
+    }
+    data.args[i].type=vt[0];
+    short[] wParamFlags=new short[1];
+    COM.MoveMemory(wParamFlags,funcdesc.lprgelemdescParam + i * 16 + 12,2);
+    data.args[i].flags=wParamFlags[0];
+  }
+  data.returnType=funcdesc.elemdescFunc_tdesc_vt;
+  if (data.returnType == OLE.VT_PTR) {
+    short[] vt=new short[1];
+    COM.MoveMemory(vt,funcdesc.elemdescFunc_tdesc_union + 4,2);
+    data.returnType=vt[0];
+  }
+  objITypeInfo.ReleaseFuncDesc(ppFuncDesc[0]);
+  return data;
+}

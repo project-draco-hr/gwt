@@ -1,0 +1,18 @@
+{
+  delayTestFinish(TEST_DELAY);
+  CollectionsTestServiceAsync service=getServiceAsync();
+  final LinkedHashMap<String,MarkerTypeLinkedHashMap> expected=TestSetFactory.createLRULinkedHashMap();
+  service.echo(expected,new AsyncCallback<LinkedHashMap<String,MarkerTypeLinkedHashMap>>(){
+    public void onFailure(    Throwable caught){
+      TestSetValidator.rethrowException(caught);
+    }
+    public void onSuccess(    LinkedHashMap<String,MarkerTypeLinkedHashMap> actual){
+      assertNotNull(actual);
+      expected.get("SerializableSet");
+      actual.get("SerializableSet");
+      assertTrue(TestSetValidator.isValid(expected,actual));
+      finishTest();
+    }
+  }
+);
+}

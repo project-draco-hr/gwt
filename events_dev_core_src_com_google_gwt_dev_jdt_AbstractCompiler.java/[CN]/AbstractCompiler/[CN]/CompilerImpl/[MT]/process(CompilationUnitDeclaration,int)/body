@@ -1,0 +1,43 @@
+{
+  long processBeginNanos=System.nanoTime();
+{
+    this.parser.getMethodBodies(cud);
+    if (cud.scope != null) {
+      cud.scope.faultInTypes();
+    }
+    if (cud.scope != null) {
+      cud.scope.verifyMethods(lookupEnvironment.methodVerifier());
+    }
+    cud.resolve();
+    cud.analyseCode();
+    if (doGenerateBytes) {
+      cud.generateCode();
+    }
+    if (options.produceReferenceInfo && cud.scope != null) {
+      cud.scope.storeDependencyInfo();
+    }
+    cud.compilationResult.totalUnitsKnown=totalUnits;
+  }
+  ICompilationUnit cu=cud.compilationResult.compilationUnit;
+  String loc=String.valueOf(cu.getFileName());
+  TreeLogger logger=threadLogger.branch(TreeLogger.SPAM,"Scanning for additional dependencies: " + loc,null);
+  String[] typeNames=doFindAdditionalTypesUsingJsni(logger,cud);
+  for (int i=0; i < typeNames.length; i++) {
+    String typeName=typeNames[i];
+    final String msg="Need additional type '" + typeName + "'";
+    logger.log(TreeLogger.SPAM,msg,null);
+    resolvePossiblyNestedType(typeName);
+  }
+  typeNames=doFindAdditionalTypesUsingRebinds(logger,cud);
+  for (int i=0; i < typeNames.length; i++) {
+    String typeName=typeNames[i];
+    final String msg="Need additional type '" + typeName + "'";
+    logger.log(TreeLogger.SPAM,msg,null);
+    resolvePossiblyNestedType(typeName);
+  }
+  doCompilationUnitDeclarationValidation(cud,logger);
+  if (cuds != null) {
+    cuds.add(cud);
+  }
+  jdtProcessNanos+=System.nanoTime() - processBeginNanos;
+}

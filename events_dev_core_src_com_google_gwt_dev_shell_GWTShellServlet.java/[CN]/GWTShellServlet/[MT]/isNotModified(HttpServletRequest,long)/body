@@ -1,0 +1,18 @@
+{
+  ageOfServerCopy-=(ageOfServerCopy % 1000);
+  long ageOfClientCopy=0;
+  String ifModifiedSince=request.getHeader("If-Modified-Since");
+  if (ifModifiedSince != null) {
+    int lastSemi=ifModifiedSince.lastIndexOf(';');
+    if (lastSemi != -1) {
+      ifModifiedSince=ifModifiedSince.substring(0,lastSemi);
+    }
+    ageOfClientCopy=HttpHeaders.fromInternetDateFormat(ifModifiedSince);
+  }
+  if (ageOfClientCopy >= ageOfServerCopy) {
+    return true;
+  }
+ else {
+    return false;
+  }
+}

@@ -1,0 +1,27 @@
+{
+synchronized (clientStatusesLock) {
+    StringBuilder buf=new StringBuilder();
+    int lineCount=0;
+    for (    ClientStatus clientStatus : clientStatuses.values()) {
+      if (lineCount > 0) {
+        buf.append('\n');
+      }
+      if (!clientStatus.hasRequestedCurrentTest) {
+        buf.append(" - NO RESPONSE: ");
+      }
+ else {
+        buf.append(" - (ok): ");
+      }
+      buf.append(clientStatus.clientId);
+      ++lineCount;
+    }
+    int difference=numClients - getNumClientsRetrievedCurrentTest();
+    if (difference > 0) {
+      if (lineCount > 0) {
+        buf.append('\n');
+      }
+      buf.append(" - " + difference + " client(s) haven't responded back to JUnitShell since the start of the test.");
+    }
+    return buf.toString();
+  }
+}

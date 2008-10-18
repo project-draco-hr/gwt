@@ -1,0 +1,49 @@
+{
+  HashSet<String> hashSet=new HashSet<String>();
+  assertEquals(0,ApiCompatibilityChecker.getApiDiff(api1,apiSameAs1,hashSet).size());
+  ApiDiffGenerator apiDiff=new ApiDiffGenerator(api2,api1);
+  String strWithDuplicates=getStringRepresentation(ApiCompatibilityChecker.getApiDiff(apiDiff,hashSet,!ApiCompatibilityChecker.FILTER_DUPLICATES));
+  if (DEBUG) {
+    System.out.println("computing apiDiff, now with duplicates");
+    System.out.println(strWithDuplicates);
+  }
+  String strWithoutDuplicates=getStringRepresentation(ApiCompatibilityChecker.getApiDiff(apiDiff,hashSet,ApiCompatibilityChecker.FILTER_DUPLICATES));
+  if (DEBUG) {
+    System.out.println("computing apiDiff, now without duplicates");
+    System.out.println(strWithoutDuplicates);
+  }
+  String delimiter=ApiDiffGenerator.DELIMITER;
+  String statusString="java.newpackage" + delimiter + ApiChange.Status.MISSING;
+  assertEquals(1,countPresence(statusString,strWithDuplicates));
+  assertEquals(1,countPresence(statusString,strWithoutDuplicates));
+  assertEquals(1,countPresence("test.apicontainer.NonApiClass.AnotherApiClassInNonApiClass" + delimiter + ApiChange.Status.MISSING,strWithoutDuplicates));
+  assertEquals(1,countPresence("test.apicontainer.NonApiClass.ApiClassInNonApiClass" + delimiter + ApiChange.Status.ABSTRACT_ADDED,strWithoutDuplicates));
+  assertEquals(0,countPresence("test.apicontainer.NonApiClass.ApiClassInNonApiClass::ApiClassInNonApiClass()" + delimiter + ApiChange.Status.MISSING,strWithoutDuplicates));
+  assertEquals(0,countPresence("test.apicontainer.NonApiClass.ApiClassInNonApiClass::protectedMethod()" + delimiter + ApiChange.Status.MISSING,strWithoutDuplicates));
+  assertEquals(1,countPresence("java.lang.Object::apiField" + delimiter + ApiChange.Status.FINAL_ADDED,strWithoutDuplicates));
+  assertEquals(1,countPresence("java.lang.Object::protectedMethod()" + delimiter + ApiChange.Status.FINAL_ADDED,strWithoutDuplicates));
+  assertEquals(4,countPresence("protectedMethod()" + delimiter + ApiChange.Status.FINAL_ADDED,strWithDuplicates));
+  assertEquals(1,countPresence("protectedMethod()" + delimiter + ApiChange.Status.FINAL_ADDED,strWithoutDuplicates));
+  assertEquals(4,countPresence("apiFieldWillBeMissing" + delimiter + ApiChange.Status.MISSING,strWithDuplicates));
+  assertEquals(1,countPresence("apiFieldWillBeMissing" + delimiter + ApiChange.Status.MISSING,strWithoutDuplicates));
+  String nonFinalMethodSignature="checkParametersAndReturnTypes(Ltest/apicontainer/ApiClass;)";
+  for (  ApiChange.Status status : new ApiChange.Status[]{ApiChange.Status.OVERRIDABLE_METHOD_ARGUMENT_TYPE_CHANGE,ApiChange.Status.OVERRIDABLE_METHOD_EXCEPTION_TYPE_CHANGE,ApiChange.Status.OVERRIDABLE_METHOD_RETURN_TYPE_CHANGE}) {
+    assertEquals(1,countPresence(nonFinalMethodSignature + delimiter + status,strWithoutDuplicates));
+  }
+  String finalMethodSignature="checkParametersAndReturnTypesFinalVersion(Ltest/apicontainer/ApiClass;)";
+  assertEquals(1,countPresence(finalMethodSignature + delimiter + ApiChange.Status.RETURN_TYPE_ERROR,strWithoutDuplicates));
+  assertEquals(1,countPresence(finalMethodSignature + delimiter + ApiChange.Status.EXCEPTION_TYPE_ERROR,strWithoutDuplicates));
+  assertEquals(2,countPresence(finalMethodSignature,strWithoutDuplicates));
+  finalMethodSignature="methodInNonApiClass(Ljava/lang/Object;)";
+  assertEquals(1,countPresence(finalMethodSignature + delimiter + ApiChange.Status.OVERLOADED_METHOD_CALL,strWithoutDuplicates));
+  assertEquals(0,countPresence("testUncheckedExceptions",strWithoutDuplicates));
+  String methodSignature="test.apicontainer.OneMoreApiClass::checkOverloadedAndOverridableDetection(Ljava/lang/Object;)";
+  for (  ApiChange.Status status : new ApiChange.Status[]{ApiChange.Status.OVERRIDABLE_METHOD_ARGUMENT_TYPE_CHANGE,ApiChange.Status.OVERRIDABLE_METHOD_EXCEPTION_TYPE_CHANGE,ApiChange.Status.OVERRIDABLE_METHOD_RETURN_TYPE_CHANGE}) {
+    assertEquals(0,countPresence(methodSignature + delimiter + status,strWithoutDuplicates));
+  }
+  assertEquals(1,countPresence(methodSignature + delimiter + ApiChange.Status.OVERLOADED_METHOD_CALL,strWithoutDuplicates));
+  methodSignature="test.apicontainer.OneMoreApiClass::checkOverloadedMethodAccounted(Ltest/apicontainer/OneMoreApiClass;)";
+  assertEquals(0,countPresence(methodSignature + delimiter + ApiChange.Status.MISSING,strWithoutDuplicates));
+  methodSignature="test.apicontainer.OneMoreApiClass::checkOverloadedMethodAccounted(Ljava/lang/Object;)";
+  assertEquals(1,countPresence(methodSignature + delimiter + ApiChange.Status.EXCEPTION_TYPE_ERROR,strWithoutDuplicates));
+}

@@ -1,0 +1,26 @@
+{
+  int lineNumber=locator.getLineNumber();
+  Schema schemaLevel=getTopSchemaLevel();
+  if (schemaLevel == null) {
+    for (int i=0; i < length; i++) {
+      if (!Character.isWhitespace(ch[i + start])) {
+        throw new SAXException("Unexpected XML data found: " + String.valueOf(ch,start,length));
+      }
+    }
+    return;
+  }
+  Class slc=schemaLevel.getClass();
+  HandlerClassInfo classInfo=HandlerClassInfo.getClassInfo(slc);
+  assert(classInfo != null);
+  HandlerMethod method=classInfo.getTextMethod();
+  if (method == null) {
+    return;
+  }
+  try {
+    final String text=String.valueOf(ch,start,length);
+    method.invokeText(lineNumber,text,schemaLevel);
+  }
+ catch (  UnableToCompleteException e) {
+    throw new SAXException(e);
+  }
+}

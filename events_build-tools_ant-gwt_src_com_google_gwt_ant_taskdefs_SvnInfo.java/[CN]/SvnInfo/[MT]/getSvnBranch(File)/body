@@ -1,0 +1,23 @@
+{
+  String branchName=null;
+  LineNumberReader svnout=runCommand(workdir,"svn","info");
+  try {
+    String line=svnout.readLine();
+    Pattern urlRegex=Pattern.compile(URL_REGEX);
+    while (line != null) {
+      Matcher m=urlRegex.matcher(line);
+      if (m.matches()) {
+        branchName=m.group(1);
+        if (branchName == null || "".equals(branchName)) {
+          throw new BuildException("svn info didn't get branch from URL line " + line);
+        }
+        break;
+      }
+      line=svnout.readLine();
+    }
+  }
+ catch (  IOException e) {
+    throw new BuildException("<svninfo> cannot read svn info's output stream",e);
+  }
+  return branchName;
+}

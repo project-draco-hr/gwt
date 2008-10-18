@@ -1,0 +1,19 @@
+{
+  if (!crossClassTargets.contains(x)) {
+    return null;
+  }
+  if (!x.isStatic() || program.isStaticImpl(x)) {
+    return null;
+  }
+  JReferenceType enclosingType=x.getEnclosingType();
+  if (!typeOracle.hasClinit(enclosingType)) {
+    return null;
+  }
+  if (x == enclosingType.methods.get(0)) {
+    return null;
+  }
+  JMethod clinitMethod=enclosingType.methods.get(0);
+  JsInvocation jsInvocation=new JsInvocation();
+  jsInvocation.setQualifier(names.get(clinitMethod).makeRef());
+  return jsInvocation;
+}

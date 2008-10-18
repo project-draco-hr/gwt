@@ -1,0 +1,21 @@
+{
+  JTypeParameter[] typeParameters=type.getTypeParameters();
+  assert(index < typeParameters.length);
+  JTypeParameter typeParameter=typeParameters[index];
+  TypeParameterFlowInfo queryFlow=typeParameterToFlowInfo.get(typeParameter);
+  if (queryFlow != null) {
+    return queryFlow;
+  }
+  queryFlow=getFlowInfo(type,index);
+  while (!worklist.isEmpty()) {
+    TypeParameterFlowInfo info=worklist.iterator().next();
+    worklist.remove(info);
+    boolean didChange=info.updateFlowInfo();
+    if (didChange) {
+      for (      TypeParameterFlowInfo listener : info.getListeners()) {
+        worklist.add(listener);
+      }
+    }
+  }
+  return queryFlow;
+}

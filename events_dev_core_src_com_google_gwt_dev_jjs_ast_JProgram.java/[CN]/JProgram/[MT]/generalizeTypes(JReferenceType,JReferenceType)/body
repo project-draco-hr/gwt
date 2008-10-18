@@ -1,0 +1,87 @@
+{
+  if (type1 == type2) {
+    return type1;
+  }
+  int classify1=classifyType(type1);
+  int classify2=classifyType(type2);
+  if (classify1 == IS_NULL) {
+    return type2;
+  }
+  if (classify2 == IS_NULL) {
+    return type1;
+  }
+  if (classify1 == classify2) {
+    if (classify1 == IS_INTERFACE) {
+      if (typeOracle.canTriviallyCast(type1,type2)) {
+        return type2;
+      }
+      if (typeOracle.canTriviallyCast(type2,type1)) {
+        return type1;
+      }
+      return typeJavaLangObject;
+    }
+ else     if (classify1 == IS_ARRAY) {
+      JArrayType aType1=(JArrayType)type1;
+      JArrayType aType2=(JArrayType)type2;
+      int dims1=aType1.getDims();
+      int dims2=aType2.getDims();
+      int minDims=Math.min(dims1,dims2);
+      JReferenceType minimalGeneralType;
+      if (minDims > 1) {
+        minimalGeneralType=getTypeArray(typeJavaLangObject,minDims - 1);
+      }
+ else {
+        minimalGeneralType=typeJavaLangObject;
+      }
+      if (dims1 == dims2) {
+        JType leafType1=aType1.getLeafType();
+        JType leafType2=aType2.getLeafType();
+        if (!(leafType1 instanceof JReferenceType) || !(leafType2 instanceof JReferenceType)) {
+          return minimalGeneralType;
+        }
+        JReferenceType leafRefType1=(JReferenceType)leafType1;
+        JReferenceType leafRefType2=(JReferenceType)leafType2;
+        JReferenceType leafGeneralization=generalizeTypes(leafRefType1,leafRefType2);
+        return getTypeArray(leafGeneralization,dims1);
+      }
+ else {
+        JArrayType lesser=dims1 < dims2 ? aType1 : aType2;
+        if (lesser.getLeafType() == typeJavaLangObject) {
+          return lesser;
+        }
+        return minimalGeneralType;
+      }
+    }
+ else {
+      assert(classify1 == IS_CLASS);
+      int distance1=countSuperTypes(type1);
+      int distance2=countSuperTypes(type2);
+      for (; distance1 > distance2; --distance1) {
+        type1=type1.extnds;
+      }
+      for (; distance1 < distance2; --distance2) {
+        type2=type2.extnds;
+      }
+      while (type1 != type2) {
+        type1=type1.extnds;
+        type2=type2.extnds;
+      }
+      return type1;
+    }
+  }
+ else {
+    int lesser=Math.min(classify1,classify2);
+    int greater=Math.max(classify1,classify2);
+    JReferenceType tLesser=classify1 > classify2 ? type1 : type2;
+    JReferenceType tGreater=classify1 < classify2 ? type1 : type2;
+    if (lesser == IS_INTERFACE && greater == IS_CLASS) {
+      if (typeOracle.canTriviallyCast(tGreater,tLesser)) {
+        return tLesser;
+      }
+      return typeJavaLangObject;
+    }
+ else {
+      return typeJavaLangObject;
+    }
+  }
+}

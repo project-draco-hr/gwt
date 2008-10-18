@@ -1,0 +1,41 @@
+{
+  try {
+    ApiContainer newApi=null, existingApi=null;
+    if (args.length < 1) {
+      printHelp();
+      System.exit(-1);
+    }
+    AbstractTreeLogger logger=new PrintWriterTreeLogger();
+    logger.setMaxDetail(type);
+    if (PROCESS_NEW_API) {
+      newApi=new ApiContainer(args[0],"_new",logger);
+      if (ApiCompatibilityChecker.DEBUG_PRINT_ALL_API) {
+        logger.log(TreeLogger.INFO,newApi.getApiAsString());
+      }
+    }
+    if (PROCESS_EXISTING_API) {
+      existingApi=new ApiContainer(args[0],"_old",logger);
+      if (ApiCompatibilityChecker.DEBUG_PRINT_ALL_API) {
+        logger.log(TreeLogger.INFO,existingApi.getApiAsString());
+      }
+    }
+    if (PROCESS_NEW_API && PROCESS_EXISTING_API) {
+      Collection<ApiChange> apiDifferences=getApiDiff(newApi,existingApi,readWhiteListFromFile(args[0]));
+      for (      ApiChange apiChange : apiDifferences) {
+        System.out.println(apiChange);
+      }
+      if (apiDifferences.size() == 0) {
+        System.out.println("API compatibility check SUCCESSFUL");
+      }
+ else {
+        System.out.println("API compatibility check FAILED");
+      }
+      System.exit(apiDifferences.size() == 0 ? 0 : 1);
+    }
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    System.err.println("To view the help for this tool, execute this tool without any arguments");
+    System.exit(-1);
+  }
+}

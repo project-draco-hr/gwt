@@ -1,0 +1,28 @@
+{
+  RootPanel rp=rootPanels.safeGet(id);
+  if (rp != null) {
+    return rp;
+  }
+  Element elem=null;
+  if (id != null) {
+    if (null == (elem=DOM.getElementById(id))) {
+      return null;
+    }
+  }
+  if (hooked == false) {
+    hooked=true;
+    hookWindowClosing();
+    if (LocaleInfo.getCurrentLocale().isRTL()) {
+      BidiUtils.setDirectionOnElement(getRootElement(),HasDirection.Direction.RTL);
+    }
+  }
+  if (elem == null) {
+    rp=new DefaultRootPanel();
+  }
+ else {
+    rp=new RootPanel(elem);
+  }
+  rootPanels.safePut(id,rp);
+  detachOnWindowClose(rp);
+  return rp;
+}

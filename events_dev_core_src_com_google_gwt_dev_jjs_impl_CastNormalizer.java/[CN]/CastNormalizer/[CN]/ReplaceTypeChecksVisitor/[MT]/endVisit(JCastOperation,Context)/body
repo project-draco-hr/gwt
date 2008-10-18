@@ -1,0 +1,99 @@
+{
+  JExpression replaceExpr;
+  JType toType=x.getCastType();
+  JExpression expr=x.getExpr();
+  if (toType instanceof JNullType) {
+    JMethod method=program.getIndexedMethod("Cast.throwClassCastExceptionUnlessNull");
+    JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,method,program.getTypeNull());
+    call.getArgs().add(expr);
+    replaceExpr=call;
+  }
+ else   if (toType instanceof JReferenceType) {
+    JExpression curExpr=expr;
+    JReferenceType refType=(JReferenceType)toType;
+    JReferenceType argType=(JReferenceType)expr.getType();
+    if (program.typeOracle.canTriviallyCast(argType,refType)) {
+      replaceExpr=curExpr;
+    }
+ else {
+      boolean isJsoCast=program.isJavaScriptObject(toType);
+      JMethod method=program.getIndexedMethod(isJsoCast ? "Cast.dynamicCastJso" : "Cast.dynamicCast");
+      JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,method,toType);
+      call.getArgs().add(curExpr);
+      if (!isJsoCast) {
+        JIntLiteral qId=program.getLiteralInt(queryIds.get(refType));
+        call.getArgs().add(qId);
+      }
+      replaceExpr=call;
+    }
+  }
+ else {
+    JPrimitiveType tByte=program.getTypePrimitiveByte();
+    JPrimitiveType tChar=program.getTypePrimitiveChar();
+    JPrimitiveType tShort=program.getTypePrimitiveShort();
+    JPrimitiveType tInt=program.getTypePrimitiveInt();
+    JPrimitiveType tLong=program.getTypePrimitiveLong();
+    JPrimitiveType tFloat=program.getTypePrimitiveFloat();
+    JPrimitiveType tDouble=program.getTypePrimitiveDouble();
+    JType fromType=expr.getType();
+    String methodName=null;
+    if (tLong == fromType && tLong != toType) {
+      if (tByte == toType || tShort == toType || tChar == toType) {
+        JMethod castMethod=program.getIndexedMethod("LongLib.toInt");
+        JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,castMethod);
+        call.getArgs().add(expr);
+        expr=call;
+        fromType=tInt;
+      }
+ else       if (tInt == toType) {
+        methodName="LongLib.toInt";
+      }
+ else       if (tFloat == toType || tDouble == toType) {
+        methodName="LongLib.toDouble";
+      }
+    }
+    if (toType == tLong && fromType != tLong) {
+      if (tByte == fromType || tShort == fromType || tChar == fromType || tInt == fromType) {
+        methodName="LongLib.fromInt";
+      }
+ else       if (tFloat == fromType || tDouble == fromType) {
+        methodName="LongLib.fromDouble";
+      }
+    }
+ else     if (tByte == fromType) {
+      if (tChar == toType) {
+        methodName="Cast.narrow_" + toType.getName();
+      }
+    }
+ else     if (tShort == fromType) {
+      if (tByte == toType || tChar == toType) {
+        methodName="Cast.narrow_" + toType.getName();
+      }
+    }
+ else     if (tChar == fromType) {
+      if (tByte == toType || tShort == toType) {
+        methodName="Cast.narrow_" + toType.getName();
+      }
+    }
+ else     if (tInt == fromType) {
+      if (tByte == toType || tShort == toType || tChar == toType) {
+        methodName="Cast.narrow_" + toType.getName();
+      }
+    }
+ else     if (tFloat == fromType || tDouble == fromType) {
+      if (tByte == toType || tShort == toType || tChar == toType || tInt == toType) {
+        methodName="Cast.round_" + toType.getName();
+      }
+    }
+    if (methodName != null) {
+      JMethod castMethod=program.getIndexedMethod(methodName);
+      JMethodCall call=new JMethodCall(program,x.getSourceInfo(),null,castMethod,toType);
+      call.getArgs().add(expr);
+      replaceExpr=call;
+    }
+ else {
+      replaceExpr=expr;
+    }
+  }
+  ctx.replaceMe(replaceExpr);
+}

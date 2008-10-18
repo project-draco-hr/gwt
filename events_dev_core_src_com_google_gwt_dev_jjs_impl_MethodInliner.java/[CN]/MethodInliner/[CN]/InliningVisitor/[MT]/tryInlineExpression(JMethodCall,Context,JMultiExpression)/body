@@ -1,0 +1,42 @@
+{
+  List<JParameter> params=x.getTarget().params;
+  ArrayList<JExpression> args=x.getArgs();
+  if (targetExpr.exprs.size() > 2) {
+    return false;
+  }
+  ExpressionAnalyzer targetAnalyzer=new ExpressionAnalyzer();
+  targetAnalyzer.accept(targetExpr);
+  if (targetAnalyzer.hasAssignmentToParameter()) {
+    return false;
+  }
+  RecursionCheckVisitor recursionCheckVisitor=new RecursionCheckVisitor(x.getTarget());
+  recursionCheckVisitor.accept(targetExpr);
+  if (recursionCheckVisitor.isRecursive()) {
+    return false;
+  }
+  if (params.size() != args.size()) {
+    return true;
+  }
+  OrderVisitor orderVisitor=new OrderVisitor(x.getTarget().params);
+  orderVisitor.accept(targetExpr);
+  if (orderVisitor.checkResults() == SideEffectCheck.NO_REFERENCES) {
+    JMultiExpression multi=createMultiExpressionIncludingArgs(x);
+    multi.exprs.add(targetExpr);
+    replaceWithMulti(ctx,multi);
+    return true;
+  }
+  if (orderVisitor.checkResults() == SideEffectCheck.FAILS) {
+    for (    JExpression arg : x.getArgs()) {
+      ExpressionAnalyzer argAnalyzer=new ExpressionAnalyzer();
+      argAnalyzer.accept(arg);
+      if (argAnalyzer.hasAssignment() || argAnalyzer.accessesField() || argAnalyzer.createsObject()|| argAnalyzer.canThrowException()) {
+        return true;
+      }
+    }
+  }
+  JMultiExpression multi=createMultiExpressionForInstanceAndClinit(x);
+  new ParameterReplacer(x).accept(targetExpr);
+  multi.exprs.add(targetExpr);
+  replaceWithMulti(ctx,multi);
+  return true;
+}

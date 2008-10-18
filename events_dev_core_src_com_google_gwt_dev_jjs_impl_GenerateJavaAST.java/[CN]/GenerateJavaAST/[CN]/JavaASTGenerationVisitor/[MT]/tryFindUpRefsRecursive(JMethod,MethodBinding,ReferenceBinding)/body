@@ -1,0 +1,22 @@
+{
+  if (binding.declaringClass != searchThisType) {
+    for (    MethodBinding tryMethod : searchThisType.getMethods(binding.selector)) {
+      if (binding.areParameterErasuresEqual(tryMethod)) {
+        JMethod upRef=(JMethod)typeMap.get(tryMethod);
+        if (!method.overrides.contains(upRef)) {
+          method.overrides.add(upRef);
+          break;
+        }
+      }
+    }
+  }
+  if (searchThisType.superclass() != null) {
+    tryFindUpRefsRecursive(method,binding,searchThisType.superclass());
+  }
+  if (searchThisType.superInterfaces() != null) {
+    for (int i=0; i < searchThisType.superInterfaces().length; i++) {
+      ReferenceBinding intf=searchThisType.superInterfaces()[i];
+      tryFindUpRefsRecursive(method,binding,intf);
+    }
+  }
+}

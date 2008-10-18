@@ -1,0 +1,19 @@
+{
+  if (riid == 0 || ppvObject == 0) {
+    return COM.E_NOINTERFACE;
+  }
+  GUID guid=new GUID();
+  COM.MoveMemory(guid,riid,GUID.sizeof);
+  if (COM.IsEqualGUID(guid,COM.IIDIUnknown)) {
+    OS.MoveMemory(ppvObject,new int[]{getAddress()},4);
+    AddRef();
+    return COM.S_OK;
+  }
+  if (COM.IsEqualGUID(guid,COM.IIDIDispatch)) {
+    OS.MoveMemory(ppvObject,new int[]{getAddress()},4);
+    AddRef();
+    return COM.S_OK;
+  }
+  OS.MoveMemory(ppvObject,new int[]{0},4);
+  return COM.E_NOINTERFACE;
+}

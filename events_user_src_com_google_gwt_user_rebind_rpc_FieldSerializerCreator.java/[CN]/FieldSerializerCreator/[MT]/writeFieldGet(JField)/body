@@ -1,0 +1,22 @@
+{
+  JType fieldType=serializableField.getType();
+  String fieldTypeQualifiedSourceName=fieldType.getQualifiedSourceName();
+  String fieldName=serializableField.getName();
+  maybeSuppressLongWarnings(fieldType);
+  sourceWriter.print("private static native ");
+  sourceWriter.print(fieldTypeQualifiedSourceName);
+  sourceWriter.print(" get");
+  sourceWriter.print(Shared.capitalize(fieldName));
+  sourceWriter.print("(");
+  sourceWriter.print(serializableClass.getQualifiedSourceName());
+  sourceWriter.println(" instance) /*-{");
+  sourceWriter.indent();
+  sourceWriter.print("return instance.@");
+  sourceWriter.print(serializationOracle.getSerializedTypeName(serializableClass));
+  sourceWriter.print("::");
+  sourceWriter.print(fieldName);
+  sourceWriter.println(";");
+  sourceWriter.outdent();
+  sourceWriter.println("}-*/;");
+  sourceWriter.println();
+}

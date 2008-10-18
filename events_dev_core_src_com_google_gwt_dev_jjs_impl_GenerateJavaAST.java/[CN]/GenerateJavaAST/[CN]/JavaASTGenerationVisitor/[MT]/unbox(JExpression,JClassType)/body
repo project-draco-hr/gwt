@@ -1,0 +1,22 @@
+{
+  JPrimitiveType primitiveType=getPrimitiveTypeForWrapperType(wrapperType);
+  if (primitiveType == null) {
+    throw new InternalCompilerException(toUnbox,"Attempt to unbox unexpected type '" + wrapperType.getName() + "'",null);
+  }
+  String valueMethodName=primitiveType.getName() + "Value";
+  JMethod valueMethod=null;
+  for (  Object element : wrapperType.methods) {
+    JMethod method=(JMethod)element;
+    if (method.getName().equals(valueMethodName)) {
+      if (method.params.isEmpty()) {
+        valueMethod=method;
+        break;
+      }
+    }
+  }
+  if (valueMethod == null) {
+    throw new InternalCompilerException(toUnbox,"Expected to find a method on '" + wrapperType.getName() + "' whose signature matches 'public "+ primitiveType.getName()+ " "+ valueMethodName+ "()'",null);
+  }
+  JMethodCall unboxCall=new JMethodCall(program,toUnbox.getSourceInfo(),toUnbox,valueMethod);
+  return unboxCall;
+}

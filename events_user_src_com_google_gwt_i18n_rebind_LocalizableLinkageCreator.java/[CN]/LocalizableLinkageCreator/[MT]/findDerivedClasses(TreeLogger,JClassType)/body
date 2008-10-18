@@ -1,0 +1,41 @@
+{
+  Map<String,JClassType> matchingClasses=new HashMap<String,JClassType>();
+  if (baseClass.isInterface() == null && baseClass.isAbstract() == false) {
+    matchingClasses.put(ResourceFactory.DEFAULT_TOKEN,baseClass);
+  }
+  String baseName=baseClass.getSimpleSourceName();
+  JClassType[] x=baseClass.getSubtypes();
+  for (int i=0; i < x.length; i++) {
+    JClassType subType=x[i];
+    if ((subType.isInterface() == null) && (subType.isAbstract() == false)) {
+      String name=subType.getSimpleSourceName();
+      int localeIndex=name.indexOf(ResourceFactory.LOCALE_SEPARATOR);
+      String subTypeBaseName=name;
+      if (localeIndex != -1) {
+        subTypeBaseName=name.substring(0,localeIndex);
+      }
+      boolean matches=subTypeBaseName.equals(baseName);
+      if (matches) {
+        boolean isDefault=localeIndex == -1 || localeIndex == name.length() - 1 || ResourceFactory.DEFAULT_TOKEN.equals(name.substring(localeIndex + 1));
+        if (isDefault) {
+          JClassType defaultClass=matchingClasses.get(ResourceFactory.DEFAULT_TOKEN);
+          if (defaultClass != null) {
+            throw error(logger,defaultClass + " and " + baseName+ " are both potential default classes for "+ baseClass);
+          }
+ else {
+            matchingClasses.put(ResourceFactory.DEFAULT_TOKEN,subType);
+          }
+        }
+ else {
+          String localeSubString=name.substring(localeIndex + 1);
+          JClassType dopClass=matchingClasses.get(localeSubString);
+          if (dopClass != null) {
+            throw error(logger,dopClass.getQualifiedSourceName() + " and " + subType.getQualifiedSourceName()+ " are both potential matches to "+ baseClass+ " in locale "+ localeSubString);
+          }
+          matchingClasses.put(localeSubString,subType);
+        }
+      }
+    }
+  }
+  return matchingClasses;
+}

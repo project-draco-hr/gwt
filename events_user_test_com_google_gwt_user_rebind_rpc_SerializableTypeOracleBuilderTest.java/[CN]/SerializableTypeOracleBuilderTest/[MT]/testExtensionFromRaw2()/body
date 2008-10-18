@@ -1,0 +1,61 @@
+{
+  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
+  addStandardClasses(units);
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class HashSet<T extends Serializable> implements Serializable {\n");
+    code.append("  T[] x;\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("HashSet",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class NameSet<T extends SerClass> extends HashSet implements Serializable {\n");
+    code.append("  T exposed;\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("NameSet",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class SerClass implements Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("SerClass",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class SerClassSub extends SerClass {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("SerClassSub",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class UnrelatedClass implements Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("UnrelatedClass",code));
+  }
+  TreeLogger logger=createLogger();
+  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,units);
+  JClassType string=to.getType(String.class.getCanonicalName());
+  JGenericType hashSet=to.getType("HashSet").isGenericType();
+  JGenericType nameSet=to.getType("NameSet").isGenericType();
+  JClassType unrelatedClass=to.getType("UnrelatedClass");
+  JClassType serClass=to.getType("SerClass");
+  JClassType serClassSub=to.getType("SerClassSub");
+  JParameterizedType hashSetOfString=to.getParameterizedType(hashSet,makeArray(string));
+  SerializableTypeOracleBuilder sob=createSerializableTypeOracleBuilder(logger,to);
+  sob.addRootType(logger,hashSetOfString);
+  SerializableTypeOracle so=sob.build(logger);
+  JArrayType arrayOfString=to.getArrayType(string);
+  assertSerializableTypes(so,hashSet.getRawType(),nameSet.getRawType(),string,arrayOfString,serClass,serClassSub);
+  assertInstantiable(so,hashSet.getRawType());
+  assertInstantiable(so,nameSet.getRawType());
+  assertInstantiable(so,string);
+  assertInstantiable(so,serClass);
+  assertInstantiable(so,serClassSub);
+  assertNotInstantiable(so,unrelatedClass);
+}

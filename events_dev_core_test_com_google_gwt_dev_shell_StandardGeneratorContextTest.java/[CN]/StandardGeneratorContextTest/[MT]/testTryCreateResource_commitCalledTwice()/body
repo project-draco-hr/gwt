@@ -1,0 +1,24 @@
+{
+  String path=createTempOutFilename();
+  OutputStream os=genCtx.tryCreateResource(mockLogger,path);
+  os.write("going to call commit twice after this...".getBytes(Util.DEFAULT_ENCODING));
+  genCtx.setCurrentGenerator(MockGenerator.class);
+  GeneratedResource res=genCtx.commitResource(mockLogger,os);
+  assertEquals(path,res.getPartialPath());
+  assertEquals(MockGenerator.class,res.getGenerator());
+  File createdFile=new File(tempOutDir,path);
+  assertTrue(createdFile.exists());
+  assertEquals(1,artifactSet.size());
+  @SuppressWarnings("unchecked") Artifact nextArt=artifactSet.iterator().next();
+  GeneratedResource generatedResource=(GeneratedResource)nextArt;
+  assertEquals(path,generatedResource.getPartialPath());
+  assertEquals(MockGenerator.class,generatedResource.getGenerator());
+  rememberToDelete(createdFile);
+  try {
+    genCtx.commitResource(mockLogger,os);
+    fail("Calling commit() again on the same stream object should have caused an exception");
+  }
+ catch (  UnableToCompleteException e) {
+  }
+  assertEquals(1,artifactSet.size());
+}

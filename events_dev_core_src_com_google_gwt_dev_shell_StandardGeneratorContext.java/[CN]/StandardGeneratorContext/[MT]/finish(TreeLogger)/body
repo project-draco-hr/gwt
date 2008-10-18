@@ -1,0 +1,52 @@
+{
+  abortUncommittedResources(logger);
+  List<String> genTypeNames=new ArrayList<String>();
+  try {
+    TreeLogger branch;
+    if (!committedGeneratedCups.isEmpty()) {
+      String msg="Assimilating generated source";
+      branch=logger.branch(TreeLogger.DEBUG,msg,null);
+      TreeLogger subBranch=null;
+      if (branch.isLoggable(TreeLogger.DEBUG)) {
+        subBranch=branch.branch(TreeLogger.DEBUG,"Generated source files...",null);
+      }
+      for (      GeneratedUnitWithFile gcup : committedGeneratedCups) {
+        String qualifiedTypeName=gcup.getTypeName();
+        genTypeNames.add(qualifiedTypeName);
+        maybeWriteSource(gcup,qualifiedTypeName);
+        compilationState.addGeneratedCompilationUnit(gcup);
+        if (subBranch != null) {
+          subBranch.log(TreeLogger.DEBUG,gcup.getDisplayLocation(),null);
+        }
+      }
+      compilationState.compile(logger);
+    }
+    TypeOracle typeOracle=getTypeOracle();
+    JClassType[] genTypes=new JClassType[genTypeNames.size()];
+    int next=0;
+    for (Iterator<String> iter=genTypeNames.iterator(); iter.hasNext(); ) {
+      String genTypeName=iter.next();
+      try {
+        genTypes[next++]=typeOracle.getType(genTypeName);
+      }
+ catch (      NotFoundException e) {
+        String msg="Unable to find recently-generated type '" + genTypeName;
+        logger.log(TreeLogger.ERROR,msg,null);
+        throw new UnableToCompleteException();
+      }
+    }
+    return genTypes;
+  }
+  finally {
+    if (!uncommittedGeneratedCupsByPrintWriter.isEmpty()) {
+      String msg="For the following type(s), generated source was never committed (did you forget to call commit()?)";
+      logger=logger.branch(TreeLogger.WARN,msg,null);
+      for (      GeneratedUnitWithFile unit : uncommittedGeneratedCupsByPrintWriter.values()) {
+        logger.log(TreeLogger.WARN,unit.getTypeName(),null);
+      }
+    }
+    uncommittedGeneratedCupsByPrintWriter.clear();
+    committedGeneratedCups.clear();
+    generatedTypeNames.clear();
+  }
+}

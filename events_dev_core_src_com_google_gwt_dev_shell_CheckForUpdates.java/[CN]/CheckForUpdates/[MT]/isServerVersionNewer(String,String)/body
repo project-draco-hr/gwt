@@ -1,0 +1,29 @@
+{
+  if (clientVersion == null || serverVersion == null) {
+    return false;
+  }
+  if (!clientVersion.matches(VERSION_REGEXP) || !serverVersion.matches(VERSION_REGEXP)) {
+    return false;
+  }
+  String[] clientParts=clientVersion.split("\\.");
+  String[] serverParts=serverVersion.split("\\.");
+  if (clientParts.length != VERSION_PARTS || serverParts.length != VERSION_PARTS) {
+    return false;
+  }
+  for (int i=0; i < VERSION_PARTS; ++i) {
+    try {
+      int clientPart=Integer.parseInt(clientParts[i]);
+      int serverPart=Integer.parseInt(serverParts[i]);
+      if (serverPart < clientPart) {
+        return false;
+      }
+      if (serverPart > clientPart) {
+        return true;
+      }
+    }
+ catch (    NumberFormatException e) {
+      return false;
+    }
+  }
+  return false;
+}

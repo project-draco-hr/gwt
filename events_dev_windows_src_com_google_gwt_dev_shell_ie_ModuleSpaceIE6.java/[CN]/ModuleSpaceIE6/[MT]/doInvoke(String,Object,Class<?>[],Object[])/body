@@ -1,0 +1,29 @@
+{
+  Variant[] vArgs=null;
+  try {
+    CompilingClassLoader isolatedClassLoader=getIsolatedClassLoader();
+    int len=args.length;
+    vArgs=new Variant[len + 1];
+    Class<?> jthisType=(jthis == null) ? Object.class : jthis.getClass();
+    vArgs[0]=SwtOleGlue.convertObjectToVariant(isolatedClassLoader,jthisType,jthis);
+    for (int i=0; i < len; ++i) {
+      vArgs[i + 1]=SwtOleGlue.convertObjectToVariant(isolatedClassLoader,types[i],args[i]);
+    }
+    Variant result=doInvokeOnWindow(window,name,vArgs);
+    try {
+      return new JsValueIE6(result);
+    }
+  finally {
+      if (result != null) {
+        result.dispose();
+      }
+    }
+  }
+  finally {
+    for (int i=0; i < vArgs.length; ++i) {
+      if (vArgs[i] != null) {
+        vArgs[i].dispose();
+      }
+    }
+  }
+}

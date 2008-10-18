@@ -1,0 +1,18 @@
+{
+  if (exceptionsSet.size() == 0) {
+    return;
+  }
+  TypeOracle typeOracle=method.getEnclosingType().getOracle();
+  JClassType errorType=typeOracle.findType(Error.class.getName());
+  JClassType rteType=typeOracle.findType(RuntimeException.class.getName());
+  Set<String> exceptionsToRemove=new HashSet<String>();
+  for (  String exceptionString : exceptionsSet) {
+    JType exception=exceptionsMap.get(exceptionString);
+    assert(exception != null);
+    boolean remove=(errorType != null && ApiDiffGenerator.isFirstTypeAssignableToSecond(exception,errorType)) || (rteType != null && ApiDiffGenerator.isFirstTypeAssignableToSecond(exception,rteType));
+    if (remove) {
+      exceptionsToRemove.add(exceptionString);
+    }
+  }
+  exceptionsSet.removeAll(exceptionsToRemove);
+}

@@ -1,0 +1,58 @@
+{
+  host.onModuleReady(this);
+  try {
+    Object staticDispatch=getStaticDispatcher();
+    createNative("initializeStaticDispatcher",0,"__defineStatic",new String[]{"__arg0"},"window.__static = __arg0;");
+    invokeNativeVoid("__defineStatic",null,new Class[]{Object.class},new Object[]{staticDispatch});
+  }
+ catch (  Throwable e) {
+    logger.log(TreeLogger.ERROR,"Unable to initialize static dispatcher",e);
+    throw new UnableToCompleteException();
+  }
+  String entryPointTypeName=null;
+  try {
+    String[] entryPoints=host.getEntryPointTypeNames();
+    if (entryPoints.length > 0) {
+      for (int i=0; i < entryPoints.length; i++) {
+        entryPointTypeName=entryPoints[i];
+        Class<?> clazz=loadClassFromSourceName(entryPointTypeName);
+        Method onModuleLoad=null;
+        try {
+          onModuleLoad=clazz.getMethod("onModuleLoad");
+          if (!Modifier.isStatic(onModuleLoad.getModifiers())) {
+            onModuleLoad=null;
+          }
+        }
+ catch (        NoSuchMethodException e) {
+        }
+        Object module=null;
+        if (onModuleLoad == null) {
+          module=rebindAndCreate(entryPointTypeName);
+          onModuleLoad=module.getClass().getMethod("onModuleLoad");
+          entryPointTypeName=module.getClass().getName().replace('$','.');
+        }
+        onModuleLoad.setAccessible(true);
+        invokeNativeVoid("fireOnModuleLoadStart",null,new Class[]{String.class},new Object[]{entryPointTypeName});
+        onModuleLoad.invoke(module);
+      }
+    }
+ else {
+      logger.log(TreeLogger.WARN,"The module has no entry points defined, so onModuleLoad() will never be called",null);
+    }
+  }
+ catch (  Throwable e) {
+    Throwable caught=e;
+    if (e instanceof InvocationTargetException) {
+      caught=((InvocationTargetException)e).getTargetException();
+    }
+    if (caught instanceof ExceptionInInitializerError) {
+      caught=((ExceptionInInitializerError)caught).getException();
+    }
+    String unableToLoadMessage="Unable to load module entry point class " + entryPointTypeName;
+    if (caught != null) {
+      unableToLoadMessage+=" (see associated exception for details)";
+    }
+    logger.log(TreeLogger.ERROR,unableToLoadMessage,caught);
+    throw new UnableToCompleteException();
+  }
+}

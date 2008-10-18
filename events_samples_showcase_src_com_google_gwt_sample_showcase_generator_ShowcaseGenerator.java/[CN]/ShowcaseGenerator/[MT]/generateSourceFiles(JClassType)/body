@@ -1,0 +1,35 @@
+{
+  String filename=type.getQualifiedSourceName().replace('.','/') + ".java";
+  String fileContents=getResourceContents(filename);
+  String formattedSource="";
+  String dataTag="@" + ShowcaseData.class.getSimpleName();
+  String sourceTag="@" + ShowcaseSource.class.getSimpleName();
+  int dataTagIndex=fileContents.indexOf(dataTag);
+  int srcTagIndex=fileContents.indexOf(sourceTag);
+  while (dataTagIndex >= 0 || srcTagIndex >= 0) {
+    if (dataTagIndex >= 0 && (dataTagIndex < srcTagIndex || srcTagIndex < 0)) {
+      int beginIndex=fileContents.lastIndexOf("  /*",dataTagIndex);
+      int beginTagIndex=fileContents.lastIndexOf("\n",dataTagIndex) + 1;
+      int endTagIndex=fileContents.indexOf("\n",dataTagIndex) + 1;
+      int endIndex=fileContents.indexOf(";",beginIndex) + 1;
+      String srcData=fileContents.substring(beginIndex,beginTagIndex) + fileContents.substring(endTagIndex,endIndex);
+      formattedSource+=srcData + "\n\n";
+      dataTagIndex=fileContents.indexOf(dataTag,endIndex + 1);
+    }
+ else {
+      int beginIndex=fileContents.lastIndexOf("/*",srcTagIndex) - 2;
+      int beginTagIndex=fileContents.lastIndexOf("\n",srcTagIndex) + 1;
+      int endTagIndex=fileContents.indexOf("\n",srcTagIndex) + 1;
+      int endIndex=fileContents.indexOf("\n  }",beginIndex) + 4;
+      String srcCode=fileContents.substring(beginIndex,beginTagIndex) + fileContents.substring(endTagIndex,endIndex);
+      formattedSource+=srcCode + "\n\n";
+      srcTagIndex=fileContents.indexOf(sourceTag,endIndex + 1);
+    }
+  }
+  formattedSource=formattedSource.replace("<","&lt;");
+  formattedSource=formattedSource.replace(">","&gt;");
+  formattedSource=formattedSource.replace("* \n   */\n","*/\n");
+  formattedSource="<pre>" + formattedSource + "</pre>";
+  String dstPath=ShowcaseConstants.DST_SOURCE_EXAMPLE + type.getSimpleSourceName() + ".html";
+  createPublicResource(dstPath,formattedSource);
+}

@@ -1,0 +1,24 @@
+{
+  InternalCompilerException other=pendingICE.get();
+  if (other != null) {
+    return;
+  }
+  String className=null;
+  String description=null;
+  SourceInfo sourceInfo=null;
+  try {
+    pendingICE.set(this);
+    className=node.getClass().getName();
+    sourceInfo=node.getSourceInfo();
+    description=node.toString();
+  }
+ catch (  Throwable e) {
+    if (description == null) {
+      description="<source info not available>";
+    }
+  }
+ finally {
+    pendingICE.set(null);
+  }
+  addNode(className,description,sourceInfo);
+}

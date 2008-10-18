@@ -1,0 +1,33 @@
+{
+  String platform=Platform.PLATFORM;
+  String version=System.getProperty("swt.version");
+  if (version == null) {
+    version="" + MAJOR_VERSION;
+    if (MINOR_VERSION < 10) {
+      version+="00";
+    }
+ else {
+      if (MINOR_VERSION < 100)       version+="0";
+    }
+    version+=MINOR_VERSION;
+    if (REVISION > 0)     version+="r" + REVISION;
+  }
+  String swtLibraryPath=System.getProperty("swt.library.path");
+  try {
+    String newName=name + "-" + platform+ "-"+ version;
+    if (swtLibraryPath != null)     System.load(swtLibraryPath + System.mapLibraryName(newName));
+ else     System.loadLibrary(newName);
+    return;
+  }
+ catch (  UnsatisfiedLinkError e1) {
+    try {
+      String newName=name + "-" + platform;
+      if (swtLibraryPath != null)       System.load(swtLibraryPath + System.mapLibraryName(newName));
+ else       System.loadLibrary(newName);
+      return;
+    }
+ catch (    UnsatisfiedLinkError e2) {
+      throw e1;
+    }
+  }
+}

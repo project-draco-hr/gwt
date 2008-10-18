@@ -1,0 +1,23 @@
+{
+  JField field=(JField)typeMap.tryGet(declaration.binding);
+  if (field == null) {
+    return;
+  }
+  try {
+    JExpression initializer=null;
+    if (declaration.initialization != null) {
+      initializer=dispProcessExpression(declaration.initialization);
+    }
+    if (field instanceof JEnumField) {
+      assert(initializer instanceof JMethodCall);
+    }
+    if (initializer != null) {
+      SourceInfo info=makeSourceInfo(declaration);
+      JStatement decl=new JDeclarationStatement(program,info,createVariableRef(info,field),initializer);
+      currentMethodBody.getStatements().add(decl);
+    }
+  }
+ catch (  Throwable e) {
+    throw translateException(field,e);
+  }
+}

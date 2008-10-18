@@ -1,0 +1,19 @@
+{
+  outer:   for (  JMethod intfMethod : intf.methods) {
+    for (    JMethod classMethod : type.methods) {
+      if (methodsDoMatch(intfMethod,classMethod)) {
+        continue outer;
+      }
+    }
+    for (JClassType superType=type.extnds; superType != javaLangObject; superType=superType.extnds) {
+      for (      JMethod superMethod : superType.methods) {
+        if (methodsDoMatch(intfMethod,superMethod)) {
+          Map<JClassType,Set<JMethod>> classToMethodMap=getOrCreateMap(virtualUpRefMap,superMethod);
+          Set<JMethod> methodSet=getOrCreate(classToMethodMap,type);
+          methodSet.add(intfMethod);
+          continue outer;
+        }
+      }
+    }
+  }
+}

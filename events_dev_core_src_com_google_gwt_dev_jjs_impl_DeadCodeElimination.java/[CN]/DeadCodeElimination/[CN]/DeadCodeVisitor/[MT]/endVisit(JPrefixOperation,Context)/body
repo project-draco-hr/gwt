@@ -1,0 +1,23 @@
+{
+  if (x.getOp().isModifying()) {
+    lvalues.remove(x.getArg());
+  }
+  if (x.getArg() instanceof JValueLiteral) {
+    if (evalOpOnLiteral(x.getOp(),(JValueLiteral)x.getArg(),ctx)) {
+      return;
+    }
+  }
+  if (x.getOp() == JUnaryOperator.NOT) {
+    JExpression updated=simplifier.not(x,x.getSourceInfo(),x.getArg());
+    if (updated != x) {
+      ctx.replaceMe(updated);
+    }
+    return;
+  }
+ else   if (x.getOp() == JUnaryOperator.NEG) {
+    JExpression updated=simplifyNegate(x,x.getArg());
+    if (updated != x) {
+      ctx.replaceMe(updated);
+    }
+  }
+}

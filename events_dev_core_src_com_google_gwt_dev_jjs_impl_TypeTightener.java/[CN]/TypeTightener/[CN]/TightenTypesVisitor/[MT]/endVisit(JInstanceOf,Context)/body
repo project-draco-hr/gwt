@@ -1,0 +1,38 @@
+{
+  JType argType=x.getExpr().getType();
+  if (!(argType instanceof JReferenceType)) {
+    return;
+  }
+  JReferenceType toType=x.getTestType();
+  JReferenceType fromType=(JReferenceType)argType;
+  boolean triviallyTrue=false;
+  boolean triviallyFalse=false;
+  JTypeOracle typeOracle=program.typeOracle;
+  if (fromType == program.getTypeNull()) {
+    triviallyFalse=true;
+  }
+ else   if (typeOracle.canTriviallyCast(fromType,toType)) {
+    triviallyTrue=true;
+  }
+ else   if (!typeOracle.isInstantiatedType(toType)) {
+    triviallyFalse=true;
+  }
+ else   if (!typeOracle.canTheoreticallyCast(fromType,toType)) {
+    triviallyFalse=true;
+  }
+  if (triviallyTrue) {
+    JNullLiteral nullLit=program.getLiteralNull();
+    JBinaryOperation neq=new JBinaryOperation(program,x.getSourceInfo(),program.getTypePrimitiveBoolean(),JBinaryOperator.NEQ,x.getExpr(),nullLit);
+    ctx.replaceMe(neq);
+  }
+ else   if (triviallyFalse) {
+    ctx.replaceMe(program.getLiteralBoolean(false));
+  }
+ else {
+    JClassType concreteType=getSingleConcreteType(toType);
+    if (concreteType != null) {
+      JInstanceOf newOp=new JInstanceOf(program,x.getSourceInfo(),concreteType,x.getExpr());
+      ctx.replaceMe(newOp);
+    }
+  }
+}

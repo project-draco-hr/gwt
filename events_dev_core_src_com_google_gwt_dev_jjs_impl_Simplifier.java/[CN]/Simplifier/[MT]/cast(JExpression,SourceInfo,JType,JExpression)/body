@@ -1,0 +1,23 @@
+{
+  if (type == exp.getType()) {
+    return exp;
+  }
+  if ((type instanceof JPrimitiveType) && (exp instanceof JValueLiteral)) {
+    JPrimitiveType typePrim=(JPrimitiveType)type;
+    JValueLiteral expLit=(JValueLiteral)exp;
+    JValueLiteral casted=typePrim.coerceLiteral(expLit);
+    if (casted != null) {
+      return casted;
+    }
+  }
+  if (type == program.getTypePrimitiveInt()) {
+    JType expType=exp.getType();
+    if ((expType == program.getTypePrimitiveShort()) || (expType == program.getTypePrimitiveByte())) {
+      return exp;
+    }
+  }
+  if (original != null) {
+    return original;
+  }
+  return new JCastOperation(program,exp.getSourceInfo(),type,exp);
+}

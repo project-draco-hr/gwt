@@ -1,0 +1,32 @@
+{
+  ToggleButton b=new ToggleButton("up","down");
+  b.setStyleName("random");
+  b.setDown(true);
+  assertEquals(b.getStylePrimaryName(),"random");
+  Map faces=new HashMap();
+  faces.put("downDisabled",b.getDownDisabledFace());
+  faces.put("upDisabled",b.getUpDisabledFace());
+  faces.put("down",b.getDownFace());
+  faces.put("up",b.getUpFace());
+  faces.put("upHovering",b.getUpHoveringFace());
+  faces.put("downHovering",b.getDownHoveringFace());
+  Iterator entries=faces.entrySet().iterator();
+  while (entries.hasNext()) {
+    Map.Entry entry=(Entry)entries.next();
+    Face f=(Face)entry.getValue();
+    b.setCurrentFace(f);
+    assertEquals("random",b.getStylePrimaryName());
+    assertTrue(b.getStyleName().indexOf("random-" + f.getName()) != -1);
+  }
+  entries=faces.entrySet().iterator();
+  b.addStyleName("fobar");
+  while (entries.hasNext()) {
+    Map.Entry entry=(Entry)entries.next();
+    Face f=(Face)entry.getValue();
+    b.setCurrentFace(f);
+    String computedStyleName=DOM.getElementProperty(b.getElement(),"className");
+    assertTrue(computedStyleName.indexOf("random") == 0);
+    assertTrue(computedStyleName.indexOf("random-" + f.getName()) >= 0);
+    assertTrue(computedStyleName.indexOf("fobar") >= 0);
+  }
+}

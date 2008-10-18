@@ -1,0 +1,29 @@
+{
+  int mySiblingsMaxId=maxChildId;
+  maxChildId=0;
+  List<JsScope> children=scope.getChildren();
+  for (Iterator<JsScope> it=children.iterator(); it.hasNext(); ) {
+    visit(it.next());
+  }
+  JsRootScope rootScope=program.getRootScope();
+  if (scope == rootScope) {
+    return;
+  }
+  int curId=maxChildId;
+  for (Iterator<JsName> it=scope.getAllNames(); it.hasNext(); ) {
+    JsName name=it.next();
+    if (!name.isObfuscatable()) {
+      name.setShortIdent(name.getIdent());
+      continue;
+    }
+    String newIdent;
+    while (true) {
+      newIdent=makeObfuscatedIdent(curId++);
+      if (isLegal(scope,newIdent)) {
+        break;
+      }
+    }
+    name.setShortIdent(newIdent);
+  }
+  maxChildId=Math.max(mySiblingsMaxId,curId);
+}

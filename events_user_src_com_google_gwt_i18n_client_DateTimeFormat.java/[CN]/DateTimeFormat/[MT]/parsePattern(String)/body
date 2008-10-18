@@ -1,0 +1,53 @@
+{
+  StringBuffer buf=new StringBuffer(32);
+  boolean inQuote=false;
+  for (int i=0; i < pattern.length(); i++) {
+    char ch=pattern.charAt(i);
+    if (ch == ' ') {
+      addPart(buf,0);
+      buf.append(' ');
+      addPart(buf,0);
+      while (i + 1 < pattern.length() && pattern.charAt(i + 1) == ' ') {
+        i++;
+      }
+      continue;
+    }
+    if (inQuote) {
+      if (ch == '\'') {
+        if (i + 1 < pattern.length() && pattern.charAt(i + 1) == '\'') {
+          buf.append(ch);
+          ++i;
+        }
+ else {
+          inQuote=false;
+        }
+      }
+ else {
+        buf.append(ch);
+      }
+      continue;
+    }
+    if (PATTERN_CHARS.indexOf(ch) > 0) {
+      addPart(buf,0);
+      buf.append(ch);
+      int count=getNextCharCountInPattern(pattern,i);
+      addPart(buf,count);
+      i+=count - 1;
+      continue;
+    }
+    if (ch == '\'') {
+      if (i + 1 < pattern.length() && pattern.charAt(i + 1) == '\'') {
+        buf.append('\'');
+        i++;
+      }
+ else {
+        inQuote=true;
+      }
+    }
+ else {
+      buf.append(ch);
+    }
+  }
+  addPart(buf,0);
+  identifyAbutStart();
+}

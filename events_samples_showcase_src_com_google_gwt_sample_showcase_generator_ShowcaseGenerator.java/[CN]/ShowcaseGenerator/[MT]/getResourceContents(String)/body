@@ -1,0 +1,30 @@
+{
+  InputStream in=classLoader.getResourceAsStream(path);
+  if (in == null) {
+    logger.log(TreeLogger.ERROR,"Resource not found: " + path);
+    throw new UnableToCompleteException();
+  }
+  StringBuffer fileContentsBuf=new StringBuffer();
+  BufferedReader br=null;
+  try {
+    br=new BufferedReader(new InputStreamReader(in));
+    String temp;
+    while ((temp=br.readLine()) != null) {
+      fileContentsBuf.append(temp).append('\n');
+    }
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Cannot read resource",e);
+    throw new UnableToCompleteException();
+  }
+ finally {
+    if (br != null) {
+      try {
+        br.close();
+      }
+ catch (      IOException e) {
+      }
+    }
+  }
+  return fileContentsBuf.toString();
+}

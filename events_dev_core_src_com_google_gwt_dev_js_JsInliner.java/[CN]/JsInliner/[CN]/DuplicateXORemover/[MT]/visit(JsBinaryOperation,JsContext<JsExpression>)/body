@@ -1,0 +1,30 @@
+{
+  if (x.getOperator() == JsBinaryOperator.COMMA) {
+    boolean left=isDuplicateCall(x.getArg1());
+    boolean right=isDuplicateCall(x.getArg2());
+    if (left && right) {
+      if (ctx.canRemove()) {
+        ctx.removeMe();
+        return false;
+      }
+ else {
+        ctx.replaceMe(program.getNullLiteral());
+        return false;
+      }
+    }
+ else     if (left) {
+      ctx.replaceMe(accept(x.getArg2()));
+      return false;
+    }
+ else     if (right) {
+      ctx.replaceMe(accept(x.getArg1()));
+      return false;
+    }
+  }
+ else   if (x.getOperator().equals(JsBinaryOperator.AND) || x.getOperator().equals(JsBinaryOperator.OR)) {
+    x.setArg1(accept(x.getArg1()));
+    x.setArg2(branch(x.getArg2()));
+    return false;
+  }
+  return true;
+}

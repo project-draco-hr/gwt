@@ -1,0 +1,26 @@
+{
+  JsScope myScope=classScopes.get(x);
+  if (myScope != null) {
+    push(myScope);
+    return false;
+  }
+  names.put(x,topScope.declareName(getNameString(x),x.getShortName()));
+  if (x.extnds == null) {
+    myScope=objectScope;
+  }
+ else {
+    JsScope parentScope=classScopes.get(x.extnds);
+    if (parentScope == null) {
+      accept(x.extnds);
+    }
+    parentScope=classScopes.get(x.extnds);
+    assert(parentScope != null);
+    if (parentScope == objectScope) {
+      parentScope=interfaceScope;
+    }
+    myScope=new JsScope(parentScope,"class " + x.getShortName());
+  }
+  classScopes.put(x,myScope);
+  push(myScope);
+  return true;
+}

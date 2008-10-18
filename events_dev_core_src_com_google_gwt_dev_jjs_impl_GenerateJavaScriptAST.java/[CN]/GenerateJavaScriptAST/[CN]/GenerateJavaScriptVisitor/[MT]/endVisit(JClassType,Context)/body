@@ -1,0 +1,45 @@
+{
+  if (alreadyRan.contains(x)) {
+    return;
+  }
+  if (program.getTypeClassLiteralHolder() == x) {
+    return;
+  }
+  alreadyRan.add(x);
+  List<JsFunction> jsFuncs=popList(x.methods.size());
+  List<JsNode> jsFields=popList(x.fields.size());
+  if (typeOracle.hasClinit(x)) {
+    JsFunction superClinit=clinitMap.get(x.extnds);
+    JsFunction myClinit=jsFuncs.get(0);
+    handleClinit(myClinit,superClinit);
+    clinitMap.put(x,myClinit);
+  }
+ else {
+    jsFuncs.set(0,null);
+  }
+  List<JsStatement> globalStmts=jsProgram.getGlobalBlock().getStatements();
+  for (int i=0; i < jsFuncs.size(); ++i) {
+    JsFunction func=jsFuncs.get(i);
+    if (func != null) {
+      globalStmts.add(func.makeStmt());
+    }
+  }
+  if (typeOracle.isInstantiatedType(x) && !program.isJavaScriptObject(x)) {
+    generateClassSetup(x,globalStmts);
+  }
+  JsVars vars=new JsVars();
+  for (int i=0; i < jsFields.size(); ++i) {
+    JsNode node=jsFields.get(i);
+    if (node instanceof JsVar) {
+      vars.add((JsVar)node);
+    }
+ else {
+      assert(node instanceof JsStatement);
+      JsStatement stmt=(JsStatement)jsFields.get(i);
+      globalStmts.add(stmt);
+    }
+  }
+  if (!vars.isEmpty()) {
+    globalStmts.add(vars);
+  }
+}

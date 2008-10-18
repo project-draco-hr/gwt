@@ -1,0 +1,31 @@
+{
+  try {
+    NamingEnumeration<NameClassPair> enum_=srcDir.list("");
+    while (enum_.hasMoreElements()) {
+      NameClassPair ncPair=enum_.nextElement();
+      String name=ncPair.getName();
+      Object object=srcDir.lookup(name);
+      File currentFile=new File(destDir,name);
+      if (object instanceof Resource) {
+        InputStream is=((Resource)object).streamContent();
+        OutputStream os=new FileOutputStream(currentFile);
+        if (!copy(is,os))         return false;
+      }
+ else       if (object instanceof InputStream) {
+        OutputStream os=new FileOutputStream(currentFile);
+        if (!copy((InputStream)object,os))         return false;
+      }
+ else       if (object instanceof DirContext) {
+        currentFile.mkdir();
+        copyDir((DirContext)object,currentFile);
+      }
+    }
+  }
+ catch (  NamingException e) {
+    return false;
+  }
+catch (  IOException e) {
+    return false;
+  }
+  return true;
+}

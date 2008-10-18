@@ -1,0 +1,23 @@
+{
+  int lineNumber=locator.getLineNumber();
+  Schema schemaLevel=popLevel();
+  if (schemaLevel == null) {
+    return;
+  }
+  Class slc=schemaLevel.getClass();
+  HandlerClassInfo classInfo=HandlerClassInfo.getClassInfo(slc);
+  assert(classInfo != null);
+  HandlerMethod method=classInfo.getEndMethod(elem);
+  if (method == null) {
+    return;
+  }
+  Object[] args=getCurrentArgs();
+  if (args != null) {
+    try {
+      method.invokeEnd(lineNumber,elem,schemaLevel,args);
+    }
+ catch (    UnableToCompleteException e) {
+      throw new SAXException(e);
+    }
+  }
+}

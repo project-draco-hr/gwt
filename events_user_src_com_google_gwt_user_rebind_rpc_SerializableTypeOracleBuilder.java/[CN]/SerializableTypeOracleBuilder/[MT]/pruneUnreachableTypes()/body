@@ -1,0 +1,22 @@
+{
+  Set<JType> supersOfInstantiableTypes=new LinkedHashSet<JType>();
+  for (  TypeInfoComputed tic : typeToTypeInfoComputed.values()) {
+    if (tic.isInstantiable()) {
+      JClassType type=tic.getType().getErasedType();
+      JClassType sup=type;
+      while (sup != null) {
+        supersOfInstantiableTypes.add(sup.getErasedType());
+        sup=sup.getErasedType().getSuperclass();
+      }
+    }
+  }
+  Set<JType> toKill=new LinkedHashSet<JType>();
+  for (  TypeInfoComputed tic : typeToTypeInfoComputed.values()) {
+    if (tic.isFieldSerializable() && !supersOfInstantiableTypes.contains(tic.getType().getErasedType())) {
+      toKill.add(tic.getType());
+    }
+  }
+  for (  JType type : toKill) {
+    typeToTypeInfoComputed.remove(type);
+  }
+}

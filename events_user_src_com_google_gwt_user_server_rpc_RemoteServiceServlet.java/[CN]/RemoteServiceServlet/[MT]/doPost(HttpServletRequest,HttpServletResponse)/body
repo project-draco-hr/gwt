@@ -1,0 +1,19 @@
+{
+  try {
+    perThreadRequest.set(request);
+    perThreadResponse.set(response);
+    String requestPayload=readContent(request);
+    onBeforeRequestDeserialized(requestPayload);
+    String responsePayload=processCall(requestPayload);
+    onAfterResponseSerialized(responsePayload);
+    writeResponse(request,response,responsePayload);
+    return;
+  }
+ catch (  Throwable e) {
+    doUnexpectedFailure(e);
+  }
+ finally {
+    perThreadRequest.set(null);
+    perThreadResponse.set(null);
+  }
+}

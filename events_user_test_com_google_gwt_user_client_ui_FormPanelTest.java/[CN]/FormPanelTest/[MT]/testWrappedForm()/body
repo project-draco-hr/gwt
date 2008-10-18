@@ -1,0 +1,18 @@
+{
+  String uid=Document.get().createUniqueId();
+  HTML formAndFrame=new HTML("<form id='" + uid + "' method='post' target='targetFrame' action='"+ GWT.getModuleBaseURL()+ "formHandler?sendHappyHtml'>"+ "<input type='hidden' name='foo' value='bar'></input></form>"+ "<iframe src='javascript:\'\'' id='targetMe' name='targetFrame'></iframe>");
+  RootPanel.get().add(formAndFrame);
+  FormPanel form=FormPanel.wrap(Document.get().getElementById(uid));
+  assertEquals("targetFrame",form.getTarget());
+  assertNull(form.getSynthesizedIFrame());
+  delayTestFinish(5000);
+  new Timer(){
+    @Override public void run(){
+      Frame frame=Frame.wrap(Document.get().getElementById("targetMe"));
+      assertTrue(isHappyDivPresent(frame.getElement()));
+      finishTest();
+    }
+  }
+.schedule(2500);
+  form.submit();
+}

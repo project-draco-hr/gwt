@@ -1,0 +1,20 @@
+{
+  if (initialized) {
+    return;
+  }
+  try {
+    LowLevel.init();
+  }
+ catch (  UnsatisfiedLinkError e) {
+    System.err.println("On Mac OS X, ensure that you have Safari 3 installed.");
+    if (!(new File("/System/Library/Frameworks/JavaScriptCore.framework")).isDirectory()) {
+      System.err.println("Could not find JavaScriptCore in the expected location.");
+    }
+    throw e;
+  }
+  if (!initImpl(DispatchObject.class,DispatchMethod.class,LowLevelSaf.class)) {
+    throw new RuntimeException("Unable to initialize LowLevelSaf");
+  }
+  jsValueProtectionCheckingEnabled=isJsValueProtectionCheckingEnabledImpl();
+  initialized=true;
+}

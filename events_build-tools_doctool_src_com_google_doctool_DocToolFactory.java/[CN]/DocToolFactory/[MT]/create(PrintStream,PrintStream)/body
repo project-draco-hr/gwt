@@ -1,0 +1,37 @@
+{
+  File localOutDir=outDir;
+  if (localOutDir == null) {
+    localOutDir=new File(System.getProperty("user.dir"),"out");
+    out.println("Using default output directory: " + localOutDir.getAbsolutePath());
+  }
+  File[] classPath=null;
+  File[] sourcePath=null;
+  String[] packageNames=null;
+  if (fileType != null) {
+    if (fileBase == null) {
+      err.println("A file base must be specified when generating doc");
+      return null;
+    }
+    classPath=(File[])classPathEntries.toArray(new File[0]);
+    sourcePath=(File[])srcPathEntries.toArray(new File[0]);
+    packageNames=(String[])packageNameEntries.toArray(new String[0]);
+  }
+  if (generateHtml) {
+    if (title == null) {
+      out.println("A title must be specified when generating html");
+      return null;
+    }
+    if (htmlFileBases.isEmpty()) {
+      out.println("No html filebases were specified");
+      return null;
+    }
+  }
+  String[] htmlFileBaseArray=(String[])htmlFileBases.toArray(new String[0]);
+  List localImagePathEntries=new ArrayList(imagePathEntries);
+  if (localImagePathEntries.isEmpty()) {
+    out.println("No image path specified; using only the output dir");
+  }
+  localImagePathEntries.add(localOutDir);
+  File[] imagePath=(File[])imagePathEntries.toArray(new File[0]);
+  return new DocTool(out,err,localOutDir,generateHtml,title,htmlFileBaseArray,fileType,fileBase,overviewFile,sourcePath,classPath,packageNames,imagePath);
+}

@@ -1,0 +1,86 @@
+{
+  if (!(container instanceof Context))   return;
+  ServletContext servletContext=((Context)container).getServletContext();
+  if (servletContext == null)   return;
+  loaderRepositories=new ArrayList<String>();
+  File workDir=(File)servletContext.getAttribute(Globals.WORK_DIR_ATTR);
+  if (workDir == null) {
+    log.info("No work dir for " + servletContext);
+  }
+  if (log.isDebugEnabled())   log.debug(sm.getString("webappLoader.deploy",workDir.getAbsolutePath()));
+  classLoader.setWorkDir(workDir);
+  DirContext resources=container.getResources();
+  String classesPath="/WEB-INF/classes";
+  DirContext classes=null;
+  try {
+    Object object=resources.lookup(classesPath);
+    if (object instanceof DirContext) {
+      classes=(DirContext)object;
+    }
+  }
+ catch (  NamingException e) {
+  }
+  if (classes != null) {
+    File classRepository=null;
+    String absoluteClassesPath=servletContext.getRealPath(classesPath);
+    if (absoluteClassesPath != null) {
+      classRepository=new File(absoluteClassesPath);
+    }
+ else {
+      classRepository=new File(workDir,classesPath);
+      classRepository.mkdirs();
+      copyDir(classes,classRepository);
+    }
+    if (log.isDebugEnabled())     log.debug(sm.getString("webappLoader.classDeploy",classesPath,classRepository.getAbsolutePath()));
+    classLoader.addRepository(classesPath + "/",classRepository);
+    loaderRepositories.add(classesPath + "/");
+  }
+  String libPath="/WEB-INF/lib";
+  classLoader.setJarPath(libPath);
+  DirContext libDir=null;
+  try {
+    Object object=resources.lookup(libPath);
+    if (object instanceof DirContext)     libDir=(DirContext)object;
+  }
+ catch (  NamingException e) {
+  }
+  if (libDir != null) {
+    boolean copyJars=false;
+    String absoluteLibPath=servletContext.getRealPath(libPath);
+    File destDir=null;
+    if (absoluteLibPath != null) {
+      destDir=new File(absoluteLibPath);
+    }
+ else {
+      copyJars=true;
+      destDir=new File(workDir,libPath);
+      destDir.mkdirs();
+    }
+    try {
+      NamingEnumeration<Binding> enum_=resources.listBindings(libPath);
+      while (enum_.hasMoreElements()) {
+        Binding binding=enum_.nextElement();
+        String filename=libPath + "/" + binding.getName();
+        if (!filename.endsWith(".jar"))         continue;
+        File destFile=new File(destDir,binding.getName());
+        if (log.isDebugEnabled())         log.debug(sm.getString("webappLoader.jarDeploy",filename,destFile.getAbsolutePath()));
+        Resource jarResource=(Resource)binding.getObject();
+        if (copyJars) {
+          if (!copy(jarResource.streamContent(),new FileOutputStream(destFile)))           continue;
+        }
+        try {
+          JarFile jarFile=new JarFile(destFile);
+          classLoader.addJar(filename,jarFile,destFile);
+        }
+ catch (        Exception ex) {
+        }
+        loaderRepositories.add(filename);
+      }
+    }
+ catch (    NamingException e) {
+    }
+catch (    IOException e) {
+      e.printStackTrace();
+    }
+  }
+}

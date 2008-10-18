@@ -1,0 +1,74 @@
+{
+  if (lastLaunchFailed) {
+    throw new UnableToCompleteException();
+  }
+  String syntheticModuleName=moduleName + "." + strategy.getSyntheticModuleExtension();
+  boolean sameTest=(currentModule != null) && syntheticModuleName.equals(currentModule.getName());
+  if (sameTest && lastLaunchFailed) {
+    throw new UnableToCompleteException();
+  }
+  if (!sameTest) {
+    currentModule=ModuleDefLoader.createSyntheticModule(getTopLogger(),syntheticModuleName,new String[]{moduleName,strategy.getModuleInherit()},true);
+    currentModule.clearEntryPoints();
+    currentModule.addEntryPointTypeName(GWTRunner.class.getName());
+    ConfigurationProperty moduleNameProp=currentModule.getProperties().createConfiguration("junit.moduleName");
+    moduleNameProp.setValue(moduleName);
+    runStyle.maybeCompileModule(syntheticModuleName);
+  }
+  JUnitFatalLaunchException launchException=checkTestClassInCurrentModule(getTopLogger(),currentModule,moduleName,testCase);
+  if (launchException != null) {
+    testResult.addError(testCase,launchException);
+    return;
+  }
+  messageQueue.setNextTest(new TestInfo(currentModule.getName(),testCase.getClass().getName(),testCase.getName()));
+  try {
+    if (firstLaunch) {
+      runStyle.launchModule(currentModule.getName());
+    }
+  }
+ catch (  UnableToCompleteException e) {
+    lastLaunchFailed=true;
+    testResult.addError(testCase,new JUnitFatalLaunchException(e));
+    return;
+  }
+  try {
+    testBeginTime=System.currentTimeMillis();
+    testBeginTimeout=testBeginTime + TEST_BEGIN_TIMEOUT_MILLIS;
+    pumpEventLoop();
+  }
+ catch (  TimeoutException e) {
+    lastLaunchFailed=true;
+    testResult.addError(testCase,e);
+    return;
+  }
+  assert(messageQueue.hasResult());
+  Map<String,JUnitResult> results=messageQueue.getResults();
+  boolean parallelTesting=numClients > 1;
+  for (  Entry<String,JUnitResult> entry : results.entrySet()) {
+    String clientId=entry.getKey();
+    JUnitResult result=entry.getValue();
+    assert(result != null);
+    Throwable exception=result.getException();
+    if (parallelTesting && exception != null) {
+      String msg="Remote test failed at " + clientId;
+      if (exception instanceof AssertionFailedError) {
+        AssertionFailedError newException=new AssertionFailedError(msg + "\n" + exception.getMessage());
+        newException.setStackTrace(exception.getStackTrace());
+        exception=newException;
+      }
+ else {
+        exception=new RuntimeException(msg,exception);
+      }
+    }
+    if (exception instanceof AssertionFailedError) {
+      testResult.addFailure(testCase,(AssertionFailedError)exception);
+    }
+ else     if (exception != null) {
+      if (exception instanceof JUnitFatalLaunchException) {
+        lastLaunchFailed=true;
+      }
+      testResult.addError(testCase,exception);
+    }
+    strategy.processResult(testCase,result);
+  }
+}

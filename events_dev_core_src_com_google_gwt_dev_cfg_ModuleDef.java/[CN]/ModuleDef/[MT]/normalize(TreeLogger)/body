@@ -1,0 +1,31 @@
+{
+  PerfLogger.start("ModuleDef.normalize");
+  for (  Property current : getProperties()) {
+    if (current instanceof BindingProperty) {
+      BindingProperty prop=(BindingProperty)current;
+      if (prop.getProvider() == null && prop.getAllowedValues().length > 1) {
+        String src="{";
+        src+="return __gwt_getMetaProperty(\"";
+        src+=prop.getName();
+        src+="\"); }";
+        prop.setProvider(new PropertyProvider(src));
+      }
+    }
+  }
+  TreeLogger branch=Messages.PUBLIC_PATH_LOCATIONS.branch(logger,null);
+  if (lazyPublicOracle == null) {
+    lazyPublicOracle=new ResourceOracleImpl(branch);
+    lazyPublicOracle.setPathPrefixes(publicPrefixSet);
+  }
+  lazyPublicOracle.refresh(branch);
+  branch=Messages.SOURCE_PATH_LOCATIONS.branch(logger,null);
+  lazySourceOracle=new ResourceOracleImpl(branch);
+  lazySourceOracle.setPathPrefixes(sourcePrefixSet);
+  lazySourceOracle.refresh(branch);
+  if (lazySourceOracle.getResources().isEmpty()) {
+    branch.log(TreeLogger.WARN,"No source path entries; expect subsequent failures",null);
+  }
+  lazyJavaSourceOracle=new JavaSourceOracleImpl(lazySourceOracle);
+  compilationState=new CompilationState(lazyJavaSourceOracle);
+  PerfLogger.end();
+}

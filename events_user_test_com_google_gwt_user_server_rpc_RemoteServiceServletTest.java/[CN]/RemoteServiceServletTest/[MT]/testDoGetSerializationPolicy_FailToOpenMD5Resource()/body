@@ -1,0 +1,18 @@
+{
+  MockServletConfig mockConfig=new MockServletConfig();
+  MockServletContext mockContext=new MockServletContext(){
+    public InputStream getResourceAsStream(    String resource){
+      return null;
+    }
+  }
+;
+  mockConfig.context=mockContext;
+  mockContext.config=mockConfig;
+  RemoteServiceServlet rss=new RemoteServiceServlet();
+  MockHttpServletRequestContextPath mockRequest=new MockHttpServletRequestContextPath();
+  rss.init(mockConfig);
+  mockRequest.contextPath="/MyModule";
+  SerializationPolicy serializationPolicy=rss.doGetSerializationPolicy(mockRequest,"http://www.google.com/MyModule","12345");
+  assertNull(serializationPolicy);
+  assertNotNull(mockContext.messageLogged);
+}

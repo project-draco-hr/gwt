@@ -1,0 +1,76 @@
+{
+  E[] enums=e.getEnumConstants();
+  EnumMap<E,Integer> numbers=new EnumMap<E,Integer>(e);
+  HashMap<E,Integer> numberMap=new HashMap<E,Integer>();
+  assertEquals(numberMap,numbers);
+  numbers.put(enums[1],1);
+  numberMap.put(enums[1],1);
+  numbers.put(enums[2],2);
+  numberMap.put(enums[2],2);
+  assertEquals(numberMap,numbers);
+  numbers.put(enums[23],23);
+  numberMap.put(enums[23],23);
+  assertEquals(numberMap,numbers);
+  numbers.remove(enums[1]);
+  numberMap.remove(enums[1]);
+  assertEquals(numberMap,numbers);
+  numbers.put(enums[0],0);
+  numberMap.put(enums[0],0);
+  assertEquals(numberMap,numbers);
+  numbers.put(enums[enums.length - 1],enums.length - 1);
+  numberMap.put(enums[enums.length - 1],enums.length - 1);
+  assertEquals(numberMap,numbers);
+  numbers.remove(enums[15]);
+  numberMap.remove(enums[15]);
+  assertEquals(numberMap,numbers);
+  numbers.put(enums[23],23);
+  numberMap.put(enums[23],23);
+  assertEquals(numberMap,numbers);
+  numbers.clear();
+  numberMap.clear();
+  for (  E val : enums) {
+    numbers.put(val,val.ordinal());
+    numberMap.put(val,val.ordinal());
+  }
+  assertEquals(numberMap,numbers);
+  assertEquals(numberMap,numbers.clone());
+  assertEquals(numberMap,new EnumMap<E,Integer>(numberMap));
+  Set<Map.Entry<E,Integer>> numbersEntrySet=numbers.entrySet();
+  Set<Map.Entry<E,Integer>> mapEntrySet=numberMap.entrySet();
+  assertEquals(mapEntrySet,numbersEntrySet);
+  final Map.Entry<E,Integer> entry=numbers.entrySet().iterator().next();
+  Map.Entry<E,Integer> entryCopy=new Map.Entry<E,Integer>(){
+    E key=entry.getKey();
+    Integer value=entry.getValue();
+    public E getKey(){
+      return key;
+    }
+    public Integer getValue(){
+      return value;
+    }
+    public Integer setValue(    Integer value){
+      Integer oldValue=this.value;
+      this.value=value;
+      return oldValue;
+    }
+  }
+;
+  numbersEntrySet.remove(entry);
+  mapEntrySet.remove(entryCopy);
+  assertEquals(mapEntrySet,numbersEntrySet);
+  assertEquals(numberMap,numbers);
+  Set<E> numbersKeySet=numbers.keySet();
+  Set<E> mapKeySet=numberMap.keySet();
+  assertEquals(mapKeySet,numbersKeySet);
+  numbersKeySet.remove(enums[2]);
+  mapKeySet.remove(enums[2]);
+  assertEquals(mapKeySet,numbersKeySet);
+  assertEquals(numberMap,numbers);
+  Collection<Integer> numbersValues=numbers.values();
+  Collection<Integer> mapValues=numberMap.values();
+  assertEquals(sort(mapValues),sort(numbersValues));
+  numbersValues.remove(23);
+  mapValues.remove(23);
+  assertEquals(sort(mapValues),sort(numbersValues));
+  assertEquals(numberMap,numbers);
+}

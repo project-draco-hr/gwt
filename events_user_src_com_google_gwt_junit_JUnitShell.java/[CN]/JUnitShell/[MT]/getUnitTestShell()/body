@@ -1,0 +1,18 @@
+{
+  if (unitTestShell == null) {
+    BootStrapPlatform.init();
+    BootStrapPlatform.applyPlatformHacks();
+    unitTestShell=new JUnitShell();
+    unitTestShell.lastLaunchFailed=true;
+    String[] args=unitTestShell.synthesizeArgs();
+    if (!unitTestShell.processArgs(args)) {
+      throw new JUnitFatalLaunchException("Error processing shell arguments");
+    }
+    unitTestShell.messageQueue=new JUnitMessageQueue(unitTestShell.numClients);
+    if (!unitTestShell.startUp()) {
+      throw new JUnitFatalLaunchException("Shell failed to start");
+    }
+    unitTestShell.lastLaunchFailed=false;
+  }
+  return unitTestShell;
+}

@@ -1,0 +1,18 @@
+{
+  DispatchClassInfo dispClassInfo=classNameToClassInfo.get(className);
+  if (dispClassInfo != null) {
+    return dispClassInfo;
+  }
+  Class<?> cls=getClassFromBinaryOrSourceName(className);
+  if (cls == null) {
+    return null;
+  }
+  if (classRewriter.isJsoIntf(cls.getName())) {
+    cls=getClassFromBinaryName(cls.getName() + "$");
+  }
+  int classId=classIdToClassInfo.size();
+  dispClassInfo=new DispatchClassInfo(cls,classId);
+  classIdToClassInfo.add(dispClassInfo);
+  classNameToClassInfo.put(className,dispClassInfo);
+  return dispClassInfo;
+}

@@ -1,0 +1,26 @@
+{
+  if (variant == null) {
+    return false;
+  }
+  if (variant.getType() == COM.VT_BSTR) {
+    return true;
+  }
+  if (variant.getType() != COM.VT_DISPATCH) {
+    return false;
+  }
+  IDispatch dispatch=variant.getDispatch();
+  int[] ids=oleAutomationGetIdsOfNames(dispatch);
+  if (ids == null) {
+    return false;
+  }
+  Variant result=null;
+  try {
+    result=oleAutomationInvoke(dispatch,ids[0]);
+    return result.getType() == COM.VT_BSTR;
+  }
+  finally {
+    if (result != null) {
+      result.dispose();
+    }
+  }
+}

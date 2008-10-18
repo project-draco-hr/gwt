@@ -1,0 +1,25 @@
+{
+  if (!isSafari()) {
+    return;
+  }
+  executeTest(getHTTPRequestBuilder(getTestBaseURL() + "noResponseText"),new RequestCallback(){
+    public void onError(    Request request,    Throwable exception){
+      if (exception instanceof RuntimeException) {
+        finishTest();
+      }
+ else {
+        raiseUnexpectedException(exception);
+      }
+    }
+    public void onResponseReceived(    Request request,    Response response){
+      try {
+        String statusText=response.getStatusText();
+        fail("Unexpected RuntimeException from getStatusText()");
+      }
+ catch (      RuntimeException ex) {
+      }
+      finishTest();
+    }
+  }
+);
+}

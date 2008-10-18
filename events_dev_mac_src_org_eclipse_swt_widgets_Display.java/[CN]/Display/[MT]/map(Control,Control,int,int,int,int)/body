@@ -1,0 +1,50 @@
+{
+  checkDevice();
+  if (from != null && from.isDisposed())   error(SWT.ERROR_INVALID_ARGUMENT);
+  if (to != null && to.isDisposed())   error(SWT.ERROR_INVALID_ARGUMENT);
+  Rectangle rectangle=new Rectangle(x,y,width,height);
+  Rect rect=new Rect();
+  if (from != null) {
+    int window=OS.GetControlOwner(from.handle);
+    if (OS.HIVIEW) {
+      CGPoint pt=new CGPoint();
+      OS.HIViewConvertPoint(pt,from.handle,0);
+      rectangle.x+=(int)pt.x;
+      rectangle.y+=(int)pt.y;
+      OS.GetWindowBounds(window,(short)OS.kWindowStructureRgn,rect);
+    }
+ else {
+      OS.GetControlBounds(from.handle,rect);
+      rectangle.x+=rect.left;
+      rectangle.y+=rect.top;
+      OS.GetWindowBounds(window,(short)OS.kWindowContentRgn,rect);
+    }
+    rectangle.x+=rect.left;
+    rectangle.y+=rect.top;
+    Rect inset=from.getInset();
+    rectangle.x-=inset.left;
+    rectangle.y-=inset.top;
+  }
+  if (to != null) {
+    int window=OS.GetControlOwner(to.handle);
+    if (OS.HIVIEW) {
+      CGPoint pt=new CGPoint();
+      OS.HIViewConvertPoint(pt,to.handle,0);
+      rectangle.x-=(int)pt.x;
+      rectangle.y-=(int)pt.y;
+      OS.GetWindowBounds(window,(short)OS.kWindowStructureRgn,rect);
+    }
+ else {
+      OS.GetControlBounds(to.handle,rect);
+      rectangle.x-=rect.left;
+      rectangle.y-=rect.top;
+      OS.GetWindowBounds(window,(short)OS.kWindowContentRgn,rect);
+    }
+    rectangle.x-=rect.left;
+    rectangle.y-=rect.top;
+    Rect inset=to.getInset();
+    rectangle.x+=inset.left;
+    rectangle.y+=inset.top;
+  }
+  return rectangle;
+}

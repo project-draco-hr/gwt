@@ -1,0 +1,55 @@
+{
+  Display display=child.getDisplay();
+  Color color;
+  Image image=null;
+  if (type == TreeLogger.ERROR) {
+    color=display.getSystemColor(SWT.COLOR_RED);
+    image=imageError;
+  }
+ else   if (type == TreeLogger.WARN) {
+    color=display.getSystemColor(SWT.COLOR_DARK_YELLOW);
+    image=imageWarning;
+  }
+ else   if (type == TreeLogger.INFO) {
+    color=display.getSystemColor(SWT.COLOR_BLACK);
+    image=imageInfo;
+  }
+ else   if (type == TreeLogger.TRACE) {
+    color=display.getSystemColor(SWT.COLOR_DARK_GRAY);
+    image=imageTrace;
+  }
+ else   if (type == TreeLogger.DEBUG) {
+    color=display.getSystemColor(SWT.COLOR_DARK_CYAN);
+    image=imageDebug;
+  }
+ else {
+    color=display.getSystemColor(SWT.COLOR_DARK_GREEN);
+    image=imageSpam;
+  }
+  if (image != null) {
+    child.setImage(image);
+  }
+  child.setForeground(color);
+  if (type.needsAttention()) {
+    Stack<TreeItem> parents=new Stack<TreeItem>();
+    boolean propagateColor=true;
+    TreeItem parent=child.getParentItem();
+    while (parent != null) {
+      parents.push(parent);
+      LogEvent parentEvent=(LogEvent)parent.getData();
+      if (propagateColor) {
+        if (parentEvent.type.isLowerPriorityThan(type)) {
+          parent.setForeground(color);
+        }
+ else {
+          propagateColor=false;
+        }
+      }
+      parent=parent.getParentItem();
+    }
+    while (!parents.isEmpty()) {
+      parent=parents.pop();
+      parent.setExpanded(true);
+    }
+  }
+}

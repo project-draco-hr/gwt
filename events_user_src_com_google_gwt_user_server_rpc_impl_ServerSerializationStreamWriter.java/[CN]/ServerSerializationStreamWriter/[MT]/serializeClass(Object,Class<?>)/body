@@ -1,0 +1,27 @@
+{
+  assert(instance != null);
+  Field[] serializableFields=SerializabilityUtil.applyFieldSerializationPolicy(instanceClass);
+  for (  Field declField : serializableFields) {
+    assert(declField != null);
+    boolean isAccessible=declField.isAccessible();
+    boolean needsAccessOverride=!isAccessible && !Modifier.isPublic(declField.getModifiers());
+    if (needsAccessOverride) {
+      declField.setAccessible(true);
+    }
+    Object value;
+    try {
+      value=declField.get(instance);
+      serializeValue(value,declField.getType());
+    }
+ catch (    IllegalArgumentException e) {
+      throw new SerializationException(e);
+    }
+catch (    IllegalAccessException e) {
+      throw new SerializationException(e);
+    }
+  }
+  Class<?> superClass=instanceClass.getSuperclass();
+  if (serializationPolicy.shouldSerializeFields(superClass)) {
+    serializeImpl(instance,superClass);
+  }
+}

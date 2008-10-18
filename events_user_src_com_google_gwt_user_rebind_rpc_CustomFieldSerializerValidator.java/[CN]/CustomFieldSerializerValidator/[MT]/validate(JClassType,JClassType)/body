@@ -1,0 +1,28 @@
+{
+  List<String> reasons=new ArrayList<String>();
+  if (serializee.isEnum() != null) {
+    reasons.add("Enumerated types cannot have custom field serializers.");
+    return reasons;
+  }
+  if (!hasDeserializationMethod(serializer,serializee)) {
+    reasons.add(MessageFormat.format(NO_DESERIALIZE_METHOD,serializer.getQualifiedSourceName(),SerializationStreamReader.class.getName(),serializee.getQualifiedSourceName()));
+  }
+ else {
+    checkTooMany("deserialize",serializer,reasons);
+  }
+  if (!hasSerializationMethod(serializer,serializee)) {
+    reasons.add(MessageFormat.format(NO_SERIALIZE_METHOD,serializer.getQualifiedSourceName(),SerializationStreamWriter.class.getName(),serializee.getQualifiedSourceName()));
+  }
+ else {
+    checkTooMany("serialize",serializer,reasons);
+  }
+  if (!hasInstantiationMethod(serializer,serializee)) {
+    if (!serializee.isDefaultInstantiable() && !serializee.isAbstract()) {
+      reasons.add(MessageFormat.format(NO_INSTANTIATE_METHOD,serializer.getQualifiedSourceName(),serializee.getQualifiedSourceName(),SerializationStreamReader.class.getName()));
+    }
+  }
+ else {
+    checkTooMany("instantiate",serializer,reasons);
+  }
+  return reasons;
+}

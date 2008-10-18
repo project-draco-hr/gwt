@@ -1,0 +1,26 @@
+{
+  BootStrapPlatform.applyPlatformHacks();
+  if (options.isUseGuiLogger()) {
+    DetachedTreeLoggerWindow loggerWindow=DetachedTreeLoggerWindow.getInstance("Build Output for " + options.getModuleName(),800,600,true);
+    BootStrapPlatform.maybeInitializeAWT();
+    final AbstractTreeLogger logger=loggerWindow.getLogger();
+    logger.setMaxDetail(options.getLogLevel());
+    final boolean[] success=new boolean[1];
+    Thread compilerThread=new Thread(new Runnable(){
+      public void run(){
+        success[0]=doRun(logger,task);
+      }
+    }
+);
+    compilerThread.setName("GWTCompiler Thread");
+    compilerThread.start();
+    loggerWindow.run();
+    waitForThreadToTerminate(compilerThread);
+    return success[0];
+  }
+ else {
+    PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
+    logger.setMaxDetail(options.getLogLevel());
+    return doRun(logger,task);
+  }
+}

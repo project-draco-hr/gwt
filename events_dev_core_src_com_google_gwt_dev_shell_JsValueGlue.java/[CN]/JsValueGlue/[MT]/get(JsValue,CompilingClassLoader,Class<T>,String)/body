@@ -1,0 +1,68 @@
+{
+  if (type.isPrimitive()) {
+    if (value.isUndefined()) {
+      throw new HostedModeException("Expected primitive type " + type + "; actual value was undefined");
+    }
+ else     if (value.isNull()) {
+      throw new HostedModeException("Expected primitive type " + type + "; actual value was null");
+    }
+    if (type == Boolean.TYPE) {
+      if (!value.isBoolean()) {
+        throw new HostedModeException(msgPrefix + ": JS value of type " + value.getTypeString()+ ", expected boolean");
+      }
+      return (T)Boolean.valueOf(value.getBoolean());
+    }
+ else     if (type == Byte.TYPE) {
+      return (T)Byte.valueOf((byte)getIntRange(value,Byte.MIN_VALUE,Byte.MAX_VALUE,"byte",msgPrefix));
+    }
+ else     if (type == Character.TYPE) {
+      return (T)Character.valueOf((char)getIntRange(value,Character.MIN_VALUE,Character.MAX_VALUE,"char",msgPrefix));
+    }
+ else     if (type == Double.TYPE) {
+      if (!value.isNumber()) {
+        throw new HostedModeException(msgPrefix + ": JS value of type " + value.getTypeString()+ ", expected double");
+      }
+      return (T)Double.valueOf(value.getNumber());
+    }
+ else     if (type == Float.TYPE) {
+      if (!value.isNumber()) {
+        throw new HostedModeException(msgPrefix + ": JS value of type " + value.getTypeString()+ ", expected float");
+      }
+      double doubleVal=value.getNumber();
+      if ((float)(doubleVal - Float.MIN_VALUE) == 0.0f) {
+        doubleVal=Float.MIN_VALUE;
+      }
+      float floatVal=(float)doubleVal;
+      if (Float.isInfinite(floatVal) && !Double.isInfinite(doubleVal)) {
+        throw new HostedModeException(msgPrefix + ": JS value " + doubleVal+ " out of range for a float");
+      }
+      return (T)Float.valueOf(floatVal);
+    }
+ else     if (type == Integer.TYPE) {
+      return (T)Integer.valueOf(getIntRange(value,Integer.MIN_VALUE,Integer.MAX_VALUE,"int",msgPrefix));
+    }
+ else     if (type == Long.TYPE) {
+      if (!value.isWrappedJavaObject()) {
+        throw new HostedModeException(msgPrefix + ": JS value of type " + value.getTypeString()+ ", expected Java long");
+      }
+      JavaLong javaLong=(JavaLong)value.getWrappedJavaObject();
+      return (T)Long.valueOf(javaLong.longValue());
+    }
+ else     if (type == Short.TYPE) {
+      return (T)Short.valueOf((short)getIntRange(value,Short.MIN_VALUE,Short.MAX_VALUE,"short",msgPrefix));
+    }
+  }
+  if (value.isNull() || value.isUndefined()) {
+    return null;
+  }
+  if (value.isWrappedJavaObject()) {
+    return type.cast(value.getWrappedJavaObject());
+  }
+  if (value.isString()) {
+    return type.cast(value.getString());
+  }
+  if (value.isJavaScriptObject()) {
+    return type.cast(createJavaScriptObject(value,cl));
+  }
+  throw new IllegalArgumentException(msgPrefix + ": Cannot convert to type " + TypeInfo.getSourceRepresentation(type)+ " from "+ value.getTypeString());
+}

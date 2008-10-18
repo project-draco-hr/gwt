@@ -1,0 +1,80 @@
+{
+  int eventType=DOM.eventGetType(event);
+switch (eventType) {
+case Event.ONKEYDOWN:
+{
+      if (curSelection == null) {
+        if (root.getChildCount() > 0) {
+          onSelection(root.getChild(0),true,true);
+        }
+        super.onBrowserEvent(event);
+        return;
+      }
+    }
+case Event.ONKEYPRESS:
+case Event.ONKEYUP:
+  if (DOM.eventGetAltKey(event) || DOM.eventGetMetaKey(event)) {
+    super.onBrowserEvent(event);
+    return;
+  }
+break;
+}
+switch (eventType) {
+case Event.ONCLICK:
+{
+Element e=DOM.eventGetTarget(event);
+if (shouldTreeDelegateFocusToElement(e)) {
+}
+ else if (curSelection != null && curSelection.getContentElem().isOrHasChild(e)) {
+  setFocus(true);
+}
+break;
+}
+case Event.ONMOUSEDOWN:
+{
+if (DOM.eventGetCurrentTarget(event) == getElement()) {
+elementClicked(DOM.eventGetTarget(event));
+}
+break;
+}
+case Event.ONKEYDOWN:
+{
+keyboardNavigation(event);
+lastWasKeyDown=true;
+break;
+}
+case Event.ONKEYPRESS:
+{
+if (!lastWasKeyDown) {
+keyboardNavigation(event);
+}
+lastWasKeyDown=false;
+break;
+}
+case Event.ONKEYUP:
+{
+if (DOM.eventGetKeyCode(event) == HasKeyCodes.KEY_TAB) {
+ArrayList<Element> chain=new ArrayList<Element>();
+collectElementChain(chain,getElement(),DOM.eventGetTarget(event));
+TreeItem item=findItemByChain(chain,0,root);
+if (item != getSelectedItem()) {
+setSelectedItem(item,true);
+}
+}
+lastWasKeyDown=false;
+break;
+}
+}
+switch (eventType) {
+case Event.ONKEYDOWN:
+case Event.ONKEYUP:
+{
+if (isArrowKey(DOM.eventGetKeyCode(event))) {
+DOM.eventCancelBubble(event,true);
+DOM.eventPreventDefault(event);
+return;
+}
+}
+}
+super.onBrowserEvent(event);
+}

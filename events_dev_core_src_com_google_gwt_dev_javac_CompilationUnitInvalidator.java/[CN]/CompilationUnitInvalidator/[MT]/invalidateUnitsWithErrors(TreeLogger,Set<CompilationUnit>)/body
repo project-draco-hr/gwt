@@ -1,0 +1,33 @@
+{
+  logger=logger.branch(TreeLogger.TRACE,"Removing units with errors");
+  boolean anyRemoved=false;
+  for (  CompilationUnit unit : units) {
+    if (unit.getState() != State.COMPILED) {
+      continue;
+    }
+    CompilationResult result=unit.getJdtCud().compilationResult();
+    if (result.hasErrors()) {
+      anyRemoved=true;
+      TreeLogger branch=logger.branch(TreeLogger.ERROR,"Errors in '" + unit.getDisplayLocation() + "'",null);
+      for (      CategorizedProblem error : result.getErrors()) {
+        StringBuffer msgBuf=new StringBuffer();
+        int line=error.getSourceLineNumber();
+        if (line > 0) {
+          msgBuf.append("Line ");
+          msgBuf.append(line);
+          msgBuf.append(": ");
+        }
+        msgBuf.append(error.getMessage());
+        HelpInfo helpInfo=null;
+        if (error instanceof GWTProblem) {
+          GWTProblem gwtProblem=(GWTProblem)error;
+          helpInfo=gwtProblem.getHelpInfo();
+        }
+        branch.log(TreeLogger.ERROR,msgBuf.toString(),null,helpInfo);
+      }
+      Util.maybeDumpSource(branch,unit.getDisplayLocation(),unit.getSource(),unit.getTypeName());
+      unit.setState(State.ERROR);
+    }
+  }
+  return anyRemoved;
+}

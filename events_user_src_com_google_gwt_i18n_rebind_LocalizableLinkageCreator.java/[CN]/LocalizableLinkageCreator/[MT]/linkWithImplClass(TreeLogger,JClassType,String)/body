@@ -1,0 +1,25 @@
+{
+  String baseName=baseClass.getQualifiedSourceName();
+  String className=implCache.get(baseName + locale);
+  if (className != null) {
+    return className;
+  }
+  if (baseClass.getName().indexOf(ResourceFactory.LOCALE_SEPARATOR) != -1) {
+    throw error(logger,"Cannot have a " + ResourceFactory.LOCALE_SEPARATOR + " in the base localizable class "+ baseClass);
+  }
+  Map<String,JClassType> matchingClasses=findDerivedClasses(logger,baseClass);
+  String localeSuffix=locale;
+  JClassType result=null;
+  while (true) {
+    result=matchingClasses.get(localeSuffix);
+    if (result != null) {
+      break;
+    }
+    if (localeSuffix.equals(ResourceFactory.DEFAULT_TOKEN)) {
+      throw error(logger,"Cannot find a class to bind to argument type " + baseClass.getQualifiedSourceName());
+    }
+    localeSuffix=ResourceFactory.getParentLocaleName(localeSuffix);
+  }
+  implCache.put(baseName + locale,className);
+  return result.getQualifiedSourceName();
+}

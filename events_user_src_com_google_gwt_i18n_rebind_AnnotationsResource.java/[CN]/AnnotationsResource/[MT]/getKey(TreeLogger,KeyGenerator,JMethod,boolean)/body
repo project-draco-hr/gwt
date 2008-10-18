@@ -1,0 +1,28 @@
+{
+  Key key=method.getAnnotation(Key.class);
+  if (key != null) {
+    return key.value();
+  }
+  String text;
+  try {
+    text=getTextString(method,null,isConstants);
+  }
+ catch (  AnnotationsError e) {
+    return null;
+  }
+  String meaningString=null;
+  Meaning meaning=method.getAnnotation(Meaning.class);
+  if (meaning != null) {
+    meaningString=meaning.value();
+  }
+  String keyStr=keyGenerator.generateKey(method.getEnclosingType().getQualifiedSourceName(),method.getName(),text,meaningString);
+  if (keyStr == null) {
+    if (text == null) {
+      logger.log(TreeLogger.ERROR,"Key generator " + keyGenerator.getClass().getName() + " requires the default value be specified in an annotation for method "+ method.getName(),null);
+    }
+ else {
+      logger.log(TreeLogger.ERROR,"Key generator " + keyGenerator.getClass().getName() + " was unable to compute a key value for method "+ method.getName(),null);
+    }
+  }
+  return keyStr;
+}

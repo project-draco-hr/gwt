@@ -1,0 +1,46 @@
+{
+  if (classDoc.tags("@skip").length > 0) {
+    return;
+  }
+  if (classDoc.isInterface()) {
+    beginln("interface");
+  }
+ else {
+    beginln("class");
+  }
+  emitIdentity(getId(classDoc),classDoc.name());
+  emitLocation(classDoc);
+  emitDescription(enclosing,classDoc,classDoc.firstSentenceTags(),classDoc.inlineTags());
+  emitOutOfLineTags(classDoc.tags());
+  emitModifiers(classDoc);
+  ClassDoc superclassDoc=classDoc.superclass();
+  if (superclassDoc != null) {
+    beginln("superclass","ref",getId(superclassDoc));
+    text(superclassDoc.name());
+    endln();
+  }
+  ClassDoc[] superinterfacesDoc=classDoc.interfaces();
+  for (int i=0; i < superinterfacesDoc.length; i++) {
+    ClassDoc superinterfaceDoc=superinterfacesDoc[i];
+    beginln("superinterface","ref",getId(superinterfaceDoc));
+    text(superinterfaceDoc.name());
+    endln();
+  }
+  ClassDoc[] cda=classDoc.innerClasses();
+  for (int i=0; i < cda.length; i++) {
+    process(classDoc,cda[i]);
+  }
+  FieldDoc[] fda=classDoc.fields();
+  for (int i=0; i < fda.length; i++) {
+    process(classDoc,fda[i]);
+  }
+  ConstructorDoc[] ctorDocs=classDoc.constructors();
+  for (int i=0; i < ctorDocs.length; i++) {
+    process(classDoc,ctorDocs[i]);
+  }
+  MethodDoc[] methods=classDoc.methods();
+  for (int i=0; i < methods.length; i++) {
+    process(classDoc,methods[i]);
+  }
+  endln();
+}

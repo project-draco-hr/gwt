@@ -1,0 +1,47 @@
+{
+  int i;
+  for (i=0; i < 5; ++i) {
+    boolean hitOuter=false;
+    boolean hitInner=false;
+    try {
+      try {
+switch (i) {
+case 0:
+          throw new RuntimeException();
+case 1:
+        throw new IndexOutOfBoundsException();
+case 2:
+      throw new Exception();
+case 3:
+    throw new StringIndexOutOfBoundsException();
+case 4:
+  throwNativeException();
+}
+}
+ catch (StringIndexOutOfBoundsException e) {
+assertEquals(3,i);
+}
+ finally {
+hitInner=true;
+}
+}
+ catch (IndexOutOfBoundsException f) {
+assertEquals(1,i);
+}
+catch (JavaScriptException js) {
+assertEquals(4,i);
+}
+catch (RuntimeException g) {
+assertEquals(0,i);
+}
+catch (Throwable e) {
+assertEquals(2,i);
+}
+ finally {
+assertTrue(hitInner);
+hitOuter=true;
+}
+assertTrue(hitOuter);
+}
+assertEquals(5,i);
+}

@@ -1,0 +1,17 @@
+{
+  JExpression instance=x.getInstance();
+  boolean isStatic=x.getField().isStatic();
+  if (isStatic && instance != null) {
+    if (!instance.hasSideEffects()) {
+      JFieldRef fieldRef=new JFieldRef(program,x.getSourceInfo(),null,x.getField(),x.getEnclosingType());
+      ctx.replaceMe(fieldRef);
+    }
+  }
+ else   if (!isStatic && instance.getType() == typeNull) {
+    if (!instance.hasSideEffects()) {
+      instance=program.getLiteralNull();
+    }
+    JFieldRef fieldRef=new JFieldRef(program,x.getSourceInfo(),instance,program.getNullField(),null,primitiveTypeOrNullType(x.getType()));
+    ctx.replaceMe(fieldRef);
+  }
+}

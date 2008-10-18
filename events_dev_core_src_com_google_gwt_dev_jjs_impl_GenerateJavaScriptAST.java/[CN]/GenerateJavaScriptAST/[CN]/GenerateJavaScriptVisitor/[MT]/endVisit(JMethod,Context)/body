@@ -1,0 +1,24 @@
+{
+  if (x.isAbstract()) {
+    push(null);
+    return;
+  }
+  JsFunction jsFunc=(JsFunction)pop();
+  List<JsParameter> params=popList(x.params.size());
+  if (!x.isNative()) {
+    List<JsParameter> jsParams=jsFunc.getParameters();
+    for (int i=0; i < params.size(); ++i) {
+      JsParameter param=params.get(i);
+      jsParams.add(param);
+    }
+  }
+  JsInvocation jsInvocation=maybeCreateClinitCall(x);
+  if (jsInvocation != null) {
+    jsFunc.getBody().getStatements().add(0,jsInvocation.makeStmt());
+  }
+  if (x.isTrace()) {
+    jsFunc.setTrace();
+  }
+  push(jsFunc);
+  currentMethod=null;
+}

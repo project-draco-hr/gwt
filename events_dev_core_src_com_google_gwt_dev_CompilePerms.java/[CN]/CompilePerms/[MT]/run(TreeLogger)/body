@@ -1,0 +1,42 @@
+{
+  File precompilationFile=new File(options.getCompilerWorkDir(),Precompile.PRECOMPILATION_FILENAME);
+  if (!precompilationFile.exists()) {
+    logger.log(TreeLogger.ERROR,"File not found '" + precompilationFile.getAbsolutePath() + "'; please run Precompile first");
+    return false;
+  }
+  Precompilation precompilation;
+  try {
+    precompilation=Util.readFileAsObject(precompilationFile,Precompilation.class);
+  }
+ catch (  ClassNotFoundException e) {
+    logger.log(TreeLogger.ERROR,"Unable to deserialize '" + precompilationFile.getAbsolutePath() + "'",e);
+    return false;
+  }
+  Permutation[] perms=precompilation.getPermutations();
+  UnifiedAst unifiedAst=precompilation.getUnifiedAst();
+  int[] permsToRun=options.getPermsToCompile();
+  if (permsToRun.length == 0) {
+    permsToRun=new int[perms.length];
+    for (int i=0; i < permsToRun.length; ++i) {
+      permsToRun[i]=i;
+    }
+  }
+ else {
+    for (    int permToRun : permsToRun) {
+      if (permToRun >= perms.length) {
+        logger.log(TreeLogger.ERROR,"The specified perm number '" + permToRun + "' is too big; the maximum value is "+ (perms.length - 1)+ "'");
+        return false;
+      }
+    }
+  }
+  final TreeLogger branch=logger.branch(TreeLogger.INFO,"Compiling " + permsToRun.length + " permutations");
+  PermutationCompiler multiThread=new PermutationCompiler(branch,unifiedAst,perms,permsToRun);
+  multiThread.go(new ResultsHandler(){
+    public void addResult(    Permutation permutation,    int permNum,    String js) throws UnableToCompleteException {
+      Util.writeStringAsFile(branch,makePermFilename(options.getCompilerWorkDir(),permNum),js);
+    }
+  }
+);
+  branch.log(TreeLogger.INFO,"Permutation compile succeeded");
+  return true;
+}

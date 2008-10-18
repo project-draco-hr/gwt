@@ -1,0 +1,32 @@
+{
+  Map<String,Set<String>> errors=new LinkedHashMap<String,Set<String>>();
+  FindJsniRefVisitor sloppyRefsVisitor=new FindJsniRefVisitor();
+  sloppyRefsVisitor.beSloppy();
+  meth.traverse(sloppyRefsVisitor,scope);
+  for (  String jsniRefString : sloppyRefsVisitor.getJsniRefs()) {
+    JsniRef jsniRef=JsniRef.parse(jsniRefString);
+    if (jsniRef != null) {
+      Set<String> refErrors=new LinkedHashSet<String>();
+      if (jsniRef.isMethod()) {
+        checkMethodRef(jsniRef,refErrors);
+      }
+ else {
+        checkFieldRef(jsniRef,refErrors);
+      }
+      if (!refErrors.isEmpty()) {
+        errors.put(jsniRefString,refErrors);
+      }
+    }
+  }
+  if (!errors.isEmpty()) {
+    FindJsniRefVisitor jsniRefsVisitor=new FindJsniRefVisitor();
+    meth.traverse(jsniRefsVisitor,scope);
+    for (    String jsniRefString : jsniRefsVisitor.getJsniRefs()) {
+      if (errors.containsKey(jsniRefString)) {
+        for (        String err : errors.get(jsniRefString)) {
+          longAccessError(meth,err);
+        }
+      }
+    }
+  }
+}

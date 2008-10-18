@@ -1,0 +1,51 @@
+{
+  if (!(x.getType() instanceof JReferenceType)) {
+    return;
+  }
+  JReferenceType refType=(JReferenceType)x.getType();
+  if (refType == typeNull) {
+    return;
+  }
+  if (!program.typeOracle.isInstantiatedType(refType)) {
+    x.setType(typeNull);
+    myDidChange=true;
+    return;
+  }
+  JClassType leafType=getSingleConcreteType(refType);
+  if (leafType != null) {
+    x.setType(leafType);
+    myDidChange=true;
+    return;
+  }
+  List<JReferenceType> typeList=new ArrayList<JReferenceType>();
+  if (!(x instanceof JParameter)) {
+    typeList.add(typeNull);
+  }
+  Set<JExpression> myAssignments=assignments.get(x);
+  if (myAssignments != null) {
+    for (    JExpression expr : myAssignments) {
+      JType type=expr.getType();
+      if (!(type instanceof JReferenceType)) {
+        return;
+      }
+      typeList.add((JReferenceType)type);
+    }
+  }
+  if (x instanceof JParameter) {
+    Set<JParameter> myParams=paramUpRefs.get(x);
+    if (myParams != null) {
+      for (      JParameter param : myParams) {
+        typeList.add((JReferenceType)param.getType());
+      }
+    }
+  }
+  if (typeList.isEmpty()) {
+    return;
+  }
+  JReferenceType resultType=program.generalizeTypes(typeList);
+  resultType=program.strongerType(refType,resultType);
+  if (refType != resultType) {
+    x.setType(resultType);
+    myDidChange=true;
+  }
+}

@@ -1,0 +1,53 @@
+{
+  Element target=DOM.eventGetTarget(event);
+  boolean eventTargetsPopup=(target != null) && DOM.isOrHasChild(getElement(),target);
+  int type=DOM.eventGetType(event);
+switch (type) {
+case Event.ONKEYDOWN:
+{
+      boolean allow=onKeyDownPreview((char)DOM.eventGetKeyCode(event),KeyEvent.getKeyModifiers(event));
+      return allow && (eventTargetsPopup || !modal);
+    }
+case Event.ONKEYUP:
+{
+    boolean allow=onKeyUpPreview((char)DOM.eventGetKeyCode(event),KeyEvent.getKeyModifiers(event));
+    return allow && (eventTargetsPopup || !modal);
+  }
+case Event.ONKEYPRESS:
+{
+  boolean allow=onKeyPressPreview((char)DOM.eventGetKeyCode(event),KeyEvent.getKeyModifiers(event));
+  return allow && (eventTargetsPopup || !modal);
+}
+case Event.ONMOUSEDOWN:
+if (DOM.getCaptureElement() != null) {
+return true;
+}
+if (!eventTargetsPopup && autoHide) {
+hide(true);
+return true;
+}
+break;
+case Event.ONMOUSEUP:
+case Event.ONMOUSEMOVE:
+case Event.ONCLICK:
+case Event.ONDBLCLICK:
+{
+if (DOM.getCaptureElement() != null) {
+return true;
+}
+if (!eventTargetsPopup && autoHide && (type == Event.ONMOUSEDOWN)) {
+hide(true);
+return true;
+}
+break;
+}
+case Event.ONFOCUS:
+{
+if (modal && !eventTargetsPopup && (target != null)) {
+blur(target);
+return false;
+}
+}
+}
+return !modal || eventTargetsPopup;
+}

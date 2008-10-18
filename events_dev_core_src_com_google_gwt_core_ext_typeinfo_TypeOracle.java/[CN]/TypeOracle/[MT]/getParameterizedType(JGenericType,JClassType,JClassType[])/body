@@ -1,0 +1,32 @@
+{
+  if (genericType == null) {
+    throw new NullPointerException("genericType");
+  }
+  if (genericType.isMemberType() && !genericType.isStatic()) {
+    if (genericType.getEnclosingType().isGenericType() != null && enclosingType.isParameterized() == null && enclosingType.isRawType() == null) {
+      throw new IllegalArgumentException("Generic type '" + genericType.getParameterizedQualifiedSourceName() + "' is a non-static member type, but the enclosing type '"+ enclosingType.getQualifiedSourceName()+ "' is not a parameterized or raw type");
+    }
+  }
+  JTypeParameter[] typeParameters=genericType.getTypeParameters();
+  if (typeArgs.length < typeParameters.length) {
+    throw new IllegalArgumentException("Not enough type arguments were specified to parameterize '" + genericType.getParameterizedQualifiedSourceName() + "'");
+  }
+ else {
+  }
+  JParameterizedType parameterized=new JParameterizedType(genericType,enclosingType,typeArgs);
+  String sig=parameterized.getParameterizedQualifiedSourceName();
+  List<JParameterizedType> candidates=parameterizedTypes.get(sig);
+  if (candidates == null) {
+    candidates=new ArrayList<JParameterizedType>();
+    parameterizedTypes.put(sig,candidates);
+  }
+ else {
+    for (    JParameterizedType candidate : candidates) {
+      if (candidate.hasTypeArgs(typeArgs)) {
+        return candidate;
+      }
+    }
+  }
+  candidates.add(parameterized);
+  return parameterized;
+}

@@ -1,0 +1,45 @@
+{
+  if (objIDispatch == null)   return COM.E_FAIL;
+  DISPPARAMS pDispParams=new DISPPARAMS();
+  if (rgvarg != null && rgvarg.length > 0) {
+    pDispParams.cArgs=rgvarg.length;
+    pDispParams.rgvarg=OS.GlobalAlloc(COM.GMEM_FIXED | COM.GMEM_ZEROINIT,Variant.sizeof * rgvarg.length);
+    int offset=0;
+    for (int i=rgvarg.length - 1; i >= 0; i--) {
+      rgvarg[i].getData(pDispParams.rgvarg + offset);
+      offset+=Variant.sizeof;
+    }
+  }
+  if (rgdispidNamedArgs != null && rgdispidNamedArgs.length > 0) {
+    pDispParams.cNamedArgs=rgdispidNamedArgs.length;
+    pDispParams.rgdispidNamedArgs=OS.GlobalAlloc(COM.GMEM_FIXED | COM.GMEM_ZEROINIT,4 * rgdispidNamedArgs.length);
+    int offset=0;
+    for (int i=rgdispidNamedArgs.length; i > 0; i--) {
+      COM.MoveMemory(pDispParams.rgdispidNamedArgs + offset,new int[]{rgdispidNamedArgs[i - 1]},4);
+      offset+=4;
+    }
+  }
+  EXCEPINFO excepInfo=new EXCEPINFO();
+  int[] pArgErr=new int[1];
+  int pVarResultAddress=0;
+  if (pVarResult != null)   pVarResultAddress=OS.GlobalAlloc(OS.GMEM_FIXED | OS.GMEM_ZEROINIT,Variant.sizeof);
+  int result=objIDispatch.Invoke(dispIdMember,new GUID(),COM.LOCALE_USER_DEFAULT,wFlags,pDispParams,pVarResultAddress,excepInfo,pArgErr);
+  if (pVarResultAddress != 0) {
+    pVarResult.setData(pVarResultAddress);
+    COM.VariantClear(pVarResultAddress);
+    OS.GlobalFree(pVarResultAddress);
+  }
+  if (pDispParams.rgdispidNamedArgs != 0) {
+    OS.GlobalFree(pDispParams.rgdispidNamedArgs);
+  }
+  if (pDispParams.rgvarg != 0) {
+    int offset=0;
+    for (int i=0, length=rgvarg.length; i < length; i++) {
+      COM.VariantClear(pDispParams.rgvarg + offset);
+      offset+=Variant.sizeof;
+    }
+    OS.GlobalFree(pDispParams.rgvarg);
+  }
+  manageExcepinfo(result,excepInfo);
+  return result;
+}

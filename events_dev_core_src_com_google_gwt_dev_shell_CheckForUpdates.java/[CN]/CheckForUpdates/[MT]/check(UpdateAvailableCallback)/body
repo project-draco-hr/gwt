@@ -1,0 +1,63 @@
+{
+  try {
+    String forceCheckURL=System.getProperty("gwt.forceVersionCheckURL");
+    if (forceCheckURL != null && DEBUG_VERSION_CHECK) {
+      System.out.println("Explicit version check URL: " + forceCheckURL);
+    }
+    long currentTimeMillis=System.currentTimeMillis();
+    Preferences prefs=Preferences.userNodeForPackage(CheckForUpdates.class);
+    String firstLaunch=prefs.get(FIRST_LAUNCH,null);
+    if (firstLaunch == null) {
+      firstLaunch=Long.toHexString(currentTimeMillis);
+      prefs.put(FIRST_LAUNCH,firstLaunch);
+      if (DEBUG_VERSION_CHECK) {
+        System.out.println("Setting first launch to " + firstLaunch);
+      }
+    }
+ else {
+      if (DEBUG_VERSION_CHECK) {
+        System.out.println("First launch was " + firstLaunch);
+      }
+    }
+    String nextPing=prefs.get(NEXT_PING,"0");
+    if (nextPing != null) {
+      try {
+        long nextPingTime=Long.parseLong(nextPing);
+        if (currentTimeMillis < nextPingTime) {
+          if (DEBUG_VERSION_CHECK) {
+            System.out.println("Next ping is not until " + new Date(nextPingTime));
+          }
+          return;
+        }
+      }
+ catch (      NumberFormatException e) {
+      }
+    }
+    String queryURL=forceCheckURL != null ? forceCheckURL : QUERY_URL;
+    String url=queryURL + "?v=" + About.GWT_VERSION_NUM+ "&id="+ firstLaunch;
+    if (DEBUG_VERSION_CHECK) {
+      System.out.println("Checking for new version at " + url);
+    }
+    byte[] response;
+    String fullUserAgent=makeUserAgent();
+    if (System.getProperty("gwt.forceVersionCheckNonNative") == null) {
+      response=doHttpGet(fullUserAgent,url);
+    }
+ else {
+      response=httpGetNonNative(fullUserAgent,url);
+    }
+    if (response == null || response.length == 0) {
+      if (DEBUG_VERSION_CHECK) {
+        System.out.println("Failed to obtain current version info via HTTP");
+      }
+      return;
+    }
+    parseResponse(prefs,response,callback);
+  }
+ catch (  Throwable e) {
+    if (DEBUG_VERSION_CHECK) {
+      System.out.println("Exception while processing version info");
+      e.printStackTrace();
+    }
+  }
+}

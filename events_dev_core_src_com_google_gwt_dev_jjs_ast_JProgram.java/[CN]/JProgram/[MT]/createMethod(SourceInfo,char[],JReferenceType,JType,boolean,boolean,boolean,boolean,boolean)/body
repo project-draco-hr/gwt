@@ -1,0 +1,20 @@
+{
+  assert(name != null);
+  assert(returnType != null);
+  assert(!isAbstract || !isNative);
+  String sname=String.valueOf(name);
+  JMethod x=new JMethod(this,info,sname,enclosingType,returnType,isAbstract,isStatic,isFinal,isPrivate);
+  if (isNative) {
+    x.setBody(new JsniMethodBody(this,info));
+  }
+ else   if (!isAbstract) {
+    x.setBody(new JMethodBody(this,info));
+  }
+  if (!isPrivate && indexedTypes.containsValue(enclosingType)) {
+    indexedMethods.put(enclosingType.getShortName() + '.' + sname,x);
+  }
+  if (enclosingType != null) {
+    enclosingType.methods.add(x);
+  }
+  return x;
+}

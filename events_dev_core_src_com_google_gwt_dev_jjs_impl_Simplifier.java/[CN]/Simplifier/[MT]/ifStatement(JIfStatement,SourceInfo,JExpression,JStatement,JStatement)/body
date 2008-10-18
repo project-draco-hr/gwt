@@ -1,0 +1,39 @@
+{
+  if (condExpr instanceof JMultiExpression) {
+    JMultiExpression condMulti=(JMultiExpression)condExpr;
+    JBlock newBlock=new JBlock(program,sourceInfo);
+    for (    JExpression expr : allButLast(condMulti.exprs)) {
+      newBlock.statements.add(expr.makeStatement());
+    }
+    newBlock.statements.add(ifStatement(null,sourceInfo,last(condMulti.exprs),thenStmt,elseStmt));
+    return newBlock;
+  }
+  if (condExpr instanceof JBooleanLiteral) {
+    JBooleanLiteral booleanLiteral=(JBooleanLiteral)condExpr;
+    boolean boolVal=booleanLiteral.getValue();
+    if (boolVal && !isEmpty(thenStmt)) {
+      return thenStmt;
+    }
+ else     if (!boolVal && !isEmpty(elseStmt)) {
+      return elseStmt;
+    }
+ else {
+      return condExpr.makeStatement();
+    }
+  }
+  if (isEmpty(thenStmt) && isEmpty(elseStmt)) {
+    return condExpr.makeStatement();
+  }
+  if (!isEmpty(elseStmt)) {
+    JExpression unflipped=Simplifier.maybeUnflipBoolean(condExpr);
+    if (unflipped != null) {
+      thenStmt=ensureBlock(thenStmt);
+      elseStmt=ensureBlock(elseStmt);
+      return ifStatement(null,sourceInfo,unflipped,elseStmt,thenStmt);
+    }
+  }
+  if (original != null) {
+    return original;
+  }
+  return new JIfStatement(program,condExpr.getSourceInfo(),condExpr,thenStmt,elseStmt);
+}

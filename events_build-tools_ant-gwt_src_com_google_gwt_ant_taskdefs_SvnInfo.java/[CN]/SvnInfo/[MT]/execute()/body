@@ -1,0 +1,19 @@
+{
+  String result;
+  if (outprop == null) {
+    throw new BuildException("<svninfo> task requires an outputproperty attribute");
+  }
+  if (workdir == null) {
+    workdir=getProject().getProperty("basedir");
+  }
+  File workDirFile=new File(workdir);
+  if (!workDirFile.isDirectory()) {
+    throw new BuildException(workdir + " is not a directory");
+  }
+  String branch=getSvnBranch(workDirFile);
+  String revision=getSvnVersion(workDirFile);
+  getProject().setNewProperty(outprop,branch + "@" + revision);
+  if (fileprop != null) {
+    getProject().setNewProperty(fileprop,branch + "-" + revision.replaceAll(":","-"));
+  }
+}

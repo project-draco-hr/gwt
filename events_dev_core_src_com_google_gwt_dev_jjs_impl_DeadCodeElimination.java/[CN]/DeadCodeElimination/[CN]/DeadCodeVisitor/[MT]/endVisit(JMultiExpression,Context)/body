@@ -1,0 +1,26 @@
+{
+  List<JExpression> exprs=x.exprs;
+  if (exprs.size() > 1) {
+    List<JExpression> nonFinalChildren=exprs.subList(0,exprs.size() - 1);
+    ignoringExpressionOutput.removeAll(nonFinalChildren);
+  }
+  for (int i=0; i < numRemovableExpressions(x); ++i) {
+    JExpression expr=x.exprs.get(i);
+    if (!expr.hasSideEffects()) {
+      x.exprs.remove(i);
+      --i;
+      didChange=true;
+      continue;
+    }
+    if (expr instanceof JMultiExpression) {
+      x.exprs.remove(i);
+      x.exprs.addAll(i,((JMultiExpression)expr).exprs);
+      i--;
+      didChange=true;
+      continue;
+    }
+  }
+  if (x.exprs.size() == 1) {
+    ctx.replaceMe(x.exprs.get(0));
+  }
+}

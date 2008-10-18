@@ -1,0 +1,30 @@
+{
+  Object[] javaParams=SwtOleGlue.convertVariantsToObjects(cl,method.getParameterTypes(),params,"Calling method '" + method.getName() + "'");
+  Object result=null;
+  try {
+    try {
+      result=method.invoke(jthis,javaParams);
+    }
+ catch (    IllegalAccessException e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
+    }
+  }
+ catch (  NullPointerException e) {
+    StringBuffer sb=new StringBuffer();
+    sb.append("Instance method '");
+    sb.append(method.getName());
+    sb.append("' needed a qualifying instance ");
+    sb.append("(did you forget to prefix the call with 'this.'?)");
+    throw new HResultException(sb.toString());
+  }
+ finally {
+    for (int i=0; i < javaParams.length; i++) {
+      if (javaParams[i] instanceof OleAutomation) {
+        OleAutomation tmp=(OleAutomation)javaParams[i];
+        tmp.dispose();
+      }
+    }
+  }
+  return SwtOleGlue.convertObjectToVariant(cl,method.getReturnType(),result);
+}
