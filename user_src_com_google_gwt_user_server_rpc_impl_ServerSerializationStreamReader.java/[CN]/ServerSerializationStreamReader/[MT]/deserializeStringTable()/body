@@ -2,10 +2,50 @@
   int typeNameCount=readInt();
   BoundedList<String> buffer=new BoundedList<String>(String.class,typeNameCount);
   for (int typeNameIndex=0; typeNameIndex < typeNameCount; ++typeNameIndex) {
-    buffer.add(extract());
-  }
-  if (buffer.size() != buffer.getExpectedSize()) {
-    throw new SerializationException("Expected " + buffer.getExpectedSize() + " string table elements; received "+ buffer.size());
-  }
-  stringTable=buffer.toArray(new String[buffer.getExpectedSize()]);
+    String str=extract();
+    int idx=str.indexOf('\\');
+    if (idx >= 0) {
+      StringBuilder buf=new StringBuilder();
+      int pos=0;
+      while (idx >= 0) {
+        buf.append(str.substring(pos,idx));
+        if (++idx == str.length()) {
+          throw new SerializationException("Unmatched backslash: \"" + str + "\"");
+        }
+        char ch=str.charAt(idx);
+        pos=idx + 1;
+switch (ch) {
+case '0':
+          buf.append('\u0000');
+        break;
+case '!':
+      buf.append(RPC_SEPARATOR_CHAR);
+    break;
+case '\\':
+  buf.append(ch);
+break;
+case 'u':
+try {
+ch=(char)Integer.parseInt(str.substring(idx + 1,idx + 5),16);
+}
+ catch (NumberFormatException e) {
+throw new SerializationException("Invalid Unicode escape sequence in \"" + str + "\"");
+}
+buf.append(ch);
+pos+=4;
+break;
+default :
+throw new SerializationException("Unexpected escape character " + ch + " after backslash: \""+ str+ "\"");
+}
+idx=str.indexOf('\\',pos);
+}
+buf.append(str.substring(pos));
+str=buf.toString();
+}
+buffer.add(str);
+}
+if (buffer.size() != buffer.getExpectedSize()) {
+throw new SerializationException("Expected " + buffer.getExpectedSize() + " string table elements; received "+ buffer.size());
+}
+stringTable=buffer.toArray(new String[buffer.getExpectedSize()]);
 }

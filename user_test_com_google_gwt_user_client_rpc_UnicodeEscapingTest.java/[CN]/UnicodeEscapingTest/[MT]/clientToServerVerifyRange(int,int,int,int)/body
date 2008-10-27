@@ -1,0 +1,26 @@
+{
+  current=start;
+  int blockEnd=Math.min(end,current + size);
+  getService().verifyStringContainingCharacterRange(current,blockEnd,getStringContainingCharacterRange(start,blockEnd),new AsyncCallback<Boolean>(){
+    public void onFailure(    Throwable caught){
+      TestSetValidator.rethrowException(caught);
+    }
+    public void onSuccess(    Boolean ignored){
+      current+=step;
+      if (current < end) {
+        delayTestFinish(TEST_FINISH_DELAY_MS);
+        int blockEnd=Math.min(end,current + size);
+        try {
+          getService().verifyStringContainingCharacterRange(current,blockEnd,getStringContainingCharacterRange(current,blockEnd),this);
+        }
+ catch (        InvalidCharacterException e) {
+          TestSetValidator.rethrowException(e);
+        }
+      }
+ else {
+        finishTest();
+      }
+    }
+  }
+);
+}
