@@ -1,0 +1,15 @@
+{
+  byte[] bytes=Util.readFileAsBytes(jsFile);
+  if (bytes == null) {
+    logger.log(TreeLogger.ERROR,"Unable to read file '" + jsFile.getAbsolutePath() + "'");
+    throw new UnableToCompleteException();
+  }
+  String strongName=Util.computeStrongName(bytes);
+  StandardCompilationResult result=resultsByStrongName.get(strongName);
+  if (result == null) {
+    result=new StandardCompilationResult(Util.toString(bytes),strongName,jsFile);
+    resultsByStrongName.put(result.getStrongName(),result);
+    artifacts.add(result);
+  }
+  return result;
+}

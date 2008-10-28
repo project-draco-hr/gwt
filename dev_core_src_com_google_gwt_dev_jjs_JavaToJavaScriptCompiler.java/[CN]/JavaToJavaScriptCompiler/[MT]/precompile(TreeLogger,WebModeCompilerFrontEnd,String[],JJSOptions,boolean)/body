@@ -1,0 +1,55 @@
+{
+  if (declEntryPts.length == 0) {
+    throw new IllegalArgumentException("entry point(s) required");
+  }
+  RebindPermutationOracle rpo=compilerFrontEnd.getRebindPermutationOracle();
+  Set<String> allEntryPoints=new TreeSet<String>();
+  for (  String element : declEntryPts) {
+    String[] all=rpo.getAllPossibleRebindAnswers(logger,element);
+    Util.addAll(allEntryPoints,all);
+  }
+  allEntryPoints.addAll(JProgram.CODEGEN_TYPES_SET);
+  allEntryPoints.addAll(JProgram.INDEX_TYPES_SET);
+  CompilationUnitDeclaration[] goldenCuds=compilerFrontEnd.getCompilationUnitDeclarations(logger,allEntryPoints.toArray(new String[0]));
+  checkForErrors(logger,goldenCuds,false);
+  PerfLogger.start("Build AST");
+  JProgram jprogram=new JProgram();
+  JsProgram jsProgram=new JsProgram();
+  try {
+    long usedMemoryBefore=singlePermutation ? 0 : getUsedMemory();
+    TypeMap typeMap=new TypeMap(jprogram);
+    TypeDeclaration[] allTypeDeclarations=BuildTypeMap.exec(typeMap,goldenCuds,jsProgram);
+    checkForErrors(logger,goldenCuds,true);
+    jprogram.typeOracle.computeBeforeAST();
+    GenerateJavaAST.exec(allTypeDeclarations,typeMap,jprogram,jsProgram,options.isEnableAssertions());
+    long usedMemoryAfter=singlePermutation ? 0 : getUsedMemory();
+    long memoryDelta=usedMemoryAfter - usedMemoryBefore;
+    long astMemoryUsage=(long)(memoryDelta * 1.5);
+    checkForErrors(logger,goldenCuds,true);
+    goldenCuds=null;
+    typeMap=null;
+    allTypeDeclarations=null;
+    FixAssignmentToUnbox.exec(jprogram);
+    if (options.isEnableAssertions()) {
+      AssertionNormalizer.exec(jprogram);
+    }
+ else {
+      AssertionRemover.exec(jprogram);
+    }
+    ReplaceRebinds.exec(logger,jprogram,rpo);
+    findEntryPoints(logger,rpo,declEntryPts,jprogram);
+    JavaScriptObjectNormalizer.exec(jprogram);
+    if (!singlePermutation) {
+      optimize(options,jprogram);
+    }
+    Set<String> rebindRequests=new HashSet<String>();
+    RecordRebinds.exec(jprogram,rebindRequests);
+    return new UnifiedAst(options,new AST(jprogram,jsProgram),singlePermutation,astMemoryUsage,rebindRequests);
+  }
+ catch (  Throwable e) {
+    throw logAndTranslateException(logger,e);
+  }
+ finally {
+    PerfLogger.end();
+  }
+}

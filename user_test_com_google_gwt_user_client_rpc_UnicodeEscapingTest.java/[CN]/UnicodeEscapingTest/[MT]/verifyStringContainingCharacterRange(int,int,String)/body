@@ -1,0 +1,20 @@
+{
+  if (str == null) {
+    throw new NullPointerException("String is null");
+  }
+  int expectedLen=end - start;
+  int strLen=str.codePointCount(0,str.length());
+  for (int i=0, codePoint=start; i < strLen; i=Character.offsetByCodePoints(str,i,1)) {
+    int strCodePoint=str.codePointAt(i);
+    if (strCodePoint != codePoint) {
+      throw new InvalidCharacterException(i,codePoint,strCodePoint);
+    }
+    ++codePoint;
+  }
+  if (strLen < expectedLen) {
+    throw new InvalidCharacterException(strLen,start + strLen,-1);
+  }
+ else   if (expectedLen != strLen) {
+    throw new RuntimeException("Too many characters returned on block from U+" + Integer.toHexString(start) + " to U+"+ Integer.toHexString(end)+ ": expected="+ expectedLen+ ", actual="+ strLen);
+  }
+}

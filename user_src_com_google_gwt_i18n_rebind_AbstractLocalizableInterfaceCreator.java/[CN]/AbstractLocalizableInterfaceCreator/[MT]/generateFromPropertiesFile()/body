@@ -3,13 +3,15 @@
   LocalizedProperties p=new LocalizedProperties();
   p.load(propStream,Util.DEFAULT_ENCODING);
   addFormatters();
-  Iterator<Entry<String,String>> elements=p.getPropertyMap().entrySet().iterator();
-  if (elements.hasNext() == false) {
+  Set<String> keySet=p.getPropertyMap().keySet();
+  String[] keys=keySet.toArray(new String[keySet.size()]);
+  Arrays.sort(keys);
+  if (keys.length == 0) {
     throw new IllegalStateException("File '" + resourceFile + "' cannot be used to generate message classes, as it has no key/value pairs defined.");
   }
-  while (elements.hasNext()) {
-    Entry<String,String> s=elements.next();
-    genSimpleMethodDecl(s.getKey(),s.getValue());
+  for (  String key : keys) {
+    String value=p.getProperty(key);
+    genSimpleMethodDecl(key,value);
   }
   composer.commit(new PrintWriterTreeLogger());
 }
