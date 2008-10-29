@@ -22,20 +22,14 @@
       compilationState.compile(logger);
     }
     TypeOracle typeOracle=getTypeOracle();
-    JClassType[] genTypes=new JClassType[genTypeNames.size()];
-    int next=0;
-    for (Iterator<String> iter=genTypeNames.iterator(); iter.hasNext(); ) {
-      String genTypeName=iter.next();
-      try {
-        genTypes[next++]=typeOracle.getType(genTypeName);
-      }
- catch (      NotFoundException e) {
+    for (    String genTypeName : genTypeNames) {
+      if (typeOracle.findType(genTypeName) == null) {
         String msg="Unable to find recently-generated type '" + genTypeName;
         logger.log(TreeLogger.ERROR,msg,null);
         throw new UnableToCompleteException();
       }
     }
-    return genTypes;
+    return newlyGeneratedArtifacts;
   }
   finally {
     if (!uncommittedGeneratedCupsByPrintWriter.isEmpty()) {
@@ -47,6 +41,7 @@
     }
     uncommittedGeneratedCupsByPrintWriter.clear();
     committedGeneratedCups.clear();
-    generatedTypeNames.clear();
+    newlyGeneratedTypeNames.clear();
+    newlyGeneratedArtifacts=new ArtifactSet();
   }
 }

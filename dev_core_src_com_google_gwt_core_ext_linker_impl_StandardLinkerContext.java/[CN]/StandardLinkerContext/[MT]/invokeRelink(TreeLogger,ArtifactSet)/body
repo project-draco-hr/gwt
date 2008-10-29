@@ -1,0 +1,15 @@
+{
+  ArtifactSet workingArtifacts=new ArtifactSet(newlyGeneratedArtifacts);
+  for (  Linker linker : linkers) {
+    TreeLogger linkerLogger=logger.branch(TreeLogger.TRACE,"Invoking relink on Linker " + linker.getDescription(),null);
+    workingArtifacts.freeze();
+    try {
+      workingArtifacts=linker.relink(linkerLogger,this,workingArtifacts);
+    }
+ catch (    Throwable e) {
+      linkerLogger.log(TreeLogger.ERROR,"Failed to relink",e);
+      throw new UnableToCompleteException();
+    }
+  }
+  return workingArtifacts;
+}

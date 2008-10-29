@@ -1,0 +1,49 @@
+{
+  if (topLogger == null) {
+    throw new NullPointerException("No logger specified");
+  }
+  final TreeLogger logger=topLogger.branch(TreeLogger.INFO,"Starting HTTP on port " + listeningPort,null);
+  startupBranchLogger=logger;
+  sTomcat=this;
+  File topWorkDir=new File(System.getProperty("user.dir"));
+  String catBase=System.getProperty("catalina.base");
+  if (catBase == null) {
+    catBase=generateDefaultCatalinaBase(logger,topWorkDir);
+    System.setProperty("catalina.base",catBase);
+  }
+  logger.log(TreeLogger.DEBUG,"catalina.base = " + catBase,null);
+  String adapterClassName=CommonsLoggerAdapter.class.getName();
+  System.setProperty("org.apache.commons.logging.Log",adapterClassName);
+  Logger catalinaLogger=new CatalinaLoggerAdapter(topLogger);
+  catEmbedded=new Embedded();
+  catEmbedded.setDebug(0);
+  catEmbedded.setLogger(catalinaLogger);
+  catEngine=catEmbedded.createEngine();
+  catEngine.setName("gwt");
+  catEngine.setDefaultHost("localhost");
+  String appBase=catBase + "/webapps";
+  catHost=(StandardHost)catEmbedded.createHost("localhost",appBase);
+  HostConfig hostConfig=new HostConfig();
+  catHost.addLifecycleListener(hostConfig);
+  catHost.addContainerListener(new ContainerListener(){
+    public void containerEvent(    ContainerEvent event){
+      if (StandardHost.PRE_INSTALL_EVENT.equals(event.getType())) {
+        StandardContext webapp=(StandardContext)event.getData();
+        publishShellLoggerAttribute(logger,topLogger,webapp);
+        publishShellWorkDirsAttribute(logger,workDirs,webapp);
+      }
+    }
+  }
+);
+  catEngine.addChild(catHost);
+  catEngine.setDefaultHost(catHost.getName());
+  catEmbedded.addEngine(catEngine);
+  InetAddress nullAddr=null;
+  Connector connector=catEmbedded.createConnector(nullAddr,listeningPort,false);
+  catEmbedded.addConnector(connector);
+  catEmbedded.start();
+  port=computeLocalPort(connector);
+  if (port != listeningPort) {
+    logger.log(TreeLogger.INFO,"HTTP listening on port " + port,null);
+  }
+}

@@ -7,15 +7,11 @@
   openAppWindow();
   initializeLogger();
   if (runTomcat) {
-    final int serverPort=getPort();
-    PerfLogger.start("GWTShell.startup (Tomcat launch)");
-    String whyFailed=EmbeddedTomcatServer.start(getTopLogger(),serverPort,options.getOutDir());
-    PerfLogger.end();
-    if (whyFailed != null) {
-      System.err.println(whyFailed);
+    int resultPort=startUpServer();
+    if (resultPort < 0) {
       return false;
     }
-    port=EmbeddedTomcatServer.getPort();
+    port=resultPort;
   }
   return true;
 }
