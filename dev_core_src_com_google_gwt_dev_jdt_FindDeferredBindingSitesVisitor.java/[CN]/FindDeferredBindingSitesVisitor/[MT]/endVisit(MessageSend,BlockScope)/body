@@ -3,26 +3,40 @@
     return;
   }
   String methodName=String.valueOf(messageSend.selector);
-  if (!methodName.equals(REBIND_MAGIC_METHOD)) {
+  boolean rebindMagicMethod=methodName.equals(REBIND_MAGIC_METHOD);
+  boolean asyncMagicMethod=methodName.equals(ASYNC_MAGIC_METHOD);
+  if (!(rebindMagicMethod || asyncMagicMethod)) {
     return;
   }
   char[][] targetClass=messageSend.binding.declaringClass.compoundName;
   String targetClassName=CharOperation.toString(targetClass);
-  if (!targetClassName.equals(REBIND_MAGIC_CLASS)) {
+  if (!targetClassName.equals(MAGIC_CLASS)) {
     return;
   }
-  DeferredBindingSite site=new DeferredBindingSite(messageSend,scope);
+  MessageSendSite site=new MessageSendSite(messageSend,scope);
   Expression[] args=messageSend.arguments;
-  if (args.length != 1) {
-    reportRebindProblem(site,"GWT.create() should take exactly one argument");
+  if (rebindMagicMethod) {
+    if (args.length != 1) {
+      reportRebindProblem(site,"GWT.create() should take exactly one argument");
+      return;
+    }
+    if (!(args[0] instanceof ClassLiteralAccess)) {
+      reportRebindProblem(site,"Only class literals may be used as arguments to GWT.create()");
+      return;
+    }
+  }
+ else {
+    assert asyncMagicMethod;
+    if (args.length != 1) {
+      reportRebindProblem(site,"GWT.runAsync() should take exactly one argument");
+      return;
+    }
+  }
+  if (asyncMagicMethod) {
+    runAsyncCalls.add(new MessageSendSite(messageSend,scope));
     return;
   }
-  Expression arg=args[0];
-  if (!(arg instanceof ClassLiteralAccess)) {
-    reportRebindProblem(site,"Only class literals may be used as arguments to GWT.create()");
-    return;
-  }
-  ClassLiteralAccess cla=(ClassLiteralAccess)arg;
+  ClassLiteralAccess cla=(ClassLiteralAccess)args[0];
   String typeName=String.valueOf(cla.targetType.readableName());
   if (!results.containsKey(typeName)) {
     results.put(typeName,site);

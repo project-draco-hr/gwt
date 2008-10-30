@@ -7,4 +7,48 @@
   creator.accept(program);
   GenerateJavaScriptVisitor generator=new GenerateJavaScriptVisitor();
   generator.accept(program);
+  final Map<JsName,JMethod> nameToMethodMap=new HashMap<JsName,JMethod>();
+  for (  JAbstractMethodBody body : methodBodyMap.keySet()) {
+    nameToMethodMap.put(methodBodyMap.get(body).getName(),body.getMethod());
+  }
+  final HashMap<JsName,JField> nameToFieldMap=new HashMap<JsName,JField>();
+  final HashMap<JsName,JReferenceType> constructorNameToTypeMap=new HashMap<JsName,JReferenceType>();
+  for (  JReferenceType type : program.getDeclaredTypes()) {
+    JsName typeName=names.get(type);
+    if (typeName != null) {
+      constructorNameToTypeMap.put(typeName,type);
+    }
+    for (    JField field : type.fields) {
+      if (field.isStatic()) {
+        JsName fieldName=names.get(field);
+        if (fieldName != null) {
+          nameToFieldMap.put(fieldName,field);
+        }
+      }
+    }
+  }
+  return new JavaToJavaScriptMap(){
+    public JsName nameForMethod(    JMethod method){
+      return names.get(method);
+    }
+    public JsName nameForType(    JReferenceType type){
+      return names.get(type);
+    }
+    public JField nameToField(    JsName name){
+      return nameToFieldMap.get(name);
+    }
+    public JMethod nameToMethod(    JsName name){
+      return nameToMethodMap.get(name);
+    }
+    public String stringLiteralForName(    JsName var){
+      return null;
+    }
+    public JReferenceType typeForStatement(    JsStatement stat){
+      return typeForStatMap.get(stat);
+    }
+    public JMethod vtableInitToMethod(    JsStatement stat){
+      return vtableInitForMethodMap.get(stat);
+    }
+  }
+;
 }

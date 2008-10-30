@@ -1,0 +1,22 @@
+{
+  chooseEntryNumber();
+  StandardGeneratorContext context=makeGeneratorContext();
+  PrintWriter loaderWriter=getSourceWriterForLoader(logger,context);
+  if (loaderWriter == null) {
+    logger.log(TreeLogger.ERROR,"Failed to create island loader named " + getLoaderQualifiedName());
+    throw new UnableToCompleteException();
+  }
+  generateLoaderFields(loaderWriter);
+  generateOnErrorMethod(loaderWriter);
+  generateOnLoadMethod(loaderWriter);
+  generateRunAsyncMethod(loaderWriter);
+  generateRunCallbacksMethod(loaderWriter);
+  generateRunCallbackOnFailuresMethod(loaderWriter);
+  loaderWriter.println("}");
+  loaderWriter.close();
+  context.commit(logger,loaderWriter);
+  writeCallbackListClass(logger,context);
+  writeLoaderSuperclass(logger,context);
+  context.finish(logger);
+  return getLoaderQualifiedName();
+}

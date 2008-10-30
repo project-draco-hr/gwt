@@ -1,0 +1,74 @@
+{
+  try {
+    if (JProgram.isTracingEnabled()) {
+      System.out.println("------------------------------------------------------------");
+      System.out.println("|                     (new permuation)                     |");
+      System.out.println("------------------------------------------------------------");
+    }
+    AST ast=unifiedAst.getFreshAst();
+    JProgram jprogram=ast.getJProgram();
+    JsProgram jsProgram=ast.getJsProgram();
+    JJSOptions options=unifiedAst.getOptions();
+    ResolveRebinds.exec(jprogram,rebindAnswers);
+    optimize(options,jprogram);
+    LongCastNormalizer.exec(jprogram);
+    JsoDevirtualizer.exec(jprogram);
+    CatchBlockNormalizer.exec(jprogram);
+    PostOptimizationCompoundAssignmentNormalizer.exec(jprogram);
+    LongEmulationNormalizer.exec(jprogram);
+    CastNormalizer.exec(jprogram);
+    ArrayNormalizer.exec(jprogram);
+    EqualityNormalizer.exec(jprogram);
+    Pruner.exec(jprogram,false);
+    jprogram.typeOracle.recomputeClinits();
+    final JavaToJavaScriptMap map=GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput());
+    JsNormalizer.exec(jsProgram);
+    JsSymbolResolver.exec(jsProgram);
+    if (options.isAggressivelyOptimize()) {
+      boolean didChange;
+      do {
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
+        didChange=false;
+        didChange=JsStaticEval.exec(jsProgram) || didChange;
+        didChange=JsInliner.exec(jsProgram) || didChange;
+        didChange=JsUnusedFunctionRemover.exec(jsProgram) || didChange;
+      }
+ while (didChange);
+    }
+    final Map<JsName,String> stringLiteralMap;
+switch (options.getOutput()) {
+case OBFUSCATED:
+      stringLiteralMap=JsStringInterner.exec(jsProgram);
+    JsObfuscateNamer.exec(jsProgram);
+  break;
+case PRETTY:
+stringLiteralMap=new HashMap<JsName,String>();
+JsPrettyNamer.exec(jsProgram);
+break;
+case DETAILED:
+stringLiteralMap=JsStringInterner.exec(jsProgram);
+JsVerboseNamer.exec(jsProgram);
+break;
+default :
+throw new InternalCompilerException("Unknown output mode");
+}
+JavaToJavaScriptMap postStringInterningMap=addStringLiteralMap(map,stringLiteralMap);
+if (options.isAggressivelyOptimize()) {
+CodeSplitter.exec(jprogram,jsProgram,postStringInterningMap);
+}
+JsIEBlockSizeVisitor.exec(jsProgram);
+String[] js=new String[jsProgram.getFragmentCount()];
+for (int i=0; i < js.length; i++) {
+DefaultTextOutput out=new DefaultTextOutput(options.getOutput().shouldMinimize());
+JsSourceGenerationVisitor v=new JsSourceGenerationVisitor(out);
+v.accept(jsProgram.getFragmentBlock(i));
+js[i]=out.toString();
+}
+return new JavaAndJavaScript(jprogram,jsProgram,js,postStringInterningMap);
+}
+ catch (Throwable e) {
+throw logAndTranslateException(logger,e);
+}
+}

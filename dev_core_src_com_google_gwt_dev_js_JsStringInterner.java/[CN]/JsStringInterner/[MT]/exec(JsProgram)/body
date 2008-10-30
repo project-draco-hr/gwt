@@ -1,3 +1,12 @@
 {
-  return exec(program,program.getGlobalBlock(),program.getScope());
+  StringVisitor v=new StringVisitor(program.getScope());
+  for (int i=0; i < program.getFragmentCount(); i++) {
+    v.accept(program.getFragmentBlock(i));
+  }
+  Map<JsName,String> map=new HashMap<JsName,String>();
+  for (  JsStringLiteral stringLit : v.toCreate.keySet()) {
+    map.put(v.toCreate.get(stringLit),stringLit.getValue());
+  }
+  createVars(program,program.getGlobalBlock(),v.toCreate);
+  return map;
 }

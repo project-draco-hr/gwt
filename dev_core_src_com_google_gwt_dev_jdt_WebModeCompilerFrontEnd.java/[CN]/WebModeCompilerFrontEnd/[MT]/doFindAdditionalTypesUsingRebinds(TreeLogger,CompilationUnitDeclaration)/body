@@ -2,9 +2,9 @@
   Set<String> dependentTypeNames=new HashSet<String>();
   FindDeferredBindingSitesVisitor v=new FindDeferredBindingSitesVisitor();
   cud.traverse(v,cud.scope);
-  Map<String,DeferredBindingSite> requestedTypes=v.getSites();
+  Map<String,MessageSendSite> requestedTypes=v.getSites();
   for (  String reqType : requestedTypes.keySet()) {
-    DeferredBindingSite site=requestedTypes.get(reqType);
+    MessageSendSite site=requestedTypes.get(reqType);
     try {
       String[] resultTypes=rebindPermOracle.getAllPossibleRebindAnswers(logger,reqType);
       for (int i=0; i < resultTypes.length; ++i) {
@@ -41,6 +41,17 @@
     }
  catch (    UnableToCompleteException e) {
       FindDeferredBindingSitesVisitor.reportRebindProblem(site,"Failed to resolve '" + reqType + "' via deferred binding");
+    }
+  }
+  for (  MessageSendSite site : v.getRunAsyncSites()) {
+    FragmentLoaderCreator loaderCreator=fragmentLoaderCreator;
+    String resultType;
+    try {
+      resultType=loaderCreator.create(logger);
+      dependentTypeNames.add(resultType);
+    }
+ catch (    UnableToCompleteException e) {
+      FindDeferredBindingSitesVisitor.reportRebindProblem(site,"Failed to create a runAsync fragment loader");
     }
   }
   return dependentTypeNames.toArray(Empty.STRINGS);

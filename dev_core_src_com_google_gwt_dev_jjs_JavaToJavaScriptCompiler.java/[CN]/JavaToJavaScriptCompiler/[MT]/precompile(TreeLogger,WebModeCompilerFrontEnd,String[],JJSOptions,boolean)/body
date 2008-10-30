@@ -10,6 +10,7 @@
   }
   allEntryPoints.addAll(JProgram.CODEGEN_TYPES_SET);
   allEntryPoints.addAll(JProgram.INDEX_TYPES_SET);
+  allEntryPoints.add(FragmentLoaderCreator.ASYNC_FRAGMENT_LOADER);
   CompilationUnitDeclaration[] goldenCuds=compilerFrontEnd.getCompilationUnitDeclarations(logger,allEntryPoints.toArray(new String[0]));
   checkForErrors(logger,goldenCuds,false);
   PerfLogger.start("Build AST");
@@ -37,6 +38,9 @@
       AssertionRemover.exec(jprogram);
     }
     ReplaceRebinds.exec(logger,jprogram,rpo);
+    if (options.isAggressivelyOptimize()) {
+      ReplaceRunAsyncs.exec(logger,jprogram);
+    }
     findEntryPoints(logger,rpo,declEntryPts,jprogram);
     JavaScriptObjectNormalizer.exec(jprogram);
     if (!singlePermutation) {

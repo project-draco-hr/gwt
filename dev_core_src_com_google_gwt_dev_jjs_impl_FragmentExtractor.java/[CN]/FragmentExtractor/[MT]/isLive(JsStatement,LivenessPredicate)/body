@@ -1,0 +1,17 @@
+{
+  JReferenceType type=map.typeForStatement(stat);
+  if (type != null) {
+    return livenessPredicate.isLive(type);
+  }
+  JMethod meth=methodFor(stat);
+  if (meth == null) {
+    meth=map.vtableInitToMethod(stat);
+  }
+  if (meth != null) {
+    if (!livenessPredicate.isLive(meth)) {
+      return false;
+    }
+    return meth.isStatic() || livenessPredicate.isLive(meth.getEnclosingType());
+  }
+  return livenessPredicate.miscellaneousStatementsAreLive();
+}

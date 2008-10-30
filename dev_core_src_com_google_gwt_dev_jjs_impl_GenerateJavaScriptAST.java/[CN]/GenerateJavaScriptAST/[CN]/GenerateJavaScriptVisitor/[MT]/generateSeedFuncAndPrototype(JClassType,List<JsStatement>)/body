@@ -7,7 +7,9 @@
     sourceInfo.addCorrelation(Correlation.by(seedFunc));
     JsBlock body=new JsBlock(sourceInfo);
     seedFunc.setBody(body);
-    globalStmts.add(seedFunc.makeStmt());
+    JsExprStmt seedFuncStmt=seedFunc.makeStmt();
+    globalStmts.add(seedFuncStmt);
+    typeForStatMap.put(seedFuncStmt,x);
     JsNameRef lhs=prototype.makeRef(sourceInfo);
     lhs.setQualifier(seedFuncName.makeRef(sourceInfo));
     JsExpression rhs;
@@ -26,12 +28,16 @@
     }
     JsExpression protoAsg=createAssignment(lhs,rhs);
     JsExpression tmpAsg=createAssignment(globalTemp.makeRef(sourceInfo),protoAsg);
-    globalStmts.add(tmpAsg.makeStmt());
+    JsExprStmt tmpAsgStmt=tmpAsg.makeStmt();
+    globalStmts.add(tmpAsgStmt);
+    typeForStatMap.put(tmpAsgStmt,x);
   }
  else {
     JsNameRef rhs=prototype.makeRef(sourceInfo);
     rhs.setQualifier(jsProgram.getRootScope().declareName("String").makeRef(sourceInfo));
     JsExpression tmpAsg=createAssignment(globalTemp.makeRef(sourceInfo),rhs);
-    globalStmts.add(tmpAsg.makeStmt());
+    JsExprStmt tmpAsgStmt=tmpAsg.makeStmt();
+    globalStmts.add(tmpAsgStmt);
+    typeForStatMap.put(tmpAsgStmt,x);
   }
 }

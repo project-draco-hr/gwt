@@ -1,16 +1,25 @@
 {
   List<JsStatement> globalStmts=jsProgram.getGlobalBlock().getStatements();
-  generateGwtOnLoad(entryFunctions,globalStmts);
+  generateGwtOnLoad(Arrays.asList(entryFunctions).subList(0,x.getEntryCount(0)),globalStmts);
   generateNullFunc(globalStmts);
-  JsVars vars=new JsVars(x.getSourceInfo());
-  vars.add(new JsVar(x.getSourceInfo(),globalTemp));
+  JsVars vars=new JsVars(jsProgram.getSourceInfo());
+  vars.add(new JsVar(jsProgram.getSourceInfo(),globalTemp));
   globalStmts.add(0,vars);
   generateLongLiterals(vars);
   if (x.getDeclaredTypes().contains(x.getTypeClassLiteralHolder())) {
-    vars=new JsVars(x.getSourceInfo());
+    vars=new JsVars(jsProgram.getSourceInfo());
     generateClassLiterals(vars);
     if (!vars.isEmpty()) {
       globalStmts.add(vars);
+    }
+  }
+  List<JsFunction> nonInitialEntries=Arrays.asList(entryFunctions).subList(x.getEntryCount(0),entryFunctions.length);
+  for (  JsFunction func : nonInitialEntries) {
+    if (func != null) {
+      SourceInfo sourceInfo=jsProgram.getSourceInfo().makeChild(GenerateJavaScriptAST.class,"call to entry non-initial entry function");
+      JsInvocation call=new JsInvocation(sourceInfo);
+      call.setQualifier(func.getName().makeRef(sourceInfo));
+      globalStmts.add(call.makeStmt());
     }
   }
 }

@@ -1,14 +1,15 @@
 {
-  String toReturn=null;
+  String[] toReturn=null;
   if (js != null) {
     toReturn=js.get();
   }
   if (toReturn == null) {
-    toReturn=Util.readFileAsString(cacheFile);
-    if (toReturn == null) {
+    byte[][] bytes=Util.readFileAndSplit(cacheFile);
+    if (bytes == null) {
       throw new RuntimeException("Unexpectedly unable to read JS file '" + cacheFile.getAbsolutePath() + "'");
     }
-    js=new SoftReference<String>(toReturn);
+    toReturn=Util.toStrings(bytes);
+    js=new SoftReference<String[]>(toReturn);
   }
   return toReturn;
 }
