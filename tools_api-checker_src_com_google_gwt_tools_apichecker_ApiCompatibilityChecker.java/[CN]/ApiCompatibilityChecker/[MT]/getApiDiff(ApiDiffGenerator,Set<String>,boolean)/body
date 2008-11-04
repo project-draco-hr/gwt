@@ -3,11 +3,13 @@
   if (removeDuplicates) {
     collection=apiDiff.removeDuplicates(collection);
   }
+  Set<String> matchedWhiteList=new HashSet<String>();
   Collection<ApiChange> prunedCollection=new ArrayList<ApiChange>();
   for (  ApiChange apiChange : collection) {
     String apiChangeAsString=apiChange.getStringRepresentationWithoutMessage();
     apiChangeAsString=apiChangeAsString.trim();
-    if (whiteList.remove(apiChangeAsString)) {
+    if (whiteList.contains(apiChangeAsString)) {
+      matchedWhiteList.add(apiChangeAsString);
       continue;
     }
     if (!PRINT_COMPATIBLE && apiChange.getStatus().equals(ApiChange.Status.COMPATIBLE)) {
@@ -18,6 +20,7 @@
     }
     prunedCollection.add(apiChange);
   }
+  whiteList.removeAll(matchedWhiteList);
   if (whiteList.size() > 0) {
     List<String> al=new ArrayList<String>(whiteList);
     Collections.sort(al);
