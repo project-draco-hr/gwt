@@ -1,0 +1,31 @@
+{
+  checkStartParams(logger,port,appRootDir);
+  System.setProperty("VERBOSE","true");
+  JettyTreeLogger.setDefaultConstruction(logger,TreeLogger.INFO);
+  System.setProperty("org.mortbay.log.class",JettyTreeLogger.class.getName());
+  Log.isDebugEnabled();
+  if (JettyTreeLogger.isDefaultConstructionReady()) {
+    Log.setLog(new JettyTreeLogger());
+  }
+  Server server=new Server();
+  SelectChannelConnector connector=new SelectChannelConnector();
+  connector.setPort(port);
+  connector.setHost("127.0.0.1");
+  server.addConnector(connector);
+  WebAppContext wac=new WebAppContext(appRootDir.getAbsolutePath(),"/");
+  wac.getInitParams().put("org.mortbay.jetty.servlet.Default.useFileMappedBuffer","false");
+  FilterHolder filterHolder=new FilterHolder();
+  filterHolder.setFilter(shellServletFilter);
+  wac.addFilter(filterHolder,"/*",Handler.ALL);
+  server.setHandler(wac);
+  server.setStopAtShutdown(true);
+  try {
+    server.start();
+    int actualPort=connector.getPort();
+    return new JettyServletContainer(logger,wac,actualPort,appRootDir);
+  }
+ catch (  Exception e) {
+    logger.log(TreeLogger.ERROR,"Unable to start embedded Jetty server",e);
+    throw new UnableToCompleteException();
+  }
+}

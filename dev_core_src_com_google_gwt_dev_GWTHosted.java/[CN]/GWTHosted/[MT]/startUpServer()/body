@@ -1,0 +1,23 @@
+{
+  PerfLogger.start("GWTShell.startup (Jetty launch)");
+  JettyLauncher launcher=new JettyLauncher();
+  try {
+    TreeLogger serverLogger=getTopLogger().branch(TreeLogger.INFO,"Starting HTTP on port " + getPort(),null);
+    ModuleDef[] moduleArray=modules.toArray(new ModuleDef[modules.size()]);
+    for (    ModuleDef moduleDef : moduleArray) {
+      String[] servletPaths=moduleDef.getServletPaths();
+      if (servletPaths.length > 0) {
+        serverLogger.log(TreeLogger.WARN,"Ignoring legacy <servlet> tag(s) in module '" + moduleDef.getName() + "'; add servlet tags to your web.xml instead");
+      }
+    }
+    servletFilter=new GWTShellServletFilter(serverLogger,options,moduleArray);
+    server=launcher.start(serverLogger,getPort(),options.getOutDir(),servletFilter);
+  }
+ catch (  UnableToCompleteException e) {
+    PerfLogger.end();
+    return -1;
+  }
+  assert(server != null);
+  PerfLogger.end();
+  return server.getPort();
+}

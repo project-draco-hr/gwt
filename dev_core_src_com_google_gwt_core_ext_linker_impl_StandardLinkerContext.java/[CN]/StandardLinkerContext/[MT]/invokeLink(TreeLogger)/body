@@ -1,0 +1,15 @@
+{
+  ArtifactSet workingArtifacts=new ArtifactSet(artifacts);
+  for (  Linker linker : linkers) {
+    TreeLogger linkerLogger=logger.branch(TreeLogger.TRACE,"Invoking Linker " + linker.getDescription(),null);
+    workingArtifacts.freeze();
+    try {
+      workingArtifacts=linker.link(linkerLogger,this,workingArtifacts);
+    }
+ catch (    Throwable e) {
+      linkerLogger.log(TreeLogger.ERROR,"Failed to link",e);
+      throw new UnableToCompleteException();
+    }
+  }
+  return workingArtifacts;
+}

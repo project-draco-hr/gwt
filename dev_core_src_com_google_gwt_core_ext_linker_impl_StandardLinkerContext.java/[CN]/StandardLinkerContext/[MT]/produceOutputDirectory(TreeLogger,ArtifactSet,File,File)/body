@@ -1,2 +1,17 @@
 {
+  logger=logger.branch(TreeLogger.TRACE,"Linking compilation into " + outputPath.getPath(),null);
+  for (  EmittedArtifact artifact : artifacts.find(EmittedArtifact.class)) {
+    TreeLogger artifactLogger=logger.branch(TreeLogger.DEBUG,"Emitting resource " + artifact.getPartialPath(),null);
+    File outFile;
+    if (artifact.isPrivate()) {
+      if (extraPath == null) {
+        continue;
+      }
+      outFile=new File(getExtraPathForLinker(extraPath,artifact.getLinker()),artifact.getPartialPath());
+    }
+ else {
+      outFile=new File(outputPath,artifact.getPartialPath());
+    }
+    Util.copy(artifactLogger,artifact.getContents(artifactLogger),outFile);
+  }
 }

@@ -3,8 +3,42 @@
   this.jjsOptions=jjsOptions;
   this.moduleFunctionName=module.getFunctionName();
   this.moduleName=module.getName();
-  this.linkerClasses=new ArrayList<Class<? extends Linker>>(module.getActiveLinkers());
-  linkerClasses.add(module.getActivePrimaryLinker());
+  List<Class<? extends Linker>> sortedLinkers=new ArrayList<Class<? extends Linker>>();
+  for (  Class<? extends Linker> linkerClass : module.getActiveLinkers()) {
+    Order order=linkerClass.getAnnotation(LinkerOrder.class).value();
+    assert(order != null);
+    if (order == Order.PRE) {
+      sortedLinkers.add(linkerClass);
+    }
+  }
+  sortedLinkers.add(module.getActivePrimaryLinker());
+{
+    List<Class<? extends Linker>> postLinkerClasses=new ArrayList<Class<? extends Linker>>();
+    for (    Class<? extends Linker> linkerClass : module.getActiveLinkers()) {
+      Order order=linkerClass.getAnnotation(LinkerOrder.class).value();
+      assert(order != null);
+      if (order == Order.POST) {
+        postLinkerClasses.add(linkerClass);
+      }
+    }
+    Collections.reverse(postLinkerClasses);
+    sortedLinkers.addAll(postLinkerClasses);
+  }
+  linkers=new Linker[sortedLinkers.size()];
+  int i=0;
+  for (  Class<? extends Linker> linkerClass : sortedLinkers) {
+    try {
+      linkers[i++]=linkerClass.newInstance();
+    }
+ catch (    InstantiationException e) {
+      logger.log(TreeLogger.ERROR,"Unable to create Linker",e);
+      throw new UnableToCompleteException();
+    }
+catch (    IllegalAccessException e) {
+      logger.log(TreeLogger.ERROR,"Unable to create Linker",e);
+      throw new UnableToCompleteException();
+    }
+  }
   for (  Map.Entry<String,Class<? extends Linker>> entry : module.getLinkers().entrySet()) {
     linkerShortNames.put(entry.getValue(),entry.getKey());
   }
