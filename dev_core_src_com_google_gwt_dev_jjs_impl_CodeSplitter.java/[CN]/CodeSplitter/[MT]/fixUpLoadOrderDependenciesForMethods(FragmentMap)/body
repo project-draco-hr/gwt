@@ -1,0 +1,19 @@
+{
+  int numFixups=0;
+  for (  JReferenceType type : jprogram.getDeclaredTypes()) {
+    int typeFrag=getOrZero(fragmentMap.types,type);
+    if (typeFrag != 0) {
+      for (      JMethod method : type.methods) {
+        if (!method.isStatic() && methodsInJavaScript.contains(method)) {
+          int methodFrag=getOrZero(fragmentMap.methods,method);
+          if (methodFrag != typeFrag) {
+            fragmentMap.types.put(type,0);
+            numFixups++;
+            break;
+          }
+        }
+      }
+    }
+  }
+  logger.log(TreeLogger.DEBUG,"Fixed up load-order dependencies for instance methods by moving " + numFixups + " types to fragment 0, out of "+ jprogram.getDeclaredTypes().size());
+}
