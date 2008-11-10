@@ -1,0 +1,131 @@
+{
+  String installPath=Utility.getInstallPath();
+  String gwtUserPath=installPath + '/' + "gwt-user.jar";
+  String gwtDevPath=installPath + '/' + Utility.getDevJarName();
+  String gwtServletPath=installPath + '/' + "gwt-servlet.jar";
+  if (!CreatorUtilities.validatePathsAndModules(gwtUserPath,extraClassPaths,extraModules)) {
+    return;
+  }
+  boolean isWindows=gwtDevPath.substring(gwtDevPath.lastIndexOf('/') + 1).indexOf("windows") >= 0;
+  boolean isMacOsX=gwtDevPath.substring(gwtDevPath.lastIndexOf('/') + 1).indexOf("mac") >= 0;
+  String basePathEnv;
+  if (!new File(installPath).isAbsolute()) {
+    if (isWindows) {
+      basePathEnv="%~dp0\\";
+    }
+ else {
+      basePathEnv="$APPDIR/";
+    }
+  }
+ else {
+    basePathEnv="";
+  }
+  int pos=fullClassName.lastIndexOf('.');
+  String clientPackageName=fullClassName.substring(0,pos);
+  String className=fullClassName.substring(pos + 1);
+  pos=clientPackageName.lastIndexOf('.');
+  File basePackageDir;
+  String moduleName;
+  String serverPackageName=null;
+  File javaDir=Utility.getDirectory(outDir,"src",true);
+  Utility.getDirectory(outDir,"test",true);
+  File warDir=Utility.getDirectory(outDir,"war",true);
+  File webInfDir=Utility.getDirectory(warDir,"WEB-INF",true);
+  if (pos >= 0) {
+    String basePackage=clientPackageName.substring(0,pos);
+    moduleName=basePackage + "." + className;
+    serverPackageName=basePackage + ".server";
+    basePackage=basePackage.replace('.','/');
+    basePackageDir=Utility.getDirectory(javaDir,basePackage,true);
+  }
+ else {
+    moduleName=className;
+    basePackageDir=javaDir;
+    serverPackageName="server";
+  }
+  File clientDir=Utility.getDirectory(basePackageDir,"client",true);
+  File publicDir=Utility.getDirectory(basePackageDir,"public",true);
+  File serverDir=Utility.getDirectory(basePackageDir,"server",true);
+  String startupUrl=className + ".html";
+  Map<String,String> replacements=new HashMap<String,String>();
+  replacements.put("@className",className);
+  replacements.put("@moduleName",moduleName);
+  replacements.put("@clientPackage",clientPackageName);
+  replacements.put("@serverPackage",serverPackageName);
+  replacements.put("@gwtUserPath",basePathEnv + gwtUserPath);
+  replacements.put("@gwtDevPath",basePathEnv + gwtDevPath);
+  replacements.put("@shellClass","com.google.gwt.dev.GWTHosted");
+  replacements.put("@compileClass","com.google.gwt.dev.GWTCompiler");
+  replacements.put("@startupUrl",startupUrl);
+  replacements.put("@vmargs",isMacOsX ? "<jvmarg value=\"-XstartOnFirstThread\"/>" : "");
+  replacements.put("@eclipseExtraLaunchPaths",CreatorUtilities.createEclipseExtraLaunchPaths(extraClassPaths));
+  replacements.put("@extraModuleInherits",createExtraModuleInherits(extraModules));
+  replacements.put("@extraClassPathsColon",CreatorUtilities.appendPaths(":",extraClassPaths));
+  replacements.put("@extraClassPathsSemicolon",CreatorUtilities.appendPaths(";",extraClassPaths));
+  replacements.put("@newModuleName",(newModuleName != null) ? newModuleName : moduleName);
+  replacements.put("@deployDir",deployDir.getName());
+{
+    FileCreator fileCreators[]=new FileCreator[]{new FileCreator(basePackageDir,"Module.gwt.xml",className + ModuleDefLoader.GWT_MODULE_XML_SUFFIX),new FileCreator(warDir,"AppHtml.html",className + ".html"),new FileCreator(warDir,"AppCss.css",className + ".css"),new FileCreator(webInfDir,"web.xml","web.xml")};
+    for (    FileCreator fileCreator : fileCreators) {
+      File file=Utility.createNormalFile(fileCreator.dir,fileCreator.className,overwrite,ignore);
+      if (file != null) {
+        String out=Utility.getFileFromClassPath(PACKAGE_PATH + fileCreator.sourceName + "src");
+        Utility.writeTemplateFile(file,out,replacements);
+      }
+    }
+  }
+{
+    FileCreator fileCreators[]=new FileCreator[]{new FileCreator(clientDir,"AppClass",className),new FileCreator(clientDir,"RpcClient","EchoService"),new FileCreator(clientDir,"RpcAsyncClient","EchoServiceAsync"),new FileCreator(serverDir,"RpcServer","EchoServiceImpl")};
+    for (    FileCreator fileCreator : fileCreators) {
+      File javaClass=Utility.createNormalFile(fileCreator.dir,fileCreator.className + ".java",overwrite,ignore);
+      if (javaClass != null) {
+        String out=Utility.getFileFromClassPath(PACKAGE_PATH + fileCreator.sourceName + "Template.javasrc");
+        Utility.writeTemplateFile(javaClass,out,replacements);
+      }
+    }
+  }
+  if (eclipse != null) {
+    replacements.put("@projectName",eclipse);
+    replacements.put("@gwtServletPath",basePathEnv + gwtServletPath);
+    StringBuilder buf=new StringBuilder();
+    if (extraClassPaths != null) {
+      for (      String path : extraClassPaths) {
+        buf.append("    <pathelement path=\"" + path + "\"/>");
+      }
+    }
+    replacements.put("@extraAntPathElements",buf.toString());
+    StringBuilder classpathEntries=new StringBuilder();
+    if (extraClassPaths != null) {
+      for (      String path : extraClassPaths) {
+        File f=new File(path);
+        if (!f.exists()) {
+          throw new FileNotFoundException("extraClassPath: " + path + " must be present before .launch file can be created.");
+        }
+        String kindString;
+        if (f.isDirectory()) {
+          kindString="output";
+        }
+ else         if (path.endsWith(".jar")) {
+          kindString="lib";
+        }
+ else {
+          throw new RuntimeException("Don't know how to handle path: " + path + ". It doesn't appear to be a directory or a .jar file");
+        }
+        classpathEntries.append("   <classpathentry kind=\"");
+        classpathEntries.append(kindString);
+        classpathEntries.append("\" path=\"");
+        classpathEntries.append(path);
+        classpathEntries.append("\"/>\n");
+      }
+    }
+    replacements.put("@eclipseClassPathEntries",classpathEntries.toString());
+    FileCreator fileCreators[]=new FileCreator[]{new FileCreator(outDir,"project.ant.xml","build.xml"),new FileCreator(outDir,".project",".project"),new FileCreator(outDir,".classpath",".classpath"),new FileCreator(outDir,"App.launch",className + ".launch")};
+    for (    FileCreator fileCreator : fileCreators) {
+      File file=Utility.createNormalFile(fileCreator.dir,fileCreator.className,overwrite,ignore);
+      if (file != null) {
+        String out=Utility.getFileFromClassPath(PACKAGE_PATH + fileCreator.sourceName + "src");
+        Utility.writeTemplateFile(file,out,replacements);
+      }
+    }
+  }
+}

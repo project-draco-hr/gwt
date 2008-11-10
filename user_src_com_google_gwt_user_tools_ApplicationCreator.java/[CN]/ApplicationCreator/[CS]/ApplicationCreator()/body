@@ -1,7 +1,7 @@
 {
   registerHandler(new ArgHandlerEclipse(){
     @Override public String getPurpose(){
-      return "Creates a debug launch config for the named eclipse project";
+      return "Creates an ant file, an eclipse project, and a launch config";
     }
     @Override public boolean setString(    String str){
       eclipse=str;
@@ -34,6 +34,43 @@
       }
       ignore=true;
       return true;
+    }
+  }
+);
+  registerHandler(new ArgHandlerString(){
+    @Override public String[] getDefaultArgs(){
+      return null;
+    }
+    @Override public String getPurpose(){
+      return "Specifies the new name of the module";
+    }
+    @Override public String getTag(){
+      return "-moduleName";
+    }
+    @Override public String[] getTagArgs(){
+      return new String[]{"moduleName"};
+    }
+    @Override public boolean setString(    String str){
+      newModuleName=str;
+      return true;
+    }
+  }
+);
+  registerHandler(new ArgHandlerDir(){
+    @Override public String[] getDefaultArgs(){
+      return new String[]{"-deployDir","deployDir"};
+    }
+    @Override public String getPurpose(){
+      return "Specifies the deploy directory (defaults to deployDir)";
+    }
+    @Override public String getTag(){
+      return "-deployDir";
+    }
+    @Override public void setDir(    File dir){
+      if (dir.getName().length() == 0) {
+        throw new IllegalArgumentException("deployDir may not be empty");
+      }
+      deployDir=dir;
     }
   }
 );
