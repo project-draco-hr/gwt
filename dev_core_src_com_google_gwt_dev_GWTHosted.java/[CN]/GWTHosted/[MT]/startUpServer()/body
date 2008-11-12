@@ -1,6 +1,5 @@
 {
-  PerfLogger.start("GWTShell.startup (Jetty launch)");
-  JettyLauncher launcher=new JettyLauncher();
+  PerfLogger.start("GWTHosted.startUpServer");
   try {
     TreeLogger serverLogger=getTopLogger().branch(TreeLogger.INFO,"Starting HTTP on port " + getPort(),null);
     ModuleDef[] moduleArray=modules.toArray(new ModuleDef[modules.size()]);
@@ -12,12 +11,18 @@
     }
     servletFilter=new GWTShellServletFilter(serverLogger,options,moduleArray);
     server=launcher.start(serverLogger,getPort(),options.getOutDir(),servletFilter);
+    assert(server != null);
+    return server.getPort();
   }
- catch (  UnableToCompleteException e) {
+ catch (  BindException e) {
+    System.err.println("Port " + getPort() + " is already is use; you probably still have another session active");
+  }
+catch (  Exception e) {
+    System.err.println("Unable to start embedded HTTP server");
+    e.printStackTrace();
+  }
+ finally {
     PerfLogger.end();
-    return -1;
   }
-  assert(server != null);
-  PerfLogger.end();
-  return server.getPort();
+  return -1;
 }

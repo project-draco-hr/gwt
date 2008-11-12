@@ -11,6 +11,7 @@
   SelectChannelConnector connector=new SelectChannelConnector();
   connector.setPort(port);
   connector.setHost("127.0.0.1");
+  connector.setReuseAddress(false);
   server.addConnector(connector);
   WebAppContext wac=new WebAppContext(appRootDir.getAbsolutePath(),"/");
   wac.getInitParams().put("org.mortbay.jetty.servlet.Default.useFileMappedBuffer","false");
@@ -19,13 +20,6 @@
   wac.addFilter(filterHolder,"/*",Handler.ALL);
   server.setHandler(wac);
   server.setStopAtShutdown(true);
-  try {
-    server.start();
-    int actualPort=connector.getPort();
-    return new JettyServletContainer(logger,wac,actualPort,appRootDir);
-  }
- catch (  Exception e) {
-    logger.log(TreeLogger.ERROR,"Unable to start embedded Jetty server",e);
-    throw new UnableToCompleteException();
-  }
+  server.start();
+  return new JettyServletContainer(logger,wac,connector.getLocalPort(),appRootDir);
 }
