@@ -1,7 +1,25 @@
 {
   if (lazyTypeOracle == null) {
-    lazyTypeOracle=compilationState.getTypeOracle();
-    updateTypeOracle(logger);
+    lazyTypeOracle=getCompilationState(logger).getTypeOracle();
+    boolean seedTypesMissing=false;
+    if (lazyTypeOracle.findType("java.lang.Object") == null) {
+      Util.logMissingTypeErrorWithHints(logger,"java.lang.Object");
+      seedTypesMissing=true;
+    }
+ else {
+      TreeLogger branch=logger.branch(TreeLogger.TRACE,"Finding entry point classes",null);
+      String[] typeNames=getEntryPointTypeNames();
+      for (int i=0; i < typeNames.length; i++) {
+        String typeName=typeNames[i];
+        if (lazyTypeOracle.findType(typeName) == null) {
+          Util.logMissingTypeErrorWithHints(branch,typeName);
+          seedTypesMissing=true;
+        }
+      }
+    }
+    if (seedTypesMissing) {
+      throw new UnableToCompleteException();
+    }
   }
   return lazyTypeOracle;
 }
