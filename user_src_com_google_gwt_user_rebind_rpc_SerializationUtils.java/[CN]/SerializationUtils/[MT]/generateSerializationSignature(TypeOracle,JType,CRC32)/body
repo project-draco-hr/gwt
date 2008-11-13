@@ -1,0 +1,33 @@
+{
+  JParameterizedType parameterizedType=type.isParameterized();
+  if (parameterizedType != null) {
+    generateSerializationSignature(typeOracle,parameterizedType.getRawType(),crc);
+    return;
+  }
+  String serializedTypeName=TypeOracleMediator.computeBinaryClassName(type);
+  crc.update(serializedTypeName.getBytes(Util.DEFAULT_ENCODING));
+  if (excludeImplementationFromSerializationSignature(type)) {
+    return;
+  }
+  JClassType customSerializer=SerializableTypeOracleBuilder.findCustomFieldSerializer(typeOracle,type);
+  if (customSerializer != null) {
+    generateSerializationSignature(typeOracle,customSerializer,crc);
+  }
+ else   if (type.isArray() != null) {
+    JArrayType isArray=type.isArray();
+    generateSerializationSignature(typeOracle,isArray.getComponentType(),crc);
+  }
+ else   if (type.isClassOrInterface() != null) {
+    JClassType isClassOrInterface=type.isClassOrInterface();
+    JField[] fields=getSerializableFields(typeOracle,isClassOrInterface);
+    for (    JField field : fields) {
+      assert(field != null);
+      crc.update(field.getName().getBytes(Util.DEFAULT_ENCODING));
+      crc.update(TypeOracleMediator.computeBinaryClassName(field.getType()).getBytes(Util.DEFAULT_ENCODING));
+    }
+    JClassType superClass=isClassOrInterface.getSuperclass();
+    if (superClass != null) {
+      generateSerializationSignature(typeOracle,superClass,crc);
+    }
+  }
+}

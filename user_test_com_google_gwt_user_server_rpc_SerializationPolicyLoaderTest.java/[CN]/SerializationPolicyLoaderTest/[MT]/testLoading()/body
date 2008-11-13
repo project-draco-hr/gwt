@@ -1,0 +1,14 @@
+{
+  InputStream is=getInputStreamFromString(VALID_POLICY_FILE_CONTENTS);
+  List<ClassNotFoundException> notFounds=new ArrayList<ClassNotFoundException>();
+  SerializationPolicy sp=SerializationPolicyLoader.loadFromStream(is,notFounds);
+  assertTrue(notFounds.isEmpty());
+  assertTrue(sp.shouldSerializeFields(A.class));
+  sp.validateSerialize(A.class);
+  assertFalse(sp.shouldDeserializeFields(A.class));
+  assertCannotDeserialize(sp,A.class);
+  assertFalse(sp.shouldSerializeFields(B.class));
+  assertCannotDeserialize(sp,B.class);
+  assertTrue(sp.shouldDeserializeFields(B.class));
+  assertCannotDeserialize(sp,B.class);
+}

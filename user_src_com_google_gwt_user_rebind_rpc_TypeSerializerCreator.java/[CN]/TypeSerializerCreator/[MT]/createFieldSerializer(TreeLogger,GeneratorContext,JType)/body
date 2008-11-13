@@ -1,16 +1,16 @@
 {
   assert(type != null);
-  assert(serializationOracle.isSerializable(type));
+  assert(serializationOracle.isSerializable(type) || deserializationOracle.isSerializable(type));
   JParameterizedType parameterizedType=type.isParameterized();
   if (parameterizedType != null) {
     createFieldSerializer(logger,ctx,parameterizedType.getRawType());
     return;
   }
-  JClassType customFieldSerializer=serializationOracle.hasCustomFieldSerializer(type);
+  JClassType customFieldSerializer=SerializableTypeOracleBuilder.findCustomFieldSerializer(typeOracle,type);
   if (customFieldSerializer != null) {
     return;
   }
   assert(type.isClass() != null || type.isArray() != null);
-  FieldSerializerCreator creator=new FieldSerializerCreator(serializationOracle,(JClassType)type);
+  FieldSerializerCreator creator=new FieldSerializerCreator(typeOracle,serializationOracle,deserializationOracle,(JClassType)type);
   creator.realize(logger,ctx);
 }

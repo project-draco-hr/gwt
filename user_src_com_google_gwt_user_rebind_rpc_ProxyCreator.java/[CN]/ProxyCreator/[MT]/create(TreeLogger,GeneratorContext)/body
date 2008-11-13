@@ -16,27 +16,30 @@
   }
   RemoteServiceAsyncValidator rsav=new RemoteServiceAsyncValidator(logger,typeOracle);
   Map<JMethod,JMethod> syncMethToAsyncMethMap=rsav.validate(logger,serviceIntf,serviceAsync);
-  SerializableTypeOracleBuilder stob=new SerializableTypeOracleBuilder(logger,context.getPropertyOracle(),typeOracle);
+  SerializableTypeOracleBuilder typesSentFromBrowserBuilder=new SerializableTypeOracleBuilder(logger,context.getPropertyOracle(),typeOracle);
+  SerializableTypeOracleBuilder typesSentToBrowserBuilder=new SerializableTypeOracleBuilder(logger,context.getPropertyOracle(),typeOracle);
   try {
-    addRequiredRoots(logger,typeOracle,stob);
-    addRemoteServiceRootTypes(logger,typeOracle,stob,serviceIntf);
+    addRequiredRoots(logger,typeOracle,typesSentFromBrowserBuilder);
+    addRequiredRoots(logger,typeOracle,typesSentToBrowserBuilder);
+    addRemoteServiceRootTypes(logger,typeOracle,typesSentFromBrowserBuilder,typesSentToBrowserBuilder,serviceIntf);
   }
  catch (  NotFoundException e) {
     logger.log(TreeLogger.ERROR,"",e);
     throw new UnableToCompleteException();
   }
   OutputStream pathInfo=context.tryCreateResource(logger,serviceIntf.getQualifiedSourceName() + ".rpc.log");
-  stob.setLogOutputStream(pathInfo);
-  SerializableTypeOracle sto=stob.build(logger);
+  typesSentFromBrowserBuilder.setLogOutputStream(pathInfo);
+  SerializableTypeOracle typesSentFromBrowser=typesSentFromBrowserBuilder.build(logger);
+  SerializableTypeOracle typesSentToBrowser=typesSentToBrowserBuilder.build(logger);
   if (pathInfo != null) {
     context.commitResource(logger,pathInfo).setPrivate(true);
   }
-  TypeSerializerCreator tsc=new TypeSerializerCreator(logger,sto,context,sto.getTypeSerializerQualifiedName(serviceIntf));
+  TypeSerializerCreator tsc=new TypeSerializerCreator(logger,typesSentFromBrowser,typesSentToBrowser,context,SerializationUtils.getTypeSerializerQualifiedName(serviceIntf));
   tsc.realize(logger);
-  String serializationPolicyStrongName=writeSerializationPolicyFile(logger,context,sto);
-  generateProxyFields(srcWriter,sto,serializationPolicyStrongName);
+  String serializationPolicyStrongName=writeSerializationPolicyFile(logger,context,typesSentFromBrowser,typesSentToBrowser);
+  generateProxyFields(srcWriter,typesSentFromBrowser,serializationPolicyStrongName);
   generateProxyContructor(javadocAnnotationDeprecationBranch,srcWriter);
-  generateProxyMethods(srcWriter,sto,syncMethToAsyncMethMap);
+  generateProxyMethods(srcWriter,typesSentFromBrowser,syncMethToAsyncMethMap);
   srcWriter.commit(logger);
   return getProxyQualifiedName();
 }
