@@ -18,6 +18,13 @@
   if (activeClients == numClients) {
     firstLaunch=false;
     lastModule=currentModule;
+    if (testMethodTimeout == 0) {
+      testMethodTimeout=currentTimeMillis + TEST_METHOD_TIMEOUT_MILLIS;
+    }
+ else     if (testMethodTimeout < currentTimeMillis) {
+      double elapsed=(currentTimeMillis - testBeginTime) / 1000.0;
+      throw new TimeoutException("The browser did not complete the test method " + messageQueue.getCurrentTestName() + " in "+ TEST_METHOD_TIMEOUT_MILLIS+ "ms.\n  We have no results from: "+ messageQueue.getWorkingClients()+ "\n Actual time elapsed: "+ elapsed+ " seconds.\n");
+    }
   }
  else   if (testBeginTimeout < currentTimeMillis) {
     double elapsed=(currentTimeMillis - testBeginTime) / 1000.0;
