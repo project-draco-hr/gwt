@@ -1,9 +1,8 @@
 {
   checkTabIndex(index);
-  if (tabListeners != null) {
-    if (!tabListeners.fireBeforeTabSelected(this,index)) {
-      return false;
-    }
+  BeforeSelectionEvent<?> event=BeforeSelectionEvent.fire(this,index);
+  if (event != null && event.isCanceled()) {
+    return false;
   }
   setSelectionStyle(selectedTab,false);
   if (index == -1) {
@@ -12,8 +11,6 @@
   }
   selectedTab=panel.getWidget(index + 1);
   setSelectionStyle(selectedTab,true);
-  if (tabListeners != null) {
-    tabListeners.fireTabSelected(this,index);
-  }
+  SelectionEvent.fire(this,index);
   return true;
 }

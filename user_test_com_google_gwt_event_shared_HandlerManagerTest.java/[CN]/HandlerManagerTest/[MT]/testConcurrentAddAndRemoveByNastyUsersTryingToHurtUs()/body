@@ -1,0 +1,37 @@
+{
+  final HandlerManager manager=new HandlerManager("bogus source");
+  final MouseDownHandler two=new MouseDownHandler(){
+    public void onMouseDown(    MouseDownEvent event){
+      add(this);
+    }
+    @Override public String toString(){
+      return "two";
+    }
+  }
+;
+  MouseDownHandler one=new MouseDownHandler(){
+    public void onMouseDown(    MouseDownEvent event){
+      manager.addHandler(MouseDownEvent.getType(),two).removeHandler();
+      add(this);
+    }
+    @Override public String toString(){
+      return "one";
+    }
+  }
+;
+  manager.addHandler(MouseDownEvent.getType(),one);
+  manager.addHandler(MouseDownEvent.getType(),mouse1);
+  manager.addHandler(MouseDownEvent.getType(),mouse2);
+  manager.addHandler(MouseDownEvent.getType(),mouse3);
+  manager.fireEvent(new MouseDownEvent(){
+  }
+);
+  assertFired(one,mouse1,mouse2,mouse3);
+  assertNotFired(two);
+  reset();
+  manager.fireEvent(new MouseDownEvent(){
+  }
+);
+  assertFired(one,mouse1,mouse2,mouse3);
+  assertNotFired(two);
+}

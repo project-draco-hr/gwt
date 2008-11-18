@@ -6,9 +6,9 @@
   setupMainLinks(constants);
   setupOptionsPanel();
   setupMainMenu(constants);
-  final HistoryListener historyListener=new HistoryListener(){
-    public void onHistoryChanged(    String historyToken){
-      TreeItem item=itemTokens.get(historyToken);
+  final ValueChangeHandler<String> historyHandler=new ValueChangeHandler<String>(){
+    public void onValueChange(    ValueChangeEvent<String> event){
+      TreeItem item=itemTokens.get(event.getValue());
       if (item == null) {
         item=app.getMainMenu().getItem(0).getChild(0);
       }
@@ -18,9 +18,10 @@
     }
   }
 ;
-  History.addHistoryListener(historyListener);
-  app.setListener(new ApplicationListener(){
-    public void onMenuItemSelected(    TreeItem item){
+  History.addValueChangeHandler(historyHandler);
+  app.addSelectionHandler(new SelectionHandler<TreeItem>(){
+    public void onSelection(    SelectionEvent<TreeItem> event){
+      TreeItem item=event.getSelectedItem();
       ContentWidget content=itemWidgets.get(item);
       if (content != null && !content.equals(app.getContent())) {
         History.newItem(getContentWidgetToken(content));
@@ -28,9 +29,8 @@
     }
   }
 );
-  String initToken=History.getToken();
-  if (initToken.length() > 0) {
-    historyListener.onHistoryChanged(initToken);
+  if (History.getToken().length() > 0) {
+    History.fireCurrentHistoryState();
   }
  else {
     TreeItem firstItem=app.getMainMenu().getItem(0).getChild(0);
