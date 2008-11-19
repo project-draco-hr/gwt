@@ -4,17 +4,32 @@
   }
  else {
     logger=logger.branch(TreeLogger.INFO,"Compiling module " + options.getModuleName());
-    if (new Precompile(options).run(logger)) {
-      CompilePermsOptionsImpl permsOptions=new CompilePermsOptionsImpl();
-      permsOptions.copyFrom(options);
-      if (new CompilePerms(permsOptions).run(logger)) {
-        if (new Link(options).run(logger)) {
-          logger.log(TreeLogger.INFO,"Compilation succeeded");
-          return true;
+    boolean tempWorkDir=false;
+    try {
+      if (options.getWorkDir() == null) {
+        options.setWorkDir(Utility.makeTemporaryDirectory(null,"gwtc"));
+        tempWorkDir=true;
+      }
+      if (new Precompile(options).run(logger)) {
+        CompilePermsOptionsImpl permsOptions=new CompilePermsOptionsImpl();
+        permsOptions.copyFrom(options);
+        if (new CompilePerms(permsOptions).run(logger)) {
+          if (new Link(options).run(logger)) {
+            logger.log(TreeLogger.INFO,"Compilation succeeded");
+            return true;
+          }
         }
       }
+      logger.log(TreeLogger.ERROR,"Compilation failed");
     }
-    logger.log(TreeLogger.ERROR,"Compilation failed");
+ catch (    IOException e) {
+      logger.log(TreeLogger.ERROR,"Unable to create compiler work directory",e);
+    }
+ finally {
+      if (tempWorkDir) {
+        Util.recursiveDelete(options.getWorkDir(),false);
+      }
+    }
     return false;
   }
 }

@@ -26,7 +26,11 @@
   StandardLinkerContext linkerContext=new StandardLinkerContext(branch,module,precompilation.getUnifiedAst().getOptions());
   ArtifactSet artifacts=doLink(branch,linkerContext,precompilation,jsFiles);
   if (artifacts != null) {
+    boolean preexistingExtraDir=moduleExtraDir.exists();
     linkerContext.produceOutputDirectory(branch,artifacts,moduleOutDir,moduleExtraDir);
+    if (!preexistingExtraDir && moduleExtraDir.exists() && options.getExtraDir() == null) {
+      branch.log(TreeLogger.WARN,"Non-deployed artificats are in '" + moduleExtraDir.getPath() + "', within the deployable output directory '"+ options.getOutDir().getPath()+ "'; use -extra to relocate the auxilliary files");
+    }
     branch.log(TreeLogger.INFO,"Link succeeded");
     return true;
   }

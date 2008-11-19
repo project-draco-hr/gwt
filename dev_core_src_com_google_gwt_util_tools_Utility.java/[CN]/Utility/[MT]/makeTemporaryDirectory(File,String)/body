@@ -1,0 +1,16 @@
+{
+  if (baseDir == null) {
+    baseDir=new File(System.getProperty("java.io.tmpdir"),GWT_TMP_DIR);
+  }
+  baseDir.mkdirs();
+  for (int tries=0; tries < 3; ++tries) {
+    File result=File.createTempFile(prefix,null,baseDir);
+    if (!result.delete()) {
+      throw new IOException("Couldn't delete temporary file " + result.getAbsolutePath() + " to replace with a directory.");
+    }
+    if (result.mkdirs()) {
+      return result;
+    }
+  }
+  throw new IOException("Couldn't create temporary directory after 3 tries in " + baseDir.getAbsolutePath());
+}
