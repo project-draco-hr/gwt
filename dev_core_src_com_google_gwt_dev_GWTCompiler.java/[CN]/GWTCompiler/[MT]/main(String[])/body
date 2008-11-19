@@ -1,6 +1,16 @@
 {
+  boolean deleteWorkDir=false;
   final CompilerOptions options=new GWTCompilerOptionsImpl();
   if (new ArgProcessor(options).processArgs(args)) {
+    try {
+      deleteWorkDir=options.ensureWorkDir();
+      System.err.println("deleteWorkDir: " + deleteWorkDir);
+    }
+ catch (    IOException ex) {
+      System.err.println("Couldn't create new workDir: " + ex.getMessage());
+      System.err.println("Either fix the error, or supply an explicit -workDir flag.");
+      System.exit(1);
+    }
     CompileTask task=new CompileTask(){
       public boolean run(      TreeLogger logger) throws UnableToCompleteException {
         return new GWTCompiler(options).run(logger);
@@ -8,8 +18,14 @@
     }
 ;
     if (CompileTaskRunner.runWithAppropriateLogger(options,task)) {
+      if (deleteWorkDir) {
+        Util.recursiveDelete(options.getWorkDir(),false);
+      }
       System.exit(0);
     }
+  }
+  if (deleteWorkDir) {
+    Util.recursiveDelete(options.getWorkDir(),false);
   }
   System.exit(1);
 }
