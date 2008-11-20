@@ -1,5 +1,5 @@
 {
-  init(logger);
+  module=ModuleDefLoader.loadFromClassPath(logger,options.getModuleName());
   File precompilationFile=new File(options.getCompilerWorkDir(),Precompile.PRECOMPILATION_FILENAME);
   if (!precompilationFile.exists()) {
     logger.log(TreeLogger.ERROR,"File not found '" + precompilationFile.getAbsolutePath() + "'; please run Precompile first");
@@ -25,15 +25,6 @@
   TreeLogger branch=logger.branch(TreeLogger.INFO,"Linking module " + module.getName());
   StandardLinkerContext linkerContext=new StandardLinkerContext(branch,module,precompilation.getUnifiedAst().getOptions());
   ArtifactSet artifacts=doLink(branch,linkerContext,precompilation,jsFiles);
-  if (artifacts != null) {
-    boolean preexistingExtraDir=moduleExtraDir.exists();
-    linkerContext.produceOutputDirectory(branch,artifacts,moduleOutDir,moduleExtraDir);
-    if (!preexistingExtraDir && moduleExtraDir.exists() && options.getExtraDir() == null) {
-      branch.log(TreeLogger.WARN,"Non-deployed artificats are in '" + moduleExtraDir.getPath() + "', within the deployable output directory '"+ options.getOutDir().getPath()+ "'; use -extra to relocate the auxilliary files");
-    }
-    branch.log(TreeLogger.INFO,"Link succeeded");
-    return true;
-  }
-  branch.log(TreeLogger.ERROR,"Link failed");
-  return false;
+  doProduceOutput(branch,artifacts,linkerContext,module,options.getOutDir(),options.getExtraDir());
+  return true;
 }
