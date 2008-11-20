@@ -16,15 +16,11 @@
   JProgram jprogram=new JProgram();
   JsProgram jsProgram=new JsProgram();
   try {
-    long usedMemoryBefore=singlePermutation ? 0 : getUsedMemory();
     TypeMap typeMap=new TypeMap(jprogram);
     TypeDeclaration[] allTypeDeclarations=BuildTypeMap.exec(typeMap,goldenCuds,jsProgram);
     checkForErrors(logger,goldenCuds,true);
     jprogram.typeOracle.computeBeforeAST();
     GenerateJavaAST.exec(allTypeDeclarations,typeMap,jprogram,jsProgram,options.isEnableAssertions());
-    long usedMemoryAfter=singlePermutation ? 0 : getUsedMemory();
-    long memoryDelta=usedMemoryAfter - usedMemoryBefore;
-    long astMemoryUsage=(long)(memoryDelta * 1.5);
     checkForErrors(logger,goldenCuds,true);
     goldenCuds=null;
     typeMap=null;
@@ -44,7 +40,7 @@
     }
     Set<String> rebindRequests=new HashSet<String>();
     RecordRebinds.exec(jprogram,rebindRequests);
-    return new UnifiedAst(options,new AST(jprogram,jsProgram),singlePermutation,astMemoryUsage,rebindRequests);
+    return new UnifiedAst(options,new AST(jprogram,jsProgram),singlePermutation,rebindRequests);
   }
  catch (  Throwable e) {
     throw logAndTranslateException(logger,e);
