@@ -1,0 +1,21 @@
+{
+  boolean warnOnExtra=false;
+  File moduleExtraDir;
+  if (extraDir == null) {
+    String deployDir=module.getDeployTo();
+    deployDir=deployDir.substring(0,deployDir.length() - 1) + "-aux";
+    moduleExtraDir=new File(outDir,deployDir);
+    warnOnExtra=!moduleExtraDir.exists();
+  }
+ else {
+    moduleExtraDir=new File(extraDir,module.getDeployTo());
+  }
+  File moduleOutDir=new File(outDir,module.getDeployTo());
+  Util.recursiveDelete(moduleOutDir,true);
+  Util.recursiveDelete(moduleExtraDir,true);
+  linkerContext.produceOutputDirectory(logger,artifacts,moduleOutDir,moduleExtraDir);
+  if (warnOnExtra && moduleExtraDir.exists()) {
+    logger.log(TreeLogger.WARN,"Non-public artificats were produced in '" + moduleExtraDir.getAbsolutePath() + "' within the public output folder; use -extra to specify an alternate location");
+  }
+  logger.log(TreeLogger.INFO,"Link succeeded");
+}

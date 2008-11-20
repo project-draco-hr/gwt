@@ -1,23 +1,16 @@
 {
   if (baseDir == null) {
-    baseDir=new File(System.getProperty("java.io.tmpdir"),ArgHandlerWorkDir.GWT_TMP_DIR);
+    baseDir=new File(System.getProperty("java.io.tmpdir"),GWT_TMP_DIR);
   }
-  int tries=0;
-  while (tries < 20) {
-    tries++;
-    int rand=(int)(Math.random() * Integer.MAX_VALUE);
-    StringBuffer tag=new StringBuffer();
-    for (int i=0; i < 5; i++) {
-      int bits=rand & 0x1f;
-      rand>>=5;
-      tag.append(Character.forDigit(bits,36));
+  baseDir.mkdirs();
+  for (int tries=0; tries < 3; ++tries) {
+    File result=File.createTempFile(prefix,null,baseDir);
+    if (!result.delete()) {
+      throw new IOException("Couldn't delete temporary file " + result.getAbsolutePath() + " to replace with a directory.");
     }
-    File result=new File(baseDir,prefix + tag.toString());
-    if (!result.exists()) {
-      if (result.mkdirs()) {
-        return result;
-      }
+    if (result.mkdirs()) {
+      return result;
     }
   }
-  throw new IOException("couldn't create temporary directory in 20 tries in " + baseDir.getAbsolutePath());
+  throw new IOException("Couldn't create temporary directory after 3 tries in " + baseDir.getAbsolutePath());
 }

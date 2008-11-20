@@ -1,0 +1,28 @@
+{
+  if (!event.isLive()) {
+    event.revive();
+  }
+  Object oldSource=event.getSource();
+  event.setSource(source);
+  try {
+    firingDepth++;
+    if (useJsRegistry) {
+      javaScriptRegistry.fireEvent(event);
+    }
+ else {
+      javaRegistry.fireEvent(event);
+    }
+  }
+  finally {
+    firingDepth--;
+    if (firingDepth == 0) {
+      handleQueuedAddsAndRemoves();
+    }
+  }
+  if (oldSource == null) {
+    event.onRelease();
+  }
+ else {
+    event.setSource(oldSource);
+  }
+}

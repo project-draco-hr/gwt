@@ -1,19 +1,34 @@
 {
   final Image image=new Image("counting-forwards.png",16,16,16,16);
-  image.addLoadListener(new LoadListener(){
+  final TestLoadListener listener=new TestLoadListener(image){
     private int onLoadEventCount=0;
-    public void onError(    Widget sender){
-      fail("The image " + ((Image)sender).getUrl() + " failed to load.");
-    }
     public void onLoad(    Widget sender){
       if (++onLoadEventCount == 1) {
         assertEquals(16,image.getWidth());
         assertEquals(16,image.getHeight());
-        finishTest();
+        finish();
+      }
+    }
+  }
+;
+  image.addLoadListener(listener);
+  image.addLoadHandler(new LoadHandler(){
+    private int onLoadEventCount=0;
+    public void onLoad(    LoadEvent event){
+      if (++onLoadEventCount == 1) {
+        assertEquals(16,image.getWidth());
+        assertEquals(16,image.getHeight());
+        if (listener.isFinished()) {
+          finishTest();
+        }
+ else {
+          fail("Listener did not fire first");
+        }
       }
     }
   }
 );
+  image.addErrorHandler(new TestErrorHandler(image));
   RootPanel.get().add(image);
   assertEquals(16,image.getOriginLeft());
   assertEquals(16,image.getOriginTop());

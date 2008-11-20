@@ -1,0 +1,55 @@
+{
+class TextBoxEvents extends HandlesAllKeyEvents implements ValueChangeHandler<String> {
+    public void onKeyDown(    KeyDownEvent event){
+      if (suggestionPopup.isAttached()) {
+switch (event.getNativeKeyCode()) {
+case KEY_DOWN:
+          suggestionMenu.selectItem(suggestionMenu.getSelectedItemIndex() + 1);
+        break;
+case KEY_UP:
+      suggestionMenu.selectItem(suggestionMenu.getSelectedItemIndex() - 1);
+    break;
+case KEY_ENTER:
+case KEY_TAB:
+  if (suggestionMenu.getSelectedItemIndex() < 0) {
+    suggestionPopup.hide();
+  }
+ else {
+    suggestionMenu.doSelectedItemAction();
+  }
+break;
+}
+}
+fireEvent(event);
+}
+public void onKeyPress(KeyPressEvent event){
+fireEvent(event);
+}
+public void onKeyUp(KeyUpEvent event){
+refreshSuggestions();
+fireEvent(event);
+}
+public void onValueChange(ValueChangeEvent<String> event){
+fireEvent(event);
+}
+private void refreshSuggestions(){
+String text=box.getText();
+if (text.equals(currentText)) {
+return;
+}
+ else {
+currentText=text;
+}
+if (text.length() == 0) {
+suggestionPopup.hide();
+suggestionMenu.clearItems();
+}
+ else {
+showSuggestions(text);
+}
+}
+}
+TextBoxEvents events=new TextBoxEvents();
+events.addKeyHandlersTo(box);
+box.addValueChangeHandler(events);
+}

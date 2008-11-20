@@ -1,10 +1,7 @@
 {
   final Image image=new Image("counting-backwards.png",12,12,12,12);
-  image.addLoadListener(new LoadListener(){
+  final TestLoadListener listener=new TestLoadListener(image){
     private int onLoadEventCount=0;
-    public void onError(    Widget sender){
-      fail("The image " + ((Image)sender).getUrl() + " failed to load.");
-    }
     public void onLoad(    Widget sender){
       if (++onLoadEventCount == 2) {
         assertEquals(0,image.getOriginLeft());
@@ -12,11 +9,32 @@
         assertEquals(16,image.getWidth());
         assertEquals(16,image.getHeight());
         assertEquals("clipped",getCurrentImageStateName(image));
-        finishTest();
+        finish();
+      }
+    }
+  }
+;
+  image.addLoadListener(listener);
+  image.addLoadHandler(new LoadHandler(){
+    private int onLoadEventCount=0;
+    public void onLoad(    LoadEvent event){
+      if (++onLoadEventCount == 2) {
+        assertEquals(0,image.getOriginLeft());
+        assertEquals(16,image.getOriginTop());
+        assertEquals(16,image.getWidth());
+        assertEquals(16,image.getHeight());
+        assertEquals("clipped",getCurrentImageStateName(image));
+        if (listener.isFinished()) {
+          finishTest();
+        }
+ else {
+          fail("Listener did not fire first");
+        }
       }
     }
   }
 );
+  image.addErrorHandler(new TestErrorHandler(image));
   RootPanel.get().add(image);
   assertEquals("clipped",getCurrentImageStateName(image));
   image.setUrlAndVisibleRect("counting-forwards.png",0,16,16,16);

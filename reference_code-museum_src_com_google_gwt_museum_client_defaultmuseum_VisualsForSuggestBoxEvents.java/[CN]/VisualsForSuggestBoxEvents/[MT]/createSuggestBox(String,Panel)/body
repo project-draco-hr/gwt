@@ -1,0 +1,53 @@
+{
+  List<String> femaleNames=Arrays.asList(new String[]{"Jamie","Jill","Jackie","Susan","Helen","Emily","Karen","Abigail","Kaitlyn","Laura","Joanna","Tasha"});
+  MultiWordSuggestOracle oracle=new MultiWordSuggestOracle();
+  oracle.addAll(femaleNames);
+  final SuggestBox b=new SuggestBox(oracle);
+  b.setTitle(suggestBoxName);
+  p.add(b);
+  final CheckBox selectsFirst=new CheckBox("Selects first suggestion");
+  selectsFirst.addValueChangeHandler(new ValueChangeHandler<Boolean>(){
+    public void onValueChange(    ValueChangeEvent<Boolean> event){
+      b.setSelectsFirstItem(event.getValue());
+    }
+  }
+);
+  selectsFirst.setChecked(b.getSelectsFirstItem());
+  p.add(selectsFirst);
+  final EventReporter<String,SuggestBox> handler=new EventReporter<String,SuggestBox>(report);
+  handler.new CheckBoxEvent("KeyDown",p){
+    HandlerRegistration reg;
+    @Override public void addHandler(){
+      reg=b.addKeyDownHandler(handler);
+    }
+    @Override public void removeHandler(){
+      reg.removeHandler();
+      reg=null;
+    }
+  }
+;
+  handler.new CheckBoxEvent("ChangeListener",p){
+    @Override public void addHandler(){
+      b.addChangeListener(handler);
+    }
+    @Override public void removeHandler(){
+      b.removeChangeListener(handler);
+    }
+  }
+;
+  handler.new CheckBoxEvent("Suggestion listener",p){
+    @Override public void addHandler(){
+      b.addEventHandler(handler);
+    }
+    @Override public void removeHandler(){
+      b.removeEventHandler(handler);
+    }
+  }
+;
+  b.addKeyUpHandler(handler);
+  b.addKeyPressHandler(handler);
+  b.addFocusListener(handler);
+  b.addSelectionHandler(handler);
+  b.addValueChangeHandler(handler);
+  return b;
+}
