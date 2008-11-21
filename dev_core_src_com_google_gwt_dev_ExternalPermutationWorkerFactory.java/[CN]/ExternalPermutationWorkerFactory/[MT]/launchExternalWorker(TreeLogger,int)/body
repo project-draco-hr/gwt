@@ -1,0 +1,94 @@
+{
+  String javaCommand=System.getProperty(JAVA_COMMAND_PROPERTY,System.getProperty("java.home") + File.separator + "bin"+ File.separator+ "java");
+  logger.log(TreeLogger.TRACE,"javaCommand = " + javaCommand);
+  List<String> args=new ArrayList<String>();
+  args.add(javaCommand);
+  String userJvmArgs=System.getProperty(JVM_ARGS_PROPERTY);
+  if (userJvmArgs == null) {
+    args.addAll(ManagementFactory.getRuntimeMXBean().getInputArguments());
+  }
+ else {
+    args.addAll(Arrays.asList(userJvmArgs.split(" ")));
+  }
+  TreeLogger.Type logLevel=TreeLogger.ERROR;
+  for (  TreeLogger.Type t : TreeLogger.Type.values()) {
+    if (logger.isLoggable(t)) {
+      logLevel=t;
+    }
+ else {
+      break;
+    }
+  }
+  byte[] cookieBytes=new byte[16];
+  (new Random()).nextBytes(cookieBytes);
+  String cookie=Util.toHexString(cookieBytes);
+  args.addAll(Arrays.asList("-classpath",ManagementFactory.getRuntimeMXBean().getClassPath(),CompilePermsServer.class.getName(),"-host","localhost","-port",String.valueOf(port),"-logLevel",logLevel.toString(),"-cookie",cookie));
+  for (Iterator<String> iter=args.iterator(); iter.hasNext(); ) {
+    String arg=iter.next();
+    if (arg.startsWith("-agentlib")) {
+      iter.remove();
+    }
+  }
+  ProcessBuilder builder=new ProcessBuilder();
+  builder.command(args);
+  try {
+    final Process proc=builder.start();
+    final BufferedReader bin=new BufferedReader(new InputStreamReader(proc.getInputStream()));
+    final BufferedReader berr=new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+    final TreeLogger procLogger=logger.branch(TreeLogger.DEBUG,"Process output");
+    new Thread(new Runnable(){
+      public void run(){
+        while (true) {
+          try {
+            String line=bin.readLine();
+            if (line == null) {
+              break;
+            }
+            procLogger.log(TreeLogger.INFO,line);
+          }
+ catch (          EOFException e) {
+          }
+catch (          IOException e) {
+            procLogger.log(TreeLogger.ERROR,"Unable to read from subprocess",e);
+          }
+        }
+      }
+    }
+).start();
+    new Thread(new Runnable(){
+      public void run(){
+        while (true) {
+          try {
+            String line=berr.readLine();
+            if (line == null) {
+              break;
+            }
+            procLogger.log(TreeLogger.ERROR,line);
+          }
+ catch (          EOFException e) {
+          }
+catch (          IOException e) {
+            procLogger.log(TreeLogger.ERROR,"Unable to read from subprocess",e);
+          }
+        }
+      }
+    }
+).start();
+    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
+      public void run(){
+        try {
+          proc.exitValue();
+        }
+ catch (        IllegalThreadStateException e) {
+          proc.destroy();
+        }
+      }
+    }
+));
+    return cookie;
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Unable to start external process",e);
+    throw new UnableToCompleteException();
+  }
+}

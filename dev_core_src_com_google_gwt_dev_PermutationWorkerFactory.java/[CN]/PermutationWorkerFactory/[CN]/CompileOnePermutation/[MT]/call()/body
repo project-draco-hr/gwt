@@ -1,0 +1,28 @@
+{
+  PermutationWorker worker;
+  try {
+    worker=availableWorkers.take();
+  }
+ catch (  InterruptedException e) {
+    logger.log(TreeLogger.DEBUG,"Worker interrupted",e);
+    return ResultStatus.HARD_FAILURE;
+  }
+  if (worker == noMoreWorkersWorker) {
+    return ResultStatus.HARD_FAILURE;
+  }
+  try {
+    PermutationResult result=worker.compile(logger,permutation);
+    Util.writeObjectAsFile(logger,resultFile,result);
+    logger.log(TreeLogger.DEBUG,"Successfully compiled permutation");
+    availableWorkers.add(worker);
+    return ResultStatus.SUCCESS;
+  }
+ catch (  TransientWorkerException e) {
+    logger.log(TreeLogger.DEBUG,"Worker died, will retry Permutation",e);
+    return ResultStatus.TRANSIENT_FAILURE;
+  }
+catch (  UnableToCompleteException e) {
+    logger.log(TreeLogger.ERROR,"Unrecoverable exception, shutting down",e);
+    return ResultStatus.HARD_FAILURE;
+  }
+}

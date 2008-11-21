@@ -14,17 +14,17 @@
     return false;
   }
   Permutation[] perms=precompilation.getPermutations();
-  File[] jsFiles=new File[perms.length];
+  File[] resultFiles=new File[perms.length];
   for (int i=0; i < perms.length; ++i) {
-    jsFiles[i]=CompilePerms.makePermFilename(options.getCompilerWorkDir(),i);
-    if (!jsFiles[i].exists()) {
+    resultFiles[i]=CompilePerms.makePermFilename(options.getCompilerWorkDir(),i);
+    if (!resultFiles[i].exists()) {
       logger.log(TreeLogger.ERROR,"File not found '" + precompilationFile.getAbsolutePath() + "'; please compile all permutations");
       return false;
     }
   }
   TreeLogger branch=logger.branch(TreeLogger.INFO,"Linking module " + module.getName());
   StandardLinkerContext linkerContext=new StandardLinkerContext(branch,module,precompilation.getUnifiedAst().getOptions());
-  ArtifactSet artifacts=doLink(branch,linkerContext,precompilation,jsFiles);
+  ArtifactSet artifacts=doLink(branch,linkerContext,precompilation,resultFiles);
   doProduceOutput(branch,artifacts,linkerContext,module,options.getOutDir(),options.getExtraDir());
   return true;
 }

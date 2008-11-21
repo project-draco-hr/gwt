@@ -1,0 +1,37 @@
+{
+  logger=logger.branch(TreeLogger.TRACE,"Creating PermutationWorkerFactory instances");
+  if (lazyFactories != null) {
+    logger.log(TreeLogger.SPAM,"Using lazy instances");
+    return lazyFactories;
+  }
+  List<PermutationWorkerFactory> mutableFactories=new ArrayList<PermutationWorkerFactory>();
+  String classes=System.getProperty(FACTORY_IMPL_PROPERTY,ThreadedPermutationWorkerFactory.class.getName() + "," + ExternalPermutationWorkerFactory.class.getName());
+  logger.log(TreeLogger.SPAM,"Factory impl property is " + classes);
+  String[] classParts=classes.split(",");
+  for (  String className : classParts) {
+    try {
+      Class<? extends PermutationWorkerFactory> clazz=Class.forName(className).asSubclass(PermutationWorkerFactory.class);
+      PermutationWorkerFactory factory=clazz.newInstance();
+      factory.init(logger);
+      mutableFactories.add(factory);
+      logger.log(TreeLogger.SPAM,"Added PermutationWorkerFactory " + clazz.getName());
+    }
+ catch (    ClassCastException e) {
+      logger.log(TreeLogger.ERROR,className + " is not a " + PermutationWorkerFactory.class.getName());
+    }
+catch (    ClassNotFoundException e) {
+      logger.log(TreeLogger.ERROR,"Unable to find PermutationWorkerFactory named " + className);
+    }
+catch (    InstantiationException e) {
+      logger.log(TreeLogger.ERROR,"Unable to instantiate PermutationWorkerFactory " + className,e);
+    }
+catch (    IllegalAccessException e) {
+      logger.log(TreeLogger.ERROR,"Unable to instantiate PermutationWorkerFactory " + className,e);
+    }
+  }
+  if (mutableFactories.size() == 0) {
+    logger.log(TreeLogger.ERROR,"No usable PermutationWorkerFactories available");
+    throw new UnableToCompleteException();
+  }
+  return lazyFactories=Collections.unmodifiableList(mutableFactories);
+}
