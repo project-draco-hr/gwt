@@ -1,0 +1,24 @@
+{
+  if (localWorkers <= WORKERS_AUTO) {
+    localWorkers=1;
+  }
+  for (  PermutationWorkerFactory factory : PermutationWorkerFactory.createAll(logger)) {
+    if (workersNeeded <= 0) {
+      break;
+    }
+    int wanted=factory.isLocal() ? Math.min(workersNeeded,localWorkers) : workersNeeded;
+    if (wanted <= 0) {
+      continue;
+    }
+    Collection<PermutationWorker> newWorkers=factory.getWorkers(logger,unifiedAst,wanted);
+    workers.addAll(newWorkers);
+    workersNeeded-=newWorkers.size();
+    if (factory.isLocal()) {
+      localWorkers-=newWorkers.size();
+    }
+  }
+  if (workers.size() == 0) {
+    logger.log(TreeLogger.ERROR,"No PermutationWorkers created");
+    throw new UnableToCompleteException();
+  }
+}

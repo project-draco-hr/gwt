@@ -1,0 +1,36 @@
+{
+  if (workerSocket == null) {
+    try {
+      workerSocket=serverSocket.accept();
+      in=new ObjectInputStream(workerSocket.getInputStream());
+      out=new ObjectOutputStream(workerSocket.getOutputStream());
+      String c=in.readUTF();
+      if (!cookies.contains(c)) {
+        throw new TransientWorkerException("Received unknown cookie " + c,null);
+      }
+      out.writeObject(astFile);
+      long memoryUse=in.readLong();
+      logger.log(TreeLogger.SPAM,"Remote process indicates " + memoryUse + " bytes of memory used");
+    }
+ catch (    SocketTimeoutException e) {
+      throw new TransientWorkerException("Remote process did not connect within timeout period",e);
+    }
+catch (    IOException e) {
+      throw new TransientWorkerException("Unable to communicate with worker",e);
+    }
+  }
+  try {
+    out.writeBoolean(true);
+    out.writeObject(permutation);
+    out.flush();
+    return (PermutationResult)in.readObject();
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.WARN,"Lost communication with remote process",e);
+    throw new TransientWorkerException("Lost communication with remote process",e);
+  }
+catch (  ClassNotFoundException e) {
+    logger.log(TreeLogger.ERROR,"Unable to receive response",e);
+    throw new UnableToCompleteException();
+  }
+}

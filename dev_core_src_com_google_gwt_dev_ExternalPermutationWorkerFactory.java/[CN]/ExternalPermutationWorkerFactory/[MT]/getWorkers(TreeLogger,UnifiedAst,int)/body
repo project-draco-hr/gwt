@@ -1,0 +1,21 @@
+{
+  File astFile;
+  try {
+    astFile=File.createTempFile("externalPermutationWorkerFactory",".ser");
+    astFile.deleteOnExit();
+    Util.writeObjectAsFile(logger,astFile,unifiedAst);
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Unable to create temporary file",e);
+    throw new UnableToCompleteException();
+  }
+  Set<String> cookies=Collections.synchronizedSet(new HashSet<String>(numWorkers));
+  CountedServerSocket countedSock=new CountedServerSocket(sock,numWorkers);
+  List<PermutationWorker> toReturn=new ArrayList<PermutationWorker>(numWorkers);
+  for (int i=0; i < numWorkers; i++) {
+    String cookie=launchExternalWorker(logger,sock.getLocalPort());
+    cookies.add(cookie);
+    toReturn.add(new ExternalPermutationWorker(countedSock,astFile,cookies));
+  }
+  return toReturn;
+}
