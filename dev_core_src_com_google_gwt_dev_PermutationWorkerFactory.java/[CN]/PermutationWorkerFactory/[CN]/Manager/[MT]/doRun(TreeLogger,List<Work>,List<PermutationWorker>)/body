@@ -1,0 +1,46 @@
+{
+  workQueue=new LinkedBlockingQueue<Work>(work);
+  resultsQueue=new LinkedBlockingQueue<Result>();
+  List<Thread> threads=new ArrayList<Thread>(workers.size());
+  try {
+    for (    PermutationWorker worker : workers) {
+      Thread thread=new Thread(new WorkerThread(worker));
+      threads.add(thread);
+      thread.start();
+    }
+    int workToDo=work.size();
+    int aliveWorkers=workers.size();
+    waitForWorkers:     while (workToDo > 0 && aliveWorkers > 0) {
+      Result take=resultsQueue.take();
+switch (take) {
+case SUCCESS:
+        --workToDo;
+      break;
+case FAIL:
+    break waitForWorkers;
+case WORKER_DEATH:
+  --aliveWorkers;
+break;
+default :
+throw new IncompatibleClassChangeError(Result.class.toString());
+}
+}
+workQueue.clear();
+for (int i=0; i < aliveWorkers; ++i) {
+workQueue.add(POISON_PILL);
+}
+if (workToDo > 0) {
+logger.log(TreeLogger.ERROR,"Not all permutation were compiled , completed (" + (work.size() - workToDo) + "/"+ work.size()+ ")");
+throw new UnableToCompleteException();
+}
+}
+ catch (InterruptedException e) {
+logger.log(TreeLogger.ERROR,"Exiting without results due to interruption",e);
+throw new UnableToCompleteException();
+}
+ finally {
+for (Thread thread : threads) {
+thread.interrupt();
+}
+}
+}

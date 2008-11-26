@@ -1,0 +1,39 @@
+{
+  Result threadDeathResult=Result.FAIL;
+  try {
+    while (true) {
+      Work work=workQueue.take();
+      if (work == POISON_PILL) {
+        return;
+      }
+      TreeLogger logger=work.getLogger();
+      try {
+        PermutationResult result=worker.compile(logger,work.getPerm());
+        Util.writeObjectAsFile(logger,work.getResultFile(),result);
+        logger.log(TreeLogger.DEBUG,"Successfully compiled permutation");
+        resultsQueue.put(Result.SUCCESS);
+      }
+ catch (      TransientWorkerException e) {
+        logger.log(TreeLogger.DEBUG,"Worker died, will retry Permutation",e);
+        workQueue.add(work);
+        threadDeathResult=Result.WORKER_DEATH;
+        return;
+      }
+catch (      UnableToCompleteException e) {
+        logger.log(TreeLogger.ERROR,"Unrecoverable exception, shutting down",e);
+        threadDeathResult=Result.FAIL;
+        return;
+      }
+    }
+  }
+ catch (  InterruptedException e) {
+    return;
+  }
+ finally {
+    try {
+      resultsQueue.put(threadDeathResult);
+    }
+ catch (    InterruptedException ignored) {
+    }
+  }
+}
