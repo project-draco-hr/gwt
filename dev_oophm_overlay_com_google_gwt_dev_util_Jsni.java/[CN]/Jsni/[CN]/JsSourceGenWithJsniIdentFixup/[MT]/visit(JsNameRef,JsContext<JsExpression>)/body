@@ -1,0 +1,47 @@
+{
+  String ident=x.getIdent();
+  JsExpression q=x.getQualifier();
+  if (ident.startsWith("@")) {
+    int dispId=dispatchInfo.getDispId(ident);
+    Member member;
+    if (dispId < 0) {
+      member=null;
+    }
+ else {
+      member=dispatchInfo.getClassInfoByDispId(dispId).getMember(dispId);
+    }
+    if (member == null || member instanceof Field) {
+      if (q != null) {
+        accept(q);
+        out.print("[");
+        out.print(String.valueOf(dispId));
+        out.print("]");
+      }
+ else {
+        out.print("__static[");
+        out.print(String.valueOf(dispId));
+        out.print("]");
+      }
+      return false;
+    }
+    int paramCount=0;
+    if (member instanceof Method) {
+      paramCount=((Method)member).getParameterTypes().length;
+    }
+ else     if (member instanceof Constructor) {
+      paramCount=((Constructor<?>)member).getParameterTypes().length;
+    }
+    JsInvocation rewritten=new JsInvocation(SourceInfo.UNKNOWN);
+    rewritten.setQualifier(new JsNameRef(SourceInfo.UNKNOWN,"__gwt_makeTearOff"));
+    List<JsExpression> arguments=rewritten.getArguments();
+    if (q == null) {
+      q=program.getNullLiteral();
+    }
+    arguments.add(q);
+    arguments.add(program.getNumberLiteral(dispId));
+    arguments.add(program.getNumberLiteral(paramCount));
+    accept(rewritten);
+    return false;
+  }
+  return super.visit(x,ctx);
+}

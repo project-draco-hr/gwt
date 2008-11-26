@@ -1,0 +1,28 @@
+{
+  for (int i=0; i < indent; ++i) {
+    buf.append(' ');
+  }
+  if (node instanceof DefaultMutableTreeNode) {
+    DefaultMutableTreeNode mutableNode=(DefaultMutableTreeNode)node;
+    Object userObject=mutableNode.getUserObject();
+    if (userObject instanceof LogEvent) {
+      LogEvent event=(LogEvent)userObject;
+      buf.append(htmlUnescape(event.getFullText()));
+      if (event.isBranchCommit) {
+        SwingTreeLogger childLogger=event.childLogger;
+        DefaultMutableTreeNode parent=childLogger.treeNode;
+        for (int i=0; i < parent.getChildCount(); ++i) {
+          treeLogTraverse(buf,parent.getChildAt(i),indent + 2);
+        }
+      }
+    }
+ else {
+      buf.append(userObject.toString());
+      buf.append('\n');
+    }
+  }
+ else {
+    buf.append(node.toString());
+    buf.append('\n');
+  }
+}

@@ -17,6 +17,23 @@
     javaScriptHostClass=newClass;
     updateJavaScriptHost();
   }
+  if (!classRewriter.isJsoIntf(className)) {
+    CompiledClass compiledClass=compilationState.getClassFileMap().get(canonicalizeClassName(className));
+    if (compiledClass != null) {
+      toInject.push(compiledClass);
+    }
+  }
+  if (!isInjectingClass) {
+    try {
+      isInjectingClass=true;
+      while (toInject.size() > 0) {
+        injectJsniFor(toInject.remove(0));
+      }
+    }
+  finally {
+      isInjectingClass=false;
+    }
+  }
   if (className.equals("com.google.gwt.core.client.GWT")) {
     gwtClass=newClass;
     updateGwtClass();

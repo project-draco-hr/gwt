@@ -1,0 +1,46 @@
+{
+  final ObjectsTable remoteObjects=getJavaObjectsExposedInBrowser();
+  Value vthis=convertFromJsValue(remoteObjects,jsthis);
+  Value[] vargs=new Value[args.length];
+  for (int i=0; i < args.length; ++i) {
+    vargs[i]=convertFromJsValue(remoteObjects,args[i]);
+  }
+  try {
+    InvokeMessage invokeMessage=new InvokeMessage(this,methodName,vthis,vargs);
+    invokeMessage.send();
+    final ReturnMessage msg=reactToMessagesWhileWaitingForReturn(handler);
+    Value returnValue=msg.getReturnValue();
+    convertToJsValue(ccl,remoteObjects,returnValue,returnJsValue);
+    if (msg.isException()) {
+      if (returnValue.isNull() || returnValue.isUndefined()) {
+        throw ModuleSpaceOOPHM.createJavaScriptException(ccl,null);
+      }
+ else       if (returnValue.isString()) {
+        throw ModuleSpaceOOPHM.createJavaScriptException(ccl,returnValue.getString());
+      }
+ else       if (returnValue.isJsObject()) {
+        Object jso=JsValueGlue.createJavaScriptObject(returnJsValue,ccl);
+        throw ModuleSpaceOOPHM.createJavaScriptException(ccl,jso);
+      }
+ else       if (returnValue.isJavaObject()) {
+        Object object=remoteObjects.get(returnValue.getJavaObject().getRefid());
+        Object target=((JsValueOOPHM.DispatchObjectOOPHM)object).getTarget();
+        if (target instanceof Throwable) {
+          throw (Throwable)(target);
+        }
+ else {
+          throw ModuleSpaceOOPHM.createJavaScriptException(ccl,target);
+        }
+      }
+      throw ModuleSpaceOOPHM.createJavaScriptException(ccl,returnValue.getValue().toString());
+    }
+  }
+ catch (  IOException e) {
+    e.printStackTrace();
+    throw new HostedModeException("I/O error communicating with client");
+  }
+catch (  BrowserChannelException e) {
+    e.printStackTrace();
+    throw new HostedModeException("I/O error communicating with client");
+  }
+}

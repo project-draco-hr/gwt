@@ -1,0 +1,57 @@
+{
+  super(new BorderLayout());
+  JPanel top=new JPanel(new FlowLayout());
+  searchField=new JTextField(20);
+  top.add(searchField);
+  JButton nextButton=new JButton("+");
+  top.add(nextButton);
+  nextButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      nextMatch();
+    }
+  }
+);
+  JButton prevButton=new JButton("-");
+  top.add(prevButton);
+  prevButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      prevMatch();
+    }
+  }
+);
+  JButton closeButton=new JButton(closeIcon);
+  closeButton.setBorderPainted(false);
+  closeButton.setPreferredSize(new Dimension(closeIcon.getIconWidth(),closeIcon.getIconHeight()));
+  closeButton.setToolTipText("Close this search box");
+  top.add(closeButton);
+  KeyStroke key=KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0);
+  getInputMap(WHEN_IN_FOCUSED_WINDOW).put(key,"find-cancel");
+  key=KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0);
+  getInputMap(WHEN_IN_FOCUSED_WINDOW).put(key,"find-search");
+  getActionMap().put("find-search",new AbstractAction(){
+    public void actionPerformed(    ActionEvent e){
+      lastSearch=searchField.getText();
+      matches=doFind(lastSearch);
+      matchNumber=0;
+      updateSearchResult();
+    }
+  }
+);
+  AbstractAction closeFindBox=new AbstractAction(){
+    public void actionPerformed(    ActionEvent e){
+      hideFindBox();
+    }
+  }
+;
+  getActionMap().put("find-cancel",closeFindBox);
+  closeButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      hideFindBox();
+    }
+  }
+);
+  add(top,BorderLayout.NORTH);
+  searchStatus=new JLabel("Type search text and press Enter");
+  searchStatus.setBorder(BorderFactory.createEmptyBorder(0,2,2,0));
+  add(searchStatus,BorderLayout.SOUTH);
+}

@@ -1,0 +1,15 @@
+{
+  final DataInputStream stream=channel.getStreamFromOtherSide();
+  final int specialMethodInt=stream.readByte();
+  SpecialDispatchId[] ids=SpecialDispatchId.values();
+  if (specialMethodInt < 0 || specialMethodInt >= ids.length) {
+    throw new BrowserChannelException("Invalid dispatch id " + specialMethodInt);
+  }
+  final SpecialDispatchId dispatchId=ids[specialMethodInt];
+  final int argLen=stream.readInt();
+  final Value[] args=new Value[argLen];
+  for (int i=0; i < argLen; i++) {
+    args[i]=readValue(stream);
+  }
+  return new InvokeSpecialMessage(channel,dispatchId,args);
+}

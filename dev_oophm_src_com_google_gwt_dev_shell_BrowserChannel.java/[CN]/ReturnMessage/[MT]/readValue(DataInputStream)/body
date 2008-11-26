@@ -1,0 +1,54 @@
+{
+  ValueType tag;
+  try {
+    tag=readValueType(stream);
+  }
+ catch (  BrowserChannelException e) {
+    IOException ee=new IOException();
+    ee.initCause(e);
+    throw ee;
+  }
+  Value value=new Value();
+switch (tag) {
+case NULL:
+    value.setNull();
+  break;
+case UNDEFINED:
+value.setUndefined();
+break;
+case BOOLEAN:
+value.setBoolean(stream.readByte() != 0);
+break;
+case BYTE:
+value.setByte(stream.readByte());
+break;
+case CHAR:
+value.setChar(stream.readChar());
+break;
+case FLOAT:
+value.setFloat(stream.readFloat());
+break;
+case INT:
+value.setInt(stream.readInt());
+break;
+case LONG:
+value.setLong(stream.readLong());
+break;
+case DOUBLE:
+value.setDouble(stream.readDouble());
+break;
+case SHORT:
+value.setShort(stream.readShort());
+break;
+case STRING:
+value.setString(readUtf8String(stream));
+break;
+case JS_OBJECT:
+value.setJsObject(getJsObjectRef(stream.readInt()));
+break;
+case JAVA_OBJECT:
+value.setJavaObject(new JavaObjectRef(stream.readInt()));
+break;
+}
+return value;
+}

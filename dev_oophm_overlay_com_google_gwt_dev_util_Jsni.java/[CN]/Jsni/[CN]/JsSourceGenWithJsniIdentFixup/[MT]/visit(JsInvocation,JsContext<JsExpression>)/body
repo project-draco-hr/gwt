@@ -1,0 +1,41 @@
+{
+  if (x.getQualifier() instanceof JsNameRef) {
+    JsNameRef ref=(JsNameRef)x.getQualifier();
+    String ident=ref.getIdent();
+    if (ident.startsWith("@")) {
+      int dispId=dispatchInfo.getDispId(ident);
+      Member member;
+      if (dispId < 0) {
+        member=null;
+      }
+ else {
+        member=dispatchInfo.getClassInfoByDispId(dispId).getMember(dispId);
+      }
+      if (member == null || member instanceof Method || member instanceof Constructor) {
+        int paramCount=0;
+        if (member instanceof Method) {
+          paramCount=((Method)member).getParameterTypes().length;
+        }
+ else         if (member instanceof Constructor) {
+          paramCount=((Constructor<?>)member).getParameterTypes().length;
+        }
+        JsInvocation inner=new JsInvocation(SourceInfo.UNKNOWN);
+        inner.setQualifier(new JsNameRef(SourceInfo.UNKNOWN,"__gwt_makeJavaInvoke"));
+        inner.getArguments().add(program.getNumberLiteral(paramCount));
+        JsInvocation outer=new JsInvocation(SourceInfo.UNKNOWN);
+        outer.setQualifier(inner);
+        JsExpression q=ref.getQualifier();
+        if (q == null) {
+          q=program.getNullLiteral();
+        }
+        List<JsExpression> arguments=outer.getArguments();
+        arguments.add(q);
+        arguments.add(program.getNumberLiteral(dispId));
+        arguments.addAll(x.getArguments());
+        accept(outer);
+        return false;
+      }
+    }
+  }
+  return super.visit(x,ctx);
+}

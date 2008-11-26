@@ -1,0 +1,128 @@
+{
+  super(new BorderLayout());
+  regexFilter="";
+  levelFilter=maxLevel;
+  topPanel=new JPanel();
+  JButton expandButton=new JButton("Expand All");
+  expandButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      expandAll();
+    }
+  }
+);
+  topPanel.add(expandButton);
+  JButton collapsButton=new JButton("Collapse All");
+  collapsButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      collapseAll();
+    }
+  }
+);
+  topPanel.add(collapsButton);
+  if (true) {
+    topPanel.add(new JLabel("Log filtering controls will go here"));
+  }
+ else {
+    topPanel.add(new JLabel("Filter Log Messages: "));
+    levelComboBox=new JComboBox();
+    for (    TreeLogger.Type type : TreeLogger.Type.instances()) {
+      if (type.compareTo(maxLevel) > 0) {
+        break;
+      }
+      levelComboBox.addItem(type);
+    }
+    levelComboBox.setEditable(false);
+    levelComboBox.setSelectedIndex(levelComboBox.getItemCount() - 1);
+    topPanel.add(levelComboBox);
+    levelComboBox.addActionListener(new ActionListener(){
+      public void actionPerformed(      ActionEvent e){
+        setLevelFilter((TreeLogger.Type)levelComboBox.getSelectedItem());
+      }
+    }
+);
+    regexField=new JTextField(20);
+    topPanel.add(regexField);
+    JButton applyRegexButton=new JButton("Apply Regex");
+    applyRegexButton.addActionListener(new ActionListener(){
+      public void actionPerformed(      ActionEvent e){
+        setRegexFilter(regexField.getText());
+      }
+    }
+);
+    topPanel.add(applyRegexButton);
+    JButton clearRegexButton=new JButton("Clear Regex");
+    clearRegexButton.addActionListener(new ActionListener(){
+      public void actionPerformed(      ActionEvent e){
+        regexField.setText("");
+        setRegexFilter("");
+      }
+    }
+);
+    topPanel.add(clearRegexButton);
+  }
+  add(topPanel,BorderLayout.NORTH);
+  root=new DefaultMutableTreeNode();
+  treeModel=new DefaultTreeModel(root);
+  tree=new JTree(treeModel);
+  tree.setRootVisible(false);
+  tree.setEditable(false);
+  tree.setExpandsSelectedPaths(true);
+  tree.setShowsRootHandles(true);
+  tree.setCellRenderer(new TreeRenderer());
+  tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+  tree.addTreeSelectionListener(this);
+  treeView=new JScrollPane(tree);
+  details=new JEditorPane(){
+    @Override public boolean getScrollableTracksViewportWidth(){
+      return true;
+    }
+  }
+;
+  details.setEditable(false);
+  details.setContentType("text/html");
+  details.setForeground(Color.BLACK);
+  JScrollPane msgView=new JScrollPane(details);
+  JSplitPane splitter=new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+  splitter.setTopComponent(treeView);
+  splitter.setBottomComponent(msgView);
+  Dimension minSize=new Dimension(100,50);
+  msgView.setMinimumSize(minSize);
+  treeView.setMinimumSize(minSize);
+  splitter.setDividerLocation(0.80);
+  add(splitter);
+  logger=new SwingTreeLogger(this);
+  logger.setMaxDetail(maxLevel);
+  KeyStroke key=KeyStroke.getKeyStroke(KeyEvent.VK_F,InputEvent.CTRL_DOWN_MASK);
+  getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(key,"find");
+  getActionMap().put("find",new AbstractAction(){
+    public void actionPerformed(    ActionEvent e){
+      showFindBox();
+    }
+  }
+);
+  key=KeyStroke.getKeyStroke(KeyEvent.VK_C,InputEvent.CTRL_DOWN_MASK);
+  tree.getInputMap().put(key,"copy");
+  tree.getActionMap().put("copy",new AbstractAction(){
+    public void actionPerformed(    ActionEvent e){
+      treeCopy();
+    }
+  }
+);
+  findBox=new FindBox();
+  key=KeyStroke.getKeyStroke(KeyEvent.VK_N,InputEvent.CTRL_DOWN_MASK);
+  tree.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(key,"findnext");
+  tree.getActionMap().put("findnext",new AbstractAction(){
+    public void actionPerformed(    ActionEvent e){
+      findBox.nextMatch();
+    }
+  }
+);
+  key=KeyStroke.getKeyStroke(KeyEvent.VK_P,InputEvent.CTRL_DOWN_MASK);
+  tree.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(key,"findprev");
+  tree.getActionMap().put("findprev",new AbstractAction(){
+    public void actionPerformed(    ActionEvent e){
+      findBox.prevMatch();
+    }
+  }
+);
+}

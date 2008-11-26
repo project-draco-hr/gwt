@@ -1,0 +1,33 @@
+{
+  TreeLogger.Type maxLevel=TreeLogger.INFO;
+  if (mainLogger instanceof AbstractTreeLogger) {
+    maxLevel=((AbstractTreeLogger)mainLogger).getMaxDetail();
+  }
+  TreeLogger logger;
+  ModulePanel tab;
+  if (!headlessMode) {
+    tab=new ModulePanel(maxLevel,moduleName,userAgent,remoteSocket,tabs);
+    logger=tab.getLogger();
+    frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+  }
+ else {
+    tab=null;
+    logger=mainLogger;
+  }
+  try {
+    ModuleDef moduleDef=loadModule(moduleName,logger);
+    assert(moduleDef != null);
+    File shellDir=new File(outDir,GWT_SHELL_PATH + File.separator + moduleName);
+    TypeOracle typeOracle=moduleDef.getTypeOracle(logger);
+    ShellModuleSpaceHost host=doCreateShellModuleSpaceHost(logger,typeOracle,moduleDef,genDir,shellDir);
+    if (tab != null) {
+      moduleTabs.put(host,tab);
+    }
+    return host;
+  }
+  finally {
+    if (!headlessMode) {
+      frame.setCursor(Cursor.getDefaultCursor());
+    }
+  }
+}

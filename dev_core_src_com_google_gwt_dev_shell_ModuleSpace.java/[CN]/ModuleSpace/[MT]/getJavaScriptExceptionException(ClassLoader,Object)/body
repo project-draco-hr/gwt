@@ -1,0 +1,30 @@
+{
+  if (javaScriptException.getClass().getClassLoader() != cl) {
+    return null;
+  }
+  Exception caught;
+  try {
+    Class<?> javaScriptExceptionClass=Class.forName("com.google.gwt.core.client.JavaScriptException",true,cl);
+    if (!javaScriptExceptionClass.isInstance(javaScriptException)) {
+      return null;
+    }
+    Method getException=javaScriptExceptionClass.getMethod("getException");
+    return getException.invoke(javaScriptException);
+  }
+ catch (  NoSuchMethodException e) {
+    caught=e;
+  }
+catch (  ClassNotFoundException e) {
+    caught=e;
+  }
+catch (  IllegalArgumentException e) {
+    caught=e;
+  }
+catch (  IllegalAccessException e) {
+    caught=e;
+  }
+catch (  InvocationTargetException e) {
+    caught=e;
+  }
+  throw new RuntimeException("Error getting exception value",caught);
+}

@@ -1,0 +1,18 @@
+{
+  JsValueOOPHM jsValue=new JsValueOOPHM();
+  if (javaDispatch.isField(dispId)) {
+    Field field=javaDispatch.getField(dispId);
+    JsValueGlue.set(jsValue,classLoader,field.getType(),javaDispatch.getFieldValue(dispId));
+  }
+ else {
+    MethodAdaptor method=javaDispatch.getMethod(dispId);
+    AccessibleObject obj=method.getUnderlyingObject();
+    DispatchMethod dispMethod=(DispatchMethod)classLoader.getWrapperForObject(obj);
+    if (dispMethod == null) {
+      dispMethod=new MethodDispatch(classLoader,method);
+      classLoader.putWrapperForObject(obj,dispMethod);
+    }
+    jsValue.setWrappedFunction(method.toString(),dispMethod);
+  }
+  return jsValue;
+}

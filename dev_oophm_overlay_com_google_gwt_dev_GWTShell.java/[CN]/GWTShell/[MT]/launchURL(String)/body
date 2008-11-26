@@ -1,0 +1,24 @@
+{
+  String separator;
+  if (url.contains("?")) {
+    separator="&";
+  }
+ else {
+    separator="?";
+  }
+  url+=separator + "gwt.hosted=" + listener.getEndpointIdentifier();
+  TreeLogger branch=getTopLogger().branch(TreeLogger.INFO,"Launching firefox with " + url,null);
+  try {
+    Process browser=Runtime.getRuntime().exec("firefox " + url + "&");
+    int exitCode=browser.waitFor();
+    if (exitCode != 0) {
+      branch.log(TreeLogger.ERROR,"Exit code " + exitCode,null);
+    }
+  }
+ catch (  IOException e) {
+    branch.log(TreeLogger.ERROR,"Error starting browser",e);
+  }
+catch (  InterruptedException e) {
+    branch.log(TreeLogger.ERROR,"Error starting browser",e);
+  }
+}

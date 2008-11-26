@@ -1,0 +1,39 @@
+{
+  super(new BorderLayout());
+  this.tabs=tabs;
+  JPanel topPanel=new JPanel();
+  topPanel.add(new JLabel(moduleName));
+  JButton compileButton=new JButton("Compile (not yet implemented)");
+  compileButton.setEnabled(false);
+  compileButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      JOptionPane.showMessageDialog(null,"Compiling not implemented yet","Alert: Not Implemented",JOptionPane.INFORMATION_MESSAGE);
+    }
+  }
+);
+  topPanel.add(compileButton);
+  add(topPanel,BorderLayout.NORTH);
+  loggerPanel=new SwingLoggerPanel(maxLevel);
+  add(loggerPanel);
+  AbstractTreeLogger logger=loggerPanel.getLogger();
+  ImageIcon browserIcon=null;
+  String lcAgent=userAgent.toLowerCase();
+  if (lcAgent.contains("msie")) {
+    browserIcon=ieIcon;
+  }
+ else   if (lcAgent.contains("webkit") || lcAgent.contains("safari")) {
+    browserIcon=safariIcon;
+  }
+ else   if (lcAgent.contains("firefox")) {
+    browserIcon=firefoxIcon;
+  }
+  String shortModuleName=moduleName;
+  int lastDot=shortModuleName.lastIndexOf('.');
+  if (lastDot >= 0) {
+    shortModuleName=shortModuleName.substring(lastDot + 1);
+  }
+synchronized (tabs) {
+    tabs.addTab(shortModuleName,browserIcon,this,moduleName + " from " + remoteSocket+ " on "+ userAgent);
+  }
+  logger.log(TreeLogger.INFO,"Request for module " + moduleName + " by user agent '"+ userAgent+ "' from "+ remoteSocket);
+}

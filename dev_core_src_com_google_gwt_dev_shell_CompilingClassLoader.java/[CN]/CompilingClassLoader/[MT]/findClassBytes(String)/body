@@ -5,13 +5,9 @@
   if (classRewriter != null && classRewriter.isJsoIntf(className)) {
     return classRewriter.writeJsoIntf(className);
   }
-  String lookupClassName=className.replace('.','/');
-  if (classRewriter != null && classRewriter.isJsoImpl(className)) {
-    lookupClassName=lookupClassName.substring(0,lookupClassName.length() - 1);
-  }
+  String lookupClassName=canonicalizeClassName(className);
   CompiledClass compiledClass=compilationState.getClassFileMap().get(lookupClassName);
   if (compiledClass != null) {
-    injectJsniFor(compiledClass);
     byte[] classBytes=compiledClass.getBytes();
     classBytes=emmaStrategy.getEmmaClassBytes(classBytes,lookupClassName,compiledClass.getUnit().getLastModified());
     if (classRewriter != null) {
