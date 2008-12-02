@@ -10,6 +10,7 @@
     String curClassId;
     String curPackage;
     Integer curFragment;
+    String curFunctionId="";
     boolean specialCodeType=false;
     StringBuilder valueBuilder=new StringBuilder();
     int ct=0;
@@ -36,6 +37,14 @@
       }
  else       if (strippedName.compareTo("class") == 0) {
         parseClass(nameToCodeColl,attributes);
+      }
+ else       if (strippedName.compareTo("function") == 0) {
+        if (attributes.getValue("id") != null) {
+          curFunctionId=attributes.getValue("id");
+        }
+      }
+ else       if (strippedName.compareTo("on") == 0) {
+        parseDependsOn(nameToCodeColl,attributes);
       }
  else       if (strippedName.compareTo("of") == 0) {
         parseOverrides(nameToCodeColl,attributes);
@@ -323,6 +332,26 @@
         }
  else         if (curClassId.endsWith("_FieldSerializer") || curClassId.endsWith("_Proxy") || curClassId.endsWith("_TypeSerializer")) {
           nameToCodeColl.get("rpcGen").classes.add(curClassId);
+        }
+      }
+    }
+    private void parseDependsOn(    final HashMap<String,CodeCollection> nameToCodeColl,    Attributes attributes){
+      if (curFunctionId.compareTo("") == 0) {
+        if (attributes.getValue("idref") != null) {
+          String curDepClassId=attributes.getValue("idref");
+          if (curDepClassId.contains(":")) {
+            curDepClassId=curDepClassId.replaceAll(":.*","");
+          }
+          if (curDepClassId.contains(".")) {
+            if (!GlobalInformation.classToWhatItDependsOn.containsKey(curClassId)) {
+              HashSet<String> insertSet=new HashSet<String>();
+              insertSet.add(curDepClassId);
+              GlobalInformation.classToWhatItDependsOn.put(curClassId,insertSet);
+            }
+ else {
+              GlobalInformation.classToWhatItDependsOn.get(curClassId).add(curDepClassId);
+            }
+          }
         }
       }
     }

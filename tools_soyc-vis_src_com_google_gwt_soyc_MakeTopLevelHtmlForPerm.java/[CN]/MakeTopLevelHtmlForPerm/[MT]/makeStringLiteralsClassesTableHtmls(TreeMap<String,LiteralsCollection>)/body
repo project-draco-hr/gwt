@@ -1,0 +1,82 @@
+{
+  for (  String literalType : nameToLitColl.get("string").stringTypeToSize.keySet()) {
+    String outFileName=literalType + "Strings.html";
+    final PrintWriter outFile=new PrintWriter(outFileName);
+    outFile.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"");
+    outFile.println("\"http://www.w3.org/TR/html4/strict.dtd\">");
+    outFile.println("<html>");
+    outFile.println("<head>");
+    outFile.println("<meta http-equiv=\"content-type\" content=\"text/html;charset=ISO-8859-1\">");
+    outFile.println("<title>Literals of type \"" + literalType + "\"</title>");
+    outFile.println("</head>");
+    outFile.println("<style type=\"text/css\">");
+    outFile.println("body {background-color: #728FCE}");
+    outFile.println("h2 {background-color: transparent}");
+    outFile.println("p {background-color: fuchsia}");
+    outFile.println("</style>");
+    outFile.println("<body>");
+    outFile.println("<center>");
+    outFile.println("<h2>Literals of type \"" + literalType + "\"</h2>");
+    outFile.println("</center>");
+    outFile.println("<hr>");
+    outFile.println("<center>");
+    outFile.println("<table border=\"1\" width=\"80%\" style=\"font-size: 11pt;\" bgcolor=\"white\">");
+    for (    String literal : nameToLitColl.get("string").stringLiteralToType.keySet()) {
+      if (nameToLitColl.get("string").stringLiteralToType.get(literal).compareTo(literalType) == 0) {
+        if (literal.trim().compareTo("") == 0) {
+          literal="[whitespace only string]";
+        }
+        String newLiteral="";
+        if (literal.length() > 80) {
+          int i;
+          for (i=80; i < literal.length(); i=i + 80) {
+            String part1=literal.substring(i - 80,i);
+            newLiteral=newLiteral + part1 + " ";
+          }
+          if (i - 80 > 0) {
+            newLiteral=newLiteral + literal.substring(i - 80);
+          }
+        }
+ else {
+          newLiteral=literal;
+        }
+        String escliteral=escapeXml(newLiteral);
+        outFile.println("<tr>");
+        outFile.println("<td width=\"40%\">" + escliteral + "</td>");
+        int ct=0;
+        for (        String location : nameToLitColl.get("string").literalToLocations.get(literal)) {
+          if (ct > 0) {
+            outFile.println("<tr>");
+            outFile.println("<td width=\"40%\"> </td>");
+          }
+          String newLocation="";
+          if (location.length() > 80) {
+            int i;
+            for (i=80; i < location.length(); i=i + 80) {
+              String part1=location.substring(i - 80,i);
+              newLocation=newLocation + part1 + " ";
+            }
+            if (i - 80 > 0) {
+              newLocation=newLocation + location.substring(i - 80);
+            }
+          }
+ else {
+            newLocation=location;
+          }
+          outFile.println("<td width=\"40%\">" + newLocation + "</td>");
+          if (ct > 0) {
+            outFile.println("</tr>");
+          }
+          ct++;
+        }
+        outFile.println("</tr>");
+      }
+      outFile.println("</table>");
+      outFile.println("<center>");
+      outFile.println("</div>");
+      outFile.println("</body>");
+      outFile.println("</html>");
+      outFile.close();
+    }
+  }
+}

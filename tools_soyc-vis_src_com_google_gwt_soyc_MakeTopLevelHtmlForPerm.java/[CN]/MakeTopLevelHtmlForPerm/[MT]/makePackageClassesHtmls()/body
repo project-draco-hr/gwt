@@ -3,6 +3,7 @@
     String outFileName=packageName + "Classes.html";
     TreeMap<Float,String> sortedClasses=new TreeMap<Float,String>(Collections.reverseOrder());
     float maxSize=0f;
+    int maxDepCount=1;
     for (    String className : GlobalInformation.packageToClasses.get(packageName)) {
       float curSize=0f;
       if (!GlobalInformation.classToPartialSize.containsKey(className)) {
@@ -11,10 +12,17 @@
  else {
         curSize=GlobalInformation.classToPartialSize.get(className);
       }
+      int depCount=0;
+      if (GlobalInformation.classToWhatItDependsOn.containsKey(className)) {
+        depCount=GlobalInformation.classToWhatItDependsOn.get(className).size();
+      }
       if (curSize != 0f) {
         sortedClasses.put(curSize,className);
         if (curSize > maxSize) {
           maxSize=curSize;
+        }
+        if (depCount > maxDepCount) {
+          maxDepCount=depCount;
         }
       }
     }
@@ -36,11 +44,29 @@
     int yOffset=0;
     for (    Float size : sortedClasses.keySet()) {
       String className=sortedClasses.get(size);
-      float ratio=(size / maxSize) * 85;
+      float ratio=(size / maxSize) * 45;
       if (ratio < 3) {
         ratio=3;
       }
+      int depCount=0;
+      if (GlobalInformation.classToWhatItDependsOn.containsKey(className)) {
+        depCount=GlobalInformation.classToWhatItDependsOn.get(className).size();
+      }
+      float depRatio=((float)depCount / (float)maxDepCount) * 45f;
+      if (depRatio < 3.0) {
+        depRatio=3;
+      }
       outFile.println("<div class=\"box\" style=\"width:" + ratio + "%; top: "+ yOffset+ "px; left: 60px;\">");
+      outFile.println("<div id=\"lb\">");
+      outFile.println("<div id=\"rb\">");
+      outFile.println("<div id=\"bb\"><div id=\"blc\"><div id=\"brc\">");
+      outFile.println("<div id=\"tb\"><div id=\"tlc\"><div id=\"trc\">");
+      outFile.println("<div id=\"content\">");
+      outFile.println("</div>");
+      outFile.println("</div></div></div></div>");
+      outFile.println("</div></div></div></div>");
+      outFile.println("</div>");
+      outFile.println("<div class=\"box-right\" style=\"width:" + depRatio + "%; top: "+ yOffset+ "px; left: 50%\">");
       outFile.println("<div id=\"lb\">");
       outFile.println("<div id=\"rb\">");
       outFile.println("<div id=\"bb\"><div id=\"blc\"><div id=\"brc\">");
@@ -53,6 +79,8 @@
       int yOffsetText=yOffset + 8;
       outFile.printf("<div class=\"barlabel\" style=\"top:" + yOffsetText + "px; left:5px;\">%.1f</div>\n",size);
       outFile.println("<div class=\"barlabel\" style=\"top:" + yOffsetText + "px; left:70px;\">"+ className+ "</div>");
+      String drillDownFileName=className + "Deps.html";
+      outFile.println("<div class=\"barlabel\" style=\"top:" + yOffsetText + "px; left:50%;\"><a href=\""+ drillDownFileName+ "\" target=\"_top\">Dependencies: "+ depCount+ "</a></div>");
       yOffset=yOffset + 25;
     }
     outFile.println("</div>");
