@@ -1,0 +1,35 @@
+{
+  ByteArrayOutputStream bytes=new ByteArrayOutputStream();
+  OutputStreamWriter out;
+  try {
+    out=new OutputStreamWriter(compress ? new GZIPOutputStream(bytes) : bytes);
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Unable to set up gzip stream",e);
+    throw new UnableToCompleteException();
+  }
+  PrintWriter pw=new PrintWriter(out);
+  HtmlTextOutput htmlOut=new HtmlTextOutput(pw,false);
+  String curLine="<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+  htmlOut.printRawOpt(curLine);
+  htmlOut.newlineOpt();
+  curLine="<soyc>";
+  htmlOut.printRawOpt(curLine);
+  htmlOut.newlineOpt();
+  htmlOut.indentIn();
+  htmlOut.indentIn();
+  curNumIndents++;
+  emitMembers(report,htmlOut);
+  Map<Story,Integer> storyIds=emitStories(report,htmlOut);
+  emitJs(report,htmlOut,storyIds);
+  htmlOut.indentOut();
+  htmlOut.indentOut();
+  curNumIndents--;
+  curLine="</soyc>";
+  htmlOut.printRawOpt(curLine);
+  htmlOut.newlineOpt();
+  pw.close();
+  Utility.close(out);
+  SyntheticArtifact toReturn=emitBytes(logger,bytes.toByteArray(),partialPath);
+  return toReturn;
+}

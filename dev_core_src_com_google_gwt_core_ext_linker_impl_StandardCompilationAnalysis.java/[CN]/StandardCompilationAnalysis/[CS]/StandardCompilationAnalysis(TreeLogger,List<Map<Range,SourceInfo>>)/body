@@ -1,0 +1,24 @@
+{
+  super(StandardLinkerContext.class);
+  logger=logger.branch(TreeLogger.INFO,"Creating CompilationAnalysis (this may take some time)");
+  data=new Data();
+  MemberFactory memberFactory=new MemberFactory();
+  TreeSet<ClassMember> classesMutable=new TreeSet<ClassMember>(Member.SOURCE_NAME_COMPARATOR);
+  TreeSet<FunctionMember> functionsMutable=new TreeSet<FunctionMember>(Member.SOURCE_NAME_COMPARATOR);
+  Set<SourceInfo> sourceInfoSeen=new HashSet<SourceInfo>();
+  int fragment=0;
+  for (  Map<Range,SourceInfo> sourceInfoMap : sourceInfoMaps) {
+    lastEnd=0;
+    analyzeFragment(memberFactory,classesMutable,functionsMutable,sourceInfoMap,sourceInfoSeen,fragment++);
+  }
+  data.classes=Collections.unmodifiableSortedSet(classesMutable);
+  data.functions=Collections.unmodifiableSortedSet(functionsMutable);
+  SortedSet<Story> mutableStories=new TreeSet<Story>(StoryImpl.ID_COMPARATOR);
+  for (  List<StoryImpl> stories : data.orderedStories.values()) {
+    mutableStories.addAll(stories);
+  }
+  data.stories=Collections.unmodifiableSortedSet(mutableStories);
+  membersByCorrelation=null;
+  storyCache=null;
+  logger.log(TreeLogger.INFO,"Done");
+}

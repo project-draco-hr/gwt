@@ -14,13 +14,14 @@
     return false;
   }
   Permutation[] perms=precompilation.getPermutations();
-  File[] resultFiles=new File[perms.length];
+  List<FileBackedObject<PermutationResult>> resultFiles=new ArrayList<FileBackedObject<PermutationResult>>(perms.length);
   for (int i=0; i < perms.length; ++i) {
-    resultFiles[i]=CompilePerms.makePermFilename(options.getCompilerWorkDir(),i);
-    if (!resultFiles[i].exists()) {
+    File permFile=CompilePerms.makePermFilename(options.getCompilerWorkDir(),i);
+    if (!permFile.exists()) {
       logger.log(TreeLogger.ERROR,"File not found '" + precompilationFile.getAbsolutePath() + "'; please compile all permutations");
       return false;
     }
+    resultFiles.add(new FileBackedObject<PermutationResult>(PermutationResult.class,permFile));
   }
   TreeLogger branch=logger.branch(TreeLogger.INFO,"Linking module " + module.getName());
   StandardLinkerContext linkerContext=new StandardLinkerContext(branch,module,precompilation.getUnifiedAst().getOptions());

@@ -1,0 +1,30 @@
+{
+  Map<K,V> elementMap=getElementMap(key,implClazz);
+  V toReturn=elementMap.get(key);
+  if (toReturn == null) {
+    try {
+      Constructor<V> ctor=implClazz.getConstructor(MemberFactory.class,constructorParam);
+      toReturn=ctor.newInstance(this,key);
+    }
+ catch (    NoSuchMethodException e) {
+      throw new RuntimeException(implClazz.getName() + " must declare a two-arg (MemberFactory, " + constructorParam.getName()+ ") constructor",e);
+    }
+catch (    IllegalArgumentException e) {
+      throw new RuntimeException(e);
+    }
+catch (    InstantiationException e) {
+      throw new RuntimeException(e);
+    }
+catch (    IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+catch (    InvocationTargetException e) {
+      if (e.getCause() instanceof RuntimeException) {
+        throw (RuntimeException)e.getCause();
+      }
+      throw new RuntimeException(e);
+    }
+    elementMap.put(key,toReturn);
+  }
+  return toReturn;
+}

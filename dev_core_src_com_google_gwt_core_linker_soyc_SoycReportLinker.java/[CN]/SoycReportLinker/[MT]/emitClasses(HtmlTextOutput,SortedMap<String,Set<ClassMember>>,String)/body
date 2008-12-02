@@ -1,0 +1,26 @@
+{
+  String curLine;
+  TreeMap<String,ClassMember> sortedClasses=new TreeMap<String,ClassMember>();
+  for (  ClassMember classMember : packageToClasses.get(packageName)) {
+    String className=classMember.getSourceName();
+    sortedClasses.put(className,classMember);
+  }
+  for (  String className : sortedClasses.keySet()) {
+    ClassMember classMember=sortedClasses.get(className);
+    curLine="<class id=\"" + className + "\" ";
+    htmlOut.printRawOpt(curLine);
+    String jsName=classMember.getJsName();
+    String name=className.substring(className.lastIndexOf('.') + 1);
+    curLine="jsName=\"" + jsName + "\" name=\""+ name+ "\">";
+    if (jsName == null) {
+      curLine="name=\"" + name + "\">";
+    }
+    emitOverrides(htmlOut,curLine,classMember);
+    emitDependencies(htmlOut,classMember);
+    emitMethods(htmlOut,classMember);
+    emitFields(htmlOut,classMember);
+    curLine="</class>";
+    htmlOut.printRawOpt(curLine);
+    htmlOut.newlineOpt();
+  }
+}

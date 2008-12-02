@@ -1,0 +1,18 @@
+{
+  PermutationResult permutationResult=resultFile.newInstance(logger);
+  String strongName=Util.computeStrongName(Util.getBytes(permutationResult.getJs()));
+  StandardCompilationResult result=resultsByStrongName.get(strongName);
+  if (result == null) {
+    result=new StandardCompilationResult(permutationResult.getJs(),strongName,resultFile);
+    resultsByStrongName.put(result.getStrongName(),result);
+    artifacts.add(result);
+    ArtifactSet otherArtifacts=permutationResult.getArtifacts();
+    if (otherArtifacts != null) {
+      for (      StandardCompilationAnalysis a : otherArtifacts.find(StandardCompilationAnalysis.class)) {
+        a.setCompilationResult(result);
+      }
+      artifacts.addAll(otherArtifacts);
+    }
+  }
+  return result;
+}

@@ -1,0 +1,60 @@
+{
+  SortedSet<CompilationAnalysis> reports=artifacts.find(CompilationAnalysis.class);
+  if (reports.isEmpty()) {
+    return artifacts;
+  }
+  logger=logger.branch(TreeLogger.DEBUG,"SOYC report linker");
+  initialize(logger);
+  if (reports.isEmpty()) {
+    logger.log(TreeLogger.DEBUG,"No SOYC report artifacts");
+    return artifacts;
+  }
+  artifacts=new ArtifactSet(artifacts);
+  int reportNum=0;
+  SortedMap<CompilationResult,String> partialPathsByResult=new TreeMap<CompilationResult,String>();
+  ExecutorService executor=Executors.newSingleThreadExecutor();
+  List<Future<SyntheticArtifact>> futures=new ArrayList<Future<SyntheticArtifact>>(reports.size());
+  for (  final CompilationAnalysis report : reports) {
+    final TreeLogger loopLogger=logger.branch(TreeLogger.SPAM,"Report for " + report.toString());
+    final String reportName="report" + reportNum++ + ".xml.gz";
+    partialPathsByResult.put(report.getCompilationResult(),reportName);
+    Future<SyntheticArtifact> future=executor.submit(new Callable<SyntheticArtifact>(){
+      public SyntheticArtifact call() throws Exception {
+        loopLogger.log(TreeLogger.INFO,"Started");
+        SyntheticArtifact reportArtifact=emitReport(loopLogger,report,reportName,true);
+        return reportArtifact;
+      }
+    }
+);
+    futures.add(future);
+  }
+  executor.shutdown();
+  for (  Future<SyntheticArtifact> future : futures) {
+    SyntheticArtifact artifact;
+    try {
+      artifact=future.get();
+    }
+ catch (    InterruptedException e) {
+      logger.log(TreeLogger.ERROR,"Unable to process report",e);
+      throw new UnableToCompleteException();
+    }
+catch (    ExecutionException e) {
+      logger.log(TreeLogger.ERROR,"Unable to process report",e);
+      throw new UnableToCompleteException();
+    }
+    artifact.setPrivate(true);
+    artifacts.add(artifact);
+  }
+  try {
+    SyntheticArtifact sa=emitManifest(logger,artifacts,partialPathsByResult,false);
+    sa.setPrivate(true);
+    artifacts.add(sa);
+  }
+ catch (  FileNotFoundException e) {
+    e.printStackTrace();
+  }
+catch (  IOException e) {
+    e.printStackTrace();
+  }
+  return artifacts;
+}
