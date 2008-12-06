@@ -1,30 +1,33 @@
 {
-  module=ModuleDefLoader.loadFromClassPath(logger,options.getModuleName());
-  File precompilationFile=new File(options.getCompilerWorkDir(),Precompile.PRECOMPILATION_FILENAME);
-  if (!precompilationFile.exists()) {
-    logger.log(TreeLogger.ERROR,"File not found '" + precompilationFile.getAbsolutePath() + "'; please run Precompile first");
-    return false;
-  }
-  Precompilation precompilation;
-  try {
-    precompilation=Util.readFileAsObject(precompilationFile,Precompilation.class);
-  }
- catch (  ClassNotFoundException e) {
-    logger.log(TreeLogger.ERROR,"Unable to deserialize '" + precompilationFile.getAbsolutePath() + "'",e);
-    return false;
-  }
-  Permutation[] perms=precompilation.getPermutations();
-  File[] resultFiles=new File[perms.length];
-  for (int i=0; i < perms.length; ++i) {
-    resultFiles[i]=CompilePerms.makePermFilename(options.getCompilerWorkDir(),i);
-    if (!resultFiles[i].exists()) {
-      logger.log(TreeLogger.ERROR,"File not found '" + precompilationFile.getAbsolutePath() + "'; please compile all permutations");
+  for (  String moduleName : options.getModuleNames()) {
+    File compilerWorkDir=options.getCompilerWorkDir(moduleName);
+    ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
+    File precompilationFile=new File(compilerWorkDir,Precompile.PRECOMPILATION_FILENAME);
+    if (!precompilationFile.exists()) {
+      logger.log(TreeLogger.ERROR,"File not found '" + precompilationFile.getAbsolutePath() + "'; please run Precompile first");
       return false;
     }
+    Precompilation precompilation;
+    try {
+      precompilation=Util.readFileAsObject(precompilationFile,Precompilation.class);
+    }
+ catch (    ClassNotFoundException e) {
+      logger.log(TreeLogger.ERROR,"Unable to deserialize '" + precompilationFile.getAbsolutePath() + "'",e);
+      return false;
+    }
+    Permutation[] perms=precompilation.getPermutations();
+    File[] resultFiles=new File[perms.length];
+    for (int i=0; i < perms.length; ++i) {
+      resultFiles[i]=CompilePerms.makePermFilename(compilerWorkDir,i);
+      if (!resultFiles[i].exists()) {
+        logger.log(TreeLogger.ERROR,"File not found '" + precompilationFile.getAbsolutePath() + "'; please compile all permutations");
+        return false;
+      }
+    }
+    TreeLogger branch=logger.branch(TreeLogger.INFO,"Linking module " + module.getName());
+    StandardLinkerContext linkerContext=new StandardLinkerContext(branch,module,precompilation.getUnifiedAst().getOptions());
+    ArtifactSet artifacts=doLink(branch,linkerContext,precompilation,resultFiles);
+    doProduceOutput(branch,artifacts,linkerContext,module,options.getWarDir(),options.getExtraDir());
   }
-  TreeLogger branch=logger.branch(TreeLogger.INFO,"Linking module " + module.getName());
-  StandardLinkerContext linkerContext=new StandardLinkerContext(branch,module,precompilation.getUnifiedAst().getOptions());
-  ArtifactSet artifacts=doLink(branch,linkerContext,precompilation,resultFiles);
-  doProduceOutput(branch,artifacts,linkerContext,module,options.getOutDir(),options.getExtraDir());
   return true;
 }

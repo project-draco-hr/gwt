@@ -1,0 +1,52 @@
+{
+  tempWorkDir=options.getWorkDir() == null;
+  if (tempWorkDir) {
+    try {
+      options.setWorkDir(Utility.makeTemporaryDirectory(null,"gwtc"));
+    }
+ catch (    IOException e) {
+      System.err.println("Unable to create hosted mode work directory");
+      e.printStackTrace();
+      return -1;
+    }
+  }
+  for (  String moduleName : options.getModuleNames()) {
+    TreeLogger linkLogger=getTopLogger().branch(TreeLogger.DEBUG,"Prelinking module " + moduleName);
+    try {
+      ModuleDef module=ModuleDefLoader.loadFromClassPath(linkLogger,moduleName);
+      String[] servletPaths=module.getServletPaths();
+      if (servletPaths.length > 0) {
+        linkLogger.log(TreeLogger.WARN,"Ignoring legacy <servlet> tag(s) in module '" + moduleName + "'; add servlet tags to your web.xml instead");
+      }
+      File moduleOutDir=new File(options.getWarDir(),moduleName);
+      StandardLinkerContext linkerStack=new StandardLinkerContext(linkLogger,module,options);
+      linkerMap.put(module,linkerStack);
+      ArtifactSet artifacts=linkerStack.invokeLink(linkLogger);
+      for (      EmittedArtifact artifact : artifacts.find(EmittedArtifact.class)) {
+        TreeLogger artifactLogger=linkLogger.branch(TreeLogger.DEBUG,"Emitting resource " + artifact.getPartialPath(),null);
+        if (!artifact.isPrivate()) {
+          File outFile=new File(moduleOutDir,artifact.getPartialPath());
+          Util.copy(artifactLogger,artifact.getContents(artifactLogger),outFile);
+          outFile.setLastModified(artifact.getLastModified());
+        }
+      }
+    }
+ catch (    UnableToCompleteException e) {
+      return -1;
+    }
+  }
+  try {
+    TreeLogger serverLogger=getTopLogger().branch(TreeLogger.INFO,"Starting HTTP on port " + getPort(),null);
+    server=launcher.start(serverLogger,getPort(),options.getWarDir());
+    assert(server != null);
+    return server.getPort();
+  }
+ catch (  BindException e) {
+    System.err.println("Port " + getPort() + " is already is use; you probably still have another session active");
+  }
+catch (  Exception e) {
+    System.err.println("Unable to start embedded HTTP server");
+    e.printStackTrace();
+  }
+  return -1;
+}

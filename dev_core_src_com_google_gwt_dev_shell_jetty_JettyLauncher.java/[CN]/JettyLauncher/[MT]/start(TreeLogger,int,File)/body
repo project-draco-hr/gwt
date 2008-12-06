@@ -1,0 +1,24 @@
+{
+  checkStartParams(logger,port,appRootDir);
+  if (false) {
+    System.setProperty("VERBOSE","true");
+    JettyTreeLogger.setDefaultConstruction(logger,TreeLogger.INFO);
+    System.setProperty("org.mortbay.log.class",JettyTreeLogger.class.getName());
+    Log.isDebugEnabled();
+    if (JettyTreeLogger.isDefaultConstructionReady()) {
+      Log.setLog(new JettyTreeLogger());
+    }
+  }
+  Server server=new Server();
+  SelectChannelConnector connector=new SelectChannelConnector();
+  connector.setPort(port);
+  connector.setHost("127.0.0.1");
+  connector.setReuseAddress(false);
+  server.addConnector(connector);
+  WebAppContext wac=new WebAppContext(appRootDir.getAbsolutePath(),"/");
+  wac.getInitParams().put("org.mortbay.jetty.servlet.Default.useFileMappedBuffer","false");
+  server.setHandler(wac);
+  server.setStopAtShutdown(true);
+  server.start();
+  return new JettyServletContainer(logger,wac,connector.getLocalPort(),appRootDir);
+}

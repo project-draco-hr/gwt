@@ -1,40 +1,45 @@
 {
-  ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,options.getModuleName());
-  if (options.isValidateOnly()) {
-    return Precompile.validate(logger,options,module,options.getGenDir(),options.getCompilerWorkDir());
-  }
+  PerfLogger.start("compile");
+  boolean tempWorkDir=false;
+  try {
+    if (options.getWorkDir() == null) {
+      options.setWorkDir(Utility.makeTemporaryDirectory(null,"gwtc"));
+      tempWorkDir=true;
+    }
+    for (    String moduleName : options.getModuleNames()) {
+      ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
+      File compilerWorkDir=options.getCompilerWorkDir(moduleName);
+      if (options.isValidateOnly()) {
+        if (!Precompile.validate(logger,options,module,options.getGenDir(),compilerWorkDir)) {
+          return false;
+        }
+      }
  else {
-    PerfLogger.start("compile");
-    long compileStart=System.currentTimeMillis();
-    logger=logger.branch(TreeLogger.INFO,"Compiling module " + options.getModuleName());
-    boolean tempWorkDir=false;
-    try {
-      if (options.getWorkDir() == null) {
-        options.setWorkDir(Utility.makeTemporaryDirectory(null,"gwtc"));
-        tempWorkDir=true;
-      }
-      Precompilation precompilation=Precompile.precompile(logger,options,module,options.getGenDir(),options.getCompilerWorkDir());
-      if (precompilation == null) {
-        return false;
-      }
-      Permutation[] allPerms=precompilation.getPermutations();
-      File[] resultFiles=CompilePerms.makeResultFiles(options.getCompilerWorkDir(),allPerms);
-      CompilePerms.compile(logger,precompilation,allPerms,options.getLocalWorkers(),resultFiles);
-      Link.link(logger.branch(TreeLogger.INFO,"Linking into " + options.getOutDir().getPath()),module,precompilation,resultFiles,options.getOutDir(),options.getExtraDir());
-      long compileDone=System.currentTimeMillis();
-      long delta=compileDone - compileStart;
-      logger.log(TreeLogger.INFO,"Compilation succeeded -- " + String.format("%.3f",delta / 1000d) + "s");
-      return true;
-    }
- catch (    IOException e) {
-      logger.log(TreeLogger.ERROR,"Unable to create compiler work directory",e);
-    }
- finally {
-      PerfLogger.end();
-      if (tempWorkDir) {
-        Util.recursiveDelete(options.getWorkDir(),false);
+        long compileStart=System.currentTimeMillis();
+        logger=logger.branch(TreeLogger.INFO,"Compiling module " + moduleName);
+        Precompilation precompilation=Precompile.precompile(logger,options,module,options.getGenDir(),compilerWorkDir);
+        if (precompilation == null) {
+          return false;
+        }
+        Permutation[] allPerms=precompilation.getPermutations();
+        File[] resultFiles=CompilePerms.makeResultFiles(compilerWorkDir,allPerms);
+        CompilePerms.compile(logger,precompilation,allPerms,options.getLocalWorkers(),resultFiles);
+        Link.legacyLink(logger.branch(TreeLogger.INFO,"Linking into " + options.getOutDir().getPath()),module,precompilation,resultFiles,options.getOutDir());
+        long compileDone=System.currentTimeMillis();
+        long delta=compileDone - compileStart;
+        logger.log(TreeLogger.INFO,"Compilation succeeded -- " + String.format("%.3f",delta / 1000d) + "s");
       }
     }
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Unable to create compiler work directory",e);
     return false;
   }
+ finally {
+    PerfLogger.end();
+    if (tempWorkDir) {
+      Util.recursiveDelete(options.getWorkDir(),false);
+    }
+  }
+  return true;
 }
