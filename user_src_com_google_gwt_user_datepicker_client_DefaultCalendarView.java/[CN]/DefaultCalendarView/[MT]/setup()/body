@@ -1,0 +1,30 @@
+{
+  CellFormatter formatter=grid.getCellFormatter();
+  int weekendStartColumn=-1;
+  int weekendEndColumn=-1;
+  for (int i=0; i < CalendarModel.DAYS_IN_WEEK; i++) {
+    int shift=CalendarUtil.getStartingDayOfWeek();
+    int dayIdx=i + shift < CalendarModel.DAYS_IN_WEEK ? i + shift : i + shift - CalendarModel.DAYS_IN_WEEK;
+    grid.setText(0,i,getModel().formatDayOfWeek(dayIdx));
+    if (CalendarUtil.isWeekend(dayIdx)) {
+      formatter.setStyleName(0,i,css().weekendLabel());
+      if (weekendStartColumn == -1) {
+        weekendStartColumn=i;
+      }
+ else {
+        weekendEndColumn=i;
+      }
+    }
+ else {
+      formatter.setStyleName(0,i,css().weekdayLabel());
+    }
+  }
+  for (int row=1; row <= CalendarModel.WEEKS_IN_MONTH; row++) {
+    for (int column=0; column < CalendarModel.DAYS_IN_WEEK; column++) {
+      Element e=formatter.getElement(row,column);
+      grid.new DateCell(e,column == weekendStartColumn || column == weekendEndColumn);
+    }
+  }
+  initWidget(grid);
+  grid.setStyleName(css().days());
+}
