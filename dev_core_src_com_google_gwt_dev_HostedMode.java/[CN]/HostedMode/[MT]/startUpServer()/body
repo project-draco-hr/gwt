@@ -11,25 +11,14 @@
     }
   }
   for (  String moduleName : options.getModuleNames()) {
-    TreeLogger linkLogger=getTopLogger().branch(TreeLogger.DEBUG,"Prelinking module " + moduleName);
+    TreeLogger loadLogger=getTopLogger().branch(TreeLogger.DEBUG,"Loading module " + moduleName);
     try {
-      ModuleDef module=ModuleDefLoader.loadFromClassPath(linkLogger,moduleName);
+      ModuleDef module=loadModule(loadLogger,moduleName,false);
       String[] servletPaths=module.getServletPaths();
       if (servletPaths.length > 0) {
-        linkLogger.log(TreeLogger.WARN,"Ignoring legacy <servlet> tag(s) in module '" + moduleName + "'; add servlet tags to your web.xml instead");
+        loadLogger.log(TreeLogger.WARN,"Ignoring legacy <servlet> tag(s) in module '" + moduleName + "'; add servlet tags to your web.xml instead");
       }
-      File moduleOutDir=new File(options.getWarDir(),moduleName);
-      StandardLinkerContext linkerStack=new StandardLinkerContext(linkLogger,module,options);
-      linkerMap.put(module,linkerStack);
-      ArtifactSet artifacts=linkerStack.invokeLink(linkLogger);
-      for (      EmittedArtifact artifact : artifacts.find(EmittedArtifact.class)) {
-        TreeLogger artifactLogger=linkLogger.branch(TreeLogger.DEBUG,"Emitting resource " + artifact.getPartialPath(),null);
-        if (!artifact.isPrivate()) {
-          File outFile=new File(moduleOutDir,artifact.getPartialPath());
-          Util.copy(artifactLogger,artifact.getContents(artifactLogger),outFile);
-          outFile.setLastModified(artifact.getLastModified());
-        }
-      }
+      link(loadLogger,module,false);
     }
  catch (    UnableToCompleteException e) {
       return -1;
