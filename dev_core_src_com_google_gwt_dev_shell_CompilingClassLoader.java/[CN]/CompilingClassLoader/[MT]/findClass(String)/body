@@ -12,6 +12,13 @@
   if (classBytes == null) {
     throw new ClassNotFoundException(className);
   }
+  boolean localInjection;
+  if (!isInjectingClass) {
+    localInjection=isInjectingClass=true;
+  }
+ else {
+    localInjection=false;
+  }
   Class<?> newClass=defineClass(className,classBytes,0,classBytes.length);
   if (className.equals(JavaScriptHost.class.getName())) {
     javaScriptHostClass=newClass;
@@ -23,9 +30,8 @@
       toInject.push(compiledClass);
     }
   }
-  if (!isInjectingClass) {
+  if (localInjection) {
     try {
-      isInjectingClass=true;
       while (toInject.size() > 0) {
         injectJsniFor(toInject.remove(0));
       }
