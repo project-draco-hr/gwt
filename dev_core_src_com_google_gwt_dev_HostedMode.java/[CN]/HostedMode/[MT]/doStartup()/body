@@ -1,4 +1,7 @@
 {
+  if (!super.doStartup()) {
+    return false;
+  }
   tempWorkDir=options.getWorkDir() == null;
   if (tempWorkDir) {
     try {
@@ -7,7 +10,7 @@
  catch (    IOException e) {
       System.err.println("Unable to create hosted mode work directory");
       e.printStackTrace();
-      return -1;
+      return false;
     }
   }
   for (  String moduleName : options.getModuleNames()) {
@@ -21,21 +24,8 @@
       link(loadLogger,module,false);
     }
  catch (    UnableToCompleteException e) {
-      return -1;
+      return false;
     }
   }
-  try {
-    TreeLogger serverLogger=getTopLogger().branch(TreeLogger.INFO,"Starting HTTP on port " + getPort(),null);
-    server=launcher.start(serverLogger,getPort(),options.getWarDir());
-    assert(server != null);
-    return server.getPort();
-  }
- catch (  BindException e) {
-    System.err.println("Port " + getPort() + " is already is use; you probably still have another session active");
-  }
-catch (  Exception e) {
-    System.err.println("Unable to start embedded HTTP server");
-    e.printStackTrace();
-  }
-  return -1;
+  return true;
 }
