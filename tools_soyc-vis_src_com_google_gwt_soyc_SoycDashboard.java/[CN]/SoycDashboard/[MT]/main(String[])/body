@@ -4,52 +4,25 @@
     System.exit(1);
   }
   String inFileName=args[0];
-  final TreeMap<String,LiteralsCollection> nameToLitColl=new TreeMap<String,LiteralsCollection>();
-  nameToLitColl.put("long",new LiteralsCollection("long"));
-  nameToLitColl.put("null",new LiteralsCollection("null"));
-  nameToLitColl.put("class",new LiteralsCollection("class"));
-  nameToLitColl.put("int",new LiteralsCollection("int"));
-  nameToLitColl.put("string",new LiteralsCollection("string"));
-  nameToLitColl.put("number",new LiteralsCollection("number"));
-  nameToLitColl.put("boolean",new LiteralsCollection("boolean"));
-  nameToLitColl.put("double",new LiteralsCollection("double"));
-  nameToLitColl.put("char",new LiteralsCollection("char"));
-  nameToLitColl.put("undefined",new LiteralsCollection("undefined"));
-  nameToLitColl.put("float",new LiteralsCollection("float"));
-  final HashMap<String,CodeCollection> nameToCodeColl=new HashMap<String,CodeCollection>();
-  nameToCodeColl.put("allOther",new CodeCollection("allOther"));
-  nameToCodeColl.put("widget",new CodeCollection("widget"));
-  nameToCodeColl.put("rpcUser",new CodeCollection("rpcUser"));
-  nameToCodeColl.put("rpcGen",new CodeCollection("rpcGen"));
-  nameToCodeColl.put("rpcGwt",new CodeCollection("rpcGwt"));
-  nameToCodeColl.put("gwtLang",new CodeCollection("long"));
-  nameToCodeColl.put("jre",new CodeCollection("jre"));
-  DefaultHandler fragmentCountHandler=scanXMLDocument();
-  SAXParserFactory factory=SAXParserFactory.newInstance();
-  factory.setNamespaceAware(true);
-  try {
-    SAXParser saxParser=factory.newSAXParser();
-    InputStream in=new FileInputStream(inFileName);
-    if (inFileName.endsWith(".gz")) {
-      in=new GZIPInputStream(in);
-    }
-    in=new BufferedInputStream(in);
-    saxParser.parse(in,fragmentCountHandler);
-  }
- catch (  ParserConfigurationException e) {
-    throw new RuntimeException("Could not parse document. ",e);
-  }
-catch (  SAXException e) {
-    throw new RuntimeException("Could not create SAX parser. ",e);
-  }
-catch (  FileNotFoundException e) {
-    throw new RuntimeException("Could not open file. ",e);
-  }
-catch (  IOException e) {
-    throw new RuntimeException("Could not open file. ",e);
-  }
-  GlobalInformation.numSplitPoints=(int)((float)(GlobalInformation.numFragments - 1) / 3f);
-  DefaultHandler handler=parseXMLDocument(nameToLitColl,nameToCodeColl);
+  GlobalInformation.nameToLitColl.put("long",new LiteralsCollection("long"));
+  GlobalInformation.nameToLitColl.put("null",new LiteralsCollection("null"));
+  GlobalInformation.nameToLitColl.put("class",new LiteralsCollection("class"));
+  GlobalInformation.nameToLitColl.put("int",new LiteralsCollection("int"));
+  GlobalInformation.nameToLitColl.put("string",new LiteralsCollection("string"));
+  GlobalInformation.nameToLitColl.put("number",new LiteralsCollection("number"));
+  GlobalInformation.nameToLitColl.put("boolean",new LiteralsCollection("boolean"));
+  GlobalInformation.nameToLitColl.put("double",new LiteralsCollection("double"));
+  GlobalInformation.nameToLitColl.put("char",new LiteralsCollection("char"));
+  GlobalInformation.nameToLitColl.put("undefined",new LiteralsCollection("undefined"));
+  GlobalInformation.nameToLitColl.put("float",new LiteralsCollection("float"));
+  GlobalInformation.nameToCodeColl.put("allOther",new CodeCollection("allOther"));
+  GlobalInformation.nameToCodeColl.put("widget",new CodeCollection("widget"));
+  GlobalInformation.nameToCodeColl.put("rpcUser",new CodeCollection("rpcUser"));
+  GlobalInformation.nameToCodeColl.put("rpcGen",new CodeCollection("rpcGen"));
+  GlobalInformation.nameToCodeColl.put("rpcGwt",new CodeCollection("rpcGwt"));
+  GlobalInformation.nameToCodeColl.put("gwtLang",new CodeCollection("long"));
+  GlobalInformation.nameToCodeColl.put("jre",new CodeCollection("jre"));
+  DefaultHandler handler=parseXMLDocument(GlobalInformation.nameToLitColl,GlobalInformation.nameToCodeColl);
   SAXParserFactory factoryMain=SAXParserFactory.newInstance();
   factoryMain.setNamespaceAware(true);
   try {
@@ -73,10 +46,10 @@ catch (  FileNotFoundException e) {
 catch (  IOException e) {
     throw new RuntimeException("Could not open file. ",e);
   }
-  updateAllOtherCodeType(nameToCodeColl);
+  updateAllOtherCodeType(GlobalInformation.nameToCodeColl);
   GlobalInformation.computePackageSizes();
   GlobalInformation.computePartialPackageSizes();
-  foldInRPCHeuristic(nameToCodeColl);
-  makeHTMLFiles(nameToLitColl,nameToCodeColl);
+  foldInRPCHeuristic(GlobalInformation.nameToCodeColl);
+  makeHTMLFiles(GlobalInformation.nameToLitColl,GlobalInformation.nameToCodeColl);
   System.out.println("Finished creating reports. To see the dashboard, open SoycDashboard-index.html in your browser.");
 }

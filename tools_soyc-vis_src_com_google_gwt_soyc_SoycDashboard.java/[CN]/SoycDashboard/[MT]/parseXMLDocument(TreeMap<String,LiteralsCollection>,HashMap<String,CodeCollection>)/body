@@ -14,6 +14,7 @@
     boolean specialCodeType=false;
     StringBuilder valueBuilder=new StringBuilder();
     int ct=0;
+    boolean fragmentInLoadOrder=false;
     /** 
  * This method deals with the beginning of the XML element.
  * It analyzes the XML node and adds its information to the relevant literal or code collection for later analysis.
@@ -25,7 +26,11 @@
       }
       ct++;
       valueBuilder.delete(0,valueBuilder.length());
-      if ((strippedName.compareTo("package") == 0) && (attributes.getValue("id") != null)) {
+      if (strippedName.compareTo("splitpoint") == 0) {
+        System.out.println("about to process splitpoint");
+        parseSplitPoint(attributes);
+      }
+ else       if ((strippedName.compareTo("package") == 0) && (attributes.getValue("id") != null)) {
         curPackage=attributes.getValue("id");
         if (curPackage.compareTo("") == 0) {
           curPackage="emptyPackageName";
@@ -61,8 +66,11 @@
  else       if (strippedName.compareTo("js") == 0) {
         if (attributes.getValue("fragment") != null) {
           curFragment=Integer.parseInt(attributes.getValue("fragment"));
-          if (!((curFragment == 0) || (curFragment == (GlobalInformation.numSplitPoints + 1)) || (curFragment == (GlobalInformation.numSplitPoints + 2))|| ((curFragment >= 2) && (curFragment <= GlobalInformation.numSplitPoints)))) {
-            curFragment=-1;
+          if ((curFragment == 0) || (curFragment == (GlobalInformation.numSplitPoints + 1)) || (curFragment == (GlobalInformation.numSplitPoints + 2))|| ((curFragment >= 2) && (curFragment <= GlobalInformation.numSplitPoints))) {
+            fragmentInLoadOrder=true;
+          }
+ else {
+            fragmentInLoadOrder=false;
           }
         }
  else {
@@ -88,15 +96,7 @@
     @Override public void endElement(    String nsUri,    String strippedName,    String qName){
       String value=valueBuilder.toString();
       int numBytes=value.getBytes().length;
-      if ((curStoryRef != null) && (curFragment != -1)) {
-        if ((!GlobalInformation.storiesToLitType.containsKey(curStoryRef)) && (!GlobalInformation.storiesToCorrClasses.containsKey(curStoryRef))) {
-          GlobalInformation.nonAttributedStories.add(curStoryRef);
-          GlobalInformation.nonAttributedBytes+=numBytes;
-        }
-        GlobalInformation.cumSizeAllCode+=numBytes;
-        if (curFragment == 0) {
-          GlobalInformation.cumSizeInitialFragment+=numBytes;
-        }
+      if (curStoryRef != null) {
         if (GlobalInformation.storiesToCorrClasses.containsKey(curStoryRef)) {
           if ((GlobalInformation.storiesToLitType.containsKey(curStoryRef)) && (GlobalInformation.storiesToCorrClasses.get(curStoryRef).size() > 0)) {
             GlobalInformation.numBytesDoubleCounted+=numBytes;
@@ -109,30 +109,40 @@
             float newSize=GlobalInformation.fragmentToPartialSize.get(curFragment) + partialSize;
             GlobalInformation.fragmentToPartialSize.put(curFragment,newSize);
           }
-          for (          String className : GlobalInformation.storiesToCorrClasses.get(curStoryRef)) {
-            if (GlobalInformation.classToPackage.containsKey(className)) {
-              String packageName=GlobalInformation.classToPackage.get(className);
-              if (!GlobalInformation.packageToClasses.containsKey(packageName)) {
-                TreeSet<String> insertSet=new TreeSet<String>();
-                insertSet.add(className);
-                GlobalInformation.packageToClasses.put(packageName,insertSet);
-              }
+          if (fragmentInLoadOrder == false) {
+            GlobalInformation.allOtherFragmentsPartialSize+=numBytes;
+          }
  else {
-                GlobalInformation.packageToClasses.get(packageName).add(className);
-              }
-              if (GlobalInformation.classToSize.containsKey(className)) {
-                int newSize=GlobalInformation.classToSize.get(className) + numBytes;
-                GlobalInformation.classToSize.put(className,newSize);
-              }
+            GlobalInformation.cumSizeAllCode+=numBytes;
+            if ((!GlobalInformation.storiesToLitType.containsKey(curStoryRef)) && (!GlobalInformation.storiesToCorrClasses.containsKey(curStoryRef))) {
+              GlobalInformation.nonAttributedStories.add(curStoryRef);
+              GlobalInformation.nonAttributedBytes+=numBytes;
+            }
+            for (            String className : GlobalInformation.storiesToCorrClasses.get(curStoryRef)) {
+              if (GlobalInformation.classToPackage.containsKey(className)) {
+                String packageName=GlobalInformation.classToPackage.get(className);
+                if (!GlobalInformation.packageToClasses.containsKey(packageName)) {
+                  TreeSet<String> insertSet=new TreeSet<String>();
+                  insertSet.add(className);
+                  GlobalInformation.packageToClasses.put(packageName,insertSet);
+                }
  else {
-                GlobalInformation.classToSize.put(className,numBytes);
-              }
-              if (GlobalInformation.classToPartialSize.containsKey(className)) {
-                float newSize=GlobalInformation.classToPartialSize.get(className) + partialSize;
-                GlobalInformation.classToPartialSize.put(className,newSize);
-              }
+                  GlobalInformation.packageToClasses.get(packageName).add(className);
+                }
+                if (GlobalInformation.classToSize.containsKey(className)) {
+                  int newSize=GlobalInformation.classToSize.get(className) + numBytes;
+                  GlobalInformation.classToSize.put(className,newSize);
+                }
  else {
-                GlobalInformation.classToPartialSize.put(className,partialSize);
+                  GlobalInformation.classToSize.put(className,numBytes);
+                }
+                if (GlobalInformation.classToPartialSize.containsKey(className)) {
+                  float newSize=GlobalInformation.classToPartialSize.get(className) + partialSize;
+                  GlobalInformation.classToPartialSize.put(className,newSize);
+                }
+ else {
+                  GlobalInformation.classToPartialSize.put(className,partialSize);
+                }
               }
             }
           }
@@ -262,6 +272,22 @@
         }
       }
     }
+    private void parseSplitPoint(    Attributes attributes){
+      System.out.println("processing split point");
+      if (attributes.getValue("id") != null) {
+        String curSplitPoint=attributes.getValue("id");
+        System.out.println("\tcurSplitPoint is: " + curSplitPoint);
+        if (attributes.getValue("location") != null) {
+          String curSplitPointLocation=attributes.getValue("location");
+          curSplitPointLocation=curSplitPointLocation.replaceAll("\\(L.*","");
+          System.out.println("\tcurSplitPointLocation is: " + curSplitPointLocation);
+          GlobalInformation.splitPointToLocation.put(Integer.parseInt(curSplitPoint),curSplitPointLocation);
+          GlobalInformation.numSplitPoints++;
+          System.out.println("adding split point and location: " + curSplitPoint + "-->"+ curSplitPointLocation);
+          System.out.println("\t(Number of split points is now: " + GlobalInformation.numSplitPoints + ")");
+        }
+      }
+    }
     private void parseStory(    Attributes attributes){
       if (attributes.getValue("id") != null) {
         curStoryId=attributes.getValue("id");
@@ -276,11 +302,20 @@
     }
     private void parseCorrelations(    final HashMap<String,CodeCollection> nameToCodeColl,    Attributes attributes){
       if (attributes.getValue("idref") != null) {
+        String corrClassOrMethod=attributes.getValue("idref");
         String corrClass=attributes.getValue("idref");
         if (corrClass.contains(":")) {
           corrClass=corrClass.replaceAll(":.*","");
         }
         if (GlobalInformation.classToPackage.containsKey(corrClass)) {
+          if (!GlobalInformation.storiesToCorrClassesAndMethods.containsKey(curStoryId)) {
+            HashSet<String> insertSet=new HashSet<String>();
+            insertSet.add(corrClassOrMethod);
+            GlobalInformation.storiesToCorrClassesAndMethods.put(curStoryId,insertSet);
+          }
+ else {
+            GlobalInformation.storiesToCorrClassesAndMethods.get(curStoryId).add(corrClassOrMethod);
+          }
           if (!GlobalInformation.storiesToCorrClasses.containsKey(curStoryId)) {
             HashSet<String> insertSet=new HashSet<String>();
             insertSet.add(corrClass);
@@ -302,9 +337,6 @@
         String overriddenClass=attributes.getValue("idref");
         if (overriddenClass.contains(":")) {
           overriddenClass=overriddenClass.replaceAll(":.*","");
-        }
-        if (overriddenClass.contains("$")) {
-          overriddenClass=overriddenClass.replaceAll("\\$.*","");
         }
         if (overriddenClass.compareTo("com.google.gwt.user.client.ui.UIObject") == 0) {
           nameToCodeColl.get("widget").classes.add(curClassId);

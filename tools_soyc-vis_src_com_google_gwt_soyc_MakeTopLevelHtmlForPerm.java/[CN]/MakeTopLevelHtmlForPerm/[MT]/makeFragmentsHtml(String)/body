@@ -1,12 +1,25 @@
 {
-  TreeMap<Float,Integer> sortedFragments=new TreeMap<Float,Integer>(Collections.reverseOrder());
+  TreeMap<Float,String> sortedSplitPoints=new TreeMap<Float,String>(Collections.reverseOrder());
   float maxSize=0f;
   float sumSize=0f;
-  for (  Integer fragmentName : GlobalInformation.fragmentToPartialSize.keySet()) {
-    sortedFragments.put(GlobalInformation.fragmentToPartialSize.get(fragmentName),fragmentName);
-    sumSize+=GlobalInformation.fragmentToPartialSize.get(fragmentName);
-    if (GlobalInformation.fragmentToPartialSize.get(fragmentName) > maxSize) {
-      maxSize=GlobalInformation.fragmentToPartialSize.get(fragmentName);
+  float initialSize=GlobalInformation.fragmentToPartialSize.get(0);
+  sumSize+=initialSize;
+  maxSize=initialSize;
+  sortedSplitPoints.put(initialSize,"initialDownload");
+  float allOtherFragmentsSize=GlobalInformation.allOtherFragmentsPartialSize;
+  sumSize+=allOtherFragmentsSize;
+  if (allOtherFragmentsSize > maxSize) {
+    maxSize=allOtherFragmentsSize;
+  }
+  sortedSplitPoints.put(allOtherFragmentsSize,"allOtherFragments");
+  System.out.println("");
+  for (  Integer splitPointId : GlobalInformation.splitPointToLocation.keySet()) {
+    System.out.println("splitPointId is: " + splitPointId);
+    Float sizeOfCurExclusiveFrag=GlobalInformation.fragmentToPartialSize.get(splitPointId);
+    sortedSplitPoints.put(sizeOfCurExclusiveFrag,GlobalInformation.splitPointToLocation.get(splitPointId));
+    sumSize+=sizeOfCurExclusiveFrag;
+    if (sizeOfCurExclusiveFrag > maxSize) {
+      maxSize=sizeOfCurExclusiveFrag;
     }
   }
   final PrintWriter outFile=new PrintWriter(outFileName);
@@ -19,9 +32,9 @@
   outFile.println("</head>");
   outFile.println("<body>");
   int yOffset=0;
-  for (  Float size : sortedFragments.keySet()) {
-    Integer fragmentName=sortedFragments.get(size);
-    String drillDownFileName="fragment" + Integer.toString(fragmentName) + "Classes.html";
+  for (  Float size : sortedSplitPoints.keySet()) {
+    String splitPointName=sortedSplitPoints.get(size);
+    String drillDownFileName="splitPoint" + splitPointName + "Classes.html";
     float ratio=(size / maxSize) * 79;
     if (ratio < 3) {
       ratio=3;
@@ -41,7 +54,7 @@
     outFile.printf("<div class=\"barlabel\" style=\"top:" + yOffsetText + "px; left:5px;\">%.1f</div>\n",size);
     outFile.printf("<div class=\"barlabel\" style=\"top:" + yOffsetText + "px; left:80px;\">%.1f",perc);
     outFile.println("%</div>\n");
-    outFile.println("<div class=\"barlabel\" style=\"top:" + yOffsetText + "px; left:120px;\"><a href=\""+ drillDownFileName+ "\" target=\"_top\">fragment"+ Integer.toString(fragmentName)+ "</a></div>");
+    outFile.println("<div class=\"barlabel\" style=\"top:" + yOffsetText + "px; left:120px;\"><a href=\""+ drillDownFileName+ "\" target=\"_top\">"+ splitPointName+ "</a></div>");
     yOffset=yOffset + 25;
   }
   outFile.println("</body>");

@@ -1,4 +1,17 @@
 {
+  String classPath=System.getProperty("java.class.path");
+  if (!classPath.endsWith("/")) {
+    classPath+="/";
+  }
+  File inputFile=new File(classPath + "roundedCorners.css");
+  File outputFile=new File("roundedCorners.css");
+  copyFileOrDirectory(inputFile,outputFile);
+  File inputFile2=new File(classPath + "classLevel.css");
+  File outputFile2=new File("classLevel.css");
+  copyFileOrDirectory(inputFile2,outputFile2);
+  File inputDir=new File(classPath + "images");
+  File outputDir=new File("images");
+  copyFileOrDirectory(inputDir,outputDir);
   String fileName="SoycDashboard-index.html";
   final PrintWriter outFile=new PrintWriter(fileName);
   outFile.println("<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML//EN\">");
@@ -15,8 +28,8 @@
   outFile.println("<center>");
   outFile.println("<h3>Story of Your Compile Dashboard</h3>");
   outFile.println("<hr>");
-  if (GlobalInformation.cumSizeInitialFragment != 0) {
-    outFile.println("<b>Full code size: <span style=\"color:maroon\">" + GlobalInformation.cumSizeAllCode + "</span>, Size of Initial Download:  <span style=\"color:maroon\">"+ GlobalInformation.cumSizeInitialFragment+ "</span></b>");
+  if (GlobalInformation.fragmentToStories.size() > 1) {
+    outFile.println("<b>Full code size: <span style=\"color:maroon\">" + GlobalInformation.cumSizeAllCode + "</span>, Size of Initial Download:  <span style=\"color:maroon\">"+ GlobalInformation.fragmentToPartialSize.get(0)+ "</span></b>");
   }
  else {
     outFile.println("<b>Full code size: <span style=\"color:maroon\">" + GlobalInformation.cumSizeAllCode + "</span></b>");
@@ -66,15 +79,15 @@
   outFile.println("<iframe src=\"stringLiteralsBreakdown.html\" width=100% height=100% scrolling=auto></iframe>");
   outFile.println("  </div>");
   makeStringLiteralsHtml("stringLiteralsBreakdown.html",nameToLitColl);
-  if (GlobalInformation.fragmentToStories.size() != 1) {
-    outFile.println("  <div style=\"width:100%;  float:left; padding-top: 10px;\">");
-    outFile.println("<b>Fragments breakdown</b>");
+  if (GlobalInformation.fragmentToStories.size() > 1) {
+    outFile.println("  <div style=\"width:50%;  float:left; padding-top: 10px;\">");
+    outFile.println("<b>Breakdown by runAsync split points</b>");
     outFile.println("    </div>");
     outFile.println("  <div style=\"width:100%;  float:left; padding-top: 10px;\">");
     outFile.println("<div style=\"width: 110px; float: left; font-size:16px;\">Size</div>");
     outFile.println("<div style=\"width: 200px; float: left; text-align:left; font-size:16px; \">Fragment Name</div>");
     outFile.println("    </div>");
-    outFile.println("<div style=\"height:35%; width:50%; margin:0 auto; background-color:white; float:left;\">");
+    outFile.println("<div style=\"height:35%; width:100%; margin:0 auto; background-color:white; float:left;\">");
     outFile.println("<iframe src=\"fragmentsBreakdown.html\" width=100% height=100% scrolling=auto></iframe>");
     outFile.println("</div>");
     makeFragmentsHtml("fragmentsBreakdown.html");
