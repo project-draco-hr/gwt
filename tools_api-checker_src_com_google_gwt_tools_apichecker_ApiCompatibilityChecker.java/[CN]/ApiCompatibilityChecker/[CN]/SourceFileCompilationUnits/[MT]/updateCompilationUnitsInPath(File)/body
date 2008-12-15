@@ -1,0 +1,39 @@
+{
+  logger.log(TreeLogger.SPAM,"entering addCompilationUnitsInPath, file = " + sourcePathEntry,null);
+  File[] files=sourcePathEntry.listFiles();
+  if (files == null) {
+    return;
+  }
+  for (int i=0; i < files.length; i++) {
+    final File file=files[i];
+    logger.log(TreeLogger.SPAM,"deciding the fate of file " + file,null);
+    if (file.getName().startsWith(".") || file.getName().equals("CVS")) {
+      continue;
+    }
+    if (isExcludedFile(file.getCanonicalPath())) {
+      logger.log(TreeLogger.DEBUG,"not traversing " + file.toURI().toURL(),null);
+      continue;
+    }
+    if (file.isFile()) {
+      String pkgName=null;
+      if (file.getName().endsWith("java")) {
+        pkgName=extractPackageName(new FileReader(file));
+        if (pkgName == null) {
+          logger.log(TreeLogger.WARN,"Not adding file = " + file.toString() + ", because packageName = null",null);
+        }
+ else {
+          if (isValidPackage(pkgName,sourcePathEntry.toURI().toURL().toString())) {
+            units.add(new FileCompilationUnit(file,pkgName));
+            logger.log(TreeLogger.DEBUG,"adding pkgName = " + pkgName + ", file = "+ file.toString(),null);
+          }
+ else {
+            logger.log(TreeLogger.SPAM," not adding file " + file.toURI().toURL(),null);
+          }
+        }
+      }
+    }
+ else {
+      updateCompilationUnitsInPath(file);
+    }
+  }
+}

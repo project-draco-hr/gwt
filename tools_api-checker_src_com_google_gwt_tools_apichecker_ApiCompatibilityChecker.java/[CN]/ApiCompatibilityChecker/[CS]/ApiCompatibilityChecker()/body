@@ -1,0 +1,116 @@
+{
+  registerHandler(new ArgHandlerString(){
+    @Override public String getPurpose(){
+      return "Path of the gwt dev jar";
+    }
+    @Override public String getTag(){
+      return "-gwtDevJar";
+    }
+    @Override public String[] getTagArgs(){
+      return new String[]{"gwt_dev_jar_path"};
+    }
+    @Override public boolean setString(    String str){
+      gwtDevJar=getJarFromString(str);
+      return gwtDevJar != null;
+    }
+  }
+);
+  registerHandler(new ArgHandlerString(){
+    @Override public String getPurpose(){
+      return "Path of the gwt user jar";
+    }
+    @Override public String getTag(){
+      return "-gwtUserJar";
+    }
+    @Override public String[] getTagArgs(){
+      return new String[]{"gwt_user_jar_path"};
+    }
+    @Override public boolean setString(    String str){
+      gwtUserJar=getJarFromString(str);
+      return gwtUserJar != null;
+    }
+  }
+);
+  registerHandler(new ArgHandlerString(){
+    @Override public String getPurpose(){
+      return "Path of the reference jar";
+    }
+    @Override public String getTag(){
+      return "-refJar";
+    }
+    @Override public String[] getTagArgs(){
+      return new String[]{"reference_jar_path"};
+    }
+    @Override public boolean setString(    String str){
+      String refJarStrings[]=str.split(":");
+      refJars=new JarFile[refJarStrings.length];
+      int count=0;
+      for (      String refJarString : refJarStrings) {
+        refJars[count++]=getJarFromString(refJarString);
+        if (refJars[count - 1] == null) {
+          return false;
+        }
+      }
+      return refJars != null;
+    }
+  }
+);
+  registerHandler(new ArgHandlerString(){
+    @Override public String getPurpose(){
+      return "Sets the log level of the TreeLogger";
+    }
+    @Override public String getTag(){
+      return "-logLevel";
+    }
+    @Override public String[] getTagArgs(){
+      String values[]=new String[TreeLogger.Type.values().length];
+      int count=0;
+      for (      TreeLogger.Type tempType : TreeLogger.Type.values()) {
+        values[count++]=tempType.name();
+      }
+      return values;
+    }
+    @Override public boolean setString(    String str){
+      for (      TreeLogger.Type tempType : TreeLogger.Type.values()) {
+        if (tempType.name().equals(str)) {
+          type=tempType;
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+);
+  registerHandler(new ArgHandlerFlag(){
+    @Override public String getPurpose(){
+      return "Prints all api";
+    }
+    @Override public String getTag(){
+      return "-printAllApi";
+    }
+    @Override public boolean setFlag(){
+      printAllApi=true;
+      return true;
+    }
+  }
+);
+  registerHandler(new ArgHandlerString(){
+    @Override public String getPurpose(){
+      return "Path of the configuration file";
+    }
+    @Override public String getTag(){
+      return "-configFile";
+    }
+    @Override public String[] getTagArgs(){
+      return new String[]{"config_file_path"};
+    }
+    @Override public boolean isRequired(){
+      return true;
+    }
+    @Override public boolean setString(    String str){
+      setPropertiesAndWhitelist(str);
+      return configProperties != null && whiteList != null;
+    }
+  }
+);
+}

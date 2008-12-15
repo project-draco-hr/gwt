@@ -1,0 +1,20 @@
+{
+  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
+  if (gwtDevJar == null || gwtUserJar == null) {
+    if (gwtDevJar != null) {
+      System.err.println("Argument gwtUserJar must be provided for gwtDevJar to be used");
+    }
+    if (gwtUserJar != null) {
+      System.err.println("Argument gwtDevJar must be provided for gwtUserJar to be used");
+    }
+    return units;
+  }
+  Set<String> gwtIncludedPaths=new HashSet<String>(Arrays.asList(new String[]{"com/google/gwt"}));
+  Set<String> gwtExcludedPaths=new HashSet<String>(Arrays.asList(new String[]{"com/google/gwt/benchmarks","com/google/gwt/i18n/rebind","com/google/gwt/i18n/tools","com/google/gwt/json","com/google/gwt/junit","com/google/gwt/user/client/rpc/core/java/util/LinkedHashMap_CustomFieldSerializer.java","com/google/gwt/user/rebind","com/google/gwt/user/server","com/google/gwt/user/tools"}));
+  CompilationUnits cu=new JarFileCompilationUnits(new JarFile[]{gwtUserJar},gwtIncludedPaths,gwtExcludedPaths,logger);
+  units.addAll(cu.getCompilationUnits());
+  gwtIncludedPaths=new HashSet<String>(Arrays.asList(new String[]{"com/google/gwt/core/client","com/google/gwt/dev/jjs/intrinsic/com/google/gwt/lang","com/google/gwt/lang"}));
+  cu=new JarFileCompilationUnits(new JarFile[]{gwtDevJar},gwtIncludedPaths,null,logger);
+  units.addAll(cu.getCompilationUnits());
+  return units;
+}
