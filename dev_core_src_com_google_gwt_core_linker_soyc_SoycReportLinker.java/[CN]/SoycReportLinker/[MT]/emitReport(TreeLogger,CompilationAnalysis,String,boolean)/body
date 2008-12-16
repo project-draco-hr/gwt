@@ -11,23 +11,39 @@
   PrintWriter pw=new PrintWriter(out);
   HtmlTextOutput htmlOut=new HtmlTextOutput(pw,false);
   String curLine="<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-  htmlOut.printRawOpt(curLine);
-  htmlOut.newlineOpt();
+  htmlOut.printRaw(curLine);
+  htmlOut.newline();
   curLine="<soyc>";
-  htmlOut.printRawOpt(curLine);
-  htmlOut.newlineOpt();
+  htmlOut.printRaw(curLine);
+  htmlOut.newline();
   htmlOut.indentIn();
   htmlOut.indentIn();
-  curNumIndents++;
+  Map<Integer,String> splitPointMap=new TreeMap<Integer,String>(report.getSplitPointMap());
+  if (splitPointMap.size() > 0) {
+    curLine="<splitpoints>";
+    htmlOut.printRaw(curLine);
+    htmlOut.newline();
+    htmlOut.indentIn();
+    htmlOut.indentIn();
+    for (    Integer splitPointCount : splitPointMap.keySet()) {
+      curLine="<splitpoint id=\"" + splitPointCount + "\" location=\""+ splitPointMap.get(splitPointCount)+ "\"/>";
+      htmlOut.printRaw(curLine);
+      htmlOut.newline();
+    }
+    htmlOut.indentOut();
+    htmlOut.indentOut();
+    curLine="</splitpoints>";
+    htmlOut.printRaw(curLine);
+    htmlOut.newline();
+  }
   emitMembers(report,htmlOut);
   Map<Story,Integer> storyIds=emitStories(report,htmlOut);
   emitJs(report,htmlOut,storyIds);
   htmlOut.indentOut();
   htmlOut.indentOut();
-  curNumIndents--;
   curLine="</soyc>";
-  htmlOut.printRawOpt(curLine);
-  htmlOut.newlineOpt();
+  htmlOut.printRaw(curLine);
+  htmlOut.newline();
   pw.close();
   Utility.close(out);
   SyntheticArtifact toReturn=emitBytes(logger,bytes.toByteArray(),partialPath);
