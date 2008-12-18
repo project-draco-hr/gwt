@@ -10,25 +10,31 @@
     lookupClassName=lookupClassName.substring(0,lookupClassName.length() - 1);
   }
   CompiledClass compiledClass=compilationState.getClassFileMap().get(lookupClassName);
+  byte classBytes[]=null;
   if (compiledClass != null) {
     injectJsniFor(compiledClass);
-    byte[] classBytes=compiledClass.getBytes();
+    classBytes=compiledClass.getBytes();
     if (!compiledClass.getUnit().isSuperSource()) {
       classBytes=emmaStrategy.getEmmaClassBytes(classBytes,lookupClassName,compiledClass.getUnit().getLastModified());
     }
  else {
       logger.log(TreeLogger.SPAM,"no emma instrumentation for " + lookupClassName + " because it is from super-source");
     }
-    if (classRewriter != null) {
-      byte[] newBytes=classRewriter.rewrite(className,classBytes);
-      if (CLASS_DUMP) {
-        if (!Arrays.equals(classBytes,newBytes)) {
-          classDump(className,newBytes);
-        }
-      }
-      classBytes=newBytes;
-    }
-    return classBytes;
   }
-  return null;
+ else   if (emmaIsAvailable) {
+    if (isSynthetic(className)) {
+      logger.log(TreeLogger.SPAM,"EmmaStrategy: loading " + lookupClassName + " from disk even though TypeOracle does not know about it");
+      classBytes=emmaStrategy.getEmmaClassBytes(null,lookupClassName,0);
+    }
+  }
+  if (classBytes != null && classRewriter != null) {
+    byte[] newBytes=classRewriter.rewrite(className,classBytes);
+    if (CLASS_DUMP) {
+      if (!Arrays.equals(classBytes,newBytes)) {
+        classDump(className,newBytes);
+      }
+    }
+    classBytes=newBytes;
+  }
+  return classBytes;
 }
