@@ -1,5 +1,12 @@
 {
   String selectionScript=generateSelectionScript(logger,context,artifacts);
-  byte[] selectionScriptBytes=Util.getBytes(context.optimizeJavaScript(logger,selectionScript));
-  return emitBytes(logger,selectionScriptBytes,context.getModuleName() + ".nocache.js");
+  selectionScript=context.optimizeJavaScript(logger,selectionScript);
+  long lastModified;
+  if (artifacts.find(CompilationResult.class).size() == 0) {
+    lastModified=context.getModuleLastModified();
+  }
+ else {
+    lastModified=System.currentTimeMillis();
+  }
+  return emitString(logger,selectionScript,context.getModuleName() + ".nocache.js",lastModified);
 }

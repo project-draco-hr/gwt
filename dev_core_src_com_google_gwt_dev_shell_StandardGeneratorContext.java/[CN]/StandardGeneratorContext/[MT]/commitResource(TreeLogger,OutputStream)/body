@@ -2,17 +2,10 @@
   PendingResource pendingResource=pendingResourcesByOutputStream.get(os);
   if (pendingResource != null) {
     pendingResource.commit(logger);
-    GeneratedResource toReturn;
-    try {
-      toReturn=new StandardGeneratedResource(currentGenerator,pendingResource.getPartialPath(),pendingResource.getFile().toURL());
-      commitArtifact(logger,toReturn);
-      pendingResourcesByOutputStream.remove(os);
-      return toReturn;
-    }
- catch (    MalformedURLException e) {
-      logger.log(TreeLogger.ERROR,"Unable to commit artifact",e);
-      throw new UnableToCompleteException();
-    }
+    GeneratedResource toReturn=new StandardGeneratedResource(currentGenerator,pendingResource.getPartialPath(),pendingResource.getFile());
+    commitArtifact(logger,toReturn);
+    pendingResourcesByOutputStream.remove(os);
+    return toReturn;
   }
  else {
     logger.log(TreeLogger.WARN,"Generator attempted to commit an unknown OutputStream",null);

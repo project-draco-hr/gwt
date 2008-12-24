@@ -12,20 +12,25 @@
     browser.stop();
   }
  else   if (evt.widget == openWebModeButton) {
-    Set<String> keySet=new HashSet<String>();
-    for (    Map.Entry<?,ModuleSpace> entry : loadedModules.entrySet()) {
-      ModuleSpace module=entry.getValue();
-      keySet.add(module.getModuleName());
-    }
-    String[] moduleNames=Util.toStringArray(keySet);
-    if (moduleNames.length == 0) {
-      openWebModeButton.setEnabled(false);
-      return;
-    }
     try {
       Cursor waitCursor=getDisplay().getSystemCursor(SWT.CURSOR_WAIT);
       getShell().setCursor(waitCursor);
-      getHost().compile(moduleNames);
+      if (getHost().isLegacyMode()) {
+        Set<String> keySet=new HashSet<String>();
+        for (        Map.Entry<?,ModuleSpace> entry : loadedModules.entrySet()) {
+          ModuleSpace module=entry.getValue();
+          keySet.add(module.getModuleName());
+        }
+        String[] moduleNames=Util.toStringArray(keySet);
+        if (moduleNames.length == 0) {
+          openWebModeButton.setEnabled(false);
+          return;
+        }
+        getHost().compile(moduleNames);
+      }
+ else {
+        getHost().compile();
+      }
     }
  catch (    UnableToCompleteException e) {
       MessageBox msgBox=new MessageBox(getShell(),SWT.OK | SWT.ICON_ERROR);

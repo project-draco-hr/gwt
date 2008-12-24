@@ -1,0 +1,73 @@
+{
+  VerticalPanel v=new VerticalPanel();
+  HorizontalPanel p=new HorizontalPanel();
+  v.add(p);
+  final DateBox start=new DateBox(new DatePicker(),null,new FormatWithNewYearsEve());
+  start.setWidth("13em");
+  final DateBox end=new DateBox();
+  end.setWidth("13em");
+  end.getDatePicker().addValueChangeHandler(new ValueChangeHandler<Date>(){
+    public void onValueChange(    ValueChangeEvent<Date> event){
+      start.removeStyleName("user-modified");
+    }
+  }
+);
+  final TextBox startText=start.getTextBox();
+  startText.addKeyDownHandler(new KeyDownHandler(){
+    public void onKeyDown(    KeyDownEvent e){
+      if (e.isRightArrow() && start.getCursorPos() == startText.getText().length()) {
+        start.hideDatePicker();
+        end.setFocus(true);
+      }
+    }
+  }
+);
+  end.getTextBox().addKeyDownHandler(new KeyDownHandler(){
+    public void onKeyDown(    KeyDownEvent e){
+      if ((e.isLeftArrow()) && end.getCursorPos() == 0) {
+        end.hideDatePicker();
+        start.setFocus(true);
+      }
+    }
+  }
+);
+  end.setValue(new Date());
+  p.add(start);
+  Label l=new Label(" - ");
+  l.setStyleName("filler");
+  p.add(l);
+  p.add(end);
+  final Label value=new Label();
+  p.add(value);
+  HorizontalPanel h2=new HorizontalPanel();
+  v.add(h2);
+  h2.add(new Button("Short format",new ClickHandler(){
+    public void onClick(    ClickEvent event){
+      updateFormat(start,end,DateTimeFormat.getShortDateFormat());
+    }
+  }
+));
+  h2.add(new Button("Long format",new ClickHandler(){
+    public void onClick(    ClickEvent event){
+      updateFormat(start,end,DateTimeFormat.getMediumDateFormat());
+    }
+  }
+));
+  h2.add(new Button("Clear",new ClickHandler(){
+    public void onClick(    ClickEvent sender){
+      start.setValue(null);
+      end.setValue(null);
+    }
+  }
+));
+  h2.add(new Button("Show Values",new ClickHandler(){
+    public void onClick(    ClickEvent event){
+      DateTimeFormat f=DateTimeFormat.getShortDateFormat();
+      Date d1=start.getValue();
+      Date d2=end.getValue();
+      value.setText("Start: \"" + (d1 == null ? "null" : f.format(d1)) + "\" End: \""+ (d2 == null ? "null" : f.format(d2))+ "\"");
+    }
+  }
+));
+  return v;
+}

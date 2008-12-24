@@ -1,27 +1,29 @@
 {
-  if (options.isValidateOnly()) {
-    init(logger);
-    TreeLogger branch=logger.branch(TreeLogger.INFO,"Validating compilation " + module.getName());
-    if (validate(branch,options,module,options.getGenDir(),options.getCompilerWorkDir())) {
+  for (  String moduleName : options.getModuleNames()) {
+    File compilerWorkDir=options.getCompilerWorkDir(moduleName);
+    Util.recursiveDelete(compilerWorkDir,true);
+    compilerWorkDir.mkdirs();
+    this.module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
+    module.getCompilationState(logger);
+    if (options.isValidateOnly()) {
+      TreeLogger branch=logger.branch(TreeLogger.INFO,"Validating compilation " + module.getName());
+      if (!validate(branch,options,module,options.getGenDir(),compilerWorkDir)) {
+        branch.log(TreeLogger.ERROR,"Validation failed");
+        return false;
+      }
       branch.log(TreeLogger.INFO,"Validation succeeded");
-      return true;
     }
  else {
-      branch.log(TreeLogger.ERROR,"Validation failed");
-      return false;
-    }
-  }
- else {
-    init(logger);
-    TreeLogger branch=logger.branch(TreeLogger.INFO,"Precompiling module " + module.getName());
-    Precompilation precompilation=precompile(branch,options,module,options.getGenDir(),options.getCompilerWorkDir());
-    if (precompilation != null) {
-      Util.writeObjectAsFile(branch,new File(options.getCompilerWorkDir(),PRECOMPILATION_FILENAME),precompilation);
-      Util.writeStringAsFile(branch,new File(options.getCompilerWorkDir(),PERM_COUNT_FILENAME),String.valueOf(precompilation.getPermutations().length));
+      TreeLogger branch=logger.branch(TreeLogger.INFO,"Precompiling module " + module.getName());
+      Precompilation precompilation=precompile(branch,options,module,options.getGenDir(),compilerWorkDir);
+      if (precompilation == null) {
+        branch.log(TreeLogger.ERROR,"Precompilation failed");
+        return false;
+      }
+      Util.writeObjectAsFile(branch,new File(compilerWorkDir,PRECOMPILATION_FILENAME),precompilation);
+      Util.writeStringAsFile(branch,new File(compilerWorkDir,PERM_COUNT_FILENAME),String.valueOf(precompilation.getPermutations().length));
       branch.log(TreeLogger.INFO,"Precompilation succeeded, number of permutations: " + precompilation.getPermutations().length);
-      return true;
     }
-    branch.log(TreeLogger.ERROR,"Precompilation failed");
-    return false;
   }
+  return true;
 }

@@ -1,0 +1,18 @@
+{
+  if (started) {
+    throw new IllegalStateException("Startup code has already been run");
+  }
+  started=true;
+  if (!doStartup()) {
+    return false;
+  }
+  startupHook();
+  if (!options.isNoServer()) {
+    int resultPort=doStartUpServer();
+    if (resultPort < 0) {
+      return false;
+    }
+    options.setPort(resultPort);
+  }
+  return true;
+}

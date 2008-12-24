@@ -1,0 +1,64 @@
+{
+  super(parent,SWT.NONE);
+  this.browserWindowController=browserWindowController;
+  colorWhite=new Color(null,255,255,255);
+  addDisposeListener(this);
+  parent.addShellListener(this);
+  setLayout(new FillLayout());
+  if (serverPort > 0) {
+    parent.setText("Google Web Toolkit Development Shell / Port " + serverPort);
+  }
+ else {
+    parent.setText("Google Web Toolkit Development Shell");
+  }
+  GridLayout gridLayout=new GridLayout(1,true);
+  gridLayout.marginWidth=0;
+  gridLayout.marginHeight=0;
+  gridLayout.horizontalSpacing=0;
+  gridLayout.verticalSpacing=0;
+  setLayout(gridLayout);
+{
+    toolbar=new Toolbar(this);
+    GridData data=new GridData();
+    data.grabExcessHorizontalSpace=true;
+    data.horizontalAlignment=GridData.FILL;
+    toolbar.setLayoutData(data);
+  }
+{
+    logPane=new TreeLoggerWidget(this);
+    GridData data=new GridData();
+    data.grabExcessHorizontalSpace=true;
+    data.grabExcessVerticalSpace=true;
+    data.horizontalAlignment=GridData.FILL;
+    data.verticalAlignment=GridData.FILL;
+    logPane.setLayoutData(data);
+  }
+  if (checkForUpdates) {
+    try {
+      final CheckForUpdates updateChecker=PlatformSpecific.createUpdateChecker();
+      if (updateChecker != null) {
+        final CheckForUpdates.UpdateAvailableCallback callback=new CheckForUpdates.UpdateAvailableCallback(){
+          public void onUpdateAvailable(          final String html){
+            parent.getDisplay().asyncExec(new Runnable(){
+              public void run(){
+                new BrowserDialog(parent,getLogger(),html).open(true);
+              }
+            }
+);
+          }
+        }
+;
+        Thread checkerThread=new Thread(){
+          @Override public void run(){
+            updateChecker.check(callback);
+          }
+        }
+;
+        checkerThread.setDaemon(true);
+        checkerThread.start();
+      }
+    }
+ catch (    Throwable e) {
+    }
+  }
+}

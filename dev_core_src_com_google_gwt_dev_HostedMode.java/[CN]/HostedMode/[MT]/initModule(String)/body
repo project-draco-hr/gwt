@@ -1,0 +1,19 @@
+{
+  ModuleDef module=modulesByName.get(moduleName);
+  if (module == null) {
+    getTopLogger().log(TreeLogger.WARN,"Unknown module requested '" + moduleName + "'; all active GWT modules must be specified in the command line arguments");
+    return false;
+  }
+  try {
+    boolean shouldRefreshPage=false;
+    if (module.isGwtXmlFileStale()) {
+      shouldRefreshPage=true;
+      module=loadModule(getTopLogger(),module.getCanonicalName(),false);
+    }
+    link(getTopLogger(),module,true);
+    return shouldRefreshPage;
+  }
+ catch (  UnableToCompleteException e) {
+    return false;
+  }
+}

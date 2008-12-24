@@ -1,0 +1,31 @@
+{
+  if (!super.doStartup()) {
+    return false;
+  }
+  tempWorkDir=options.getWorkDir() == null;
+  if (tempWorkDir) {
+    try {
+      options.setWorkDir(Utility.makeTemporaryDirectory(null,"gwtc"));
+    }
+ catch (    IOException e) {
+      System.err.println("Unable to create hosted mode work directory");
+      e.printStackTrace();
+      return false;
+    }
+  }
+  for (  String moduleName : options.getModuleNames()) {
+    TreeLogger loadLogger=getTopLogger().branch(TreeLogger.DEBUG,"Loading module " + moduleName);
+    try {
+      ModuleDef module=loadModule(loadLogger,moduleName,false);
+      String[] servletPaths=module.getServletPaths();
+      if (servletPaths.length > 0) {
+        loadLogger.log(TreeLogger.WARN,"Ignoring legacy <servlet> tag(s) in module '" + moduleName + "'; add servlet tags to your web.xml instead");
+      }
+      link(loadLogger,module,false);
+    }
+ catch (    UnableToCompleteException e) {
+      return false;
+    }
+  }
+  return true;
+}
