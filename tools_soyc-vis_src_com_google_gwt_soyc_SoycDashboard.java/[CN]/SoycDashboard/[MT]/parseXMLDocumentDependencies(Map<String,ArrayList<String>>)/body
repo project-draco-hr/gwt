@@ -1,0 +1,30 @@
+{
+  DefaultHandler handler=new DefaultHandler(){
+    StringBuilder valueBuilder=new StringBuilder();
+    String curMethod;
+    /** 
+ * This method deals with the beginning of the XML element.
+ * It analyzes the XML node and adds its information to the relevant literal or code collection for later analysis.
+ * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String,java.lang.String,java.lang.String,org.xml.sax.Attributes)
+ */
+    @Override public void startElement(    String nsUri,    String strippedName,    String tagName,    Attributes attributes){
+      valueBuilder.delete(0,valueBuilder.length());
+      if ((strippedName.compareTo("method") == 0) && (attributes.getValue("name") != null)) {
+        curMethod=attributes.getValue("name");
+      }
+ else       if ((strippedName.compareTo("called") == 0) && (attributes.getValue("by") != null)) {
+        String curDepMethod=attributes.getValue("by");
+        if (!dependencies.containsKey(curMethod)) {
+          ArrayList<String> insertArray=new ArrayList<String>();
+          insertArray.add(curDepMethod);
+          dependencies.put(curMethod,insertArray);
+        }
+ else {
+          dependencies.get(curMethod).add(curDepMethod);
+        }
+      }
+    }
+  }
+;
+  return handler;
+}

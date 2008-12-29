@@ -1,0 +1,51 @@
+{
+  String origOutFileName="methodDependencies-";
+  PrintWriter outFile=null;
+  String curPackageName="";
+  for (  String method : dependencies.keySet()) {
+    String packageName=method;
+    packageName=packageName.replaceAll("\\.\\p{Upper}.*","");
+    if ((curPackageName.compareTo("") == 0) || (curPackageName.compareTo(packageName) != 0)) {
+      curPackageName=packageName;
+      if (outFile != null) {
+        outFile.println("</table>");
+        outFile.println("<center>");
+        outFile.println("</div>");
+        outFile.println("</body>");
+        outFile.println("</html>");
+        outFile.close();
+      }
+      String outFileName=origOutFileName + curPackageName + ".html";
+      outFile=new PrintWriter(outFileName);
+      outFile.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"");
+      outFile.println("\"http://www.w3.org/TR/html4/strict.dtd\">");
+      outFile.println("<html>");
+      outFile.println("<head>");
+      outFile.println("<meta http-equiv=\"content-type\" content=\"text/html;charset=ISO-8859-1\">");
+      outFile.println("<title>Method Dependencies</title>");
+      outFile.println("</head>");
+      outFile.println("<style type=\"text/css\">");
+      outFile.println("body {background-color: #728FCE}");
+      outFile.println("h2 {background-color: transparent}");
+      outFile.println("p {background-color: fuchsia}");
+      outFile.println("</style>");
+      outFile.println("<body>");
+      outFile.println("<center>");
+      outFile.println("<h2>Method Dependencies</h2>");
+      outFile.println("</center>");
+      outFile.println("<hr>");
+      outFile.println("<center>");
+      outFile.println("<table border=\"1\" width=\"80%\" style=\"font-size: 11pt;\" bgcolor=\"white\">");
+    }
+    outFile.println("<tr>");
+    outFile.println("<td width=\"80%\"><a name=\"" + method + "\">"+ method+ "</a></td>");
+    outFile.println("</tr>");
+    for (int i=0; i < dependencies.get(method).size(); i++) {
+      String depMethod=dependencies.get(method).get(i);
+      outFile.println("<tr>");
+      outFile.println("<td width=\"20%\"></td>");
+      outFile.println("<td width=\"60%\">" + depMethod + "</td>");
+      outFile.println("</tr>");
+    }
+  }
+}
