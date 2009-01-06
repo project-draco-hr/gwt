@@ -1,0 +1,75 @@
+{
+  if (event.isCanceled() || (!previewAllNativeEvents && event.isConsumed())) {
+    if (modal) {
+      event.cancel();
+    }
+    return;
+  }
+  onPreviewNativeEvent(event);
+  if (event.isCanceled()) {
+    return;
+  }
+  Event nativeEvent=event.getNativeEvent();
+  boolean eventTargetsPopupOrPartner=eventTargetsPopup(nativeEvent) || eventTargetsPartner(nativeEvent);
+  if (eventTargetsPopupOrPartner) {
+    event.consume();
+  }
+  if (modal) {
+    event.cancel();
+  }
+  int type=nativeEvent.getTypeInt();
+switch (type) {
+case Event.ONKEYDOWN:
+{
+      if (!onKeyDownPreview((char)nativeEvent.getKeyCode(),KeyboardListenerCollection.getKeyboardModifiers(nativeEvent))) {
+        event.cancel();
+      }
+      return;
+    }
+case Event.ONKEYUP:
+{
+    if (!onKeyUpPreview((char)nativeEvent.getKeyCode(),KeyboardListenerCollection.getKeyboardModifiers(nativeEvent))) {
+      event.cancel();
+    }
+    return;
+  }
+case Event.ONKEYPRESS:
+{
+  if (!onKeyPressPreview((char)nativeEvent.getKeyCode(),KeyboardListenerCollection.getKeyboardModifiers(nativeEvent))) {
+    event.cancel();
+  }
+  return;
+}
+case Event.ONMOUSEDOWN:
+if (DOM.getCaptureElement() != null) {
+event.consume();
+return;
+}
+if (!eventTargetsPopupOrPartner && autoHide) {
+hide(true);
+return;
+}
+break;
+case Event.ONMOUSEUP:
+case Event.ONMOUSEMOVE:
+case Event.ONCLICK:
+case Event.ONDBLCLICK:
+{
+if (DOM.getCaptureElement() != null) {
+event.consume();
+return;
+}
+break;
+}
+case Event.ONFOCUS:
+{
+Element target=nativeEvent.getTarget();
+if (modal && !eventTargetsPopupOrPartner && (target != null)) {
+blur(target);
+event.cancel();
+return;
+}
+break;
+}
+}
+}

@@ -2,23 +2,28 @@
   popup=new DecoratedPopupPanel(true,false,"menuPopup"){
 {
       setWidget(item.getSubMenu());
+      setPreviewingAllNativeEvents(true);
       item.getSubMenu().onShow();
     }
-    @Override public boolean onEventPreview(    Event event){
-switch (DOM.eventGetType(event)) {
+    @Override protected void onPreviewNativeEvent(    NativePreviewEvent event){
+      if (!event.isCanceled()) {
+        Event nativeEvent=event.getNativeEvent();
+switch (nativeEvent.getTypeInt()) {
 case Event.ONMOUSEDOWN:
-        Element target=DOM.eventGetTarget(event);
-      Element parentMenuElement=item.getParentMenu().getElement();
-    if (DOM.isOrHasChild(parentMenuElement,target)) {
-      return false;
-    }
-  boolean cancel=super.onEventPreview(event);
-if (cancel) {
-  selectItem(null);
+          com.google.gwt.dom.client.Element target=nativeEvent.getTarget();
+        Element parentMenuElement=item.getParentMenu().getElement();
+      if (parentMenuElement.isOrHasChild(target)) {
+        event.cancel();
+        return;
+      }
+    super.onPreviewNativeEvent(event);
+  if (event.isCanceled()) {
+    selectItem(null);
+  }
+return;
 }
-return cancel;
 }
-return super.onEventPreview(event);
+super.onPreviewNativeEvent(event);
 }
 }
 ;
