@@ -1,11 +1,12 @@
 {
-  boolean ret=true;
+  boolean ret=Event.fireNativePreviewEvent(evt);
   if (sEventPreviewStack != null && sEventPreviewStack.size() > 0) {
     EventPreview preview=sEventPreviewStack.get(sEventPreviewStack.size() - 1);
-    if (!(ret=preview.onEventPreview(evt))) {
-      eventCancelBubble(evt,true);
-      eventPreventDefault(evt);
-    }
+    ret=preview.onEventPreview(evt) && ret;
+  }
+  if (!ret && evt != null) {
+    eventCancelBubble(evt,true);
+    eventPreventDefault(evt);
   }
   return ret;
 }

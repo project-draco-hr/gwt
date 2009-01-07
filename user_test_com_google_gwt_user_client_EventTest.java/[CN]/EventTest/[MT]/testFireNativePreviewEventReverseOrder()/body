@@ -1,0 +1,53 @@
+{
+  final TestEventPreview preview=new TestEventPreview(false);
+  final TestNativePreviewHandler handler0=new TestNativePreviewHandler(false,false){
+    @Override public void onPreviewNativeEvent(    NativePreviewEvent event){
+      super.onPreviewNativeEvent(event);
+      preview.assertIsFired(false);
+    }
+  }
+;
+  final TestNativePreviewHandler handler1=new TestNativePreviewHandler(false,false){
+    @Override public void onPreviewNativeEvent(    NativePreviewEvent event){
+      super.onPreviewNativeEvent(event);
+      handler0.assertIsFired(false);
+      preview.assertIsFired(false);
+    }
+  }
+;
+  final TestNativePreviewHandler handler2=new TestNativePreviewHandler(false,false){
+    @Override public void onPreviewNativeEvent(    NativePreviewEvent event){
+      super.onPreviewNativeEvent(event);
+      handler0.assertIsFired(false);
+      handler1.assertIsFired(false);
+      preview.assertIsFired(false);
+    }
+  }
+;
+  final TestNativePreviewHandler handler3=new TestNativePreviewHandler(false,false){
+    @Override public void onPreviewNativeEvent(    NativePreviewEvent event){
+      super.onPreviewNativeEvent(event);
+      handler0.assertIsFired(false);
+      handler1.assertIsFired(false);
+      handler2.assertIsFired(false);
+      preview.assertIsFired(false);
+    }
+  }
+;
+  HandlerRegistration reg0=Event.addNativePreviewHandler(handler0);
+  HandlerRegistration reg1=Event.addNativePreviewHandler(handler1);
+  HandlerRegistration reg2=Event.addNativePreviewHandler(handler2);
+  HandlerRegistration reg3=Event.addNativePreviewHandler(handler3);
+  DOM.addEventPreview(preview);
+  assertTrue(DOM.previewEvent(null));
+  handler0.assertIsFired(true);
+  handler1.assertIsFired(true);
+  handler2.assertIsFired(true);
+  handler3.assertIsFired(true);
+  preview.assertIsFired(true);
+  reg0.removeHandler();
+  reg1.removeHandler();
+  reg2.removeHandler();
+  reg3.removeHandler();
+  DOM.removeEventPreview(preview);
+}
