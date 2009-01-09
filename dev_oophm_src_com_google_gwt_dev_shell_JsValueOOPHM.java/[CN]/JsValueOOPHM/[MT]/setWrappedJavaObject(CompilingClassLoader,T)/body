@@ -7,10 +7,15 @@
     value=val;
   }
  else {
-    DispatchObject dispObj=dispatchObjectCache.get(val);
+    Map<Object,DispatchObject> cache=dispatchObjectCache.get();
+    if (cache == null) {
+      cache=new IdentityHashMap<Object,DispatchObject>();
+      dispatchObjectCache.set(cache);
+    }
+    DispatchObject dispObj=cache.get(val);
     if (dispObj == null) {
       dispObj=new DispatchObjectOOPHM(cl,val);
-      dispatchObjectCache.put(val,dispObj);
+      cache.put(val,dispObj);
     }
     value=dispObj;
   }
