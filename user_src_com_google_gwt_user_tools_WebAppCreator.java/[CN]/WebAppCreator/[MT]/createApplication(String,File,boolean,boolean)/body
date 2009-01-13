@@ -1,0 +1,60 @@
+{
+  String installPath=Utility.getInstallPath();
+  String gwtUserPath=installPath + '/' + "gwt-user.jar";
+  String gwtDevPath=installPath + '/' + Utility.getDevJarName();
+  String gwtServletPath=installPath + '/' + "gwt-servlet.jar";
+  String gwtModuleDtd="";
+  if (!About.GWT_VERSION_NUM.endsWith(".999") && !About.GWT_VERSION_NUM.startsWith("0.0")) {
+    gwtModuleDtd="\n<!DOCTYPE module PUBLIC \"-//Google Inc.//DTD Google Web Toolkit " + About.GWT_VERSION_NUM + "//EN\" \"http://google-web-toolkit.googlecode.com/svn/tags/"+ About.GWT_VERSION_NUM+ "/distro-source/core/src/gwt-module.dtd\">";
+  }
+  boolean isMacOsX=gwtDevPath.substring(gwtDevPath.lastIndexOf('/') + 1).indexOf("mac") >= 0;
+  int pos=moduleName.lastIndexOf('.');
+  String modulePackageName=moduleName.substring(0,pos);
+  String moduleShortName=moduleName.substring(pos + 1);
+  File srcDir=Utility.getDirectory(outDir,"src",true);
+  File warDir=Utility.getDirectory(outDir,"war",true);
+  File webInfDir=Utility.getDirectory(warDir,"WEB-INF",true);
+  File moduleDir=Utility.getDirectory(srcDir,modulePackageName.replace('.','/'),true);
+  File clientDir=Utility.getDirectory(moduleDir,"client",true);
+  File serverDir=Utility.getDirectory(moduleDir,"server",true);
+  Map<String,String> replacements=new HashMap<String,String>();
+  replacements.put("@moduleShortName",moduleShortName);
+  replacements.put("@moduleName",moduleName);
+  replacements.put("@clientPackage",modulePackageName + ".client");
+  replacements.put("@serverPackage",modulePackageName + ".server");
+  replacements.put("@gwtUserPath",gwtUserPath);
+  replacements.put("@gwtDevPath",gwtDevPath);
+  replacements.put("@gwtServletPath",gwtServletPath);
+  replacements.put("@gwtVersion",About.GWT_VERSION_NUM);
+  replacements.put("@gwtModuleDtd",gwtModuleDtd);
+  replacements.put("@shellClass",HostedMode.class.getName());
+  replacements.put("@compileClass",Compiler.class.getName());
+  replacements.put("@startupUrl",moduleShortName + ".html");
+  replacements.put("@antVmargs",isMacOsX ? "\n<jvmarg value=\"-XstartOnFirstThread\"/>" : "");
+  replacements.put("@vmargs",isMacOsX ? "&#10;-XstartOnFirstThread" : "");
+  replacements.put("@renameTo",moduleShortName.toLowerCase());
+  List<FileCreator> files=new ArrayList<FileCreator>();
+  files.add(new FileCreator(moduleDir,moduleShortName + ".gwt.xml","Module.gwt.xml"));
+  files.add(new FileCreator(warDir,moduleShortName + ".html","AppHtml.html"));
+  files.add(new FileCreator(warDir,moduleShortName + ".css","AppCss.css"));
+  files.add(new FileCreator(webInfDir,"web.xml","web.xml"));
+  files.add(new FileCreator(clientDir,moduleShortName + ".java","AppClassTemplate.java"));
+  files.add(new FileCreator(clientDir,"EchoService" + ".java","RpcClientTemplate.java"));
+  files.add(new FileCreator(clientDir,"EchoServiceAsync" + ".java","RpcAsyncClientTemplate.java"));
+  files.add(new FileCreator(serverDir,"EchoServiceImpl" + ".java","RpcServerTemplate.java"));
+  files.add(new FileCreator(outDir,"build.xml","project.ant.xml"));
+  files.add(new FileCreator(outDir,".project",".project"));
+  files.add(new FileCreator(outDir,".classpath",".classpath"));
+  files.add(new FileCreator(outDir,moduleShortName + ".launch","App.launch"));
+  for (  FileCreator fileCreator : files) {
+    File file=Utility.createNormalFile(fileCreator.destDir,fileCreator.destName,overwrite,ignore);
+    if (file != null) {
+      URL url=WebAppCreator.class.getResource(fileCreator.sourceName + "src");
+      if (url == null) {
+        throw new FileNotFoundException(fileCreator.sourceName + "src");
+      }
+      String data=Util.readURLAsString(url);
+      Utility.writeTemplateFile(file,data,replacements);
+    }
+  }
+}
