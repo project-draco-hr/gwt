@@ -3,23 +3,14 @@
   String gwtUserPath=installPath + '/' + "gwt-user.jar";
   String gwtDevPath=installPath + '/' + Utility.getDevJarName();
   String gwtServletPath=installPath + '/' + "gwt-servlet.jar";
+  String gwtModuleDtd="";
+  if (!About.GWT_VERSION_NUM.endsWith(".999") && !About.GWT_VERSION_NUM.startsWith("0.0")) {
+    gwtModuleDtd="\n<!DOCTYPE module PUBLIC \"-//Google Inc.//DTD Google Web Toolkit " + About.GWT_VERSION_NUM + "//EN\" \"http://google-web-toolkit.googlecode.com/svn/tags/"+ About.GWT_VERSION_NUM+ "/distro-source/core/src/gwt-module.dtd\">";
+  }
   if (!CreatorUtilities.validatePathsAndModules(gwtUserPath,extraClassPaths,extraModules)) {
     return;
   }
-  boolean isWindows=gwtDevPath.substring(gwtDevPath.lastIndexOf('/') + 1).indexOf("windows") >= 0;
   boolean isMacOsX=gwtDevPath.substring(gwtDevPath.lastIndexOf('/') + 1).indexOf("mac") >= 0;
-  String basePathEnv;
-  if (!new File(installPath).isAbsolute()) {
-    if (isWindows) {
-      basePathEnv="%~dp0\\";
-    }
- else {
-      basePathEnv="$APPDIR/";
-    }
-  }
- else {
-    basePathEnv="";
-  }
   int pos=fullClassName.lastIndexOf('.');
   String clientPackageName=fullClassName.substring(0,pos);
   String className=fullClassName.substring(pos + 1);
@@ -50,8 +41,10 @@
   replacements.put("@moduleName",moduleName);
   replacements.put("@clientPackage",clientPackageName);
   replacements.put("@serverPackage",serverPackageName);
-  replacements.put("@gwtUserPath",basePathEnv + gwtUserPath);
-  replacements.put("@gwtDevPath",basePathEnv + gwtDevPath);
+  replacements.put("@gwtUserPath",gwtUserPath);
+  replacements.put("@gwtDevPath",gwtDevPath);
+  replacements.put("@gwtVersion",About.GWT_VERSION_NUM);
+  replacements.put("@gwtModuleDtd",gwtModuleDtd);
   replacements.put("@shellClass",HostedMode.class.getName());
   replacements.put("@compileClass",Compiler.class.getName());
   replacements.put("@startupUrl",startupUrl);
@@ -84,7 +77,7 @@
   }
   if (eclipse != null) {
     replacements.put("@projectName",eclipse);
-    replacements.put("@gwtServletPath",basePathEnv + gwtServletPath);
+    replacements.put("@gwtServletPath",gwtServletPath);
     StringBuilder buf=new StringBuilder();
     if (extraClassPaths != null) {
       for (      String path : extraClassPaths) {
@@ -109,11 +102,11 @@
  else {
           throw new RuntimeException("Don't know how to handle path: " + path + ". It doesn't appear to be a directory or a .jar file");
         }
-        classpathEntries.append("   <classpathentry kind=\"");
+        classpathEntries.append("\n   <classpathentry kind=\"");
         classpathEntries.append(kindString);
         classpathEntries.append("\" path=\"");
         classpathEntries.append(path);
-        classpathEntries.append("\"/>\n");
+        classpathEntries.append("\"/>");
       }
     }
     replacements.put("@eclipseClassPathEntries",classpathEntries.toString());
