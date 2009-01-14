@@ -10,9 +10,25 @@
     lookupClassName=lookupClassName.substring(0,lookupClassName.length() - 1);
   }
   CompiledClass compiledClass=compilationState.getClassFileMap().get(lookupClassName);
+  CompilationUnit unit=(compiledClass == null) ? getUnitForClassName(className) : compiledClass.getUnit();
+  if (emmaAvailable) {
+    List<JsniMethod> jsniMethods=(unit == null) ? null : unit.getJsniMethods();
+    if (unit != null && !unit.isSuperSource() && unit.hasAnonymousClasses() && jsniMethods != null && jsniMethods.size() > 0 && !unit.createdClassMapping()) {
+      String mainLookupClassName=unit.getTypeName().replace('.','/');
+      byte mainClassBytes[]=emmaStrategy.getEmmaClassBytes(null,mainLookupClassName,0);
+      if (mainClassBytes != null) {
+        if (!unit.constructAnonymousClassMappings(mainClassBytes)) {
+          logger.log(TreeLogger.ERROR,"Our heuristic for mapping anonymous classes between compilers " + "failed. Unsafe to continue because the wrong jsni code " + "could end up running. className = "+ className);
+          return null;
+        }
+      }
+ else {
+        logger.log(TreeLogger.ERROR,"main class bytes is null for unit = " + unit + ", mainLookupClassName = "+ mainLookupClassName);
+      }
+    }
+  }
   byte classBytes[]=null;
   if (compiledClass != null) {
-    injectJsniFor(compiledClass);
     classBytes=compiledClass.getBytes();
     if (!compiledClass.getUnit().isSuperSource()) {
       classBytes=emmaStrategy.getEmmaClassBytes(classBytes,lookupClassName,compiledClass.getUnit().getLastModified());
@@ -21,14 +37,19 @@
       logger.log(TreeLogger.SPAM,"no emma instrumentation for " + lookupClassName + " because it is from super-source");
     }
   }
- else   if (emmaIsAvailable) {
-    if (isSynthetic(className)) {
-      logger.log(TreeLogger.SPAM,"EmmaStrategy: loading " + lookupClassName + " from disk even though TypeOracle does not know about it");
+ else   if (emmaAvailable) {
+    if (shouldLoadClassFromDisk(className)) {
+      logger.log(TreeLogger.DEBUG,"EmmaStrategy: loading " + lookupClassName + " from disk even though TypeOracle does not know about it");
       classBytes=emmaStrategy.getEmmaClassBytes(null,lookupClassName,0);
     }
   }
   if (classBytes != null && classRewriter != null) {
-    byte[] newBytes=classRewriter.rewrite(className,classBytes);
+    injectJsniMethods(unit);
+    Map<String,String> anonymousClassMap=Collections.emptyMap();
+    if (unit != null) {
+      anonymousClassMap=unit.getAnonymousClassMap();
+    }
+    byte[] newBytes=classRewriter.rewrite(className,classBytes,anonymousClassMap);
     if (CLASS_DUMP) {
       if (!Arrays.equals(classBytes,newBytes)) {
         classDump(className,newBytes);
