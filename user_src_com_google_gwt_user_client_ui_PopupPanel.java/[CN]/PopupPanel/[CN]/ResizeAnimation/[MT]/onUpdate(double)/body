@@ -8,16 +8,24 @@
   int bottom=0;
   int height=(int)(progress * offsetHeight);
   int width=(int)(progress * offsetWidth);
-  if (curPanel.animType == AnimationType.CENTER) {
-    top=(offsetHeight - height) >> 1;
-    left=(offsetWidth - width) >> 1;
-  }
- else   if (curPanel.animType == AnimationType.ONE_WAY_CORNER) {
-    if (LocaleInfo.getCurrentLocale().isRTL()) {
-      left=offsetWidth - width;
-    }
-  }
-  right=left + width;
-  bottom=top + height;
-  impl.setClip(curPanel.getElement(),getRectString(top,right,bottom,left));
+switch (curPanel.animType) {
+case ROLL_DOWN:
+    right=offsetWidth;
+  bottom=height;
+break;
+case CENTER:
+top=(offsetHeight - height) >> 1;
+left=(offsetWidth - width) >> 1;
+right=left + width;
+bottom=top + height;
+break;
+case ONE_WAY_CORNER:
+if (LocaleInfo.getCurrentLocale().isRTL()) {
+left=offsetWidth - width;
+}
+right=left + width;
+bottom=top + height;
+break;
+}
+impl.setClip(curPanel.getElement(),getRectString(top,right,bottom,left));
 }
