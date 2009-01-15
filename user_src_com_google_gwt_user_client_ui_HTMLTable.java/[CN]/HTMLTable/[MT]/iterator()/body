@@ -1,3 +1,39 @@
 {
-  return widgetMap.widgetIterator();
+  return new Iterator<Widget>(){
+    final ArrayList<Widget> widgetList=widgetMap.getObjectList();
+    int lastIndex=-1;
+    int nextIndex=-1;
+{
+      findNext();
+    }
+    public boolean hasNext(){
+      return nextIndex < widgetList.size();
+    }
+    public Widget next(){
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+      Widget result=widgetList.get(nextIndex);
+      lastIndex=nextIndex;
+      findNext();
+      return result;
+    }
+    public void remove(){
+      if (lastIndex < 0) {
+        throw new IllegalStateException();
+      }
+      Widget w=widgetList.get(lastIndex);
+      assert(w.getParent() instanceof HTMLTable);
+      w.removeFromParent();
+      lastIndex=-1;
+    }
+    private void findNext(){
+      while (++nextIndex < widgetList.size()) {
+        if (widgetList.get(nextIndex) != null) {
+          return;
+        }
+      }
+    }
+  }
+;
 }
