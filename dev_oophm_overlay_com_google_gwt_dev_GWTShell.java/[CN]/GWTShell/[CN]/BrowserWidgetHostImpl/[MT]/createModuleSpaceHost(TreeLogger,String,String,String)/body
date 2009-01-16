@@ -1,18 +1,17 @@
 {
+  logger=mainLogger;
   TreeLogger.Type maxLevel=TreeLogger.INFO;
   if (mainLogger instanceof AbstractTreeLogger) {
     maxLevel=((AbstractTreeLogger)mainLogger).getMaxDetail();
   }
-  TreeLogger logger;
   ModulePanel tab;
-  if (!headlessMode) {
+  if (!isHeadless()) {
     tab=new ModulePanel(maxLevel,moduleName,userAgent,remoteSocket,tabs);
     logger=tab.getLogger();
     frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
   }
  else {
     tab=null;
-    logger=mainLogger;
   }
   try {
     ModuleDef moduleDef=loadModule(moduleName,logger);
@@ -24,8 +23,12 @@
     }
     return host;
   }
-  finally {
-    if (!headlessMode) {
+ catch (  RuntimeException e) {
+    logger.log(TreeLogger.ERROR,"Exception initializing module",e);
+    throw e;
+  }
+ finally {
+    if (!isHeadless()) {
       frame.setCursor(Cursor.getDefaultCursor());
     }
   }

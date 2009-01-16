@@ -1,0 +1,29 @@
+{
+  VerticalPanel v=new VerticalPanel();
+  ControlInputPanel p=new ControlInputPanel();
+  v.add(p);
+  v.add(log);
+  final IntegerInput size=new IntegerInput("flowpanel",10,p);
+  Button create=new Button("create widget",new ClickHandler(){
+    public void onClick(    ClickEvent event){
+      createLargeFlowPanel(size.getValue());
+    }
+  }
+);
+  Button distroy=new Button("time the removal",new ClickHandler(){
+    public void onClick(    ClickEvent event){
+      Duration d=new Duration();
+      target.clear();
+      log.report("Took " + d.elapsedMillis() + " milliseconds to clear "+ size.getValue()+ " widgets from a flow panel");
+      for (      Widget child : children) {
+        if (child.getElement().getPropertyString("__listener") != null) {
+          throw new IllegalStateException("each child should no longer have a listener");
+        }
+      }
+    }
+  }
+);
+  v.add(create);
+  v.add(distroy);
+  return v;
+}
