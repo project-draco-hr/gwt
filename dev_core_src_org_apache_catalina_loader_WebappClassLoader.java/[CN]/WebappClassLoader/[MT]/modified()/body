@@ -1,0 +1,57 @@
+{
+  if (log.isDebugEnabled())   log.debug("modified()");
+  int length=paths.length;
+  int length2=lastModifiedDates.length;
+  if (length > length2)   length=length2;
+  for (int i=0; i < length; i++) {
+    try {
+      long lastModified=((ResourceAttributes)resources.getAttributes(paths[i])).getLastModified();
+      if (lastModified != lastModifiedDates[i]) {
+        if (log.isDebugEnabled())         log.debug("  Resource '" + paths[i] + "' was modified; Date is now: "+ new java.util.Date(lastModified)+ " Was: "+ new java.util.Date(lastModifiedDates[i]));
+        return (true);
+      }
+    }
+ catch (    NamingException e) {
+      log.error("    Resource '" + paths[i] + "' is missing");
+      return (true);
+    }
+  }
+  length=jarNames.length;
+  if (getJarPath() != null) {
+    try {
+      NamingEnumeration enum_=resources.listBindings(getJarPath());
+      int i=0;
+      while (enum_.hasMoreElements() && (i < length)) {
+        NameClassPair ncPair=(NameClassPair)enum_.nextElement();
+        String name=ncPair.getName();
+        if (!name.endsWith(".jar"))         continue;
+        if (!name.equals(jarNames[i])) {
+          log.info("    Additional JARs have been added : '" + name + "'");
+          return (true);
+        }
+        i++;
+      }
+      if (enum_.hasMoreElements()) {
+        while (enum_.hasMoreElements()) {
+          NameClassPair ncPair=(NameClassPair)enum_.nextElement();
+          String name=ncPair.getName();
+          if (name.endsWith(".jar")) {
+            log.info("    Additional JARs have been added");
+            return (true);
+          }
+        }
+      }
+ else       if (i < jarNames.length) {
+        log.info("    Additional JARs have been added");
+        return (true);
+      }
+    }
+ catch (    NamingException e) {
+      if (log.isDebugEnabled())       log.debug("    Failed tracking modifications of '" + getJarPath() + "'");
+    }
+catch (    ClassCastException e) {
+      log.error("    Failed tracking modifications of '" + getJarPath() + "' : "+ e.getMessage());
+    }
+  }
+  return (false);
+}

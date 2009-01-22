@@ -1,7 +1,7 @@
 {
   Throwable caught=null;
   if (shouldCatchExceptions()) {
-    GWT.setUncaughtExceptionHandler(uncaughtHandler);
+    GWT.setUncaughtExceptionHandler(uncaughtHandler=new TestCaseUncaughtExceptionHandler());
     try {
       runBare();
     }
@@ -14,6 +14,9 @@
     runBareTestCaseAvoidingExceptionDecl();
   }
   mainTestHasRun=true;
+  if ((uncaughtHandler != null) && (uncaughtHandler.synchronousException != null)) {
+    caught=uncaughtHandler.synchronousException;
+  }
   if (caught != null) {
     reportResultsAndRunNextMethod(caught);
   }

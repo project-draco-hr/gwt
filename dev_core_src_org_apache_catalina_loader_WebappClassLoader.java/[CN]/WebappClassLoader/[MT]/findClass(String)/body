@@ -1,0 +1,58 @@
+{
+  if (log.isDebugEnabled())   log.debug("    findClass(" + name + ")");
+  if (securityManager != null) {
+    int i=name.lastIndexOf('.');
+    if (i >= 0) {
+      try {
+        if (log.isTraceEnabled())         log.trace("      securityManager.checkPackageDefinition");
+        securityManager.checkPackageDefinition(name.substring(0,i));
+      }
+ catch (      Exception se) {
+        if (log.isTraceEnabled())         log.trace("      -->Exception-->ClassNotFoundException",se);
+        throw new ClassNotFoundException(name,se);
+      }
+    }
+  }
+  Class clazz=null;
+  try {
+    if (log.isTraceEnabled())     log.trace("      findClassInternal(" + name + ")");
+    try {
+      clazz=findClassInternal(name);
+    }
+ catch (    ClassNotFoundException cnfe) {
+      if (!hasExternalRepositories) {
+        throw cnfe;
+      }
+    }
+catch (    AccessControlException ace) {
+      throw new ClassNotFoundException(name,ace);
+    }
+catch (    RuntimeException e) {
+      if (log.isTraceEnabled())       log.trace("      -->RuntimeException Rethrown",e);
+      throw e;
+    }
+    if ((clazz == null) && hasExternalRepositories) {
+      try {
+        clazz=super.findClass(name);
+      }
+ catch (      AccessControlException ace) {
+        throw new ClassNotFoundException(name,ace);
+      }
+catch (      RuntimeException e) {
+        if (log.isTraceEnabled())         log.trace("      -->RuntimeException Rethrown",e);
+        throw e;
+      }
+    }
+    if (clazz == null) {
+      if (log.isDebugEnabled())       log.debug("    --> Returning ClassNotFoundException");
+      throw new ClassNotFoundException(name);
+    }
+  }
+ catch (  ClassNotFoundException e) {
+    if (log.isTraceEnabled())     log.trace("    --> Passing on ClassNotFoundException");
+    throw e;
+  }
+  if (log.isTraceEnabled())   log.debug("      Returning class " + clazz);
+  if ((log.isTraceEnabled()) && (clazz != null))   log.debug("      Loaded by " + clazz.getClassLoader());
+  return (clazz);
+}
