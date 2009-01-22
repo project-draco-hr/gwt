@@ -1,0 +1,16 @@
+{
+  AbstractTreeLogger logger=new PrintWriterTreeLogger();
+  logger.setMaxDetail(TreeLogger.ERROR);
+  Set<CompilationUnit> set1=new HashSet<CompilationUnit>();
+  for (  String type : existingTypesToSourcesMap.keySet()) {
+    set1.add(new StaticCompilationUnit(type,existingTypesToSourcesMap.get(type)));
+  }
+  Set<String> emptyList=Collections.emptySet();
+  Set<CompilationUnit> set2=new HashSet<CompilationUnit>();
+  for (  String type : existingTypesToSourcesMap.keySet()) {
+    set2.add(new StaticCompilationUnit(type,newTypesToSourcesMap.get(type)));
+  }
+  ApiContainer existingApi=new ApiContainer("existingApi",set1,emptyList,logger);
+  ApiContainer newApi=new ApiContainer("newApi",set2,emptyList,logger);
+  return ApiCompatibilityChecker.getApiDiff(newApi,existingApi,emptyList);
+}

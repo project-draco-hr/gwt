@@ -9,9 +9,9 @@
     Set<ApiAbstractMethod> methodsInExisting=oldClass.getApiMethodsByName(elementName,methodType);
     onlyInNew.addAll(methodsInNew);
     onlyInExisting.addAll(methodsInExisting);
-    if (isIncompatibileDueToMethodOverloading(methodsInNew,methodsInExisting)) {
-      ApiAbstractMethod methodInExisting=methodsInExisting.toArray(new ApiAbstractMethod[0])[0];
-      addProperty(intersectingElements,methodInExisting,new ApiChange(methodInExisting,ApiChange.Status.OVERLOADED_METHOD_CALL,"Many methods in the new API with similar signatures. Methods = " + methodsInNew + " This might break API source compatibility"));
+    Map<ApiAbstractMethod,ApiChange> incompatibilityMap=getOverloadedMethodIncompatibility(methodsInNew,methodsInExisting);
+    for (    ApiAbstractMethod existingMethod : incompatibilityMap.keySet()) {
+      addProperty(intersectingElements,existingMethod,incompatibilityMap.get(existingMethod));
     }
     for (    ApiAbstractMethod methodInExisting : methodsInExisting) {
       Set<ApiChange> allPossibleApiChanges=new HashSet<ApiChange>();
