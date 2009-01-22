@@ -16,6 +16,10 @@
   Server server=new Server();
   server.addConnector(connector);
   WebAppContext wac=new WebAppContext(appRootDir.getAbsolutePath(),"/");
+  FilteringParentClassLoader parentClassLoader=new FilteringParentClassLoader();
+  WebAppClassLoader wacl=new WebAppClassLoader(parentClassLoader,wac);
+  parentClassLoader.setChild(wacl);
+  wac.setClassLoader(wacl);
   wac.getInitParams().put("org.mortbay.jetty.servlet.Default.useFileMappedBuffer","false");
   server.setHandler(wac);
   server.start();
