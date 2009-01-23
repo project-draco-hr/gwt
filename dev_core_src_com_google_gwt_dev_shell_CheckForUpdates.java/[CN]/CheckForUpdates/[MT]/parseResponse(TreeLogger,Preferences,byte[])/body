@@ -1,0 +1,64 @@
+{
+  branch.log(CHECK_SPAM,"Parsing response (length " + response.length + ")");
+  DocumentBuilderFactory factory=DocumentBuilderFactory.newInstance();
+  DocumentBuilder builder=factory.newDocumentBuilder();
+  ByteArrayInputStream bais=new ByteArrayInputStream(response);
+  builder.setErrorHandler(new ErrorHandler(){
+    public void error(    SAXParseException exception) throws SAXException {
+    }
+    public void fatalError(    SAXParseException exception) throws SAXException {
+    }
+    public void warning(    SAXParseException exception) throws SAXException {
+    }
+  }
+);
+  Document doc=builder.parse(bais);
+  String versionString=getTextOfLastElementHavingTag(doc,"latest-version");
+  if (versionString == null) {
+    branch.log(CHECK_ERROR,"Failed to find <latest-version>");
+    return null;
+  }
+  GwtVersion currentReleasedVersion;
+  try {
+    currentReleasedVersion=new GwtVersion(versionString.trim());
+  }
+ catch (  NumberFormatException e) {
+    branch.log(CHECK_ERROR,"Bad version: " + versionString,e);
+    return null;
+  }
+  String pingDelaySecsStr=getTextOfLastElementHavingTag(doc,"min-wait-seconds");
+  int pingDelaySecs=0;
+  if (pingDelaySecsStr == null) {
+    branch.log(CHECK_ERROR,"Missing <min-wait-seconds>");
+    return null;
+  }
+  try {
+    pingDelaySecs=Integer.parseInt(pingDelaySecsStr.trim());
+  }
+ catch (  NumberFormatException e) {
+    branch.log(CHECK_ERROR,"Bad min-wait-seconds number: " + pingDelaySecsStr);
+    return null;
+  }
+  String url=getTextOfLastElementHavingTag(doc,"notification-url");
+  if (url == null) {
+    String html=getTextOfLastElementHavingTag(doc,"notification");
+    if (html == null) {
+      branch.log(CHECK_ERROR,"Missing <notification>");
+      return null;
+    }
+    PrintWriter writer=null;
+    try {
+      String tempDir=System.getProperty("java.io.tmpdir");
+      File updateHtml=new File(tempDir,"gwt-update-" + currentReleasedVersion + ".html");
+      writer=new PrintWriter(new FileOutputStream(updateHtml));
+      writer.print(html);
+      url="file://" + updateHtml.getAbsolutePath();
+    }
+  finally {
+      if (writer != null) {
+        writer.close();
+      }
+    }
+  }
+  return processResponse(branch,prefs,currentReleasedVersion,pingDelaySecs,url);
+}
