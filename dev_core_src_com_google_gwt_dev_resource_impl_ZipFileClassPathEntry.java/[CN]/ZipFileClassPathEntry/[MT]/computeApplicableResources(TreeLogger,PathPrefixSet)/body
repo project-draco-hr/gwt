@@ -1,11 +1,12 @@
 {
   logger=Messages.FINDING_INCLUDED_RESOURCES.branch(logger,zipFile.getName(),null);
-  Set<AbstractResource> results=new HashSet<AbstractResource>();
+  Map<AbstractResource,PathPrefix> results=new IdentityHashMap<AbstractResource,PathPrefix>();
   for (  ZipFileResource r : allZipFileResources) {
     String path=r.getPath();
-    if (pathPrefixSet.includesResource(path)) {
+    PathPrefix prefix=null;
+    if ((prefix=pathPrefixSet.includesResource(path)) != null) {
       Messages.INCLUDING_RESOURCE.log(logger,path,null);
-      results.add(r);
+      results.put(r,prefix);
     }
  else {
       Messages.EXCLUDING_RESOURCE.log(logger,path,null);

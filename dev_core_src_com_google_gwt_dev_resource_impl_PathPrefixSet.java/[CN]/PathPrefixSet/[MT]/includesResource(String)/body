@@ -2,9 +2,7 @@
   assertValidAbstractResourcePathName(resourceAbstractPathName);
   TrieNode currentNode=rootTrieNode;
   PathPrefix mostSpecificPrefix=rootTrieNode.getPathPrefix();
-  String[] parts=resourceAbstractPathName.split("/");
-  for (int i=0, n=parts.length - 1; i < n; ++i) {
-    String part=parts[i];
+  for (  String part : resourceAbstractPathName.split("/")) {
     assert(!"".equals(part));
     TrieNode childNode=currentNode.findChild(part);
     if (childNode != null) {
@@ -18,8 +16,8 @@
       break;
     }
   }
-  if (mostSpecificPrefix == null) {
-    return false;
+  if (mostSpecificPrefix == null || !mostSpecificPrefix.allows(resourceAbstractPathName)) {
+    return null;
   }
-  return mostSpecificPrefix.allows(resourceAbstractPathName);
+  return mostSpecificPrefix;
 }
