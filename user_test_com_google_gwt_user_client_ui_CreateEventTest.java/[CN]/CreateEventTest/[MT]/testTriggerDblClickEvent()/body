@@ -1,0 +1,18 @@
+{
+  BubbleAssertingEventListener listener=new BubbleAssertingEventListener("dblclick"){
+    public void onBrowserEvent(    Event event){
+      if (event.getTypeInt() == Event.ONCLICK) {
+        return;
+      }
+      super.onBrowserEvent(event);
+      assertMouseCoordinates(event);
+      assertAllShiftKeysOn(event);
+    }
+  }
+;
+  Event.setEventListener(parent,listener);
+  Event.setEventListener(child,listener);
+  child.dispatchEvent(Document.get().createDblClickEvent(MOUSE_DETAIL,SCREEN_X,SCREEN_Y,CLIENT_X,CLIENT_Y,true,true,true,true));
+  assertTrue("Expected child to receive event",listener.childReceived);
+  assertTrue("Expected parent to receive event",listener.parentReceived);
+}
