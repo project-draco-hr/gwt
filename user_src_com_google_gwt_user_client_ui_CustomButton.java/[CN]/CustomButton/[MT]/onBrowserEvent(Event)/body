@@ -4,22 +4,28 @@
   }
   int type=DOM.eventGetType(event);
 switch (type) {
-case Event.ONMOUSEDOWN:
-    if (event.getButton() == Event.BUTTON_LEFT) {
-      setFocus(true);
-      onClickStart();
-      DOM.setCapture(getElement());
-      isCapturing=true;
-      DOM.eventPreventDefault(event);
+case Event.ONCLICK:
+    if (!allowClick) {
+      event.stopPropagation();
+      return;
     }
   break;
+case Event.ONMOUSEDOWN:
+if (event.getButton() == Event.BUTTON_LEFT) {
+  setFocus(true);
+  onClickStart();
+  DOM.setCapture(getElement());
+  isCapturing=true;
+  DOM.eventPreventDefault(event);
+}
+break;
 case Event.ONMOUSEUP:
 if (isCapturing) {
-  isCapturing=false;
-  DOM.releaseCapture(getElement());
-  if (isHovering() && event.getButton() == Event.BUTTON_LEFT) {
-    onClick();
-  }
+isCapturing=false;
+DOM.releaseCapture(getElement());
+if (isHovering() && event.getButton() == Event.BUTTON_LEFT) {
+onClick();
+}
 }
 break;
 case Event.ONMOUSEMOVE:
