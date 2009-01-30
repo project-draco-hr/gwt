@@ -1,0 +1,17 @@
+{
+  TreeLogger logger=createTestTreeLogger();
+  URL cpe1=findJarUrl("com/google/gwt/dev/resource/impl/testdata/cpe1.jar");
+  URL cpe2=findJarUrl("com/google/gwt/dev/resource/impl/testdata/cpe2.jar");
+  URLClassLoader classLoader=new URLClassLoader(new URL[]{cpe1,cpe2,cpe2,cpe1,cpe2},null);
+  ResourceOracleImpl oracle=new ResourceOracleImpl(logger,classLoader);
+  List<ClassPathEntry> classPath=oracle.getClassPath();
+  assertEquals(2,classPath.size());
+  assertJarEntry(classPath.get(0),"cpe1.jar");
+  assertJarEntry(classPath.get(1),"cpe2.jar");
+  oracle=new ResourceOracleImpl(logger,classLoader);
+  List<ClassPathEntry> classPath2=oracle.getClassPath();
+  assertEquals(2,classPath2.size());
+  for (int i=0; i < 2; ++i) {
+    assertSame(classPath.get(i),classPath2.get(i));
+  }
+}

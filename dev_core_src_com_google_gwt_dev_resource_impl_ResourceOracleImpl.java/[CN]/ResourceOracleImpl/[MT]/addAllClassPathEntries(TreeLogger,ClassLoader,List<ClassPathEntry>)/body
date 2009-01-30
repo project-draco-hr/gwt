@@ -1,9 +1,14 @@
 {
+  Set<URL> seenEntries=new HashSet<URL>();
   for (; classLoader != null; classLoader=classLoader.getParent()) {
     if (classLoader instanceof URLClassLoader) {
       URLClassLoader urlClassLoader=(URLClassLoader)classLoader;
       URL[] urls=urlClassLoader.getURLs();
       for (      URL url : urls) {
+        if (seenEntries.contains(url)) {
+          continue;
+        }
+        seenEntries.add(url);
         Throwable caught;
         try {
           ClassPathEntry entry=createEntryForUrl(logger,url);
