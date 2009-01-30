@@ -15,6 +15,24 @@
   }
 );
   newSeparator();
+  if (browserWindowController.hasWebServer() != WebServerRestart.NONE) {
+    restartServer=newItem("reload-server.gif","&Restart Server","Restart the embedded web server to pick up code changes");
+    restartServer.addSelectionListener(new SelectionAdapter(){
+      @Override public void widgetSelected(      SelectionEvent event){
+        try {
+          browserWindowController.restartServer(getLogger());
+        }
+ catch (        UnableToCompleteException e) {
+          getLogger().log(TreeLogger.ERROR,"Unable to restart server",e);
+        }
+      }
+    }
+);
+    newSeparator();
+    if (browserWindowController.hasWebServer() == WebServerRestart.DISABLED) {
+      restartServer.setEnabled(false);
+    }
+  }
   collapseAll=newItem("collapse.gif","&Collapse All","Collapses all log entries");
   collapseAll.addSelectionListener(new SelectionAdapter(){
     @Override public void widgetSelected(    SelectionEvent e){
