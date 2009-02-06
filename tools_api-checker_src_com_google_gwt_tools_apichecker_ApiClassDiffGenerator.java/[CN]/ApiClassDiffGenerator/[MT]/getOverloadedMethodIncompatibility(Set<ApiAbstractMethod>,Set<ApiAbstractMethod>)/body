@@ -1,0 +1,19 @@
+{
+  if (!ApiCompatibilityChecker.API_SOURCE_COMPATIBILITY || methodsInExisting.size() != 1 || methodsInNew.size() <= 1) {
+    return Collections.emptyMap();
+  }
+  ApiAbstractMethod existingMethod=methodsInExisting.toArray(new ApiAbstractMethod[0])[0];
+  String signature=existingMethod.getCoarseSignature();
+  List<ApiAbstractMethod> matchingMethods=new ArrayList<ApiAbstractMethod>();
+  for (  ApiAbstractMethod current : methodsInNew) {
+    if (current.getCoarseSignature().equals(signature)) {
+      matchingMethods.add(current);
+    }
+  }
+  if (isPairwiseCompatible(matchingMethods)) {
+    return Collections.emptyMap();
+  }
+  Map<ApiAbstractMethod,ApiChange> incompatibilities=new HashMap<ApiAbstractMethod,ApiChange>();
+  incompatibilities.put(existingMethod,new ApiChange(existingMethod,ApiChange.Status.OVERLOADED_METHOD_CALL,"Many methods in the new API with similar signatures. Methods = " + methodsInNew + " This might break API source compatibility"));
+  return incompatibilities;
+}

@@ -1,0 +1,36 @@
+{
+  long currentTimeMillis=System.currentTimeMillis();
+  long nextPingTime=currentTimeMillis + pingDelaySecs * 1000;
+  prefs.put(NEXT_PING,String.valueOf(nextPingTime));
+  prefs.put(LAST_PING,String.valueOf(currentTimeMillis));
+  branch.log(CHECK_INFO,"Ping delay is " + pingDelaySecs + "; next ping at "+ new Date(nextPingTime));
+  if (myVersion.isNoNagVersion()) {
+    return null;
+  }
+  GwtVersion highestRunVersion=new GwtVersion(prefs.get(HIGHEST_RUN_VERSION,null));
+  if (myVersion.compareTo(highestRunVersion) > 0) {
+    highestRunVersion=myVersion;
+    prefs.put(HIGHEST_RUN_VERSION,highestRunVersion.toString());
+  }
+  if (highestRunVersion.compareTo(serverVersion) >= 0) {
+    branch.log(CHECK_INFO,"Server version (" + serverVersion + ") is not newer than "+ highestRunVersion);
+    return null;
+  }
+  URL url=null;
+  try {
+    url=new URL(notifyUrl);
+  }
+ catch (  MalformedURLException e) {
+    logger.log(CHECK_ERROR,"Malformed notify URL: " + notifyUrl,e);
+  }
+  final URL finalUrl=url;
+  return new UpdateResult(){
+    public GwtVersion getNewVersion(){
+      return serverVersion;
+    }
+    public URL getURL(){
+      return finalUrl;
+    }
+  }
+;
+}

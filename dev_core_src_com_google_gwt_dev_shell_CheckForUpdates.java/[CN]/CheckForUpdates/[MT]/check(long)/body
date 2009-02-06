@@ -1,0 +1,77 @@
+{
+  TreeLogger branch=logger.branch(CHECK_INFO,"Checking for updates");
+  try {
+    String prefsName=System.getProperty(PROPERTY_PREFS_NAME);
+    Preferences prefs;
+    if (prefsName != null) {
+      prefs=Preferences.userRoot().node(prefsName);
+    }
+ else {
+      prefs=Preferences.userNodeForPackage(CheckForUpdates.class);
+    }
+    String queryURL=QUERY_URL;
+    String forceCheckURL=System.getProperty(PROPERTY_QUERY_URL);
+    if (forceCheckURL != null) {
+      branch.log(CHECK_INFO,"Explicit version check URL: " + forceCheckURL);
+      queryURL=forceCheckURL;
+    }
+    long currentTimeMillis=System.currentTimeMillis();
+    String firstLaunch=prefs.get(FIRST_LAUNCH,null);
+    if (firstLaunch == null) {
+      firstLaunch=Long.toHexString(currentTimeMillis);
+      prefs.put(FIRST_LAUNCH,firstLaunch);
+      branch.log(CHECK_SPAM,"Setting first launch to " + firstLaunch);
+    }
+ else {
+      branch.log(CHECK_SPAM,"First launch was " + firstLaunch);
+    }
+    String lastPing=prefs.get(LAST_PING,"0");
+    if (lastPing != null) {
+      try {
+        long lastPingTime=Long.parseLong(lastPing);
+        if (currentTimeMillis < lastPingTime + minCheckMillis) {
+          branch.log(CHECK_INFO,"Last ping was " + new Date(lastPingTime) + ", min wait is "+ minCheckMillis+ "ms");
+          return null;
+        }
+      }
+ catch (      NumberFormatException e) {
+        branch.log(CHECK_WARN,"Error parsing last ping time",e);
+      }
+    }
+    String nextPing=prefs.get(NEXT_PING,"0");
+    if (nextPing != null) {
+      try {
+        long nextPingTime=Long.parseLong(nextPing);
+        if (currentTimeMillis < nextPingTime) {
+          branch.log(CHECK_INFO,"Next ping is not until " + new Date(nextPingTime));
+          return null;
+        }
+      }
+ catch (      NumberFormatException e) {
+        branch.log(CHECK_WARN,"Error parsing next ping time",e);
+      }
+    }
+    String url=queryURL + "?v=" + About.GWT_VERSION_NUM+ "&id="+ firstLaunch+ "&r="+ About.GWT_SVNREV;
+    if (entryPoint != null) {
+      url+="&e=" + entryPoint;
+    }
+    branch.log(CHECK_INFO,"Checking for new version at " + url);
+    byte[] response;
+    String fullUserAgent=makeUserAgent();
+    if (System.getProperty(PROPERTY_FORCE_NONNATIVE) == null) {
+      response=doHttpGet(branch,fullUserAgent,url);
+    }
+ else {
+      response=httpGetNonNative(branch,fullUserAgent,url);
+    }
+    if (response == null || response.length == 0) {
+      branch.log(CHECK_ERROR,"Failed to obtain current version info via HTTP");
+      return null;
+    }
+    return parseResponse(branch,prefs,response);
+  }
+ catch (  Throwable e) {
+    branch.log(CHECK_INFO,"Exception while processing version info",e);
+  }
+  return null;
+}
