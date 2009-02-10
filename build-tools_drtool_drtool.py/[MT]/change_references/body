@@ -1,0 +1,23 @@
+def change_references(bytes, oldprojectname, newprojectname):
+    'Returns the string that is the new text for the wiki page, with all\n  of the references changed to point to the new project.'
+    svn = svnpattern(oldprojectname)
+    wiki = wikipattern(oldprojectname)
+    postsvn = ''
+    postwiki = ''
+    svnreferences = re.finditer(svn, bytes)
+    append_start = 0
+    for match in svnreferences:
+        (matchstart, matchend) = match.span()
+        postsvn += bytes[append_start:matchstart]
+        postsvn += change_ref(match.group(0), oldprojectname, newprojectname)
+        append_start = matchend
+    postsvn += bytes[append_start:]
+    wikireferences = re.finditer(wiki, postsvn)
+    append_start = 0
+    for match in wikireferences:
+        (matchstart, matchend) = match.span()
+        postwiki += postsvn[append_start:matchstart]
+        postwiki += change_ref(match.group(0), oldprojectname, newprojectname)
+        append_start = matchend
+    postwiki += postsvn[append_start:]
+    return postwiki

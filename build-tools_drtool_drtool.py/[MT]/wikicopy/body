@@ -1,0 +1,17 @@
+def wikicopy(source_dir, source_project, target_dir, target_project):
+    print 'Copying from', source_project,
+    print 'to', target_project, 'and changing references...',
+    for (root, dirs, fileshere) in os.walk(source_dir):
+        path_elements = root.split(os.sep)
+        if ('.svn' in path_elements):
+            continue
+        for filename in fileshere:
+            whole_pathname = os.path.join(root, filename)
+            after_source_dir = whole_pathname[len(source_dir):]
+            if after_source_dir.startswith('/'):
+                after_source_dir = after_source_dir[1:]
+            copy_into_target(source_project, target_project, whole_pathname, after_source_dir, target_dir)
+    print 'OK!'
+    print "Careful: these wiki pages aren't referenced in your TableOfContents:"
+    nothave(source_dir, source_project)
+    print 'Done.'
