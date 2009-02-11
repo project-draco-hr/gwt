@@ -2,16 +2,17 @@
   String desc=toDescriptor(className);
   assert(jsoIntfDescs.contains(desc));
   assert(jsoSuperDescs.containsKey(desc));
-  String superDesc=jsoSuperDescs.get(desc);
-  assert(superDesc != null);
+  List<String> superDescs=jsoSuperDescs.get(desc);
+  assert(superDescs != null);
+  assert(superDescs.size() > 0);
   ClassWriter writer=new ClassWriter(0);
   ClassVisitor v=writer;
   String[] interfaces;
-  if ("java/lang/Object".equals(superDesc)) {
+  if (superDescs.contains("java/lang/Object")) {
     interfaces=null;
   }
  else {
-    interfaces=new String[]{superDesc};
+    interfaces=superDescs.toArray(new String[superDescs.size()]);
   }
   v.visit(Opcodes.V1_5,Opcodes.ACC_PUBLIC | Opcodes.ACC_INTERFACE,desc,null,"java/lang/Object",interfaces);
   v.visitEnd();

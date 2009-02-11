@@ -2,10 +2,15 @@
   if (program.isJavaScriptObject(type)) {
     return program.getJavaScriptObject();
   }
+ else   if (jsoSingleImpls.containsKey(type) && !dualImpl.contains(type)) {
+    return program.getJavaScriptObject();
+  }
  else   if (type instanceof JArrayType) {
     JArrayType arrayType=(JArrayType)type;
-    if (program.isJavaScriptObject(arrayType.getLeafType())) {
-      return program.getTypeArray(program.getJavaScriptObject(),arrayType.getDims());
+    JType leafType=arrayType.getLeafType();
+    JType replacement=translate(leafType);
+    if (leafType != replacement) {
+      return program.getTypeArray(replacement,arrayType.getDims());
     }
   }
   return type;

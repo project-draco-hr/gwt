@@ -13,14 +13,21 @@
     Collections.addAll(jsoTypes,jsoSubtypes);
     jsoTypes.add(jsoType);
     Set<String> jsoTypeNames=new HashSet<String>();
-    Map<String,String> jsoSuperTypes=new HashMap<String,String>();
+    Map<String,List<String>> jsoSuperTypes=new HashMap<String,List<String>>();
     for (    JClassType type : jsoTypes) {
+      List<String> types=new ArrayList<String>();
+      types.add(getBinaryName(type.getSuperclass()));
+      for (      JClassType impl : type.getImplementedInterfaces()) {
+        types.add(getBinaryName(impl));
+      }
       String binaryName=getBinaryName(type);
       jsoTypeNames.add(binaryName);
-      jsoSuperTypes.put(binaryName,getBinaryName(type.getSuperclass()));
+      jsoSuperTypes.put(binaryName,types);
     }
+    SortedMap<String,com.google.gwt.dev.asm.commons.Method> mangledNamesToImplementations=new TreeMap<String,com.google.gwt.dev.asm.commons.Method>();
+    computeSingleJsoImplData(singleJsoImplTypes,mangledNamesToImplementations);
     MyInstanceMethodOracle mapper=new MyInstanceMethodOracle(jsoTypes,typeOracle.getJavaLangObject());
-    classRewriter=new HostedModeClassRewriter(jsoTypeNames,jsoSuperTypes,mapper);
+    classRewriter=new HostedModeClassRewriter(jsoTypeNames,jsoSuperTypes,mangledNamesToImplementations,singleJsoImplTypes,mapper);
   }
  else {
     classRewriter=null;

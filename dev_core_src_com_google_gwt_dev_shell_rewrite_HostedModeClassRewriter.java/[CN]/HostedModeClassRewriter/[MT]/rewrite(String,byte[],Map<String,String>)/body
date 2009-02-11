@@ -3,9 +3,10 @@
   assert(!jsoIntfDescs.contains(desc));
   ClassWriter writer=new ClassWriter(0);
   ClassVisitor v=writer;
+  v=new RewriteSingleJsoImplDispatches(v,singleJsoImplTypes,mangledNamesToImplementations);
   v=new RewriteRefsToJsoClasses(v,jsoIntfDescs,mapper);
   if (jsoImplDescs.contains(desc)) {
-    v=new WriteJsoImpl(v,jsoIntfDescs,mapper);
+    v=WriteJsoImpl.create(v,desc,jsoIntfDescs,mapper,mangledNamesToImplementations);
   }
   v=new RewriteJsniMethods(v,anonymousClassMap);
   if (Double.parseDouble(System.getProperty("java.class.version")) < Opcodes.V1_6) {
