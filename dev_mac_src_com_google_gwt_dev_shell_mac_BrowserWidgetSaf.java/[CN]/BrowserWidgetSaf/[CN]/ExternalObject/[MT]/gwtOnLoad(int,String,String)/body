@@ -1,21 +1,21 @@
 {
+  if (moduleName == null) {
+    return handleUnload(scriptObject);
+  }
+  TreeLogger logger=getHost().getLogger().branch(TreeLogger.DEBUG,"Loading an instance of module '" + moduleName + "'");
   try {
-    if (moduleName == null) {
-      handleUnload(scriptObject);
-      return true;
-    }
     if (!validHostedHtmlVersion(version)) {
       return false;
     }
     Integer key=new Integer(scriptObject);
-    ModuleSpaceHost msh=getHost().createModuleSpaceHost(BrowserWidgetSaf.this,moduleName);
+    ModuleSpaceHost msh=getHost().createModuleSpaceHost(logger,BrowserWidgetSaf.this,moduleName);
     final int globalContext=globalContexts.get(scriptObject).intValue();
-    ModuleSpace moduleSpace=new ModuleSpaceSaf(msh,scriptObject,globalContext,moduleName,key);
-    attachModuleSpace(moduleSpace);
+    ModuleSpace moduleSpace=new ModuleSpaceSaf(logger,msh,scriptObject,globalContext,moduleName,key);
+    attachModuleSpace(logger,moduleSpace);
     return true;
   }
  catch (  Throwable e) {
-    getHost().getLogger().log(TreeLogger.ERROR,"Failure to load module '" + moduleName + "'",e);
+    logger.log(TreeLogger.ERROR,"Failure to load module '" + moduleName + "'",e);
     return false;
   }
 }
