@@ -1,0 +1,34 @@
+{
+  VerticalPanel v=new VerticalPanel();
+  ControlInputPanel p=new ControlInputPanel();
+  v.add(p);
+  v.add(log);
+  final IntegerInput size=new IntegerInput("how many clipped images",10,30,p);
+  Button createClippedImages=new Button("time the creation",new ClickHandler(){
+    boolean firstTime=true;
+    public void onClick(    ClickEvent event){
+      final Duration d=new Duration();
+      final int numImages=size.getValue();
+      final TreeImages test=GWT.<TreeImages>create(TreeImages.class);
+      for (int i=0; i < numImages; i++) {
+        Image current=test.treeClosed().createImage();
+        if (i == numImages - 1) {
+          current.addLoadHandler(new LoadHandler(){
+            public void onLoad(            LoadEvent event){
+              if (firstTime) {
+                log.report("Took " + d.elapsedMillis() + " milliseconds to create the images");
+              }
+              firstTime=false;
+            }
+          }
+);
+        }
+        images.add(current);
+        RootPanel.get().add(current);
+      }
+    }
+  }
+);
+  v.add(createClippedImages);
+  return v;
+}
