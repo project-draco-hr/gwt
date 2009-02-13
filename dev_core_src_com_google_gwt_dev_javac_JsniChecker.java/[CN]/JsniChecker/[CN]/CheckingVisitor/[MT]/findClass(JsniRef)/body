@@ -1,0 +1,29 @@
+{
+  String className=jsniRef.className().replace('$','.');
+  char[][] compoundName=CharOperation.splitOn('.',className.toCharArray());
+  TypeBinding binding=cud.scope.getType(compoundName,compoundName.length);
+  if (binding instanceof ProblemReferenceBinding) {
+    ProblemReferenceBinding prb=(ProblemReferenceBinding)binding;
+    if (prb.problemId() == ProblemReasons.NotVisible) {
+      ReferenceBinding drilling=prb.closestMatch();
+      for (int i=prb.compoundName.length; i < compoundName.length; i++) {
+        drilling=drilling.getMemberType(compoundName[i]);
+      }
+      binding=drilling;
+    }
+  }
+  if (binding instanceof ReferenceBinding && !(binding instanceof ProblemReferenceBinding)) {
+    return (ReferenceBinding)binding;
+  }
+  for (  char[] part : compoundName) {
+    if (Character.isDigit(part[0])) {
+      return new ReferenceBinding(){
+{
+          tagBits=TagBits.IsAnonymousType;
+        }
+      }
+;
+    }
+  }
+  return null;
+}

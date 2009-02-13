@@ -1,0 +1,40 @@
+{
+  Map<String,Set<String>> errors=new LinkedHashMap<String,Set<String>>();
+  FindJsniRefVisitor sloppyRefsVisitor=new FindJsniRefVisitor();
+  sloppyRefsVisitor.beSloppy();
+  meth.traverse(sloppyRefsVisitor,scope);
+  for (  String jsniRefString : sloppyRefsVisitor.getJsniRefs()) {
+    JsniRef jsniRef=JsniRef.parse(jsniRefString);
+    if (jsniRef != null) {
+      Set<String> refErrors=new LinkedHashSet<String>();
+      ReferenceBinding clazz=findClass(jsniRef);
+      if (clazz != null) {
+        if (clazz.isAnonymousType()) {
+          GWTProblem.recordInCud(ProblemSeverities.Warning,meth,cud,"Referencing class '" + jsniRef.className() + ": JSNI references to anonymous classes are deprecated",null);
+        }
+ else {
+          if (jsniRef.isMethod()) {
+            checkMethodRef(clazz,jsniRef,refErrors);
+          }
+ else {
+            checkFieldRef(clazz,jsniRef,refErrors);
+          }
+          if (!refErrors.isEmpty()) {
+            errors.put(jsniRefString,refErrors);
+          }
+        }
+      }
+    }
+  }
+  if (!errors.isEmpty()) {
+    FindJsniRefVisitor jsniRefsVisitor=new FindJsniRefVisitor();
+    meth.traverse(jsniRefsVisitor,scope);
+    for (    String jsniRefString : jsniRefsVisitor.getJsniRefs()) {
+      if (errors.containsKey(jsniRefString)) {
+        for (        String err : errors.get(jsniRefString)) {
+          longAccessError(meth,err);
+        }
+      }
+    }
+  }
+}
