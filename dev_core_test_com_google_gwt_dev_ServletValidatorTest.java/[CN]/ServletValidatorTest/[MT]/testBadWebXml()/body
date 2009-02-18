@@ -1,0 +1,11 @@
+{
+  UnitTestTreeLogger.Builder builder=new UnitTestTreeLogger.Builder();
+  builder.setLowestLogLevel(TreeLogger.WARN);
+  URL url=this.getClass().getResource("invalid.web.xml");
+  assertNotNull(url);
+  builder.expectWarn("Unable to process '" + url.toExternalForm() + "' for servlet validation",SAXParseException.class);
+  UnitTestTreeLogger logger=builder.createLogger();
+  ServletValidator validator=ServletValidator.create(logger,url);
+  assertNull(validator);
+  logger.assertCorrectLogEntries();
+}

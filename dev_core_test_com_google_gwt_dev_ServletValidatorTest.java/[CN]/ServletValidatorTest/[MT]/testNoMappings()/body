@@ -1,0 +1,11 @@
+{
+  ServletValidator validator=createValidator();
+  assertTrue(validator.containsServletClass("org.test.NoMappings"));
+  assertFalse(validator.containsServletMapping("org.test.NoMappings","/no/mapping"));
+  UnitTestTreeLogger.Builder builder=new UnitTestTreeLogger.Builder();
+  builder.setLowestLogLevel(TreeLogger.WARN);
+  builder.expectWarn(ServletValidator.generateMissingMappingMessage("org.test.NoMappings","/no/mapping","noMappings"),null);
+  UnitTestTreeLogger logger=builder.createLogger();
+  validator.validate(logger,"org.test.NoMappings","/no/mapping");
+  logger.assertCorrectLogEntries();
+}

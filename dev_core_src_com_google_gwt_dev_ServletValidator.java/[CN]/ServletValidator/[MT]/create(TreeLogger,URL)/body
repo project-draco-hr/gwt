@@ -1,0 +1,32 @@
+{
+  String webXmlUrlString=webXmlUrl.toExternalForm();
+  try {
+    WebXmlConfiguration wxc=new WebXmlConfiguration();
+    ServletHandler myServletHandler=new ServletHandler();
+    wxc.setWebAppContext(new WebAppContext(null,null,myServletHandler,null));
+    wxc.configure(webXmlUrlString);
+    ServletMapping[] mappings=myServletHandler.getServletMappings();
+    ServletHolder[] servlets=myServletHandler.getServlets();
+    Map<String,String> servletNameToClassName=new HashMap<String,String>();
+    Map<String,Set<String>> classNameToPaths=new HashMap<String,Set<String>>();
+    Map<String,String> classNameToServletName=new HashMap<String,String>();
+    for (    ServletHolder servlet : servlets) {
+      servletNameToClassName.put(servlet.getName(),servlet.getClassName());
+      classNameToServletName.put(servlet.getClassName(),servlet.getName());
+      classNameToPaths.put(servlet.getClassName(),new HashSet<String>());
+    }
+    for (    ServletMapping mapping : mappings) {
+      String servletName=mapping.getServletName();
+      String className=servletNameToClassName.get(servletName);
+      assert(className != null);
+      Set<String> paths=classNameToPaths.get(className);
+      assert(paths != null);
+      paths.addAll(Arrays.asList(mapping.getPathSpecs()));
+    }
+    return new ServletValidator(classNameToServletName,classNameToPaths);
+  }
+ catch (  Exception e) {
+    logger.log(TreeLogger.WARN,"Unable to process '" + webXmlUrlString + "' for servlet validation",e);
+    return null;
+  }
+}
