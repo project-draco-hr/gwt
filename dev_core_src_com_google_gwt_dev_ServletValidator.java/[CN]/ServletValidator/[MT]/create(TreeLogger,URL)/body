@@ -1,6 +1,8 @@
 {
   String webXmlUrlString=webXmlUrl.toExternalForm();
+  String oldProp=System.getProperty("org.mortbay.xml.XmlParser.Validating","false");
   try {
+    System.setProperty("org.mortbay.xml.XmlParser.Validating","false");
     WebXmlConfiguration wxc=new WebXmlConfiguration();
     ServletHandler myServletHandler=new ServletHandler();
     wxc.setWebAppContext(new WebAppContext(null,null,myServletHandler,null));
@@ -28,5 +30,8 @@
  catch (  Exception e) {
     logger.log(TreeLogger.WARN,"Unable to process '" + webXmlUrlString + "' for servlet validation",e);
     return null;
+  }
+ finally {
+    System.setProperty("org.mortbay.xml.XmlParser.Validating",oldProp);
   }
 }
