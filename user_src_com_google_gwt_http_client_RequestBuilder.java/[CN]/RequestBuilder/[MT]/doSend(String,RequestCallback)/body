@@ -1,25 +1,37 @@
 {
-  JavaScriptObject xmlHttpRequest=httpRequest.createXmlHTTPRequest();
-  String openError;
-  if (user != null && password != null) {
-    openError=XMLHTTPRequest.open(xmlHttpRequest,httpMethod,url,true,user,password);
-  }
- else   if (user != null) {
-    openError=XMLHTTPRequest.open(xmlHttpRequest,httpMethod,url,true,user);
-  }
+  XMLHttpRequest xmlHttpRequest=XMLHttpRequest.create();
+  try {
+    if (user != null && password != null) {
+      xmlHttpRequest.open(httpMethod,url,user,password);
+    }
+ else     if (user != null) {
+      xmlHttpRequest.open(httpMethod,url,user);
+    }
  else {
-    openError=XMLHTTPRequest.open(xmlHttpRequest,httpMethod,url,true);
+      xmlHttpRequest.open(httpMethod,url);
+    }
   }
-  if (openError != null) {
+ catch (  JavaScriptException e) {
     RequestPermissionException requestPermissionException=new RequestPermissionException(url);
-    requestPermissionException.initCause(new RequestException(openError));
+    requestPermissionException.initCause(new RequestException(e.getMessage()));
     throw requestPermissionException;
   }
   setHeaders(xmlHttpRequest);
-  Request request=new Request(xmlHttpRequest,timeoutMillis,callback);
-  String sendError=XMLHTTPRequest.send(xmlHttpRequest,request,requestData,callback);
-  if (sendError != null) {
-    throw new RequestException(sendError);
+  final Request request=new Request(xmlHttpRequest,timeoutMillis,callback);
+  xmlHttpRequest.setOnReadyStateChange(new ReadyStateChangeHandler(){
+    public void onReadyStateChange(    XMLHttpRequest xhr){
+      if (xhr.getReadyState() == XMLHttpRequest.DONE) {
+        xhr.clearOnReadyStateChange();
+        request.fireOnResponseReceived(callback);
+      }
+    }
+  }
+);
+  try {
+    xmlHttpRequest.send(requestData);
+  }
+ catch (  JavaScriptException e) {
+    throw new RequestException(e.getMessage());
   }
   return request;
 }
