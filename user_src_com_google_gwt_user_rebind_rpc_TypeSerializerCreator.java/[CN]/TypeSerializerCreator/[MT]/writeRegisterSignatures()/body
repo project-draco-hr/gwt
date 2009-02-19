@@ -1,0 +1,34 @@
+{
+  srcWriter.println("private static native void registerSignatures() /*-{");
+  srcWriter.indent();
+  int index=0;
+  for (  JType type : getSerializableTypes()) {
+    String typeString;
+    if (elideTypeNames) {
+      typeString=Integer.toString(++index,Character.MAX_RADIX);
+    }
+ else {
+      typeString=getTypeString(type);
+    }
+    typeStrings.put(type,typeString);
+    if (!serializationOracle.maybeInstantiated(type) && !deserializationOracle.maybeInstantiated(type)) {
+      continue;
+    }
+    String jsniTypeRef;
+    jsniTypeRef=TypeOracleMediator.computeBinaryClassName(type.getLeafType());
+    while (type.isArray() != null) {
+      jsniTypeRef+="[]";
+      type=type.isArray().getComponentType();
+    }
+    srcWriter.println("@com.google.gwt.user.client.rpc.impl.SerializerBase" + "::registerSignature(" + "Lcom/google/gwt/core/client/JsArrayString;"+ "Ljava/lang/Class;"+ "Ljava/lang/String;)(");
+    srcWriter.indent();
+    srcWriter.println("@" + typeSerializerClassName + "::signatureMap,");
+    srcWriter.println("@" + jsniTypeRef + "::class,");
+    srcWriter.println("\"" + typeString + "\");");
+    srcWriter.outdent();
+    srcWriter.println();
+  }
+  srcWriter.outdent();
+  srcWriter.println("}-*/;");
+  srcWriter.println();
+}

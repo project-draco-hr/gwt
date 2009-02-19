@@ -5,9 +5,9 @@
     return null;
   }
   String className=parsed.className();
-  JReferenceType type=null;
+  JType type=null;
   if (!className.equals("null")) {
-    type=program.getFromTypeMap(className);
+    type=program.getTypeFromJsniRef(className);
     if (type == null) {
       reportJsniError(info,methodDecl,"Unresolvable native reference to type '" + className + "'");
       return null;
@@ -20,15 +20,31 @@
         return program.getNullField();
       }
     }
+ else     if (fieldName.equals("class")) {
+      JClassLiteral lit=program.getLiteralClass(type);
+      return lit.getField();
+    }
+ else     if (type instanceof JPrimitiveType) {
+      reportJsniError(info,methodDecl,"May not refer to fields on primitive types");
+      return null;
+    }
+ else     if (type instanceof JArrayType) {
+      reportJsniError(info,methodDecl,"May not refer to fields on array types");
+      return null;
+    }
  else {
-      for (int i=0; i < type.fields.size(); ++i) {
-        JField field=type.fields.get(i);
+      for (int i=0; i < ((JReferenceType)type).fields.size(); ++i) {
+        JField field=((JReferenceType)type).fields.get(i);
         if (field.getName().equals(fieldName)) {
           return field;
         }
       }
     }
     reportJsniError(info,methodDecl,"Unresolvable native reference to field '" + fieldName + "' in type '"+ className+ "'");
+    return null;
+  }
+ else   if (type instanceof JPrimitiveType) {
+    reportJsniError(info,methodDecl,"May not refer to methods on primitive types");
     return null;
   }
  else {
@@ -42,7 +58,7 @@
     }
  else {
       Queue<JReferenceType> workList=new LinkedList<JReferenceType>();
-      workList.add(type);
+      workList.add((JReferenceType)type);
       while (!workList.isEmpty()) {
         JReferenceType cur=workList.poll();
         for (int i=0; i < cur.methods.size(); ++i) {

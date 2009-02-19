@@ -1,0 +1,26 @@
+{
+class TestPolicy extends SerializationPolicy implements TypeNameObfuscator {
+    private static final String C_NAME="__c__";
+    public String getClassNameForTypeId(    String id) throws SerializationException {
+      assertEquals(C_NAME,id);
+      return C.class.getName();
+    }
+    public String getTypeIdForClass(    Class<?> clazz) throws SerializationException {
+      assertEquals(C.class,clazz);
+      return C_NAME;
+    }
+    @Override public boolean shouldDeserializeFields(    Class<?> clazz){
+      return C.class.equals(clazz);
+    }
+    @Override public boolean shouldSerializeFields(    Class<?> clazz){
+      return C.class.equals(clazz);
+    }
+    @Override public void validateDeserialize(    Class<?> clazz) throws SerializationException {
+    }
+    @Override public void validateSerialize(    Class<?> clazz) throws SerializationException {
+    }
+  }
+  String rpc=RPC.encodeResponseForSuccess(CC.class.getMethod("c"),new C(),new TestPolicy(),AbstractSerializationStream.FLAG_ELIDE_TYPE_NAMES);
+  assertTrue(rpc.contains(TestPolicy.C_NAME));
+  assertFalse(rpc.contains(C.class.getName()));
+}

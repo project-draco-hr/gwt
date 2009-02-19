@@ -9,9 +9,15 @@
   if (blacklist.contains(f)) {
     return;
   }
-  List<JsName> localVariableNames=new ArrayList<JsName>();
-  List<JsStatement> statements=new ArrayList<JsStatement>(f.getBody().getStatements());
+  List<JsStatement> statements;
+  if (f.getBody() != null) {
+    statements=new ArrayList<JsStatement>(f.getBody().getStatements());
+  }
+ else {
+    statements=Collections.emptyList();
+  }
   List<JsExpression> hoisted=new ArrayList<JsExpression>(statements.size());
+  List<JsName> localVariableNames=new ArrayList<JsName>();
   boolean sawReturnStatement=false;
   for (  JsStatement statement : statements) {
     if (sawReturnStatement) {
@@ -21,9 +27,12 @@
     if (h == null) {
       return;
     }
-    hoisted.add(h);
     if (isReturnStatement(statement)) {
       sawReturnStatement=true;
+      hoisted.add(h);
+    }
+ else     if (hasSideEffects(Collections.singletonList(h))) {
+      hoisted.add(h);
     }
   }
   if (!sawReturnStatement) {
@@ -57,11 +66,14 @@
     nameIterator.set(newName);
   }
   op=v.accept(op);
-  op=(new CommaNormalizer()).accept(op);
+  op=(new CommaNormalizer(localVariableNames)).accept(op);
   int originalComplexity=complexity(x);
   int inlinedComplexity=complexity(op);
   double ratio=((double)inlinedComplexity) / originalComplexity;
   if (ratio > MAX_COMPLEXITY_INCREASE && isInvokedMoreThanOnce(f)) {
+    return;
+  }
+  if (functionStack.peek() == programFunction && localVariableNames.size() > 0) {
     return;
   }
   newLocalVariableStack.peek().addAll(localVariableNames);

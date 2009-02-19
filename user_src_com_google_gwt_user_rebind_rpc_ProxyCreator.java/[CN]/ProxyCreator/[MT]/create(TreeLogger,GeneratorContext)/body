@@ -27,6 +27,13 @@
     logger.log(TreeLogger.ERROR,"",e);
     throw new UnableToCompleteException();
   }
+  try {
+    elideTypeNames=Boolean.parseBoolean(context.getPropertyOracle().getPropertyValue(logger,TypeSerializerCreator.GWT_ELIDE_TYPE_NAMES_FROM_RPC));
+  }
+ catch (  BadPropertyValueException e) {
+    logger.log(TreeLogger.ERROR,"Configuration property " + TypeSerializerCreator.GWT_ELIDE_TYPE_NAMES_FROM_RPC + " is not defined. Is RemoteService.gwt.xml inherited?");
+    throw new UnableToCompleteException();
+  }
   OutputStream pathInfo=context.tryCreateResource(logger,serviceIntf.getQualifiedSourceName() + ".rpc.log");
   typesSentFromBrowserBuilder.setLogOutputStream(pathInfo);
   SerializableTypeOracle typesSentFromBrowser=typesSentFromBrowserBuilder.build(logger);
@@ -36,10 +43,16 @@
   }
   TypeSerializerCreator tsc=new TypeSerializerCreator(logger,typesSentFromBrowser,typesSentToBrowser,context,SerializationUtils.getTypeSerializerQualifiedName(serviceIntf));
   tsc.realize(logger);
+  typeStrings=new HashMap<JType,String>(tsc.getTypeStrings());
+  typeStrings.put(serviceIntf,TypeNameObfuscator.SERVICE_INTERFACE_ID);
   String serializationPolicyStrongName=writeSerializationPolicyFile(logger,context,typesSentFromBrowser,typesSentToBrowser);
-  generateProxyFields(srcWriter,typesSentFromBrowser,serializationPolicyStrongName);
+  String remoteServiceInterfaceName=elideTypeNames ? TypeNameObfuscator.SERVICE_INTERFACE_ID : TypeOracleMediator.computeBinaryClassName(serviceIntf);
+  generateProxyFields(srcWriter,typesSentFromBrowser,serializationPolicyStrongName,remoteServiceInterfaceName);
   generateProxyContructor(javadocAnnotationDeprecationBranch,srcWriter);
   generateProxyMethods(srcWriter,typesSentFromBrowser,syncMethToAsyncMethMap);
+  if (elideTypeNames) {
+    generateStreamWriterOverride(srcWriter);
+  }
   srcWriter.commit(logger);
   return getProxyQualifiedName();
 }

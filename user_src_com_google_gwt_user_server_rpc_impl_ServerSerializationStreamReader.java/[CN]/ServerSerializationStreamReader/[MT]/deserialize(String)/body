@@ -1,11 +1,24 @@
 {
   Object instance=null;
-  SerializedInstanceReference serializedInstRef=SerializabilityUtil.decodeSerializedInstanceReference(typeSignature);
   try {
-    Class<?> instanceClass=Class.forName(serializedInstRef.getName(),false,classLoader);
+    Class<?> instanceClass;
+    if (hasFlags(FLAG_ELIDE_TYPE_NAMES)) {
+      if (getSerializationPolicy() instanceof TypeNameObfuscator) {
+        TypeNameObfuscator obfuscator=(TypeNameObfuscator)getSerializationPolicy();
+        String instanceClassName=obfuscator.getClassNameForTypeId(typeSignature);
+        instanceClass=Class.forName(instanceClassName,false,classLoader);
+      }
+ else {
+        throw new SerializationException("The GWT module was compiled with RPC type name elision enabled, but " + getSerializationPolicy().getClass().getName() + " does not implement "+ TypeNameObfuscator.class.getName());
+      }
+    }
+ else {
+      SerializedInstanceReference serializedInstRef=SerializabilityUtil.decodeSerializedInstanceReference(typeSignature);
+      instanceClass=Class.forName(serializedInstRef.getName(),false,classLoader);
+      validateTypeVersions(instanceClass,serializedInstRef);
+    }
     assert(serializationPolicy != null);
     serializationPolicy.validateDeserialize(instanceClass);
-    validateTypeVersions(instanceClass,serializedInstRef);
     Class<?> customSerializer=SerializabilityUtil.hasCustomFieldSerializer(instanceClass);
     int index=reserveDecodedObjectIndex();
     instance=instantiate(customSerializer,instanceClass);

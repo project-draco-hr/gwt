@@ -2,8 +2,9 @@
   try {
     ByteArrayOutputStream baos=new ByteArrayOutputStream();
     OutputStreamWriter osw=new OutputStreamWriter(baos,SerializationPolicyLoader.SERIALIZATION_POLICY_FILE_ENCODING);
+    TypeOracle oracle=ctx.getTypeOracle();
     PrintWriter pw=new PrintWriter(osw);
-    JType[] serializableTypes=unionOfTypeArrays(serializationSto.getSerializableTypes(),deserializationSto.getSerializableTypes());
+    JType[] serializableTypes=unionOfTypeArrays(serializationSto.getSerializableTypes(),deserializationSto.getSerializableTypes(),new JType[]{serviceIntf});
     for (int i=0; i < serializableTypes.length; ++i) {
       JType type=serializableTypes[i];
       String binaryTypeName=TypeOracleMediator.computeBinaryClassName(type);
@@ -11,7 +12,10 @@
       pw.print(", " + Boolean.toString(deserializationSto.isSerializable(type)));
       pw.print(", " + Boolean.toString(deserializationSto.maybeInstantiated(type)));
       pw.print(", " + Boolean.toString(serializationSto.isSerializable(type)));
-      pw.print(", " + Boolean.toString(serializationSto.maybeInstantiated(type)) + '\n');
+      pw.print(", " + Boolean.toString(serializationSto.maybeInstantiated(type)));
+      pw.print(", " + typeStrings.get(type));
+      pw.print(", " + SerializationUtils.getSerializationSignature(oracle,type));
+      pw.print('\n');
     }
     pw.close();
     byte[] serializationPolicyFileContents=baos.toByteArray();

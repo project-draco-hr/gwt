@@ -8,9 +8,18 @@
   typesSet.addAll(Arrays.asList(serializationOracle.getSerializableTypes()));
   typesSet.addAll(Arrays.asList(deserializationOracle.getSerializableTypes()));
   serializableTypes=typesSet.toArray(new JType[0]);
+  Arrays.sort(serializableTypes,SerializableTypeOracleBuilder.JTYPE_COMPARATOR);
   srcWriter=getSourceWriter(logger,context);
   if (shardSize < 0) {
     computeShardSize(logger);
   }
   logger.log(TreeLogger.TRACE,"Using a shard size of " + shardSize + " for TypeSerializerCreator createMethodMap");
+  try {
+    String value=context.getPropertyOracle().getPropertyValue(logger,GWT_ELIDE_TYPE_NAMES_FROM_RPC);
+    elideTypeNames=Boolean.parseBoolean(value);
+  }
+ catch (  BadPropertyValueException e) {
+    logger.log(TreeLogger.ERROR,"The configuration property " + GWT_ELIDE_TYPE_NAMES_FROM_RPC + " was not defined. Is RemoteService.gwt.xml inherited?");
+    throw new UnableToCompleteException();
+  }
 }

@@ -1,0 +1,17 @@
+{
+  int index;
+  if (streamReader.hasFlags(AbstractSerializationStream.FLAG_ELIDE_TYPE_NAMES)) {
+    SerializationPolicy serializationPolicy=streamReader.getSerializationPolicy();
+    if (!(serializationPolicy instanceof TypeNameObfuscator)) {
+      throw new IncompatibleRemoteServiceException("RPC request was encoded with obfuscated type names, " + "but the SerializationPolicy in use does not implement " + TypeNameObfuscator.class.getName());
+    }
+    String maybe=((TypeNameObfuscator)serializationPolicy).getClassNameForTypeId(name);
+    if (maybe != null) {
+      return maybe;
+    }
+  }
+ else   if ((index=name.indexOf('/')) != -1) {
+    return name.substring(0,index);
+  }
+  return name;
+}

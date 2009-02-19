@@ -9,7 +9,7 @@
   try {
     ServerSerializationStreamReader streamReader=new ServerSerializationStreamReader(classLoader,serializationPolicyProvider);
     streamReader.prepareToRead(encodedRequest);
-    String serviceIntfName=streamReader.readString();
+    String serviceIntfName=maybeDeobfuscate(streamReader,streamReader.readString());
     if (type != null) {
       if (!implementsInterface(type,serviceIntfName)) {
         throw new IncompatibleRemoteServiceException("Blocked attempt to access interface '" + serviceIntfName + "', which is not implemented by '"+ printTypeName(type)+ "'; this is either misconfiguration or a hack attempt");
@@ -30,7 +30,7 @@
     int paramCount=streamReader.readInt();
     Class<?>[] parameterTypes=new Class[paramCount];
     for (int i=0; i < parameterTypes.length; i++) {
-      String paramClassName=streamReader.readString();
+      String paramClassName=maybeDeobfuscate(streamReader,streamReader.readString());
       try {
         parameterTypes[i]=getClassFromSerializedName(paramClassName,classLoader);
       }
@@ -44,7 +44,7 @@
       for (int i=0; i < parameterValues.length; i++) {
         parameterValues[i]=streamReader.deserializeValue(parameterTypes[i]);
       }
-      return new RPCRequest(method,parameterValues,serializationPolicy);
+      return new RPCRequest(method,parameterValues,serializationPolicy,streamReader.getFlags());
     }
  catch (    NoSuchMethodException e) {
       throw new IncompatibleRemoteServiceException(formatMethodNotFoundErrorMessage(serviceIntf,serviceMethodName,parameterTypes));
