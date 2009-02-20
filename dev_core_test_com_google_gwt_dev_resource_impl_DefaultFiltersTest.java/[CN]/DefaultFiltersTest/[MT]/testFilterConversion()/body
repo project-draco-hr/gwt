@@ -1,0 +1,27 @@
+{
+  List<String> nullFilters=Arrays.asList(new String[]{"***/testing/**","**/{/**","**/}/**","**/+/**","**/testing/","**/testing/**/"});
+  List<String> okayFilters=new ArrayList<String>();
+  okayFilters.addAll(Arrays.asList(new String[]{"**/#/**","**/~/**","Foo","Bar","foo/**","foo/*Test*java","**/testing/**","**/testing/**/Foo*Bar*.java","**/testing/**/Foo$*r.class"}));
+  String doubleStarPrefixes[]={"","/","**/","/**/","foo**/","/foo**/"};
+  String doubleStarSuffixes[]={"","/**","/**foo"};
+  String middleString="testing";
+  for (  String doubleStarPrefix : doubleStarPrefixes) {
+    for (    String doubleStarSuffix : doubleStarSuffixes) {
+      okayFilters.add(doubleStarPrefix + middleString + doubleStarSuffix);
+    }
+  }
+  List<String> testPaths=getMiscPaths("testing",false);
+  DefaultFilters filters=new DefaultFilters();
+  for (  String filter : nullFilters) {
+    assertNull(filter + " conversion should be null",filters.getPatternFromAntPattern(filter));
+  }
+  for (  String filter : okayFilters) {
+    String pattern=filters.getPatternFromAntPattern(filter);
+    assertNotNull(filter + " conversion should be non-null",pattern);
+    ResourceFilterString antFilterString=getAntFilter(new String[]{filter},EMPTY_ARRAY,DEFAULT_EXCLUDES,NOT_JAVA,"ant_" + filter);
+    ResourceFilterString customFilterString=new ResourceFilterString(filters.customFilterWithCatchAll(new String[]{filter},EMPTY_ARRAY,true,null,NOT_JAVA),"custom_" + pattern);
+    for (    String path : testPaths) {
+      assertEquals(path,antFilterString,customFilterString);
+    }
+  }
+}

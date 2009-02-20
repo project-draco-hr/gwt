@@ -1,0 +1,21 @@
+{
+  if (list.length == 0) {
+    return defaultValue ? defaultAntIncludes : rejectAll;
+  }
+  String patternStrings[]=new String[list.length];
+  int count=0;
+  for (  String antPatternString : list) {
+    String patternString=getPatternFromAntPattern(antPatternString);
+    if (patternString == null) {
+      return null;
+    }
+    patternStrings[count++]=patternString;
+  }
+  final Pattern pattern=getPatternFromStrings(patternStrings);
+  return new ResourceFilter(){
+    public boolean allows(    String path){
+      return pattern.matcher(path).matches();
+    }
+  }
+;
+}
