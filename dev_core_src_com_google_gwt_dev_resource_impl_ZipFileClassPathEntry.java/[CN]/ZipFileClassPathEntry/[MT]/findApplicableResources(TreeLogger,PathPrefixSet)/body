@@ -2,10 +2,10 @@
   if (allZipFileResources == null) {
     allZipFileResources=buildIndex(logger);
   }
-  if (cachedAnswers == null || lastPrefixSet != pathPrefixSet || lastPrefixSetSize != pathPrefixSet.getSize()) {
-    cachedAnswers=computeApplicableResources(logger,pathPrefixSet);
-    lastPrefixSet=pathPrefixSet;
-    lastPrefixSetSize=pathPrefixSet.getSize();
+  ZipFileSnapshot snapshot=cachedSnapshots.get(pathPrefixSet);
+  if (snapshot == null || snapshot.prefixSetSize != pathPrefixSet.getSize()) {
+    snapshot=new ZipFileSnapshot(pathPrefixSet.getSize(),computeApplicableResources(logger,pathPrefixSet));
+    cachedSnapshots.put(pathPrefixSet,snapshot);
   }
-  return cachedAnswers;
+  return snapshot.cachedAnswers;
 }
