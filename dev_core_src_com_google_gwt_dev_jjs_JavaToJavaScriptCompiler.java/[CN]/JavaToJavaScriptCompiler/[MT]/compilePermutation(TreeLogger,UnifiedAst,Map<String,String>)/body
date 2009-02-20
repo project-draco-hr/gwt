@@ -9,6 +9,7 @@
     JProgram jprogram=ast.getJProgram();
     JsProgram jsProgram=ast.getJsProgram();
     JJSOptions options=unifiedAst.getOptions();
+    Map<String,JsName> symbolTable=new HashMap<String,JsName>();
     ResolveRebinds.exec(jprogram,rebindAnswers);
     optimize(options,jprogram);
     LongCastNormalizer.exec(jprogram);
@@ -21,7 +22,7 @@
     EqualityNormalizer.exec(jprogram);
     Pruner.exec(jprogram,false);
     jprogram.typeOracle.recomputeAfterOptimizations();
-    final JavaToJavaScriptMap map=GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput());
+    JavaToJavaScriptMap map=GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput(),symbolTable);
     JsNormalizer.exec(jsProgram);
     JsSymbolResolver.exec(jsProgram);
     EvalFunctionsAtTopScope.exec(jsProgram);
@@ -77,7 +78,8 @@ v.accept(jsProgram.getFragmentBlock(i));
 js[i]=out.toString();
 }
 }
-PermutationResult toReturn=new PermutationResultImpl(js);
+SortedMap<String,String> symbolMap=makeSymbolMap(symbolTable);
+PermutationResult toReturn=new PermutationResultImpl(js,symbolMap);
 if (sourceInfoMaps != null) {
 toReturn.getArtifacts().add(new StandardCompilationAnalysis(logger,sourceInfoMaps,jprogram.getSplitPointMap()));
 }

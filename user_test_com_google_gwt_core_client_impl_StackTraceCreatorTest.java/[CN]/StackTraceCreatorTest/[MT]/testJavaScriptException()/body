@@ -1,0 +1,27 @@
+{
+  StackTraceElement[] stack=null;
+  try {
+    throwNative();
+  }
+ catch (  JavaScriptException e) {
+    stack=e.getStackTrace();
+  }
+  assertNotNull(stack);
+  String myName=null;
+  if (!GWT.isScript()) {
+    myName="testJavaScriptException";
+  }
+ else   if (GWT.<Collector>create(Collector.class) instanceof CollectorMoz) {
+    myName=throwNativeName();
+  }
+  if (myName != null) {
+    boolean found=false;
+    for (    StackTraceElement elt : stack) {
+      if (elt.getMethodName().equals(myName)) {
+        found=true;
+        break;
+      }
+    }
+    assertTrue("Did not find " + myName + " in the stack "+ stack,found);
+  }
+}
