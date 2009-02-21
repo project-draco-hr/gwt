@@ -1,25 +1,17 @@
 {
-  if (!GWT.isScript()) {
-    return;
-  }
-  String myName=testStackTracesName();
-  StackTraceElement[] stack;
+  Throwable t;
   try {
     throw new RuntimeException();
   }
- catch (  Throwable t) {
-    stack=t.getStackTrace();
+ catch (  Throwable t2) {
+    t=t2;
   }
-  assertNotNull(stack);
-  assertTrue(stack.length > 0);
-  boolean found=false;
-  for (int i=0, j=stack.length; i < j; i++) {
-    StackTraceElement elt=stack[i];
-    String value=elt.getMethodName();
-    assertNotNull(value);
-    assertTrue(value.length() > 0);
-    assertEquals(value.length(),value.trim().length());
-    found|=myName.equals(value);
+  String myName=null;
+  if (!GWT.isScript()) {
+    myName="testStackTraces";
   }
-  assertTrue("Did not find " + myName + " in the stack "+ stack,found);
+ else {
+    myName=testStackTracesName();
+  }
+  checkStack(myName,t);
 }
