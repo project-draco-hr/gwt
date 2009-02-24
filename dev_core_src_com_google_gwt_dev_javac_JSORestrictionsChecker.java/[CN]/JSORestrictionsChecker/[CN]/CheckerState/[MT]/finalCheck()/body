@@ -1,2 +1,28 @@
 {
+  Map<String,TypeDeclaration> singleImplementations=new HashMap<String,TypeDeclaration>();
+  for (  Map.Entry<TypeDeclaration,Set<String>> entry : jsoImplsToInterfaces.entrySet()) {
+    TypeDeclaration node=entry.getKey();
+    for (    String intfName : entry.getValue()) {
+      if (!singleImplementations.containsKey(intfName)) {
+        singleImplementations.put(intfName,node);
+      }
+ else {
+        TypeDeclaration previous=singleImplementations.get(intfName);
+        if (!(hasSupertypeNamed(node,previous.binding.compoundName) || hasSupertypeNamed(previous,node.binding.compoundName))) {
+          String nodeName=CharOperation.toString(node.binding.compoundName);
+          String previousName=CharOperation.toString(previous.binding.compoundName);
+          if (nodeName.compareTo(previousName) < 0) {
+            String msg=errAlreadyImplemented(intfName,nodeName,previousName);
+            errorOn(node,nodesToCuds.get(node),msg);
+            errorOn(previous,nodesToCuds.get(previous),msg);
+          }
+ else {
+            String msg=errAlreadyImplemented(intfName,previousName,nodeName);
+            errorOn(previous,nodesToCuds.get(previous),msg);
+            errorOn(node,nodesToCuds.get(node),msg);
+          }
+        }
+      }
+    }
+  }
 }

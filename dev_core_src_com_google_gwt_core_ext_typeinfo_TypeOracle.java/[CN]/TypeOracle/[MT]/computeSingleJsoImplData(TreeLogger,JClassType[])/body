@@ -1,0 +1,32 @@
+{
+  JClassType jsoType=findType(JsValueGlue.JSO_CLASS);
+  if (jsoType == null) {
+    return;
+  }
+  for (  JClassType type : newTypes) {
+    if (!jsoType.isAssignableFrom(type)) {
+      continue;
+    }
+    for (    JClassType intf : JClassType.getFlattenedSuperTypeHierarchy(type)) {
+      if (intf.isInterface() == null) {
+        continue;
+      }
+      if (intf.getOverridableMethods().length == 0) {
+        jsoSingleImpls.put(intf,jsoType);
+        continue;
+      }
+      JClassType previousType=jsoSingleImpls.get(intf);
+      if (previousType == null) {
+        jsoSingleImpls.put(intf,type);
+      }
+ else       if (type.isAssignableFrom(previousType)) {
+        jsoSingleImpls.put(intf,type);
+      }
+ else       if (type.isAssignableTo(previousType)) {
+      }
+ else {
+        logger.log(TreeLogger.ERROR,"Already seen an implementing JSO subtype (" + previousType.getName() + ") for interface ("+ intf.getName()+ ") while examining newly-added type ("+ type.getName()+ "). This is a bug in "+ "JSORestrictionsChecker.");
+      }
+    }
+  }
+}
