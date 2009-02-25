@@ -16,6 +16,9 @@
       return false;
     }
     Permutation[] perms=precompilation.getPermutations();
+    ArtifactSet generatedArtifacts=precompilation.getGeneratedArtifacts();
+    JJSOptions precompileOptions=precompilation.getUnifiedAst().getOptions();
+    precompilation=null;
     List<FileBackedObject<PermutationResult>> resultFiles=new ArrayList<FileBackedObject<PermutationResult>>(perms.length);
     for (int i=0; i < perms.length; ++i) {
       File f=CompilePerms.makePermFilename(compilerWorkDir,perms[i].getId());
@@ -26,8 +29,8 @@
       resultFiles.add(new FileBackedObject<PermutationResult>(PermutationResult.class,f));
     }
     TreeLogger branch=logger.branch(TreeLogger.INFO,"Linking module " + module.getName());
-    StandardLinkerContext linkerContext=new StandardLinkerContext(branch,module,precompilation.getUnifiedAst().getOptions());
-    ArtifactSet artifacts=doLink(branch,linkerContext,precompilation,resultFiles);
+    StandardLinkerContext linkerContext=new StandardLinkerContext(branch,module,precompileOptions);
+    ArtifactSet artifacts=doLink(branch,linkerContext,generatedArtifacts,perms,resultFiles);
     if (options.getOutDir() == null) {
       doProduceOutput(branch,artifacts,linkerContext,module,options.getWarDir(),options.getExtraDir());
     }

@@ -24,7 +24,10 @@
         Permutation[] allPerms=precompilation.getPermutations();
         List<FileBackedObject<PermutationResult>> resultFiles=CompilePerms.makeResultFiles(options.getCompilerWorkDir(moduleName),allPerms);
         CompilePerms.compile(logger,precompilation,allPerms,options.getLocalWorkers(),resultFiles);
-        Link.legacyLink(logger.branch(TreeLogger.INFO,"Linking into " + options.getOutDir().getPath()),module,precompilation,resultFiles,options.getOutDir());
+        ArtifactSet generatedArtifacts=precompilation.getGeneratedArtifacts();
+        JJSOptions precompileOptions=precompilation.getUnifiedAst().getOptions();
+        precompilation=null;
+        Link.legacyLink(logger.branch(TreeLogger.INFO,"Linking into " + options.getOutDir().getPath()),module,generatedArtifacts,allPerms,resultFiles,options.getOutDir(),precompileOptions);
         long compileDone=System.currentTimeMillis();
         long delta=compileDone - compileStart;
         logger.log(TreeLogger.INFO,"Compilation succeeded -- " + String.format("%.3f",delta / 1000d) + "s");
