@@ -1,15 +1,26 @@
 {
+  TypeOracle oracle=compilationState.getTypeOracle();
+  Set<JClassType> intfTypes=oracle.getSingleJsoImplInterfaces();
   Map<String,CompiledClass> classMapBySource=compilationState.getClassFileMapBySource();
-  ICompilationUnit[] icus=new ICompilationUnit[seedTypeNames.length];
-  for (int i=0; i < seedTypeNames.length; i++) {
-    String seedTypeName=seedTypeNames[i];
-    CompiledClass compiledClass=classMapBySource.get(seedTypeName);
-    if (compiledClass == null) {
-      logger.log(TreeLogger.ERROR,"Unable to find compilation unit for type '" + seedTypeName + "'");
-      throw new UnableToCompleteException();
+  Set<CompilationUnit> alreadyAdded=new HashSet<CompilationUnit>();
+  List<ICompilationUnit> icus=new ArrayList<ICompilationUnit>(seedTypeNames.length + intfTypes.size());
+  for (  String seedTypeName : seedTypeNames) {
+    CompilationUnit unit=getUnitForType(logger,classMapBySource,seedTypeName);
+    if (alreadyAdded.add(unit)) {
+      icus.add(new CompilationUnitAdapter(unit));
     }
-    icus[i]=new CompilationUnitAdapter(compiledClass.getUnit());
+ else {
+      logger.log(TreeLogger.WARN,"Duplicate compilation unit '" + unit.getDisplayLocation() + "'in seed types");
+    }
   }
-  CompilationUnitDeclaration[] cuds=compile(logger,icus);
+  for (  JClassType intf : intfTypes) {
+    String implName=oracle.getSingleJsoImpl(intf).getQualifiedSourceName();
+    CompilationUnit unit=getUnitForType(logger,classMapBySource,implName);
+    if (alreadyAdded.add(unit)) {
+      icus.add(new CompilationUnitAdapter(unit));
+      logger.log(TreeLogger.SPAM,"Forced compilation of unit '" + unit.getDisplayLocation() + "' becasue it contains a SingleJsoImpl type");
+    }
+  }
+  CompilationUnitDeclaration[] cuds=compile(logger,icus.toArray(new ICompilationUnit[icus.size()]));
   return cuds;
 }
