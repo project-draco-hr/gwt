@@ -1,0 +1,66 @@
+{
+  String targetPath=tree.getPath();
+  String localizedPath=targetPath;
+  if (!locale.isDefault()) {
+    localizedPath=targetPath + LOCALE_SEPARATOR + locale.getAsString();
+  }
+  if (seenPaths.contains(localizedPath)) {
+    return;
+  }
+  seenPaths.add(localizedPath);
+  ClassLoader loader=AbstractResource.class.getClassLoader();
+  Map<String,JClassType> matchingClasses=null;
+  if (clazz != null) {
+    try {
+      matchingClasses=LocalizableLinkageCreator.findDerivedClasses(logger,clazz);
+      String defLocaleValue=DefaultLocale.DEFAULT_LOCALE;
+      DefaultLocale defLocale=clazz.getAnnotation(DefaultLocale.class);
+      if (defLocale != null) {
+        defLocaleValue=defLocale.value();
+        if (!GwtLocale.DEFAULT_LOCALE.equals(defLocaleValue)) {
+          matchingClasses.put(defLocaleValue,clazz);
+        }
+      }
+      matchingClasses.put(GwtLocale.DEFAULT_LOCALE,clazz);
+    }
+ catch (    UnableToCompleteException e) {
+    }
+  }
+  if (matchingClasses == null) {
+    matchingClasses=new HashMap<String,JClassType>();
+  }
+  String partialPath=localizedPath.replace('.','/');
+  for (int i=0; i < loaders.size(); i++) {
+    ResourceFactory element=loaders.get(i);
+    String ext="." + element.getExt();
+    String path=partialPath + ext;
+    InputStream m=loader.getResourceAsStream(path);
+    if (m == null && partialPath.contains("$")) {
+      path=partialPath.replace('$','_') + ext;
+      m=loader.getResourceAsStream(path);
+    }
+    if (m != null) {
+      AbstractResource found=element.load(m,locale);
+      found.setPath(path);
+      resources.add(found);
+    }
+  }
+  JClassType currentClass=matchingClasses.get(locale.toString());
+  if (currentClass != null) {
+    AnnotationsResource resource;
+    try {
+      resource=new AnnotationsResource(logger,currentClass,locale,isConstants);
+      if (resource.notEmpty()) {
+        resource.setPath(currentClass.getQualifiedSourceName());
+        resources.add(resource);
+      }
+    }
+ catch (    AnnotationsError e) {
+      logger.log(TreeLogger.ERROR,e.getMessage(),e);
+    }
+  }
+  addPrimaryParent(logger,tree,clazz,locale,isConstants,resources,seenPaths);
+  if (useAlternateParents) {
+    addAlternativeParents(logger,tree,clazz,locale,useAlternateParents,isConstants,resources,seenPaths);
+  }
+}

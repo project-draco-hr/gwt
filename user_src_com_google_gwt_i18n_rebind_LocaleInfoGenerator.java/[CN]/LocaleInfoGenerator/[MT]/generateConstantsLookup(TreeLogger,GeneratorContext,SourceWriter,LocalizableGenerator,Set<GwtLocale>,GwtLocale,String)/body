@@ -1,0 +1,35 @@
+{
+  writer.indent();
+  boolean fetchedRuntimeLocale=false;
+  Map<String,Set<GwtLocale>> localeMap=new HashMap<String,Set<GwtLocale>>();
+  generateOneLocale(logger,context,localizableGenerator,typeName,localeMap,locale);
+  for (  GwtLocale runtimeLocale : runtimeLocales) {
+    generateOneLocale(logger,context,localizableGenerator,typeName,localeMap,runtimeLocale);
+  }
+  if (localeMap.size() > 1) {
+    for (    Entry<String,Set<GwtLocale>> entry : localeMap.entrySet()) {
+      if (!fetchedRuntimeLocale) {
+        writer.println("String runtimeLocale = getLocaleName();");
+        fetchedRuntimeLocale=true;
+      }
+      writer.print("if (");
+      boolean firstLocale=true;
+      String generatedClass=entry.getKey();
+      for (      GwtLocale runtimeLocale : entry.getValue()) {
+        if (firstLocale) {
+          firstLocale=false;
+        }
+ else {
+          writer.println();
+          writer.print("    || ");
+        }
+        writer.print("\"" + runtimeLocale.toString() + "\".equals(runtimeLocale)");
+      }
+      writer.println(") {");
+      writer.println("  return new " + generatedClass + "();");
+      writer.println("}");
+    }
+  }
+  writer.println("return GWT.create(" + typeName + ".class);");
+  writer.outdent();
+}

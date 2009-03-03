@@ -1,0 +1,56 @@
+{
+  String language=null;
+  String script=null;
+  String region=null;
+  String variant=null;
+  if (localeName != null && !GwtLocale.DEFAULT_LOCALE.equals(localeName)) {
+    ArrayList<String> localeParts=new ArrayList<String>();
+    String[] parts=localeName.split("[-_]");
+    for (int i=0; i < parts.length; ++i) {
+      if (parts[i].length() == 1 && i + 1 < parts.length) {
+        localeParts.add(parts[i] + '-' + parts[++i]);
+      }
+ else {
+        localeParts.add(parts[i]);
+      }
+    }
+    int partIdx=1;
+    int numParts=localeParts.size();
+    if (numParts > 0) {
+      language=localeParts.get(0);
+      int len=language.length();
+      if ((len == 2 || len == 3) && partIdx < numParts) {
+        String part=localeParts.get(partIdx);
+        while (partIdx < numParts && partIdx < 4 && isAlpha(part,3,3)) {
+          language+='-' + part;
+          if (++partIdx >= numParts) {
+            break;
+          }
+          part=localeParts.get(partIdx);
+        }
+      }
+    }
+    if (numParts > partIdx && isAlpha(localeParts.get(partIdx),4,4)) {
+      script=localeParts.get(partIdx++);
+    }
+    if (partIdx < numParts) {
+      String part=localeParts.get(partIdx);
+      if (isAlpha(part,2,2) || isDigit(part,3,3)) {
+        region=part;
+        ++partIdx;
+      }
+    }
+    if (partIdx < numParts) {
+      String part=localeParts.get(partIdx);
+      int len=part.length();
+      if ((len >= 5 && len <= 8) || (len == 4 && Character.isDigit(part.charAt(0)))) {
+        variant=part;
+        ++partIdx;
+      }
+    }
+    if (partIdx < numParts) {
+      throw new IllegalArgumentException("Unrecognized locale format: " + localeName);
+    }
+  }
+  return fromComponents(language,script,region,variant);
+}

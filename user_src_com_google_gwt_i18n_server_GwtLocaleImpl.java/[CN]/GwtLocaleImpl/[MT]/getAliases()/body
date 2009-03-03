@@ -1,0 +1,31 @@
+{
+  if (cachedAliases == null) {
+    cachedAliases=new ArrayList<GwtLocale>();
+    Set<GwtLocale> seen=new HashSet<GwtLocale>();
+    ArrayList<GwtLocale> nextGroup=new ArrayList<GwtLocale>();
+    nextGroup.add(this);
+    String defaultScript=DefaultLanguageScripts.getDefaultScript(language);
+    if (defaultScript != null) {
+      if (script == null) {
+        nextGroup.add(factory.fromComponents(language,defaultScript,region,variant));
+      }
+ else       if (script.equals(defaultScript)) {
+        nextGroup.add(factory.fromComponents(language,null,region,variant));
+      }
+    }
+    while (!nextGroup.isEmpty()) {
+      List<GwtLocale> thisGroup=nextGroup;
+      nextGroup=new ArrayList<GwtLocale>();
+      for (      GwtLocale locale : thisGroup) {
+        if (seen.contains(locale)) {
+          continue;
+        }
+        seen.add(locale);
+        cachedAliases.add(locale);
+        addDeprecatedPairs(factory,locale,nextGroup);
+        addSpecialAliases(factory,locale,nextGroup);
+      }
+    }
+  }
+  return Collections.unmodifiableList(cachedAliases);
+}

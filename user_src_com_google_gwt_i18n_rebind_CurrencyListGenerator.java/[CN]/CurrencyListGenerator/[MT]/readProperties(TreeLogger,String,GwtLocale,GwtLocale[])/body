@@ -1,0 +1,18 @@
+{
+  LocalizedProperties props=new LocalizedProperties();
+  ClassLoader classLoader=getClass().getClassLoader();
+  List<GwtLocale> searchList=locale.getCompleteSearchList();
+  GwtLocale lastFound=LocaleUtils.getLocaleFactory().fromString(null);
+  for (int i=searchList.size(); i-- > 0; ) {
+    GwtLocale search=searchList.get(i);
+    String propFile=propFilePrefix;
+    if (!search.isDefault()) {
+      propFile+="_" + search.getAsString();
+    }
+    if (readProperties(logger,classLoader,propFile,props)) {
+      lastFound=search;
+    }
+  }
+  foundLocale[0]=lastFound;
+  return props;
+}

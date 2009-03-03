@@ -1,0 +1,78 @@
+{
+  String packageName=targetClass.getPackage().getName();
+  String className=targetClass.getName().replace('.','_') + "_" + compileLocale.getAsString()+ "_runtimeSelection";
+  PrintWriter pw=context.tryCreate(logger,packageName,className);
+  if (pw != null) {
+    ClassSourceFileComposerFactory factory=new ClassSourceFileComposerFactory(packageName,className);
+    factory.setSuperclass(targetClass.getQualifiedSourceName());
+    factory.addImport(CURRENCY_LIST);
+    factory.addImport(CURRENCY_DATA);
+    factory.addImport("com.google.gwt.i18n.client.LocaleInfo");
+    SourceWriter writer=factory.createSourceWriter(context,pw);
+    writer.println("private CurrencyList instance;");
+    writer.println();
+    writer.println("@Override");
+    writer.println("public CurrencyData getDefault() {");
+    writer.println("  ensureInstance();");
+    writer.println("  return instance.getDefault();");
+    writer.println("}");
+    writer.println();
+    writer.println("@Override");
+    writer.println("protected void loadCurrencyMap() {");
+    writer.println("  ensureInstance();");
+    writer.println("  instance.loadCurrencyMap();");
+    writer.println("}");
+    writer.println();
+    writer.println("@Override");
+    writer.println("protected void loadNamesMap() {");
+    writer.println("  ensureInstance();");
+    writer.println("  instance.loadNamesMap();");
+    writer.println("}");
+    writer.println();
+    writer.println("private void ensureInstance() {");
+    writer.indent();
+    writer.println("if (instance != null) {");
+    writer.println("  return;");
+    writer.println("}");
+    boolean fetchedLocale=false;
+    Map<String,Set<GwtLocale>> localeMap=new HashMap<String,Set<GwtLocale>>();
+    String compileLocaleClass=processChildLocale(logger,context,targetClass,localeMap,compileLocale);
+    if (compileLocaleClass == null) {
+      return null;
+    }
+    for (    GwtLocale runtimeLocale : locales) {
+      processChildLocale(logger,context,targetClass,localeMap,runtimeLocale);
+    }
+    for (    Entry<String,Set<GwtLocale>> entry : localeMap.entrySet()) {
+      if (!fetchedLocale) {
+        writer.println("String runtimeLocale = LocaleInfo.getCurrentLocale().getLocaleName();");
+        fetchedLocale=true;
+      }
+      boolean firstLocale=true;
+      String generatedClass=entry.getKey();
+      if (compileLocaleClass.equals(generatedClass)) {
+        continue;
+      }
+      writer.print("if (");
+      for (      GwtLocale locale : entry.getValue()) {
+        if (firstLocale) {
+          firstLocale=false;
+        }
+ else {
+          writer.println();
+          writer.print("    || ");
+        }
+        writer.print("\"" + locale.toString() + "\".equals(runtimeLocale)");
+      }
+      writer.println(") {");
+      writer.println("  instance = new " + generatedClass + "();");
+      writer.println("  return;");
+      writer.println("}");
+    }
+    writer.println("instance = new " + compileLocaleClass + "();");
+    writer.outdent();
+    writer.println("}");
+    writer.commit(logger);
+  }
+  return packageName + "." + className;
+}

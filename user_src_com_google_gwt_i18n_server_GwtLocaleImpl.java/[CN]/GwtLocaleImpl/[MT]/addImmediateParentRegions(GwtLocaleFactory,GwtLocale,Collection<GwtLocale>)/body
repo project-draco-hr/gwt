@@ -1,0 +1,28 @@
+{
+  String language=locale.getLanguage();
+  String script=locale.getScript();
+  String region=locale.getRegion();
+  String variant=locale.getVariant();
+  if (variant != null) {
+    work.add(factory.fromComponents(language,script,region,null));
+  }
+  Set<String> immediateParents=RegionInheritance.getImmediateParents(region);
+  for (  String parent : immediateParents) {
+    work.add(factory.fromComponents(language,script,parent,variant));
+    if (variant != null) {
+      work.add(factory.fromComponents(language,script,parent,null));
+    }
+  }
+  if (immediateParents.isEmpty()) {
+    work.add(factory.fromComponents(language,script,null,variant));
+    if (variant != null) {
+      work.add(factory.fromComponents(language,script,null,null));
+    }
+  }
+  if (script != null) {
+    work.add(factory.fromComponents(language,null,region,variant));
+    if (variant != null) {
+      work.add(factory.fromComponents(language,null,region,null));
+    }
+  }
+}

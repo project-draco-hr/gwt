@@ -1,0 +1,74 @@
+{
+  super(locale);
+  KeyGenerator keyGenerator=getKeyGenerator(clazz);
+  map=new HashMap<String,MethodEntry>();
+  setPath(clazz.getQualifiedSourceName());
+  String defLocaleValue=null;
+  String className=clazz.getSimpleSourceName();
+  int underscore=className.indexOf('_');
+  if (underscore >= 0) {
+    defLocaleValue=className.substring(underscore + 1);
+  }
+  DefaultLocale defLocaleAnnot=getClassAnnotation(clazz,DefaultLocale.class);
+  if (defLocaleAnnot != null) {
+    defLocaleValue=defLocaleAnnot.value();
+  }
+  GwtLocale defLocale=LocaleUtils.getLocaleFactory().fromString(defLocaleValue);
+  if (!locale.isDefault() && !locale.equals(defLocale)) {
+    logger.log(TreeLogger.WARN,"Default locale " + defLocale + " on "+ clazz.getQualifiedSourceName()+ " doesn't match "+ locale);
+    return;
+  }
+  for (  JMethod method : clazz.getMethods()) {
+    String meaningString=null;
+    Meaning meaning=method.getAnnotation(Meaning.class);
+    if (meaning != null) {
+      meaningString=meaning.value();
+    }
+    String textString=getTextString(method,map,isConstants);
+    if (textString == null) {
+      continue;
+    }
+    String key=null;
+    Key keyAnnot=method.getAnnotation(Key.class);
+    if (keyAnnot != null) {
+      key=keyAnnot.value();
+    }
+ else {
+      key=keyGenerator.generateKey(method.getEnclosingType().getQualifiedSourceName(),method.getName(),textString,meaningString);
+    }
+    if (key == null) {
+      throw new AnnotationsError("Could not compute key for " + method.getEnclosingType().getQualifiedSourceName() + "."+ method.getName());
+    }
+    MethodEntry entry=new MethodEntry(textString,meaningString);
+    map.put(key,entry);
+    Description description=method.getAnnotation(Description.class);
+    if (description != null) {
+      entry.description=description.value();
+    }
+    PluralText pluralText=method.getAnnotation(PluralText.class);
+    if (pluralText != null) {
+      String[] pluralForms=pluralText.value();
+      if ((pluralForms.length & 1) != 0) {
+        throw new AnnotationsError("Odd number of strings supplied to @PluralText: must be" + " pairs of form names and strings");
+      }
+      for (int i=0; i + 1 < pluralForms.length; i+=2) {
+        entry.addPluralText(pluralForms[i],pluralForms[i + 1]);
+      }
+    }
+    for (    JParameter param : method.getParameters()) {
+      ArgumentInfo argInfo=entry.addArgument(param.getName());
+      Optional optional=param.getAnnotation(Optional.class);
+      if (optional != null) {
+        argInfo.optional=true;
+      }
+      PluralCount pluralCount=param.getAnnotation(PluralCount.class);
+      if (pluralCount != null) {
+        argInfo.isPluralCount=true;
+      }
+      Example example=param.getAnnotation(Example.class);
+      if (example != null) {
+        argInfo.example=example.value();
+      }
+    }
+  }
+}
