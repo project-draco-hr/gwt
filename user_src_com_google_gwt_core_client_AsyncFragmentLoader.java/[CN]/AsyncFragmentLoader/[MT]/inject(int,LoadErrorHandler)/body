@@ -1,14 +1,18 @@
 {
   if (leftoversLoaded) {
     logEventProgress(LwmLabels.downloadGroup(splitPoint),LwmLabels.BEGIN,splitPoint,null);
-    startLoadingFragment(splitPoint);
+    startLoadingFragment(splitPoint,loadErrorHandler);
     return;
   }
   if (baseLoading || leftoversLoading) {
     waitingForLeftovers.add(splitPoint);
+    waitingForLeftoversErrorHandlers.add(loadErrorHandler);
+    if (!leftoversLoading) {
+      startLoadingLeftovers();
+    }
     return;
   }
   baseLoading=true;
   logEventProgress(LwmLabels.downloadGroup(splitPoint),LwmLabels.BEGIN,baseFragmentNumber(splitPoint),null);
-  startLoadingFragment(baseFragmentNumber(splitPoint));
+  startLoadingFragment(baseFragmentNumber(splitPoint),new BaseDownloadFailed(loadErrorHandler));
 }
