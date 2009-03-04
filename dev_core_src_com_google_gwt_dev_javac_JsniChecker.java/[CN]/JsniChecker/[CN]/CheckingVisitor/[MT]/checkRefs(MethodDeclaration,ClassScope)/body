@@ -1,0 +1,41 @@
+{
+  Map<String,Set<String>> errors=new LinkedHashMap<String,Set<String>>();
+  FindJsniRefVisitor sloppyRefsVisitor=new FindJsniRefVisitor();
+  sloppyRefsVisitor.beSloppy();
+  meth.traverse(sloppyRefsVisitor,scope);
+  for (  String jsniRefString : sloppyRefsVisitor.getJsniRefs()) {
+    JsniRef jsniRef=JsniRef.parse(jsniRefString);
+    if (jsniRef != null) {
+      ReferenceBinding clazz=findClass(jsniRef);
+      if (looksLikeAnonymousClass(jsniRef) || (clazz != null && clazz.isAnonymousType())) {
+        GWTProblem.recordInCud(ProblemSeverities.Warning,meth,cud,"Referencing class '" + jsniRef.className() + ": JSNI references to anonymous classes are deprecated",null);
+      }
+ else       if (clazz != null) {
+        Set<String> refErrors=new LinkedHashSet<String>();
+        if (jsniRef.isMethod()) {
+          checkMethodRef(clazz,jsniRef,refErrors);
+        }
+ else {
+          checkFieldRef(clazz,jsniRef,refErrors);
+        }
+        if (!refErrors.isEmpty()) {
+          errors.put(jsniRefString,refErrors);
+        }
+      }
+ else       if (!jsniRef.className().equals("null")) {
+        GWTProblem.recordInCud(ProblemSeverities.Warning,meth,cud,"Referencing class '" + jsniRef.className() + ": unable to resolve class, expect subsequent failures",null);
+      }
+    }
+  }
+  if (!errors.isEmpty()) {
+    FindJsniRefVisitor jsniRefsVisitor=new FindJsniRefVisitor();
+    meth.traverse(jsniRefsVisitor,scope);
+    for (    String jsniRefString : jsniRefsVisitor.getJsniRefs()) {
+      if (errors.containsKey(jsniRefString)) {
+        for (        String err : errors.get(jsniRefString)) {
+          longAccessError(meth,err);
+        }
+      }
+    }
+  }
+}

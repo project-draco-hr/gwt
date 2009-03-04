@@ -1,0 +1,13 @@
+{
+  ServletValidator validator=createValidator();
+  assertTrue(validator.containsServletClass("org.test.TwoMappings"));
+  assertTrue(validator.containsServletMapping("org.test.TwoMappings","/two/mappings1"));
+  assertTrue(validator.containsServletMapping("org.test.TwoMappings","/two/mappings2"));
+  assertFalse(validator.containsServletMapping("org.test.TwoMappings","/no/mapping"));
+  UnitTestTreeLogger.Builder builder=new UnitTestTreeLogger.Builder();
+  builder.setLowestLogLevel(TreeLogger.WARN);
+  UnitTestTreeLogger logger=builder.createLogger();
+  validator.validate(logger,"org.test.TwoMappings","/two/mappings1");
+  validator.validate(logger,"org.test.TwoMappings","/two/mappings2");
+  logger.assertCorrectLogEntries();
+}

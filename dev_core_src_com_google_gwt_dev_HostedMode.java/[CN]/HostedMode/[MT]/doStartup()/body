@@ -13,14 +13,16 @@
       return false;
     }
   }
+  ServletValidator servletValidator=null;
+  File webXml=new File(options.getWarDir(),"WEB-INF/web.xml");
+  if (webXml.exists()) {
+    servletValidator=ServletValidator.create(getTopLogger(),webXml);
+  }
   for (  String moduleName : options.getModuleNames()) {
-    TreeLogger loadLogger=getTopLogger().branch(TreeLogger.DEBUG,"Loading module " + moduleName);
+    TreeLogger loadLogger=getTopLogger().branch(TreeLogger.DEBUG,"Bootstrap link for command-line module '" + moduleName + "'");
     try {
       ModuleDef module=loadModule(loadLogger,moduleName,false);
-      String[] servletPaths=module.getServletPaths();
-      if (servletPaths.length > 0) {
-        loadLogger.log(TreeLogger.WARN,"Ignoring legacy <servlet> tag(s) in module '" + moduleName + "'; add servlet tags to your web.xml instead");
-      }
+      validateServletTags(loadLogger,servletValidator,module,webXml);
       link(loadLogger,module);
     }
  catch (    UnableToCompleteException e) {

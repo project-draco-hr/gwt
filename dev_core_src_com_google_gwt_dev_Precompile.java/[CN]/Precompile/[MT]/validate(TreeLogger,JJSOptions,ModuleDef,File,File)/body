@@ -2,19 +2,20 @@
   try {
     CompilationState compilationState=module.getCompilationState(logger);
     String[] declEntryPts=module.getEntryPointTypeNames();
+    String[] additionalRootTypes=null;
     if (declEntryPts.length == 0) {
       Set<CompilationUnit> compilationUnits=compilationState.getCompilationUnits();
-      declEntryPts=new String[compilationUnits.size()];
+      additionalRootTypes=new String[compilationUnits.size()];
       int i=0;
       for (      CompilationUnit unit : compilationUnits) {
-        declEntryPts[i++]=unit.getTypeName();
+        additionalRootTypes[i++]=unit.getTypeName();
       }
     }
     ArtifactSet generatorArtifacts=new ArtifactSet();
     DistillerRebindPermutationOracle rpo=new DistillerRebindPermutationOracle(module,compilationState,generatorArtifacts,new PropertyPermutations(module.getProperties()),genDir,generatorResourcesDir);
     FragmentLoaderCreator fragmentLoaderCreator=new FragmentLoaderCreator(compilationState,module,genDir,generatorResourcesDir,generatorArtifacts);
     WebModeCompilerFrontEnd frontEnd=new WebModeCompilerFrontEnd(compilationState,rpo,fragmentLoaderCreator);
-    JavaToJavaScriptCompiler.precompile(logger,frontEnd,declEntryPts,jjsOptions,true);
+    JavaToJavaScriptCompiler.precompile(logger,frontEnd,declEntryPts,additionalRootTypes,jjsOptions,true);
     return true;
   }
  catch (  UnableToCompleteException e) {
