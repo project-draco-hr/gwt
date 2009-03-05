@@ -1,13 +1,12 @@
 {
   JavaASTGenerationVisitor v=new JavaASTGenerationVisitor(typeMap,jprogram,options);
-  for (int i=0; i < types.length; ++i) {
-    v.processType(types[i]);
+  for (  TypeDeclaration type : types) {
+    v.processType(type);
+  }
+  for (  TypeDeclaration type : types) {
+    v.addBridgeMethods(type.binding);
   }
   Collections.sort(jprogram.getDeclaredTypes(),new HasNameSort());
-  Set<ReferenceBinding> typesWithBridges=new HashSet<ReferenceBinding>();
-  for (  TypeDeclaration decl : types) {
-    v.addBridgeMethods(decl.binding,jprogram,typesWithBridges);
-  }
   Map<JsniMethodBody,AbstractMethodDeclaration> jsniMethodMap=v.getJsniMethodMap();
   new JsniRefGenerationVisitor(jprogram,jsProgram,jsniMethodMap).accept(jprogram);
 }
