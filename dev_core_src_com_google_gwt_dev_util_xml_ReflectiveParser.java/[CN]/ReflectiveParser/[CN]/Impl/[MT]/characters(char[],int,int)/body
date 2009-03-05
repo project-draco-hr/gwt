@@ -17,10 +17,20 @@
     return;
   }
   try {
-    final String text=String.valueOf(ch,start,length);
-    method.invokeText(lineNumber,text,schemaLevel);
+    for (int i=start, e=start + length, l=e - 1; i < e; ++i) {
+switch (ch[i]) {
+case '\r':
+        if (i < l && ch[i + 1] == '\n') {
+          continue;
+        }
+case '\n':
+      --lineNumber;
   }
- catch (  UnableToCompleteException e) {
-    throw new SAXException(e);
-  }
+}
+final String text=String.valueOf(ch,start,length);
+method.invokeText(lineNumber,text,schemaLevel);
+}
+ catch (UnableToCompleteException e) {
+throw new SAXException(e);
+}
 }

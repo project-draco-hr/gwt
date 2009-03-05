@@ -10,4 +10,19 @@
     }
   }
 );
+  try {
+    TokenStream ts=new TokenStream(r,rootSourceInfo.getFileName(),rootSourceInfo.getStartLine());
+    Parser parser=new Parser(new IRFactory(ts));
+    Node topNode=(Node)parser.parse(ts);
+    pushScope(scope,rootSourceInfo);
+    List<JsStatement> stmts=mapStatements(topNode);
+    popScope();
+    return stmts;
+  }
+ catch (  UncheckedJsParserException e) {
+    throw e.getParserException();
+  }
+ finally {
+    Context.exit();
+  }
 }
