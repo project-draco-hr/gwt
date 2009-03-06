@@ -1,0 +1,41 @@
+{
+  StringBuilder result=new StringBuilder();
+  for (  JClassType current : typeOracle.getTypes()) {
+    if (current.isInterface() != null) {
+      result.append("interface ");
+    }
+ else {
+      result.append("class ");
+    }
+    result.append(current.getJNISignature());
+    if (current.getSuperclass() != null) {
+      result.append(" extends ");
+      result.append(current.getSuperclass().getJNISignature());
+    }
+    for (    JClassType currentInterface : current.getImplementedInterfaces()) {
+      result.append(" implements ");
+      result.append(currentInterface.getJNISignature());
+    }
+    result.append('\n');
+    result.append(" method static <clinit> ()V\n");
+    JConstructor[] constructors=current.getConstructors();
+    if (constructors.length == 0) {
+      result.append(" method <init> ()V\n");
+    }
+ else {
+      addMethods(constructors,result);
+    }
+    addMethods(current.getMethods(),result);
+    for (    JField currentField : current.getFields()) {
+      result.append(" field ");
+      if (currentField.isStatic()) {
+        result.append("static ");
+      }
+      result.append(currentField.getName());
+      result.append(' ');
+      result.append(currentField.getType().getJNISignature());
+      result.append('\n');
+    }
+  }
+  return result.toString();
+}
