@@ -1,0 +1,37 @@
+{
+  Annotation[] annotations=method.annotations;
+  if (annotations == null) {
+    return;
+  }
+  for (  Annotation a : annotations) {
+    if (SuppressWarnings.class.getName().equals(CharOperation.toString(((ReferenceBinding)a.resolvedType).compoundName))) {
+      for (      MemberValuePair pair : a.memberValuePairs()) {
+        if (String.valueOf(pair.name).equals("value")) {
+          String[] values;
+          Expression valueExpr=pair.value;
+          if (valueExpr instanceof StringLiteral) {
+            values=new String[]{((StringLiteral)valueExpr).constant.stringValue()};
+          }
+ else           if (valueExpr instanceof ArrayInitializer) {
+            ArrayInitializer ai=(ArrayInitializer)valueExpr;
+            values=new String[ai.expressions.length];
+            for (int i=0, j=values.length; i < j; i++) {
+              values[i]=((StringLiteral)ai.expressions[i]).constant.stringValue();
+            }
+          }
+ else {
+            throw new InternalCompilerException("Unable to analyze SuppressWarnings annotation");
+          }
+          for (          String value : values) {
+            for (Iterator<String> it=warnings.keySet().iterator(); it.hasNext(); ) {
+              if (it.next().toLowerCase().equals(value.toLowerCase())) {
+                it.remove();
+              }
+            }
+          }
+          return;
+        }
+      }
+    }
+  }
+}
