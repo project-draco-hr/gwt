@@ -1,0 +1,38 @@
+{
+  int status=response.getStatus();
+  if (status < 0) {
+    status=404;
+  }
+  TreeLogger.Type logStatus, logHeaders;
+  if (status >= 500) {
+    logStatus=TreeLogger.ERROR;
+    logHeaders=TreeLogger.INFO;
+  }
+ else   if (status >= 400) {
+    logStatus=TreeLogger.WARN;
+    logHeaders=TreeLogger.INFO;
+  }
+ else {
+    logStatus=TreeLogger.INFO;
+    logHeaders=TreeLogger.DEBUG;
+  }
+  String userString=request.getRemoteUser();
+  if (userString == null) {
+    userString="";
+  }
+ else {
+    userString+="@";
+  }
+  String bytesString="";
+  if (response.getContentCount() > 0) {
+    bytesString=" " + response.getContentCount() + " bytes";
+  }
+  TreeLogger branch=logger.branch(logStatus,String.valueOf(status) + " - " + request.getMethod()+ ' '+ request.getUri()+ " ("+ userString+ request.getRemoteHost()+ ')'+ bytesString);
+  TreeLogger headers=branch.branch(logHeaders,"Request headers");
+  Enumeration<String> headerNames=request.getHeaderNames();
+  while (headerNames.hasMoreElements()) {
+    String hdr=headerNames.nextElement();
+    String hdrVal=request.getHeader(hdr);
+    headers.log(logHeaders,hdr + ": " + hdrVal);
+  }
+}

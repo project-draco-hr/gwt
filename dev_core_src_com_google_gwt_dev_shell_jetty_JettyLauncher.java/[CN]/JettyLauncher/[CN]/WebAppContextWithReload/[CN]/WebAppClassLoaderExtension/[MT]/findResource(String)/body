@@ -1,0 +1,22 @@
+{
+  URL found=super.findResource(name);
+  if (found != null) {
+    return found;
+  }
+  found=systemClassLoader.getResource(name);
+  if (found == null) {
+    return null;
+  }
+  String checkName=name;
+  if (checkName.startsWith("META-INF/services/")) {
+    checkName=checkName.substring("META-INF/services/".length());
+  }
+  if (isServerPath(checkName) || isSystemPath(checkName)) {
+    return found;
+  }
+  String warnMessage="Server resource '" + name + "' could not be found in the web app, but was found on the system classpath";
+  if (!addContainingClassPathEntry(warnMessage,found,name)) {
+    return null;
+  }
+  return super.findResource(name);
+}

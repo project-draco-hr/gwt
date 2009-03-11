@@ -1,0 +1,21 @@
+{
+  PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
+  logger.setMaxDetail(TreeLogger.WARN);
+  int port=options.getPort();
+  try {
+    ServletContainer scl=new JettyLauncher().start(logger,port,warFile);
+    port=scl.getPort();
+  }
+ catch (  Exception e) {
+    System.err.println("Unable to start Jetty server");
+    e.printStackTrace();
+    return;
+  }
+  if (options.getStartupURLs().isEmpty()) {
+    options.addStartupURL("/");
+  }
+  for (  String startupUrl : options.getStartupURLs()) {
+    startupUrl=HostedModeBase.normalizeURL(startupUrl,port,"localhost");
+    BrowserWidget.launchExternalBrowser(logger,startupUrl);
+  }
+}

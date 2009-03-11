@@ -1,0 +1,20 @@
+{
+  try {
+    return super.findClass(name);
+  }
+ catch (  ClassNotFoundException e) {
+  }
+  if (isServerPath(name) || isSystemPath(name)) {
+    return systemClassLoader.loadClass(name);
+  }
+  String resourceName=name.replace('.','/') + ".class";
+  URL found=systemClassLoader.getResource(resourceName);
+  if (found == null) {
+    return null;
+  }
+  String warnMessage="Server class '" + name + "' could not be found in the web app, but was found on the system classpath";
+  if (!addContainingClassPathEntry(warnMessage,found,resourceName)) {
+    throw new ClassNotFoundException(name);
+  }
+  return super.findClass(name);
+}

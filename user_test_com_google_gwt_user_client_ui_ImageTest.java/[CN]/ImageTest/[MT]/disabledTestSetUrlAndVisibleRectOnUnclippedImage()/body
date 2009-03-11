@@ -1,0 +1,26 @@
+{
+  final Image image=new Image("counting-backwards.png");
+  image.addLoadListener(new LoadListener(){
+    private int onLoadEventCount=0;
+    public void onError(    Widget sender){
+      fail("The image " + ((Image)sender).getUrl() + " failed to load.");
+    }
+    public void onLoad(    Widget sender){
+      if (getCurrentImageStateName(image).equals("unclipped")) {
+        image.setUrlAndVisibleRect("counting-forwards.png",0,16,16,16);
+      }
+      if (++onLoadEventCount == 2) {
+        assertEquals(0,image.getOriginLeft());
+        assertEquals(16,image.getOriginTop());
+        assertEquals(16,image.getWidth());
+        assertEquals(16,image.getHeight());
+        assertEquals("clipped",getCurrentImageStateName(image));
+        finishTest();
+      }
+    }
+  }
+);
+  delayTestFinish(5000);
+  RootPanel.get().add(image);
+  assertEquals("unclipped",getCurrentImageStateName(image));
+}

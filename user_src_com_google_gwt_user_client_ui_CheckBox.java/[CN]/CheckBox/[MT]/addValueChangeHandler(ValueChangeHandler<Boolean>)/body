@@ -1,12 +1,24 @@
 {
   if (!valueChangeHandlerInitialized) {
-    valueChangeHandlerInitialized=true;
-    this.addClickHandler(new ClickHandler(){
-      public void onClick(      ClickEvent event){
-        ValueChangeEvent.fire(CheckBox.this,getValue());
+    this.addKeyUpHandler(new KeyUpHandler(){
+      public void onKeyUp(      KeyUpEvent event){
+        valueBeforeClick=getValue();
       }
     }
 );
+    this.addMouseUpHandler(new MouseUpHandler(){
+      public void onMouseUp(      MouseUpEvent event){
+        valueBeforeClick=getValue();
+      }
+    }
+);
+    this.addClickHandler(new ClickHandler(){
+      public void onClick(      ClickEvent event){
+        ValueChangeEvent.fireIfNotEqual(CheckBox.this,valueBeforeClick,getValue());
+      }
+    }
+);
+    valueChangeHandlerInitialized=true;
   }
   return addHandler(handler,ValueChangeEvent.getType());
 }
