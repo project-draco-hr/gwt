@@ -2,9 +2,12 @@
   String origOutFileName="methodDependencies-";
   PrintWriter outFile=null;
   String curPackageName="";
+  String curClassName="";
   for (  String method : dependencies.keySet()) {
     String packageName=method;
     packageName=packageName.replaceAll("\\.\\p{Upper}.*","");
+    String className=method;
+    className=className.replaceAll("::.*","");
     if ((curPackageName.compareTo("") == 0) || (curPackageName.compareTo(packageName) != 0)) {
       curPackageName=packageName;
       if (outFile != null) {
@@ -31,20 +34,31 @@
       outFile.println("</style>");
       outFile.println("<body>");
       outFile.println("<center>");
-      outFile.println("<h2>Method Dependencies</h2>");
+      outFile.println("<h2>Method Dependencies for package " + curPackageName + "</h2>");
       outFile.println("</center>");
       outFile.println("<hr>");
       outFile.println("<center>");
       outFile.println("<table border=\"1\" width=\"80%\" style=\"font-size: 11pt;\" bgcolor=\"white\">");
     }
     outFile.println("<tr>");
-    outFile.println("<td width=\"80%\"><a name=\"" + method + "\">"+ method+ "</a></td>");
+    if (curClassName.compareTo(className) != 0) {
+      outFile.println("<td width=\"80%\"><a name=\"" + className + "\">"+ "<a name=\""+ method+ "\">"+ method+ "</a></a><font color=\"green\"> called by</font></td>");
+      curClassName=className;
+    }
+ else {
+      outFile.println("<td width=\"80%\"><a name=\"" + method + "\">"+ method+ "</a><font color=\"green\"> called by</font></td>");
+    }
     outFile.println("</tr>");
     for (int i=0; i < dependencies.get(method).size(); i++) {
       String depMethod=dependencies.get(method).get(i);
       outFile.println("<tr>");
       outFile.println("<td width=\"20%\"></td>");
-      outFile.println("<td width=\"60%\">" + depMethod + "</td>");
+      if (i != dependencies.get(method).size() - 1) {
+        outFile.println("<td width=\"60%\">" + depMethod + "<font color=\"green\"> called by</font></td>");
+      }
+ else {
+        outFile.println("<td width=\"60%\">" + depMethod + "</td>");
+      }
       outFile.println("</tr>");
     }
   }
