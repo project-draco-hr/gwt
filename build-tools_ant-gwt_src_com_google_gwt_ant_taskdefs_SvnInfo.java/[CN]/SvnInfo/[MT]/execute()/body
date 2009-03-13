@@ -10,12 +10,18 @@
     throw new BuildException(workdir + " is not a directory");
   }
   Info info;
-  if (!looksLikeSvn(workDirFile)) {
-    info=new Info("unknown","unknown");
-  }
- else {
+  if (looksLikeSvn(workDirFile)) {
     info=parseInfo(getSvnInfo(workDirFile));
     info.revision=getSvnVersion(workDirFile);
+  }
+ else   if (looksLikeGit(workDirFile)) {
+    info=parseInfo(getGitSvnInfo(workDirFile));
+    if (!doesGitWorkingCopyMatchSvnRevision(workDirFile,info.revision)) {
+      info.revision+="M";
+    }
+  }
+ else {
+    info=new Info("unknown","unknown");
   }
   getProject().setNewProperty(outprop,info.branch + "@" + info.revision);
   if (fileprop != null) {
