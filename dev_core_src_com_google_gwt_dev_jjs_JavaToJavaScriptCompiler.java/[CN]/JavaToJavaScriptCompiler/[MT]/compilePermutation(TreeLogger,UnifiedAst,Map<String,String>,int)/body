@@ -9,7 +9,7 @@
     JProgram jprogram=ast.getJProgram();
     JsProgram jsProgram=ast.getJsProgram();
     JJSOptions options=unifiedAst.getOptions();
-    Map<String,JsName> symbolTable=new HashMap<String,JsName>();
+    Map<SymbolData,JsName> symbolTable=new TreeMap<SymbolData,JsName>(new SymbolData.ClassIdentComparator());
     ResolveRebinds.exec(jprogram,rebindAnswers);
     optimize(options,jprogram);
     LongCastNormalizer.exec(jprogram);
@@ -78,7 +78,7 @@ v.accept(jsProgram.getFragmentBlock(i));
 js[i]=out.toString();
 }
 }
-SortedMap<String,String> symbolMap=makeSymbolMap(symbolTable);
+SortedMap<SymbolData,String> symbolMap=makeSymbolMap(symbolTable);
 PermutationResult toReturn=new PermutationResultImpl(js,symbolMap);
 if (sourceInfoMaps != null) {
 DependencyRecorderImpl dr=new DependencyRecorderImpl();
