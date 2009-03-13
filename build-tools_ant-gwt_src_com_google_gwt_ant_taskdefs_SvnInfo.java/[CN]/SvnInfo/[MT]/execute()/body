@@ -9,19 +9,16 @@
   if (!workDirFile.isDirectory()) {
     throw new BuildException(workdir + " is not a directory");
   }
-  String branch;
-  String revision;
-  File svnDirFile=new File(workdir,".svn");
-  if (!svnDirFile.exists()) {
-    branch="unknown";
-    revision="unknown";
+  Info info;
+  if (!looksLikeSvn(workDirFile)) {
+    info=new Info("unknown","unknown");
   }
  else {
-    branch=getSvnBranch(workDirFile);
-    revision=getSvnVersion(workDirFile);
+    info=parseInfo(getSvnInfo(workDirFile));
+    info.revision=getSvnVersion(workDirFile);
   }
-  getProject().setNewProperty(outprop,branch + "@" + revision);
+  getProject().setNewProperty(outprop,info.branch + "@" + info.revision);
   if (fileprop != null) {
-    getProject().setNewProperty(fileprop,branch + "-" + revision.replaceAll(":","-"));
+    getProject().setNewProperty(fileprop,info.branch + "-" + info.revision.replaceAll(":","-"));
   }
 }
