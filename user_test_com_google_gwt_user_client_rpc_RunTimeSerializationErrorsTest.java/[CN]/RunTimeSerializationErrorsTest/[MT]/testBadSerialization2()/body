@@ -1,0 +1,15 @@
+{
+  final boolean[] callbackFired=new boolean[]{false};
+  Request req=getService().echoRequest(new MixedSerializable.NonSerializableSub(),new AsyncCallback<MixedSerializable>(){
+    public void onFailure(    Throwable caught){
+      callbackFired[0]=true;
+    }
+    public void onSuccess(    MixedSerializable result){
+      fail("RPC request should have failed");
+    }
+  }
+);
+  assertTrue(callbackFired[0]);
+  assertFalse(req.isPending());
+  req.cancel();
+}
