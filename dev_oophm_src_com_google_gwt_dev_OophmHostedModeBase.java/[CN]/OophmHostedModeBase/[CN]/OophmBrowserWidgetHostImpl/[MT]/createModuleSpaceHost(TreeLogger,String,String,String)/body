@@ -1,0 +1,35 @@
+{
+  TreeLogger logger=mainLogger;
+  TreeLogger.Type maxLevel=TreeLogger.INFO;
+  if (mainLogger instanceof AbstractTreeLogger) {
+    maxLevel=((AbstractTreeLogger)mainLogger).getMaxDetail();
+  }
+  ModulePanel tab;
+  if (!isHeadless()) {
+    tab=new ModulePanel(maxLevel,moduleName,userAgent,remoteSocket,tabs);
+    logger=tab.getLogger();
+    frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+  }
+ else {
+    tab=null;
+  }
+  try {
+    ModuleDef moduleDef=loadModule(logger,moduleName,true);
+    assert(moduleDef != null);
+    TypeOracle typeOracle=moduleDef.getTypeOracle(logger);
+    ShellModuleSpaceHost host=doCreateShellModuleSpaceHost(logger,typeOracle,moduleDef);
+    if (tab != null) {
+      moduleTabs.put(host,tab);
+    }
+    return host;
+  }
+ catch (  RuntimeException e) {
+    logger.log(TreeLogger.ERROR,"Exception initializing module",e);
+    throw e;
+  }
+ finally {
+    if (!isHeadless()) {
+      frame.setCursor(Cursor.getDefaultCursor());
+    }
+  }
+}

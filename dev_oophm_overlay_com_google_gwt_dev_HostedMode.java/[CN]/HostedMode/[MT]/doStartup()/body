@@ -1,0 +1,33 @@
+{
+  if (!super.doStartup()) {
+    return false;
+  }
+  tempWorkDir=options.getWorkDir() == null;
+  if (tempWorkDir) {
+    try {
+      options.setWorkDir(Utility.makeTemporaryDirectory(null,"gwtc"));
+    }
+ catch (    IOException e) {
+      System.err.println("Unable to create hosted mode work directory");
+      e.printStackTrace();
+      return false;
+    }
+  }
+  ServletValidator servletValidator=null;
+  File webXml=new File(options.getWarDir(),"WEB-INF/web.xml");
+  if (webXml.exists()) {
+    servletValidator=ServletValidator.create(getTopLogger(),webXml);
+  }
+  for (  String moduleName : options.getModuleNames()) {
+    TreeLogger loadLogger=getTopLogger().branch(TreeLogger.DEBUG,"Bootstrap link for command-line module '" + moduleName + "'");
+    try {
+      ModuleDef module=loadModule(loadLogger,moduleName,false);
+      validateServletTags(loadLogger,servletValidator,module,webXml);
+      link(loadLogger,module);
+    }
+ catch (    UnableToCompleteException e) {
+      return false;
+    }
+  }
+  return true;
+}
