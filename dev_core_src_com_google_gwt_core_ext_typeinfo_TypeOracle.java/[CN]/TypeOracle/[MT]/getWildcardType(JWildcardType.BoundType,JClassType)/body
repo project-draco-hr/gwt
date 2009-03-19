@@ -1,18 +1,16 @@
 {
-  JWildcardType wildcardType=new JWildcardType(boundType,typeBound);
-  String sig=wildcardType.getQualifiedSourceName();
-  List<JWildcardType> candidates=wildcardTypes.get(sig);
-  if (candidates == null) {
-    candidates=new ArrayList<JWildcardType>();
-    wildcardTypes.put(sig,candidates);
-  }
- else {
-    for (    JWildcardType candidate : candidates) {
-      if (candidate.boundsMatch(wildcardType)) {
-        return candidate;
-      }
+  if (typeBound == getJavaLangObject() && boundType == BoundType.UNBOUND) {
+    if (unboundWildCardType == null) {
+      unboundWildCardType=new JWildcardType(boundType,typeBound);
     }
+    return unboundWildCardType;
   }
-  candidates.add(wildcardType);
-  return wildcardType;
+  WildCardKey key=new WildCardKey(boundType,typeBound);
+  JWildcardType result=wildcardTypes.get(key);
+  if (result != null) {
+    return result;
+  }
+  result=new JWildcardType(boundType,typeBound);
+  wildcardTypes.put(key,result);
+  return result;
 }

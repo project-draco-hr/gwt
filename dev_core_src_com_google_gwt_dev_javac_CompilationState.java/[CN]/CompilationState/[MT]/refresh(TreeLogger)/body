@@ -1,15 +1,24 @@
 {
   logger=logger.branch(TreeLogger.DEBUG,"Refreshing module from source");
+  graveyardUnits=new HashMap<String,CompilationUnit>();
   for (Iterator<CompilationUnit> it=unitMap.values().iterator(); it.hasNext(); ) {
     CompilationUnit unit=it.next();
     if (unit.isGenerated()) {
-      unit.setState(State.FRESH);
+      if (unit.getState() == State.CHECKED) {
+        unit.setGraveyard();
+        graveyardUnits.put(unit.getTypeName(),unit);
+      }
+ else {
+        unit.setFresh();
+      }
       it.remove();
     }
   }
   refreshFromSourceOracle();
   updateExposedUnits();
-  CompilationUnitInvalidator.invalidateUnitsWithInvalidRefs(TreeLogger.NULL,getCompilationUnits());
+  Set<CompilationUnit> allUnitsPlusGraveyard=concatSet(getCompilationUnits(),graveyardUnits.values());
+  CompilationUnitInvalidator.invalidateUnitsWithInvalidRefs(TreeLogger.NULL,allUnitsPlusGraveyard);
+  removeInvalidatedGraveyardUnits(graveyardUnits);
   Set<CompilationUnit> toRetain=new HashSet<CompilationUnit>(exposedUnits);
   for (Iterator<CompilationUnit> it=toRetain.iterator(); it.hasNext(); ) {
     CompilationUnit unit=it.next();
@@ -19,7 +28,7 @@
   }
   invalidatorState.retainAll(toRetain);
   jdtCompiler=new JdtCompiler();
-  compile(logger,getCompilationUnits());
+  compile(logger,getCompilationUnits(),Collections.<CompilationUnit>emptySet());
   mediator.refresh(logger,getCompilationUnits());
   markSurvivorsChecked(getCompilationUnits());
 }

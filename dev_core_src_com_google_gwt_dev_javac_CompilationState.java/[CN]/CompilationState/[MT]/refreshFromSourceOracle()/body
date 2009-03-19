@@ -11,7 +11,7 @@
     CompilationUnit unit=it.next();
     SourceFileCompilationUnit sourceFileUnit=(SourceFileCompilationUnit)unit;
     if (!unchanged.contains(sourceFileUnit.getSourceFile())) {
-      unit.setState(State.FRESH);
+      unit.setFresh();
       it.remove();
     }
   }
@@ -19,6 +19,10 @@
     String typeName=newSourceFile.getTypeName();
     assert(!unitMap.containsKey(typeName));
     unitMap.put(typeName,new SourceFileCompilationUnit(newSourceFile));
+    CompilationUnit graveyardUnit=graveyardUnits.remove(typeName);
+    if (graveyardUnit != null) {
+      graveyardUnit.setFresh();
+    }
   }
   cachedSourceFiles=newSourceFiles;
 }

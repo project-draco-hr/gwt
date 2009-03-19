@@ -1,12 +1,6 @@
 {
   logger=logger.branch(TreeLogger.DEBUG,"Adding '" + generatedCups.size() + "' new generated units");
-  for (  CompilationUnit unit : generatedCups) {
-    String typeName=unit.getTypeName();
-    assert(!unitMap.containsKey(typeName));
-    unitMap.put(typeName,unit);
-  }
-  updateExposedUnits();
-  compile(logger,(Set<CompilationUnit>)generatedCups);
-  mediator.addNewUnits(logger,(Set<CompilationUnit>)generatedCups);
-  markSurvivorsChecked((Set<CompilationUnit>)generatedCups);
+  Map<String,CompilationUnit> usefulGraveyardUnits=getUsefulGraveyardUnits(generatedCups);
+  logger.log(TreeLogger.DEBUG,"Using " + usefulGraveyardUnits.values() + " units from graveyard");
+  addGeneratedCompilationUnits(logger,generatedCups,usefulGraveyardUnits);
 }
