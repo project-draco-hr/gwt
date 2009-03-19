@@ -3,10 +3,11 @@
     throw new NoServiceEntryPointSpecifiedException();
   }
   RequestCallbackAdapter<T> responseHandler=new RequestCallbackAdapter<T>(this,methodName,invocationCount,callback,responseReader);
-  RequestBuilder rb=new RequestBuilder(RequestBuilder.POST,getServiceEntryPoint());
-  rb.setHeader("Content-Type","text/x-gwt-rpc; charset=utf-8");
-  rb.setHeader(STRONG_NAME_HEADER,GWT.getPermutationStrongName());
-  rb.setCallback(responseHandler);
-  rb.setRequestData(requestData);
-  return rb;
+  ensureRpcRequestBuilder();
+  rpcRequestBuilder.create(getServiceEntryPoint());
+  rpcRequestBuilder.setCallback(responseHandler);
+  rpcRequestBuilder.setContentType(RPC_CONTENT_TYPE);
+  rpcRequestBuilder.setRequestData(requestData);
+  rpcRequestBuilder.setRequestId(invocationCount);
+  return rpcRequestBuilder.finish();
 }
