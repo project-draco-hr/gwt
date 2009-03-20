@@ -1,14 +1,16 @@
 {
   assertEquals(eventType,event.getType());
-  Element target=event.getCurrentTarget();
-  if (target == child) {
-    assertFalse("Expecting child to receive the event only once",childReceived);
-    assertFalse("Expecting child to receive the event before parent",parentReceived);
-    childReceived=true;
-  }
- else   if (target == parent) {
-    assertFalse("Expecting parent to receive the event only once",parentReceived);
-    assertTrue("Expecting parent to receive the event after the child",childReceived);
-    parentReceived=true;
+  EventTarget target=event.getCurrentEventTarget();
+  if (Element.is(target)) {
+    if (Element.as(target) == child) {
+      assertFalse("Expecting child to receive the event only once",childReceived);
+      assertFalse("Expecting child to receive the event before parent",parentReceived);
+      childReceived=true;
+    }
+ else     if (Element.as(target) == parent) {
+      assertFalse("Expecting parent to receive the event only once",parentReceived);
+      assertTrue("Expecting parent to receive the event after the child",childReceived);
+      parentReceived=true;
+    }
   }
 }

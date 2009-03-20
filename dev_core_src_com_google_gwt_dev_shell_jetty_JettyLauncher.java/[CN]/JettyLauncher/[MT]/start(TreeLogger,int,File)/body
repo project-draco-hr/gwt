@@ -1,6 +1,7 @@
 {
-  checkStartParams(logger,port,appRootDir);
-  Log.setLog(new JettyTreeLogger(logger));
+  TreeLogger branch=logger.branch(TreeLogger.INFO,"Starting Jetty on port " + port,null);
+  checkStartParams(branch,port,appRootDir);
+  Log.setLog(new JettyTreeLogger(branch));
   System.setProperty("org.mortbay.xml.XmlParser.Validating","false");
   AbstractConnector connector=getConnector();
   connector.setPort(port);
@@ -15,5 +16,6 @@
   server.setHandler(logHandler);
   server.start();
   server.setStopAtShutdown(true);
+  Log.setLog(new JettyTreeLogger(logger));
   return new JettyServletContainer(logger,server,wac,connector.getLocalPort(),appRootDir);
 }

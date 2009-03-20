@@ -1,12 +1,16 @@
 {
   TreeLogger branch=logger.branch(TreeLogger.INFO,"Stopping Jetty server");
+  Log.setLog(new JettyTreeLogger(branch));
   try {
     server.stop();
     server.setStopAtShutdown(false);
+    branch.log(TreeLogger.INFO,"Stopped successfully");
   }
  catch (  Exception e) {
     branch.log(TreeLogger.ERROR,"Unable to stop embedded Jetty server",e);
     throw new UnableToCompleteException();
   }
-  branch.log(TreeLogger.INFO,"Stopped successfully");
+ finally {
+    Log.setLog(new JettyTreeLogger(logger));
+  }
 }
