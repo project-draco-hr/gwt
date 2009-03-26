@@ -1,0 +1,37 @@
+{
+  try {
+    CompilationState compilationState=module.getCompilationState(logger);
+    if (dumpSignatureFile != null) {
+      SignatureDumper.dumpSignatures(logger,module.getTypeOracle(logger),dumpSignatureFile);
+    }
+    String[] declEntryPts=module.getEntryPointTypeNames();
+    if (declEntryPts.length == 0) {
+      logger.log(TreeLogger.ERROR,"Module has no entry points defined",null);
+      throw new UnableToCompleteException();
+    }
+    ArtifactSet generatedArtifacts=new ArtifactSet();
+    DistillerRebindPermutationOracle rpo=new DistillerRebindPermutationOracle(module,compilationState,generatedArtifacts,new PropertyPermutations(module.getProperties(),firstPerm,numPerms),genDir,generatorResourcesDir);
+    FragmentLoaderCreator fragmentLoaderCreator=new FragmentLoaderCreator(compilationState,module,genDir,generatorResourcesDir,generatedArtifacts);
+    WebModeCompilerFrontEnd frontEnd=new WebModeCompilerFrontEnd(compilationState,rpo,fragmentLoaderCreator);
+    PerfLogger.start("Precompile");
+    UnifiedAst unifiedAst=JavaToJavaScriptCompiler.precompile(logger,frontEnd,declEntryPts,null,jjsOptions,rpo.getPermuationCount() == 1);
+    PerfLogger.end();
+    Permutation[] permutations=rpo.getPermutations();
+    SortedMap<String,Permutation> merged=new TreeMap<String,Permutation>();
+    for (    Permutation permutation : permutations) {
+      permutation.reduceRebindAnswers(unifiedAst.getRebindRequests());
+      String rebindResultsString=permutation.getRebindAnswers().toString();
+      if (merged.containsKey(rebindResultsString)) {
+        Permutation existing=merged.get(rebindResultsString);
+        existing.mergeFrom(permutation);
+      }
+ else {
+        merged.put(rebindResultsString,permutation);
+      }
+    }
+    return new Precompilation(unifiedAst,merged.values(),permutationBase,generatedArtifacts);
+  }
+ catch (  UnableToCompleteException e) {
+    return null;
+  }
+}

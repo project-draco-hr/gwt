@@ -1,38 +1,43 @@
 {
   for (  String moduleName : options.getModuleNames()) {
-    File compilerWorkDir=options.getCompilerWorkDir(moduleName);
-    File precompilationFile=new File(compilerWorkDir,Precompile.PRECOMPILATION_FILENAME);
-    if (!precompilationFile.exists()) {
-      logger.log(TreeLogger.ERROR,"File not found '" + precompilationFile.getAbsolutePath() + "'; please run Precompile first");
-      return false;
-    }
-    Precompilation precompilation;
-    try {
-      precompilation=Util.readFileAsObject(precompilationFile,Precompilation.class);
-    }
- catch (    ClassNotFoundException e) {
-      logger.log(TreeLogger.ERROR,"Unable to deserialize '" + precompilationFile.getAbsolutePath() + "'",e);
-      return false;
-    }
-    Permutation[] perms=precompilation.getPermutations();
-    Permutation[] subPerms;
     int[] permsToRun=options.getPermsToCompile();
-    if (permsToRun.length == 0) {
-      subPerms=perms;
+    File compilerWorkDir=options.getCompilerWorkDir(moduleName);
+    Collection<PrecompilationFile> precomps;
+    try {
+      precomps=PrecompilationFile.scanJarFile(new File(compilerWorkDir,Precompile.PRECOMPILE_FILENAME));
     }
- else {
-      int i=0;
-      subPerms=new Permutation[permsToRun.length];
-      for (      int permToRun : permsToRun) {
-        if (permToRun >= perms.length) {
-          logger.log(TreeLogger.ERROR,"The specified perm number '" + permToRun + "' is too big; the maximum value is "+ (perms.length - 1)+ "'");
-          return false;
+ catch (    IOException e) {
+      logger.log(TreeLogger.ERROR,"Failed to scan " + Precompile.PRECOMPILE_FILENAME + "; has Precompile been run?",e);
+      return false;
+    }
+    if (permsToRun != null) {
+      checking_perms:       for (      int perm : permsToRun) {
+        for (        PrecompilationFile precomp : precomps) {
+          if (precomp.isForPermutation(perm)) {
+            continue checking_perms;
+          }
         }
-        subPerms[i++]=perms[permToRun];
+        logger.log(TreeLogger.ERROR,"No precompilation file found for permutation " + perm);
+        return false;
       }
     }
-    List<FileBackedObject<PermutationResult>> resultFiles=makeResultFiles(compilerWorkDir,subPerms);
-    compile(logger,precompilation,subPerms,options.getLocalWorkers(),resultFiles);
+ else {
+    }
+    for (    PrecompilationFile precompilationFile : precomps) {
+      if (!isPrecompileForAnyOf(precompilationFile,permsToRun)) {
+        continue;
+      }
+      Precompilation precompilation;
+      try {
+        precompilation=precompilationFile.newInstance(logger);
+      }
+ catch (      UnableToCompleteException e) {
+        return false;
+      }
+      Permutation[] subPerms=selectPermutationsForPrecompilation(permsToRun,precompilationFile,precompilation);
+      List<FileBackedObject<PermutationResult>> resultFiles=makeResultFiles(compilerWorkDir,subPerms);
+      compile(logger,precompilation,subPerms,options.getLocalWorkers(),resultFiles);
+    }
   }
   return true;
 }

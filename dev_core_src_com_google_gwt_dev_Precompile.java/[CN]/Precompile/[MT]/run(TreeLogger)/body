@@ -3,7 +3,15 @@
     File compilerWorkDir=options.getCompilerWorkDir(moduleName);
     Util.recursiveDelete(compilerWorkDir,true);
     compilerWorkDir.mkdirs();
-    this.module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
+    JarOutputStream precompilationJar;
+    try {
+      precompilationJar=new JarOutputStream(new FileOutputStream(new File(compilerWorkDir,PRECOMPILE_FILENAME)));
+    }
+ catch (    IOException e) {
+      logger.log(TreeLogger.ERROR,"Could not create " + PRECOMPILE_FILENAME,e);
+      return false;
+    }
+    ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
     module.getCompilationState(logger);
     if (options.isValidateOnly()) {
       TreeLogger branch=logger.branch(TreeLogger.INFO,"Validating compilation " + module.getName());
@@ -15,14 +23,44 @@
     }
  else {
       TreeLogger branch=logger.branch(TreeLogger.INFO,"Precompiling module " + module.getName());
-      Precompilation precompilation=precompile(branch,options,module,options.getGenDir(),compilerWorkDir,options.getDumpSignatureFile());
-      if (precompilation == null) {
-        branch.log(TreeLogger.ERROR,"Precompilation failed");
+      int potentialPermutations=module.getProperties().numPermutations();
+      int permutationsPerIteration=options.getMaxPermsPerPrecompile();
+      if (permutationsPerIteration <= 0) {
+        permutationsPerIteration=potentialPermutations;
+      }
+      int actualPermutations=0;
+      for (int potentialFirstPerm=0; potentialFirstPerm < potentialPermutations; potentialFirstPerm+=permutationsPerIteration) {
+        int numPermsToPrecompile=Math.min(potentialPermutations - potentialFirstPerm,permutationsPerIteration);
+        if (potentialFirstPerm != 0) {
+          module.getCompilationState(branch).refresh(branch);
+        }
+        Precompilation precompilation=precompile(branch,options,module,actualPermutations,potentialFirstPerm,numPermsToPrecompile,options.getGenDir(),compilerWorkDir,options.getDumpSignatureFile());
+        if (precompilation == null) {
+          branch.log(TreeLogger.ERROR,"Precompilation failed");
+          return false;
+        }
+        int actualNumPermsPrecompiled=precompilation.getPermutations().length;
+        String precompilationFilename=PrecompilationFile.fileNameForPermutations(actualPermutations,actualNumPermsPrecompiled);
+        try {
+          precompilationJar.putNextEntry(new ZipEntry(precompilationFilename));
+          Util.writeObjectToStream(precompilationJar,precompilation);
+        }
+ catch (        IOException e) {
+          branch.log(TreeLogger.ERROR,"Failed to write a precompilation result",e);
+          return false;
+        }
+        actualPermutations+=actualNumPermsPrecompiled;
+        branch.log(TreeLogger.DEBUG,"Compiled " + actualNumPermsPrecompiled + " permutations starting from "+ potentialFirstPerm);
+      }
+      try {
+        precompilationJar.close();
+      }
+ catch (      IOException e) {
+        branch.log(TreeLogger.ERROR,"Failed to finalize " + PRECOMPILE_FILENAME,e);
         return false;
       }
-      Util.writeObjectAsFile(branch,new File(compilerWorkDir,PRECOMPILATION_FILENAME),precompilation);
-      Util.writeStringAsFile(branch,new File(compilerWorkDir,PERM_COUNT_FILENAME),String.valueOf(precompilation.getPermutations().length));
-      branch.log(TreeLogger.INFO,"Precompilation succeeded, number of permutations: " + precompilation.getPermutations().length);
+      Util.writeStringAsFile(branch,new File(compilerWorkDir,PERM_COUNT_FILENAME),String.valueOf(actualPermutations));
+      branch.log(TreeLogger.INFO,"Precompilation succeeded, number of permutations: " + actualPermutations);
     }
   }
   return true;

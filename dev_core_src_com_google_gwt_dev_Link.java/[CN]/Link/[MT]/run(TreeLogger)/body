@@ -1,29 +1,40 @@
 {
   for (  String moduleName : options.getModuleNames()) {
     File compilerWorkDir=options.getCompilerWorkDir(moduleName);
-    ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
-    File precompilationFile=new File(options.getCompilerWorkDir(moduleName),Precompile.PRECOMPILATION_FILENAME);
-    if (!precompilationFile.exists()) {
-      logger.log(TreeLogger.ERROR,"File not found '" + precompilationFile.getAbsolutePath() + "'; please run Precompile first");
-      return false;
-    }
-    Precompilation precompilation;
+    Collection<PrecompilationFile> precomps;
     try {
-      precompilation=Util.readFileAsObject(precompilationFile,Precompilation.class);
+      precomps=PrecompilationFile.scanJarFile(new File(compilerWorkDir,Precompile.PRECOMPILE_FILENAME));
     }
- catch (    ClassNotFoundException e) {
-      logger.log(TreeLogger.ERROR,"Unable to deserialize '" + precompilationFile.getAbsolutePath() + "'",e);
+ catch (    IOException e) {
+      logger.log(TreeLogger.ERROR,"Failed to scan " + Precompile.PRECOMPILE_FILENAME,e);
       return false;
     }
-    Permutation[] perms=precompilation.getPermutations();
-    ArtifactSet generatedArtifacts=precompilation.getGeneratedArtifacts();
-    JJSOptions precompileOptions=precompilation.getUnifiedAst().getOptions();
-    precompilation=null;
+    ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
+    if (precomps.isEmpty()) {
+      logger.log(TreeLogger.ERROR,"No precompilation files found in '" + compilerWorkDir.getAbsolutePath() + "'; please run Precompile first");
+      return false;
+    }
+    List<Permutation> permsList=new ArrayList<Permutation>();
+    ArtifactSet generatedArtifacts=new ArtifactSet();
+    JJSOptions precompileOptions=null;
+    for (    PrecompilationFile precompilationFile : precomps) {
+      Precompilation precompilation;
+      try {
+        precompilation=precompilationFile.newInstance(logger);
+      }
+ catch (      UnableToCompleteException e) {
+        return false;
+      }
+      permsList.addAll(Arrays.asList(precompilation.getPermutations()));
+      generatedArtifacts.addAll(precompilation.getGeneratedArtifacts());
+      precompileOptions=precompilation.getUnifiedAst().getOptions();
+    }
+    Permutation[] perms=permsList.toArray(new Permutation[0]);
     List<FileBackedObject<PermutationResult>> resultFiles=new ArrayList<FileBackedObject<PermutationResult>>(perms.length);
     for (int i=0; i < perms.length; ++i) {
       File f=CompilePerms.makePermFilename(compilerWorkDir,perms[i].getId());
       if (!f.exists()) {
-        logger.log(TreeLogger.ERROR,"File not found '" + precompilationFile.getAbsolutePath() + "'; please compile all permutations");
+        logger.log(TreeLogger.ERROR,"File not found '" + f.getAbsolutePath() + "'; please compile all permutations");
         return false;
       }
       resultFiles.add(new FileBackedObject<PermutationResult>(PermutationResult.class,f));

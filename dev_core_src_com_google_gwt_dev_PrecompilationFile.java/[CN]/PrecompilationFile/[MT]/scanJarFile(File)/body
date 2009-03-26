@@ -1,0 +1,17 @@
+{
+  Pattern pattern=Pattern.compile("precompilation([0-9]+)-([0-9]+)\\.ser");
+  List<PrecompilationFile> precomps=new ArrayList<PrecompilationFile>();
+  JarFile jarFile=new JarFile(file);
+  Enumeration<JarEntry> entries=jarFile.entries();
+  while (entries.hasMoreElements()) {
+    JarEntry entry=entries.nextElement();
+    Matcher matcher=pattern.matcher(entry.getName());
+    if (matcher.matches()) {
+      int start=Integer.parseInt(matcher.group(1));
+      int end=Integer.parseInt(matcher.group(2));
+      int numPerms=end - start + 1;
+      precomps.add(new PrecompilationFile(jarFile,entry,start,numPerms));
+    }
+  }
+  return precomps;
+}
