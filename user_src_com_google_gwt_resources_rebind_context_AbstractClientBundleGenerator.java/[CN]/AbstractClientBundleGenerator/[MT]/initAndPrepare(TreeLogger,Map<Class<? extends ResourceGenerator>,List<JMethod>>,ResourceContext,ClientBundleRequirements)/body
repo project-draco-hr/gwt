@@ -1,0 +1,13 @@
+{
+  boolean success=true;
+  Map<ResourceGenerator,List<JMethod>> toReturn=new IdentityHashMap<ResourceGenerator,List<JMethod>>();
+  for (  Map.Entry<Class<? extends ResourceGenerator>,List<JMethod>> entry : taskList.entrySet()) {
+    ResourceGenerator rg=instantiateResourceGenerator(logger,entry.getKey());
+    toReturn.put(rg,entry.getValue());
+    success&=initAndPrepare(logger,resourceContext,rg,entry.getValue(),requirements);
+  }
+  if (!success) {
+    throw new UnableToCompleteException();
+  }
+  return toReturn;
+}

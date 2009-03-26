@@ -1,0 +1,22 @@
+{
+  CssIf newIf=new CssIf();
+  if (x.getExpression() != null) {
+    newIf.setExpression(x.getExpression());
+  }
+ else {
+    newIf.setProperty(x.getPropertyName());
+    String[] newValues=new String[x.getPropertyValues().length];
+    System.arraycopy(x.getPropertyValues(),0,newValues,0,newValues.length);
+    newIf.setPropertyValues(newValues);
+    newIf.setNegated(x.isNegated());
+  }
+  pushNodes(newIf);
+  accept(x.getNodes());
+  popNodes(x,newIf);
+  CollapsedNode oldElseNodes=new CollapsedNode(x.getElseNodes());
+  CollapsedNode newElseNodes=new CollapsedNode(newIf.getElseNodes());
+  pushNodes(newElseNodes,false);
+  accept(oldElseNodes);
+  popNodes(oldElseNodes,newElseNodes);
+  return false;
+}

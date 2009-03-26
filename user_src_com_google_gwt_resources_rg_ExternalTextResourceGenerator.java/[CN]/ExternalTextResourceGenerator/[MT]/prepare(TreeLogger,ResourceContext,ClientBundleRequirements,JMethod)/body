@@ -1,0 +1,22 @@
+{
+  URL[] urls=ResourceGeneratorUtil.findResources(logger,context,method,DEFAULT_EXTENSIONS);
+  if (urls.length != 1) {
+    logger.log(TreeLogger.ERROR,"Exactly one resource must be specified",null);
+    throw new UnableToCompleteException();
+  }
+  URL resource=urls[0];
+  String toWrite=Util.readURLAsString(resource);
+  if (!hashes.containsKey(toWrite)) {
+    hashes.put(toWrite,currentIndex++);
+    if (!first) {
+      data.append(",\n");
+    }
+ else {
+      first=false;
+    }
+    data.append('"');
+    data.append(Generator.escape(toWrite));
+    data.append('"');
+  }
+  offsets.put(method.getName(),hashes.get(toWrite));
+}

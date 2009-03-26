@@ -1,0 +1,53 @@
+{
+  registerHandler(new ArgHandlerExtra(){
+    @Override public boolean addExtraArg(    String arg){
+      if (source != null) {
+        return false;
+      }
+      try {
+        source=(new File(arg)).toURL();
+        return true;
+      }
+ catch (      MalformedURLException e) {
+        e.printStackTrace();
+        return false;
+      }
+    }
+    @Override public String getPurpose(){
+      return "The css file to process";
+    }
+    @Override public String[] getTagArgs(){
+      return new String[]{"stylesheet.css"};
+    }
+  }
+);
+  registerHandler(new ArgHandlerFlag(){
+    @Override public String getPurpose(){
+      return "Enable human-parsable output";
+    }
+    @Override public String getTag(){
+      return "-pretty";
+    }
+    @Override public boolean setFlag(){
+      return pretty=true;
+    }
+  }
+);
+  if (!processArgs(args)) {
+    System.exit(-1);
+  }
+  if (source == null) {
+    printHelp();
+    System.exit(-1);
+  }
+  try {
+    CssStylesheet sheet=GenerateCssAst.exec(logger,new URL[]{source});
+    TextOutput out=new DefaultTextOutput(!pretty);
+    (new CssGenerationVisitor(out)).accept(sheet);
+    System.out.println(out.toString());
+  }
+ catch (  UnableToCompleteException e) {
+    logger.log(TreeLogger.ERROR,"Unable to compile CSS");
+  }
+  System.exit(0);
+}

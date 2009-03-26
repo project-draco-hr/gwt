@@ -1,0 +1,25 @@
+{
+  boolean stop=false;
+  if (!missingClasses.isEmpty()) {
+    stop=true;
+    TreeLogger errorLogger=logger.branch(TreeLogger.INFO,"The following obfuscated style classes were missing from " + "the source CSS file:");
+    for (    JMethod m : missingClasses) {
+      String name=m.getName();
+      ClassName className=m.getAnnotation(ClassName.class);
+      if (className != null) {
+        name=className.value();
+      }
+      errorLogger.log(TreeLogger.ERROR,name + ": Fix by adding ." + name+ "{}");
+    }
+  }
+  if (strict && !unknownClasses.isEmpty()) {
+    stop=true;
+    TreeLogger errorLogger=logger.branch(TreeLogger.ERROR,"The following unobfuscated classes were present in a strict CssResource:");
+    for (    String s : unknownClasses) {
+      errorLogger.log(TreeLogger.ERROR,s);
+    }
+  }
+  if (stop) {
+    throw new CssCompilerException("Missing a CSS replacement");
+  }
+}

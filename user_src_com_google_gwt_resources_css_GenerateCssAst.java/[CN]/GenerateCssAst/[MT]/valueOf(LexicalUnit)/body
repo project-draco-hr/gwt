@@ -1,0 +1,105 @@
+{
+switch (value.getLexicalUnitType()) {
+case LexicalUnit.SAC_ATTR:
+    return new IdentValue("attr(" + value.getStringValue() + ")");
+case LexicalUnit.SAC_IDENT:
+  return new IdentValue(escapeIdent(value.getStringValue()));
+case LexicalUnit.SAC_STRING_VALUE:
+return new StringValue(value.getStringValue());
+case LexicalUnit.SAC_RGBCOLOR:
+return colorValue(value.getParameters());
+case LexicalUnit.SAC_INTEGER:
+return new NumberValue(value.getIntegerValue());
+case LexicalUnit.SAC_REAL:
+return new NumberValue(value.getFloatValue());
+case LexicalUnit.SAC_CENTIMETER:
+case LexicalUnit.SAC_DEGREE:
+case LexicalUnit.SAC_DIMENSION:
+case LexicalUnit.SAC_EM:
+case LexicalUnit.SAC_EX:
+case LexicalUnit.SAC_GRADIAN:
+case LexicalUnit.SAC_HERTZ:
+case LexicalUnit.SAC_KILOHERTZ:
+case LexicalUnit.SAC_MILLIMETER:
+case LexicalUnit.SAC_MILLISECOND:
+case LexicalUnit.SAC_PERCENTAGE:
+case LexicalUnit.SAC_PICA:
+case LexicalUnit.SAC_PIXEL:
+case LexicalUnit.SAC_POINT:
+case LexicalUnit.SAC_RADIAN:
+case LexicalUnit.SAC_SECOND:
+return new NumberValue(value.getFloatValue(),value.getDimensionUnitText());
+case LexicalUnit.SAC_URI:
+return new IdentValue("url(" + value.getStringValue() + ")");
+case LexicalUnit.SAC_OPERATOR_COMMA:
+return new IdentValue(",");
+case LexicalUnit.SAC_COUNTER_FUNCTION:
+case LexicalUnit.SAC_COUNTERS_FUNCTION:
+case LexicalUnit.SAC_FUNCTION:
+{
+if (value.getFunctionName().equals(VALUE_FUNCTION_NAME)) {
+List<Value> params=new ArrayList<Value>();
+extractValueOf(params,value.getParameters());
+if (params.size() != 1 && params.size() != 3) {
+throw new CSSException(CSSException.SAC_SYNTAX_ERR,"Incorrect number of parameters to " + VALUE_FUNCTION_NAME,null);
+}
+Value dotPathValue=params.get(0);
+String dotPath=maybeUnquote(((StringValue)dotPathValue).getValue());
+String suffix=params.size() == 3 ? maybeUnquote(((StringValue)params.get(2)).getValue()) : "";
+return new DotPathValue(dotPath,suffix);
+}
+ else if (value.getFunctionName().equals(LITERAL_FUNCTION_NAME)) {
+List<Value> params=new ArrayList<Value>();
+extractValueOf(params,value.getParameters());
+if (params.size() != 1) {
+throw new CSSException(CSSException.SAC_SYNTAX_ERR,"Incorrect number of parameters to " + LITERAL_FUNCTION_NAME,null);
+}
+Value expression=params.get(0);
+if (!(expression instanceof StringValue)) {
+throw new CSSException(CSSException.SAC_SYNTAX_ERR,"The single argument to " + LITERAL_FUNCTION_NAME + " must be a string value",null);
+}
+String s=maybeUnquote(((StringValue)expression).getValue());
+s=unescapeLiteral(s);
+return new IdentValue(s);
+}
+ else {
+List<Value> parameters=new ArrayList<Value>();
+extractValueOf(parameters,value.getParameters());
+return new IdentValue(value.getFunctionName() + "(" + join(parameters,"")+ ")");
+}
+}
+case LexicalUnit.SAC_INHERIT:
+return new IdentValue("inherit");
+case LexicalUnit.SAC_OPERATOR_EXP:
+return new IdentValue("^");
+case LexicalUnit.SAC_OPERATOR_GE:
+return new IdentValue(">=");
+case LexicalUnit.SAC_OPERATOR_GT:
+return new IdentValue(">");
+case LexicalUnit.SAC_OPERATOR_LE:
+return new IdentValue("<=");
+case LexicalUnit.SAC_OPERATOR_LT:
+return new IdentValue("<");
+case LexicalUnit.SAC_OPERATOR_MINUS:
+return new IdentValue("-");
+case LexicalUnit.SAC_OPERATOR_MOD:
+return new IdentValue("%");
+case LexicalUnit.SAC_OPERATOR_MULTIPLY:
+return new IdentValue("*");
+case LexicalUnit.SAC_OPERATOR_PLUS:
+return new IdentValue("+");
+case LexicalUnit.SAC_OPERATOR_SLASH:
+return new IdentValue("/");
+case LexicalUnit.SAC_OPERATOR_TILDE:
+return new IdentValue("~");
+case LexicalUnit.SAC_RECT_FUNCTION:
+{
+List<Value> parameters=new ArrayList<Value>();
+extractValueOf(parameters,value.getParameters());
+return new IdentValue("rect(" + join(parameters,"") + ")");
+}
+case LexicalUnit.SAC_SUB_EXPRESSION:
+case LexicalUnit.SAC_UNICODERANGE:
+}
+throw new RuntimeException("Unhandled LexicalUnit type " + value.getLexicalUnitType());
+}

@@ -1,0 +1,23 @@
+{
+  try {
+    (new Spriter(logger,context)).accept(sheet);
+    SubstitutionCollector collector=new SubstitutionCollector();
+    collector.accept(sheet);
+    (new SubstitutionReplacer(logger,context,collector.substitutions)).accept(sheet);
+    (new IfEvaluator(logger,context.getGeneratorContext().getPropertyOracle())).accept(sheet);
+    (new ClassRenamer(logger,classReplacementsWithPrefix,strict)).accept(sheet);
+    if (enableMerge) {
+      (new SplitRulesVisitor()).accept(sheet);
+      (new MergeIdenticalSelectorsVisitor()).accept(sheet);
+      (new MergeRulesByContentVisitor()).accept(sheet);
+    }
+    String standard=makeExpression(logger,context,cssResourceType,sheet,prettyOutput);
+    (new RtlVisitor()).accept(sheet);
+    String reversed=makeExpression(logger,context,cssResourceType,sheet,prettyOutput);
+    return "com.google.gwt.i18n.client.LocaleInfo.getCurrentLocale().isRTL() ? (" + reversed + ") : ("+ standard+ ")";
+  }
+ catch (  CssCompilerException e) {
+    logger.log(TreeLogger.ERROR,"Unable to process CSS",e.getCause() == null ? null : e);
+    throw new UnableToCompleteException();
+  }
+}

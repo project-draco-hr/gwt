@@ -1,0 +1,35 @@
+{
+  TypeOracle typeOracle=generatorContext.getTypeOracle();
+  JClassType sourceType=typeOracle.findType(typeName);
+  if (sourceType == null) {
+    logger.log(TreeLogger.ERROR,"Could not find requested typeName");
+    throw new UnableToCompleteException();
+  }
+ else   if (sourceType.isInterface() == null) {
+    logger.log(TreeLogger.ERROR,sourceType.getQualifiedSourceName() + " is not an interface.",null);
+    throw new UnableToCompleteException();
+  }
+  Map<Class<? extends ResourceGenerator>,List<JMethod>> taskList=createTaskList(logger,typeOracle,sourceType);
+  AbstractResourceContext resourceContext=createResourceContext(logger,generatorContext,sourceType);
+  FieldsImpl fields=new FieldsImpl();
+  RequirementsImpl requirements=new RequirementsImpl(generatorContext.getPropertyOracle());
+  Map<ResourceGenerator,List<JMethod>> generators=initAndPrepare(logger,taskList,resourceContext,requirements);
+  String generatedSimpleSourceName=generateSimpleSourceName(logger,resourceContext,requirements);
+  ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(sourceType.getPackage().getName(),generatedSimpleSourceName);
+  f.addImport(GWT.class.getName());
+  f.addImport(ResourcePrototype.class.getName());
+  f.addImplementedInterface(sourceType.getQualifiedSourceName());
+  String createdClassName=f.getCreatedClassName();
+  PrintWriter out=generatorContext.tryCreate(logger,sourceType.getPackage().getName(),generatedSimpleSourceName);
+  if (out != null) {
+    SourceWriter sw=f.createSourceWriter(generatorContext,out);
+    resourceContext.setSimpleSourceName(generatedSimpleSourceName);
+    createFieldsAndAssignments(logger,sw,generators,resourceContext,fields);
+    sw.println(fields.toString());
+    taskList.remove(BundleResourceGenerator.class);
+    writeMapMethods(logger,createdClassName,sw,taskList);
+    sw.commit(logger);
+  }
+  finish(logger,resourceContext,generators.keySet());
+  return createdClassName;
+}

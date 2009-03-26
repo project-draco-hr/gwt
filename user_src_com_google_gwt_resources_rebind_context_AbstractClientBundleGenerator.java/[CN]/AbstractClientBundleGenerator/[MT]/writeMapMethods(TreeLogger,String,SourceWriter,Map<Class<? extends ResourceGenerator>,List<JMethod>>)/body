@@ -1,0 +1,29 @@
+{
+  sw.println("public ResourcePrototype[] getResources() {");
+  sw.indent();
+  sw.println("return new ResourcePrototype[] {");
+  sw.indent();
+  for (  List<JMethod> methods : taskList.values()) {
+    for (    JMethod m : methods) {
+      sw.println(m.getName() + "(), ");
+    }
+  }
+  sw.outdent();
+  sw.println("};");
+  sw.outdent();
+  sw.println("}");
+  sw.println("public native ResourcePrototype " + "getResource(String name) /*-{");
+  sw.indent();
+  sw.println("switch (name) {");
+  sw.indent();
+  for (  List<JMethod> list : taskList.values()) {
+    for (    JMethod m : list) {
+      sw.println("case '" + m.getName() + "': return this.@"+ createdClassName+ "::"+ (m.getName() + "()()")+ ";");
+    }
+  }
+  sw.outdent();
+  sw.println("}");
+  sw.println("return null;");
+  sw.outdent();
+  sw.println("}-*/;");
+}

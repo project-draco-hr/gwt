@@ -1,0 +1,42 @@
+{
+  if (a.getProperties().size() == 0 || b.getProperties().size() == 0) {
+    return false;
+  }
+  SortedSet<String> aProperties=new TreeSet<String>();
+  SortedSet<String> bProperties=new TreeSet<String>();
+  for (  CssProperty p : a.getProperties()) {
+    aProperties.add(p.getName());
+  }
+  for (  CssProperty p : b.getProperties()) {
+    bProperties.add(p.getName());
+  }
+  Iterator<String> ai=aProperties.iterator();
+  Iterator<String> bi=bProperties.iterator();
+  String aName=ai.next();
+  String bName=bi.next();
+  for (; ; ) {
+    int comp=aName.compareToIgnoreCase(bName);
+    if (comp == 0) {
+      return true;
+    }
+ else     if (comp > 0) {
+      if (aName.startsWith(bName + "-")) {
+        return true;
+      }
+      if (!bi.hasNext()) {
+        break;
+      }
+      bName=bi.next();
+    }
+ else {
+      if (bName.startsWith(aName + "-")) {
+        return true;
+      }
+      if (!ai.hasNext()) {
+        break;
+      }
+      aName=ai.next();
+    }
+  }
+  return false;
+}

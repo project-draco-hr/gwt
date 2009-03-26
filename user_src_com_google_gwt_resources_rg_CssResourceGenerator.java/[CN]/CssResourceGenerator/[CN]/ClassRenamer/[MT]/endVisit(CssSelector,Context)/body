@@ -1,0 +1,34 @@
+{
+  String sel=x.getSelector();
+  for (  Map.Entry<String,Map<JMethod,String>> outerEntry : classReplacementsWithPrefix.entrySet()) {
+    String prefix=outerEntry.getKey();
+    for (    Map.Entry<JMethod,String> entry : outerEntry.getValue().entrySet()) {
+      String name=entry.getKey().getName();
+      ClassName className=entry.getKey().getAnnotation(ClassName.class);
+      if (className != null) {
+        name=className.value();
+      }
+      name=prefix + name;
+      Pattern p=Pattern.compile("(.*)\\.(" + Pattern.quote(name) + ")([ :>+#.].*|$)");
+      Matcher m=p.matcher(sel);
+      if (m.find()) {
+        sel=m.group(1) + "." + entry.getValue()+ m.group(3);
+        missingClasses.remove(entry.getKey());
+        if (strict) {
+          replacedClasses.add(entry.getValue());
+        }
+      }
+    }
+  }
+  sel=sel.trim();
+  if (strict) {
+    Matcher m=classSelectorPattern.matcher(sel);
+    while (m.find()) {
+      String classSelector=m.group(1);
+      if (!replacedClasses.contains(classSelector)) {
+        unknownClasses.add(classSelector);
+      }
+    }
+  }
+  x.setSelector(sel);
+}

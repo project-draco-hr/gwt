@@ -1,0 +1,42 @@
+{
+  TreeLogger logger=getLogger();
+  GeneratorContext context=getGeneratorContext();
+  PropertyOracle propertyOracle=context.getPropertyOracle();
+  String enableRenaming=null;
+  try {
+    enableRenaming=propertyOracle.getPropertyValue(logger,ENABLE_RENAMING);
+  }
+ catch (  BadPropertyValueException e) {
+    logger.log(TreeLogger.ERROR,"Bad value for " + ENABLE_RENAMING,e);
+    throw new UnableToCompleteException();
+  }
+  String outputName;
+  if (Boolean.parseBoolean(enableRenaming)) {
+    String strongName=Util.computeStrongName(data);
+    String extension;
+    int lastIdx=suggestedFileName.lastIndexOf('.');
+    if (lastIdx != -1) {
+      extension=suggestedFileName.substring(lastIdx + 1);
+    }
+ else {
+      extension="noext";
+    }
+    outputName=strongName + ".cache." + extension;
+  }
+ else {
+    outputName=suggestedFileName.substring(suggestedFileName.lastIndexOf('/') + 1);
+  }
+  OutputStream out=context.tryCreateResource(logger,outputName);
+  if (out != null) {
+    try {
+      out.write(data);
+    }
+ catch (    IOException e) {
+      logger.log(TreeLogger.ERROR,"Unable to write data to output name " + outputName,e);
+      throw new UnableToCompleteException();
+    }
+    context.commitResource(logger,out);
+    logger.log(TreeLogger.DEBUG,"Copied " + data.length + " bytes to "+ outputName,null);
+  }
+  return "GWT.getModuleBaseURL() + \"" + outputName + "\"";
+}

@@ -1,0 +1,28 @@
+{
+  Parser p=new Parser();
+  Errors errors=new Errors(logger);
+  GenerationHandler g=new GenerationHandler(errors);
+  p.setDocumentHandler(g);
+  p.setErrorHandler(errors);
+  for (  URL stylesheet : stylesheets) {
+    TreeLogger branchLogger=logger.branch(TreeLogger.DEBUG,"Parsing CSS stylesheet " + stylesheet.toExternalForm());
+    try {
+      p.parseStyleSheet(stylesheet.toURI().toString());
+      continue;
+    }
+ catch (    CSSException e) {
+      branchLogger.log(TreeLogger.ERROR,"Unable to parse CSS",e);
+    }
+catch (    IOException e) {
+      branchLogger.log(TreeLogger.ERROR,"Unable to parse CSS",e);
+    }
+catch (    URISyntaxException e) {
+      branchLogger.log(TreeLogger.ERROR,"Unable to parse CSS",e);
+    }
+    throw new UnableToCompleteException();
+  }
+  if (errors.fatalErrorEncountered) {
+    throw new UnableToCompleteException();
+  }
+  return g.css;
+}

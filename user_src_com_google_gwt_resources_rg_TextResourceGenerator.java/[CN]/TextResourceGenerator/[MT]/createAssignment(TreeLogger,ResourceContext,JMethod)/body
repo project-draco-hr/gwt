@@ -1,0 +1,26 @@
+{
+  URL[] resources=ResourceGeneratorUtil.findResources(logger,context,method,DEFAULT_EXTENSIONS);
+  if (resources.length != 1) {
+    logger.log(TreeLogger.ERROR,"Exactly one resource must be specified",null);
+    throw new UnableToCompleteException();
+  }
+  URL resource=resources[0];
+  SourceWriter sw=new StringSourceWriter();
+  sw.println("new " + TextResource.class.getName() + "() {");
+  sw.indent();
+  sw.println("// " + resource.toExternalForm());
+  sw.println("public String getText() {");
+  sw.indent();
+  String toWrite=Util.readURLAsString(resource);
+  sw.println("return \"" + Generator.escape(toWrite) + "\";");
+  sw.outdent();
+  sw.println("}");
+  sw.println("public String getName() {");
+  sw.indent();
+  sw.println("return \"" + method.getName() + "\";");
+  sw.outdent();
+  sw.println("}");
+  sw.outdent();
+  sw.println("}");
+  return sw.toString();
+}

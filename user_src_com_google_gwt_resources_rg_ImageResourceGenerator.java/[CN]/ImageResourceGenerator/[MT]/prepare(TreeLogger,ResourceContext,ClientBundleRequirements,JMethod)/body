@@ -1,0 +1,30 @@
+{
+  URL[] resources=ResourceGeneratorUtil.findResources(logger,context,method,DEFAULT_EXTENSIONS);
+  if (resources.length != 1) {
+    logger.log(TreeLogger.ERROR,"Exactly one image may be specified",null);
+    throw new UnableToCompleteException();
+  }
+  ImageBundleBuilder builder=getBuilder(method);
+  URL resource=resources[0];
+  String name=method.getName();
+  ImageRect rect;
+  try {
+    rect=builder.assimilate(logger,name,resource);
+    if (context.supportsDataUrls() || getRepeatStyle(method) == RepeatStyle.Both) {
+      builder.removeMapping(name);
+      rect.setPosition(0,0);
+      throw new UnsuitableForStripException(rect);
+    }
+    buildersByImageRect.put(rect,builder);
+  }
+ catch (  UnsuitableForStripException e) {
+    rect=e.getImageRect();
+    byte[] imageBytes=ImageBundleBuilder.toPng(logger,rect);
+    String urlExpression=context.deploy(rect.getName() + ".png","image/png",imageBytes,false);
+    urlsByExternalImageRect.put(rect,new String[]{urlExpression,null});
+  }
+  imageRectsByName.put(name,rect);
+  if (getFlipRtl(method)) {
+    rtlImages.put(rect,null);
+  }
+}

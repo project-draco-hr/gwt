@@ -1,0 +1,23 @@
+{
+  boolean seenLeft=false;
+  for (ListIterator<Value> it=values.listIterator(); it.hasNext(); ) {
+    Value v=it.next();
+    Value maybeFlipped=flipLeftRightIdentValue(v);
+    NumberValue nv=v.isNumberValue();
+    if (v != maybeFlipped) {
+      it.set(maybeFlipped);
+      seenLeft=true;
+    }
+ else     if (isIdent(v,"center")) {
+      seenLeft=true;
+    }
+ else     if (!seenLeft && (nv != null)) {
+      seenLeft=true;
+      if ("%".equals(nv.getUnits())) {
+        float position=100f - nv.getValue();
+        it.set(new NumberValue(position,"%"));
+        break;
+      }
+    }
+  }
+}

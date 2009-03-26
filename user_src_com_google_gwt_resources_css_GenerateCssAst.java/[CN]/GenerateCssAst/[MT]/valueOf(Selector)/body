@@ -1,0 +1,46 @@
+{
+  if (selector instanceof CharacterDataSelector) {
+  }
+ else   if (selector instanceof ConditionalSelector) {
+    ConditionalSelector s=(ConditionalSelector)selector;
+    String simpleSelector=valueOf(s.getSimpleSelector());
+    if ("*".equals(simpleSelector)) {
+      return valueOf(s.getCondition());
+    }
+ else {
+      return simpleSelector + valueOf(s.getCondition());
+    }
+  }
+ else   if (selector instanceof DescendantSelector) {
+    DescendantSelector s=(DescendantSelector)selector;
+switch (s.getSelectorType()) {
+case Selector.SAC_CHILD_SELECTOR:
+      if (s.getSimpleSelector().getSelectorType() == Selector.SAC_PSEUDO_ELEMENT_SELECTOR) {
+        return valueOf(s.getAncestorSelector()) + ":" + valueOf(s.getSimpleSelector());
+      }
+ else {
+        return valueOf(s.getAncestorSelector()) + ">" + valueOf(s.getSimpleSelector());
+      }
+case Selector.SAC_DESCENDANT_SELECTOR:
+    return valueOf(s.getAncestorSelector()) + " " + valueOf(s.getSimpleSelector());
+}
+}
+ else if (selector instanceof ElementSelector) {
+ElementSelector s=(ElementSelector)selector;
+if (s.getLocalName() == null) {
+  return "*";
+}
+ else {
+  return escapeIdent(s.getLocalName());
+}
+}
+ else if (selector instanceof NegativeSelector) {
+}
+ else if (selector instanceof ProcessingInstructionSelector) {
+}
+ else if (selector instanceof SiblingSelector) {
+SiblingSelector s=(SiblingSelector)selector;
+return valueOf(s.getSelector()) + "+" + valueOf(s.getSiblingSelector());
+}
+throw new RuntimeException("Unhandled selector of type " + selector.getClass().getName());
+}
