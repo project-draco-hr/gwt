@@ -1,24 +1,28 @@
 {
   String msg="The development shell servlet received a request for '" + partialPath + "' in module '"+ moduleName+ ".gwt.xml' ";
   logger=logger.branch(TreeLogger.TRACE,msg,null);
-  if (autoGenerateResources(request,response,logger,partialPath,moduleName)) {
-    return;
+  if (shouldAutoGenerateResources()) {
+    if (autoGenerateResources(request,response,logger,partialPath,moduleName)) {
+      return;
+    }
   }
   URL foundResource=null;
   try {
     ModuleDef moduleDef=getModuleDef(logger,moduleName);
-    Resource publicResource=moduleDef.findPublicFile(partialPath);
-    if (publicResource != null) {
-      foundResource=publicResource.getURL();
-    }
-    if (foundResource == null) {
-      File shellDir=getShellWorkDirs().getShellPublicGenDir(moduleDef);
-      File requestedFile=new File(shellDir,partialPath);
-      if (requestedFile.exists()) {
-        try {
-          foundResource=requestedFile.toURI().toURL();
-        }
- catch (        MalformedURLException e) {
+    if (shouldAutoGenerateResources()) {
+      Resource publicResource=moduleDef.findPublicFile(partialPath);
+      if (publicResource != null) {
+        foundResource=publicResource.getURL();
+      }
+      if (foundResource == null) {
+        File shellDir=getShellWorkDirs().getShellPublicGenDir(moduleDef);
+        File requestedFile=new File(shellDir,partialPath);
+        if (requestedFile.exists()) {
+          try {
+            foundResource=requestedFile.toURI().toURL();
+          }
+ catch (          MalformedURLException e) {
+          }
         }
       }
     }
