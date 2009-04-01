@@ -1,13 +1,14 @@
 {
-  System.out.println("making html shell");
-  String classPath=System.getProperty("java.class.path");
+  String classPath=GlobalInformation.settings.resources.get();
+  if (classPath == null) {
+    classPath=System.getProperty("java.class.path");
+  }
   if (!classPath.endsWith("/")) {
     classPath+="/";
   }
   String inputFileName="roundedCorners.css";
   File inputFile=new File(classPath + inputFileName);
   File outputFile=new File("roundedCorners.css");
-  System.err.println("now trying to copy inputFile |" + inputFile + "| to outputFile |"+ outputFile+ "|, classPath is "+ classPath+ ", inputFileName is: |"+ inputFileName);
   copyFileOrDirectory(inputFile,outputFile,classPath,inputFileName,false);
   inputFileName="classLevel.css";
   File inputFile2=new File(classPath + inputFileName);
@@ -23,6 +24,7 @@
   outFile.println("<html>");
   outFile.println("<head>");
   outFile.println("<title>Story of Your Compile - Top Level Dashboard for Permutation</title>");
+  outFile.println("<link rel=\"stylesheet\" href=\"roundedcorners.css\">");
   outFile.println("<style type=\"text/css\">");
   outFile.println("body {background-color: #728FCE}");
   outFile.println("h2 {background-color: transparent}");
@@ -87,16 +89,14 @@
   makeStringLiteralsHtml("stringLiteralsBreakdown.html",nameToLitColl);
   if (GlobalInformation.fragmentToStories.size() > 1) {
     outFile.println("  <div style=\"width:50%;  float:left; padding-top: 10px;\">");
-    outFile.println("<b>Breakdown by runAsync split points</b>");
+    outFile.println("<b>Breakdown of key runAsync fragments</b>");
     outFile.println("    </div>");
     outFile.println("  <div style=\"width:100%;  float:left; padding-top: 10px;\">");
     outFile.println("<div style=\"width: 110px; float: left; font-size:16px;\">Size</div>");
-    outFile.println("<div style=\"width: 200px; float: left; text-align:left; font-size:16px; \">Fragment Name</div>");
+    outFile.println("<div style=\"width: 200px; float: left; text-align:left; font-size:16px; \">Fragment</div>");
     outFile.println("    </div>");
-    outFile.println("<div style=\"height:35%; width:100%; margin:0 auto; background-color:white; float:left;\">");
-    outFile.println("<iframe src=\"fragmentsBreakdown.html\" width=100% height=100% scrolling=auto></iframe>");
-    outFile.println("</div>");
-    makeFragmentsHtml("fragmentsBreakdown.html");
+    outFile.println("<br style=\"clear:both\">");
+    makeFragmentsHtml(outFile);
   }
   outFile.println("  </body>");
   outFile.println("</html>");

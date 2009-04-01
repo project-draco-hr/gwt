@@ -1,0 +1,29 @@
+{
+  Settings settings=new Settings();
+  List<String> remainingArguments=new LinkedList<String>(Arrays.asList(allArguments));
+  next_argument:   while (!remainingArguments.isEmpty()) {
+    for (    Setting<?> setting : settings.allSettings) {
+      if (setting.consumeArguments(remainingArguments)) {
+        continue next_argument;
+      }
+    }
+    break;
+  }
+  if (remainingArguments.isEmpty()) {
+    throw new ArgumentListException("Must specify the stories file");
+  }
+  if (remainingArguments.get(0).startsWith("-")) {
+    throw new ArgumentListException("Unrecognized argument: " + remainingArguments.get(0));
+  }
+  settings.storiesFileName=remainingArguments.remove(0);
+  if (!remainingArguments.isEmpty()) {
+    settings.depFileName=remainingArguments.remove(0);
+  }
+  if (!remainingArguments.isEmpty()) {
+    settings.splitPointsFileName=remainingArguments.remove(0);
+  }
+  if (!remainingArguments.isEmpty()) {
+    throw new ArgumentListException("Too many arguments");
+  }
+  return settings;
+}
