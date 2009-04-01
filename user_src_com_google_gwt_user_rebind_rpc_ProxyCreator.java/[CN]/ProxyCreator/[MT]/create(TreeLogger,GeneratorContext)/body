@@ -1,9 +1,5 @@
 {
   TypeOracle typeOracle=context.getTypeOracle();
-  TreeLogger javadocAnnotationDeprecationBranch=null;
-  if (GenUtil.warnAboutMetadata()) {
-    javadocAnnotationDeprecationBranch=logger.branch(TreeLogger.TRACE,"Scanning this RemoteService for deprecated annotations; " + "Please see " + RemoteServiceRelativePath.class.getName() + " for more information.",null);
-  }
   JClassType serviceAsync=typeOracle.findType(serviceIntf.getQualifiedSourceName() + "Async");
   if (serviceAsync == null) {
     logger.branch(TreeLogger.ERROR,"Could not find an asynchronous version for the service interface " + serviceIntf.getQualifiedSourceName(),null);
@@ -48,7 +44,7 @@
   String serializationPolicyStrongName=writeSerializationPolicyFile(logger,context,typesSentFromBrowser,typesSentToBrowser);
   String remoteServiceInterfaceName=elideTypeNames ? TypeNameObfuscator.SERVICE_INTERFACE_ID : TypeOracleMediator.computeBinaryClassName(serviceIntf);
   generateProxyFields(srcWriter,typesSentFromBrowser,serializationPolicyStrongName,remoteServiceInterfaceName);
-  generateProxyContructor(javadocAnnotationDeprecationBranch,srcWriter);
+  generateProxyContructor(srcWriter);
   generateProxyMethods(srcWriter,typesSentFromBrowser,syncMethToAsyncMethMap);
   if (elideTypeNames) {
     generateStreamWriterOverride(srcWriter);
