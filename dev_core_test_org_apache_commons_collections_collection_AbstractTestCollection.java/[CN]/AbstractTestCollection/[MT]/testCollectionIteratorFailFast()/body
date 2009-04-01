@@ -1,0 +1,69 @@
+{
+  if (!isFailFastSupported())   return;
+  if (isAddSupported()) {
+    resetFull();
+    try {
+      Iterator iter=collection.iterator();
+      Object o=getOtherElements()[0];
+      collection.add(o);
+      confirmed.add(o);
+      iter.next();
+      fail("next after add should raise ConcurrentModification");
+    }
+ catch (    ConcurrentModificationException e) {
+    }
+    verify();
+    resetFull();
+    try {
+      Iterator iter=collection.iterator();
+      collection.addAll(Arrays.asList(getOtherElements()));
+      confirmed.addAll(Arrays.asList(getOtherElements()));
+      iter.next();
+      fail("next after addAll should raise ConcurrentModification");
+    }
+ catch (    ConcurrentModificationException e) {
+    }
+    verify();
+  }
+  if (!isRemoveSupported())   return;
+  resetFull();
+  try {
+    Iterator iter=collection.iterator();
+    collection.clear();
+    iter.next();
+    fail("next after clear should raise ConcurrentModification");
+  }
+ catch (  ConcurrentModificationException e) {
+  }
+catch (  NoSuchElementException e) {
+  }
+  resetFull();
+  try {
+    Iterator iter=collection.iterator();
+    collection.remove(getFullElements()[0]);
+    iter.next();
+    fail("next after remove should raise ConcurrentModification");
+  }
+ catch (  ConcurrentModificationException e) {
+  }
+  resetFull();
+  try {
+    Iterator iter=collection.iterator();
+    List sublist=Arrays.asList(getFullElements()).subList(2,5);
+    collection.removeAll(sublist);
+    iter.next();
+    fail("next after removeAll should raise ConcurrentModification");
+  }
+ catch (  ConcurrentModificationException e) {
+  }
+  resetFull();
+  try {
+    Iterator iter=collection.iterator();
+    List sublist=Arrays.asList(getFullElements()).subList(2,5);
+    collection.retainAll(sublist);
+    iter.next();
+    fail("next after retainAll should raise ConcurrentModification");
+  }
+ catch (  ConcurrentModificationException e) {
+  }
+}

@@ -1,0 +1,40 @@
+{
+  resetEmpty();
+  Object[] a=new Object[]{new Object(),null,null};
+  Object[] array=collection.toArray(a);
+  assertEquals("Given array shouldn't shrink",array,a);
+  assertEquals("Last element should be set to null",a[0],null);
+  verify();
+  resetFull();
+  try {
+    array=collection.toArray(new Void[0]);
+    fail("toArray(new Void[0]) should raise ArrayStore");
+  }
+ catch (  ArrayStoreException e) {
+  }
+  verify();
+  try {
+    array=collection.toArray(null);
+    fail("toArray(null) should raise NPE");
+  }
+ catch (  NullPointerException e) {
+  }
+  verify();
+  array=collection.toArray(new Object[0]);
+  a=collection.toArray();
+  assertEquals("toArrays should be equal",Arrays.asList(array),Arrays.asList(a));
+  HashSet classes=new HashSet();
+  for (int i=0; i < array.length; i++) {
+    classes.add((array[i] == null) ? null : array[i].getClass());
+  }
+  if (classes.size() > 1)   return;
+  Class cl=(Class)classes.iterator().next();
+  if (Map.Entry.class.isAssignableFrom(cl)) {
+    cl=Map.Entry.class;
+  }
+  a=(Object[])Array.newInstance(cl,0);
+  array=collection.toArray(a);
+  assertEquals("toArray(Object[]) should return correct array type",a.getClass(),array.getClass());
+  assertEquals("type-specific toArrays should be equal",Arrays.asList(array),Arrays.asList(collection.toArray()));
+  verify();
+}

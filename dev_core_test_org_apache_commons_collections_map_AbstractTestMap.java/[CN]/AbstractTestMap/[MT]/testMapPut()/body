@@ -1,0 +1,72 @@
+{
+  resetEmpty();
+  Object[] keys=getSampleKeys();
+  Object[] values=getSampleValues();
+  Object[] newValues=getNewSampleValues();
+  if (isPutAddSupported()) {
+    for (int i=0; i < keys.length; i++) {
+      Object o=map.put(keys[i],values[i]);
+      confirmed.put(keys[i],values[i]);
+      verify();
+      assertTrue("First map.put should return null",o == null);
+      assertTrue("Map should contain key after put",map.containsKey(keys[i]));
+      assertTrue("Map should contain value after put",map.containsValue(values[i]));
+    }
+    if (isPutChangeSupported()) {
+      for (int i=0; i < keys.length; i++) {
+        Object o=map.put(keys[i],newValues[i]);
+        confirmed.put(keys[i],newValues[i]);
+        verify();
+        assertEquals("Map.put should return previous value when changed",values[i],o);
+        assertTrue("Map should still contain key after put when changed",map.containsKey(keys[i]));
+        assertTrue("Map should contain new value after put when changed",map.containsValue(newValues[i]));
+        if (!isAllowDuplicateValues()) {
+          assertTrue("Map should not contain old value after put when changed",!map.containsValue(values[i]));
+        }
+      }
+    }
+ else {
+      try {
+        map.put(keys[0],newValues[0]);
+        fail("Expected IllegalArgumentException or UnsupportedOperationException on put (change)");
+      }
+ catch (      IllegalArgumentException ex) {
+      }
+catch (      UnsupportedOperationException ex) {
+      }
+    }
+  }
+ else   if (isPutChangeSupported()) {
+    resetEmpty();
+    try {
+      map.put(keys[0],values[0]);
+      fail("Expected UnsupportedOperationException or IllegalArgumentException on put (add) when fixed size");
+    }
+ catch (    IllegalArgumentException ex) {
+    }
+catch (    UnsupportedOperationException ex) {
+    }
+    resetFull();
+    int i=0;
+    for (Iterator it=map.keySet().iterator(); it.hasNext() && i < newValues.length; i++) {
+      Object key=it.next();
+      Object o=map.put(key,newValues[i]);
+      Object value=confirmed.put(key,newValues[i]);
+      verify();
+      assertEquals("Map.put should return previous value when changed",value,o);
+      assertTrue("Map should still contain key after put when changed",map.containsKey(key));
+      assertTrue("Map should contain new value after put when changed",map.containsValue(newValues[i]));
+      if (!isAllowDuplicateValues()) {
+        assertTrue("Map should not contain old value after put when changed",!map.containsValue(values[i]));
+      }
+    }
+  }
+ else {
+    try {
+      map.put(keys[0],values[0]);
+      fail("Expected UnsupportedOperationException on put (add)");
+    }
+ catch (    UnsupportedOperationException ex) {
+    }
+  }
+}

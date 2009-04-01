@@ -1,0 +1,42 @@
+{
+  if (!isRemoveSupported())   return;
+  resetEmpty();
+  List elements=Arrays.asList(getFullElements());
+  List other=Arrays.asList(getOtherElements());
+  assertTrue("Empty retainAll() should return false",!collection.retainAll(Collections.EMPTY_SET));
+  verify();
+  assertTrue("Empty retainAll() should return false",!collection.retainAll(elements));
+  verify();
+  resetFull();
+  assertTrue("Collection should change from retainAll empty",collection.retainAll(Collections.EMPTY_SET));
+  confirmed.retainAll(Collections.EMPTY_SET);
+  verify();
+  resetFull();
+  assertTrue("Collection changed from retainAll other",collection.retainAll(other));
+  confirmed.retainAll(other);
+  verify();
+  resetFull();
+  int size=collection.size();
+  assertTrue("Collection shouldn't change from retainAll elements",!collection.retainAll(elements));
+  verify();
+  assertEquals("Collection size shouldn't change",size,collection.size());
+  if (getFullElements().length > 1) {
+    resetFull();
+    size=collection.size();
+    int min=(getFullElements().length < 2 ? 0 : 2);
+    int max=(getFullElements().length <= 5 ? getFullElements().length - 1 : 5);
+    assertTrue("Collection should changed by partial retainAll",collection.retainAll(elements.subList(min,max)));
+    confirmed.retainAll(elements.subList(min,max));
+    verify();
+    Iterator iter=collection.iterator();
+    while (iter.hasNext()) {
+      assertTrue("Collection only contains retained element",elements.subList(min,max).contains(iter.next()));
+    }
+  }
+  resetFull();
+  HashSet set=new HashSet(elements);
+  size=collection.size();
+  assertTrue("Collection shouldn't change from retainAll without " + "duplicate elements",!collection.retainAll(set));
+  verify();
+  assertEquals("Collection size didn't change from nonduplicate " + "retainAll",size,collection.size());
+}

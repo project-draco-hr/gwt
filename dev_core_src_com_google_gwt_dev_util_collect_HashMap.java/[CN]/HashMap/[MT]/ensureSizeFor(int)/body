@@ -1,0 +1,25 @@
+{
+  if (keys.length * 3 >= expectedSize * 4) {
+    return;
+  }
+  int newCapacity=keys.length << 1;
+  while (newCapacity * 3 < expectedSize * 4) {
+    newCapacity<<=1;
+  }
+  Object[] oldKeys=keys;
+  Object[] oldValues=values;
+  initTable(newCapacity);
+  for (int i=0; i < oldKeys.length; ++i) {
+    Object k=oldKeys[i];
+    if (k != null) {
+      int newIndex=getKeyIndex(unmaskNullKey(k));
+      while (keys[newIndex] != null) {
+        if (++newIndex == keys.length) {
+          newIndex=0;
+        }
+      }
+      keys[newIndex]=k;
+      values[newIndex]=oldValues[i];
+    }
+  }
+}

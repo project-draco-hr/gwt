@@ -1,0 +1,26 @@
+{
+  String verboseName=prefix + "." + m.getName();
+  if (ignored.contains(verboseName))   return;
+  BulkTest bulk2;
+  try {
+    bulk2=(BulkTest)m.invoke(bulk,(Object[])null);
+    if (bulk2 == null)     return;
+  }
+ catch (  InvocationTargetException ex) {
+    ex.getTargetException().printStackTrace();
+    throw new Error();
+  }
+catch (  IllegalAccessException ex) {
+    ex.printStackTrace();
+    throw new Error();
+  }
+  String oldPrefix=prefix;
+  TestSuite oldResult=result;
+  prefix=prefix + "." + m.getName();
+  result=new TestSuite();
+  result.setName(m.getName());
+  make(bulk2);
+  oldResult.addTest(result);
+  prefix=oldPrefix;
+  result=oldResult;
+}
