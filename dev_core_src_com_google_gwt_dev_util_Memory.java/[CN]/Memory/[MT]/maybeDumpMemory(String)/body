@@ -1,0 +1,29 @@
+{
+  long elapsed=System.currentTimeMillis() - startTime;
+  if (System.getProperty(PROPERTY_DUMP_MEMORY) != null) {
+    for (int i=0; i < NUM_GC_COLLECTIONS; ++i) {
+      System.gc();
+    }
+    long heap=ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed();
+    long nonHeap=ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getUsed();
+    String infoString=String.format("[%.18s]",info);
+    System.out.println(String.format("%-20s %10d heap, %10d nonheap, %10d total, %10.2fs",infoString,heap,nonHeap,heap + nonHeap,(double)elapsed / 1000));
+  }
+  String dumpFile=System.getProperty(PROPERTY_DUMP_HEAP);
+  if (dumpFile != null) {
+    dumpFile=info + "-" + dumpFile;
+    new File(dumpFile).delete();
+    try {
+      Class<?> beanClass=Class.forName("com.sun.management.HotSpotDiagnosticMXBean");
+      Object bean=ManagementFactory.newPlatformMXBeanProxy(ManagementFactory.getPlatformMBeanServer(),"com.sun.management:type=HotSpotDiagnostic",beanClass);
+      Method dumpHeapMethod=beanClass.getDeclaredMethod("dumpHeap",String.class,Boolean.TYPE);
+      dumpHeapMethod.invoke(bean,dumpFile,true);
+      System.out.println("(" + info + ") dumped heap into: "+ dumpFile);
+    }
+ catch (    Throwable e) {
+      System.err.println("Unable to dump heap");
+      e.printStackTrace();
+    }
+  }
+  startTime=System.currentTimeMillis();
+}

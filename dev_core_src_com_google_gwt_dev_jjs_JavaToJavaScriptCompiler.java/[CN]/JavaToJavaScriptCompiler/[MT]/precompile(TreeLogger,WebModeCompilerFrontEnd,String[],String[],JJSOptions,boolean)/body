@@ -15,6 +15,7 @@
   allRootTypes.addAll(JProgram.CODEGEN_TYPES_SET);
   allRootTypes.addAll(JProgram.INDEX_TYPES_SET);
   allRootTypes.add(FragmentLoaderCreator.ASYNC_FRAGMENT_LOADER);
+  Memory.maybeDumpMemory("CompStateBuilt");
   CompilationUnitDeclaration[] goldenCuds=compilerFrontEnd.getCompilationUnitDeclarations(logger,allRootTypes.toArray(new String[0]));
   checkForErrors(logger,goldenCuds,false);
   PerfLogger.start("Build AST");
@@ -27,9 +28,11 @@
     jprogram.typeOracle.computeBeforeAST();
     GenerateJavaAST.exec(allTypeDeclarations,typeMap,jprogram,jsProgram,options);
     checkForErrors(logger,goldenCuds,true);
+    Memory.maybeDumpMemory("AstBuilt");
     goldenCuds=null;
     typeMap=null;
     allTypeDeclarations=null;
+    maybeDumpAST(jprogram);
     FixAssignmentToUnbox.exec(jprogram);
     if (options.isEnableAssertions()) {
       AssertionNormalizer.exec(jprogram);
