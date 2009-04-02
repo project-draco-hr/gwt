@@ -1,0 +1,33 @@
+{
+  boolean needHeader=true;
+  for (  String currencyCode : currencies) {
+    CurrencyInfo currencyInfo=allCurrencyData.get(currencyCode);
+    if (currencyInfo.isObsolete()) {
+      continue;
+    }
+    String displayName=currencyInfo.getDisplayName();
+    if (displayName != null && !currencyCode.equals(displayName)) {
+      if (needHeader) {
+        needHeader=false;
+        writer.println();
+        writer.println("private void loadSuperNamesMap() {");
+        writer.println("  super.loadNamesMap();");
+        writer.println("}");
+        writer.println();
+        writer.println("@Override");
+        writer.println("protected native void loadNamesMap() /*-{");
+        writer.indent();
+        writer.println("this.@com.google.gwt.i18n.client.impl." + className + "::loadSuperNamesMap()();");
+        writer.println("this.@com.google.gwt.i18n.client.impl." + className + "::overrideNamesMap(Lcom/google/gwt/core/"+ "client/JavaScriptObject;)({");
+        writer.indent();
+      }
+      writer.println("\"" + quote(currencyCode) + "\": \""+ quote(displayName)+ "\",");
+    }
+  }
+  if (!needHeader) {
+    writer.outdent();
+    writer.println("});");
+    writer.outdent();
+    writer.println("}-*/;");
+  }
+}

@@ -1,0 +1,30 @@
+{
+  String packageName=targetClass.getPackage().getName();
+  String className=targetClass.getName().replace('.','_') + "_" + locale.getCanonicalForm().getAsString();
+  PrintWriter pw=context.tryCreate(logger,packageName,className);
+  if (pw != null) {
+    ClassSourceFileComposerFactory factory=new ClassSourceFileComposerFactory(packageName,className);
+    factory.setSuperclass(superClassName);
+    factory.addImport(CURRENCY_LIST);
+    factory.addImport(CURRENCY_DATA);
+    SourceWriter writer=factory.createSourceWriter(context,pw);
+    if (currencies.length > 0) {
+      writeCurrencyMethod(className,writer,currencies,allCurrencyData);
+      writeNamesMethod(className,writer,currencies,allCurrencyData);
+    }
+    if (defCurrencyCode != null) {
+      CurrencyInfo currencyInfo=allCurrencyData.get(defCurrencyCode);
+      if (currencyInfo == null) {
+        currencyInfo=new CurrencyInfo(defCurrencyCode,null,null);
+        allCurrencyData.put(defCurrencyCode,currencyInfo);
+      }
+      writer.println();
+      writer.println("@Override");
+      writer.println("public native CurrencyData getDefault() /*-{");
+      writer.println("  return " + currencyInfo.getJson() + ";");
+      writer.println("}-*/;");
+    }
+    writer.commit(logger);
+  }
+  return packageName + "." + className;
+}

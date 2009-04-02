@@ -1,0 +1,54 @@
+{
+  code=currencyCode;
+  if (currencyData == null) {
+    currencyData=currencyCode;
+  }
+  String[] currencySplit=SPLIT_VERTICALBAR.split(currencyData);
+  String currencyDisplay=currencySplit[0];
+  String currencySymbol=null;
+  if (currencySplit.length > 1 && currencySplit[1].length() > 0) {
+    currencySymbol=currencySplit[1];
+  }
+  int currencyFractionDigits=2;
+  if (currencySplit.length > 2 && currencySplit[2].length() > 0) {
+    currencyFractionDigits=Integer.valueOf(currencySplit[2]);
+  }
+  boolean currencyObsolete=false;
+  if (currencySplit.length > 3 && currencySplit[3].length() > 0) {
+    currencyObsolete=Integer.valueOf(currencySplit[3]) != 0;
+  }
+  int currencyFlags=currencyFractionDigits;
+  String currencyPortableSymbol="";
+  if (extraData != null) {
+    String[] extraSplit=SPLIT_VERTICALBAR.split(extraData);
+    currencyPortableSymbol=extraSplit[0];
+    if (extraSplit.length > 1) {
+      if (extraSplit[1].contains("SymPrefix")) {
+        currencyFlags|=CurrencyData.POS_FIXED_FLAG;
+      }
+ else       if (extraSplit[1].contains("SymSuffix")) {
+        currencyFlags|=CurrencyData.POS_FIXED_FLAG | CurrencyData.POS_SUFFIX_FLAG;
+      }
+      if (extraSplit[1].contains("ForceSpace")) {
+        currencyFlags|=CurrencyData.SPACING_FIXED_FLAG | CurrencyData.SPACE_FORCED_FLAG;
+      }
+ else       if (extraSplit[1].contains("ForceNoSpace")) {
+        currencyFlags|=CurrencyData.SPACING_FIXED_FLAG;
+      }
+    }
+    if (extraSplit.length > 2 && extraSplit[2].length() > 0) {
+      currencySymbol=extraSplit[2];
+    }
+    if (currencySymbol == null && currencyPortableSymbol.length() > 0) {
+      currencySymbol=currencyPortableSymbol;
+    }
+  }
+  if (currencySymbol == null) {
+    currencySymbol=currencyCode;
+  }
+  displayName=currencyDisplay;
+  symbol=currencySymbol;
+  flags=currencyFlags;
+  portableSymbol=currencyPortableSymbol;
+  obsolete=currencyObsolete;
+}
