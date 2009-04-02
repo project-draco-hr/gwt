@@ -1,17 +1,20 @@
 {
-  Set<JInterfaceType> implementsSet=getOrCreate(implementsMap,type);
+  Set<JInterfaceType> implementsSet=new IdentityHashSet<JInterfaceType>();
   List<JClassType> list=new ArrayList<JClassType>();
   list.add(type);
-  list.addAll(getOrCreate(superClassMap,type));
+  list.addAll(get(superClassMap,type));
   for (  JClassType superclass : list) {
     for (    JInterfaceType intf : superclass.implments) {
       implementsSet.add(intf);
-      for (      JInterfaceType isup : getOrCreate(superInterfaceMap,intf)) {
+      for (      JInterfaceType isup : get(superInterfaceMap,intf)) {
         implementsSet.add(isup);
       }
     }
   }
-  for (  JInterfaceType impl : implementsSet) {
-    add(isImplementedMap,impl,type);
+  if (!implementsSet.isEmpty()) {
+    implementsMap.put(type,IdentitySets.normalize(implementsSet));
+    for (    JInterfaceType impl : implementsSet) {
+      add(isImplementedMap,impl,type);
+    }
   }
 }

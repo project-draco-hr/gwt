@@ -11,9 +11,8 @@
     assert(call.getTarget().getName().equals("Enum"));
     return;
   }
-  ArrayList<JExpression> callArgs=call.getArgs();
   for (int i=0; i < n; ++i) {
-    callArgs.add(dispProcessExpression(args[i]));
+    call.addArg(dispProcessExpression(args[i]));
   }
   if (binding.isVarargs()) {
     JArrayType type=(JArrayType)typeMap.get(params[n]);
@@ -22,7 +21,7 @@
       if (lastArgType instanceof JArrayType) {
         JArrayType lastArgArrayType=(JArrayType)lastArgType;
         if (lastArgArrayType.getDims() == type.getDims()) {
-          callArgs.add(dispProcessExpression(args[n]));
+          call.addArg(dispProcessExpression(args[n]));
           return;
         }
       }
@@ -32,6 +31,6 @@
       initializers.add(dispProcessExpression(args[i]));
     }
     JNewArray newArray=JNewArray.createInitializers(program,call.getSourceInfo(),type,initializers);
-    callArgs.add(newArray);
+    call.addArg(newArray);
   }
 }

@@ -9,10 +9,10 @@
   }
   bridgeMethod.freezeParamTypes();
   JMethodCall call=new JMethodCall(program,program.createSourceInfoSynthetic(GenerateJavaAST.class,"call to inherited method"),program.getExprThisRef(program.createSourceInfoSynthetic(GenerateJavaAST.class,"part of a bridge method"),clazz),implmeth);
-  for (int i=0; i < bridgeMethod.params.size(); i++) {
-    JParameter param=bridgeMethod.params.get(i);
+  for (int i=0; i < bridgeMethod.getParams().size(); i++) {
+    JParameter param=bridgeMethod.getParams().get(i);
     JParameterRef paramRef=new JParameterRef(program,program.createSourceInfoSynthetic(GenerateJavaAST.class,"part of a bridge method"),param);
-    call.getArgs().add(maybeCast(implmeth.params.get(i).getType(),paramRef));
+    call.addArg(maybeCast(implmeth.getParams().get(i).getType(),paramRef));
   }
   JStatement callOrReturn;
   if (bridgeMethod.getType() == program.getTypeVoid()) {
@@ -22,13 +22,13 @@
     callOrReturn=new JReturnStatement(program,program.createSourceInfoSynthetic(GenerateJavaAST.class,"part of a bridge method"),call);
   }
   JMethodBody body=(JMethodBody)bridgeMethod.getBody();
-  body.getStatements().add(callOrReturn);
+  body.getBlock().addStmt(callOrReturn);
   List<JMethod> overrides=new ArrayList<JMethod>();
   tryFindUpRefs(bridgeMethod,overrides);
   for (  JMethod over : overrides) {
     if (!classHasMethodOverriding(clazz,over)) {
-      bridgeMethod.overrides.add(over);
-      bridgeMethod.overrides.addAll(over.overrides);
+      bridgeMethod.addOverride(over);
+      bridgeMethod.addOverrides(over.getOverrides());
     }
   }
 }

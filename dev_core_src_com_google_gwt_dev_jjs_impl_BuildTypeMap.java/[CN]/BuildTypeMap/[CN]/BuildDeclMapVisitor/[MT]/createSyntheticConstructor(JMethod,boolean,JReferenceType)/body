@@ -3,25 +3,23 @@
   JMethod synthetic=program.createMethod(type.getSourceInfo().makeChild(BuildDeclMapVisitor.class,"Synthetic constructor"),"new".toCharArray(),type,type,false,true,true,false,false);
   JNewInstance newInstance=new JNewInstance(program,type.getSourceInfo().makeChild(BuildDeclMapVisitor.class,"new instance"),type);
   JMethodCall call=new JMethodCall(program,type.getSourceInfo().makeChild(BuildDeclMapVisitor.class,"constructor invocation"),newInstance,constructor);
-  List<JExpression> args=call.getArgs();
   JParameter enclosingInstance=null;
   if (!staticClass) {
     enclosingInstance=program.createParameter(synthetic.getSourceInfo().makeChild(BuildDeclMapVisitor.class,"outer instance"),"this$outer".toCharArray(),enclosingType,false,false,synthetic);
   }
-  for (Iterator<JParameter> i=constructor.params.iterator(); i.hasNext(); ) {
+  for (Iterator<JParameter> i=constructor.getParams().iterator(); i.hasNext(); ) {
     JParameter param=i.next();
     if (enclosingInstance != null && !i.hasNext()) {
-      args.add(new JParameterRef(program,synthetic.getSourceInfo().makeChild(BuildDeclMapVisitor.class,"enclosing instance"),enclosingInstance));
+      call.addArg(new JParameterRef(program,synthetic.getSourceInfo().makeChild(BuildDeclMapVisitor.class,"enclosing instance"),enclosingInstance));
     }
  else {
       JParameter syntheticParam=program.createParameter(synthetic.getSourceInfo().makeChild(BuildDeclMapVisitor.class,"Argument " + param.getName()),param.getName().toCharArray(),param.getType(),true,false,synthetic);
-      args.add(new JParameterRef(program,syntheticParam.getSourceInfo().makeChild(BuildDeclMapVisitor.class,"reference"),syntheticParam));
+      call.addArg(new JParameterRef(program,syntheticParam.getSourceInfo().makeChild(BuildDeclMapVisitor.class,"reference"),syntheticParam));
     }
   }
   synthetic.freezeParamTypes();
   JReturnStatement ret=new JReturnStatement(program,synthetic.getSourceInfo().makeChild(BuildDeclMapVisitor.class,"Return statement"),call);
   JMethodBody body=(JMethodBody)synthetic.getBody();
-  List<JStatement> statements=body.getStatements();
-  statements.add(ret);
+  body.getBlock().addStmt(ret);
   return synthetic;
 }

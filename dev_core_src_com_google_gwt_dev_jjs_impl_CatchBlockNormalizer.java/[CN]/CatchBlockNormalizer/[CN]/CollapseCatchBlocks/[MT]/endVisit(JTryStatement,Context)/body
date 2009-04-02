@@ -8,9 +8,9 @@
   JBlock newCatchBlock=new JBlock(program,catchInfo);
   JMethod caughtMethod=program.getIndexedMethod("Exceptions.caught");
   JMethodCall call=new JMethodCall(program,catchInfo,null,caughtMethod);
-  call.getArgs().add(exRef);
+  call.addArg(exRef);
   JExpressionStatement asg=program.createAssignmentStmt(catchInfo,exRef,call);
-  newCatchBlock.statements.add(asg);
+  newCatchBlock.addStmt(asg);
   JStatement cur=new JThrowStatement(program,catchInfo,exRef);
   for (int i=x.getCatchBlocks().size() - 1; i >= 0; --i) {
     JBlock block=x.getCatchBlocks().get(i);
@@ -19,12 +19,12 @@
     JReferenceType argType=(JReferenceType)arg.getType();
     JExpression ifTest=new JInstanceOf(program,catchInfo,argType,exRef);
     asg=program.createAssignmentStmt(catchInfo,arg,exRef);
-    if (!block.statements.isEmpty()) {
-      block.statements.add(0,asg);
+    if (!block.getStatements().isEmpty()) {
+      block.addStmt(0,asg);
     }
     cur=new JIfStatement(program,catchInfo,ifTest,block,cur);
   }
-  newCatchBlock.statements.add(cur);
+  newCatchBlock.addStmt(cur);
   x.getCatchArgs().clear();
   x.getCatchArgs().add(exRef);
   x.getCatchBlocks().clear();

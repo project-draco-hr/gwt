@@ -10,14 +10,14 @@
   JMethodCall call;
   JClassType javaLangString=program.getTypeJavaLangString();
   if (newType == javaLangString) {
-    int ctorArgc=ctor.params.size();
+    int ctorArgc=ctor.getParams().size();
     JMethod targetMethod=null;
     outer:     for (int j=0; j < javaLangString.methods.size(); ++j) {
       JMethod method=javaLangString.methods.get(j);
-      if (method.getName().equals("_String") && method.params.size() == ctorArgc) {
+      if (method.getName().equals("_String") && method.getParams().size() == ctorArgc) {
         for (int i=0; i < ctorArgc; ++i) {
-          JParameter mparam=method.params.get(i);
-          JParameter cparam=ctor.params.get(i);
+          JParameter mparam=method.getParams().get(i);
+          JParameter cparam=ctor.getParams().get(i);
           if (mparam.getType() != cparam.getType()) {
             continue outer;
           }
@@ -36,8 +36,7 @@
     call=new JMethodCall(program,info,newInstance,ctor);
   }
   if (x.enumConstant != null) {
-    call.getArgs().add(program.getLiteralString(info,x.enumConstant.name));
-    call.getArgs().add(program.getLiteralInt(x.enumConstant.binding.original().id));
+    call.addArgs(program.getLiteralString(info,x.enumConstant.name),program.getLiteralInt(x.enumConstant.binding.original().id));
   }
   addCallArgs(x.arguments,call,b);
   ReferenceBinding targetBinding=b.declaringClass;
@@ -47,14 +46,14 @@
       for (int i=0; i < nestedBinding.enclosingInstances.length; ++i) {
         SyntheticArgumentBinding arg=nestedBinding.enclosingInstances[i];
         JClassType syntheticThisType=(JClassType)typeMap.get(arg.type);
-        call.getArgs().add(createThisRef(info,syntheticThisType));
+        call.addArg(createThisRef(info,syntheticThisType));
       }
     }
     if (nestedBinding.outerLocalVariables != null) {
       for (int i=0; i < nestedBinding.outerLocalVariables.length; ++i) {
         SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
         JVariable variable=(JVariable)typeMap.get(arg.actualOuterLocalVariable);
-        call.getArgs().add(createVariableRef(info,variable,arg.actualOuterLocalVariable));
+        call.addArg(createVariableRef(info,variable,arg.actualOuterLocalVariable));
       }
     }
   }

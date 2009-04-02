@@ -3,15 +3,12 @@
   if (target.isStatic() && x.getInstance() != null) {
     ignoringExpressionOutput.remove(x.getInstance());
   }
-  List<JExpression> args=x.getArgs();
-  int paramCount=target.params.size();
-  List<JExpression> ignoredArgs=args.subList(paramCount,args.size());
-  ignoringExpressionOutput.removeAll(ignoredArgs);
-  for (int i=0; i < ignoredArgs.size(); ++i) {
-    JExpression arg=ignoredArgs.get(i);
+  int paramCount=target.getParams().size();
+  for (int i=paramCount; i < x.getArgs().size(); ++i) {
+    JExpression arg=x.getArgs().get(i);
+    ignoringExpressionOutput.remove(arg);
     if (!arg.hasSideEffects()) {
-      ignoredArgs.remove(i);
-      --i;
+      x.removeArg(i--);
       didChange=true;
     }
   }

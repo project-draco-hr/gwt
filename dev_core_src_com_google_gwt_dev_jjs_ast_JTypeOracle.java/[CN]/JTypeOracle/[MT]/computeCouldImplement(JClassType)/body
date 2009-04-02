@@ -1,17 +1,20 @@
 {
-  Set<JInterfaceType> couldImplementSet=getOrCreate(couldImplementMap,type);
-  couldImplementSet.addAll(getOrCreate(implementsMap,type));
+  Set<JInterfaceType> couldImplementSet=new IdentityHashSet<JInterfaceType>();
+  couldImplementSet.addAll(get(implementsMap,type));
   List<JClassType> subclasses=new ArrayList<JClassType>();
-  subclasses.addAll(getOrCreate(subClassMap,type));
+  subclasses.addAll(get(subClassMap,type));
   for (  JClassType subclass : subclasses) {
     for (    JInterfaceType intf : subclass.implments) {
       couldImplementSet.add(intf);
-      for (      JInterfaceType isup : getOrCreate(superInterfaceMap,intf)) {
+      for (      JInterfaceType isup : get(superInterfaceMap,intf)) {
         couldImplementSet.add(isup);
       }
     }
   }
-  for (  JInterfaceType couldImpl : couldImplementSet) {
-    add(couldBeImplementedMap,couldImpl,type);
+  if (!couldImplementSet.isEmpty()) {
+    couldImplementMap.put(type,IdentitySets.normalize(couldImplementSet));
+    for (    JInterfaceType couldImpl : couldImplementSet) {
+      add(couldBeImplementedMap,couldImpl,type);
+    }
   }
 }

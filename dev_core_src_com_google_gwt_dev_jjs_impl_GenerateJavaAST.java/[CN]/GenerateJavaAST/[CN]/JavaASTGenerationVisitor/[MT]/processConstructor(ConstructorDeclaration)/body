@@ -15,8 +15,8 @@
     JMethod clinitMethod=enclosingType.methods.get(0);
     JMethodCall clinitCall=new JMethodCall(program,info,null,clinitMethod);
     JMethodBody body=(JMethodBody)ctor.getBody();
-    List<JStatement> statements=body.getStatements();
-    statements.add(clinitCall.makeStatement());
+    JBlock block=body.getBlock();
+    block.addStmt(clinitCall.makeStatement());
     if (!hasExplicitThis) {
       ReferenceBinding declaringClass=x.binding.declaringClass;
       if (declaringClass instanceof NestedTypeBinding) {
@@ -28,7 +28,7 @@
             JParameter param=paramIt.next();
             if (arg.matchingField != null) {
               JField field=(JField)typeMap.get(arg);
-              statements.add(program.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
+              block.addStmt(program.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
             }
           }
         }
@@ -37,39 +37,39 @@
             SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
             JParameter param=paramIt.next();
             JField field=(JField)typeMap.get(arg);
-            statements.add(program.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
+            block.addStmt(program.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
           }
         }
       }
     }
     if (enclosingType.isEnumOrSubclass() != null) {
       assert(superOrThisCall != null);
-      JVariableRef enumNameRef=createVariableRef(superOrThisCall.getSourceInfo(),ctor.params.get(0));
-      superOrThisCall.getArgs().add(0,enumNameRef);
-      JVariableRef enumOrdinalRef=createVariableRef(superOrThisCall.getSourceInfo(),ctor.params.get(1));
-      superOrThisCall.getArgs().add(1,enumOrdinalRef);
+      JVariableRef enumNameRef=createVariableRef(superOrThisCall.getSourceInfo(),ctor.getParams().get(0));
+      superOrThisCall.addArg(0,enumNameRef);
+      JVariableRef enumOrdinalRef=createVariableRef(superOrThisCall.getSourceInfo(),ctor.getParams().get(1));
+      superOrThisCall.addArg(1,enumOrdinalRef);
     }
     if (superOrThisCall != null) {
-      statements.add(superOrThisCall.makeStatement());
+      block.addStmt(superOrThisCall.makeStatement());
     }
     JExpression thisRef=createThisRef(info,enclosingType);
     if (!hasExplicitThis) {
       JMethod initMethod=enclosingType.methods.get(1);
       JMethodCall initCall=new JMethodCall(program,info,thisRef,initMethod);
-      statements.add(initCall.makeStatement());
+      block.addStmt(initCall.makeStatement());
     }
     if (x.statements != null) {
       for (int i=0, n=x.statements.length; i < n; ++i) {
         Statement origStmt=x.statements[i];
         JStatement jstmt=dispProcessStatement(origStmt);
         if (jstmt != null) {
-          statements.add(jstmt);
+          block.addStmt(jstmt);
         }
       }
     }
     currentMethodScope=null;
     currentMethod=null;
-    statements.add(new JReturnStatement(program,info,thisRef));
+    block.addStmt(new JReturnStatement(program,info,thisRef));
   }
  catch (  Throwable e) {
     throw translateException(ctor,e);

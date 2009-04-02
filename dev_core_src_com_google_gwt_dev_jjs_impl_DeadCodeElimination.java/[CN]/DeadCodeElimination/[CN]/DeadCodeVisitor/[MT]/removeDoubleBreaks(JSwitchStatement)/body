@@ -1,17 +1,17 @@
 {
   JBlock body=x.getBody();
   boolean lastWasBreak=true;
-  for (Iterator<JStatement> it=body.statements.iterator(); it.hasNext(); ) {
-    JStatement statement=it.next();
+  for (int i=0; i < body.getStatements().size(); ++i) {
+    JStatement statement=body.getStatements().get(i);
     boolean isBreak=isUnconditionalBreak(statement);
     if (isBreak && lastWasBreak) {
-      it.remove();
+      body.removeStmt(i--);
       didChange=true;
     }
     lastWasBreak=isBreak;
   }
-  if (body.statements.size() > 0 && isUnconditionalUnlabeledBreak(last(body.statements))) {
-    body.statements.remove(body.statements.size() - 1);
+  if (body.getStatements().size() > 0 && isUnconditionalUnlabeledBreak(last(body.getStatements()))) {
+    body.removeStmt(body.getStatements().size() - 1);
     didChange=true;
   }
 }
