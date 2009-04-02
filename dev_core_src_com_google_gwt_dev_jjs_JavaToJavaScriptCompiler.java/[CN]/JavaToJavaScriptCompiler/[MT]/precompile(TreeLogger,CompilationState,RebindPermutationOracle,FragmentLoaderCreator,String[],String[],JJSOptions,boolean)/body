@@ -21,8 +21,9 @@
   }
   checkForErrors(logger,goldenCuds,false);
   PerfLogger.start("Build AST");
-  JProgram jprogram=new JProgram(options.isSoycEnabled());
-  JsProgram jsProgram=new JsProgram(options.isSoycEnabled());
+  CorrelationFactory correlator=options.isSoycEnabled() ? new RealCorrelationFactory() : new DummyCorrelationFactory();
+  JProgram jprogram=new JProgram(correlator);
+  JsProgram jsProgram=new JsProgram(correlator);
   try {
     TypeMap typeMap=new TypeMap(jprogram);
     TypeDeclaration[] allTypeDeclarations=BuildTypeMap.exec(typeMap,goldenCuds,jsProgram);
