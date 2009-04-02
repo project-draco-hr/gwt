@@ -2,7 +2,7 @@
   Map<String,CompilationUnit> unitMap=state.getCompilationUnitMap();
   Set<CompilationUnit> units=state.getCompilationUnits();
   assertEquals(new HashSet<CompilationUnit>(unitMap.values()),units);
-  Map<String,JavaSourceFile> sourceMap=new HashMap<String,JavaSourceFile>(oracle.getSourceMap());
+  Map<String,Resource> sourceMap=new HashMap<String,Resource>(oracle.getResourceMap());
   Set<String> generatedTypes=new HashSet<String>(Arrays.asList(generatedTypeNames));
   assertEquals(sourceMap.size() + generatedTypes.size(),units.size());
   for (  Entry<String,CompilationUnit> entry : unitMap.entrySet()) {
@@ -14,8 +14,9 @@
       assertNotNull(generatedTypes.remove(className));
     }
  else {
-      assertTrue(sourceMap.containsKey(className));
-      assertNotNull(sourceMap.remove(className));
+      String partialPath=className.replace('.','/') + ".java";
+      assertTrue(sourceMap.containsKey(partialPath));
+      assertNotNull(sourceMap.remove(partialPath));
     }
   }
   assertEquals(0,sourceMap.size());

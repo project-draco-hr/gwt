@@ -1,15 +1,15 @@
 {
   validateCompilationState();
-  oracle.add(JavaSourceCodeBase.FOO);
+  oracle.add(JavaResourceBase.FOO);
   state.refresh(createTreeLogger());
-  Set<CompilationUnit> generatedCups=getCompilationUnits(JavaSourceCodeBase.BAR);
+  Set<CompilationUnit> generatedCups=getCompilationUnits(JavaResourceBase.BAR);
   Map<String,CompilationUnit> usefulUnits=state.getUsefulGraveyardUnits(generatedCups);
   assertEquals(0,usefulUnits.size());
   state.addGeneratedCompilationUnits(createTreeLogger(),generatedCups,usefulUnits);
   assertUnitsChecked(state.getCompilationUnits());
-  oracle.replace(new MockJavaSourceFile(JavaSourceCodeBase.FOO){
-    @Override public String readSource(){
-      return JavaSourceCodeBase.FOO.readSource() + "\n";
+  oracle.replace(new MockJavaResource(SourceFileCompilationUnit.getTypeName(JavaResourceBase.FOO)){
+    @Override protected CharSequence getContent(){
+      return SourceFileCompilationUnit.readSource(JavaResourceBase.FOO) + "\n";
     }
   }
 );
