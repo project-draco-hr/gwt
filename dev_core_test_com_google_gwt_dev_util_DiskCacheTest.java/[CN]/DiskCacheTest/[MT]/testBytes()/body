@@ -1,0 +1,21 @@
+{
+  byte[] a=new byte[0];
+  byte[] b=new byte[]{1,5,9,7,3,4,2};
+  byte[] c=new byte[3524];
+  for (int i=1; i < c.length; ++i) {
+    c[i]=(byte)(i * 31 + c[i - 1]);
+  }
+  byte[][] insertOrder=new byte[][]{a,b,c,b,c,a,a,b,b,c,c,a};
+  long[] tokens=new long[insertOrder.length];
+  for (int i=0; i < insertOrder.length; ++i) {
+    tokens[i]=diskCache.writeByteArray(insertOrder[i]);
+  }
+  int testIndex=0;
+  for (int i=0; i < 20; ++i) {
+    testIndex+=tokens[i % tokens.length];
+    testIndex%=insertOrder.length;
+    byte[] expected=insertOrder[testIndex];
+    byte[] actual=diskCache.readByteArray(tokens[testIndex]);
+    assertTrue("Values were not equals at index '" + testIndex + "'",Arrays.equals(expected,actual));
+  }
+}

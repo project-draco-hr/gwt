@@ -1,0 +1,24 @@
+{
+  String a="";
+  String b="abjdsfkl;jasdf";
+  char[] c=new char[2759];
+  for (int i=1; i < c.length; ++i) {
+    c[i]=(char)(i * 31 + c[i - 1]);
+    c[i]&=0x7FFF;
+    --c[i];
+  }
+  String s=String.valueOf(c);
+  String[] insertOrder=new String[]{s,a,b,s,b,s,a,a,s,b,b,a,s};
+  long[] tokens=new long[insertOrder.length];
+  for (int i=0; i < insertOrder.length; ++i) {
+    tokens[i]=diskCache.writeString(insertOrder[i]);
+  }
+  int testIndex=0;
+  for (int i=0; i < 20; ++i) {
+    testIndex+=tokens[i % tokens.length];
+    testIndex%=insertOrder.length;
+    String expected=insertOrder[testIndex];
+    String actual=diskCache.readString(tokens[testIndex]);
+    assertEquals("Values were not equals at index '" + testIndex + "'",expected,actual);
+  }
+}

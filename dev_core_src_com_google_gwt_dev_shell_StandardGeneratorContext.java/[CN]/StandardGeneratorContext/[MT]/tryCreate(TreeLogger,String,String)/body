@@ -1,5 +1,11 @@
 {
-  String typeName=packageName + "." + simpleTypeName;
+  String typeName;
+  if (packageName.length() == 0) {
+    typeName=simpleTypeName;
+  }
+ else {
+    typeName=packageName + '.' + simpleTypeName;
+  }
   JClassType existingType=getTypeOracle().findType(packageName,simpleTypeName);
   if (existingType != null) {
     logger.log(TreeLogger.DEBUG,"Type '" + typeName + "' already exists and will not be re-created ",null);
@@ -10,15 +16,31 @@
     logger.log(TreeLogger.WARN,msg,null);
     return null;
   }
-  String qualifiedSourceName;
-  if (packageName.length() == 0) {
-    qualifiedSourceName=simpleTypeName;
+  Generated gcup;
+  PrintWriter pw;
+  if (this.genDir == null) {
+    StringWriter sw=new StringWriter();
+    pw=new PrintWriter(sw,true);
+    gcup=new GeneratedUnit(sw,typeName);
   }
  else {
-    qualifiedSourceName=packageName + '.' + simpleTypeName;
+    File dir=new File(genDir,packageName.replace('.',File.separatorChar));
+    dir.mkdirs();
+    File srcFile=new File(dir,simpleTypeName + ".java");
+    if (srcFile.exists()) {
+      srcFile.delete();
+    }
+    try {
+      FileOutputStream fos=new FileOutputStream(srcFile);
+      OutputStreamWriter osw=new OutputStreamWriter(fos,Util.DEFAULT_ENCODING);
+      pw=new PrintWriter(osw);
+      gcup=new GeneratedUnitWithFile(srcFile,pw,packageName);
+    }
+ catch (    IOException e) {
+      throw new RuntimeException("Error writing out generated unit at '" + srcFile.getAbsolutePath() + "'",e);
+    }
   }
-  GeneratedUnitWithFile gcup=new GeneratedUnitWithFile(qualifiedSourceName);
-  uncommittedGeneratedCupsByPrintWriter.put(gcup.pw,gcup);
+  uncommittedGeneratedCupsByPrintWriter.put(pw,gcup);
   newlyGeneratedTypeNames.add(typeName);
-  return gcup.pw;
+  return pw;
 }

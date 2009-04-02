@@ -4,15 +4,8 @@
   this.enclosingClass=enclosingClass;
   SourceTypeBinding binding=typeDeclaration.binding;
   this.binaryName=CharOperation.charToString(binding.constantPoolName());
-  this.packageName=Shared.getPackageNameFromBinary(binaryName);
-  if (binding instanceof LocalTypeBinding) {
-    String qualifiedName=binaryName.replace('/','.');
-    this.sourceName=qualifiedName.replace('$','.');
-  }
- else {
-    this.sourceName=getPackagePrefix(packageName) + String.valueOf(binding.qualifiedSourceName());
-  }
   ClassFile classFile=getClassFile(typeDeclaration,binaryName);
-  this.bytes=classFile.getBytes();
+  byte[] bytes=classFile.getBytes();
+  this.cacheToken=diskCache.writeByteArray(bytes);
   this.location=String.valueOf(classFile.fileName());
 }
