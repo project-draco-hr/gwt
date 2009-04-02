@@ -1,8 +1,5 @@
 {
   String qname=CharOperation.toString(compoundTypeName);
-  if (nameEnvironmentAnswerForTypeName.containsKey(qname)) {
-    return (nameEnvironmentAnswerForTypeName.get(qname));
-  }
   TreeLogger logger=threadLogger.branch(TreeLogger.SPAM,"Compiler is asking about '" + qname + "'",null);
   if (isPackage(qname)) {
     logger.log(TreeLogger.SPAM,"Found to be a package",null);
@@ -12,17 +9,12 @@
   int pos=qname.indexOf('$');
   if (pos >= 0) {
     qname=qname.substring(0,pos);
-    if (nameEnvironmentAnswerForTypeName.containsKey(qname)) {
-      return (nameEnvironmentAnswerForTypeName.get(qname));
-    }
   }
   CompilationUnit unit=findCompilationUnit(qname);
   if (unit != null) {
     logger.log(TreeLogger.SPAM,"Found type in compilation unit: " + unit.getDisplayLocation());
     ICompilationUnit icu=new CompilationUnitAdapter(unit);
-    NameEnvironmentAnswer out=new NameEnvironmentAnswer(icu,null);
-    nameEnvironmentAnswerForTypeName.put(qname,out);
-    return out;
+    return new NameEnvironmentAnswer(icu,null);
   }
  else {
     ClassLoader classLoader=getClassLoader();
@@ -33,9 +25,7 @@
         ClassFileReader cfr;
         try {
           cfr=new ClassFileReader(classBytes,null);
-          NameEnvironmentAnswer out=new NameEnvironmentAnswer(cfr,null);
-          nameEnvironmentAnswerForTypeName.put(qname,out);
-          return out;
+          return new NameEnvironmentAnswer(cfr,null);
         }
  catch (        ClassFormatException e) {
         }

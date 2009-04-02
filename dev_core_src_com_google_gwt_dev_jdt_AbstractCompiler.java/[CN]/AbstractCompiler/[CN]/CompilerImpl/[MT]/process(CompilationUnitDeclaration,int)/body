@@ -1,43 +1,54 @@
 {
   long processBeginNanos=System.nanoTime();
 {
-    this.parser.getMethodBodies(cud);
-    if (cud.scope != null) {
-      cud.scope.faultInTypes();
+    this.lookupEnvironment.unitBeingCompleted=unit;
+    long parseStart=System.currentTimeMillis();
+    this.parser.getMethodBodies(unit);
+    long resolveStart=System.currentTimeMillis();
+    this.stats.parseTime+=resolveStart - parseStart;
+    if (unit.scope != null) {
+      unit.scope.faultInTypes();
     }
-    if (cud.scope != null) {
-      cud.scope.verifyMethods(lookupEnvironment.methodVerifier());
+    if (unit.scope != null) {
+      unit.scope.verifyMethods(lookupEnvironment.methodVerifier());
     }
-    cud.resolve();
-    cud.analyseCode();
+    unit.resolve();
+    long analyzeStart=System.currentTimeMillis();
+    this.stats.resolveTime+=analyzeStart - resolveStart;
+    unit.analyseCode();
+    long generateStart=System.currentTimeMillis();
+    this.stats.analyzeTime+=generateStart - analyzeStart;
     if (doGenerateBytes) {
-      cud.generateCode();
+      unit.generateCode();
     }
-    if (options.produceReferenceInfo && cud.scope != null) {
-      cud.scope.storeDependencyInfo();
+    if (options.produceReferenceInfo && unit.scope != null) {
+      unit.scope.storeDependencyInfo();
     }
-    cud.compilationResult.totalUnitsKnown=totalUnits;
+    unit.finalizeProblems();
+    this.stats.generateTime+=System.currentTimeMillis() - generateStart;
+    unit.compilationResult.totalUnitsKnown=totalUnits;
+    this.lookupEnvironment.unitBeingCompleted=null;
   }
-  ICompilationUnit cu=cud.compilationResult.compilationUnit;
+  ICompilationUnit cu=unit.compilationResult.compilationUnit;
   String loc=String.valueOf(cu.getFileName());
   TreeLogger logger=threadLogger.branch(TreeLogger.SPAM,"Scanning for additional dependencies: " + loc,null);
-  String[] typeNames=doFindAdditionalTypesUsingJsni(logger,cud);
+  String[] typeNames=doFindAdditionalTypesUsingJsni(logger,unit);
   for (int i=0; i < typeNames.length; i++) {
     String typeName=typeNames[i];
     final String msg="Need additional type '" + typeName + "'";
     logger.log(TreeLogger.SPAM,msg,null);
     resolvePossiblyNestedType(typeName);
   }
-  typeNames=doFindAdditionalTypesUsingRebinds(logger,cud);
+  typeNames=doFindAdditionalTypesUsingRebinds(logger,unit);
   for (int i=0; i < typeNames.length; i++) {
     String typeName=typeNames[i];
     final String msg="Need additional type '" + typeName + "'";
     logger.log(TreeLogger.SPAM,msg,null);
     resolvePossiblyNestedType(typeName);
   }
-  doCompilationUnitDeclarationValidation(cud,logger);
+  doCompilationUnitDeclarationValidation(unit,logger);
   if (cuds != null) {
-    cuds.add(cud);
+    cuds.add(unit);
   }
   jdtProcessNanos+=System.nanoTime() - processBeginNanos;
 }
