@@ -5,7 +5,6 @@
   if (declEntryPts.length + additionalRootTypes.length == 0) {
     throw new IllegalArgumentException("entry point(s) required");
   }
-  RebindPermutationOracle rpo=compilerFrontEnd.getRebindPermutationOracle();
   Set<String> allRootTypes=new TreeSet<String>();
   for (  String element : declEntryPts) {
     String[] all=rpo.getAllPossibleRebindAnswers(logger,element);
@@ -16,7 +15,10 @@
   allRootTypes.addAll(JProgram.INDEX_TYPES_SET);
   allRootTypes.add(FragmentLoaderCreator.ASYNC_FRAGMENT_LOADER);
   Memory.maybeDumpMemory("CompStateBuilt");
-  CompilationUnitDeclaration[] goldenCuds=compilerFrontEnd.getCompilationUnitDeclarations(logger,allRootTypes.toArray(new String[0]));
+  CompilationUnitDeclaration[] goldenCuds=WebModeCompilerFrontEnd.getCompilationUnitDeclarations(logger,allRootTypes.toArray(new String[0]),compilationState,rpo,fragmentLoaderCreator);
+  if (!options.isCompilationStateRetained()) {
+    compilationState.clear();
+  }
   checkForErrors(logger,goldenCuds,false);
   PerfLogger.start("Build AST");
   JProgram jprogram=new JProgram(options.isSoycEnabled());
