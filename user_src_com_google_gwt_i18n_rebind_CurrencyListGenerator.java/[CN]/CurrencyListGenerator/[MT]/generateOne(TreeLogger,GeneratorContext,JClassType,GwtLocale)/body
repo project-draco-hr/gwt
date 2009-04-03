@@ -1,0 +1,130 @@
+{
+  String packageName=targetClass.getPackage().getName();
+  String className=targetClass.getName().replace('.','_') + "_" + locale.getAsString();
+  PrintWriter pw=context.tryCreate(logger,packageName,className);
+  if (pw != null) {
+    ClassSourceFileComposerFactory factory=new ClassSourceFileComposerFactory(packageName,className);
+    factory.setSuperclass(targetClass.getQualifiedSourceName());
+    factory.addImport(CURRENCY_LIST);
+    factory.addImport(CURRENCY_DATA);
+    SourceWriter writer=factory.createSourceWriter(context,pw);
+    GwtLocale[] currencyLocale=new GwtLocale[1];
+    LocalizedProperties currencyData=readProperties(logger,CURRENCY_DATA_PREFIX,locale,currencyLocale);
+    GwtLocale[] extraLocale=new GwtLocale[1];
+    LocalizedProperties currencyExtra=readProperties(logger,CURRENCY_EXTRA_PREFIX,locale,extraLocale);
+    GwtLocale[] numberLocale=new GwtLocale[1];
+    LocalizedProperties numberConstants=readProperties(logger,NUMBER_CONSTANTS_PREFIX,locale,numberLocale);
+    String defCurrencyCode=numberConstants.getProperty("defCurrencyCode");
+    if (defCurrencyCode == null) {
+      defCurrencyCode="USD";
+    }
+    Set<?> keySet=currencyData.getPropertyMap().keySet();
+    String[] currencies=new String[keySet.size()];
+    keySet.toArray(currencies);
+    Arrays.sort(currencies);
+    Map<String,String> nameMap=new HashMap<String,String>();
+    writer.println("@Override");
+    writer.println("protected native void loadCurrencyMap() /*-{");
+    writer.indent();
+    writer.println("this.@com.google.gwt.i18n.client.impl.CurrencyList::dataMap = {");
+    writer.indent();
+    String defCurrencyObject="[ \"" + quote(defCurrencyCode) + "\", \""+ quote(defCurrencyCode)+ "\", 2 ]";
+    for (    String currencyCode : currencies) {
+      String currencyEntry=currencyData.getProperty(currencyCode);
+      String[] currencySplit=currencyEntry.split("\\|");
+      String currencyDisplay=currencySplit[0];
+      String currencySymbol=null;
+      if (currencySplit.length > 1 && currencySplit[1].length() > 0) {
+        currencySymbol=currencySplit[1];
+      }
+      int currencyFractionDigits=2;
+      if (currencySplit.length > 2 && currencySplit[2].length() > 0) {
+        try {
+          currencyFractionDigits=Integer.valueOf(currencySplit[2]);
+        }
+ catch (        NumberFormatException e) {
+          logger.log(TreeLogger.WARN,"Parse of \"" + currencySplit[2] + "\" failed",e);
+        }
+      }
+      boolean currencyObsolete=false;
+      if (currencySplit.length > 3 && currencySplit[3].length() > 0) {
+        try {
+          currencyObsolete=Integer.valueOf(currencySplit[3]) != 0;
+        }
+ catch (        NumberFormatException e) {
+          logger.log(TreeLogger.WARN,"Parse of \"" + currencySplit[3] + "\" failed",e);
+        }
+      }
+      int currencyFlags=currencyFractionDigits;
+      String extraData=currencyExtra.getProperty(currencyCode);
+      String portableSymbol="";
+      if (extraData != null) {
+        String[] extraSplit=extraData.split("\\|");
+        portableSymbol=extraSplit[0];
+        if (extraSplit.length > 1) {
+          if (extraSplit[1].contains("SymPrefix")) {
+            currencyFlags|=CurrencyData.POS_FIXED_FLAG;
+          }
+ else           if (extraSplit[1].contains("SymSuffix")) {
+            currencyFlags|=CurrencyData.POS_FIXED_FLAG | CurrencyData.POS_SUFFIX_FLAG;
+          }
+          if (extraSplit[1].contains("ForceSpace")) {
+            currencyFlags|=CurrencyData.SPACING_FIXED_FLAG | CurrencyData.SPACE_FORCED_FLAG;
+          }
+ else           if (extraSplit[1].contains("ForceNoSpace")) {
+            currencyFlags|=CurrencyData.SPACING_FIXED_FLAG;
+          }
+        }
+        if (extraSplit.length > 2 && extraSplit[2].length() > 0) {
+          currencySymbol=extraSplit[2];
+        }
+        if (currencySymbol == null && portableSymbol.length() > 0) {
+          currencySymbol=portableSymbol;
+        }
+      }
+      if (currencySymbol == null) {
+        currencySymbol=currencyCode;
+      }
+      String currencyObject="[ \"" + quote(currencyCode) + "\", \""+ quote(currencySymbol)+ "\", "+ currencyFlags;
+      if (portableSymbol.length() > 0) {
+        currencyObject+=", \"" + quote(portableSymbol) + "\"";
+      }
+      currencyObject+="]";
+      if (!currencyObsolete) {
+        nameMap.put(currencyCode,currencyDisplay);
+        writer.println("// " + currencyDisplay);
+        writer.println("\":" + quote(currencyCode) + "\": "+ currencyObject+ ",");
+      }
+      if (currencyCode.equals(defCurrencyCode)) {
+        defCurrencyObject=currencyObject;
+      }
+    }
+    writer.outdent();
+    writer.println("};");
+    writer.outdent();
+    writer.println("}-*/;");
+    writer.println();
+    writer.println("@Override");
+    writer.println("protected native void loadNamesMap() /*-{");
+    writer.indent();
+    writer.println("this.@com.google.gwt.i18n.client.impl.CurrencyList::namesMap = {");
+    writer.indent();
+    for (    String currencyCode : currencies) {
+      String displayName=nameMap.get(currencyCode);
+      if (displayName != null && !currencyCode.equals(displayName)) {
+        writer.println("\"" + quote(currencyCode) + "\": \""+ quote(displayName)+ "\",");
+      }
+    }
+    writer.outdent();
+    writer.println("};");
+    writer.outdent();
+    writer.println("}-*/;");
+    writer.println();
+    writer.println("@Override");
+    writer.println("public native CurrencyData getDefault() /*-{");
+    writer.println("  return " + defCurrencyObject + ";");
+    writer.println("}-*/;");
+    writer.commit(logger);
+  }
+  return packageName + "." + className;
+}
