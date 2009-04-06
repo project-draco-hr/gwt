@@ -1,0 +1,23 @@
+{
+  StyleElement[] elements=new StyleElement[100];
+  for (int i=0, j=elements.length; i < j; i++) {
+    elements[i]=StyleInjector.injectStylesheet("#styleInjectorTest" + i + " {position: absolute; left: 100px; width: 50px; height 50px;}");
+  }
+  String id="styleInjectorTest" + (elements.length - 1);
+  StyleInjector.injectStylesheetAtStart("#" + id + " {left: 25px; width: 100px !important;}");
+  StyleInjector.injectStylesheetAtEnd("#" + id + " {height: 100px;}");
+  final DivElement elt=Document.get().createDivElement();
+  elt.setId(id);
+  elt.setInnerHTML("Hello StyleInjector!");
+  Document.get().getBody().appendChild(elt);
+  delayTestFinish(500);
+  DeferredCommand.addCommand(new Command(){
+    public void execute(){
+      assertEquals(100,elt.getOffsetLeft());
+      assertEquals(100,elt.getClientHeight());
+      assertEquals(100,elt.getClientWidth());
+      finishTest();
+    }
+  }
+);
+}
