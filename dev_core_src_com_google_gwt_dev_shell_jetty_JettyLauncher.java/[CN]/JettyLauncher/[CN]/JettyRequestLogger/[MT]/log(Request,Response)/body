@@ -27,12 +27,21 @@
   if (response.getContentCount() > 0) {
     bytesString=" " + response.getContentCount() + " bytes";
   }
-  TreeLogger branch=logger.branch(logStatus,String.valueOf(status) + " - " + request.getMethod()+ ' '+ request.getUri()+ " ("+ userString+ request.getRemoteHost()+ ')'+ bytesString);
-  TreeLogger headers=branch.branch(logHeaders,"Request headers");
-  Enumeration<String> headerNames=request.getHeaderNames();
-  while (headerNames.hasMoreElements()) {
-    String hdr=headerNames.nextElement();
-    String hdrVal=request.getHeader(hdr);
-    headers.log(logHeaders,hdr + ": " + hdrVal);
+  if (logger.isLoggable(logStatus)) {
+    TreeLogger branch=logger.branch(logStatus,String.valueOf(status) + " - " + request.getMethod()+ ' '+ request.getUri()+ " ("+ userString+ request.getRemoteHost()+ ')'+ bytesString);
+    if (branch.isLoggable(logHeaders)) {
+      TreeLogger headers=branch.branch(logHeaders,"Request headers");
+      Iterator<Field> headerFields=request.getConnection().getRequestFields().getFields();
+      while (headerFields.hasNext()) {
+        Field headerField=headerFields.next();
+        headers.log(logHeaders,headerField.getName() + ": " + headerField.getValue());
+      }
+      headers=branch.branch(logHeaders,"Response headers");
+      headerFields=response.getHttpFields().getFields();
+      while (headerFields.hasNext()) {
+        Field headerField=headerFields.next();
+        headers.log(logHeaders,headerField.getName() + ": " + headerField.getValue());
+      }
+    }
   }
 }
