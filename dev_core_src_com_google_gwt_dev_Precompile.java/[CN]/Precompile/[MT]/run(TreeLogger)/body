@@ -1,4 +1,5 @@
 {
+  boolean originalCompilationStateRetained=options.isCompilationStateRetained();
   for (  String moduleName : options.getModuleNames()) {
     File compilerWorkDir=options.getCompilerWorkDir(moduleName);
     Util.recursiveDelete(compilerWorkDir,true);
@@ -33,6 +34,12 @@
         int numPermsToPrecompile=Math.min(potentialPermutations - potentialFirstPerm,permutationsPerIteration);
         if (potentialFirstPerm != 0) {
           module.getCompilationState(branch).refresh(branch);
+        }
+        if (potentialFirstPerm + numPermsToPrecompile < potentialPermutations) {
+          options.setCompilationStateRetained(true);
+        }
+ else {
+          options.setCompilationStateRetained(originalCompilationStateRetained);
         }
         Precompilation precompilation=precompile(branch,options,module,actualPermutations,potentialFirstPerm,numPermsToPrecompile,options.getGenDir(),compilerWorkDir,options.getDumpSignatureFile());
         if (precompilation == null) {
