@@ -4,25 +4,25 @@
   }
   SourceInfo catchInfo=x.getCatchBlocks().get(0).getSourceInfo();
   JLocal exObj=popTempLocal();
-  JLocalRef exRef=new JLocalRef(program,catchInfo,exObj);
-  JBlock newCatchBlock=new JBlock(program,catchInfo);
+  JLocalRef exRef=new JLocalRef(catchInfo,exObj);
+  JBlock newCatchBlock=new JBlock(catchInfo);
   JMethod caughtMethod=program.getIndexedMethod("Exceptions.caught");
-  JMethodCall call=new JMethodCall(program,catchInfo,null,caughtMethod);
+  JMethodCall call=new JMethodCall(catchInfo,null,caughtMethod);
   call.addArg(exRef);
   JExpressionStatement asg=program.createAssignmentStmt(catchInfo,exRef,call);
   newCatchBlock.addStmt(asg);
-  JStatement cur=new JThrowStatement(program,catchInfo,exRef);
+  JStatement cur=new JThrowStatement(catchInfo,exRef);
   for (int i=x.getCatchBlocks().size() - 1; i >= 0; --i) {
     JBlock block=x.getCatchBlocks().get(i);
     JLocalRef arg=x.getCatchArgs().get(i);
     catchInfo=block.getSourceInfo();
     JReferenceType argType=(JReferenceType)arg.getType();
-    JExpression ifTest=new JInstanceOf(program,catchInfo,argType,exRef);
+    JExpression ifTest=new JInstanceOf(catchInfo,argType,exRef);
     asg=program.createAssignmentStmt(catchInfo,arg,exRef);
     if (!block.getStatements().isEmpty()) {
       block.addStmt(0,asg);
     }
-    cur=new JIfStatement(program,catchInfo,ifTest,block,cur);
+    cur=new JIfStatement(catchInfo,ifTest,block,cur);
   }
   newCatchBlock.addStmt(cur);
   x.getCatchArgs().clear();

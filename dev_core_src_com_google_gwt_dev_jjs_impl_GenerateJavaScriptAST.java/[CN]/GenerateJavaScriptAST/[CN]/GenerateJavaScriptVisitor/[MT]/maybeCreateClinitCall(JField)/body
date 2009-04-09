@@ -2,14 +2,14 @@
   if (!x.isStatic()) {
     return null;
   }
-  JReferenceType enclosingType=x.getEnclosingType();
-  if (!typeOracle.checkClinit(currentMethod.getEnclosingType(),enclosingType)) {
+  JReferenceType targetType=x.getEnclosingType();
+  if (!currentMethod.getEnclosingType().checkClinitTo(targetType)) {
     return null;
   }
- else   if (enclosingType.equals(program.getTypeClassLiteralHolder())) {
+ else   if (targetType.equals(program.getTypeClassLiteralHolder())) {
     return null;
   }
-  JMethod clinitMethod=enclosingType.methods.get(0);
+  JMethod clinitMethod=targetType.methods.get(0);
   SourceInfo sourceInfo=x.getSourceInfo().makeChild(GenerateJavaScriptVisitor.class,"clinit invocation");
   JsInvocation jsInvocation=new JsInvocation(sourceInfo);
   jsInvocation.setQualifier(names.get(clinitMethod).makeRef(sourceInfo));

@@ -1,8 +1,5 @@
 {
   alreadySeen.add(type);
-  if (computed.contains(type)) {
-    return hasClinitSet.contains(type);
-  }
   JMethod method=type.methods.get(0);
   assert(JProgram.isClinit(method));
   CheckClinitVisitor v=new CheckClinitVisitor();
@@ -11,6 +8,12 @@
     return true;
   }
   for (  JReferenceType target : v.getClinitTargets()) {
+    if (!target.hasClinit()) {
+      continue;
+    }
+    if (target.hasClinit() && computed.contains(target)) {
+      return true;
+    }
     if (alreadySeen.contains(target)) {
       continue;
     }
