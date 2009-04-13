@@ -3,18 +3,16 @@
   if (instanceType.isArray()) {
     return null;
   }
-  Class<?> result=getCachedSerializerForClass(instanceType);
-  if (result != null) {
-    return result;
-  }
-  if (containsCachedSerializerForClass(instanceType)) {
-    if (instanceType.getName().equals("java.lang.StackTraceElement")) {
-      System.out.println("Confirmed race condition with StackTraceElement");
-      System.err.println("Confirmed race condition with StackTraceElement");
+  Class<?> result;
+synchronized (classCustomSerializerCache) {
+    result=classCustomSerializerCache.get(instanceType);
+    if (result == null) {
+      result=computeHasCustomFieldSerializer(instanceType);
+      if (result == null) {
+        result=instanceType;
+      }
+      classCustomSerializerCache.put(instanceType,result);
     }
-    return null;
   }
-  result=computeHasCustomFieldSerializer(instanceType);
-  putCachedSerializerForClass(instanceType,result);
-  return result;
+  return (result == instanceType) ? null : result;
 }
