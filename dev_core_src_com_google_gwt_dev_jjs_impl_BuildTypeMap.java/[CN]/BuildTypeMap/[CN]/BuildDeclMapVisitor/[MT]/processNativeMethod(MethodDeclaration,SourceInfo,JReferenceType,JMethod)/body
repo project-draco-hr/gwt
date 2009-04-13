@@ -30,10 +30,17 @@
     }
     syntheticFnHeader+=param.getName();
   }
-  syntheticFnHeader+=')';
-  StringReader sr=new StringReader(syntheticFnHeader + ' ' + jsniCode);
+  syntheticFnHeader+=") ";
+  StringReader sr=new StringReader(syntheticFnHeader + jsniCode);
+  int absoluteJsStartPos=methodDeclaration.bodyStart + startPos;
+  int absoluteJsEndPos=absoluteJsStartPos + jsniCode.length();
+  int jsStartPos=absoluteJsStartPos - syntheticFnHeader.length();
+  int jsEndPos=absoluteJsEndPos - syntheticFnHeader.length();
+  int jsLine=info.getStartLine() + countLines(source,info.getStartPos(),absoluteJsStartPos);
+  SourceInfo jsInfo=program.createSourceInfo(jsStartPos,jsEndPos,jsLine,info.getFileName());
+  jsInfo.copyMissingCorrelationsFrom(info);
   try {
-    List<JsStatement> result=JsParser.parse(info,jsProgram.getScope(),sr);
+    List<JsStatement> result=JsParser.parse(jsInfo,jsProgram.getScope(),sr);
     JsExprStmt jsExprStmt=(JsExprStmt)result.get(0);
     JsFunction jsFunction=(JsFunction)jsExprStmt.getExpression();
     jsFunction.setFromJava(true);
@@ -45,24 +52,8 @@
     throw new InternalCompilerException("Internal error parsing JSNI in method '" + newMethod + "' in type '"+ enclosingType.getName()+ "'",e);
   }
 catch (  JsParserException e) {
-    SourceDetail detail=e.getSourceDetail();
-    int line=detail.getLine();
-    char[] chars=jsniCode.toCharArray();
-    int i=0, n=chars.length;
-    while (line > 0) {
-switch (chars[i]) {
-case '\r':
-        if (i + 1 < n && chars[i + 1] == '\n') {
-          ++i;
-        }
-case '\n':
-      --line;
-default :
-    ++i;
-}
-}
-i+=startPos + detail.getLineOffset();
-info=program.createSourceInfo(i,i,info.getStartLine() + detail.getLine(),info.getFileName());
-GenerateJavaAST.reportJsniError(info,methodDeclaration,e.getMessage());
-}
+    int problemCharPos=computeAbsoluteProblemPosition(source,absoluteJsStartPos,absoluteJsEndPos,jsInfo.getStartLine(),e.getSourceDetail());
+    SourceInfo errorInfo=program.createSourceInfo(problemCharPos,problemCharPos,e.getSourceDetail().getLine(),info.getFileName());
+    GenerateJavaAST.reportJsniError(errorInfo,methodDeclaration,e.getMessage());
+  }
 }
