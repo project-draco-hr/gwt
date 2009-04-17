@@ -1,0 +1,51 @@
+{
+  assert(baseType == getBaseType(baseType));
+  List<JClassType> possiblyInstantiableTypes=new ArrayList<JClassType>();
+  if (baseType == typeOracle.getJavaLangObject()) {
+    return possiblyInstantiableTypes;
+  }
+  List<JClassType> candidates=new ArrayList<JClassType>();
+  candidates.add(baseType);
+  List<JClassType> subtypes=Arrays.asList(baseType.getSubtypes());
+  candidates.addAll(subtypes);
+  for (  JClassType subtype : candidates) {
+    JClassType subtypeBase=getBaseType(subtype);
+    if (maybeInstantiable(logger,subtypeBase,problems)) {
+      JGenericType isGeneric=subtype.isGenericType();
+      if (isGeneric != null) {
+        subtype=isGeneric.asParameterizedByWildcards();
+      }
+ else {
+        assert(subtype instanceof JRealClassType);
+      }
+      possiblyInstantiableTypes.add(subtype);
+    }
+  }
+  if (possiblyInstantiableTypes.size() == 0) {
+    String possibilities[]=new String[candidates.size()];
+    for (int i=0; i < possibilities.length; i++) {
+      JClassType subtype=candidates.get(i);
+      List<String> auxiliaries=problems.getAuxiliaryMessagesForType(subtype);
+      List<String> errors=problems.getProblemsForType(subtype);
+      if (errors.isEmpty()) {
+        if (auxiliaries.isEmpty()) {
+          possibilities[i]="   subtype " + subtype.getParameterizedQualifiedSourceName() + " is not instantiable";
+        }
+ else {
+          possibilities[i]="   subtype " + auxiliaries.get(0);
+          if (auxiliaries.size() > 1) {
+            possibilities[i]=possibilities[i] + ", etc.";
+          }
+        }
+      }
+ else {
+        possibilities[i]="   subtype " + errors.get(0);
+        if (errors.size() > 1 || !auxiliaries.isEmpty()) {
+          possibilities[i]=possibilities[i] + ", etc.";
+        }
+      }
+    }
+    problems.add(baseType,baseType.getParameterizedQualifiedSourceName() + " has no available instantiable subtypes.",Priority.DEFAULT,possibilities);
+  }
+  return possiblyInstantiableTypes;
+}

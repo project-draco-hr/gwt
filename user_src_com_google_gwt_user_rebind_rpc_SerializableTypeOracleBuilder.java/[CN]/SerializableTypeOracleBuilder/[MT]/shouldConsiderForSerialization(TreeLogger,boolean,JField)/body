@@ -6,7 +6,14 @@
     return false;
   }
   if (field.isFinal()) {
-    logger.branch(suppressNonStaticFinalFieldWarnings ? TreeLogger.DEBUG : TreeLogger.WARN,"Field '" + field.toString() + "' will not be serialized because it is final",null);
+    Type logLevel;
+    if (isManuallySerializable(field.getEnclosingType())) {
+      logLevel=TreeLogger.DEBUG;
+    }
+ else {
+      logLevel=TreeLogger.WARN;
+    }
+    logger.branch(suppressNonStaticFinalFieldWarnings ? TreeLogger.DEBUG : logLevel,"Field '" + field.toString() + "' will not be serialized because it is final",null);
     return false;
   }
   return true;

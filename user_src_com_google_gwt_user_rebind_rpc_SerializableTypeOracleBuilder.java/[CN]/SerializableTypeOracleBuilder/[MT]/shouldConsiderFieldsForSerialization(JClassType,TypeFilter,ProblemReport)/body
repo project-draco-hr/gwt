@@ -1,0 +1,32 @@
+{
+  if (!isAllowedByFilter(filter,type,problems)) {
+    return false;
+  }
+  if (!isDeclaredSerializable(type)) {
+    problems.add(type,type.getParameterizedQualifiedSourceName() + " is not assignable to '" + IsSerializable.class.getName()+ "' or '"+ Serializable.class.getName()+ "' nor does it have a custom field serializer",Priority.DEFAULT);
+    return false;
+  }
+  if (isManuallySerializable(type)) {
+    JClassType manualSerializer=findCustomFieldSerializer(type.getOracle(),type);
+    assert(manualSerializer != null);
+    List<String> fieldProblems=CustomFieldSerializerValidator.validate(manualSerializer,type);
+    if (!fieldProblems.isEmpty()) {
+      for (      String problem : fieldProblems) {
+        problems.add(type,problem,Priority.FATAL);
+      }
+      return false;
+    }
+  }
+ else {
+    assert(isAutoSerializable(type));
+    if (!isAccessibleToSerializer(type)) {
+      problems.add(type,type.getParameterizedQualifiedSourceName() + " is not accessible from a class in its same package; it " + "will be excluded from the set of serializable types",Priority.DEFAULT);
+      return false;
+    }
+    if (type.isMemberType() && !type.isStatic()) {
+      problems.add(type,type.getParameterizedQualifiedSourceName() + " is nested but " + "not static; it will be excluded from the set of serializable "+ "types",Priority.DEFAULT);
+      return false;
+    }
+  }
+  return true;
+}

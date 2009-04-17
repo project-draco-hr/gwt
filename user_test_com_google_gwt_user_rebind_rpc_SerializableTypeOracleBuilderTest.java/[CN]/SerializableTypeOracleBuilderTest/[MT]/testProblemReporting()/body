@@ -1,0 +1,97 @@
+{
+  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
+  addStandardClasses(units);
+{
+    StringBuilder code=new StringBuilder();
+    code.append("public interface TopInterface {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("TopInterface",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public abstract class AbstractSerializable implements\n");
+    code.append("    Serializable, TopInterface {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("AbstractSerializable",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public interface PureAbstractSerializable extends \n");
+    code.append("    Serializable, TopInterface {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("PureAbstractSerializable",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("public abstract class PureAbstractClass implements \n");
+    code.append("    PureAbstractSerializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("PureAbstractClass",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("public abstract class PureAbstractClassTwo extends \n");
+    code.append("    PureAbstractClass {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("PureAbstractClassTwo",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("public class ConcreteNonSerializable implements\n");
+    code.append("    TopInterface {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("ConcreteNonSerializable",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class ConcreteSerializable implements\n");
+    code.append("    Serializable, TopInterface {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("ConcreteSerializable",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class SubSerializable extends\n");
+    code.append("    ConcreteNonSerializable implements Serializable {\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("SubSerializable",code));
+  }
+{
+    StringBuilder code=new StringBuilder();
+    code.append("public class ConcreteBadCtor extends\n");
+    code.append("    AbstractSerializable {\n");
+    code.append("  public ConcreteBadCtor(int i) {\n");
+    code.append("  }\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("ConcreteBadCtor",code));
+  }
+  TreeLogger logger=createLogger();
+  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,units);
+  SerializableTypeOracleBuilder stob=createSerializableTypeOracleBuilder(logger,to);
+  JClassType topInterface=to.getType("TopInterface");
+  stob.addRootType(logger,topInterface);
+  ProblemReport problems=new ProblemReport();
+  assertTrue("TopInterface should be (partially) serializable",stob.checkTypeInstantiable(logger,topInterface,null,problems));
+  assertTrue("TopInterface should be a serializable type",problems.getProblemsForType(topInterface).isEmpty());
+  assertTrue("AbstractSerializable should not be reported on",problems.getProblemsForType(to.getType("AbstractSerializable")).isEmpty());
+  assertTrue("PureAbstractSerializable should not be reported on",problems.getProblemsForType(to.getType("PureAbstractSerializable")).isEmpty());
+  assertTrue("PureAbstractClass should not be reported on",problems.getProblemsForType(to.getType("PureAbstractClass")).isEmpty());
+  assertFalse("ConcreteBadCtor should not be a serializable type",problems.getProblemsForType(to.getType("ConcreteBadCtor")).isEmpty());
+  assertFalse("ConcreteNonSerializable should not be a serializable type",problems.getProblemsForType(to.getType("ConcreteNonSerializable")).isEmpty());
+  assertTrue("ConcreteSerializable should be a serializable type",problems.getProblemsForType(to.getType("ConcreteSerializable")).isEmpty());
+  assertTrue("SubSerializable should be a serializable type",problems.getProblemsForType(to.getType("SubSerializable")).isEmpty());
+  problems=new ProblemReport();
+  assertFalse("PureAbstractClass should have no possible concrete implementation",stob.checkTypeInstantiable(logger,to.getType("PureAbstractClass"),null,problems));
+  assertTrue("PureAbstractClass should have a problem entry as the tested class",null != problems.getProblemsForType(to.getType("PureAbstractClass")));
+  problems=new ProblemReport();
+  assertFalse("PureAbstractSerializable should have no possible concrete implementation",stob.checkTypeInstantiable(logger,to.getType("PureAbstractSerializable"),null,problems));
+  assertFalse("PureAbstractSerializable should have a problem entry",problems.getProblemsForType(to.getType("PureAbstractSerializable")).isEmpty());
+  assertTrue("PureAbstractClassTwo should not have a problem entry as the middle class",problems.getProblemsForType(to.getType("PureAbstractClassTwo")).isEmpty());
+  assertTrue("PureAbstractClassTwo should not have an auxiliary entry as the middle class",problems.getAuxiliaryMessagesForType(to.getType("PureAbstractClassTwo")).isEmpty());
+  assertTrue("PureAbstractClass should not have a problem entry as the child class",problems.getProblemsForType(to.getType("PureAbstractClass")).isEmpty());
+  assertTrue("PureAbstractClass should not have an auxiliary entry as the child class",problems.getAuxiliaryMessagesForType(to.getType("PureAbstractClass")).isEmpty());
+}
