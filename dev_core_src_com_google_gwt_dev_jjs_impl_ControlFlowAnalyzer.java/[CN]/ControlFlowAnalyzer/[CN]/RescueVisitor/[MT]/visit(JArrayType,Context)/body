@@ -5,12 +5,14 @@
   int dims=type.getDims();
   if (leafType instanceof JReferenceType) {
     JReferenceType rLeafType=(JReferenceType)leafType;
-    if (rLeafType.extnds != null) {
-      JArrayType superArray=program.getTypeArray(rLeafType.extnds,dims);
+    if (rLeafType.getSuperClass() != null) {
+      JArrayType superArray=program.getTypeArray(rLeafType.getSuperClass(),dims);
       rescue(superArray,true,isInstantiated);
     }
-    for (int i=0; i < rLeafType.implments.size(); ++i) {
-      JInterfaceType intfType=rLeafType.implments.get(i);
+  }
+  if (leafType instanceof JDeclaredType) {
+    JDeclaredType dLeafType=(JDeclaredType)leafType;
+    for (    JInterfaceType intfType : dLeafType.getImplements()) {
       JArrayType intfArray=program.getTypeArray(intfType,dims);
       rescue(intfArray,true,isInstantiated);
     }

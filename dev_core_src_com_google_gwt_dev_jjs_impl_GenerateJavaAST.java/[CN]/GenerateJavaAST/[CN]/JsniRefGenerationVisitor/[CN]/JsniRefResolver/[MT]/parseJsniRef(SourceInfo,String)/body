@@ -33,8 +33,7 @@
       return null;
     }
  else {
-      for (int i=0; i < ((JReferenceType)type).fields.size(); ++i) {
-        JField field=((JReferenceType)type).fields.get(i);
+      for (      JField field : ((JDeclaredType)type).getFields()) {
         if (field.getName().equals(fieldName)) {
           return field;
         }
@@ -57,12 +56,11 @@
       }
     }
  else {
-      Queue<JReferenceType> workList=new LinkedList<JReferenceType>();
-      workList.add((JReferenceType)type);
+      Queue<JDeclaredType> workList=new LinkedList<JDeclaredType>();
+      workList.add((JDeclaredType)type);
       while (!workList.isEmpty()) {
-        JReferenceType cur=workList.poll();
-        for (int i=0; i < cur.methods.size(); ++i) {
-          JMethod method=cur.methods.get(i);
+        JDeclaredType cur=workList.poll();
+        for (        JMethod method : cur.getMethods()) {
           if (method.getName().equals(methodName)) {
             String sig=JProgram.getJsniSig(method);
             if (sig.equals(jsniSig)) {
@@ -76,10 +74,10 @@
             }
           }
         }
-        if (cur.extnds != null) {
-          workList.add(cur.extnds);
+        if (cur.getSuperClass() != null) {
+          workList.add(cur.getSuperClass());
         }
-        workList.addAll(cur.implments);
+        workList.addAll(cur.getImplements());
       }
     }
     if (almostMatches.isEmpty()) {

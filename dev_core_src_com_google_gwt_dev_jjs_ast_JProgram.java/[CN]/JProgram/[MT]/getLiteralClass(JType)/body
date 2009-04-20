@@ -7,10 +7,10 @@
     SourceInfo info=typeSpecialClassLiteralHolder.getSourceInfo();
     JExpression alloc=JClassLiteral.computeClassObjectAllocation(this,info,type);
     JField field=new JField(info,type.getJavahSignatureName() + "_classLit",typeSpecialClassLiteralHolder,getTypeJavaLangClass(),true,Disposition.FINAL);
-    typeSpecialClassLiteralHolder.fields.add(field);
+    typeSpecialClassLiteralHolder.addField(field);
     JFieldRef fieldRef=new JFieldRef(info,null,field,typeSpecialClassLiteralHolder);
     JDeclarationStatement decl=new JDeclarationStatement(info,fieldRef,alloc);
-    JMethodBody clinitBody=(JMethodBody)typeSpecialClassLiteralHolder.methods.get(0).getBody();
+    JMethodBody clinitBody=(JMethodBody)typeSpecialClassLiteralHolder.getMethods().get(0).getBody();
     clinitBody.getBlock().addStmt(decl);
     SourceInfo literalInfo=createSourceInfoSynthetic(JProgram.class,"class literal for " + type.getName());
     literalInfo.addCorrelation(correlator.by(Literal.CLASS));
@@ -19,7 +19,7 @@
   }
  else {
     JField field=classLiteral.getField();
-    if (optimizationsStarted && !field.getEnclosingType().fields.contains(field)) {
+    if (optimizationsStarted && !field.getEnclosingType().getFields().contains(field)) {
       throw new InternalCompilerException("Getting a class literal whose field holder has already been pruned; type '" + type + " '");
     }
   }

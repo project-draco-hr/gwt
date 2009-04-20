@@ -1,0 +1,45 @@
+{
+  if (type == null || alreadyRan.contains(type)) {
+    return;
+  }
+  alreadyRan.add(type);
+  computeSourceType(type.getSuperClass());
+  if (!program.typeOracle.isInstantiatedType(type) || program.isJavaScriptObject(type)) {
+    return;
+  }
+  Set<JReferenceType> yesSet=null;
+  for (  JReferenceType qType : queriedTypes.keySet()) {
+    Set<JReferenceType> querySet=queriedTypes.get(qType);
+    if (program.typeOracle.canTriviallyCast(type,qType)) {
+      for (      JReferenceType argType : querySet) {
+        if (program.typeOracle.canTriviallyCast(type,argType)) {
+          if (yesSet == null) {
+            yesSet=new HashSet<JReferenceType>();
+          }
+          yesSet.add(qType);
+          break;
+        }
+      }
+    }
+  }
+  JReferenceType[] yesArray=new JReferenceType[nextQueryId];
+  if (yesSet != null) {
+    for (    JReferenceType yesType : yesSet) {
+      yesArray[queryIds.get(yesType)]=yesType;
+    }
+  }
+  SourceInfo sourceInfo=program.createSourceInfoSynthetic(AssignTypeIdsVisitor.class,"typeinfo lookup");
+  JsonObject jsonObject=new JsonObject(sourceInfo,program.getJavaScriptObject());
+  for (int i=1; i < nextQueryId; ++i) {
+    if (yesArray[i] != null) {
+      JIntLiteral labelExpr=program.getLiteralInt(i);
+      JIntLiteral valueExpr=program.getLiteralInt(1);
+      jsonObject.propInits.add(new JsonPropInit(sourceInfo,labelExpr,valueExpr));
+    }
+  }
+  if (jsonObject.propInits.isEmpty() && type != program.getTypeJavaLangObject() && type != program.getTypeJavaLangString()) {
+    return;
+  }
+  instantiableTypes.add(type);
+  jsonObjects.add(jsonObject);
+}

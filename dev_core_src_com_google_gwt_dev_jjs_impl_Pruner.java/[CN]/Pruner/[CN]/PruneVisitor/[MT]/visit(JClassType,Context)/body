@@ -1,18 +1,20 @@
 {
   assert(referencedTypes.contains(type));
   boolean isInstantiated=program.typeOracle.isInstantiatedType(type);
-  for (Iterator<JField> it=type.fields.iterator(); it.hasNext(); ) {
-    JField field=it.next();
+  for (int i=0; i < type.getFields().size(); ++i) {
+    JField field=type.getFields().get(i);
     if (!referencedNonTypes.contains(field) || pruneViaNoninstantiability(isInstantiated,field)) {
-      it.remove();
+      type.removeField(i);
       didChange=true;
+      --i;
     }
   }
-  for (Iterator<JMethod> it=type.methods.iterator(); it.hasNext(); ) {
-    JMethod method=it.next();
+  for (int i=0; i < type.getMethods().size(); ++i) {
+    JMethod method=type.getMethods().get(i);
     if (!methodIsReferenced(method) || pruneViaNoninstantiability(isInstantiated,method)) {
-      it.remove();
+      type.removeMethod(i);
       didChange=true;
+      --i;
     }
  else {
       accept(method);

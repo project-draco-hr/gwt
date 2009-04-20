@@ -2,14 +2,14 @@
   if (x.binding.isAnnotationType()) {
     return;
   }
-  currentClass=(JReferenceType)typeMap.get(x.binding);
+  currentClass=(JDeclaredType)typeMap.get(x.binding);
   try {
     currentClassScope=x.scope;
     currentSeparatorPositions=x.compilationResult.lineSeparatorPositions;
     currentFileName=String.valueOf(x.compilationResult.fileName);
-    if (currentClass.extnds != null) {
-      JMethod myClinit=currentClass.methods.get(0);
-      JMethod superClinit=currentClass.extnds.methods.get(0);
+    if (currentClass.getSuperClass() != null) {
+      JMethod myClinit=currentClass.getMethods().get(0);
+      JMethod superClinit=currentClass.getSuperClass().getMethods().get(0);
       JMethodCall superClinitCall=new JMethodCall(myClinit.getSourceInfo(),null,superClinit);
       JMethodBody body=(JMethodBody)myClinit.getBody();
       body.getBlock().addStmt(0,superClinitCall.makeStatement());
@@ -18,12 +18,12 @@
       for (int i=0, n=x.fields.length; i < n; ++i) {
         FieldDeclaration fieldDeclaration=x.fields[i];
         if (fieldDeclaration.isStatic()) {
-          currentMethod=currentClass.methods.get(0);
+          currentMethod=currentClass.getMethods().get(0);
           currentMethodBody=(JMethodBody)currentMethod.getBody();
           currentMethodScope=x.staticInitializerScope;
         }
  else {
-          currentMethod=currentClass.methods.get(1);
+          currentMethod=currentClass.getMethods().get(1);
           currentMethodBody=(JMethodBody)currentMethod.getBody();
           currentMethodScope=x.initializerScope;
         }
@@ -52,10 +52,10 @@
       }
     }
     if (currentClass instanceof JClassType && currentClass != program.getTypeJavaLangObject() && currentClass != program.getIndexedType("Array")) {
-      JMethod method=currentClass.methods.get(2);
+      JMethod method=currentClass.getMethods().get(2);
       assert("getClass".equals(method.getName()));
       if (program.isJavaScriptObject(currentClass) && currentClass != program.getJavaScriptObject()) {
-        currentClass.methods.remove(2);
+        currentClass.getMethods().remove(2);
       }
  else {
         tryFindUpRefs(method);
