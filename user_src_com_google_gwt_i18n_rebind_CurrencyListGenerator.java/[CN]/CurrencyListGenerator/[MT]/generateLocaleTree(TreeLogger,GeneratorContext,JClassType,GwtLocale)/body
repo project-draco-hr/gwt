@@ -1,0 +1,33 @@
+{
+  String superClassName=CURRENCY_LIST;
+  List<GwtLocale> searchList=locale.getCompleteSearchList();
+  Map<String,CurrencyInfo> allCurrencyData=new HashMap<String,CurrencyInfo>();
+  LocalizedProperties currencyExtra=null;
+  String lastDefaultCurrencyCode=null;
+  for (int i=searchList.size(); i-- > 0; ) {
+    GwtLocale search=searchList.get(i);
+    LocalizedProperties newExtra=getProperties(CURRENCY_EXTRA_PREFIX,search);
+    if (newExtra != null) {
+      currencyExtra=newExtra;
+    }
+    Map<String,String> currencyData=getCurrencyData(search);
+    Set<String> keySet=currencyData.keySet();
+    String[] currencies=new String[keySet.size()];
+    keySet.toArray(currencies);
+    Arrays.sort(currencies);
+    for (    String currencyCode : currencies) {
+      String extraData=currencyExtra == null ? null : currencyExtra.getProperty(currencyCode);
+      allCurrencyData.put(currencyCode,new CurrencyInfo(currencyCode,currencyData.get(currencyCode),extraData));
+    }
+    String defCurrencyCode=getDefaultCurrency(search);
+    if (defCurrencyCode == null && keySet.contains(lastDefaultCurrencyCode)) {
+      defCurrencyCode=lastDefaultCurrencyCode;
+    }
+    if (!currencyData.isEmpty() || defCurrencyCode != null) {
+      String newClass=generateOneLocale(logger,context,targetClass,search,superClassName,currencies,allCurrencyData,defCurrencyCode);
+      superClassName=newClass;
+      lastDefaultCurrencyCode=defCurrencyCode;
+    }
+  }
+  return superClassName;
+}

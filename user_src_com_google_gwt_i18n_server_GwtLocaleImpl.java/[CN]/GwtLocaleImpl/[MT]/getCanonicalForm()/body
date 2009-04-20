@@ -1,0 +1,60 @@
+{
+  String canonLanguage=language;
+  String canonScript=script;
+  String canonRegion=region;
+  String canonVariant=variant;
+  int n=deprecatedLanguages.length;
+  for (int i=0; i < n; i+=2) {
+    if (deprecatedLanguages[i + 1].equals(canonLanguage)) {
+      canonLanguage=deprecatedLanguages[i];
+      break;
+    }
+  }
+  n=deprecatedRegions.length;
+  for (int i=0; i < n; i+=2) {
+    if (deprecatedRegions[i + 1].equals(canonRegion)) {
+      canonRegion=deprecatedRegions[i];
+      break;
+    }
+  }
+  if ("zh".equals(canonLanguage)) {
+    if (canonRegion != null) {
+      if ("CN".equals(canonRegion) && "Hans".equals(canonScript)) {
+        canonScript=null;
+      }
+ else       if ("TW".equals(canonRegion) && "Hant".equals(canonScript)) {
+        canonScript=null;
+      }
+    }
+ else     if ("Hans".equals(canonScript)) {
+      canonRegion="CN";
+      canonScript=null;
+    }
+ else     if ("Hant".equals(canonScript)) {
+      canonRegion="TW";
+      canonScript=null;
+    }
+  }
+  if ("no-bok".equals(canonLanguage)) {
+    canonLanguage="nb";
+    canonVariant=null;
+  }
+ else   if ("no-nyn".equals(canonLanguage)) {
+    canonLanguage="nn";
+    canonVariant=null;
+  }
+ else   if ("no".equals(canonLanguage)) {
+    if (canonVariant == null || "BOKMAL".equals(canonVariant)) {
+      canonLanguage="nb";
+      canonVariant=null;
+    }
+ else     if ("NYNORSK".equals(canonVariant)) {
+      canonLanguage="nn";
+      canonVariant=null;
+    }
+  }
+  if (canonScript != null && canonScript.equals(DefaultLanguageScripts.getDefaultScript(canonLanguage))) {
+    canonScript=null;
+  }
+  return factory.fromComponents(canonLanguage,canonScript,canonRegion,canonVariant);
+}
