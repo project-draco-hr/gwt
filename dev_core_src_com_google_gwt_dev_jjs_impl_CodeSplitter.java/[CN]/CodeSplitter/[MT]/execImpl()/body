@@ -1,30 +1,37 @@
 {
   PerfLogger.start("CodeSplitter");
-  FragmentMap fragmentMap=mapFragments();
-  List<List<JsStatement>> fragmentStats=new ArrayList<List<JsStatement>>(3 * numEntries - 2);
+  Map<Integer,List<JsStatement>> fragmentStats=new HashMap<Integer,List<JsStatement>>();
 {
     LivenessPredicate alreadyLoaded=new NothingAlivePredicate();
     LivenessPredicate liveNow=new CfaLivenessPredicate(initiallyLive);
     List<JsStatement> noStats=new ArrayList<JsStatement>();
-    addFragment(alreadyLoaded,liveNow,noStats,fragmentStats);
+    addFragment(0,alreadyLoaded,liveNow,noStats,fragmentStats);
   }
+  liveAfterInitialSequence=new ControlFlowAnalyzer(initiallyLive);
+  for (  int sp : initialLoadSequence) {
+    LivenessPredicate alreadyLoaded=new CfaLivenessPredicate(liveAfterInitialSequence);
+    ControlFlowAnalyzer liveAfterSp=new ControlFlowAnalyzer(liveAfterInitialSequence);
+    traverseEntry(liveAfterSp,sp);
+    LivenessPredicate liveNow=new CfaLivenessPredicate(liveAfterSp);
+    List<JsStatement> statsToAppend=fragmentExtractor.createCallsToEntryMethods(sp);
+    addFragment(sp,alreadyLoaded,liveNow,statsToAppend,fragmentStats);
+    liveAfterInitialSequence=liveAfterSp;
+  }
+  ExclusivityMap fragmentMap=determineExclusivity();
   for (int i=1; i < numEntries; i++) {
-    LivenessPredicate alreadyLoaded=new FragmentMapLivenessPredicate(fragmentMap,0);
-    LivenessPredicate liveNow=new FragmentMapLivenessPredicate(fragmentMap,i);
+    if (isInitial(i)) {
+      continue;
+    }
+    LivenessPredicate alreadyLoaded=new ExclusivityMapLivenessPredicate(fragmentMap,0);
+    LivenessPredicate liveNow=new ExclusivityMapLivenessPredicate(fragmentMap,i);
     List<JsStatement> statsToAppend=fragmentExtractor.createCallsToEntryMethods(i);
-    addFragment(alreadyLoaded,liveNow,statsToAppend,fragmentStats);
+    addFragment(i,alreadyLoaded,liveNow,statsToAppend,fragmentStats);
   }
-  for (int base=1; base < numEntries; base++) {
-    ControlFlowAnalyzer baseCfa=new ControlFlowAnalyzer(initiallyLive);
-    traverseEntry(baseCfa,base);
-    LivenessPredicate baseLive=new CfaLivenessPredicate(baseCfa);
-    List<JsStatement> baseStatsToAppend=fragmentExtractor.createCallsToEntryMethods(base);
-    addFragment(new CfaLivenessPredicate(initiallyLive),baseLive,baseStatsToAppend,fragmentStats);
-    LivenessPredicate globalLeftoversLive=new FragmentMapLivenessPredicate(fragmentMap,0);
-    LivenessPredicate associatedExclusives=new FragmentMapLivenessPredicate(fragmentMap,base);
-    LivenessPredicate leftoversLive=new UnionLivenessPredicate(globalLeftoversLive,associatedExclusives);
+{
+    LivenessPredicate alreadyLoaded=new CfaLivenessPredicate(liveAfterInitialSequence);
+    LivenessPredicate liveNow=new ExclusivityMapLivenessPredicate(fragmentMap,0);
     List<JsStatement> statsToAppend=fragmentExtractor.createCallToLeftoversFragmentHasLoaded();
-    addFragment(baseLive,leftoversLive,statsToAppend,fragmentStats);
+    addFragment(numEntries,alreadyLoaded,liveNow,statsToAppend,fragmentStats);
   }
   jsprogram.setFragmentCount(fragmentStats.size());
   for (int i=0; i < fragmentStats.size(); i++) {

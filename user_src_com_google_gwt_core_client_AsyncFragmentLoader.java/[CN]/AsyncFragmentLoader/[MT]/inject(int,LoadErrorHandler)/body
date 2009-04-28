@@ -1,19 +1,19 @@
 {
-  if (leftoversLoaded) {
+  if (haveInitialFragmentsLoaded()) {
     logEventProgress(LwmLabels.downloadGroup(splitPoint),LwmLabels.BEGIN,splitPoint,null);
     startLoadingFragment(splitPoint,loadErrorHandler);
     return;
   }
-  if (baseLoading || leftoversLoading) {
-    assert(waitingForLeftovers.size() == waitingForLeftoversErrorHandlers.size());
-    waitingForLeftovers.add(splitPoint);
-    waitingForLeftoversErrorHandlers.add(loadErrorHandler);
-    if (!leftoversLoading) {
-      startLoadingLeftovers();
-    }
-    return;
+  if (isInitial(splitPoint)) {
+    initialFragmentErrorHandlers.put(splitPoint,loadErrorHandler);
   }
-  baseLoading=true;
-  logEventProgress(LwmLabels.downloadGroup(splitPoint),LwmLabels.BEGIN,baseFragmentNumber(splitPoint),null);
-  startLoadingFragment(baseFragmentNumber(splitPoint),new BaseDownloadFailed(loadErrorHandler));
+ else {
+    assert(waitingForInitialFragments.length() == waitingForInitialFragmentsErrorHandlers.size());
+    waitingForInitialFragments.push(splitPoint);
+    waitingForInitialFragmentsErrorHandlers.add(loadErrorHandler);
+  }
+  if (!initialFragmentsLoading) {
+    startLoadingNextInitial();
+  }
+  return;
 }

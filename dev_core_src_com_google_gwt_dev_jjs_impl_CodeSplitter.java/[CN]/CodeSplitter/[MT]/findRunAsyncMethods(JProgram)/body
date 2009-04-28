@@ -1,0 +1,17 @@
+{
+  Map<Integer,JMethod> splitPointToLoadMethod=new HashMap<Integer,JMethod>();
+  for (  JReferenceType type : program.getDeclaredTypes()) {
+    Matcher matcher=LOADER_CLASS_PATTERN.matcher(type.getName());
+    if (matcher.matches()) {
+      int sp=Integer.parseInt(matcher.group(1));
+      JMethod loadMethod=null;
+      for (      JMethod meth : type.methods) {
+        if (meth.getName().equals(FragmentLoaderCreator.LOADER_METHOD_RUN_ASYNC)) {
+          loadMethod=meth;
+        }
+      }
+      splitPointToLoadMethod.put(sp,loadMethod);
+    }
+  }
+  return splitPointToLoadMethod;
+}

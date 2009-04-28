@@ -1,0 +1,22 @@
+{
+  LinkedHashSet<Integer> initialLoadSequence=new LinkedHashSet<Integer>();
+  int numSplitPoints=program.entryMethods.size() - 1;
+  if (numSplitPoints != 0) {
+    Map<Integer,JMethod> splitPointToMethod=findRunAsyncMethods(program);
+    assert(splitPointToMethod.size() == numSplitPoints);
+    ControlFlowAnalyzer cfa=computeInitiallyLive(program);
+    while (true) {
+      Set<Integer> nextSplitPoints=splitPointsReachable(cfa,splitPointToMethod,numSplitPoints);
+      nextSplitPoints.removeAll(initialLoadSequence);
+      if (nextSplitPoints.size() != 1) {
+        break;
+      }
+      int nextSplitPoint=nextSplitPoints.iterator().next();
+      initialLoadSequence.add(nextSplitPoint);
+      CodeSplitter.traverseEntry(program,cfa,nextSplitPoint);
+    }
+    logInitialLoadSequence(logger,initialLoadSequence);
+    installInitialLoadSequenceField(program,initialLoadSequence);
+  }
+  return initialLoadSequence;
+}

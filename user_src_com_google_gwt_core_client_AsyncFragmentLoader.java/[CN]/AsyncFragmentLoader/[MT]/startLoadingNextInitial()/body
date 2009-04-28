@@ -1,0 +1,22 @@
+{
+  if (remainingInitialFragments == null) {
+    remainingInitialFragments=createJsArrayInteger();
+    for (    int sp : initialLoadSequence) {
+      remainingInitialFragments.push(sp);
+    }
+    remainingInitialFragments.push(leftoversFragment());
+  }
+  if (remainingInitialFragments.length() > 0) {
+    initialFragmentsLoading=true;
+    int nextSplitPoint=remainingInitialFragments.get(0);
+    logEventProgress(LwmLabels.downloadGroup(nextSplitPoint),LwmLabels.BEGIN,nextSplitPoint,null);
+    startLoadingFragment(nextSplitPoint,new InitialFragmentDownloadFailed());
+    return;
+  }
+  initialFragmentsLoading=false;
+  assert(haveInitialFragmentsLoaded());
+  assert(waitingForInitialFragments.length() == waitingForInitialFragmentsErrorHandlers.size());
+  while (waitingForInitialFragments.length() > 0) {
+    startLoadingFragment(waitingForInitialFragments.shift(),waitingForInitialFragmentsErrorHandlers.remove());
+  }
+}

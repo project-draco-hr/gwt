@@ -12,6 +12,10 @@
     Map<SymbolData,JsName> symbolTable=new TreeMap<SymbolData,JsName>(new SymbolData.ClassIdentComparator());
     ResolveRebinds.exec(jprogram,rebindAnswers);
     optimize(options,jprogram);
+    LinkedHashSet<Integer> initialLoadSequence=new LinkedHashSet<Integer>();
+    if (options.isAggressivelyOptimize() && options.isRunAsyncEnabled()) {
+      initialLoadSequence=CodeSplitter.pickInitialLoadSequence(logger,jprogram);
+    }
     LongCastNormalizer.exec(jprogram);
     JsoDevirtualizer.exec(jprogram);
     CatchBlockNormalizer.exec(jprogram);
@@ -58,7 +62,7 @@ throw new InternalCompilerException("Unknown output mode");
 }
 JavaToJavaScriptMap postStringInterningMap=addStringLiteralMap(map,stringLiteralMap);
 if (options.isAggressivelyOptimize() && options.isRunAsyncEnabled()) {
-CodeSplitter.exec(logger,jprogram,jsProgram,postStringInterningMap);
+CodeSplitter.exec(logger,jprogram,jsProgram,postStringInterningMap,initialLoadSequence);
 }
 JsIEBlockSizeVisitor.exec(jsProgram);
 String[] js=new String[jsProgram.getFragmentCount()];
