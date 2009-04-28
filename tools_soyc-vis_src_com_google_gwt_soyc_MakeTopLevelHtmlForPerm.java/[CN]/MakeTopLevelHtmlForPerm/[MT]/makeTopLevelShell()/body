@@ -1,0 +1,76 @@
+{
+  PrintWriter outFile=new PrintWriter("SoycDashboard-index.html");
+  outFile.println("<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML//EN\">");
+  outFile.println("<html>");
+  outFile.println("<head>");
+  outFile.println("<title>Story of Your Compile - Top Level Dashboard for Permutation</title>");
+  outFile.println("<link rel=\"stylesheet\" href=\"roundedCorners.css\">");
+  outFile.println("<style type=\"text/css\">");
+  outFile.println("body {background-color: #728FCE}");
+  outFile.println("h2 {background-color: transparent}");
+  outFile.println("p {background-color: fuchsia}");
+  outFile.println("</style>");
+  outFile.println("</head>");
+  outFile.println("<body>");
+  outFile.println("<center>");
+  outFile.println("<h3>Story of Your Compile Dashboard</h3>");
+  outFile.println("<hr>");
+  if (GlobalInformation.fragmentToStories.size() > 1) {
+    outFile.println("<b>Initial download size: <span style=\"color:maroon\">" + GlobalInformation.initialCodeBreakdown.sizeAllCode + "</span></span></b>");
+  }
+ else {
+    outFile.println("<b>Full code size: <span style=\"color:maroon\">" + GlobalInformation.totalCodeBreakdown.sizeAllCode + "</span></span></b>");
+  }
+  outFile.println("<hr>");
+  outFile.println("Available code subsets to analyze");
+  int numSplitPoints=GlobalInformation.splitPointToLocation.size();
+  int outerHeight=25 * (numSplitPoints + 2);
+  outFile.println("<div style=\"width:100%; margin:20px 0 20px 0; background-color:white;position:relative;height:" + outerHeight + "\">");
+  float maxSize=GlobalInformation.totalCodeBreakdown.sizeAllCode;
+  int yOffset=0;
+  for (int i=FRAGMENT_NUMBER_TOTAL_PROGRAM; i <= numSplitPoints; i++) {
+    String drillDownFileName, splitPointDescription;
+    if (i == FRAGMENT_NUMBER_TOTAL_PROGRAM) {
+      drillDownFileName=shellFileName(GlobalInformation.totalCodeBreakdown);
+      splitPointDescription="Total program";
+    }
+ else {
+      String splitPointName=i == FRAGMENT_NUMBER_INITIAL_DOWNLOAD ? "initialDownload" : GlobalInformation.splitPointToLocation.get(i);
+      if (i == FRAGMENT_NUMBER_INITIAL_DOWNLOAD) {
+        drillDownFileName=shellFileName(GlobalInformation.initialCodeBreakdown);
+      }
+ else {
+        drillDownFileName="splitPoint-" + filename(splitPointName) + "-Classes.html";
+      }
+      splitPointDescription=i == FRAGMENT_NUMBER_INITIAL_DOWNLOAD ? "Initial download" : ("Code exclusive to " + splitPointName);
+    }
+    float size;
+    if (i >= 0) {
+      size=GlobalInformation.fragmentToPartialSize.get(i);
+    }
+ else {
+      size=GlobalInformation.totalCodeBreakdown.sizeAllCode;
+    }
+    float ratio=(size / maxSize) * 79;
+    if (ratio < 3) {
+      ratio=3;
+    }
+    outFile.println("<div id=\"box\" style=\"width: " + ratio + "%; top: "+ yOffset+ "px; left: 110px;\">");
+    outFile.println("<div id=\"lb\">");
+    outFile.println("<div id=\"rb\">");
+    outFile.println("<div id=\"bb\"><div id=\"blc\"><div id=\"brc\">");
+    outFile.println("<div id=\"tb\"><div id=\"tlc\"><div id=\"trc\">");
+    outFile.println("<div id=\"content\">");
+    outFile.println("</div>");
+    outFile.println("</div></div></div></div>");
+    outFile.println("</div></div></div></div>");
+    outFile.println("</div>");
+    int yOffsetText=yOffset + 8;
+    outFile.printf("<div class=\"barlabel\" style=\"top: " + yOffsetText + "px; left:5px;\">%.1f</div>\n",size);
+    outFile.println("<div class=\"barlabel\" style=\"top: " + yOffsetText + "px; left:120px;\"><a href=\""+ drillDownFileName+ "\" target=\"_top\">"+ splitPointDescription+ "</a></div>");
+    yOffset=yOffset + 25;
+  }
+  outFile.println("</div>");
+  outFile.println("</body></html>");
+  outFile.close();
+}

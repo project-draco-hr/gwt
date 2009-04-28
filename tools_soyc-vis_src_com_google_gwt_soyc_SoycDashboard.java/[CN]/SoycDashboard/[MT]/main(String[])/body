@@ -1,4 +1,5 @@
 {
+  System.out.println("Generating the Story of Your Compile...");
   try {
     GlobalInformation.settings=Settings.fromArgumentList(args);
   }
@@ -12,6 +13,7 @@
   Settings settings=GlobalInformation.settings;
   GlobalInformation.displayDependencies=(settings.depFileName != null);
   GlobalInformation.displaySplitPoints=(settings.splitPointsFileName != null);
+  MakeTopLevelHtmlForPerm makeTopLevelHtmlForPerm=new MakeTopLevelHtmlForPerm();
   if (GlobalInformation.displayDependencies == true) {
     Map<String,ArrayList<String>> dependencies=new TreeMap<String,ArrayList<String>>();
     DefaultHandler depHandler=parseXMLDocumentDependencies(dependencies);
@@ -39,7 +41,7 @@ catch (    IOException e) {
       throw new RuntimeException("Could not open file. ",e);
     }
     try {
-      MakeTopLevelHtmlForPerm.makeDependenciesHtml(dependencies);
+      makeTopLevelHtmlForPerm.makeDependenciesHtml(dependencies);
     }
  catch (    IOException e) {
       throw new RuntimeException("Cannot open file. ",e);
@@ -71,25 +73,7 @@ catch (    IOException e) {
       throw new RuntimeException("Could not open file. ",e);
     }
   }
-  GlobalInformation.nameToLitColl.put("long",new LiteralsCollection("long"));
-  GlobalInformation.nameToLitColl.put("null",new LiteralsCollection("null"));
-  GlobalInformation.nameToLitColl.put("class",new LiteralsCollection("class"));
-  GlobalInformation.nameToLitColl.put("int",new LiteralsCollection("int"));
-  GlobalInformation.nameToLitColl.put("string",new LiteralsCollection("string"));
-  GlobalInformation.nameToLitColl.put("number",new LiteralsCollection("number"));
-  GlobalInformation.nameToLitColl.put("boolean",new LiteralsCollection("boolean"));
-  GlobalInformation.nameToLitColl.put("double",new LiteralsCollection("double"));
-  GlobalInformation.nameToLitColl.put("char",new LiteralsCollection("char"));
-  GlobalInformation.nameToLitColl.put("undefined",new LiteralsCollection("undefined"));
-  GlobalInformation.nameToLitColl.put("float",new LiteralsCollection("float"));
-  GlobalInformation.nameToCodeColl.put("allOther",new CodeCollection("allOther"));
-  GlobalInformation.nameToCodeColl.put("widget",new CodeCollection("widget"));
-  GlobalInformation.nameToCodeColl.put("rpcUser",new CodeCollection("rpcUser"));
-  GlobalInformation.nameToCodeColl.put("rpcGen",new CodeCollection("rpcGen"));
-  GlobalInformation.nameToCodeColl.put("rpcGwt",new CodeCollection("rpcGwt"));
-  GlobalInformation.nameToCodeColl.put("gwtLang",new CodeCollection("long"));
-  GlobalInformation.nameToCodeColl.put("jre",new CodeCollection("jre"));
-  DefaultHandler handler=parseXMLDocument(GlobalInformation.nameToLitColl,GlobalInformation.nameToCodeColl);
+  DefaultHandler handler=parseXMLDocument();
   SAXParserFactory factoryMain=SAXParserFactory.newInstance();
   factoryMain.setNamespaceAware(true);
   try {
@@ -113,10 +97,16 @@ catch (  FileNotFoundException e) {
 catch (  IOException e) {
     throw new RuntimeException("Could not open file. ",e);
   }
-  updateAllOtherCodeType(GlobalInformation.nameToCodeColl);
+  for (  SizeBreakdown breakdown : GlobalInformation.allSizeBreakdowns()) {
+    updateAllOtherCodeType(breakdown.nameToCodeColl);
+  }
   GlobalInformation.computePackageSizes();
   GlobalInformation.computePartialPackageSizes();
-  foldInRPCHeuristic(GlobalInformation.nameToCodeColl);
-  makeHTMLFiles(GlobalInformation.nameToLitColl,GlobalInformation.nameToCodeColl);
+  for (  SizeBreakdown breakdown : GlobalInformation.allSizeBreakdowns()) {
+    foldInRPCHeuristic(breakdown.nameToCodeColl);
+  }
+  for (  SizeBreakdown breakdown : GlobalInformation.allSizeBreakdowns()) {
+    makeHTMLFiles(makeTopLevelHtmlForPerm,breakdown);
+  }
   System.out.println("Finished creating reports. To see the dashboard, open SoycDashboard-index.html in your browser.");
 }
