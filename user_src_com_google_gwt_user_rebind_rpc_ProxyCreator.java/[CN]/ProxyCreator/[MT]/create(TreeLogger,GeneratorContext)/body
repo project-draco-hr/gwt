@@ -12,8 +12,9 @@
   }
   RemoteServiceAsyncValidator rsav=new RemoteServiceAsyncValidator(logger,typeOracle);
   Map<JMethod,JMethod> syncMethToAsyncMethMap=rsav.validate(logger,serviceIntf,serviceAsync);
-  SerializableTypeOracleBuilder typesSentFromBrowserBuilder=new SerializableTypeOracleBuilder(logger,context.getPropertyOracle(),typeOracle);
-  SerializableTypeOracleBuilder typesSentToBrowserBuilder=new SerializableTypeOracleBuilder(logger,context.getPropertyOracle(),typeOracle);
+  final PropertyOracle propertyOracle=context.getPropertyOracle();
+  SerializableTypeOracleBuilder typesSentFromBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,typeOracle);
+  SerializableTypeOracleBuilder typesSentToBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,typeOracle);
   try {
     addRequiredRoots(logger,typeOracle,typesSentFromBrowserBuilder);
     addRequiredRoots(logger,typeOracle,typesSentToBrowserBuilder);
@@ -24,7 +25,8 @@
     throw new UnableToCompleteException();
   }
   try {
-    elideTypeNames=Boolean.parseBoolean(context.getPropertyOracle().getPropertyValue(logger,TypeSerializerCreator.GWT_ELIDE_TYPE_NAMES_FROM_RPC));
+    ConfigurationProperty prop=context.getPropertyOracle().getConfigurationProperty(TypeSerializerCreator.GWT_ELIDE_TYPE_NAMES_FROM_RPC);
+    elideTypeNames=Boolean.parseBoolean(prop.getValues().get(0));
   }
  catch (  BadPropertyValueException e) {
     logger.log(TreeLogger.ERROR,"Configuration property " + TypeSerializerCreator.GWT_ELIDE_TYPE_NAMES_FROM_RPC + " is not defined. Is RemoteService.gwt.xml inherited?");

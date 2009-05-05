@@ -1,6 +1,8 @@
 {
   try {
-    String localeName=propertyOracle.getPropertyValue(logger,PROP_LOCALE);
+    SelectionProperty localeProp=propertyOracle.getSelectionProperty(logger,PROP_LOCALE);
+    String localeName=localeProp.getCurrentValue();
+    SortedSet<String> localeValues=localeProp.getPossibleValues();
     GwtLocale newCompileLocale=factory.fromString(localeName);
     if (newCompileLocale.equals(compileLocale)) {
       return;
@@ -9,15 +11,14 @@
     allLocales.clear();
     allCompileLocales.clear();
     runtimeLocales.clear();
-    String[] localeValues=propertyOracle.getPropertyValueSet(logger,PROP_LOCALE);
-    String rtLocaleNames=propertyOracle.getPropertyValue(logger,PROP_RUNTIME_LOCALES);
     for (    String localeValue : localeValues) {
       allCompileLocales.add(factory.fromString(localeValue));
     }
     allLocales.addAll(allCompileLocales);
-    if (rtLocaleNames != null && rtLocaleNames.length() > 0) {
-      String[] rtLocales=rtLocaleNames.split(",");
-      for (      String rtLocale : rtLocales) {
+    ConfigurationProperty prop=propertyOracle.getConfigurationProperty(PROP_RUNTIME_LOCALES);
+    List<String> rtLocaleNames=prop.getValues();
+    if (rtLocaleNames != null) {
+      for (      String rtLocale : rtLocaleNames) {
         GwtLocale locale=factory.fromString(rtLocale);
         existingLocales:         for (        GwtLocale existing : allCompileLocales) {
           for (          GwtLocale alias : existing.getAliases()) {

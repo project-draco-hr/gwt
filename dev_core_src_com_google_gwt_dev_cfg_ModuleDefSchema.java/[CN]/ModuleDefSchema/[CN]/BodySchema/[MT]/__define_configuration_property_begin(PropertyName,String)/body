@@ -1,0 +1,20 @@
+{
+  boolean isMultiValued=toPrimitiveBoolean(is_multi_valued);
+  Property existingProperty=moduleDef.getProperties().find(name.token);
+  if (existingProperty == null) {
+    existingProperty=moduleDef.getProperties().createConfiguration(name.token,isMultiValued);
+  }
+ else {
+    if (existingProperty instanceof ConfigurationProperty) {
+      logger.log(TreeLogger.ERROR,"The configuration property named " + name.token + " may not be redefined.");
+    }
+ else     if (existingProperty instanceof BindingProperty) {
+      logger.log(TreeLogger.ERROR,"The property " + name.token + " is already defined as a deferred-binding property");
+    }
+ else {
+      logger.log(TreeLogger.ERROR,"May not replace property named " + name.token + " of unknown type "+ existingProperty.getClass().getName());
+    }
+    throw new UnableToCompleteException();
+  }
+  return null;
+}

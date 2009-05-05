@@ -4,7 +4,15 @@
  else {
     try {
       String propertyName=x.getPropertyName();
-      String propValue=oracle.getPropertyValue(logger,propertyName);
+      String propValue=null;
+      try {
+        SelectionProperty selProp=oracle.getSelectionProperty(logger,propertyName);
+        propValue=selProp.getCurrentValue();
+      }
+ catch (      BadPropertyValueException e) {
+        ConfigurationProperty confProp=oracle.getConfigurationProperty(propertyName);
+        propValue=confProp.getValues().get(0);
+      }
       if (Arrays.asList(x.getPropertyValues()).contains(propValue) ^ x.isNegated()) {
         for (        CssNode n : x.getNodes()) {
           ctx.insertBefore(n);

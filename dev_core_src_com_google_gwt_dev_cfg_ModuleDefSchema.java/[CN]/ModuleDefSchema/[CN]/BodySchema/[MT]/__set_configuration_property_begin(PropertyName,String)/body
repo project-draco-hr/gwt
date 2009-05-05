@@ -1,12 +1,17 @@
 {
-  Property prop=moduleDef.getProperties().find(name.token);
-  if (prop != null && !(prop instanceof ConfigurationProperty)) {
-    logger.log(TreeLogger.ERROR,"A deferred-binding property named " + name.token + " has already been defined");
+  Property existingProperty=moduleDef.getProperties().find(name.token);
+  if (existingProperty == null) {
+    existingProperty=moduleDef.getProperties().createConfiguration(name.token,false);
+  }
+ else   if (!(existingProperty instanceof ConfigurationProperty)) {
+    if (existingProperty instanceof BindingProperty) {
+      logger.log(TreeLogger.ERROR,"The property " + name.token + " is already defined as a deferred-binding property");
+    }
+ else {
+      logger.log(TreeLogger.ERROR,"May not replace property named " + name.token + " of unknown type "+ existingProperty.getClass().getName());
+    }
     throw new UnableToCompleteException();
   }
- else {
-    prop=moduleDef.getProperties().createConfiguration(name.token);
-  }
-  ((ConfigurationProperty)prop).setValue(value);
+  ((ConfigurationProperty)existingProperty).setValue(value);
   return null;
 }
