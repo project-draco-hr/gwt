@@ -1,0 +1,35 @@
+{
+  this.logger=logger.branch(TreeLogger.DEBUG,"Analyzing RPC blacklist information");
+  try {
+    ConfigurationProperty prop=propertyOracle.getConfigurationProperty("rpc.blacklist");
+    values=prop.getValues();
+    int size=values.size();
+    typePatterns=new ArrayList<Pattern>(size);
+    includeType=new ArrayList<Boolean>(size);
+    for (    String regex : values) {
+      boolean include=false;
+      if (regex.length() == 0) {
+        logger.log(TreeLogger.ERROR,"Got empty RPC blacklist entry");
+        throw new UnableToCompleteException();
+      }
+      char c=regex.charAt(0);
+      if (c == '+' || c == '-') {
+        regex=regex.substring(1);
+        include=(c == '+');
+      }
+      try {
+        Pattern p=Pattern.compile(regex);
+        typePatterns.add(p);
+        includeType.add(include);
+        logger.log(TreeLogger.DEBUG,"Got RPC blacklist entry '" + regex + "'");
+      }
+ catch (      PatternSyntaxException e) {
+        logger.log(TreeLogger.ERROR,"Got malformed RPC blacklist entry '" + regex + "'");
+        throw new UnableToCompleteException();
+      }
+    }
+  }
+ catch (  BadPropertyValueException e) {
+    logger.log(TreeLogger.DEBUG,"No RPC blacklist entries present");
+  }
+}

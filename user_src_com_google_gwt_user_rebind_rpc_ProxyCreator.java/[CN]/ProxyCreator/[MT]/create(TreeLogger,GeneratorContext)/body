@@ -13,8 +13,11 @@
   RemoteServiceAsyncValidator rsav=new RemoteServiceAsyncValidator(logger,typeOracle);
   Map<JMethod,JMethod> syncMethToAsyncMethMap=rsav.validate(logger,serviceIntf,serviceAsync);
   final PropertyOracle propertyOracle=context.getPropertyOracle();
+  TypeFilter blacklistTypeFilter=new BlacklistTypeFilter(logger,propertyOracle);
   SerializableTypeOracleBuilder typesSentFromBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,typeOracle);
+  typesSentFromBrowserBuilder.setTypeFilter(blacklistTypeFilter);
   SerializableTypeOracleBuilder typesSentToBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,typeOracle);
+  typesSentToBrowserBuilder.setTypeFilter(blacklistTypeFilter);
   try {
     addRequiredRoots(logger,typeOracle,typesSentFromBrowserBuilder);
     addRequiredRoots(logger,typeOracle,typesSentToBrowserBuilder);
@@ -33,8 +36,18 @@
     throw new UnableToCompleteException();
   }
   OutputStream pathInfo=context.tryCreateResource(logger,serviceIntf.getQualifiedSourceName() + ".rpc.log");
+  PrintWriter writer=new PrintWriter(pathInfo);
   typesSentFromBrowserBuilder.setLogOutputStream(pathInfo);
+  typesSentToBrowserBuilder.setLogOutputStream(pathInfo);
+  writer.write("====================================\n");
+  writer.write("Types potentially sent from browser:\n");
+  writer.write("====================================\n\n");
+  writer.flush();
   SerializableTypeOracle typesSentFromBrowser=typesSentFromBrowserBuilder.build(logger);
+  writer.write("===================================\n");
+  writer.write("Types potentially sent from server:\n");
+  writer.write("===================================\n\n");
+  writer.flush();
   SerializableTypeOracle typesSentToBrowser=typesSentToBrowserBuilder.build(logger);
   if (pathInfo != null) {
     context.commitResource(logger,pathInfo).setPrivate(true);
