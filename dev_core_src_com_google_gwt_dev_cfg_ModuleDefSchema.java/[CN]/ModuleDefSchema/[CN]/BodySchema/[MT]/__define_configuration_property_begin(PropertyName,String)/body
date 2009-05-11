@@ -3,12 +3,32 @@
   Property existingProperty=moduleDef.getProperties().find(name.token);
   if (existingProperty == null) {
     existingProperty=moduleDef.getProperties().createConfiguration(name.token,isMultiValued);
+    if (!propertyDefinitions.containsKey(name.token)) {
+      propertyDefinitions.put(name.token,moduleName);
+    }
+  }
+ else   if (existingProperty instanceof ConfigurationProperty) {
+    String originalDefinition=propertyDefinitions.get(name.token);
+    if (((ConfigurationProperty)existingProperty).allowsMultipleValues() != isMultiValued) {
+      if (originalDefinition != null) {
+        logger.log(TreeLogger.ERROR,"The configuration property named " + name.token + " is already defined with a different 'is-multi-valued' setting");
+      }
+ else {
+        logger.log(TreeLogger.ERROR,"The configuration property named " + name.token + " is already defined implicitly by 'set-configuration-property'"+ " in "+ propertySettings.get(name.token)+ " with 'is-multi-valued' set to 'false'");
+      }
+      throw new UnableToCompleteException();
+    }
+ else {
+      if (originalDefinition != null) {
+        logger.log(TreeLogger.WARN,"Ignoring identical definition of the configuration property named " + name.token + " (originally defined in "+ originalDefinition+ ", redefined in "+ moduleName+ ")");
+      }
+ else {
+        logger.log(TreeLogger.WARN,"Definition of already set configuration property named " + name.token + " in "+ moduleName+ " (set in "+ propertySettings.get(name.token)+ ").  This may be disallowed in the future.");
+      }
+    }
   }
  else {
-    if (existingProperty instanceof ConfigurationProperty) {
-      logger.log(TreeLogger.ERROR,"The configuration property named " + name.token + " may not be redefined.");
-    }
- else     if (existingProperty instanceof BindingProperty) {
+    if (existingProperty instanceof BindingProperty) {
       logger.log(TreeLogger.ERROR,"The property " + name.token + " is already defined as a deferred-binding property");
     }
  else {
