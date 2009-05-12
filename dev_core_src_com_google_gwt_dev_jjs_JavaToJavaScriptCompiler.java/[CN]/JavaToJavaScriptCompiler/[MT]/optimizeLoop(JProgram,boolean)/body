@@ -1,0 +1,16 @@
+{
+  PerfLogger.start("optimize loop");
+  jprogram.typeOracle.recomputeAfterOptimizations();
+  boolean didChange=false;
+  didChange=Pruner.exec(jprogram,true) || didChange;
+  didChange=Finalizer.exec(jprogram) || didChange;
+  didChange=MakeCallsStatic.exec(jprogram) || didChange;
+  didChange=TypeTightener.exec(jprogram) || didChange;
+  didChange=MethodCallTightener.exec(jprogram) || didChange;
+  didChange=DeadCodeElimination.exec(jprogram) || didChange;
+  if (isAggressivelyOptimize) {
+    didChange=MethodInliner.exec(jprogram) || didChange;
+  }
+  PerfLogger.end();
+  return didChange;
+}
