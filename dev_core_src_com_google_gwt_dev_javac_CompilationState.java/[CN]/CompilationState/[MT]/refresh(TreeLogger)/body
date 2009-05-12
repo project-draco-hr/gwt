@@ -15,11 +15,11 @@
     }
   }
   refreshFromSourceOracle();
-  updateExposedUnits();
-  Set<CompilationUnit> allUnitsPlusGraveyard=concatSet(getCompilationUnits(),graveyardUnits.values());
+  invalidateClassFileMaps();
+  Set<CompilationUnit> allUnitsPlusGraveyard=concatSet(unitMap.values(),graveyardUnits.values());
   CompilationUnitInvalidator.invalidateUnitsWithInvalidRefs(TreeLogger.NULL,allUnitsPlusGraveyard);
   removeInvalidatedGraveyardUnits(graveyardUnits);
-  Set<CompilationUnit> toRetain=new HashSet<CompilationUnit>(exposedUnits);
+  Set<CompilationUnit> toRetain=new HashSet<CompilationUnit>(unitMap.values());
   for (Iterator<CompilationUnit> it=toRetain.iterator(); it.hasNext(); ) {
     CompilationUnit unit=it.next();
     if (unit.getState() != State.CHECKED) {
@@ -28,7 +28,7 @@
   }
   invalidatorState.retainAll(toRetain);
   jdtCompiler=new JdtCompiler();
-  compile(logger,getCompilationUnits(),Collections.<CompilationUnit>emptySet());
-  mediator.refresh(logger,getCompilationUnits());
-  markSurvivorsChecked(getCompilationUnits());
+  compile(logger,unitMap.values(),Collections.<CompilationUnit>emptySet());
+  mediator.refresh(logger,unitMap.values());
+  markSurvivorsChecked(unitMap.values());
 }
