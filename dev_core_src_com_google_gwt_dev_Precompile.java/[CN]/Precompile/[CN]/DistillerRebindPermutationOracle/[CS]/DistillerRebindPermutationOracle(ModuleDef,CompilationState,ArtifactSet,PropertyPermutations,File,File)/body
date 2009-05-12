@@ -2,6 +2,7 @@
   permutations=new Permutation[perms.size()];
   propertyOracles=new StaticPropertyOracle[perms.size()];
   rebindOracles=new RebindOracle[perms.size()];
+  generatorContext=new StandardGeneratorContext(compilationState,module,genDir,generatorResourcesDir,generatorArtifacts);
   BindingProperty[] orderedProps=perms.getOrderedProperties();
   SortedSet<ConfigurationProperty> configPropSet=module.getProperties().getConfigurationProperties();
   ConfigurationProperty[] configProps=configPropSet.toArray(new ConfigurationProperty[configPropSet.size()]);
@@ -9,7 +10,7 @@
   for (int i=0; i < rebindOracles.length; ++i) {
     String[] orderedPropValues=perms.getOrderedPropertyValues(i);
     propertyOracles[i]=new StaticPropertyOracle(orderedProps,orderedPropValues,configProps);
-    rebindOracles[i]=new StandardRebindOracle(compilationState,propertyOracles[i],module,rules,genDir,generatorResourcesDir,generatorArtifacts);
+    rebindOracles[i]=new StandardRebindOracle(propertyOracles[i],rules,generatorContext);
     permutations[i]=new Permutation(i,propertyOracles[i]);
   }
 }
