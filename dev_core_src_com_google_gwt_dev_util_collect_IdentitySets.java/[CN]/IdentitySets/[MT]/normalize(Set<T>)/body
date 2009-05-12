@@ -1,15 +1,20 @@
 {
 switch (set.size()) {
 case 0:
-    return Collections.emptySet();
+    return create();
 case 1:
 {
-    if (set.getClass() != IdentitySingletonSet.class) {
-      return new IdentitySingletonSet<T>(set.iterator().next());
+    if (set.getClass() == SINGLETON_SET_CLASS) {
+      return set;
     }
-    return set;
+    return create(set.iterator().next());
   }
 default :
-return set;
+if (set.getClass() == MULTI_SET_CLASS) {
+  return set;
+}
+IdentityHashSet<T> result=new IdentityHashSet<T>();
+result.addAll(set);
+return result;
 }
 }
