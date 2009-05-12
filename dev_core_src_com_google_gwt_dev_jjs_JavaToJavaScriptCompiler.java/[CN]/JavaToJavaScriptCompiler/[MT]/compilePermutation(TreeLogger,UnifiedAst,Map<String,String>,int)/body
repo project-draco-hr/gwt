@@ -11,7 +11,12 @@
     JJSOptions options=unifiedAst.getOptions();
     Map<SymbolData,JsName> symbolTable=new TreeMap<SymbolData,JsName>(new SymbolData.ClassIdentComparator());
     ResolveRebinds.exec(jprogram,rebindAnswers);
-    optimize(options,jprogram);
+    if (options.isDraftCompile()) {
+      draftOptimize(jprogram);
+    }
+ else {
+      optimize(options,jprogram);
+    }
     LinkedHashSet<Integer> initialLoadSequence=new LinkedHashSet<Integer>();
     if (options.isAggressivelyOptimize() && options.isRunAsyncEnabled()) {
       initialLoadSequence=CodeSplitter.pickInitialLoadSequence(logger,jprogram);
