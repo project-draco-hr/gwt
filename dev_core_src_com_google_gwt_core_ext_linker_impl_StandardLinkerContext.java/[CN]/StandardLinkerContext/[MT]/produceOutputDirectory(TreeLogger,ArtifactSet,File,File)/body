@@ -1,5 +1,10 @@
 {
+  outputPath=outputPath.getAbsoluteFile();
+  if (extraPath != null) {
+    extraPath=extraPath.getAbsoluteFile();
+  }
   logger=logger.branch(TreeLogger.TRACE,"Linking compilation into " + outputPath.getPath(),null);
+  Set<String> createdDirs=new HashSet<String>();
   for (  EmittedArtifact artifact : artifacts.find(EmittedArtifact.class)) {
     TreeLogger artifactLogger=logger.branch(TreeLogger.DEBUG,"Emitting resource " + artifact.getPartialPath(),null);
     File outFile;
@@ -13,7 +18,18 @@
       outFile=new File(outputPath,artifact.getPartialPath());
     }
     if (!outFile.exists() || (outFile.lastModified() <= artifact.getLastModified())) {
-      Util.copy(artifactLogger,artifact.getContents(artifactLogger),outFile);
+      mkdirs(outFile.getParentFile(),createdDirs);
+      try {
+        RandomAccessFile raf=new RandomAccessFile(outFile,"rw");
+        byte[] bytes=artifact.getBytes(artifactLogger);
+        raf.setLength(bytes.length);
+        raf.write(bytes);
+        raf.close();
+      }
+ catch (      IOException e) {
+        logger.log(TreeLogger.ERROR,"Unable to create file '" + outFile.getAbsolutePath() + "'",e);
+        throw new UnableToCompleteException();
+      }
       outFile.setLastModified(artifact.getLastModified());
     }
   }
