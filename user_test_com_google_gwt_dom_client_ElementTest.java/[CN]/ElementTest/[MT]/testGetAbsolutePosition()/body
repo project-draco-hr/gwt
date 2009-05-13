@@ -4,7 +4,9 @@
   final int padding=10;
   final int top=15;
   final int left=14;
-  Document doc=Document.get();
+  final int width=128;
+  final int height=64;
+  final Document doc=Document.get();
   final DivElement elem=doc.createDivElement();
   doc.getBody().appendChild(elem);
   elem.getStyle().setProperty("position","absolute");
@@ -13,12 +15,23 @@
   elem.getStyle().setProperty("margin",margin + "px");
   elem.getStyle().setPropertyPx("top",top - doc.getBodyOffsetLeft());
   elem.getStyle().setPropertyPx("left",left - doc.getBodyOffsetTop());
-  delayTestFinish(1000);
+  elem.getStyle().setPropertyPx("width",width);
+  elem.getStyle().setPropertyPx("height",height);
   DeferredCommand.addCommand(new Command(){
     public void execute(){
-      assertEquals(top + margin,elem.getAbsoluteTop());
-      assertEquals(left + margin,elem.getAbsoluteLeft());
-      finishTest();
+      int absLeft=left + margin;
+      int absTop=top + margin;
+      int interiorDecorations=(border * 2) + (padding * 2);
+      assertEquals(absLeft,elem.getAbsoluteLeft());
+      assertEquals(absTop,elem.getAbsoluteTop());
+      if (isIE() && !doc.isCSS1Compat()) {
+        assertEquals(absLeft + width,elem.getAbsoluteRight());
+        assertEquals(absTop + height,elem.getAbsoluteBottom());
+      }
+ else {
+        assertEquals(absLeft + width + interiorDecorations,elem.getAbsoluteRight());
+        assertEquals(absTop + height + interiorDecorations,elem.getAbsoluteBottom());
+      }
     }
   }
 );
