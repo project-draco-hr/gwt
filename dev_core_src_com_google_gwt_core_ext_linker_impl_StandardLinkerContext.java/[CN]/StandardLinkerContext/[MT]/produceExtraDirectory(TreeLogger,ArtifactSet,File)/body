@@ -1,0 +1,13 @@
+{
+  extraPath=extraPath.getAbsoluteFile();
+  logger=logger.branch(TreeLogger.TRACE,"Writing extras into " + extraPath.getPath(),null);
+  Set<String> createdDirs=new HashSet<String>();
+  for (  EmittedArtifact artifact : artifacts.find(EmittedArtifact.class)) {
+    TreeLogger artifactLogger=logger.branch(TreeLogger.DEBUG,"Emitting resource " + artifact.getPartialPath(),null);
+    if (!artifact.isPrivate()) {
+      continue;
+    }
+    File outFile=new File(extraPath,getExtraPathForLinker(artifact.getLinker(),artifact.getPartialPath()));
+    writeArtifactToFile(artifactLogger,artifact,outFile,createdDirs);
+  }
+}

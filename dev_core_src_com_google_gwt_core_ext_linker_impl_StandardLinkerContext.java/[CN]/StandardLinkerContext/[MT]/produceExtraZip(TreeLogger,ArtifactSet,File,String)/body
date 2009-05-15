@@ -1,0 +1,21 @@
+{
+  extraZip=extraZip.getAbsoluteFile();
+  logger=logger.branch(TreeLogger.TRACE,"Linking compilation into " + extraZip.getPath(),null);
+  try {
+    Set<String> createdDirs=new HashSet<String>();
+    ZipOutputStream zipOutputStream=new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(extraZip)));
+    for (    EmittedArtifact artifact : artifacts.find(EmittedArtifact.class)) {
+      TreeLogger artifactLogger=logger.branch(TreeLogger.DEBUG,"Emitting resource " + artifact.getPartialPath(),null);
+      if (!artifact.isPrivate()) {
+        continue;
+      }
+      String path=pathPrefix + getExtraPathForLinker(artifact.getLinker(),artifact.getPartialPath());
+      writeArtifactToZip(artifactLogger,artifact,path,zipOutputStream,createdDirs);
+    }
+    Utility.close(zipOutputStream);
+  }
+ catch (  FileNotFoundException e) {
+    logger.log(TreeLogger.ERROR,"Unable to create extra archive " + extraZip.getPath(),e);
+    throw new UnableToCompleteException();
+  }
+}
