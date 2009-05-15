@@ -20,14 +20,12 @@
     if (!outFile.exists() || (outFile.lastModified() <= artifact.getLastModified())) {
       mkdirs(outFile.getParentFile(),createdDirs);
       try {
-        RandomAccessFile raf=new RandomAccessFile(outFile,"rw");
-        byte[] bytes=artifact.getBytes(artifactLogger);
-        raf.setLength(bytes.length);
-        raf.write(bytes);
-        raf.close();
+        FileOutputStream out=new FileOutputStream(outFile);
+        artifact.writeTo(artifactLogger,out);
+        out.close();
       }
  catch (      IOException e) {
-        logger.log(TreeLogger.ERROR,"Unable to create file '" + outFile.getAbsolutePath() + "'",e);
+        artifactLogger.log(TreeLogger.ERROR,"Unable to create file '" + outFile.getAbsolutePath() + "'",e);
         throw new UnableToCompleteException();
       }
       outFile.setLastModified(artifact.getLastModified());
