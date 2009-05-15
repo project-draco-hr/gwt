@@ -18,11 +18,15 @@
     pw.println(" }");
   }
   pw.println("# jsName, jsniIdent, className, memberName, sourceUri, sourceLine");
+  StringBuilder sb=new StringBuilder(1024);
+  char[] buf=new char[1024];
   for (  SymbolData symbol : result.getSymbolMap()) {
-    StringBuilder sb=new StringBuilder(1024);
     sb.append(symbol.getSymbolName());
     sb.append(',');
-    sb.append(symbol.getJsniIdent());
+    String jsniIdent=symbol.getJsniIdent();
+    if (jsniIdent != null) {
+      sb.append(jsniIdent);
+    }
     sb.append(',');
     sb.append(symbol.getClassName());
     sb.append(',');
@@ -38,6 +42,16 @@
     sb.append(',');
     sb.append(symbol.getSourceLine());
     sb.append('\n');
-    pw.write(sb.toString());
+    int sbLen=sb.length();
+    if (buf.length < sbLen) {
+      int bufLen=buf.length;
+      while (bufLen < sbLen) {
+        bufLen<<=1;
+      }
+      buf=new char[bufLen];
+    }
+    sb.getChars(0,sbLen,buf,0);
+    pw.write(buf,0,sbLen);
+    sb.setLength(0);
   }
 }
