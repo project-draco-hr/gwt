@@ -7,8 +7,17 @@
   for (  String includedPath : includedPathsAsString) {
     includedPaths.add(getFileFromName("source file: ",dirRoot + includedPath));
   }
-  excludedPaths=new HashSet<String>();
+  String fullExcludedPaths[]=new String[excludedPathsAsString.size()];
+  int count=0;
+  String dirRootCanonicalPath=getFileFromName("dirRoot: ",dirRoot).getCanonicalPath();
   for (  String excludedPath : excludedPathsAsString) {
-    excludedPaths.add(getFileFromName("excluded file: ",dirRoot + excludedPath).getCanonicalPath());
+    fullExcludedPaths[count++]=dirRootCanonicalPath + "/" + excludedPath;
   }
+  excludeScanner=new ZipScanner();
+  if (fullExcludedPaths.length > 0) {
+    excludeScanner.setIncludes(fullExcludedPaths);
+  }
+  excludeScanner.addDefaultExcludes();
+  excludeScanner.setCaseSensitive(true);
+  excludeScanner.init();
 }
