@@ -2,9 +2,9 @@
   logger=logger.branch(TreeLogger.INFO,"Creating Split Point Map file for SOYC");
   File splitPointsFile=new File(workDir,"splitPoints" + Integer.toString(permutationId) + ".xml.gz");
   try {
+    splitPointsFile.getParentFile().mkdirs();
     stream=new FileOutputStream(splitPointsFile,true);
     writer=new OutputStreamWriter(new GZIPOutputStream(stream),"UTF-8");
-    splitPointsFile.getParentFile().mkdirs();
     pw=new PrintWriter(writer);
     htmlOut=new HtmlTextOutput(pw,false);
     String curLine="<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
@@ -22,8 +22,9 @@
       htmlOut.newline();
       htmlOut.indentIn();
       htmlOut.indentIn();
-      for (      Integer splitPointCount : splitPointMap.keySet()) {
-        curLine="<splitpoint id=\"" + splitPointCount + "\" location=\""+ splitPointMap.get(splitPointCount)+ "\"/>";
+      for (      Map.Entry<Integer,String> entry : splitPointMap.entrySet()) {
+        Integer splitPointCount=entry.getKey();
+        curLine="<splitpoint id=\"" + splitPointCount + "\" location=\""+ entry.getValue()+ "\"/>";
         htmlOut.printRaw(curLine);
         htmlOut.newline();
       }

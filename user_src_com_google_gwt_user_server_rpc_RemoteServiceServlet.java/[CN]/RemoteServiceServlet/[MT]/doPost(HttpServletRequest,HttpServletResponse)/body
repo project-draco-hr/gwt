@@ -1,7 +1,10 @@
 {
   try {
-    perThreadRequest.set(request);
-    perThreadResponse.set(response);
+synchronized (this) {
+      validateThreadLocalData();
+      perThreadRequest.set(request);
+      perThreadResponse.set(response);
+    }
     String requestPayload=readContent(request);
     onBeforeRequestDeserialized(requestPayload);
     String responsePayload=processCall(requestPayload);

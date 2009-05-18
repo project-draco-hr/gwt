@@ -10,8 +10,13 @@
       }
     }
   }
-  URL urlArray[]=urlList.toArray(new URL[urlList.size()]);
-  URLClassLoader classLoader=new URLClassLoader(urlArray,CreatorUtilities.class.getClassLoader());
+  final URL urlArray[]=urlList.toArray(new URL[urlList.size()]);
+  URLClassLoader classLoader=AccessController.doPrivileged(new PrivilegedAction<URLClassLoader>(){
+    public URLClassLoader run(){
+      return new URLClassLoader(urlArray,CreatorUtilities.class.getClassLoader());
+    }
+  }
+);
   if (moduleList != null) {
     for (    String module : moduleList) {
       String modulePath=module.replace(".","/") + ModuleDefLoader.GWT_MODULE_XML_SUFFIX;

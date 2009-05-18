@@ -1,15 +1,19 @@
 {
   if (!outFile.exists() || (outFile.lastModified() <= artifact.getLastModified())) {
-    mkdirs(outFile.getParentFile(),createdDirs);
-    try {
-      FileOutputStream out=new FileOutputStream(outFile);
-      artifact.writeTo(logger,out);
-      out.close();
+    if (!mkdirs(outFile.getParentFile(),createdDirs)) {
+      logger.log(TreeLogger.ERROR,"Unable to create directory for file '" + outFile.getAbsolutePath() + "'");
     }
- catch (    IOException e) {
-      logger.log(TreeLogger.ERROR,"Unable to create file '" + outFile.getAbsolutePath() + "'",e);
-      throw new UnableToCompleteException();
+ else {
+      try {
+        FileOutputStream out=new FileOutputStream(outFile);
+        artifact.writeTo(logger,out);
+        out.close();
+      }
+ catch (      IOException e) {
+        logger.log(TreeLogger.ERROR,"Unable to create file '" + outFile.getAbsolutePath() + "'",e);
+        throw new UnableToCompleteException();
+      }
+      outFile.setLastModified(artifact.getLastModified());
     }
-    outFile.setLastModified(artifact.getLastModified());
   }
 }
