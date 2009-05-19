@@ -16,21 +16,21 @@
       }
  else {
         long compileStart=System.currentTimeMillis();
-        logger=logger.branch(TreeLogger.INFO,"Compiling module " + moduleName);
-        Precompilation precompilation=Precompile.precompile(logger,options,module,options.getGenDir(),compilerWorkDir,options.getDumpSignatureFile());
+        TreeLogger branch=logger.branch(TreeLogger.INFO,"Compiling module " + moduleName);
+        Precompilation precompilation=Precompile.precompile(branch,options,module,options.getGenDir(),compilerWorkDir,options.getDumpSignatureFile());
         if (precompilation == null) {
           return false;
         }
         Permutation[] allPerms=precompilation.getPermutations();
         List<FileBackedObject<PermutationResult>> resultFiles=CompilePerms.makeResultFiles(options.getCompilerWorkDir(moduleName),allPerms);
-        CompilePerms.compile(logger,precompilation,allPerms,options.getLocalWorkers(),resultFiles);
+        CompilePerms.compile(branch,precompilation,allPerms,options.getLocalWorkers(),resultFiles);
         ArtifactSet generatedArtifacts=precompilation.getGeneratedArtifacts();
         JJSOptions precompileOptions=precompilation.getUnifiedAst().getOptions();
         precompilation=null;
         Link.link(logger.branch(TreeLogger.INFO,"Linking into " + options.getWarDir().getPath()),module,generatedArtifacts,allPerms,resultFiles,options.getWarDir(),options.getExtraDir(),precompileOptions);
         long compileDone=System.currentTimeMillis();
         long delta=compileDone - compileStart;
-        logger.log(TreeLogger.INFO,"Compilation succeeded -- " + String.format("%.3f",delta / 1000d) + "s");
+        branch.log(TreeLogger.INFO,"Compilation succeeded -- " + String.format("%.3f",delta / 1000d) + "s");
       }
     }
   }
