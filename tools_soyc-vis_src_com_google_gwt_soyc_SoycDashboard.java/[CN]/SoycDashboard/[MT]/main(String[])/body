@@ -1,25 +1,16 @@
 {
-  System.out.println("Generating the Story of Your Compile...");
   try {
+    System.out.println("Generating the Story of Your Compile...");
     GlobalInformation.settings=Settings.fromArgumentList(args);
-  }
- catch (  Settings.ArgumentListException e) {
-    System.err.println(e.getMessage());
-    System.err.println("Usage: java com.google.gwt.soyc.SoycDashboard [options] report0.xml[.gz] [dependencies0.xml[.gz]] [splitpoints0.xml[.gz]]");
-    System.err.println("Options:");
-    System.err.println(Settings.settingsHelp());
-    System.exit(1);
-  }
-  Settings settings=GlobalInformation.settings;
-  GlobalInformation.displayDependencies=(settings.depFileName != null);
-  GlobalInformation.displaySplitPoints=(settings.splitPointsFileName != null);
-  MakeTopLevelHtmlForPerm makeTopLevelHtmlForPerm=new MakeTopLevelHtmlForPerm();
-  if (GlobalInformation.displayDependencies == true) {
-    Map<String,ArrayList<String>> dependencies=new TreeMap<String,ArrayList<String>>();
-    DefaultHandler depHandler=parseXMLDocumentDependencies(dependencies);
-    SAXParserFactory depFactoryMain=SAXParserFactory.newInstance();
-    depFactoryMain.setNamespaceAware(true);
-    try {
+    Settings settings=GlobalInformation.settings;
+    GlobalInformation.displayDependencies=(settings.depFileName != null);
+    GlobalInformation.displaySplitPoints=(settings.splitPointsFileName != null);
+    MakeTopLevelHtmlForPerm makeTopLevelHtmlForPerm=new MakeTopLevelHtmlForPerm();
+    if (GlobalInformation.displayDependencies == true) {
+      Map<String,ArrayList<String>> dependencies=new TreeMap<String,ArrayList<String>>();
+      DefaultHandler depHandler=parseXMLDocumentDependencies(dependencies);
+      SAXParserFactory depFactoryMain=SAXParserFactory.newInstance();
+      depFactoryMain.setNamespaceAware(true);
       SAXParser saxParser=depFactoryMain.newSAXParser();
       InputStream in=new FileInputStream(settings.depFileName);
       if (settings.depFileName.endsWith(".gz")) {
@@ -27,31 +18,12 @@
       }
       in=new BufferedInputStream(in);
       saxParser.parse(in,depHandler);
-    }
- catch (    ParserConfigurationException e) {
-      throw new RuntimeException("Could not parse document. ",e);
-    }
-catch (    SAXException e) {
-      throw new RuntimeException("Could not create SAX parser. ",e);
-    }
-catch (    FileNotFoundException e) {
-      throw new RuntimeException("Could not open file. ",e);
-    }
-catch (    IOException e) {
-      throw new RuntimeException("Could not open file. ",e);
-    }
-    try {
       makeTopLevelHtmlForPerm.makeDependenciesHtml(dependencies);
     }
- catch (    IOException e) {
-      throw new RuntimeException("Cannot open file. ",e);
-    }
-  }
-  if (GlobalInformation.displaySplitPoints == true) {
-    DefaultHandler splitPointHandler=parseXMLDocumentSplitPoints();
-    SAXParserFactory splitPointsFactoryMain=SAXParserFactory.newInstance();
-    splitPointsFactoryMain.setNamespaceAware(true);
-    try {
+    if (GlobalInformation.displaySplitPoints == true) {
+      DefaultHandler splitPointHandler=parseXMLDocumentSplitPoints();
+      SAXParserFactory splitPointsFactoryMain=SAXParserFactory.newInstance();
+      splitPointsFactoryMain.setNamespaceAware(true);
       SAXParser saxParser=splitPointsFactoryMain.newSAXParser();
       InputStream in=new FileInputStream(settings.splitPointsFileName);
       if (settings.depFileName.endsWith(".gz")) {
@@ -60,23 +32,9 @@ catch (    IOException e) {
       in=new BufferedInputStream(in);
       saxParser.parse(in,splitPointHandler);
     }
- catch (    ParserConfigurationException e) {
-      throw new RuntimeException("Could not parse document. ",e);
-    }
-catch (    SAXException e) {
-      throw new RuntimeException("Could not create SAX parser. ",e);
-    }
-catch (    FileNotFoundException e) {
-      throw new RuntimeException("Could not open file. ",e);
-    }
-catch (    IOException e) {
-      throw new RuntimeException("Could not open file. ",e);
-    }
-  }
-  DefaultHandler handler=parseXMLDocument();
-  SAXParserFactory factoryMain=SAXParserFactory.newInstance();
-  factoryMain.setNamespaceAware(true);
-  try {
+    DefaultHandler handler=parseXMLDocument();
+    SAXParserFactory factoryMain=SAXParserFactory.newInstance();
+    factoryMain.setNamespaceAware(true);
     SAXParser saxParser=factoryMain.newSAXParser();
     InputStream in=new FileInputStream(settings.storiesFileName);
     if (settings.storiesFileName.endsWith(".gz")) {
@@ -84,29 +42,40 @@ catch (    IOException e) {
     }
     in=new BufferedInputStream(in);
     saxParser.parse(in,handler);
+    for (    SizeBreakdown breakdown : GlobalInformation.allSizeBreakdowns()) {
+      updateAllOtherCodeType(breakdown.nameToCodeColl);
+    }
+    GlobalInformation.computePackageSizes();
+    GlobalInformation.computePartialPackageSizes();
+    for (    SizeBreakdown breakdown : GlobalInformation.allSizeBreakdowns()) {
+      foldInRPCHeuristic(breakdown.nameToCodeColl);
+    }
+    for (    SizeBreakdown breakdown : GlobalInformation.allSizeBreakdowns()) {
+      makeHTMLFiles(makeTopLevelHtmlForPerm,breakdown);
+    }
+    System.out.println("Finished creating reports. To see the dashboard, open SoycDashboard-index.html in your browser.");
   }
  catch (  ParserConfigurationException e) {
-    throw new RuntimeException("Could not parse document. ",e);
+    System.err.println("Could not parse document. " + e.getMessage());
+    System.exit(1);
   }
 catch (  SAXException e) {
-    throw new RuntimeException("Could not create SAX parser. ",e);
+    System.err.println("Could not create SAX parser. " + e.getMessage());
+    System.exit(1);
   }
 catch (  FileNotFoundException e) {
-    throw new RuntimeException("Could not open file. ",e);
+    System.err.println("Cannot open file " + e.getMessage());
+    System.exit(1);
   }
 catch (  IOException e) {
-    throw new RuntimeException("Could not open file. ",e);
+    System.err.println("Error creating html file. " + e.getMessage());
+    System.exit(1);
   }
-  for (  SizeBreakdown breakdown : GlobalInformation.allSizeBreakdowns()) {
-    updateAllOtherCodeType(breakdown.nameToCodeColl);
+catch (  Settings.ArgumentListException e) {
+    System.err.println(e.getMessage());
+    System.err.println("Usage: java com.google.gwt.soyc.SoycDashboard options stories0.xml[.gz] [dependencies0.xml[.gz]] [splitpoints0.xml[.gz]]");
+    System.err.println("Options:");
+    System.err.println(Settings.settingsHelp());
+    System.exit(1);
   }
-  GlobalInformation.computePackageSizes();
-  GlobalInformation.computePartialPackageSizes();
-  for (  SizeBreakdown breakdown : GlobalInformation.allSizeBreakdowns()) {
-    foldInRPCHeuristic(breakdown.nameToCodeColl);
-  }
-  for (  SizeBreakdown breakdown : GlobalInformation.allSizeBreakdowns()) {
-    makeHTMLFiles(makeTopLevelHtmlForPerm,breakdown);
-  }
-  System.out.println("Finished creating reports. To see the dashboard, open SoycDashboard-index.html in your browser.");
 }
