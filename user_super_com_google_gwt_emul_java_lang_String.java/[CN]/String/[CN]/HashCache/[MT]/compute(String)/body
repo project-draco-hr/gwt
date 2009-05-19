@@ -1,11 +1,14 @@
 {
-  int n=str.length();
-  int inc=(n < 64) ? 1 : (n / 32);
   int hashCode=0;
-  for (int i=0; i < n; i+=inc) {
-    hashCode<<=1;
-    hashCode+=str.charAt(i);
+  int n=str.length();
+  int nBatch=n - 4;
+  int i=0;
+  while (i < nBatch) {
+    hashCode=(str.charAt(i + 3) + 31 * (str.charAt(i + 2) + 31 * (str.charAt(i + 1) + 31 * (str.charAt(i) + 31 * hashCode)))) | 0;
+    i+=4;
   }
-  hashCode|=0;
-  return hashCode;
+  while (i < n) {
+    hashCode=hashCode * 31 + str.charAt(i++);
+  }
+  return hashCode | 0;
 }
