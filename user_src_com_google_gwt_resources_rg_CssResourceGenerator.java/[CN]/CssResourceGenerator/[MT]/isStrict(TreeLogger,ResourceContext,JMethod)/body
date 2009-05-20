@@ -1,0 +1,17 @@
+{
+  boolean strict=method.getAnnotation(Strict.class) != null;
+  if (!strict) {
+    try {
+      PropertyOracle propertyOracle=context.getGeneratorContext().getPropertyOracle();
+      ConfigurationProperty prop=propertyOracle.getConfigurationProperty("CssResource.strictAccessors");
+      String propertyValue=prop.getValues().get(0);
+      if (Boolean.valueOf(propertyValue)) {
+        logger.log(TreeLogger.WARN,"CssResource.strictAccessors is true, but " + method.getName() + "() is missing the @Strict annotation.");
+        strict=true;
+      }
+    }
+ catch (    BadPropertyValueException e) {
+    }
+  }
+  return strict;
+}

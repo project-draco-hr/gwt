@@ -3,19 +3,27 @@
   for (  Map.Entry<String,Map<JMethod,String>> outerEntry : classReplacementsWithPrefix.entrySet()) {
     String prefix=outerEntry.getKey();
     for (    Map.Entry<JMethod,String> entry : outerEntry.getValue().entrySet()) {
-      String name=entry.getKey().getName();
-      ClassName className=entry.getKey().getAnnotation(ClassName.class);
+      JMethod method=entry.getKey();
+      String sourceClassName=method.getName();
+      String obfuscatedClassName=entry.getValue();
+      ClassName className=method.getAnnotation(ClassName.class);
       if (className != null) {
-        name=className.value();
+        sourceClassName=className.value();
       }
-      name=prefix + name;
-      Pattern p=Pattern.compile("(.*)\\.(" + Pattern.quote(name) + ")([ :>+#.].*|$)");
+      sourceClassName=prefix + sourceClassName;
+      Pattern p=Pattern.compile("(.*)\\.(" + Pattern.quote(sourceClassName) + ")([ :>+#.].*|$)");
       Matcher m=p.matcher(sel);
       if (m.find()) {
-        sel=m.group(1) + "." + entry.getValue()+ m.group(3);
-        missingClasses.remove(entry.getKey());
+        if (externalClasses.contains(sourceClassName)) {
+          actualReplacements.put(method,sourceClassName);
+        }
+ else {
+          sel=m.group(1) + "." + obfuscatedClassName+ m.group(3);
+          actualReplacements.put(method,obfuscatedClassName);
+        }
+        missingClasses.remove(method);
         if (strict) {
-          replacedClasses.add(entry.getValue());
+          replacedClasses.add(obfuscatedClassName);
         }
       }
     }
@@ -25,7 +33,7 @@
     Matcher m=classSelectorPattern.matcher(sel);
     while (m.find()) {
       String classSelector=m.group(1);
-      if (!replacedClasses.contains(classSelector)) {
+      if (!replacedClasses.contains(classSelector) && !externalClasses.contains(classSelector)) {
         unknownClasses.add(classSelector);
       }
     }
