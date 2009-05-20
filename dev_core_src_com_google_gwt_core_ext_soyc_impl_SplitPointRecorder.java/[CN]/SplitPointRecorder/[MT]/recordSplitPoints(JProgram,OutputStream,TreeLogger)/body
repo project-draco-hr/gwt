@@ -1,0 +1,46 @@
+{
+  logger=logger.branch(TreeLogger.INFO,"Creating Split Point Map file for SOYC");
+  try {
+    OutputStreamWriter writer=new OutputStreamWriter(new GZIPOutputStream(out),"UTF-8");
+    PrintWriter pw=new PrintWriter(writer);
+    HtmlTextOutput htmlOut=new HtmlTextOutput(pw,false);
+    String curLine="<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+    htmlOut.printRaw(curLine);
+    htmlOut.newline();
+    curLine="<soyc>";
+    htmlOut.printRaw(curLine);
+    htmlOut.newline();
+    htmlOut.indentIn();
+    htmlOut.indentIn();
+    Map<Integer,String> splitPointMap=jprogram.getSplitPointMap();
+    if (splitPointMap.size() > 0) {
+      curLine="<splitpoints>";
+      htmlOut.printRaw(curLine);
+      htmlOut.newline();
+      htmlOut.indentIn();
+      htmlOut.indentIn();
+      for (      Map.Entry<Integer,String> entry : splitPointMap.entrySet()) {
+        Integer splitPointCount=entry.getKey();
+        curLine="<splitpoint id=\"" + splitPointCount + "\" location=\""+ entry.getValue()+ "\"/>";
+        htmlOut.printRaw(curLine);
+        htmlOut.newline();
+      }
+      htmlOut.indentOut();
+      htmlOut.indentOut();
+      curLine="</splitpoints>";
+      htmlOut.printRaw(curLine);
+      htmlOut.newline();
+    }
+    htmlOut.indentOut();
+    htmlOut.indentOut();
+    curLine="</soyc>";
+    htmlOut.printRaw(curLine);
+    htmlOut.newline();
+    Utility.close(writer);
+    pw.close();
+    logger.log(TreeLogger.INFO,"Done");
+  }
+ catch (  Throwable e) {
+    logger.log(TreeLogger.ERROR,"Could not open dependency file.",e);
+  }
+}

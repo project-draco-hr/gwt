@@ -1,0 +1,21 @@
+{
+  logger=logger.branch(TreeLogger.INFO,"Creating Dependencies file for SOYC");
+  ControlFlowAnalyzer dependencyAnalyzer=new ControlFlowAnalyzer(jprogram);
+  dependencyAnalyzer.setDependencyRecorder(this);
+  try {
+    writer=new OutputStreamWriter(new GZIPOutputStream(out),"UTF-8");
+    pw=new PrintWriter(writer);
+    htmlOut=new HtmlTextOutput(pw,false);
+  }
+ catch (  Throwable e) {
+    logger.log(TreeLogger.ERROR,"Could not open dependency file.",e);
+  }
+  printPre();
+  for (  JMethod method : jprogram.getAllEntryMethods()) {
+    dependencyAnalyzer.traverseFrom(method);
+  }
+  printPost();
+  pw.close();
+  Utility.close(writer);
+  logger.log(TreeLogger.INFO,"Done");
+}
