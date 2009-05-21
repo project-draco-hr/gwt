@@ -1,0 +1,19 @@
+{
+  if (maxVarsPerStatement < 0) {
+    return;
+  }
+  if (x.getNumVars() > maxVarsPerStatement) {
+    List<JsVars> smallerVars=new ArrayList<JsVars>();
+    smallerVars.add(makeNewChildVars(x));
+    for (    JsVar var : x) {
+      if (last(smallerVars).getNumVars() >= maxVarsPerStatement) {
+        smallerVars.add(makeNewChildVars(x));
+      }
+      last(smallerVars).add(var);
+    }
+    for (    JsVars sv : smallerVars) {
+      context.insertBefore(sv);
+    }
+    context.removeMe();
+  }
+}
