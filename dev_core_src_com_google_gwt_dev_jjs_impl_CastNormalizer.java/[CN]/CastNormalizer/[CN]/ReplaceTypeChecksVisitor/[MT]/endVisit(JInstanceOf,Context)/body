@@ -8,12 +8,13 @@
   }
  else {
     JMethod method;
-    boolean isJsoCast=program.isJavaScriptObject(toType);
-    if (isJsoCast) {
-      method=program.getIndexedMethod("Cast.instanceOfJso");
-    }
- else     if (dualImpls.contains(toType)) {
+    boolean isJsoCast=false;
+    if (program.typeOracle.getSingleJsoImpls().containsKey(toType)) {
       method=program.getIndexedMethod("Cast.instanceOfOrJso");
+    }
+ else     if (program.isJavaScriptObject(toType)) {
+      isJsoCast=true;
+      method=program.getIndexedMethod("Cast.instanceOfJso");
     }
  else {
       method=program.getIndexedMethod("Cast.instanceOf");
