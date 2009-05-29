@@ -72,13 +72,8 @@
       JMethod method=program.getIndexedMethod("Class.desiredAssertionStatus");
       implementMethod(method,program.getLiteralBoolean(enableAsserts));
       if (disableClassMetadata) {
-        SourceInfo info=currentClass.getSourceInfo().makeChild(JavaASTGenerationVisitor.class,"Disabled class metadata");
-        JMethod nameMethod=program.getIndexedMethod("Class.getName");
-        JMethodCall hashCall=new JMethodCall(info,program.getExprThisRef(info,(JClassType)currentClass),program.getIndexedMethod("Object.hashCode"));
-        JBinaryOperation op=new JBinaryOperation(info,program.getTypeJavaLangString(),JBinaryOperator.ADD,program.getLiteralString(info,"Class$"),hashCall);
-        implementMethod(nameMethod,op);
-        JMethod superclassMethod=program.getIndexedMethod("Class.getSuperclass");
-        implementMethod(superclassMethod,program.getLiteralNull());
+        JMethod isMetadataEnabledMethod=program.getIndexedMethod("Class.isClassMetadataEnabled");
+        implementMethod(isMetadataEnabledMethod,program.getLiteralBoolean(false));
       }
     }
     if (currentClass instanceof JEnumType) {
