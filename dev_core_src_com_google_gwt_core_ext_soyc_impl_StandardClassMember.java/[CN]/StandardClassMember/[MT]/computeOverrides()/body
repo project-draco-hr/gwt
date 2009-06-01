@@ -1,0 +1,19 @@
+{
+  Set<JDeclaredType> seen=new HashSet<JDeclaredType>();
+  Set<JDeclaredType> toTraverse=new HashSet<JDeclaredType>();
+  toTraverse.add(type);
+  SortedSet<ClassMember> overrides=new TreeSet<ClassMember>(Member.SOURCE_NAME_COMPARATOR);
+  while (!toTraverse.isEmpty()) {
+    JDeclaredType currentType=toTraverse.iterator().next();
+    seen.add(currentType);
+    if (currentType != type) {
+      overrides.add(factory.get(currentType));
+    }
+    if (currentType.getSuperClass() != null) {
+      toTraverse.add(currentType.getSuperClass());
+    }
+    toTraverse.addAll(currentType.getImplements());
+    toTraverse.removeAll(seen);
+  }
+  overridesView=Collections.unmodifiableSortedSet(overrides);
+}
