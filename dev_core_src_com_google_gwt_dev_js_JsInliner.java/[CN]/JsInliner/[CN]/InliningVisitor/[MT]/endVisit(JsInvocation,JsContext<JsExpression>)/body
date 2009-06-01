@@ -55,12 +55,20 @@
   for (ListIterator<JsName> nameIterator=localVariableNames.listIterator(); nameIterator.hasNext(); ) {
     JsName name=nameIterator.next();
     String ident;
-    int count=0;
+    String base=f.getName() + "_" + name.getIdent();
     JsScope scope=functionStack.peek().getScope();
+    HashMap<String,Integer> startIdent=startIdentForScope.get(scope);
+    if (startIdent == null) {
+      startIdent=new HashMap<String,Integer>();
+      startIdentForScope.put(scope,startIdent);
+    }
+    Integer s=startIdent.get(base);
+    int suffix=(s == null) ? 0 : s.intValue();
     do {
-      ident=f.getName() + "_" + name.getIdent()+ "_"+ count++;
+      ident=base + "_" + suffix++;
     }
  while (scope.findExistingName(ident) != null);
+    startIdent.put(base,suffix);
     JsName newName=scope.declareName(ident,name.getShortIdent());
     v.setReplacementName(name,newName);
     nameIterator.set(newName);

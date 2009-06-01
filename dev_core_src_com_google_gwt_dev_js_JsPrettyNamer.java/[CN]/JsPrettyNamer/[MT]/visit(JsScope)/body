@@ -1,4 +1,9 @@
 {
+  HashMap<String,Integer> startIdent=startIdentForScope.get(scope);
+  if (startIdent == null) {
+    startIdent=new HashMap<String,Integer>();
+    startIdentForScope.put(scope,startIdent);
+  }
   Set<String> myChildIdents=childIdents;
   childIdents=new HashSet<String>();
   List<JsScope> children=scope.getChildren();
@@ -17,13 +22,14 @@
     }
     String newIdent=name.getShortIdent();
     if (!isLegal(scope,childIdents,newIdent)) {
-      String checkIdent=newIdent;
-      for (int i=0; true; ++i) {
-        checkIdent=newIdent + "_" + i;
-        if (isLegal(scope,childIdents,checkIdent)) {
-          break;
-        }
+      String checkIdent;
+      Integer s=startIdent.get(newIdent);
+      int suffix=(s == null) ? 0 : s.intValue();
+      do {
+        checkIdent=newIdent + "_" + suffix++;
       }
+ while (!isLegal(scope,childIdents,checkIdent));
+      startIdent.put(newIdent,suffix);
       name.setShortIdent(checkIdent);
     }
  else {
