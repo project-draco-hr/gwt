@@ -1,27 +1,25 @@
 {
-  String curLine;
-  for (int i=dependencyChain.size() - 1; i >= 0; i--) {
-    JMethod curMethod=dependencyChain.get(i);
-    String sFullMethodString=curMethod.getName();
-    if (curMethod.getEnclosingType() != null) {
-      sFullMethodString=curMethod.getEnclosingType().getName() + "::" + curMethod.getName();
-    }
-    if (i == dependencyChain.size() - 1) {
-      curLine="<method name=\"" + sFullMethodString + "\">";
-      htmlOut.printRaw(curLine);
-      htmlOut.newline();
-      htmlOut.indentIn();
-      htmlOut.indentIn();
-    }
- else {
-      curLine="<called by=\"" + sFullMethodString + "\"/>";
-      htmlOut.printRaw(curLine);
-      htmlOut.newline();
-    }
+  int size=dependencyChain.size();
+  if (size == 0) {
+    return;
   }
-  htmlOut.indentOut();
-  htmlOut.indentOut();
-  curLine="</method>";
-  htmlOut.printRaw(curLine);
-  htmlOut.newline();
+  JMethod curMethod=dependencyChain.get(size - 1);
+  builder.append("<method name=\"");
+  if (curMethod.getEnclosingType() != null) {
+    builder.append(curMethod.getEnclosingType().getName());
+    builder.append("::");
+  }
+  builder.append(curMethod.getName());
+  builder.append("\">\n");
+  for (int i=size - 2; i >= 0; i--) {
+    curMethod=dependencyChain.get(i);
+    builder.append("<called by=\"");
+    if (curMethod.getEnclosingType() != null) {
+      builder.append(curMethod.getEnclosingType().getName());
+      builder.append("::");
+    }
+    builder.append(curMethod.getName());
+    builder.append("\"/>\n");
+  }
+  builder.append("</method>\n");
 }

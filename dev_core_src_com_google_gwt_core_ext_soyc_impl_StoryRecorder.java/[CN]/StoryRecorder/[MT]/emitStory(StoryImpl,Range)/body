@@ -7,79 +7,50 @@
     storyNum=storyIds.size();
     storyIds.put(story,storyNum);
   }
-  String curLine="<story id=\"story" + Integer.toString(storyNum) + "\"";
+  builder.append("<story id=\"story");
+  builder.append(storyNum);
   if (story.getLiteralTypeName() != null) {
-    curLine=curLine + " literal=\"" + story.getLiteralTypeName()+ "\"";
+    builder.append("\" literal=\"");
+    builder.append(story.getLiteralTypeName());
   }
-  curLine=curLine + ">";
-  htmlOut.printRaw(curLine);
-  htmlOut.newline();
+  builder.append("\">\n");
   Set<Origin> origins=story.getSourceOrigin();
   if (origins.size() > 0) {
-    htmlOut.indentIn();
-    htmlOut.indentIn();
-    curLine="<origins>";
-    htmlOut.printRaw(curLine);
-    htmlOut.newline();
-    htmlOut.indentIn();
-    htmlOut.indentIn();
-  }
-  for (  Origin origin : origins) {
-    curLine="<origin lineNumber=\"" + Integer.toString(origin.getLineNumber()) + "\" location=\""+ origin.getLocation()+ "\"/>";
-    htmlOut.printRaw(curLine);
-    htmlOut.newline();
-  }
-  if (origins.size() > 0) {
-    htmlOut.indentOut();
-    htmlOut.indentOut();
-    curLine="</origins>";
-    htmlOut.printRaw(curLine);
-    htmlOut.newline();
-    htmlOut.indentOut();
-    htmlOut.indentOut();
+    builder.append("<origins>\n");
+    for (    Origin origin : origins) {
+      builder.append("<origin lineNumber=\"");
+      builder.append(origin.getLineNumber());
+      builder.append("\" location=\"");
+      builder.append(origin.getLocation());
+      builder.append("\"/>\n");
+      flushOutput();
+    }
+    builder.append("</origins>\n");
   }
   Set<Member> correlations=story.getMembers();
   if (correlations.size() > 0) {
-    htmlOut.indentIn();
-    htmlOut.indentIn();
-    curLine="<correlations>";
-    htmlOut.printRaw(curLine);
-    htmlOut.newline();
-    htmlOut.indentIn();
-    htmlOut.indentIn();
+    builder.append("<correlations>\n");
+    for (    Member correlation : correlations) {
+      builder.append("<by idref=\"");
+      builder.append(correlation.getSourceName());
+      builder.append("\"/>\n");
+      flushOutput();
+    }
+    builder.append("</correlations>\n");
   }
-  for (  Member correlation : correlations) {
-    curLine="<by idref=\"" + correlation.getSourceName() + "\"/>";
-    htmlOut.printRaw(curLine);
-    htmlOut.newline();
-  }
-  if (correlations.size() > 0) {
-    htmlOut.indentOut();
-    htmlOut.indentOut();
-    curLine="</correlations>";
-    htmlOut.printRaw(curLine);
-    htmlOut.newline();
-    htmlOut.indentOut();
-    htmlOut.indentOut();
-  }
-  htmlOut.indentIn();
-  htmlOut.indentIn();
-  curLine="<js fragment=\"" + curHighestFragment + "\"/>";
-  htmlOut.printRaw(curLine);
-  htmlOut.newline();
-  String jsCode=js[curHighestFragment].substring(range.getStart(),range.getEnd());
-  jsCode=escapeXml(jsCode);
-  if ((jsCode.length() == 0) || (jsCode.compareTo("\n") == 0)) {
-    curLine="<storyref idref=\"story" + Integer.toString(storyNum) + "\"/>";
+  builder.append("<js fragment=\"");
+  builder.append(curHighestFragment);
+  builder.append("\"/>\n<storyref idref=\"story");
+  builder.append(storyNum);
+  int start=range.getStart();
+  int end=range.getEnd();
+  String jsCode=js[curHighestFragment];
+  if ((start == end) || ((end == start + 1) && jsCode.charAt(start) == '\n')) {
+    builder.append("\"/>\n</story>\n");
   }
  else {
-    curLine="<storyref idref=\"story" + Integer.toString(storyNum) + "\">"+ jsCode+ "</storyref>";
+    builder.append("\">");
+    Util.escapeXml(jsCode,start,end,false,builder);
+    builder.append("</storyref>\n</story>\n");
   }
-  htmlOut.printRaw(curLine);
-  htmlOut.newline();
-  htmlOut.indentOut();
-  htmlOut.indentOut();
-  curLine="</story>";
-  htmlOut.printRaw(curLine);
-  htmlOut.newline();
 }

@@ -2,48 +2,27 @@
   logger=logger.branch(TreeLogger.INFO,"Creating Stories file for SOYC");
   this.js=js;
   try {
-    writer=new OutputStreamWriter(new GZIPOutputStream(out),"UTF-8");
-    pw=new PrintWriter(writer);
-    htmlOut=new HtmlTextOutput(pw,false);
-    String curLine="<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-    htmlOut.printRaw(curLine);
-    htmlOut.newline();
-    curLine="<soyc>";
-    htmlOut.printRaw(curLine);
-    htmlOut.newline();
-    htmlOut.indentIn();
-    htmlOut.indentIn();
-    curLine="<stories>";
-    htmlOut.printRaw(curLine);
-    htmlOut.newline();
-    htmlOut.indentIn();
-    htmlOut.indentIn();
+    builder=new StringBuilder(MAX_STRING_BUILDER_SIZE * 2);
+    gzipStream=new GZIPOutputStream(out);
     MemberFactory memberFactory=new MemberFactory();
     TreeSet<ClassMember> classesMutable=new TreeSet<ClassMember>(Member.SOURCE_NAME_COMPARATOR);
     TreeSet<FunctionMember> functionsMutable=new TreeSet<FunctionMember>(Member.SOURCE_NAME_COMPARATOR);
     Set<SourceInfo> sourceInfoSeen=new HashSet<SourceInfo>();
+    builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<soyc>\n<stories>\n");
     int fragment=0;
     for (    Map<Range,SourceInfo> sourceInfoMap : sourceInfoMaps) {
       lastEnd=0;
       analyzeFragment(memberFactory,classesMutable,functionsMutable,sourceInfoMap,sourceInfoSeen,fragment++);
+      flushOutput();
     }
+    builder.append("</stories>\n</soyc>\n");
     membersByCorrelation=null;
     storyCache=null;
-    htmlOut.indentOut();
-    htmlOut.indentOut();
-    curLine="</stories>";
-    htmlOut.printRaw(curLine);
-    htmlOut.newline();
-    htmlOut.indentOut();
-    htmlOut.indentOut();
-    curLine="</soyc>";
-    htmlOut.printRaw(curLine);
-    htmlOut.newline();
-    Utility.close(writer);
-    pw.close();
+    Util.writeUtf8(builder,gzipStream);
+    Utility.close(gzipStream);
     logger.log(TreeLogger.INFO,"Done");
   }
  catch (  Throwable e) {
-    logger.log(TreeLogger.ERROR,"Could not open dependency file.",e);
+    logger.log(TreeLogger.ERROR,"Could not write dependency file.",e);
   }
 }

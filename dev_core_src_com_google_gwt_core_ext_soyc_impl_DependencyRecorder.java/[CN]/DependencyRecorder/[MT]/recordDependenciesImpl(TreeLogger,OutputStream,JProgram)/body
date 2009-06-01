@@ -3,19 +3,23 @@
   ControlFlowAnalyzer dependencyAnalyzer=new ControlFlowAnalyzer(jprogram);
   dependencyAnalyzer.setDependencyRecorder(this);
   try {
-    writer=new OutputStreamWriter(new GZIPOutputStream(out),"UTF-8");
-    pw=new PrintWriter(writer);
-    htmlOut=new HtmlTextOutput(pw,false);
+    OutputStreamWriter writer=new OutputStreamWriter(new GZIPOutputStream(out),"UTF-8");
+    StringBuilder localBuilder=new StringBuilder();
+    this.builder=localBuilder;
+    printPre();
+    for (    JMethod method : jprogram.getAllEntryMethods()) {
+      dependencyAnalyzer.traverseFrom(method);
+      if (localBuilder.length() > 8 * 1024) {
+        writer.write(localBuilder.toString());
+        localBuilder.setLength(0);
+      }
+    }
+    printPost();
+    writer.write(localBuilder.toString());
+    Utility.close(writer);
+    logger.log(TreeLogger.INFO,"Done");
   }
  catch (  Throwable e) {
-    logger.log(TreeLogger.ERROR,"Could not open dependency file.",e);
+    logger.log(TreeLogger.ERROR,"Could not write dependency file.",e);
   }
-  printPre();
-  for (  JMethod method : jprogram.getAllEntryMethods()) {
-    dependencyAnalyzer.traverseFrom(method);
-  }
-  printPost();
-  pw.close();
-  Utility.close(writer);
-  logger.log(TreeLogger.INFO,"Done");
 }

@@ -1,0 +1,49 @@
+{
+  int buflen=1024;
+  char[] inBuf=new char[buflen];
+  byte[] outBuf=new byte[4 * buflen];
+  int length=builder.length();
+  int start=0;
+  while (start < length) {
+    int end=Math.min(start + buflen,length);
+    builder.getChars(start,end,inBuf,0);
+    int index=0;
+    int len=end - start;
+    for (int i=0; i < len; i++) {
+      int c=inBuf[i] & 0xffff;
+      if (c < 0x80) {
+        outBuf[index++]=(byte)c;
+      }
+ else       if (c < 0x800) {
+        int y=c >> 8;
+        int x=c & 0xff;
+        outBuf[index++]=(byte)(0xc0 | (y << 2) | (x >> 6));
+        outBuf[index++]=(byte)(0x80 | (x & 0x3f));
+      }
+ else       if (c < 0xD800 || c > 0xDFFF) {
+        int y=(c >> 8) & 0xff;
+        int x=c & 0xff;
+        outBuf[index++]=(byte)(0xe0 | (y >> 4));
+        outBuf[index++]=(byte)(0x80 | ((y << 2) & 0x3c) | (x >> 6));
+        outBuf[index++]=(byte)(0x80 | (x & 0x3f));
+      }
+ else {
+        if (i + 1 < len) {
+          int hi=c & 0x3ff;
+          int lo=inBuf[i + 1] & 0x3ff;
+          int full=0x10000 + ((hi << 10) | lo);
+          int z=(full >> 16) & 0xff;
+          int y=(full >> 8) & 0xff;
+          int x=full & 0xff;
+          outBuf[index++]=(byte)(0xf0 | (z >> 5));
+          outBuf[index++]=(byte)(0x80 | ((z << 4) & 0x30) | (y >> 4));
+          outBuf[index++]=(byte)(0x80 | ((y << 2) & 0x3c) | (x >> 6));
+          outBuf[index++]=(byte)(0x80 | (x & 0x3f));
+          i++;
+        }
+      }
+    }
+    out.write(outBuf,0,index);
+    start=end;
+  }
+}
