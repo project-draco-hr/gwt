@@ -74,22 +74,24 @@ JsIEBlockSizeVisitor.exec(jsProgram);
 JsBreakUpLargeVarStatements.exec(jsProgram,propertyOracles);
 String[] js=new String[jsProgram.getFragmentCount()];
 List<Map<Range,SourceInfo>> sourceInfoMaps=options.isSoycEnabled() ? new ArrayList<Map<Range,SourceInfo>>(jsProgram.getFragmentCount()) : null;
+StatementRanges[] ranges=new StatementRanges[js.length];
 for (int i=0; i < js.length; i++) {
+DefaultTextOutput out=new DefaultTextOutput(options.getOutput().shouldMinimize());
+JsSourceGenerationVisitor v;
 if (sourceInfoMaps != null) {
-CountingTextOutput out=new CountingTextOutput(options.getOutput().shouldMinimize());
-JsReportGenerationVisitor v=new JsReportGenerationVisitor(out);
-v.accept(jsProgram.getFragmentBlock(i));
-js[i]=out.toString();
-sourceInfoMaps.add(v.getSourceInfoMap());
+v=new JsReportGenerationVisitor(out);
 }
  else {
-DefaultTextOutput out=new DefaultTextOutput(options.getOutput().shouldMinimize());
-JsSourceGenerationVisitor v=new JsSourceGenerationVisitor(out);
+v=new JsSourceGenerationVisitor(out);
+}
 v.accept(jsProgram.getFragmentBlock(i));
 js[i]=out.toString();
+if (sourceInfoMaps != null) {
+sourceInfoMaps.add(((JsReportGenerationVisitor)v).getSourceInfoMap());
 }
+ranges[i]=v.getStatementRanges();
 }
-PermutationResult toReturn=new PermutationResultImpl(js,makeSymbolMap(symbolTable));
+PermutationResult toReturn=new PermutationResultImpl(js,makeSymbolMap(symbolTable),ranges);
 if (sourceInfoMaps != null) {
 long soycStart=System.currentTimeMillis();
 System.out.println("Computing SOYC output");

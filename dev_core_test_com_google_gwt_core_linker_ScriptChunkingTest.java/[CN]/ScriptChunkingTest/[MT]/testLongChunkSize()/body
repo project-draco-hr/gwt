@@ -1,0 +1,17 @@
+{
+  ScriptWithRangesBuilder builder=new ScriptWithRangesBuilder();
+  builder.addNonStatement("{");
+  builder.addNonStatement("{");
+  String stmt1="x=1;";
+  builder.addStatement(stmt1);
+  String stmt2="function x(){x = 2}\n";
+  builder.addStatement(stmt2);
+  String stmt3="x=3";
+  builder.addStatement(stmt3);
+  builder.addNonStatement("}\n{");
+  String stmt4="x=5";
+  builder.addStatement(stmt4);
+  builder.addNonStatement("}");
+  String split=IFrameLinker.splitPrimaryJavaScript(builder.getRanges(),builder.getJavaScript(),10000);
+  assertEquals(stmt1 + stmt2 + stmt3+ ';'+ stmt4,split);
+}
