@@ -1,0 +1,43 @@
+{
+  int[] version={0,0,0};
+  if (versionString == null) {
+    return version;
+  }
+  int len=versionString.length();
+  int index=0;
+  for (; index < len; ++index) {
+    if (Character.isDigit(versionString.charAt(index))) {
+      break;
+    }
+  }
+  int part=0;
+  int v=0;
+  for (; index < len; ++index) {
+    char ch=versionString.charAt(index);
+    if (ch == '.') {
+      if (part >= version.length) {
+        throw new NumberFormatException("Too many period chracters");
+      }
+      version[part++]=v;
+      v=0;
+    }
+ else     if (Character.isDigit(ch)) {
+      int digit=Character.digit(ch,10);
+      if (digit < 0) {
+        throw new NumberFormatException("Negative number encountered");
+      }
+      v=v * 10 + digit;
+    }
+ else {
+      break;
+    }
+  }
+  if (part >= version.length) {
+    throw new NumberFormatException("Too many digits in string. Expected 3");
+  }
+  version[part++]=v;
+  if (part != version.length) {
+    throw new NumberFormatException("Expected 3 elements in array");
+  }
+  return version;
+}
