@@ -24,26 +24,33 @@
   outFile.println("<hr>");
   outFile.println("Available code subsets to analyze");
   int numSplitPoints=GlobalInformation.splitPointToLocation.size();
-  int outerHeight=25 * (numSplitPoints + 2);
+  int numRows=2;
+  if (numSplitPoints > 0) {
+    numRows+=numSplitPoints + 1;
+  }
+  int outerHeight=25 * numRows;
   outFile.println("<div style=\"width:100%; margin:20px 0 20px 0; background-color:white;position:relative;height:" + outerHeight + "\">");
   float maxSize=GlobalInformation.totalCodeBreakdown.sizeAllCode;
   int yOffset=0;
-  for (int i=FRAGMENT_NUMBER_TOTAL_PROGRAM; i <= numSplitPoints; i++) {
-    String drillDownFileName, splitPointDescription;
+  for (int i=FRAGMENT_NUMBER_TOTAL_PROGRAM; i <= numSplitPoints + 1; i++) {
+    if (i == 1 && numSplitPoints == 0) {
+      continue;
+    }
+    SizeBreakdown breakdown;
     if (i == FRAGMENT_NUMBER_TOTAL_PROGRAM) {
-      drillDownFileName=shellFileName(GlobalInformation.totalCodeBreakdown);
-      splitPointDescription="Total program";
+      breakdown=GlobalInformation.totalCodeBreakdown;
+    }
+ else     if (i == numSplitPoints + 1) {
+      breakdown=GlobalInformation.leftoversBreakdown;
+    }
+ else     if (i == FRAGMENT_NUMBER_INITIAL_DOWNLOAD) {
+      breakdown=GlobalInformation.initialCodeBreakdown;
     }
  else {
-      String splitPointName=i == FRAGMENT_NUMBER_INITIAL_DOWNLOAD ? "initialDownload" : GlobalInformation.splitPointToLocation.get(i);
-      if (i == FRAGMENT_NUMBER_INITIAL_DOWNLOAD) {
-        drillDownFileName=shellFileName(GlobalInformation.initialCodeBreakdown);
-      }
- else {
-        drillDownFileName="splitPoint-" + filename(splitPointName) + "-Classes.html";
-      }
-      splitPointDescription=i == FRAGMENT_NUMBER_INITIAL_DOWNLOAD ? "Initial download" : ("Code exclusive to " + splitPointName);
+      breakdown=GlobalInformation.exclusiveCodeBreakdown(i);
     }
+    String drillDownFileName=shellFileName(breakdown);
+    String splitPointDescription=breakdown.getDescription();
     float size;
     if (i >= 0) {
       size=GlobalInformation.fragmentToPartialSize.get(i);
