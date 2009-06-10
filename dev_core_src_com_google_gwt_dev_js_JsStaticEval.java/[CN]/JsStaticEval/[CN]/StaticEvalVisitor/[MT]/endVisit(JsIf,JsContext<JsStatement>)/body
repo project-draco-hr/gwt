@@ -32,7 +32,22 @@
     }
     ctx.replaceMe(accept(block));
   }
- else   if (isEmpty(thenStmt) && isEmpty(elseStmt)) {
-    ctx.replaceMe(expr.makeStmt());
+ else {
+    boolean thenIsEmpty=isEmpty(thenStmt);
+    boolean elseIsEmpty=isEmpty(elseStmt);
+    if (thenIsEmpty && elseIsEmpty) {
+      ctx.replaceMe(expr.makeStmt());
+    }
+ else     if (thenIsEmpty && !elseIsEmpty) {
+      sourceInfo=x.getSourceInfo().makeChild(StaticEvalVisitor.class,"Simplified if with empty then statement");
+      JsUnaryOperation negatedOperation=new JsPrefixOperation(sourceInfo,JsUnaryOperator.NOT,x.getIfExpr());
+      JsIf newIf=new JsIf(sourceInfo,negatedOperation,elseStmt,null);
+      ctx.replaceMe(accept(newIf));
+    }
+ else     if (elseIsEmpty && elseStmt != null) {
+      sourceInfo=x.getSourceInfo().makeChild(StaticEvalVisitor.class,"Pruned empty else statement");
+      JsIf newIf=new JsIf(sourceInfo,x.getIfExpr(),thenStmt,null);
+      ctx.replaceMe(accept(newIf));
+    }
   }
 }
