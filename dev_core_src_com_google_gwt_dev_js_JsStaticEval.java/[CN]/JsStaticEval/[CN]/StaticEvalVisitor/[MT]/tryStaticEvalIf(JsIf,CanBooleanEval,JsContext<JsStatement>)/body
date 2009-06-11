@@ -1,0 +1,33 @@
+{
+  JsStatement thenStmt=x.getThenStmt();
+  JsStatement elseStmt=x.getElseStmt();
+  if (cond.isBooleanTrue()) {
+    JsBlock block=new JsBlock(makeSourceInfo(x,"Simplified always-true condition"));
+    block.getStatements().add(x.getIfExpr().makeStmt());
+    if (thenStmt != null) {
+      block.getStatements().add(thenStmt);
+    }
+    JsStatement decls=ensureDeclarations(elseStmt);
+    if (decls != null) {
+      block.getStatements().add(decls);
+    }
+    ctx.replaceMe(accept(block));
+    return true;
+  }
+ else   if (cond.isBooleanFalse()) {
+    JsBlock block=new JsBlock(makeSourceInfo(x,"Simplified always-false condition"));
+    block.getStatements().add(x.getIfExpr().makeStmt());
+    if (elseStmt != null) {
+      block.getStatements().add(elseStmt);
+    }
+    JsStatement decls=ensureDeclarations(thenStmt);
+    if (decls != null) {
+      block.getStatements().add(decls);
+    }
+    ctx.replaceMe(accept(block));
+    return true;
+  }
+ else {
+    return false;
+  }
+}
