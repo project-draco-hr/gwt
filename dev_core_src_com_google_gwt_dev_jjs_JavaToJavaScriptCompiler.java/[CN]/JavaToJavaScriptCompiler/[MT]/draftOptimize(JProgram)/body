@@ -1,6 +1,17 @@
 {
   jprogram.beginOptimizations();
-  optimizeLoop(jprogram,false);
+  PerfLogger.start("draft optimize");
+  PerfLogger.start("Finalizer");
+  Finalizer.exec(jprogram);
+  PerfLogger.end();
+  PerfLogger.start("MakeCallsStatic");
+  MakeCallsStatic.exec(jprogram);
+  PerfLogger.end();
+  PerfLogger.start("recomputeAfterOptimizations");
   jprogram.typeOracle.recomputeAfterOptimizations();
+  PerfLogger.end();
+  PerfLogger.start("DeadCodeElimination");
   DeadCodeElimination.exec(jprogram);
+  PerfLogger.end();
+  PerfLogger.end();
 }
