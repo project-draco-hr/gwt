@@ -72,6 +72,18 @@ catch (  IllegalArgumentException e) {
     boolean found=false;
     if (genLocales.length != 0) {
       for (      String genLocale : genLocales) {
+        if (GwtLocale.DEFAULT_LOCALE.equals(genLocale)) {
+          try {
+            SelectionProperty localeProp=context.getPropertyOracle().getSelectionProperty(logger,"locale");
+            String defaultLocale=localeProp.getFallbackValue();
+            if (defaultLocale.length() > 0) {
+              genLocale=defaultLocale;
+            }
+          }
+ catch (          BadPropertyValueException e) {
+            throw error(logger,"Could not get 'locale' property");
+          }
+        }
         if (genLocale.equals(locale.toString())) {
           found=true;
           break;
