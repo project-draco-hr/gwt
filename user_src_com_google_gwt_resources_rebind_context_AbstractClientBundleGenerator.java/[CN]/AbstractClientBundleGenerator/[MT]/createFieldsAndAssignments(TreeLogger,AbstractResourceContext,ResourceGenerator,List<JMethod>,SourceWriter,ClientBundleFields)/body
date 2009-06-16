@@ -1,0 +1,36 @@
+{
+  boolean fail=false;
+  resourceContext.setCurrentResourceGenerator(rg);
+  try {
+    rg.createFields(logger.branch(TreeLogger.DEBUG,"Creating fields"),resourceContext,fields);
+  }
+ catch (  UnableToCompleteException e) {
+    return false;
+  }
+  for (  JMethod m : generatorMethods) {
+    String rhs;
+    try {
+      rhs=rg.createAssignment(logger.branch(TreeLogger.DEBUG,"Creating assignment for " + m.getName() + "()"),resourceContext,m);
+    }
+ catch (    UnableToCompleteException e) {
+      fail=true;
+      continue;
+    }
+    String ident=fields.define(m.getReturnType().isClassOrInterface(),m.getName(),null,true,false);
+    sw.print(m.getReadableDeclaration(false,true,true,true,true));
+    sw.println(" {");
+    sw.indent();
+    sw.println("if (" + ident + " == null) {");
+    sw.indent();
+    sw.println(ident + " = " + rhs+ ";");
+    sw.outdent();
+    sw.println("}");
+    sw.println("return " + ident + ";");
+    sw.outdent();
+    sw.println("}");
+  }
+  if (fail) {
+    return false;
+  }
+  return true;
+}
