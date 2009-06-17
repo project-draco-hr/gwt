@@ -1,0 +1,40 @@
+{
+  if (seenClasses.contains(clazz)) {
+    return;
+  }
+  seenClasses.add(clazz);
+  classes.add(clazz);
+  AnnotationsResource resource;
+  try {
+    resource=new AnnotationsResource(logger,clazz,defaultLocale,isConstants);
+    if (resource.notEmpty()) {
+      resource.setPath(clazz.getQualifiedSourceName());
+      ClassLocale key=new ClassLocale(clazz,defaultLocale);
+      annotations.put(key,resource);
+      String defLocaleValue=null;
+      String className=clazz.getSimpleSourceName();
+      int underscore=className.indexOf('_');
+      if (underscore >= 0) {
+        defLocaleValue=className.substring(underscore + 1);
+      }
+      DefaultLocale defLocaleAnnot=getClassAnnotation(clazz,DefaultLocale.class);
+      if (defLocaleAnnot != null) {
+        defLocaleValue=defLocaleAnnot.value();
+      }
+      GwtLocale defLocale=LocaleUtils.getLocaleFactory().fromString(defLocaleValue);
+      if (!defLocale.isDefault()) {
+        key=new ClassLocale(clazz,defLocale);
+        annotations.put(key,resource);
+      }
+    }
+  }
+ catch (  AnnotationsError e) {
+    logger.log(TreeLogger.ERROR,e.getMessage(),e);
+  }
+  if (clazz.getSuperclass() != null) {
+    walkInheritanceTree(logger,clazz.getSuperclass(),factory,defaultLocale,classes,annotations,seenClasses,isConstants);
+  }
+  for (  JClassType intf : clazz.getImplementedInterfaces()) {
+    walkInheritanceTree(logger,intf,factory,defaultLocale,classes,annotations,seenClasses,isConstants);
+  }
+}

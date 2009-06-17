@@ -1,0 +1,24 @@
+{
+  String targetPath=clazz.getPackage().getName() + '.' + getResourceName(clazz);
+  String localizedPath=targetPath;
+  if (!locale.isDefault()) {
+    localizedPath=targetPath + LOCALE_SEPARATOR + locale.getAsString();
+  }
+  ClassLoader loader=ResourceFactory.class.getClassLoader();
+  String partialPath=localizedPath.replace('.','/');
+  for (int i=0; i < loaders.size(); i++) {
+    ResourceFactory element=loaders.get(i);
+    String ext="." + element.getExt();
+    String path=partialPath + ext;
+    InputStream m=loader.getResourceAsStream(path);
+    if (m == null && partialPath.contains("$")) {
+      path=partialPath.replace('$','_') + ext;
+      m=loader.getResourceAsStream(path);
+    }
+    if (m != null) {
+      AbstractResource found=element.load(m,locale);
+      found.setPath(path);
+      resources.add(found);
+    }
+  }
+}
