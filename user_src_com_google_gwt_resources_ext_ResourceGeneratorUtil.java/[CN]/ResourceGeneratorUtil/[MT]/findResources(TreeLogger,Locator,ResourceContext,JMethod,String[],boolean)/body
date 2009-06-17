@@ -1,0 +1,57 @@
+{
+  logger=logger.branch(TreeLogger.DEBUG,"Finding resources");
+  String locale;
+  try {
+    PropertyOracle oracle=context.getGeneratorContext().getPropertyOracle();
+    SelectionProperty prop=oracle.getSelectionProperty(logger,"locale");
+    locale=prop.getCurrentValue();
+  }
+ catch (  BadPropertyValueException e) {
+    locale=null;
+  }
+  checkForDeprecatedAnnotations(logger,method);
+  boolean error=false;
+  Source resourceAnnotation=method.getAnnotation(Source.class);
+  URL[] toReturn;
+  if (resourceAnnotation == null) {
+    if (defaultSuffixes != null) {
+      for (      String extension : defaultSuffixes) {
+        logger.log(TreeLogger.SPAM,"Trying default extension " + extension);
+        URL resourceUrl=tryFindResource(locator,getPathRelativeToPackage(method.getEnclosingType().getPackage(),method.getName() + extension),locale);
+        if (resourceUrl != null) {
+          return new URL[]{resourceUrl};
+        }
+      }
+    }
+    if (reportErrors) {
+      logger.log(TreeLogger.ERROR,"No " + Source.class.getName() + " annotation and no resources found with default extensions");
+    }
+    toReturn=null;
+    error=true;
+  }
+ else {
+    String[] resources=resourceAnnotation.value();
+    toReturn=new URL[resources.length];
+    int tagIndex=0;
+    for (    String resource : resources) {
+      URL resourceURL=tryFindResource(locator,getPathRelativeToPackage(method.getEnclosingType().getPackage(),resource),locale);
+      if (resourceURL == null) {
+        resourceURL=tryFindResource(locator,resource,locale);
+      }
+      if (resourceURL == null) {
+        error=true;
+        if (reportErrors) {
+          logger.log(TreeLogger.ERROR,"Resource " + resource + " not found. Is the name specified as Class.getResource()"+ " would expect?");
+        }
+ else {
+          logger.log(TreeLogger.DEBUG,"Stopping because " + resource + " not found");
+        }
+      }
+      toReturn[tagIndex++]=resourceURL;
+    }
+  }
+  if (error && reportErrors) {
+    throw new UnableToCompleteException();
+  }
+  return toReturn;
+}

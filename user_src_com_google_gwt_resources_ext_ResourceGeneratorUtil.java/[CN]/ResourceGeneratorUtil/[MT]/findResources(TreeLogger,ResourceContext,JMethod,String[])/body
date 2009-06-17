@@ -1,8 +1,9 @@
 {
-  try {
-    return findResources(logger,new ResourceOracleLocator(context.getGeneratorContext().getResourcesOracle()),context,method,defaultSuffixes);
+  Locator locator=new ResourceOracleLocator(context.getGeneratorContext().getResourcesOracle());
+  URL[] toReturn=findResources(logger,locator,context,method,defaultSuffixes,false);
+  if (toReturn == null) {
+    locator=new ClassLoaderLocator(Thread.currentThread().getContextClassLoader());
+    toReturn=findResources(logger,locator,context,method,defaultSuffixes,true);
   }
- catch (  UnableToCompleteException e) {
-    return findResources(logger,Thread.currentThread().getContextClassLoader(),context,method,defaultSuffixes);
-  }
+  return toReturn;
 }
