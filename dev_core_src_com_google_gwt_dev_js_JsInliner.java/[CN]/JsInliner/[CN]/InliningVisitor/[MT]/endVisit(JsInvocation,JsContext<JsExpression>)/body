@@ -2,11 +2,16 @@
   if (functionStack.isEmpty()) {
     return;
   }
+  JsFunction callerFunction=functionStack.peek();
   JsFunction f=isFunction(x.getQualifier());
   if (f == null) {
     return;
   }
   if (blacklist.contains(f)) {
+    return;
+  }
+  if (f == callerFunction) {
+    blacklist.add(f);
     return;
   }
   List<JsStatement> statements;
@@ -48,7 +53,7 @@
     outerOp.setArg2(op);
     op=outerOp;
   }
-  if (!isInlinable(program,functionStack.peek(),x,f,op)) {
+  if (!isInlinable(program,callerFunction,f,x.getArguments(),op)) {
     return;
   }
   NameRefReplacerVisitor v=new NameRefReplacerVisitor(x,f);
@@ -56,7 +61,7 @@
     JsName name=nameIterator.next();
     String ident;
     String base=f.getName() + "_" + name.getIdent();
-    JsScope scope=functionStack.peek().getScope();
+    JsScope scope=callerFunction.getScope();
     HashMap<String,Integer> startIdent=startIdentForScope.get(scope);
     if (startIdent == null) {
       startIdent=new HashMap<String,Integer>();
@@ -81,7 +86,7 @@
   if (ratio > MAX_COMPLEXITY_INCREASE && isInvokedMoreThanOnce(f)) {
     return;
   }
-  if (functionStack.peek() == programFunction && localVariableNames.size() > 0) {
+  if (callerFunction == programFunction && localVariableNames.size() > 0) {
     return;
   }
   newLocalVariableStack.peek().addAll(localVariableNames);
