@@ -2,12 +2,20 @@
   if (className == null) {
     throw new ClassNotFoundException("null class name",new NullPointerException());
   }
+  if (scriptOnlyClasses.contains(className)) {
+    throw new ClassNotFoundException();
+  }
   if (BRIDGE_CLASS_NAMES.containsKey(className)) {
     return BRIDGE_CLASS_NAMES.get(className);
   }
   byte[] classBytes=findClassBytes(className);
   if (classBytes == null) {
     throw new ClassNotFoundException(className);
+  }
+  if (HasAnnotation.hasAnnotation(classBytes,GwtScriptOnly.class)) {
+    scriptOnlyClasses.add(className);
+    maybeInitializeScriptOnlyClassLoader();
+    return Class.forName(className,true,scriptOnlyClassLoader);
   }
   boolean localInjection;
   if (!isInjectingClass) {

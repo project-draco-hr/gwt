@@ -1,0 +1,20 @@
+{
+  final ScriptOnlyClass b=new ScriptOnlyClass();
+  if (GWT.isScript()) {
+    assertFalse(b.isHostedMode());
+    return;
+  }
+  assertTrue(b.isHostedMode());
+  assertSame(Window.class,b.getWindowClass());
+  assertNotNull(b.getClassLoaderName());
+  assertTrue(b.callCodeNotInSourcePath());
+  b.callCallback(new AsyncCallback<ScriptOnlyClass>(){
+    public void onFailure(    Throwable caught){
+      fail(caught.getMessage());
+    }
+    public void onSuccess(    ScriptOnlyClass result){
+      assertSame(b,result);
+    }
+  }
+);
+}
