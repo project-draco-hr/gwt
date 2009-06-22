@@ -1,0 +1,81 @@
+{
+  List<JsStatement> statements;
+  if (invokedFunction.getBody() != null) {
+    statements=new ArrayList<JsStatement>(invokedFunction.getBody().getStatements());
+  }
+ else {
+    statements=Collections.emptyList();
+  }
+  List<JsExpression> hoisted=new ArrayList<JsExpression>(statements.size());
+  List<JsName> localVariableNames=new ArrayList<JsName>();
+  boolean sawReturnStatement=false;
+  for (  JsStatement statement : statements) {
+    if (sawReturnStatement) {
+      return x;
+    }
+    JsExpression h=hoistedExpression(program,statement,localVariableNames);
+    if (h == null) {
+      return x;
+    }
+    if (isReturnStatement(statement)) {
+      sawReturnStatement=true;
+      hoisted.add(h);
+    }
+ else     if (hasSideEffects(Collections.singletonList(h))) {
+      hoisted.add(h);
+    }
+  }
+  if (!sawReturnStatement) {
+    hoisted.add(program.getUndefinedLiteral());
+  }
+  assert(hoisted.size() > 0);
+  SourceInfo sourceInfo=x.getSourceInfo().makeChild(InliningVisitor.class,"Inlined invocation");
+  ListIterator<JsExpression> i=hoisted.listIterator(hoisted.size());
+  JsExpression op=i.previous();
+  while (i.hasPrevious()) {
+    JsBinaryOperation outerOp=new JsBinaryOperation(sourceInfo,JsBinaryOperator.COMMA);
+    outerOp.setArg1(i.previous());
+    outerOp.setArg2(op);
+    op=outerOp;
+  }
+  if (!isInlinable(program,callerFunction,invokedFunction,x.getArguments(),op)) {
+    return x;
+  }
+  NameRefReplacerVisitor v=new NameRefReplacerVisitor(x,invokedFunction);
+  for (ListIterator<JsName> nameIterator=localVariableNames.listIterator(); nameIterator.hasNext(); ) {
+    JsName name=nameIterator.next();
+    String ident;
+    String base=invokedFunction.getName() + "_" + name.getIdent();
+    JsScope scope=callerFunction.getScope();
+    HashMap<String,Integer> startIdent=startIdentForScope.get(scope);
+    if (startIdent == null) {
+      startIdent=new HashMap<String,Integer>();
+      startIdentForScope.put(scope,startIdent);
+    }
+    Integer s=startIdent.get(base);
+    int suffix=(s == null) ? 0 : s.intValue();
+    do {
+      ident=base + "_" + suffix++;
+    }
+ while (scope.findExistingName(ident) != null);
+    startIdent.put(base,suffix);
+    JsName newName=scope.declareName(ident,name.getShortIdent());
+    v.setReplacementName(name,newName);
+    nameIterator.set(newName);
+  }
+  op=v.accept(op);
+  op=(new CommaNormalizer(localVariableNames)).accept(op);
+  int originalComplexity=complexity(x);
+  int inlinedComplexity=complexity(op);
+  double ratio=((double)inlinedComplexity) / originalComplexity;
+  if (ratio > MAX_COMPLEXITY_INCREASE && isInvokedMoreThanOnce(invokedFunction)) {
+    return x;
+  }
+  if (callerFunction == programFunction && localVariableNames.size() > 0) {
+    return x;
+  }
+  newLocalVariableStack.peek().addAll(localVariableNames);
+  invocationCountingVisitor.removeCountsFor(x);
+  invocationCountingVisitor.accept(op);
+  return op;
+}
