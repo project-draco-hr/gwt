@@ -1,12 +1,26 @@
 {
-  String separator;
-  if (url.contains("?")) {
-    separator="&";
-  }
+  try {
+    URL parsedUrl=new URL(url);
+    String path=parsedUrl.getPath();
+    String query=parsedUrl.getQuery();
+    String hash=parsedUrl.getRef();
+    String hostedParam="gwt.hosted=" + listener.getEndpointIdentifier();
+    if (query == null) {
+      query=hostedParam;
+    }
  else {
-    separator="?";
+      query+='&' + hostedParam;
+    }
+    path+='?' + query;
+    if (hash != null) {
+      path+='#' + hash;
+    }
+    url=new URL(parsedUrl.getProtocol(),parsedUrl.getHost(),parsedUrl.getPort(),path).toExternalForm();
   }
-  url+=separator + "gwt.hosted=" + listener.getEndpointIdentifier();
+ catch (  MalformedURLException e) {
+    getTopLogger().log(TreeLogger.ERROR,"Invalid URL " + url,e);
+    throw new UnableToCompleteException();
+  }
   TreeLogger branch=getTopLogger().branch(TreeLogger.INFO,"Launching firefox with " + url,null);
   try {
     Process browser=Runtime.getRuntime().exec("firefox " + url + "&");
