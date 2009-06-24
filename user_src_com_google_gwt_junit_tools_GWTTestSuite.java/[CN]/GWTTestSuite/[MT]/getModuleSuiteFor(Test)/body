@@ -8,21 +8,24 @@
       return getModuleSuiteFor(suite.testAt(0));
     }
   }
- else   if (test instanceof GWTTestCase) {
+  if (test instanceof GWTTestCase) {
     GWTTestCase gwtTest=(GWTTestCase)test;
-    TestSuite suite=moduleSuites.get(gwtTest.getModuleName());
-    if (suite == null) {
-      suite=new TestSuite(gwtTest.getModuleName() + ".gwt.xml");
-      moduleSuites.put(gwtTest.getModuleName(),suite);
-      super.addTest(suite);
+    String moduleName=gwtTest.getModuleName();
+    if (moduleName != null) {
+      TestSuite suite=moduleSuites.get(moduleName);
+      if (suite == null) {
+        suite=new TestSuite(moduleName + ".gwt.xml");
+        moduleSuites.put(moduleName,suite);
+        super.addTest(suite);
+      }
+      return suite;
     }
-    return suite;
-  }
  else {
-    if (nonGWTTestSuite == null) {
-      nonGWTTestSuite=new TestSuite("Non-GWT");
-      super.addTest(nonGWTTestSuite);
     }
-    return nonGWTTestSuite;
   }
+  if (nonGWTTestSuite == null) {
+    nonGWTTestSuite=new TestSuite("Non-GWT");
+    super.addTest(nonGWTTestSuite);
+  }
+  return nonGWTTestSuite;
 }
