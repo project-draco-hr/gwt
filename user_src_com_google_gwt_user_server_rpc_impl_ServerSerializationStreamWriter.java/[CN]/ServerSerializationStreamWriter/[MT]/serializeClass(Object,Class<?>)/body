@@ -24,4 +24,11 @@ catch (    IllegalAccessException e) {
   if (serializationPolicy.shouldSerializeFields(superClass)) {
     serializeImpl(instance,superClass);
   }
+  for (  ServerDataSerializer serializer : ServerDataSerializer.getSerializers()) {
+    if (serializer.shouldSerialize(instanceClass)) {
+      byte[] serializedData=serializer.serializeServerData(instance);
+      String encodedData=Base64Utils.toBase64(serializedData);
+      writeString(encodedData);
+    }
+  }
 }

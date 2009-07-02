@@ -1,0 +1,66 @@
+{
+  try {
+    Class<?> instanceClass=instance.getClass();
+    Field jdoDetachedStateField=instanceClass.getDeclaredField(JdoDetachedStateServerDataSerializer.JDO_DETACHED_STATE_FIELD_NAME);
+    jdoDetachedStateField.setAccessible(true);
+    if (serializedData == null) {
+      throw new SerializationException("JDO persistent object serialized data is null");
+    }
+    ByteArrayInputStream bais=new ByteArrayInputStream(serializedData);
+    ObjectInputStream in=new ObjectInputStream(bais);
+    int version=in.readInt();
+    if (version != JdoDetachedStateServerDataSerializer.JDO_DETACHED_STATE_SERIALIZATION_VERSION) {
+      throw new SerializationException("Got JDO detached state serialization version " + version + ", expected version "+ JdoDetachedStateServerDataSerializer.JDO_DETACHED_STATE_SERIALIZATION_VERSION+ ".");
+    }
+    Object[] jdoDetachedState=new Object[4];
+    for (int i=0; i < 3; i++) {
+      byte type=in.readByte();
+switch (type) {
+case JdoDetachedStateServerDataSerializer.JDO_DETACHED_STATE_ENTRY_NULL:
+        jdoDetachedState[i]=null;
+      break;
+case JdoDetachedStateServerDataSerializer.JDO_DETACHED_STATE_ENTRY_EXTERNALIZABLE:
+    try {
+      String className=(String)in.readObject();
+      Class<? extends Externalizable> c=Class.forName(className).asSubclass(java.io.Externalizable.class);
+      Externalizable e=c.newInstance();
+      e.readExternal(in);
+      jdoDetachedState[i]=e;
+    }
+ catch (    ClassCastException e) {
+      throw new SerializationException(e);
+    }
+catch (    ClassNotFoundException e) {
+      throw new SerializationException(e);
+    }
+catch (    IllegalAccessException e) {
+      throw new SerializationException(e);
+    }
+catch (    InstantiationException e) {
+      throw new SerializationException(e);
+    }
+  break;
+case JdoDetachedStateServerDataSerializer.JDO_DETACHED_STATE_ENTRY_SERIALIZABLE:
+try {
+  jdoDetachedState[i]=in.readObject();
+}
+ catch (ClassNotFoundException e) {
+  throw new SerializationException(e);
+}
+break;
+}
+}
+jdoDetachedState[3]=new BitSet();
+((BitSet)jdoDetachedState[3]).or((BitSet)jdoDetachedState[2]);
+jdoDetachedStateField.set(instance,jdoDetachedState);
+}
+ catch (IllegalAccessException e) {
+throw new SerializationException(e);
+}
+catch (IOException e) {
+throw new SerializationException("An unexpected IOException occured while deserializing jdoDetachedState",e);
+}
+catch (NoSuchFieldException e) {
+throw new SerializationException(e);
+}
+}

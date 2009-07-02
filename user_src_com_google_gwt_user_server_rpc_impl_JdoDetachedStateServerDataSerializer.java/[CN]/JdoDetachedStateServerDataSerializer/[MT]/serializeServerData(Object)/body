@@ -1,0 +1,49 @@
+{
+  try {
+    Class<?> instanceClass=instance.getClass();
+    Field jdoFlagsField=instanceClass.getDeclaredField(JDO_FLAGS_FIELD_NAME);
+    jdoFlagsField.setAccessible(true);
+    byte jdoFlags=((Byte)jdoFlagsField.get(instance)).byteValue();
+    if (jdoFlags == JDO_FLAGS_LOAD_REQUIRED) {
+      throw new SerializationException("JDO persistent object data not loaded");
+    }
+    Field jdoDetachedStateField=instanceClass.getDeclaredField(JDO_DETACHED_STATE_FIELD_NAME);
+    jdoDetachedStateField.setAccessible(true);
+    Object[] jdoDetachedState=(Object[])jdoDetachedStateField.get(instance);
+    if (jdoDetachedState == null) {
+      throw new SerializationException("JDO persistent object has null jdoDetachedState");
+    }
+    ByteArrayOutputStream baos=new ByteArrayOutputStream();
+    ObjectOutputStream out=new ObjectOutputStream(baos);
+    out.writeInt(JDO_DETACHED_STATE_SERIALIZATION_VERSION);
+    for (int i=0; i < 3; i++) {
+      Object entry=jdoDetachedState[i];
+      if (entry == null) {
+        out.writeByte(JDO_DETACHED_STATE_ENTRY_NULL);
+      }
+ else       if (entry instanceof Externalizable) {
+        out.writeByte(JDO_DETACHED_STATE_ENTRY_EXTERNALIZABLE);
+        out.writeObject(entry.getClass().getCanonicalName());
+        ((Externalizable)entry).writeExternal(out);
+      }
+ else       if (entry instanceof Serializable) {
+        out.writeByte(JDO_DETACHED_STATE_ENTRY_SERIALIZABLE);
+        out.writeObject(entry);
+      }
+ else {
+        throw new SerializationException("Entry " + i + " of jdoDetachedState is neither null, Externalizable nor serializable");
+      }
+    }
+    out.close();
+    return baos.toByteArray();
+  }
+ catch (  IllegalAccessException e) {
+    throw new SerializationException(e);
+  }
+catch (  IOException e) {
+    throw new SerializationException("An unexpected IOException occured while serializing jdoDetachedState",e);
+  }
+catch (  NoSuchFieldException e) {
+    throw new SerializationException(e);
+  }
+}

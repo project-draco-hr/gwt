@@ -14,6 +14,11 @@
   }
  else {
     writeClassSerializationStatements();
+    for (    ClientDataSerializer serializer : ClientDataSerializer.getSerializers()) {
+      if (serializer.shouldSerialize(serializableClass)) {
+        sourceWriter.println("streamWriter.writeString((String) " + WEAK_MAPPING_CLASS_NAME + ".get(instance, \""+ serializer.getName()+ "\"));");
+      }
+    }
   }
   sourceWriter.outdent();
   sourceWriter.println("}");
