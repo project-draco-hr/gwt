@@ -1,14 +1,20 @@
 {
+  DefsCollector collector=new DefsCollector();
+  collector.accept(sheet);
   for (  JMethod toImplement : methods) {
     String name=toImplement.getName();
     if ("getName".equals(name) || "getText".equals(name)) {
       continue;
     }
-    if (toImplement.getReturnType().equals(stringType) && toImplement.getParameters().length == 0) {
-      writeClassAssignment(sw,toImplement,obfuscatedClassNames);
+    if (collector.defs.contains(name) && obfuscatedClassNames.containsKey(toImplement)) {
+      logger.log(TreeLogger.ERROR,"@def shadows CSS class name: " + name + ". Fix by renaming the @def name or the CSS class name.");
+      throw new UnableToCompleteException();
     }
- else     if (toImplement.getReturnType().isPrimitive() != null && toImplement.getParameters().length == 0) {
+    if (collector.defs.contains(toImplement.getName()) && toImplement.getParameters().length == 0) {
       writeDefAssignment(logger,sw,toImplement,sheet);
+    }
+ else     if (toImplement.getReturnType().equals(stringType) && toImplement.getParameters().length == 0) {
+      writeClassAssignment(sw,toImplement,obfuscatedClassNames);
     }
  else {
       logger.log(TreeLogger.ERROR,"Don't know how to implement method " + toImplement.getName());

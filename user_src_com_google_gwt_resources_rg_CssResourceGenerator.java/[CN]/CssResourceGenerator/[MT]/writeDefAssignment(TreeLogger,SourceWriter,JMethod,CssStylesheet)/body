@@ -1,2 +1,46 @@
 {
+  SubstitutionCollector collector=new SubstitutionCollector();
+  collector.accept(cssStylesheet);
+  String name=toImplement.getName();
+  CssDef def=collector.substitutions.get(name);
+  if (def == null) {
+    logger.log(TreeLogger.ERROR,"No @def rule for name " + name);
+    throw new UnableToCompleteException();
+  }
+  if (def.getValues().size() != 1) {
+    logger.log(TreeLogger.ERROR,"@def rule " + name + " must define exactly one value");
+    throw new UnableToCompleteException();
+  }
+  NumberValue numberValue=def.getValues().get(0).isNumberValue();
+  String returnExpr="";
+  JClassType classReturnType=toImplement.getReturnType().isClass();
+  if (classReturnType != null && "java.lang.String".equals(classReturnType.getQualifiedSourceName())) {
+    returnExpr="\"" + Generator.escape(def.getValues().get(0).toString()) + "\"";
+  }
+ else {
+    JPrimitiveType returnType=toImplement.getReturnType().isPrimitive();
+    if (returnType == null) {
+      logger.log(TreeLogger.ERROR,toImplement.getName() + ": Return type must be primitive type or String for " + "@def accessors");
+      throw new UnableToCompleteException();
+    }
+    if (returnType == JPrimitiveType.INT || returnType == JPrimitiveType.LONG) {
+      returnExpr="" + Math.round(numberValue.getValue());
+    }
+ else     if (returnType == JPrimitiveType.FLOAT) {
+      returnExpr=numberValue.getValue() + "F";
+    }
+ else     if (returnType == JPrimitiveType.DOUBLE) {
+      returnExpr="" + numberValue.getValue();
+    }
+ else {
+      logger.log(TreeLogger.ERROR,returnType.getQualifiedSourceName() + " is not a valid primitive return type for @def accessors");
+      throw new UnableToCompleteException();
+    }
+  }
+  sw.print(toImplement.getReadableDeclaration(false,false,false,false,true));
+  sw.println(" {");
+  sw.indent();
+  sw.println("return " + returnExpr + ";");
+  sw.outdent();
+  sw.println("}");
 }
