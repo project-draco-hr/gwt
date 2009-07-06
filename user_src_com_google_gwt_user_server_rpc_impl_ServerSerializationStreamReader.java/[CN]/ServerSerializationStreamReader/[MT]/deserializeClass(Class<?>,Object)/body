@@ -14,4 +14,11 @@
   if (serializationPolicy.shouldDeserializeFields(superClass)) {
     deserializeImpl(SerializabilityUtil.hasCustomFieldSerializer(superClass),superClass,instance);
   }
+  for (  ServerDataSerializer serializer : ServerDataSerializer.getSerializers()) {
+    if (serializer.shouldSerialize(instanceClass)) {
+      String encodedData=readString();
+      byte[] serializedData=Base64Utils.fromBase64(encodedData);
+      serializer.deserializeServerData(serializedData,instance);
+    }
+  }
 }
