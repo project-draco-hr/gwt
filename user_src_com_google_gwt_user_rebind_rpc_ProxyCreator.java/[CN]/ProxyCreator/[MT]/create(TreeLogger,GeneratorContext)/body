@@ -18,15 +18,7 @@
   typesSentFromBrowserBuilder.setTypeFilter(blacklistTypeFilter);
   SerializableTypeOracleBuilder typesSentToBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,typeOracle);
   typesSentToBrowserBuilder.setTypeFilter(blacklistTypeFilter);
-  try {
-    addRequiredRoots(logger,typeOracle,typesSentFromBrowserBuilder);
-    addRequiredRoots(logger,typeOracle,typesSentToBrowserBuilder);
-    addRemoteServiceRootTypes(logger,typeOracle,typesSentFromBrowserBuilder,typesSentToBrowserBuilder,serviceIntf);
-  }
- catch (  NotFoundException e) {
-    logger.log(TreeLogger.ERROR,"",e);
-    throw new UnableToCompleteException();
-  }
+  addRoots(logger,typeOracle,typesSentFromBrowserBuilder,typesSentToBrowserBuilder);
   try {
     ConfigurationProperty prop=context.getPropertyOracle().getConfigurationProperty(TypeSerializerCreator.GWT_ELIDE_TYPE_NAMES_FROM_RPC);
     elideTypeNames=Boolean.parseBoolean(prop.getValues().get(0));
@@ -62,10 +54,7 @@
       writer.close();
     }
   }
-  TypeSerializerCreator tsc=new TypeSerializerCreator(logger,typesSentFromBrowser,typesSentToBrowser,context,SerializationUtils.getTypeSerializerQualifiedName(serviceIntf));
-  tsc.realize(logger);
-  typeStrings=new HashMap<JType,String>(tsc.getTypeStrings());
-  typeStrings.put(serviceIntf,TypeNameObfuscator.SERVICE_INTERFACE_ID);
+  generateTypeHandlers(logger,context,typesSentFromBrowser,typesSentToBrowser);
   String serializationPolicyStrongName=writeSerializationPolicyFile(logger,context,typesSentFromBrowser,typesSentToBrowser);
   String remoteServiceInterfaceName=elideTypeNames ? TypeNameObfuscator.SERVICE_INTERFACE_ID : TypeOracleMediator.computeBinaryClassName(serviceIntf);
   generateProxyFields(srcWriter,typesSentFromBrowser,serializationPolicyStrongName,remoteServiceInterfaceName);

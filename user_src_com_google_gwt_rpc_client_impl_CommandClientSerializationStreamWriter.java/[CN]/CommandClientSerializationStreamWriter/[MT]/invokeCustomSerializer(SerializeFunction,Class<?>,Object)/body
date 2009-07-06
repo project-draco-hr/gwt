@@ -1,0 +1,14 @@
+{
+  InvokeCustomFieldSerializerCommand command=new InvokeCustomFieldSerializerCommand(type,null,null);
+  identityMap.put(value,command);
+  CommandClientSerializationStreamWriter subWriter=new CommandClientSerializationStreamWriter(serializer,new HasValuesCommandSink(command));
+  serializeFunction.serialize(subWriter,value);
+  if (serializer.hasExtraFields(type.getName())) {
+    for (    String extraField : serializer.getExtraFields(type.getName())) {
+      if (extraField != null) {
+        extractField(command,value,extraField);
+      }
+    }
+  }
+  return command;
+}

@@ -1,0 +1,18 @@
+{
+  if (!Character.isDigit(payload.charAt(0))) {
+    if (clientOracle == null) {
+      throw new SerializationException("No ClientOracle for permutation " + getPermutationStrongName());
+    }
+    super.processCall(clientOracle,payload,stream);
+  }
+ else {
+    String toReturn=processCall(payload);
+    onAfterResponseSerialized(toReturn);
+    try {
+      stream.write(toReturn.getBytes("UTF-8"));
+    }
+ catch (    IOException e) {
+      throw new SerializationException("Unable to commit bytes",e);
+    }
+  }
+}

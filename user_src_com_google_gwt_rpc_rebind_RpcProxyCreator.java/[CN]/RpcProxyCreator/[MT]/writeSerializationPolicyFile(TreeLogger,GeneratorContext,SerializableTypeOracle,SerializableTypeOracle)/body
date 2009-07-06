@@ -1,0 +1,16 @@
+{
+  RpcDataArtifact data=new RpcDataArtifact(serviceIntf.getQualifiedSourceName());
+  for (  JType type : deserializationSto.getSerializableTypes()) {
+    if (!(type instanceof JClassType)) {
+      continue;
+    }
+    JField[] serializableFields=SerializationUtils.getSerializableFields(ctx.getTypeOracle(),(JClassType)type);
+    List<String> names=Lists.create();
+    for (int i=0, j=serializableFields.length; i < j; i++) {
+      names=Lists.add(names,serializableFields[i].getName());
+    }
+    data.setFields(TypeOracleMediator.computeBinaryClassName(type),names);
+  }
+  ctx.commitArtifact(logger,data);
+  return "unused";
+}

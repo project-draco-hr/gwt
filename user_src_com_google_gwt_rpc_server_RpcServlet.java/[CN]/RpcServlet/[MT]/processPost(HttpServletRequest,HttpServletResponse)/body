@@ -1,0 +1,27 @@
+{
+  ClientOracle clientOracle=getClientOracle();
+  String requestPayload=readContent(request);
+  if (DUMP_PAYLOAD) {
+    System.out.println(requestPayload);
+  }
+  response.setContentType("application/json");
+  response.setCharacterEncoding("UTF-8");
+  OutputStream out;
+  if (DUMP_PAYLOAD) {
+    out=new ByteArrayOutputStream();
+  }
+ else   if (RPCServletUtils.acceptsGzipEncoding(request) && shouldCompressResponse(request,response)) {
+    RPCServletUtils.setGzipEncodingHeader(response);
+    out=new GZIPOutputStream(response.getOutputStream());
+  }
+ else {
+    out=response.getOutputStream();
+  }
+  processCall(clientOracle,requestPayload,out);
+  out.close();
+  if (DUMP_PAYLOAD) {
+    byte[] bytes=((ByteArrayOutputStream)out).toByteArray();
+    System.out.println(new String(bytes,"UTF-8"));
+    response.getOutputStream().write(bytes);
+  }
+}
