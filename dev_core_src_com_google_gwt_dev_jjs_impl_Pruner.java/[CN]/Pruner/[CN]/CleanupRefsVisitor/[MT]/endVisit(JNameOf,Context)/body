@@ -1,10 +1,19 @@
 {
   HasName node=x.getNode();
-  JReferenceType isType=node instanceof JReferenceType ? (JReferenceType)node : null;
-  if (isType == null && !referencedNonTypes.contains(node)) {
-    ctx.replaceMe(program.getLiteralNull());
+  boolean pruned;
+  if (node instanceof JField) {
+    pruned=isPruned((JField)node);
   }
- else   if (isType != null && !program.typeOracle.isInstantiatedType(isType)) {
+ else   if (node instanceof JMethod) {
+    pruned=isPruned((JMethod)node);
+  }
+ else   if (node instanceof JReferenceType) {
+    pruned=!program.typeOracle.isInstantiatedType((JReferenceType)node);
+  }
+ else {
+    throw new InternalCompilerException("Unhandled JNameOf node: " + node);
+  }
+  if (pruned) {
     ctx.replaceMe(program.getLiteralNull());
   }
 }

@@ -33,19 +33,11 @@
   String loc=String.valueOf(cu.getFileName());
   TreeLogger logger=threadLogger.branch(TreeLogger.SPAM,"Scanning for additional dependencies: " + loc,null);
   String[] typeNames=doFindAdditionalTypesUsingJsni(logger,unit);
-  for (int i=0; i < typeNames.length; i++) {
-    String typeName=typeNames[i];
-    final String msg="Need additional type '" + typeName + "'";
-    logger.log(TreeLogger.SPAM,msg,null);
-    resolvePossiblyNestedType(typeName);
-  }
+  addAdditionalTypes(logger,typeNames);
   typeNames=doFindAdditionalTypesUsingRebinds(logger,unit);
-  for (int i=0; i < typeNames.length; i++) {
-    String typeName=typeNames[i];
-    final String msg="Need additional type '" + typeName + "'";
-    logger.log(TreeLogger.SPAM,msg,null);
-    resolvePossiblyNestedType(typeName);
-  }
+  addAdditionalTypes(logger,typeNames);
+  typeNames=doFindAdditionalTypesUsingArtificialRescues(logger,unit);
+  addAdditionalTypes(logger,typeNames);
   doCompilationUnitDeclarationValidation(unit,logger);
   if (cuds != null) {
     cuds.add(unit);
