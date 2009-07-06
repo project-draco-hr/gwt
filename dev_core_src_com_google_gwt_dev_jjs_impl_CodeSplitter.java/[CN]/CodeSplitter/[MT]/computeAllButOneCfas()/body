@@ -1,13 +1,17 @@
 {
+  String dependencyGraphNameAfterInitialSequence=dependencyGraphNameAfterInitialSequence();
   List<ControlFlowAnalyzer> allButOnes=new ArrayList<ControlFlowAnalyzer>(numEntries - 1);
   for (int entry=1; entry < numEntries; entry++) {
     if (isInitial(entry)) {
       allButOnes.add(null);
       continue;
     }
+    dependencyRecorder.startDependencyGraph("sp" + entry,dependencyGraphNameAfterInitialSequence);
     ControlFlowAnalyzer cfa=new ControlFlowAnalyzer(liveAfterInitialSequence);
+    cfa.setDependencyRecorder(dependencyRecorder);
     traverseAllButEntry(cfa,entry);
     cfa.traverseFromLeftoversFragmentHasLoaded();
+    dependencyRecorder.endDependencyGraph();
     allButOnes.add(cfa);
   }
   return allButOnes;

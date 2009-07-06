@@ -1,0 +1,19 @@
+{
+  logger=logger.branch(TreeLogger.INFO,"Creating Dependencies file for SOYC");
+  ControlFlowAnalyzer dependencyAnalyzer=new ControlFlowAnalyzer(jprogram);
+  dependencyAnalyzer.setDependencyRecorder(this);
+  try {
+    printPre();
+    for (    JMethod method : jprogram.getAllEntryMethods()) {
+      dependencyAnalyzer.traverseFrom(method);
+      maybeFlushOutput();
+    }
+    printPost();
+    writer.write(builder.toString());
+    Utility.close(writer);
+    logger.log(TreeLogger.INFO,"Done");
+  }
+ catch (  Throwable e) {
+    logger.log(TreeLogger.ERROR,"Could not write dependency file.",e);
+  }
+}

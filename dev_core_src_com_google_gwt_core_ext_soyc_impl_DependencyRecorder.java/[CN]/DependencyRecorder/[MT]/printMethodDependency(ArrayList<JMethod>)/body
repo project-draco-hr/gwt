@@ -1,6 +1,6 @@
 {
   int size=dependencyChain.size();
-  if (size == 0) {
+  if (size < 2) {
     return;
   }
   JMethod curMethod=dependencyChain.get(size - 1);
@@ -11,15 +11,13 @@
   }
   builder.append(curMethod.getName());
   builder.append("\">\n");
-  for (int i=size - 2; i >= 0; i--) {
-    curMethod=dependencyChain.get(i);
-    builder.append("<called by=\"");
-    if (curMethod.getEnclosingType() != null) {
-      builder.append(curMethod.getEnclosingType().getName());
-      builder.append("::");
-    }
-    builder.append(curMethod.getName());
-    builder.append("\"/>\n");
+  JMethod depMethod=dependencyChain.get(size - 2);
+  builder.append("<called by=\"");
+  if (depMethod.getEnclosingType() != null) {
+    builder.append(depMethod.getEnclosingType().getName());
+    builder.append("::");
   }
+  builder.append(depMethod.getName());
+  builder.append("\"/>\n");
   builder.append("</method>\n");
 }

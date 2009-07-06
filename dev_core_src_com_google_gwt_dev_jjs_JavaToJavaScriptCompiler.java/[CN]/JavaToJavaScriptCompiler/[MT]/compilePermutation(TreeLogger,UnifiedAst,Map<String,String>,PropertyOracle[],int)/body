@@ -63,8 +63,13 @@ default :
 throw new InternalCompilerException("Unknown output mode");
 }
 JavaToJavaScriptMap postStringInterningMap=addStringLiteralMap(map,stringLiteralMap);
+SoycArtifact dependencies=null;
 if (options.isAggressivelyOptimize() && options.isRunAsyncEnabled()) {
-CodeSplitter.exec(logger,jprogram,jsProgram,postStringInterningMap);
+ByteArrayOutputStream baos=new ByteArrayOutputStream();
+CodeSplitter.exec(logger,jprogram,jsProgram,postStringInterningMap,chooseDependencyRecorder(options.isSoycEnabled(),baos));
+if (baos.size() > 0) {
+dependencies=new SoycArtifact("dependencies" + permutationId + ".xml.gz",baos.toByteArray());
+}
 }
 JsIEBlockSizeVisitor.exec(jsProgram);
 JsBreakUpLargeVarStatements.exec(jsProgram,propertyOracles);
@@ -88,7 +93,7 @@ sourceInfoMaps.add(((JsReportGenerationVisitor)v).getSourceInfoMap());
 ranges[i]=v.getStatementRanges();
 }
 PermutationResult toReturn=new PermutationResultImpl(js,makeSymbolMap(symbolTable),ranges,permutationId);
-toReturn.getArtifacts().add(makeSoycArtifact(logger,permutationId,jprogram,js,sourceInfoMaps));
+toReturn.getArtifacts().add(makeSoycArtifact(logger,permutationId,jprogram,js,sourceInfoMaps,dependencies));
 System.out.println("Permutation took " + (System.currentTimeMillis() - permStart) + " ms");
 return toReturn;
 }

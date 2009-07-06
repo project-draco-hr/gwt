@@ -8,10 +8,15 @@
     addFragment(0,alreadyLoaded,liveNow,noStats,fragmentStats);
   }
   liveAfterInitialSequence=new ControlFlowAnalyzer(initiallyLive);
+  String extendsCfa="initial";
   for (  int sp : initialLoadSequence) {
     LivenessPredicate alreadyLoaded=new CfaLivenessPredicate(liveAfterInitialSequence);
+    String depGraphName="sp" + sp;
+    dependencyRecorder.startDependencyGraph(depGraphName,extendsCfa);
+    extendsCfa=depGraphName;
     ControlFlowAnalyzer liveAfterSp=new ControlFlowAnalyzer(liveAfterInitialSequence);
     traverseEntry(liveAfterSp,sp);
+    dependencyRecorder.endDependencyGraph();
     LivenessPredicate liveNow=new CfaLivenessPredicate(liveAfterSp);
     List<JsStatement> statsToAppend=fragmentExtractor.createCallsToEntryMethods(sp);
     addFragment(sp,alreadyLoaded,liveNow,statsToAppend,fragmentStats);

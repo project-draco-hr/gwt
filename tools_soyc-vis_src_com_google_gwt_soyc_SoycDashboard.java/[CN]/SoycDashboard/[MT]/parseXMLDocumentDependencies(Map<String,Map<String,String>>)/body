@@ -1,0 +1,45 @@
+{
+  DefaultHandler handler=new DefaultHandler(){
+    String curMethod;
+    Map<String,String> dependencies=new TreeMap<String,String>();
+    String graphExtends=null;
+    StringBuilder valueBuilder=new StringBuilder();
+    @Override public void endElement(    String uri,    String localName,    String qName){
+      if (localName.compareTo("table") == 0) {
+        if (graphExtends != null) {
+          for (          Entry<String,String> entry : allDependencies.get(graphExtends).entrySet()) {
+            dependencies.put(entry.getKey(),entry.getValue());
+          }
+        }
+      }
+    }
+    @Override public void startElement(    String nsUri,    String strippedName,    String tagName,    Attributes attributes){
+      valueBuilder.delete(0,valueBuilder.length());
+      if (strippedName.compareTo("table") == 0 && (attributes.getValue("name") != null)) {
+        String name=attributes.getValue("name");
+        dependencies=new TreeMap<String,String>();
+        allDependencies.put(name,dependencies);
+        if (attributes.getValue("extends") != null) {
+          graphExtends=attributes.getValue("extends");
+          if (!allDependencies.containsKey(graphExtends)) {
+            throw new FormatException("Graph " + name + " extends an unknown graph "+ graphExtends);
+          }
+        }
+ else {
+          graphExtends=null;
+        }
+      }
+ else       if ((strippedName.compareTo("method") == 0) && (attributes.getValue("name") != null)) {
+        curMethod=attributes.getValue("name");
+      }
+ else       if ((strippedName.compareTo("called") == 0) && (attributes.getValue("by") != null)) {
+        String curDepMethod=attributes.getValue("by");
+        if (!dependencies.containsKey(curMethod)) {
+          dependencies.put(curMethod,curDepMethod);
+        }
+      }
+    }
+  }
+;
+  return handler;
+}

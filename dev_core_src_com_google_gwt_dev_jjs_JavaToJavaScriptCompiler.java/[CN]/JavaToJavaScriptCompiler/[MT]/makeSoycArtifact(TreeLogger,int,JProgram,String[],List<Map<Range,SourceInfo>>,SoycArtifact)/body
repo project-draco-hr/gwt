@@ -1,0 +1,18 @@
+{
+  ByteArrayOutputStream baos=new ByteArrayOutputStream();
+  PerfLogger.start("Computing SOYC output");
+  PerfLogger.start("Record split points");
+  SplitPointRecorder.recordSplitPoints(jprogram,baos,logger);
+  SoycArtifact splitPoints=new SoycArtifact("splitPoints" + permutationId + ".xml.gz",baos.toByteArray());
+  PerfLogger.end();
+  SoycArtifact stories=null;
+  if (sourceInfoMaps != null) {
+    PerfLogger.start("Record stories");
+    baos.reset();
+    StoryRecorder.recordStories(logger,baos,sourceInfoMaps,js);
+    stories=new SoycArtifact("stories" + permutationId + ".xml.gz",baos.toByteArray());
+    PerfLogger.end();
+  }
+  PerfLogger.end();
+  return new StandardCompilationAnalysis(dependencies,stories,splitPoints);
+}
