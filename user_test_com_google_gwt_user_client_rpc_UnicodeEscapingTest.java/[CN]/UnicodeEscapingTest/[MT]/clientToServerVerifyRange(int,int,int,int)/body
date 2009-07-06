@@ -2,8 +2,10 @@
   current=start;
   int blockEnd=Math.min(end,current + size);
   getService().verifyStringContainingCharacterRange(current,blockEnd,getStringContainingCharacterRange(start,blockEnd),new AsyncCallback<Boolean>(){
+    List<Throwable> fails=new ArrayList<Throwable>();
     public void onFailure(    Throwable caught){
-      TestSetValidator.rethrowException(caught);
+      fails.add(caught);
+      onSuccess(false);
     }
     public void onSuccess(    Boolean ignored){
       current+=step;
@@ -14,8 +16,15 @@
           getService().verifyStringContainingCharacterRange(current,blockEnd,getStringContainingCharacterRange(current,blockEnd),this);
         }
  catch (        InvalidCharacterException e) {
-          TestSetValidator.rethrowException(e);
+          fails.add(e);
         }
+      }
+ else       if (!fails.isEmpty()) {
+        StringBuilder msg=new StringBuilder();
+        for (        Throwable t : fails) {
+          msg.append(t.getMessage()).append("\n");
+        }
+        TestSetValidator.rethrowException(new RuntimeException(msg.toString()));
       }
  else {
         finishTest();
