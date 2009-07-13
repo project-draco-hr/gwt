@@ -1,0 +1,16 @@
+{
+  ModuleDef def=new ModuleDef("fake");
+  def.defineLinker(TreeLogger.NULL,"pre",FakeLinkerPre.class);
+  def.defineLinker(TreeLogger.NULL,"pre2",FakeLinkerPre2.class);
+  def.defineLinker(TreeLogger.NULL,"post",FakeLinkerPost.class);
+  def.defineLinker(TreeLogger.NULL,"post2",FakeLinkerPost2.class);
+  def.defineLinker(TreeLogger.NULL,"primary",FakeLinkerPrimary.class);
+  def.addLinker("pre2");
+  def.addLinker("pre");
+  def.addLinker("post");
+  def.addLinker("post2");
+  def.addLinker("primary");
+  Class<?>[] expectedClasses={FakeLinkerPre2.class,FakeLinkerPre.class,FakeLinkerPost.class,FakeLinkerPost2.class};
+  assertEquals(FakeLinkerPrimary.class,def.getActivePrimaryLinker());
+  assertEquals(Arrays.asList(expectedClasses),new ArrayList<Class<? extends Linker>>(def.getActiveLinkers()));
+}

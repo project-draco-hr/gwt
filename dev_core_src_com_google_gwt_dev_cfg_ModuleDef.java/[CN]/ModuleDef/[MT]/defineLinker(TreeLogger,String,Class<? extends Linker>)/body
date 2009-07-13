@@ -1,0 +1,18 @@
+{
+  Class<? extends Linker> old=getLinker(name);
+  if (old != null) {
+    if (activePrimaryLinker.equals(name)) {
+      if (!linker.getAnnotation(LinkerOrder.class).value().equals(Order.PRIMARY)) {
+        logger.log(TreeLogger.ERROR,"Redefining primary linker " + name + " with non-primary implementation "+ linker.getName());
+        throw new UnableToCompleteException();
+      }
+    }
+ else     if (activeLinkers.contains(name)) {
+      if (linker.getAnnotation(LinkerOrder.class).value().equals(Order.PRIMARY)) {
+        logger.log(TreeLogger.ERROR,"Redefining non-primary linker " + name + " with primary implementation "+ linker.getName());
+        throw new UnableToCompleteException();
+      }
+    }
+  }
+  linkerTypesByName.put(name,linker);
+}
