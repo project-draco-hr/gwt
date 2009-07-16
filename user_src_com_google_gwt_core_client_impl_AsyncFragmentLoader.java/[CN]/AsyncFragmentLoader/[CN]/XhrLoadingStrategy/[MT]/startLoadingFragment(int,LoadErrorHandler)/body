@@ -1,0 +1,28 @@
+{
+  String fragmentUrl=gwtStartLoadingFragment(fragment,loadErrorHandler);
+  if (fragmentUrl == null) {
+    return;
+  }
+  final XMLHttpRequest xhr=XMLHttpRequest.create();
+  xhr.open(HTTP_GET,fragmentUrl);
+  xhr.setOnReadyStateChange(new ReadyStateChangeHandler(){
+    public void onReadyStateChange(    XMLHttpRequest ignored){
+      if (xhr.getReadyState() == XMLHttpRequest.DONE) {
+        xhr.clearOnReadyStateChange();
+        if ((xhr.getStatus() == HTTP_STATUS_OK || xhr.getStatus() == HTTP_STATUS_NON_HTTP) && xhr.getResponseText() != null && xhr.getResponseText().length() != 0) {
+          try {
+            gwtInstallCode(xhr.getResponseText());
+          }
+ catch (          RuntimeException e) {
+            loadErrorHandler.loadFailed(e);
+          }
+        }
+ else {
+          loadErrorHandler.loadFailed(new HttpDownloadFailure(xhr.getStatus()));
+        }
+      }
+    }
+  }
+);
+  xhr.send();
+}
