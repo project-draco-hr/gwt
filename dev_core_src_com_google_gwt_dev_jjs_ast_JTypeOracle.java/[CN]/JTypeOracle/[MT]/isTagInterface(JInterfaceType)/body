@@ -1,0 +1,22 @@
+{
+  Set<JInterfaceType> seen=new IdentityHashSet<JInterfaceType>();
+  List<JInterfaceType> q=new LinkedList<JInterfaceType>();
+  seen.add(type);
+  q.add(type);
+  while (!q.isEmpty()) {
+    JInterfaceType intf=q.remove(0);
+    List<JMethod> methods=intf.getMethods();
+    int size=methods.size();
+    if (size == 0 || (size == 1 && methods.get(0).getName().equals("$clinit"))) {
+      for (      JInterfaceType superIntf : intf.getImplements()) {
+        if (seen.add(superIntf)) {
+          q.add(superIntf);
+        }
+      }
+    }
+ else {
+      return false;
+    }
+  }
+  return true;
+}
