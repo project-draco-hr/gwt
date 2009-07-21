@@ -9,22 +9,34 @@
   if (!workDirFile.isDirectory()) {
     throw new BuildException(workdir + " is not a directory");
   }
-  Info info;
-  if (looksLikeSvn(workDirFile)) {
-    info=parseInfo(getSvnInfo(workDirFile));
-    info.revision=getSvnVersion(workDirFile);
-  }
- else   if (looksLikeGit(workDirFile)) {
-    info=parseInfo(getGitSvnInfo(workDirFile));
-    if (!doesGitWorkingCopyMatchSvnRevision(workDirFile,info.revision)) {
-      info.revision+="M";
+  if (getProject().getProperty(outprop) == null) {
+    Info info;
+    if (looksLikeSvn(workDirFile)) {
+      info=parseInfo(getSvnInfo(workDirFile));
+      info.revision=getSvnVersion(workDirFile);
     }
+ else     if (looksLikeGit(workDirFile)) {
+      info=parseInfo(getGitSvnInfo(workDirFile));
+      if (!doesGitWorkingCopyMatchSvnRevision(workDirFile,info.revision)) {
+        info.revision+="M";
+      }
+    }
+ else {
+      info=new Info("unknown","unknown");
+    }
+    getProject().setNewProperty(outprop,info.branch + "@" + info.revision);
   }
  else {
-    info=new Info("unknown","unknown");
+    String propval=getProject().getProperty(outprop);
+    if (!propval.matches("[^@]+@[0-9]+")) {
+      throw new BuildException("predefined " + outprop + "should look like branch-spec@revison-number");
+    }
   }
-  getProject().setNewProperty(outprop,info.branch + "@" + info.revision);
   if (fileprop != null) {
-    getProject().setNewProperty(fileprop,info.branch.replace('/','-') + "-" + info.revision.replace(':','-'));
+    String outpropval=getProject().getProperty(outprop);
+    int atIndex=outpropval.indexOf('@');
+    String branch=outpropval.substring(0,atIndex);
+    String revision=outpropval.substring(atIndex + 1);
+    getProject().setNewProperty(fileprop,branch.replace('/','-') + "-" + revision.replace(':','-'));
   }
 }
