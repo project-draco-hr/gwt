@@ -1,0 +1,15 @@
+{
+  SourceInfo info=x.getSourceInfo().makeChild(JsStackEmulator.class,"Synthetic catch block to fix stack depth");
+  JsCatch c=new JsCatch(info,currentFunction.getScope(),"e");
+  JsName paramName=c.getParameter().getName();
+  JsInvocation caughtCall=new JsInvocation(info);
+  caughtCall.setQualifier(caughtFunction.getName().makeRef(info));
+  caughtCall.getArguments().add(paramName.makeRef(info));
+  JsBinaryOperation asg=new JsBinaryOperation(info,JsBinaryOperator.ASG,paramName.makeRef(info),caughtCall);
+  JsThrow throwStatement=new JsThrow(info,paramName.makeRef(info));
+  JsBlock body=new JsBlock(info);
+  body.getStatements().add(asg.makeStmt());
+  body.getStatements().add(throwStatement);
+  c.setBody(body);
+  return c;
+}

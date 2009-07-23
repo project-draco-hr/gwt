@@ -1,0 +1,25 @@
+{
+  JsExpression expr=x.getExpression();
+  if (!(expr instanceof JsBinaryOperation)) {
+    return;
+  }
+  JsBinaryOperation op=(JsBinaryOperation)expr;
+  if (!(op.getArg2() instanceof JsInvocation)) {
+    return;
+  }
+  JsInvocation i=(JsInvocation)op.getArg2();
+  JsExpression q=i.getQualifier();
+  if (!(q instanceof JsNameRef)) {
+    return;
+  }
+  JsName name=((JsNameRef)q).getName();
+  if (name == null) {
+    return;
+  }
+  if (name.getStaticRef() != caughtFunction) {
+    return;
+  }
+  SourceInfo info=x.getSourceInfo().makeChild(JsStackEmulator.class,"Resetting stack depth");
+  JsBinaryOperation reset=new JsBinaryOperation(info,JsBinaryOperator.ASG,stackDepth.makeRef(info),eeVisitor.stackIndexRef(info));
+  ctx.insertAfter(reset.makeStmt());
+}

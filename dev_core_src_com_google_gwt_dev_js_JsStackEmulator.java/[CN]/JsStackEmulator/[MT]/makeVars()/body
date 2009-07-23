@@ -1,0 +1,21 @@
+{
+  SourceInfo info=program.getSourceInfo().makeChild(JsStackEmulator.class,"Emulated stack data");
+  JsVar stackVar=new JsVar(info,stack);
+  stackVar.setInitExpr(new JsArrayLiteral(info));
+  JsVar stackDepthVar=new JsVar(info,stackDepth);
+  stackDepthVar.setInitExpr(program.getNumberLiteral(info,-1));
+  JsVar lineNumbersVar=new JsVar(info,lineNumbers);
+  lineNumbersVar.setInitExpr(new JsArrayLiteral(info));
+  JsVars vars;
+  JsStatement first=program.getGlobalBlock().getStatements().get(0);
+  if (first instanceof JsVars) {
+    vars=(JsVars)first;
+  }
+ else {
+    vars=new JsVars(info);
+    program.getGlobalBlock().getStatements().add(0,vars);
+  }
+  vars.add(stackVar);
+  vars.add(stackDepthVar);
+  vars.add(lineNumbersVar);
+}
