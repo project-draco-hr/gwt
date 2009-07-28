@@ -45,31 +45,28 @@
       }
  while (didChange);
     }
-    final Map<JsName,String> stringLiteralMap;
+    SoycArtifact dependencies=null;
+    if (options.isAggressivelyOptimize() && options.isRunAsyncEnabled()) {
+      ByteArrayOutputStream baos=new ByteArrayOutputStream();
+      CodeSplitter.exec(logger,jprogram,jsProgram,map,chooseDependencyRecorder(options.isSoycEnabled(),baos));
+      if (baos.size() > 0) {
+        dependencies=new SoycArtifact("dependencies" + permutationId + ".xml.gz",baos.toByteArray());
+      }
+    }
 switch (options.getOutput()) {
 case OBFUSCATED:
-      stringLiteralMap=JsStringInterner.exec(jsProgram);
+      JsStringInterner.exec(jprogram,jsProgram);
     JsObfuscateNamer.exec(jsProgram);
   break;
 case PRETTY:
-stringLiteralMap=new HashMap<JsName,String>();
 JsPrettyNamer.exec(jsProgram);
 break;
 case DETAILED:
-stringLiteralMap=JsStringInterner.exec(jsProgram);
+JsStringInterner.exec(jprogram,jsProgram);
 JsVerboseNamer.exec(jsProgram);
 break;
 default :
 throw new InternalCompilerException("Unknown output mode");
-}
-JavaToJavaScriptMap postStringInterningMap=addStringLiteralMap(map,stringLiteralMap);
-SoycArtifact dependencies=null;
-if (options.isAggressivelyOptimize() && options.isRunAsyncEnabled()) {
-ByteArrayOutputStream baos=new ByteArrayOutputStream();
-CodeSplitter.exec(logger,jprogram,jsProgram,postStringInterningMap,chooseDependencyRecorder(options.isSoycEnabled(),baos));
-if (baos.size() > 0) {
-dependencies=new SoycArtifact("dependencies" + permutationId + ".xml.gz",baos.toByteArray());
-}
 }
 JsIEBlockSizeVisitor.exec(jsProgram);
 JsBreakUpLargeVarStatements.exec(jsProgram,propertyOracles);
