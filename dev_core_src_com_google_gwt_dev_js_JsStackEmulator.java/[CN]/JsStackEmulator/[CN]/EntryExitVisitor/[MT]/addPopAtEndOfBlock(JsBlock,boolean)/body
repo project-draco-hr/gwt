@@ -1,0 +1,15 @@
+{
+  JsStatement last=x.getStatements().isEmpty() ? null : x.getStatements().get(x.getStatements().size() - 1);
+  if (last instanceof JsReturn || last instanceof JsThrow) {
+    return;
+  }
+ else   if (checkEarlyExit && !finallyBlocksToExitVariables.containsKey(x)) {
+    return;
+  }
+  SourceInfo info=x.getSourceInfo().makeChild(JsStackEmulator.class,"Stack exit");
+  JsExpression op=pop(info);
+  if (checkEarlyExit) {
+    op=new JsBinaryOperation(info,JsBinaryOperator.AND,earlyExitRef(x),op);
+  }
+  x.getStatements().add(op.makeStmt());
+}
