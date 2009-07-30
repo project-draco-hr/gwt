@@ -1,8 +1,28 @@
 {
   logger=logger.branch(TreeLogger.TRACE,"Adding image '" + imageName + "'",null);
-  BufferedImage image;
+  BufferedImage image=null;
   try {
-    image=ImageIO.read(imageUrl);
+    String path=imageUrl.getPath();
+    String suffix=path.substring(path.lastIndexOf('.') + 1);
+    Iterator<ImageReader> it=ImageIO.getImageReadersBySuffix(suffix);
+    if (it.hasNext()) {
+      ImageReader reader=it.next();
+      reader.setInput(new MemoryCacheImageInputStream(imageUrl.openStream()));
+      int numImages=reader.getNumImages(true);
+      if (numImages == 0) {
+      }
+ else       if (numImages == 1) {
+        image=reader.read(0);
+      }
+ else {
+        BufferedImage[] images=new BufferedImage[numImages];
+        for (int i=0; i < numImages; i++) {
+          images[i]=reader.read(i);
+        }
+        ImageRect rect=new ImageRect(imageName,images);
+        throw new UnsuitableForStripException(rect);
+      }
+    }
   }
  catch (  IllegalArgumentException iex) {
     if (imageName.toLowerCase().endsWith("png") && iex.getMessage() != null && iex.getStackTrace()[0].getClassName().equals("javax.imageio.ImageTypeSpecifier$Indexed")) {
@@ -14,7 +34,7 @@
     }
   }
 catch (  IOException e) {
-    logger.log(TreeLogger.ERROR,"Unable to read image resource",null);
+    logger.log(TreeLogger.ERROR,"Unable to read image resource",e);
     throw new UnableToCompleteException();
   }
   if (image == null) {

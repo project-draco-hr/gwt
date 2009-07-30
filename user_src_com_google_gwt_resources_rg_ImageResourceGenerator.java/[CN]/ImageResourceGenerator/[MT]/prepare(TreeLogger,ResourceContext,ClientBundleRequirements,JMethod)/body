@@ -19,8 +19,14 @@
   }
  catch (  UnsuitableForStripException e) {
     rect=e.getImageRect();
-    byte[] imageBytes=ImageBundleBuilder.toPng(logger,rect);
-    String urlExpression=context.deploy(rect.getName() + ".png","image/png",imageBytes,false);
+    String urlExpression;
+    if (rect.isAnimated()) {
+      urlExpression=context.deploy(resource,false);
+    }
+ else {
+      byte[] imageBytes=ImageBundleBuilder.toPng(logger,rect);
+      urlExpression=context.deploy(rect.getName() + ".png","image/png",imageBytes,false);
+    }
     urlsByExternalImageRect.put(rect,new String[]{urlExpression,null});
   }
   imageRectsByName.put(name,rect);
