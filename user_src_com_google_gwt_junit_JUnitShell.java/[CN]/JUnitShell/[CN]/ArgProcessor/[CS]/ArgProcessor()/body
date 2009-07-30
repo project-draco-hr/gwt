@@ -81,6 +81,30 @@
 );
   registerHandler(new ArgHandlerString(){
     @Override public String getPurpose(){
+      return "Runs web mode via HTMLUnit given a list of browsers; " + "e.g. " + RunStyleHtmlUnit.getBrowserList();
+    }
+    @Override public String getTag(){
+      return "-htmlunit";
+    }
+    @Override public String[] getTagArgs(){
+      return new String[]{"browserNames"};
+    }
+    @Override public boolean setString(    String str){
+      String[] targets=str.split(",");
+      try {
+        runStyle=new RunStyleHtmlUnit(JUnitShell.this,targets);
+        numClients=((RunStyleHtmlUnit)runStyle).numBrowsers();
+        return true;
+      }
+ catch (      IllegalArgumentException ex) {
+        System.err.println(ex.getMessage());
+        return false;
+      }
+    }
+  }
+);
+  registerHandler(new ArgHandlerString(){
+    @Override public String getPurpose(){
       return "Run external browsers in web mode (pass a comma separated list of executables.)";
     }
     @Override public String getTag(){
