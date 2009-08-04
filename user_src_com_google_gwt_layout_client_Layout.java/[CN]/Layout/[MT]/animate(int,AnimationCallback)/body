@@ -1,0 +1,52 @@
+{
+  int parentWidth=parentElem.getClientWidth();
+  int parentHeight=parentElem.getClientHeight();
+  for (  Layer l : layers) {
+    adjustHorizontalConstraints(parentWidth,l);
+    adjustVerticalConstraints(parentHeight,l);
+  }
+  if (animation != null) {
+    animation.cancel();
+  }
+  animation=new Animation(){
+    @Override protected void onCancel(){
+      onComplete();
+    }
+    @Override protected void onComplete(){
+      layout();
+      if (callback != null) {
+        callback.onAnimationComplete();
+      }
+      animation=null;
+    }
+    @Override protected void onUpdate(    double progress){
+      for (      Layer l : layers) {
+        if (l.setTargetLeft) {
+          l.left=l.sourceLeft + (l.targetLeft - l.sourceLeft) * progress;
+        }
+        if (l.setTargetRight) {
+          l.right=l.sourceRight + (l.targetRight - l.sourceRight) * progress;
+        }
+        if (l.setTargetTop) {
+          l.top=l.sourceTop + (l.targetTop - l.sourceTop) * progress;
+        }
+        if (l.setTargetBottom) {
+          l.bottom=l.sourceBottom + (l.targetBottom - l.sourceBottom) * progress;
+        }
+        if (l.setTargetWidth) {
+          l.width=l.sourceWidth + (l.targetWidth - l.sourceWidth) * progress;
+        }
+        if (l.setTargetHeight) {
+          l.height=l.sourceHeight + (l.targetHeight - l.sourceHeight) * progress;
+        }
+        impl.layout(l);
+        if (callback != null) {
+          callback.onLayout(l,progress);
+        }
+      }
+      impl.finalizeLayout(parentElem);
+    }
+  }
+;
+  animation.run(duration);
+}
