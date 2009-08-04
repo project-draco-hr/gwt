@@ -22,61 +22,28 @@
     outFile.println("</center>");
     outFile.println("<center>");
     outFile.println("<table border=\"1\" width=\"80%\" style=\"font-size: 11pt;\" bgcolor=\"white\">");
-    for (    String literal : nameToLitColl.get(literalType).literalToLocations.keySet()) {
-      if ((literalType.compareTo("string") != 0) || (nameToLitColl.get("string").stringLiteralToType.get(literal).compareTo("otherStrings") != 0)) {
-        if (literal.trim().compareTo("") == 0) {
-          literal="[whitespace only string]";
+    for (    String literal : nameToLitColl.get(literalType).literals) {
+      String newLiteral="";
+      if (literal.length() > 80) {
+        int i;
+        for (i=80; i < literal.length(); i=i + 80) {
+          String part1=literal.substring(i - 80,i);
+          newLiteral=newLiteral + part1 + " ";
         }
-        String newLiteral="";
-        if (literal.length() > 80) {
-          int i;
-          for (i=80; i < literal.length(); i=i + 80) {
-            String part1=literal.substring(i - 80,i);
-            newLiteral=newLiteral + part1 + " ";
-          }
-          if (i - 80 > 0) {
-            newLiteral=newLiteral + literal.substring(i - 80);
-          }
+        if (i - 80 > 0) {
+          newLiteral=newLiteral + literal.substring(i - 80);
         }
- else {
-          newLiteral=literal;
-        }
-        String escliteral=escapeXml(newLiteral);
-        outFile.println("<tr>");
-        outFile.println("<td width=\"40%\">" + escliteral + "</td>");
-        int ct=0;
-        if ((nameToLitColl.containsKey(literalType)) && (nameToLitColl.get(literalType).literalToLocations.containsKey(literal))) {
-          for (          String location : nameToLitColl.get(literalType).literalToLocations.get(literal)) {
-            if (ct > 0) {
-              outFile.println("<tr>");
-              outFile.println("<td width=\"40%\"> </td>");
-            }
-            String newLocation="";
-            if (location.length() > 80) {
-              int i;
-              for (i=80; i < location.length(); i=i + 80) {
-                String part1=location.substring(i - 80,i);
-                newLocation=newLocation + part1 + " ";
-              }
-              if (i - 80 > 0) {
-                newLocation=newLocation + location.substring(i - 80);
-              }
-            }
- else {
-              newLocation=location;
-            }
-            outFile.println("<td width=\"40%\">" + newLocation + "</td>");
-            if (ct > 0) {
-              outFile.println("</tr>");
-            }
-            ct++;
-          }
-        }
- else {
-          System.err.println("either literalType " + literalType + " not known, or no location for literal "+ literal);
-        }
-        outFile.println("</tr>");
       }
+ else {
+        newLiteral=literal;
+      }
+      if (newLiteral.trim().length() == 0) {
+        newLiteral="[whitespace only string]";
+      }
+      String escliteral=escapeXml(newLiteral);
+      outFile.println("<tr>");
+      outFile.println("<td>" + escliteral + "</td>");
+      outFile.println("</tr>");
     }
     outFile.println("</table>");
     outFile.println("<center>");

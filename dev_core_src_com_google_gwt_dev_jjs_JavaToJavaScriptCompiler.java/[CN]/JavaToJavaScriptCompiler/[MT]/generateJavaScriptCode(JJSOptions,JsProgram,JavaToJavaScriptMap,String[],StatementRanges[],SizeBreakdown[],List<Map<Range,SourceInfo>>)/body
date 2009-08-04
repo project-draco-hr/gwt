@@ -1,0 +1,21 @@
+{
+  for (int i=0; i < js.length; i++) {
+    DefaultTextOutput out=new DefaultTextOutput(options.getOutput().shouldMinimize());
+    JsSourceGenerationVisitorWithSizeBreakdown v;
+    if (sourceInfoMaps != null) {
+      v=new JsReportGenerationVisitor(out,jjsMap);
+    }
+ else {
+      v=new JsSourceGenerationVisitorWithSizeBreakdown(out,jjsMap);
+    }
+    v.accept(jsProgram.getFragmentBlock(i));
+    js[i]=out.toString();
+    if (sizeBreakdowns != null) {
+      sizeBreakdowns[i]=v.getSizeBreakdown();
+    }
+    if (sourceInfoMaps != null) {
+      sourceInfoMaps.add(((JsReportGenerationVisitor)v).getSourceInfoMap());
+    }
+    ranges[i]=v.getStatementRanges();
+  }
+}

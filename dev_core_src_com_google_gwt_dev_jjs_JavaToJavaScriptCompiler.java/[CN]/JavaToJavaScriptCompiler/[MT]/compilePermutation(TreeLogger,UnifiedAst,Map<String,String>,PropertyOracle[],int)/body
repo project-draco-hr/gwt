@@ -56,16 +56,17 @@
         dependencies=new SoycArtifact("dependencies" + permutationId + ".xml.gz",baos.toByteArray());
       }
     }
+    Map<JsName,String> obfuscateMap=Maps.create();
 switch (options.getOutput()) {
 case OBFUSCATED:
-      JsStringInterner.exec(jprogram,jsProgram);
+      obfuscateMap=JsStringInterner.exec(jprogram,jsProgram);
     JsObfuscateNamer.exec(jsProgram);
   break;
 case PRETTY:
 JsPrettyNamer.exec(jsProgram);
 break;
 case DETAILED:
-JsStringInterner.exec(jprogram,jsProgram);
+obfuscateMap=JsStringInterner.exec(jprogram,jsProgram);
 JsVerboseNamer.exec(jsProgram);
 break;
 default :
@@ -74,26 +75,12 @@ throw new InternalCompilerException("Unknown output mode");
 JsIEBlockSizeVisitor.exec(jsProgram);
 JsBreakUpLargeVarStatements.exec(jsProgram,propertyOracles);
 String[] js=new String[jsProgram.getFragmentCount()];
-List<Map<Range,SourceInfo>> sourceInfoMaps=options.isSoycEnabled() ? new ArrayList<Map<Range,SourceInfo>>(jsProgram.getFragmentCount()) : null;
 StatementRanges[] ranges=new StatementRanges[js.length];
-for (int i=0; i < js.length; i++) {
-DefaultTextOutput out=new DefaultTextOutput(options.getOutput().shouldMinimize());
-JsSourceGenerationVisitor v;
-if (sourceInfoMaps != null) {
-v=new JsReportGenerationVisitor(out);
-}
- else {
-v=new JsSourceGenerationVisitor(out);
-}
-v.accept(jsProgram.getFragmentBlock(i));
-js[i]=out.toString();
-if (sourceInfoMaps != null) {
-sourceInfoMaps.add(((JsReportGenerationVisitor)v).getSourceInfoMap());
-}
-ranges[i]=v.getStatementRanges();
-}
+SizeBreakdown[] sizeBreakdowns=options.isSoycEnabled() ? new SizeBreakdown[js.length] : null;
+List<Map<Range,SourceInfo>> sourceInfoMaps=options.isSoycExtra() ? new ArrayList<Map<Range,SourceInfo>>() : null;
+generateJavaScriptCode(options,jsProgram,map,js,ranges,sizeBreakdowns,sourceInfoMaps);
 PermutationResult toReturn=new PermutationResultImpl(js,makeSymbolMap(symbolTable),ranges,permutationId);
-toReturn.getArtifacts().add(makeSoycArtifact(logger,permutationId,jprogram,js,sourceInfoMaps,dependencies));
+toReturn.getArtifacts().add(makeSoycArtifact(logger,permutationId,jprogram,js,sizeBreakdowns,sourceInfoMaps,dependencies,map,obfuscateMap));
 System.out.println("Permutation took " + (System.currentTimeMillis() - permStart) + " ms");
 return toReturn;
 }

@@ -15,7 +15,7 @@
   outFile.println("<center>");
   outFile.println("<h3>Story of Your Compile Dashboard</h3>");
   outFile.println("<hr>");
-  if (GlobalInformation.fragmentToStories.size() > 1) {
+  if (GlobalInformation.splitPointToLocation.size() > 1) {
     outFile.println("<b>Initial download size: <span style=\"color:maroon\">" + GlobalInformation.initialCodeBreakdown.sizeAllCode + "</span></span></b>");
   }
  else {
@@ -30,7 +30,7 @@
   }
   int outerHeight=25 * numRows;
   outFile.println("<div style=\"width:100%; margin:20px 0 20px 0; background-color:white;position:relative;height:" + outerHeight + "\">");
-  float maxSize=GlobalInformation.totalCodeBreakdown.sizeAllCode;
+  int maxSize=GlobalInformation.totalCodeBreakdown.sizeAllCode;
   int yOffset=0;
   for (int i=FRAGMENT_NUMBER_TOTAL_PROGRAM; i <= numSplitPoints + 1; i++) {
     if (i == 1 && numSplitPoints == 0) {
@@ -51,14 +51,8 @@
     }
     String drillDownFileName=shellFileName(breakdown);
     String splitPointDescription=breakdown.getDescription();
-    float size;
-    if (i >= 0) {
-      size=GlobalInformation.fragmentToPartialSize.get(i);
-    }
- else {
-      size=GlobalInformation.totalCodeBreakdown.sizeAllCode;
-    }
-    float ratio=(size / maxSize) * 79;
+    int size=breakdown.sizeAllCode;
+    float ratio=(1.0F * size / maxSize) * 79;
     if (ratio < 3) {
       ratio=3;
     }
@@ -73,7 +67,7 @@
     outFile.println("</div></div></div></div>");
     outFile.println("</div>");
     int yOffsetText=yOffset + 8;
-    outFile.printf("<div class=\"barlabel\" style=\"top: " + yOffsetText + "px; left:5px;\">%.1f</div>\n",size);
+    outFile.printf("<div class=\"barlabel\" style=\"top: " + yOffsetText + "px; left:5px;\">%d</div>\n",size);
     outFile.println("<div class=\"barlabel\" style=\"top: " + yOffsetText + "px; left:120px;\"><a href=\""+ drillDownFileName+ "\" target=\"_top\">"+ splitPointDescription+ "</a></div>");
     yOffset=yOffset + 25;
   }
