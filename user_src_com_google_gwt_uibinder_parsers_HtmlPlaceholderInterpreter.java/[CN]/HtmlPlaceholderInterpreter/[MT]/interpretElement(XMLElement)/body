@@ -1,0 +1,17 @@
+{
+  fieldAndComputed.interpretElement(elem);
+  if (isDomPlaceholder(elem)) {
+    MessagesWriter mw=uiWriter.getMessages();
+    String name=mw.consumeMessageAttribute("ph",elem);
+    if ("".equals(name)) {
+      name="htmlElement" + (++serial);
+    }
+    String openTag=elem.consumeOpeningTag();
+    String openPlaceholder=nextPlaceholder(name + "Begin",stripTokens(openTag),uiWriter.detokenate(openTag));
+    String body=elem.consumeInnerHtml(this);
+    String closeTag=elem.getClosingTag();
+    String closePlaceholder=nextPlaceholder(name + "End",closeTag,closeTag);
+    return openPlaceholder + body + closePlaceholder;
+  }
+  return super.interpretElement(elem);
+}

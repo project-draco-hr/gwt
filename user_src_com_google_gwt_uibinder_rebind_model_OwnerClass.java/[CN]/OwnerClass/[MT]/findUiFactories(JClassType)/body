@@ -1,0 +1,21 @@
+{
+  JMethod[] methods=ownerType.getMethods();
+  for (  JMethod method : methods) {
+    if (method.isAnnotationPresent(UiFactory.class)) {
+      JClassType factoryType=method.getReturnType().isClassOrInterface();
+      if (factoryType == null) {
+        System.out.println("Factory return type is not a class in method " + method.getName());
+        throw new UnableToCompleteException();
+      }
+      if (uiFactories.containsKey(factoryType)) {
+        System.out.println("Duplicate factory in class " + method.getEnclosingType().getName() + " for type "+ factoryType.getName());
+        throw new UnableToCompleteException();
+      }
+      uiFactories.put(factoryType,method);
+    }
+  }
+  JClassType superclass=ownerType.getSuperclass();
+  if (superclass != null) {
+    findUiFactories(superclass);
+  }
+}

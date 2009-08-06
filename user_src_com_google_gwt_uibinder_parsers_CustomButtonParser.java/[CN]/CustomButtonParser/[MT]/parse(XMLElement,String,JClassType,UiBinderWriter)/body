@@ -1,0 +1,29 @@
+{
+  for (  XMLElement child : elem.consumeChildElements()) {
+    String ns=child.getNamespaceUri();
+    String faceName=child.getLocalName();
+    if (!ns.equals(elem.getNamespaceUri())) {
+      writer.die("Invalid CustomButton child namespace: " + ns);
+    }
+    if (!faceNames.contains(faceName)) {
+      writer.die("Invalid CustomButton face: " + faceName);
+    }
+    HtmlInterpreter interpreter=HtmlInterpreter.newInterpreterForUiObject(writer,fieldName);
+    String innerHtml=child.consumeInnerHtml(interpreter).trim();
+    if (innerHtml.length() > 0) {
+      writer.addStatement("%1$s.get%2$s().setHTML(\"%3$s\");",fieldName,faceName,innerHtml);
+    }
+    if (child.hasAttribute("html")) {
+      String html=child.consumeAttribute("html");
+      writer.addStatement("%1$s.get%2$s().setHTML(\"%3$s\");",fieldName,faceName,html);
+    }
+    if (child.hasAttribute("text")) {
+      String text=child.consumeAttribute("text");
+      writer.addStatement("%1$s.get%2$s().setText(\"%3$s\");",fieldName,faceName,text);
+    }
+    if (child.hasAttribute("image")) {
+      String image=child.consumeAttribute("image");
+      writer.addStatement("%1$s.get%2$s().setImage(new %3$s(\"%4$s\"));",fieldName,faceName,IMAGE_CLASS,image);
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  String attributeValue=null;
+  if (elem.hasAttribute(attribute)) {
+    attributeValue=elem.consumeAttribute(attribute);
+    if ("".equals(attributeValue)) {
+      writer.die("In %s, value for attribute %s cannot be empty",elem,attribute);
+    }
+    if (isMultiValue && attributeValue.contains(",")) {
+      String[] values=attributeValue.split(",");
+      for (      String value : values) {
+        value=value.trim();
+        if ("".equals(value)) {
+          writer.die("In %s, value for attribute %s cannot be empty",elem,attribute);
+        }
+        writer.addStatement("%1$s.%2$s(\"%3$s\");",fieldName,targetSetterMethod,value);
+      }
+    }
+ else {
+      writer.addStatement("%1$s.%2$s(\"%3$s\");",fieldName,targetSetterMethod,attributeValue);
+    }
+  }
+}

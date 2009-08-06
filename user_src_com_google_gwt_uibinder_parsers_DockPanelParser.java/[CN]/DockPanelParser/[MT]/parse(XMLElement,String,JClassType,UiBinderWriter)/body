@@ -1,0 +1,33 @@
+{
+  for (  XMLElement child : elem.consumeChildElements()) {
+    String ns=child.getNamespaceUri();
+    String tagName=child.getLocalName();
+    if (!ns.equals(elem.getNamespaceUri())) {
+      writer.die("Invalid DockPanel child namespace: " + ns);
+    }
+    if (!tagName.equals(TAG_DOCK)) {
+      writer.die("Invalid DockPanel child element: " + tagName);
+    }
+    if (!child.hasAttribute("direction")) {
+      writer.die("Dock must specify the 'direction' attribute");
+    }
+    String value=child.consumeAttribute("direction");
+    String translated=values.get(value);
+    if (translated == null) {
+      writer.die("Invalid value: dockDirection='" + value + "'");
+    }
+    XMLElement widget=child.consumeSingleChildElement();
+    if (widget == null) {
+      writer.die("Dock must contain a single child widget.");
+    }
+    String childFieldName=writer.parseWidget(widget);
+    writer.addStatement("%1$s.add(%2$s, %3$s);",fieldName,childFieldName,translated);
+    if (child.hasAttribute("width")) {
+      writer.addStatement("%1$s.setCellWidth(%2$s, \"%3$s\");",fieldName,childFieldName,child.consumeAttribute("width"));
+    }
+    if (child.hasAttribute("height")) {
+      writer.addStatement("%1$s.setCellHeight(%2$s, \"%3$s\");",fieldName,childFieldName,child.consumeAttribute("height"));
+    }
+    CellPanelParser.parseCellAttributes(child,fieldName,childFieldName,writer);
+  }
+}

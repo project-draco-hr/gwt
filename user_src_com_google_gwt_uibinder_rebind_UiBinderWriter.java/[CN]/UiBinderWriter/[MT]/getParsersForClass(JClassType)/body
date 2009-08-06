@@ -1,0 +1,21 @@
+{
+  List<ElementParser> parsers=new ArrayList<ElementParser>();
+  parsers.add(new AttributeMessageParser());
+  for (  JClassType curType : getClassHierarchyBreadthFirst(type)) {
+    try {
+      Class<? extends ElementParser> cls=getParserForClass(curType);
+      if (cls != null) {
+        ElementParser parser=cls.newInstance();
+        parsers.add(parser);
+      }
+    }
+ catch (    InstantiationException e) {
+      throw new RuntimeException("Unable to instantiate " + curType.getName(),e);
+    }
+catch (    IllegalAccessException e) {
+      throw new RuntimeException("Unable to instantiate " + curType.getName(),e);
+    }
+  }
+  parsers.add(new BeanParser());
+  return parsers;
+}

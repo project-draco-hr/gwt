@@ -1,0 +1,16 @@
+{
+  Collection<OwnerField> ownerFields=getOwnerClass().getUiFields();
+  for (  OwnerField ownerField : ownerFields) {
+    FieldWriter fieldWriter=fieldManager.lookup(ownerField.getName());
+    BundleAttributeParser bundleParser=bundleParsers.get(ownerField.getType().getRawType().getQualifiedSourceName());
+    if (bundleParser != null) {
+      maybeWriteFieldSetter(niceWriter,ownerField,bundleParser.bundleClass(),bundleParser.bundleInstance());
+    }
+ else     if (fieldWriter != null) {
+      maybeWriteFieldSetter(niceWriter,ownerField,fieldWriter.getType(),ownerField.getName());
+    }
+ else {
+      die("Template %s has no %s attribute for %s.%s#%s",templatePath,getGwtFieldAttributeName(),uiOwnerType.getPackage().getName(),uiOwnerType.getName(),ownerField.getName());
+    }
+  }
+}

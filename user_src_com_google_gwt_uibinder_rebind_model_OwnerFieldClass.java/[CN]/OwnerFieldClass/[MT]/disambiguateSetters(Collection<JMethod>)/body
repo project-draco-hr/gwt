@@ -1,0 +1,22 @@
+{
+  if (propertySetters.size() == 1) {
+    return propertySetters.iterator().next();
+  }
+  for (  JMethod method : propertySetters) {
+    JParameter[] parameters=method.getParameters();
+    if (parameters.length == 1 && parameters[0].getType().getQualifiedSourceName().equals("java.lang.String")) {
+      return method;
+    }
+  }
+  JMethod firstMethod=null;
+  for (  JMethod method : propertySetters) {
+    if (firstMethod == null) {
+      firstMethod=method;
+      continue;
+    }
+    if (!sameParameterTypes(method,firstMethod)) {
+      return null;
+    }
+  }
+  return firstMethod;
+}

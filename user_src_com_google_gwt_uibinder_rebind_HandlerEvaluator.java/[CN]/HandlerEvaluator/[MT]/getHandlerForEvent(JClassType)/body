@@ -1,0 +1,26 @@
+{
+  if (eventType == null) {
+    return null;
+  }
+  JMethod method=eventType.findMethod("getAssociatedType",new JType[0]);
+  if (method == null) {
+    warn("Method 'getAssociatedType()' could not be found in the event '%s'.",eventType.getName());
+    return null;
+  }
+  JType returnType=method.getReturnType();
+  if (returnType == null) {
+    warn("The method 'getAssociatedType()' in the event '%s' returns void.",eventType.getName());
+    return null;
+  }
+  JParameterizedType isParameterized=returnType.isParameterized();
+  if (isParameterized == null) {
+    warn("The method 'getAssociatedType()' in '%s' does not return Type<? extends EventHandler>.",eventType.getName());
+    return null;
+  }
+  JClassType[] argTypes=isParameterized.getTypeArgs();
+  if ((argTypes.length != 1) && !argTypes[0].isAssignableTo(eventHandlerJClass)) {
+    warn("The method 'getAssociatedType()' in '%s' does not return Type<? extends EventHandler>.",eventType.getName());
+    return null;
+  }
+  return argTypes[0];
+}

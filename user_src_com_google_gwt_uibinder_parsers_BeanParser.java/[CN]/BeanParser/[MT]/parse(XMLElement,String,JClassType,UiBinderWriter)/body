@@ -1,0 +1,93 @@
+{
+  final Map<String,String> setterValues=new HashMap<String,String>();
+  final Map<String,String> localizedValues=fetchLocalizedAttributeValues(elem,writer);
+  final Map<String,String> requiredValues=new HashMap<String,String>();
+  final Map<String,JParameter> unfilledRequiredParams=new HashMap<String,JParameter>();
+  final OwnerFieldClass ownerFieldClass=OwnerFieldClass.getFieldClass(type);
+  JAbstractMethod creator=writer.getOwnerClass().getUiFactoryMethod(type);
+  if (creator == null) {
+    creator=ownerFieldClass.getUiConstructor();
+  }
+  if (creator != null) {
+    for (    JParameter param : creator.getParameters()) {
+      unfilledRequiredParams.put(param.getName(),param);
+    }
+  }
+  for (  Entry<String,String> property : localizedValues.entrySet()) {
+    String key=property.getKey();
+    String value=property.getValue();
+    JParameter param=unfilledRequiredParams.get(key);
+    if (param != null) {
+      if (!isString(writer,param)) {
+        writer.die("In %s, cannot appply message attribute to non-string " + "constructor argument %s %s.",elem,param.getType().getSimpleSourceName(),key);
+      }
+      requiredValues.put(key,value);
+      unfilledRequiredParams.remove(key);
+    }
+ else {
+      JMethod setter=ownerFieldClass.getSetter(key);
+      JParameter[] params=setter == null ? null : setter.getParameters();
+      if (setter == null || !(params.length == 1) || !isString(writer,params[0])) {
+        writer.die("In %s, no method found to apply message attribute %s",elem,key);
+      }
+ else {
+        setterValues.put(key,value);
+      }
+    }
+  }
+  for (int i=elem.getAttributeCount() - 1; i >= 0; i--) {
+    XMLAttribute attribute=elem.getAttribute(i);
+    if (attribute.getName().startsWith("xmlns:")) {
+      continue;
+    }
+    String propertyName=attribute.getLocalName();
+    if (setterValues.keySet().contains(propertyName) || requiredValues.containsKey(propertyName)) {
+      writer.die("Duplicate attribute name: %s",propertyName);
+    }
+    if (unfilledRequiredParams.keySet().contains(propertyName)) {
+      JParameter parameter=unfilledRequiredParams.get(propertyName);
+      AttributeParser parser=writer.getAttributeParser(attribute,parameter);
+      if (parser == null) {
+        writer.die("In %s, unable to parse %s as constructor argument " + "of type %s",elem,attribute,parameter.getType().getSimpleSourceName());
+      }
+      requiredValues.put(propertyName,parser.parse(attribute.consumeValue(),writer));
+      unfilledRequiredParams.remove(propertyName);
+    }
+ else {
+      JMethod setter=ownerFieldClass.getSetter(propertyName);
+      if (setter == null) {
+        writer.die("In %s, class %s has no appropriate set%s() method",elem,elem.getLocalName(),initialCap(propertyName));
+      }
+      JParameter[] params=setter.getParameters();
+      AttributeParser parser=writer.getAttributeParser(attribute,params);
+      if (parser == null) {
+        if (params.length == 1 && JPrimitiveType.INT == params[0].getType()) {
+          writer.die("In %s, %s cannot be parsed for %s.",elem,attribute,asString(setter));
+        }
+      }
+ else {
+        setterValues.put(propertyName,parser.parse(attribute.consumeValue(),writer));
+      }
+    }
+  }
+  if (!unfilledRequiredParams.isEmpty()) {
+    StringBuilder b=new StringBuilder(String.format("%s missing required arguments:",elem));
+    for (    String name : unfilledRequiredParams.keySet()) {
+      b.append(" ").append(name);
+    }
+    writer.die(b.toString());
+  }
+  if (creator != null) {
+    String[] args=makeArgsList(requiredValues,creator);
+    if (creator instanceof JMethod) {
+      String factoryMethod=String.format("owner.%s(%s)",creator.getName(),UiBinderWriter.asCommaSeparatedList(args));
+      writer.setFieldInitializer(fieldName,factoryMethod);
+    }
+ else {
+      writer.setFieldInitializerAsConstructor(fieldName,type,args);
+    }
+  }
+  for (  String propertyName : setterValues.keySet()) {
+    writer.addStatement("%s.set%s(%s);",fieldName,initialCap(propertyName),setterValues.get(propertyName));
+  }
+}

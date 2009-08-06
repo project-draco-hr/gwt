@@ -1,0 +1,18 @@
+{
+  JMethod method=getOwnerClass().getUiFactoryMethod(bundleClass);
+  if (method != null) {
+    return new BundleAttributeParser(bundleClass,"owner." + method.getName() + "()",false);
+  }
+  OwnerField field=getOwnerClass().getUiFieldForType(bundleClass);
+  if (field != null) {
+    String[] tmp=attribute.getName().split(":");
+    String templateName=tmp[0];
+    if (!templateName.equals(field.getName())) {
+      die("Template %s has no \"xmlns:%s='urn:with:%s'\" for %s.%s#%s",templatePath,field.getName(),bundleClass.getQualifiedSourceName(),uiOwnerType.getPackage().getName(),uiOwnerType.getName(),field.getName());
+    }
+    if (field.isProvided()) {
+      return new BundleAttributeParser(bundleClass,"owner." + field.getName(),false);
+    }
+  }
+  return new BundleAttributeParser(bundleClass,"my" + bundleClass.getName().replace('.','_') + "Instance",true);
+}

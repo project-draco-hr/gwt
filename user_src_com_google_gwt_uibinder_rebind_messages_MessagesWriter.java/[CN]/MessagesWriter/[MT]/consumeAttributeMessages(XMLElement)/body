@@ -1,0 +1,20 @@
+{
+  Collection<XMLElement> messageChildren=getAttributeMessageChildren(elem);
+  if (messageChildren.isEmpty()) {
+    return Collections.emptySet();
+  }
+  Set<AttributeMessage> attributeMessages=new HashSet<AttributeMessage>();
+  for (  XMLElement child : messageChildren) {
+    String attributeName=consumeMessageElementAttribute(NAME,child);
+    if (attributeName.length() == 0) {
+      die(String.format("Missing name attribute in %s",child));
+    }
+    if (!elem.hasAttribute(attributeName)) {
+      die(String.format("%s has no attribute matching %s",elem,child));
+    }
+    String defaultMessage=MessageWriter.escapeMessageFormat(elem.consumeAttribute(attributeName));
+    defaultMessage=UiBinderWriter.escapeTextForJavaStringLiteral(defaultMessage);
+    attributeMessages.add(new AttributeMessage(attributeName,declareMessage(child,defaultMessage)));
+  }
+  return attributeMessages;
+}

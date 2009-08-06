@@ -1,0 +1,20 @@
+{
+  if (attribute.getNamespaceUri() == null) {
+    return null;
+  }
+  String attributePrefixUri=attribute.getNamespaceUri();
+  if (!attributePrefixUri.startsWith(BUNDLE_URI_SCHEME)) {
+    return null;
+  }
+  String bundleClassName=attributePrefixUri.substring(BUNDLE_URI_SCHEME.length());
+  BundleAttributeParser parser=bundleParsers.get(bundleClassName);
+  if (parser == null) {
+    JClassType bundleClass=getOracle().findType(bundleClassName);
+    if (bundleClass == null) {
+      die("No such bundle class: " + bundleClassName);
+    }
+    parser=createBundleParser(bundleClass,attribute);
+    bundleParsers.put(bundleClassName,parser);
+  }
+  return parser;
+}

@@ -1,0 +1,29 @@
+{
+  TypeOracle oracle=genCtx.getTypeOracle();
+  JClassType interfaceType;
+  try {
+    interfaceType=oracle.getType(fqInterfaceName);
+  }
+ catch (  NotFoundException e) {
+    throw new RuntimeException(e);
+  }
+  String implName=interfaceType.getName();
+  implName=implName.replace('.','_') + "Impl";
+  String packageName=interfaceType.getPackage().getName();
+  PrintWriter printWriter=genCtx.tryCreate(logger,packageName,implName);
+  if (printWriter != null) {
+    String templateName=deduceTemplateFile(logger,interfaceType);
+    Document document;
+    try {
+      document=parseXmlResource(logger,templateName);
+    }
+ catch (    SAXParseException e) {
+      logger.log(TreeLogger.ERROR,"Error parsing XML (line " + e.getLineNumber() + "): "+ e.getMessage(),e);
+      throw new UnableToCompleteException();
+    }
+    UiBinderWriter uiBinderWriter=new UiBinderWriter(interfaceType,implName,templateName,oracle,logger);
+    uiBinderWriter.parseDocument(document);
+    commit(logger,genCtx,packageName,printWriter,uiBinderWriter);
+  }
+  return packageName + "." + implName;
+}

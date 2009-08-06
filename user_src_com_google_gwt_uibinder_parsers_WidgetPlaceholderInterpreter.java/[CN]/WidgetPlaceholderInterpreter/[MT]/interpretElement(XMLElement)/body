@@ -1,0 +1,21 @@
+{
+  if (!uiWriter.isWidget(elem)) {
+    return super.interpretElement(elem);
+  }
+  JClassType type=uiWriter.findWidgetOrElementType(elem);
+  TypeOracle oracle=uiWriter.getOracle();
+  MessagesWriter mw=uiWriter.getMessages();
+  String name=mw.consumeMessageAttribute("ph",elem);
+  if ("".equals(name)) {
+    name="widget" + (++serial);
+  }
+  String idHolder=uiWriter.declareDomIdHolder();
+  idToWidgetElement.put(idHolder,elem);
+  if (oracle.findType(HasHTML.class.getName()).isAssignableFrom(type)) {
+    return handleHasHTMLPlaceholder(elem,name,idHolder);
+  }
+  if (oracle.findType(HasText.class.getName()).isAssignableFrom(type)) {
+    return handleHasTextPlaceholder(elem,name,idHolder);
+  }
+  return handleOpaqueWidgetPlaceholder(elem,name,idHolder);
+}

@@ -1,0 +1,12 @@
+{
+  HtmlInterpreter interpreter=new HtmlInterpreter(writer,"root",new HtmlMessageInterpreter(writer,"root"));
+  writer.setFieldInitializer(fieldName,"null");
+  interpreter.interpretElement(elem);
+  String rootHtml=elem.consumeOpeningTag() + elem.getClosingTag();
+  String rootType=getFQTypeName(type);
+  writer.genRoot(String.format("(%1$s) UiBinderUtil.fromHtml(\"%2$s\")",rootType,rootHtml));
+  String innerHtml=elem.consumeInnerHtml(interpreter);
+  if (innerHtml.trim().length() > 0) {
+    writer.addStatement("root.setInnerHTML(\"%s\");",innerHtml);
+  }
+}

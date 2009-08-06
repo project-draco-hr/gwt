@@ -1,0 +1,25 @@
+{
+  String templateName=null;
+  UiTemplate annotation=interfaceType.getAnnotation(UiTemplate.class);
+  if (annotation == null) {
+    if (interfaceType.getEnclosingType() != null) {
+      interfaceType=interfaceType.getEnclosingType();
+    }
+    return slashify(interfaceType.getQualifiedSourceName()) + TEMPLATE_SUFFIX;
+  }
+ else {
+    templateName=annotation.value();
+    if (!templateName.endsWith(TEMPLATE_SUFFIX)) {
+      logger.log(TreeLogger.ERROR,"Template file name must end with " + TEMPLATE_SUFFIX);
+      throw new UnableToCompleteException();
+    }
+    String unsuffixed=templateName.substring(0,templateName.lastIndexOf(TEMPLATE_SUFFIX));
+    if (!unsuffixed.contains(".")) {
+      templateName=slashify(interfaceType.getPackage().getName()) + "/" + templateName;
+    }
+ else {
+      templateName=slashify(unsuffixed) + TEMPLATE_SUFFIX;
+    }
+  }
+  return templateName;
+}

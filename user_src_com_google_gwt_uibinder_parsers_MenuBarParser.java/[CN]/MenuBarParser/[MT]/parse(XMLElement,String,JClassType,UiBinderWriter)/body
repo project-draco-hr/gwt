@@ -1,0 +1,19 @@
+{
+  if (elem.hasAttribute("vertical")) {
+    boolean vertical=elem.consumeBooleanAttribute("vertical");
+    if (vertical) {
+      writer.setFieldInitializerAsConstructor(fieldName,writer.getOracle().findType(MenuBar.class.getName()),"true");
+    }
+  }
+  for (  XMLElement child : elem.consumeChildElements()) {
+{
+      String ns=child.getNamespaceUri();
+      String tagName=child.getLocalName();
+      if (!elem.getNamespaceUri().equals(ns) || !tagName.equals(TAG_MENUITEM)) {
+        writer.die("In %s, only <%s:%s> are valid children",elem,elem.getPrefix(),TAG_MENUITEM);
+      }
+    }
+    String itemFieldName=writer.parseWidget(child);
+    writer.addStatement("%1$s.addItem(%2$s);",fieldName,itemFieldName);
+  }
+}

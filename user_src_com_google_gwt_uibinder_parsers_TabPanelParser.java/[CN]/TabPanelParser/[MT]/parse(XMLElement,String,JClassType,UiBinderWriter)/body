@@ -1,0 +1,36 @@
+{
+  for (  XMLElement child : elem.consumeChildElements()) {
+    String ns=child.getNamespaceUri();
+    String tagName=child.getLocalName();
+    if (!ns.equals(elem.getNamespaceUri())) {
+      writer.die("Invalid TabPanel child namespace: " + ns);
+    }
+    if (!tagName.equals(TAG_TAB)) {
+      writer.die("Invalid TabPanel child element: " + tagName);
+    }
+    String tabCaption="";
+    if (child.hasAttribute("text")) {
+      tabCaption=child.consumeAttribute("text");
+    }
+    String tabHTML=null;
+    String childFieldName=null;
+    for (    XMLElement tabChild : child.consumeChildElements()) {
+      if (tabChild.getLocalName().equals(TAG_TABHTML)) {
+        HtmlInterpreter interpreter=HtmlInterpreter.newInterpreterForUiObject(writer,fieldName);
+        tabHTML=tabChild.consumeInnerHtml(interpreter);
+      }
+ else {
+        if (childFieldName != null) {
+          writer.die("gwt:Tab may only have a single child widget");
+        }
+        childFieldName=writer.parseWidget(tabChild);
+      }
+    }
+    if (tabHTML != null) {
+      writer.addStatement("%1$s.add(%2$s, \"%3$s\", true);",fieldName,childFieldName,tabHTML);
+    }
+ else {
+      writer.addStatement("%1$s.add(%2$s, \"%3$s\");",fieldName,childFieldName,tabCaption);
+    }
+  }
+}

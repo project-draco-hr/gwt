@@ -1,0 +1,31 @@
+{
+  for (  JMethod method : ownerClass.getUiHandlers()) {
+    String boundMethod=method.getName();
+    if (method.isPrivate()) {
+      die("Method '%s' cannot be private.",boundMethod);
+    }
+    JParameter[] parameters=method.getParameters();
+    if (parameters.length != 1) {
+      die("Method '%s' must have a single event parameter defined.",boundMethod);
+    }
+    JClassType eventType=parameters[0].getType().isClass();
+    JClassType handlerType=getHandlerForEvent(eventType);
+    if (handlerType == null) {
+      die("Parameter '%s' is not an event (subclass of GwtEvent).",eventType.getName());
+    }
+    String handlerVarName=HANDLER_BASE_NAME + (++varCounter);
+    writeHandler(writer,uiOwner,handlerVarName,handlerType,eventType,boundMethod);
+    UiHandler annotation=method.getAnnotation(UiHandler.class);
+    for (    String objectName : annotation.value()) {
+      FieldWriter fieldWriter=fieldManager.lookup(objectName);
+      if (fieldWriter == null) {
+        die("Method '%s' can not be bound. You probably missed ui:field='%s' " + "in the template.",boundMethod,objectName);
+      }
+      JMethod addHandlerMethodType=getAddHandlerMethodForObject(fieldWriter.getType(),handlerType);
+      if (addHandlerMethodType == null) {
+        die("Field '%s' does not have an 'add%s' method associated.",objectName,handlerType.getName());
+      }
+      writeAddHandler(writer,handlerVarName,addHandlerMethodType.getName(),objectName);
+    }
+  }
+}

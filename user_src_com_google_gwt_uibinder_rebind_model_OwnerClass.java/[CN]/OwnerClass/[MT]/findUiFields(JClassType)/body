@@ -1,0 +1,20 @@
+{
+  JField[] fields=ownerType.getFields();
+  for (  JField field : fields) {
+    if (field.isAnnotationPresent(UiField.class)) {
+      JClassType ownerFieldType=field.getType().isClassOrInterface();
+      if (ownerFieldType == null) {
+        System.out.println("Field type is not a class in field " + field.getName());
+        throw new UnableToCompleteException();
+      }
+      OwnerField ownerField=new OwnerField(field);
+      String ownerFieldName=field.getName();
+      uiFields.put(ownerFieldName,ownerField);
+      uiFieldTypes.put(ownerFieldType,ownerField);
+    }
+  }
+  JClassType superclass=ownerType.getSuperclass();
+  if (superclass != null) {
+    findUiFields(superclass);
+  }
+}
