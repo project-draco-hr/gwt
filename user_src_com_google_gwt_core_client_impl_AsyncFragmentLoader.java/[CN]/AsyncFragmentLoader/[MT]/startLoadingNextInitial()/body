@@ -13,7 +13,7 @@
   if (remainingInitialFragments.size() > 0) {
     initialFragmentsLoading=true;
     int nextSplitPoint=remainingInitialFragments.peek();
-    logDownloadStart(nextSplitPoint);
+    logEventProgress(LwmLabels.downloadGroup(nextSplitPoint),LwmLabels.BEGIN,nextSplitPoint,null);
     startLoadingFragment(nextSplitPoint,new InitialFragmentDownloadFailed());
     return;
   }
@@ -21,9 +21,6 @@
   assert(haveInitialFragmentsLoaded());
   assert(waitingForInitialFragments.size() == waitingForInitialFragmentsErrorHandlers.size());
   while (waitingForInitialFragments.size() > 0) {
-    int nextSplitPoint=waitingForInitialFragments.remove();
-    LoadErrorHandler handler=waitingForInitialFragmentsErrorHandlers.remove();
-    logDownloadStart(nextSplitPoint);
-    startLoadingFragment(nextSplitPoint,handler);
+    startLoadingFragment(waitingForInitialFragments.remove(),waitingForInitialFragmentsErrorHandlers.remove());
   }
 }

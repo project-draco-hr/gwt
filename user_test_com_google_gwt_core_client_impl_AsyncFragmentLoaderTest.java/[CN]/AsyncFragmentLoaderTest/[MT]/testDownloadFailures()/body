@@ -1,26 +1,21 @@
 {
   MockLoadStrategy reqs=new MockLoadStrategy();
-  MockProgressLogger progress=new MockProgressLogger();
   int numEntries=6;
-  AsyncFragmentLoader loader=new AsyncFragmentLoader(numEntries,new int[]{1,2,3},reqs,progress);
+  AsyncFragmentLoader loader=new AsyncFragmentLoader(numEntries,new int[]{1,2,3},reqs,NULL_LOGGER);
   MockErrorHandler error1try1=new MockErrorHandler();
   loader.inject(1,error1try1);
   reqs.assertFragmentsRequested(1);
-  progress.assertEvent("download1",BEGIN,1);
   loadFailed(reqs,1);
   assertTrue(error1try1.getWasCalled());
   MockErrorHandler error1try2=new MockErrorHandler();
   loader.inject(1,error1try2);
   reqs.assertFragmentsRequested(1);
-  progress.assertEvent("download1",BEGIN,1);
   loader.fragmentHasLoaded(1);
   reqs.assertFragmentsRequested();
   assertFalse(error1try2.getWasCalled());
-  progress.assertEvent("download1",END,1);
   MockErrorHandler error3try1=new MockErrorHandler();
   loader.inject(3,error3try1);
   reqs.assertFragmentsRequested(2);
-  progress.assertEvent("download2",BEGIN,2);
   loadFailed(reqs,2);
   assertTrue(error3try1.wasCalled);
   MockErrorHandler error3try2=new MockErrorHandler();
@@ -28,15 +23,10 @@
   loader.inject(3,error3try2);
   loader.inject(5,error5try1);
   reqs.assertFragmentsRequested(2);
-  progress.assertEvent("download2",BEGIN,2);
   loader.fragmentHasLoaded(2);
   reqs.assertFragmentsRequested(3);
-  progress.assertEvent("download2",END,2);
-  progress.assertEvent("download3",BEGIN,3);
   loader.fragmentHasLoaded(3);
   reqs.assertFragmentsRequested(numEntries);
-  progress.assertEvent("download3",END,3);
-  progress.assertEvent(LEFTOVERS_DOWNLOAD,BEGIN,numEntries);
   loadFailed(reqs,numEntries);
   assertFalse(error3try2.getWasCalled());
   assertTrue(error5try1.getWasCalled());
@@ -44,14 +34,9 @@
   MockErrorHandler error5try2=new MockErrorHandler();
   loader.inject(5,error5try2);
   reqs.assertFragmentsRequested(numEntries);
-  progress.assertEvent(LEFTOVERS_DOWNLOAD,BEGIN,numEntries);
   loader.leftoversFragmentHasLoaded();
   reqs.assertFragmentsRequested(5);
-  progress.assertEvent(LEFTOVERS_DOWNLOAD,END,numEntries);
-  progress.assertEvent("download5",BEGIN,5);
   loader.fragmentHasLoaded(5);
   reqs.assertFragmentsRequested();
   assertFalse(error5try2.getWasCalled());
-  progress.assertEvent("download5",END,5);
-  progress.assertNoEvents();
 }
