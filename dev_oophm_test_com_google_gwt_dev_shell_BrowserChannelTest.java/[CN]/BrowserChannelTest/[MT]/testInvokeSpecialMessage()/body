@@ -1,0 +1,16 @@
+{
+  Value[] args=new Value[]{new Value(),new Value()};
+  args[0].setInt(0);
+  args[1].setInt(1);
+  new InvokeSpecialMessage(channel,SpecialDispatchId.HasMethod,args).send();
+  MessageType type=channel.readMessageType();
+  assertEquals(MessageType.INVOKE_SPECIAL,type);
+  InvokeSpecialMessage message=InvokeSpecialMessage.receive(channel);
+  assertEquals(SpecialDispatchId.HasMethod,message.getDispatchId());
+  Value[] argsRecv=message.getArgs();
+  assertEquals(2,argsRecv.length);
+  for (int i=0; i < 2; ++i) {
+    assertEquals(ValueType.INT,argsRecv[i].getType());
+    assertEquals(i,argsRecv[i].getInt());
+  }
+}

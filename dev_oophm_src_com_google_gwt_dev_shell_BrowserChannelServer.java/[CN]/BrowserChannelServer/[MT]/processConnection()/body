@@ -1,0 +1,63 @@
+{
+  MessageType type=Message.readMessageType(getStreamFromOtherSide());
+  String url=null;
+  String sessionKey=null;
+switch (type) {
+case OLD_LOAD_MODULE:
+    OldLoadModuleMessage oldLoadModule=OldLoadModuleMessage.receive(this);
+  if (oldLoadModule.getProtoVersion() != 1) {
+    throw new BrowserChannelException("Old LoadModule message used, but not v1 protocol");
+  }
+moduleName=oldLoadModule.getModuleName();
+userAgent=oldLoadModule.getUserAgent();
+break;
+case CHECK_VERSIONS:
+String connectError=null;
+CheckVersionsMessage hello=CheckVersionsMessage.receive(this);
+int minVersion=hello.getMinVersion();
+int maxVersion=hello.getMaxVersion();
+String hostedHtmlVersion=hello.getHostedHtmlVersion();
+if (minVersion > BROWSERCHANNEL_PROTOCOL_VERSION || maxVersion < BROWSERCHANNEL_PROTOCOL_VERSION) {
+connectError="No supported protocol version in range " + minVersion + " - "+ maxVersion;
+}
+if (connectError != null) {
+logger.log(TreeLogger.ERROR,"Connection error " + connectError,null);
+new FatalErrorMessage(this,connectError).send();
+return;
+}
+new ProtocolVersionMessage(this,BROWSERCHANNEL_PROTOCOL_VERSION).send();
+type=Message.readMessageType(getStreamFromOtherSide());
+if (type == MessageType.CHOOSE_TRANSPORT) {
+ChooseTransportMessage chooseTransport=ChooseTransportMessage.receive(this);
+String transport=selectTransport(chooseTransport.getTransports());
+String transportArgs=null;
+if (transport != null) {
+transportArgs=createTransport(transport);
+}
+new SwitchTransportMessage(this,transport,transportArgs).send();
+type=Message.readMessageType(getStreamFromOtherSide());
+}
+if (type != MessageType.LOAD_MODULE) {
+logger.log(TreeLogger.ERROR,"Unexpected message type " + type + "; expecting LoadModule");
+return;
+}
+LoadModuleMessage loadModule=LoadModuleMessage.receive(this);
+url=loadModule.getUrl();
+sessionKey=loadModule.getSessionKey();
+moduleName=loadModule.getModuleName();
+userAgent=loadModule.getUserAgent();
+break;
+default :
+logger.log(TreeLogger.ERROR,"Unexpected message type " + type + "; expecting CheckVersions");
+return;
+}
+Thread.currentThread().setName("Hosting " + moduleName + " for "+ userAgent+ " on "+ url+ " @ "+ sessionKey);
+logger=handler.loadModule(logger,this,moduleName,userAgent,url,sessionKey);
+try {
+ReturnMessage.send(this,false,new Value());
+reactToMessages(handler);
+}
+  finally {
+handler.unloadModule(this,moduleName);
+}
+}

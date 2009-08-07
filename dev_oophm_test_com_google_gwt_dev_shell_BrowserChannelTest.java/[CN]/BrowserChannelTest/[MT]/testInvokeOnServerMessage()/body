@@ -1,0 +1,22 @@
+{
+  int methodId=-1;
+  Value thisRef=new Value();
+  thisRef.setJavaObject(new JavaObjectRef(42));
+  Value[] args=new Value[]{new Value(),new Value()};
+  args[0].setInt(0);
+  args[1].setInt(1);
+  new InvokeOnServerMessage(channel,methodId,thisRef,args).send();
+  MessageType type=channel.readMessageType();
+  assertEquals(MessageType.INVOKE,type);
+  InvokeOnServerMessage message=InvokeOnServerMessage.receive(channel);
+  assertEquals(methodId,message.getMethodDispatchId());
+  Value thisRefRecv=message.getThis();
+  assertEquals(ValueType.JAVA_OBJECT,thisRefRecv.getType());
+  assertEquals(42,thisRefRecv.getJavaObject().getRefid());
+  Value[] argsRecv=message.getArgs();
+  assertEquals(2,argsRecv.length);
+  for (int i=0; i < 2; ++i) {
+    assertEquals(ValueType.INT,argsRecv[i].getType());
+    assertEquals(i,argsRecv[i].getInt());
+  }
+}
