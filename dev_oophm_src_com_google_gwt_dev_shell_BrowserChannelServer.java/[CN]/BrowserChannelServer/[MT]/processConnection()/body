@@ -1,6 +1,7 @@
 {
   MessageType type=Message.readMessageType(getStreamFromOtherSide());
   String url=null;
+  String tabKey=null;
   String sessionKey=null;
 switch (type) {
 case OLD_LOAD_MODULE:
@@ -43,6 +44,7 @@ return;
 }
 LoadModuleMessage loadModule=LoadModuleMessage.receive(this);
 url=loadModule.getUrl();
+tabKey=loadModule.getTabKey();
 sessionKey=loadModule.getSessionKey();
 moduleName=loadModule.getModuleName();
 userAgent=loadModule.getUserAgent();
@@ -52,7 +54,7 @@ logger.log(TreeLogger.ERROR,"Unexpected message type " + type + "; expecting Che
 return;
 }
 Thread.currentThread().setName("Hosting " + moduleName + " for "+ userAgent+ " on "+ url+ " @ "+ sessionKey);
-logger=handler.loadModule(logger,this,moduleName,userAgent,url,sessionKey);
+logger=handler.loadModule(logger,this,moduleName,userAgent,url,tabKey,sessionKey);
 try {
 ReturnMessage.send(this,false,new Value());
 reactToMessages(handler);
