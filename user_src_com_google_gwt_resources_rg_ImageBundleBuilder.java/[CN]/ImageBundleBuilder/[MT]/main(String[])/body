@@ -1,0 +1,50 @@
+{
+  final TreeLogger logger=new PrintWriterTreeLogger(new PrintWriter(System.out));
+  if (args.length < 2) {
+    logger.log(TreeLogger.ERROR,ImageBundleBuilder.class.getSimpleName() + " <output file> <input file> ...");
+    System.exit(-1);
+  }
+  ImageBundleBuilder builder=new ImageBundleBuilder();
+  boolean fail=false;
+  for (int i=1, j=args.length; i < j; i++) {
+    TreeLogger loopLogger=logger.branch(TreeLogger.DEBUG,"Processing argument " + args[i]);
+    File file=new File(args[i]);
+    Exception ex=null;
+    try {
+      builder.assimilate(loopLogger,args[i],file.toURL());
+    }
+ catch (    MalformedURLException e) {
+      ex=e;
+    }
+catch (    UnableToCompleteException e) {
+      ex=e;
+    }
+catch (    UnsuitableForStripException e) {
+      ex=e;
+    }
+    if (ex != null) {
+      loopLogger.log(TreeLogger.ERROR,"Unable to assimilate image",ex);
+      fail=true;
+    }
+  }
+  if (fail) {
+    System.exit(-1);
+  }
+  final String outFile=args[0];
+  try {
+    BufferedImage bundledImage=builder.drawBundledImage(new BestFitArranger());
+    byte[] bytes=createImageBytes(logger,bundledImage);
+    FileOutputStream out=new FileOutputStream(outFile);
+    out.write(bytes);
+    out.close();
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Unable to write output file",e);
+    System.exit(-2);
+  }
+catch (  UnableToCompleteException e) {
+    logger.log(TreeLogger.ERROR,"Unable to draw output image",e);
+    System.exit(-2);
+  }
+  System.exit(0);
+}
