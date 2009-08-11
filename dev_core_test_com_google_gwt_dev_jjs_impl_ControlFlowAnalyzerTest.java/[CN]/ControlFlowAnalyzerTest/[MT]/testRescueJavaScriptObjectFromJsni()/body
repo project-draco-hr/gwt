@@ -1,0 +1,25 @@
+{
+  sourceOracle.addOrReplace(new MockJavaResource("test.Foo"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("import com.google.gwt.core.client.JavaScriptObject;\n");
+      code.append("public class Foo {\n");
+      code.append("  public static native JavaScriptObject returnsJso() /*-{ return {}; }-*/;\n");
+      code.append("  public static native void assignsJsoField() /*-{ @test.Foo::jsoField = {}; }-*/;\n");
+      code.append("  public static native void readsJsoField() /*-{ var x = @test.Foo::jsoField; }-*/;\n");
+      code.append("  public static native void passesJsoParam() /*-{ @test.Foo::calledFromJsni(Lcom/google/gwt/core/client/JavaScriptObject;)({}); }-*/;\n");
+      code.append("  private static JavaScriptObject jsoField = null;\n");
+      code.append("  private static void calledFromJsni(JavaScriptObject arg) { }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  addSnippetImport("test.Foo");
+  analyzeSnippet("").assertOnlyInstantiatedTypes(Empty.STRINGS);
+  analyzeSnippet("Foo.returnsJso();").assertOnlyInstantiatedTypes("JavaScriptObject","Object");
+  analyzeSnippet("Foo.assignsJsoField();").assertOnlyInstantiatedTypes("JavaScriptObject","Object");
+  analyzeSnippet("Foo.readsJsoField();").assertOnlyInstantiatedTypes(Empty.STRINGS);
+  analyzeSnippet("Foo.passesJsoParam();").assertOnlyInstantiatedTypes("JavaScriptObject","Object");
+}

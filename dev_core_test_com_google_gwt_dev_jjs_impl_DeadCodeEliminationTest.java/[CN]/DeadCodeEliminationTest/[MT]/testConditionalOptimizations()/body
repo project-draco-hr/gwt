@@ -1,0 +1,10 @@
+{
+  optimize("int","return true ? 3 : 4;").into("return 3;");
+  optimize("int","return false ? 3 : 4;").into("return 4;");
+  addSnippetClassDecl("static volatile boolean TEST");
+  addSnippetClassDecl("static volatile boolean RESULT");
+  optimize("boolean","return TEST ? true : RESULT;").into("return TEST || RESULT;");
+  optimize("boolean","return TEST ? false : RESULT;").into("return !TEST && RESULT;");
+  optimize("boolean","return TEST ? RESULT : true;").into("return !TEST || RESULT;");
+  optimize("boolean","return TEST ? RESULT : false;").into("return TEST && RESULT;");
+}

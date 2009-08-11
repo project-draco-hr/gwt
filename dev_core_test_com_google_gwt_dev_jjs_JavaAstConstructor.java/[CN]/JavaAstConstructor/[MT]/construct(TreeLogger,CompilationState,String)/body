@@ -1,0 +1,31 @@
+{
+  Set<String> allRootTypes=new TreeSet<String>(Arrays.asList(entryPoints));
+  for (  MockJavaResource resource : getCompilerTypes()) {
+    allRootTypes.add(resource.getTypeName());
+  }
+  CompilationUnitDeclaration[] goldenCuds=BasicWebModeCompiler.getCompilationUnitDeclarations(logger,state,allRootTypes.toArray(Empty.STRINGS));
+  JavaToJavaScriptCompiler.checkForErrors(logger,goldenCuds,false);
+  CorrelationFactory correlator=new DummyCorrelationFactory();
+  JProgram jprogram=new JProgram(correlator);
+  JsProgram jsProgram=new JsProgram(correlator);
+  TypeMap typeMap=new TypeMap(jprogram);
+  TypeDeclaration[] allTypeDeclarations=BuildTypeMap.exec(typeMap,goldenCuds,jsProgram);
+  JavaToJavaScriptCompiler.checkForErrors(logger,goldenCuds,true);
+  jprogram.typeOracle.computeBeforeAST();
+  JJSOptionsImpl options=new JJSOptionsImpl();
+  options.setEnableAssertions(true);
+  GenerateJavaAST.exec(allTypeDeclarations,typeMap,jprogram,jsProgram,options);
+  JavaToJavaScriptCompiler.checkForErrors(logger,goldenCuds,true);
+  FixAssignmentToUnbox.exec(jprogram);
+  AssertionNormalizer.exec(jprogram);
+  for (  String entryPoint : entryPoints) {
+    JDeclaredType entryType=jprogram.getFromTypeMap(entryPoint);
+    for (    JMethod method : entryType.getMethods()) {
+      if (method.isStatic() && JProgram.isClinit(method)) {
+        jprogram.addEntryMethod(method);
+      }
+    }
+  }
+  JavaScriptObjectNormalizer.exec(jprogram);
+  return jprogram;
+}

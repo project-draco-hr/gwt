@@ -1,0 +1,20 @@
+{
+  sourceOracle.addOrReplace(new MockJavaResource("test.Foo"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("import com.google.gwt.core.client.JavaScriptObject;\n");
+      code.append("public class Foo {\n");
+      code.append("  public final boolean BOOL_CONST = true;\n");
+      code.append("  public boolean FOO = true;\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  addSnippetImport("test.Foo");
+  addSnippetClassDecl("static final Foo f = new Foo();");
+  analyzeExpression("boolean","f.BOOL_CONST").accessesField().canThrowException().check();
+  analyzeExpression("boolean","f.FOO").accessesFieldNonFinal().canThrowException().check();
+  analyzeExpression("boolean","f.FOO = false").accessesFieldNonFinal().canThrowException().hasAssignment().hasAssignmentToField().check();
+}
