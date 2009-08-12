@@ -1,12 +1,12 @@
 {
   WebClient webClient=new WebClient(browser);
-  webClient.setAlertHandler(this);
-  webClient.setIncorrectnessListener(this);
-  webClient.setThrowExceptionOnFailingStatusCode(false);
-  webClient.setThrowExceptionOnScriptError(true);
-  webClient.setOnbeforeunloadHandler(this);
-  setupWebClient(webClient);
   try {
+    webClient.setAlertHandler(this);
+    webClient.setIncorrectnessListener(this);
+    webClient.setThrowExceptionOnFailingStatusCode(false);
+    webClient.setThrowExceptionOnScriptError(true);
+    webClient.setOnbeforeunloadHandler(this);
+    setupWebClient(webClient);
     Page page=webClient.getPage(url);
     webClient.waitForBackgroundJavaScriptStartingBefore(2000);
     page.getEnclosingWindow().getJobManager().waitForJobs(60000);
@@ -21,6 +21,7 @@ catch (  MalformedURLException e) {
 catch (  IOException e) {
     treeLogger.log(TreeLogger.ERROR,"I/O error on HTTP request",e);
   }
-  webClient.closeAllWindows();
-  return;
+ finally {
+    webClient.closeAllWindows();
+  }
 }
