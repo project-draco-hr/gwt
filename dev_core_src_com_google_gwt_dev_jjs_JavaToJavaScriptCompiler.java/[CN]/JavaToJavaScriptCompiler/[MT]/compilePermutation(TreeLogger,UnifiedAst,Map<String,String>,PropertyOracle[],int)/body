@@ -52,6 +52,9 @@
     if (options.isAggressivelyOptimize() && options.isRunAsyncEnabled()) {
       ByteArrayOutputStream baos=new ByteArrayOutputStream();
       CodeSplitter.exec(logger,jprogram,jsProgram,map,chooseDependencyRecorder(options.isSoycEnabled(),baos));
+      if (baos.size() == 0 && options.isSoycEnabled()) {
+        recordNonSplitDependencies(jprogram,baos);
+      }
       if (baos.size() > 0) {
         dependencies=new SoycArtifact("dependencies" + permutationId + ".xml.gz",baos.toByteArray());
       }
