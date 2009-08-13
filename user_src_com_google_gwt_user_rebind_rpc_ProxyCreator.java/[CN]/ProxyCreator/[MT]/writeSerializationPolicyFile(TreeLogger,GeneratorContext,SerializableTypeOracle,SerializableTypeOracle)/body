@@ -16,6 +16,25 @@
       pw.print(", " + typeStrings.get(type));
       pw.print(", " + SerializationUtils.getSerializationSignature(oracle,type));
       pw.print('\n');
+      if ((type instanceof JClassType) && serializationSto.maybeEnhanced(type) && deserializationSto.maybeEnhanced(type)) {
+        JField[] fields=((JClassType)type).getFields();
+        JField[] rpcFields=new JField[fields.length];
+        int numRpcFields=0;
+        for (        JField f : fields) {
+          if (f.isTransient() || f.isStatic() || f.isFinal()) {
+            continue;
+          }
+          rpcFields[numRpcFields++]=f;
+        }
+        pw.print(SerializationPolicyLoader.CLIENT_FIELDS_KEYWORD);
+        pw.print(',');
+        pw.print(binaryTypeName);
+        for (int idx=0; idx < numRpcFields; idx++) {
+          pw.print(',');
+          pw.print(rpcFields[idx].getName());
+        }
+        pw.print('\n');
+      }
     }
     pw.close();
     byte[] serializationPolicyFileContents=baos.toByteArray();

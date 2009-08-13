@@ -1,8 +1,42 @@
 {
   assert(instance != null);
   Field[] serializableFields=SerializabilityUtil.applyFieldSerializationPolicy(instanceClass);
+  Set<String> clientFieldNames=serializationPolicy.getClientFieldNamesForEnhancedClass(instanceClass);
+  if (clientFieldNames != null) {
+    List<Field> serverFields=new ArrayList<Field>();
+    for (    Field declField : serializableFields) {
+      assert(declField != null);
+      if (!clientFieldNames.contains(declField.getName())) {
+        serverFields.add(declField);
+        continue;
+      }
+    }
+    try {
+      ByteArrayOutputStream baos=new ByteArrayOutputStream();
+      ObjectOutputStream oos=new ObjectOutputStream(baos);
+      oos.writeInt(serverFields.size());
+      for (      Field f : serverFields) {
+        oos.writeObject(f.getName());
+        f.setAccessible(true);
+        Object fieldData=f.get(instance);
+        oos.writeObject(fieldData);
+      }
+      oos.close();
+      byte[] serializedData=baos.toByteArray();
+      String encodedData=Base64Utils.toBase64(serializedData);
+      writeString(encodedData);
+    }
+ catch (    IllegalAccessException e) {
+      throw new SerializationException(e);
+    }
+catch (    IOException e) {
+      throw new SerializationException(e);
+    }
+  }
   for (  Field declField : serializableFields) {
-    assert(declField != null);
+    if ((clientFieldNames != null) && !clientFieldNames.contains(declField.getName())) {
+      continue;
+    }
     boolean isAccessible=declField.isAccessible();
     boolean needsAccessOverride=!isAccessible && !Modifier.isPublic(declField.getModifiers());
     if (needsAccessOverride) {
@@ -23,12 +57,5 @@ catch (    IllegalAccessException e) {
   Class<?> superClass=instanceClass.getSuperclass();
   if (serializationPolicy.shouldSerializeFields(superClass)) {
     serializeImpl(instance,superClass);
-  }
-  for (  ServerDataSerializer serializer : ServerDataSerializer.getSerializers()) {
-    if (serializer.shouldSerialize(instanceClass)) {
-      byte[] serializedData=serializer.serializeServerData(instance);
-      String encodedData=Base64Utils.toBase64(serializedData);
-      writeString(encodedData);
-    }
   }
 }

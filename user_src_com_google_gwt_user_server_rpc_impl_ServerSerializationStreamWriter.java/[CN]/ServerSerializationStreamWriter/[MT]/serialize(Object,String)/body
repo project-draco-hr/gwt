@@ -1,6 +1,11 @@
 {
   assert(instance != null);
   Class<?> clazz=getClassForSerialization(instance);
-  serializationPolicy.validateSerialize(clazz);
+  try {
+    serializationPolicy.validateSerialize(clazz);
+  }
+ catch (  SerializationException e) {
+    throw new SerializationException(e.getMessage() + ": instance = " + instance);
+  }
   serializeImpl(instance,clazz);
 }
