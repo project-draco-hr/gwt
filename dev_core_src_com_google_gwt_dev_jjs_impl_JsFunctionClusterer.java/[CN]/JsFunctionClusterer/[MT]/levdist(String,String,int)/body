@@ -1,0 +1,46 @@
+{
+  if (str1.length() > str2.length()) {
+    return levdist(str2,str1,limit);
+  }
+  if (str1.length() == 0) {
+    return str2.length();
+  }
+  if (Math.abs(str1.length() - str2.length()) >= limit) {
+    return limit;
+  }
+  int str1len=str1.length();
+  int str2len=str2.length();
+  int lastRow[]=new int[str2len + 1];
+  int nextRow[]=new int[str2len + 1];
+  for (int j=0; j <= Math.min(str2len,limit + 1); j++) {
+    lastRow[j]=j;
+  }
+  for (int i=1; i <= str1len; i++) {
+    nextRow[0]=i;
+    if (i >= limit) {
+      nextRow[i - limit]=limit;
+    }
+    if (i >= limit + 1) {
+      nextRow[i - limit - 1]=limit;
+    }
+    if (i + limit <= str2len) {
+      nextRow[i + limit]=limit;
+    }
+    if (i + limit + 1 <= str2len) {
+      nextRow[i + limit + 1]=limit;
+    }
+    char c1=str1.charAt(i - 1);
+    int j=Math.max(1,(i - limit + 1));
+    int jmax=Math.min(str2len,(i + limit - 1));
+    while (j <= jmax) {
+      char c2=str2.charAt(j - 1);
+      int costSwap=c1 == c2 ? 0 : 1;
+      nextRow[j]=Math.min(Math.min(lastRow[j] + 1,nextRow[j - 1] + 1),lastRow[j - 1] + costSwap);
+      j=j + 1;
+    }
+    int tmpRow[]=nextRow;
+    nextRow=lastRow;
+    lastRow=tmpRow;
+  }
+  return lastRow[Math.min(str2len,limit)];
+}
