@@ -1,0 +1,43 @@
+{
+  functionIndices=new LinkedList<Integer>();
+  for (int i=0; i < statementRanges.numStatements(); i++) {
+    String code=getJsForRange(i);
+    if (code.startsWith("function")) {
+      functionIndices.add(i);
+    }
+  }
+  Collections.sort(functionIndices,new Comparator<Integer>(){
+    public int compare(    Integer index1,    Integer index2){
+      return stmtSize(index1) - (stmtSize(index2));
+    }
+  }
+);
+  clusteredIndices=new int[functionIndices.size()];
+  int currentFunction=0;
+  clusteredIndices[currentFunction]=functionIndices.get(0);
+  functionIndices.remove(0);
+  while (!functionIndices.isEmpty()) {
+    String currentCode=getJsForRange(clusteredIndices[currentFunction]);
+    int bestDistance=99999;
+    int bestIndex=0;
+    int bestFunction=0;
+    Iterator<Integer> it=functionIndices.iterator();
+    int count=0;
+    while (it.hasNext() && count < Math.min(MAX_DIST,functionIndices.size())) {
+      int functionIndex=it.next();
+      String testCode=getJsForRange(functionIndex);
+      int distanceLimit=Math.min(bestDistance,MAX_DISTANCE_LIMIT);
+      int dist=levdist(currentCode,testCode,distanceLimit);
+      if (dist < bestDistance) {
+        bestDistance=dist;
+        bestIndex=count;
+        bestFunction=functionIndex;
+      }
+      count++;
+    }
+    currentFunction++;
+    clusteredIndices[currentFunction]=bestFunction;
+    functionIndices.remove(bestIndex);
+  }
+  recomputeJsAndStatementRanges(clusteredIndices);
+}

@@ -73,13 +73,23 @@ break;
 default :
 throw new InternalCompilerException("Unknown output mode");
 }
+SelectionProperty userAgentProperty=null;
+for (PropertyOracle oracle : propertyOracles) {
+userAgentProperty=oracle.getSelectionProperty(logger,"user.agent");
+if (userAgentProperty != null) {
+break;
+}
+}
+boolean splitBlocks=userAgentProperty == null || (userAgentProperty != null && "ie6".equals(userAgentProperty.getCurrentValue()));
+if (splitBlocks) {
 JsIEBlockSizeVisitor.exec(jsProgram);
+}
 JsBreakUpLargeVarStatements.exec(jsProgram,propertyOracles);
 String[] js=new String[jsProgram.getFragmentCount()];
 StatementRanges[] ranges=new StatementRanges[js.length];
 SizeBreakdown[] sizeBreakdowns=options.isSoycEnabled() ? new SizeBreakdown[js.length] : null;
 List<Map<Range,SourceInfo>> sourceInfoMaps=options.isSoycExtra() ? new ArrayList<Map<Range,SourceInfo>>() : null;
-generateJavaScriptCode(options,jsProgram,map,js,ranges,sizeBreakdowns,sourceInfoMaps);
+generateJavaScriptCode(options,jsProgram,map,js,ranges,sizeBreakdowns,sourceInfoMaps,splitBlocks);
 PermutationResult toReturn=new PermutationResultImpl(js,makeSymbolMap(symbolTable),ranges,permutationId);
 toReturn.getArtifacts().add(makeSoycArtifact(logger,permutationId,jprogram,js,sizeBreakdowns,sourceInfoMaps,dependencies,map,obfuscateMap));
 System.out.println("Permutation took " + (System.currentTimeMillis() - permStart) + " ms");
