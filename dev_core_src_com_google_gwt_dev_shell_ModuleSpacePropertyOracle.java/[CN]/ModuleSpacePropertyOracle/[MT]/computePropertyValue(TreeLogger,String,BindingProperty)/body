@@ -1,8 +1,13 @@
 {
-  if (prop.getAllowedValues().length == 1) {
-    return prop.getAllowedValues()[0];
+  String value=prop.getConstrainedValue();
+  if (value != null) {
+    return value;
   }
-  String value;
+  Condition winner=computeActiveCondition(logger,prop);
+  String[] values=prop.getAllowedValues(winner);
+  if (values.length == 1) {
+    return values[0];
+  }
   try {
     value=(String)space.invokeNativeObject("__gwt_getProperty",null,new Class[]{String.class},new Object[]{prop.getName()});
   }
@@ -11,7 +16,7 @@
     logger.log(TreeLogger.ERROR,msg,e);
     throw new BadPropertyValueException(propertyName,"<failed to compute>");
   }
-  if (prop.isAllowedValue(value)) {
+  if (Arrays.asList(values).contains(value)) {
     return value;
   }
  else {

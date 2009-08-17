@@ -25,7 +25,8 @@
     }
  else {
       TreeLogger branch=logger.branch(TreeLogger.INFO,"Precompiling module " + module.getName());
-      int potentialPermutations=module.getProperties().numPermutations();
+      PropertyPermutations allPermutations=new PropertyPermutations(module.getProperties());
+      int potentialPermutations=allPermutations.size();
       int permutationsPerIteration=options.getMaxPermsPerPrecompile();
       if (permutationsPerIteration <= 0) {
         permutationsPerIteration=potentialPermutations;
@@ -42,7 +43,8 @@
  else {
           options.setCompilationStateRetained(originalCompilationStateRetained);
         }
-        Precompilation precompilation=precompile(branch,options,module,actualPermutations,potentialFirstPerm,numPermsToPrecompile,options.getGenDir(),compilerWorkDir,options.getDumpSignatureFile());
+        PropertyPermutations localPermutations=new PropertyPermutations(allPermutations,potentialFirstPerm,numPermsToPrecompile);
+        Precompilation precompilation=precompile(branch,options,module,actualPermutations,localPermutations,options.getGenDir(),compilerWorkDir,options.getDumpSignatureFile());
         if (precompilation == null) {
           branch.log(TreeLogger.ERROR,"Precompilation failed");
           return false;
