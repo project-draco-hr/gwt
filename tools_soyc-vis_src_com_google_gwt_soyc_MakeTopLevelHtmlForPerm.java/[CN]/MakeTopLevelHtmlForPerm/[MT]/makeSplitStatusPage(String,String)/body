@@ -1,0 +1,20 @@
+{
+  String packageName=globalInformation.getClassToPackage().get(className);
+  PrintWriter out=new PrintWriter(getOutFile(splitStatusFileName(className,permutationId)));
+  addStandardHtmlProlog(out,"Split point status for " + className,null);
+  out.println("<center>");
+  out.println("<table border=\"1\" width=\"80%\" style=\"font-size: 11pt;\" bgcolor=\"white\">");
+  if (globalInformation.getInitialCodeBreakdown().classToSize.containsKey(className)) {
+    out.println("<tr><td>Some code is initial (<a href=\"" + dependenciesFileName("initial",packageName,permutationId) + "#"+ className+ "\">see why</a>)</td></tr>");
+  }
+  for (  int sp : splitPointsWithClass(className)) {
+    out.println("<tr><td>Some code downloads with s.p. #" + sp + " ("+ globalInformation.getSplitPointToLocation().get(sp)+ ")</td></tr>");
+  }
+  if (globalInformation.getLeftoversBreakdown().classToSize.containsKey(className)) {
+    out.println("<tr><td>Some code is left over:</td></tr>");
+    addLefttoversStatus(className,packageName,out,permutationId);
+  }
+  out.println("</table>");
+  addStandardHtmlEnding(out);
+  out.close();
+}

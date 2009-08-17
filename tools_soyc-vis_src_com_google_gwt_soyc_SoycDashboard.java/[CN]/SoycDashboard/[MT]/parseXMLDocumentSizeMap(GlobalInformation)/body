@@ -1,0 +1,124 @@
+{
+  return new DefaultHandler(){
+    int fragment=-1;
+    @Override public void endElement(    String uri,    String localName,    String qName){
+      if (localName.compareTo("sizemap") == 0) {
+        fragment=-1;
+      }
+    }
+    @Override public void startElement(    String uri,    String localName,    String qName,    final Attributes attributes){
+      if (localName.compareTo("sizemap") == 0) {
+        String fragString=attributes.getValue("fragment");
+        if (fragString == null) {
+          throw new FormatException();
+        }
+        try {
+          fragment=Integer.valueOf(fragString);
+        }
+ catch (        NumberFormatException e) {
+          throw new FormatException(e);
+        }
+        String sizeString=attributes.getValue("size");
+        if (sizeString == null) {
+          throw new FormatException();
+        }
+        int size;
+        try {
+          size=Integer.valueOf(sizeString);
+        }
+ catch (        NumberFormatException e) {
+          throw new FormatException(e);
+        }
+        for (        SizeBreakdown breakdown : breakdownsForFragment(fragment,globalInformation)) {
+          breakdown.sizeAllCode+=size;
+        }
+      }
+ else       if (localName.compareTo("size") == 0) {
+        String type=attributes.getValue("type");
+        if (type == null) {
+          throw new FormatException();
+        }
+        String ref=attributes.getValue("ref");
+        if (ref == null) {
+          throw new FormatException();
+        }
+        String sizeString=attributes.getValue("size");
+        if (sizeString == null) {
+          throw new FormatException();
+        }
+        int size;
+        try {
+          size=Integer.valueOf(sizeString);
+        }
+ catch (        NumberFormatException e) {
+          throw new FormatException(e);
+        }
+        recordSize(type,ref,size,globalInformation);
+      }
+    }
+    private void accountForSize(    SizeBreakdown breakdown,    String refType,    String ref,    int size,    GlobalInformation globalInformation){
+      if (refType.equals("string")) {
+        LiteralsCollection stringLiterals=breakdown.nameToLitColl.get("string");
+        stringLiterals.size+=size;
+        stringLiterals.literals.add(ref);
+      }
+ else       if (refType.equals("var")) {
+      }
+ else {
+        if (!refType.equals("type") && !refType.equals("method")) {
+          throw new FormatException();
+        }
+        String className=ref;
+        if (className.contains("::")) {
+          int idx=className.indexOf(':');
+          className=className.substring(0,idx);
+        }
+        String packageName;
+        if (!globalInformation.getClassToPackage().containsKey(className)) {
+          packageName=className;
+          packageName=packageName.replaceAll("\\.[A-Z].*","");
+          globalInformation.getClassToPackage().put(className,packageName);
+        }
+ else {
+          packageName=globalInformation.getClassToPackage().get(className);
+        }
+        if (!globalInformation.getPackageToClasses().containsKey(packageName)) {
+          TreeSet<String> insertSet=new TreeSet<String>();
+          insertSet.add(className);
+          globalInformation.getPackageToClasses().put(packageName,insertSet);
+        }
+ else {
+          globalInformation.getPackageToClasses().get(packageName).add(className);
+        }
+        recordClassCategories(breakdown.nameToCodeColl,className,packageName);
+        if (breakdown.classToSize.containsKey(className)) {
+          int newSize=breakdown.classToSize.get(className) + size;
+          breakdown.classToSize.put(className,newSize);
+        }
+ else {
+          breakdown.classToSize.put(className,size);
+        }
+      }
+    }
+    private void recordClassCategories(    final HashMap<String,CodeCollection> nameToCodeColl,    String className,    String packageName){
+      if (packageName.startsWith("java")) {
+        nameToCodeColl.get("jre").classes.add(className);
+      }
+ else       if (packageName.startsWith("com.google.gwt.lang")) {
+        nameToCodeColl.get("gwtLang").classes.add(className);
+      }
+      if (className.contains("_CustomFieldSerializer")) {
+        nameToCodeColl.get("rpcUser").classes.add(className);
+      }
+ else       if (className.endsWith("_FieldSerializer") || className.endsWith("_Proxy") || className.endsWith("_TypeSerializer")) {
+        nameToCodeColl.get("rpcGen").classes.add(className);
+      }
+    }
+    private void recordSize(    String refType,    String ref,    int size,    GlobalInformation globalInformation){
+      for (      SizeBreakdown breakdown : breakdownsForFragment(fragment,globalInformation)) {
+        accountForSize(breakdown,refType,ref,size,globalInformation);
+      }
+    }
+  }
+;
+}

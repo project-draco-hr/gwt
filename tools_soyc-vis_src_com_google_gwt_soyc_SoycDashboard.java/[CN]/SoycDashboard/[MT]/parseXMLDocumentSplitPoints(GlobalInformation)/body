@@ -1,0 +1,41 @@
+{
+  DefaultHandler handler=new DefaultHandler(){
+    private boolean inInitialLoadSequence=false;
+    @Override public void endElement(    String uri,    String localName,    String qName){
+      if (localName.compareTo("initialesq") == 0) {
+        inInitialLoadSequence=false;
+      }
+    }
+    @Override public void startElement(    String nsUri,    String strippedName,    String tagName,    final Attributes attributes){
+      if (strippedName.compareTo("splitpoint") == 0) {
+        parseSplitPoint(attributes);
+      }
+ else       if (strippedName.compareTo("initialseq") == 0) {
+        inInitialLoadSequence=true;
+      }
+ else       if (inInitialLoadSequence && strippedName.compareTo("splitpointref") == 0) {
+        globalInformation.getSplitPointInitialLoadSequence().add(parseSplitPointReference(attributes));
+      }
+    }
+    private void parseSplitPoint(    final Attributes attributes){
+      if (attributes.getValue("id") != null) {
+        String curSplitPoint=attributes.getValue("id");
+        if (attributes.getValue("location") != null) {
+          String curSplitPointLocation=attributes.getValue("location");
+          curSplitPointLocation=curSplitPointLocation.replaceAll("\\(L.*","");
+          globalInformation.getSplitPointToLocation().put(Integer.parseInt(curSplitPoint),curSplitPointLocation);
+          globalInformation.incrementSplitPoints();
+        }
+      }
+    }
+    private Integer parseSplitPointReference(    final Attributes attributes){
+      String spString=attributes.getValue("id");
+      if (spString == null) {
+        throw new FormatException("Could not parse split point reference");
+      }
+      return Integer.valueOf(spString);
+    }
+  }
+;
+  return handler;
+}

@@ -1,0 +1,98 @@
+{
+  HashMap<String,CodeCollection> nameToCodeColl=breakdown.nameToCodeColl;
+  for (  String codeType : nameToCodeColl.keySet()) {
+    String outFileName=breakdown.getId() + "_" + codeType+ "-"+ permutationId+ "Classes.html";
+    float maxSize=0f;
+    TreeMap<Float,String> sortedClasses=new TreeMap<Float,String>(Collections.reverseOrder());
+    for (    String className : nameToCodeColl.get(codeType).classes) {
+      if (breakdown.classToSize.containsKey(className)) {
+        float curSize=0f;
+        if (breakdown.classToSize.containsKey(className)) {
+          curSize=breakdown.classToSize.get(className);
+        }
+        if (curSize != 0f) {
+          sortedClasses.put(curSize,className);
+          if (curSize > maxSize) {
+            maxSize=curSize;
+          }
+        }
+      }
+    }
+    final PrintWriter outFile=new PrintWriter(getOutFile(outFileName));
+    outFile.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"");
+    outFile.println("\"http://www.w3.org/TR/html4/strict.dtd\">");
+    outFile.println("<html>");
+    outFile.println("<head>");
+    outFile.println("<title>Classes in package \"" + codeType + "\"</title>");
+    outFile.println("  <meta http-equiv=\"content-type\" content=\"text/html;charset=ISO-8859-1\">");
+    outFile.println("  <link rel=\"stylesheet\" href=\"common.css\" media=\"screen\">");
+    outFile.println("  <style type=\"text/css\">");
+    outFile.println(".abs {");
+    outFile.println("  position: absolute;");
+    outFile.println(" overflow: hidden;");
+    outFile.println(" }");
+    outFile.println(" .mainHeader {");
+    outFile.println("   left:0; right: 0;");
+    outFile.println("   top:0; height: 6em;");
+    outFile.println("  text-align: center;");
+    outFile.println("background-color: #728FCE;");
+    outFile.println("}");
+    outFile.println(".mainContent {");
+    outFile.println("  left:0; right: 0;");
+    outFile.println("  top: 6em; bottom: 0;");
+    outFile.println("}");
+    outFile.println(".header {");
+    outFile.println("  left:0; right: 0;");
+    outFile.println(" top:0; height: 2em;");
+    outFile.println("  padding: 0.5em;");
+    outFile.println("}");
+    outFile.println(".innerContent {");
+    outFile.println("   left:0; right: 0;");
+    outFile.println("  top: 2em; bottom: 0;");
+    outFile.println("}");
+    outFile.println(".frame {");
+    outFile.println(" width: 100%; height: 100%;");
+    outFile.println("  border: 0px;");
+    outFile.println("}");
+    outFile.println(".packages {");
+    outFile.println(" left:0; right: 0;");
+    outFile.println(" top:0; bottom: 50%;");
+    outFile.println("}");
+    outFile.println(".codeType {");
+    outFile.println("left:0; right: 0;");
+    outFile.println("top:50%; bottom: 0;");
+    outFile.println("}");
+    outFile.println("</style>");
+    outFile.println("</head>");
+    outFile.println("<body>");
+    outFile.println("<div class='abs mainHeader'>");
+    outFile.println("<h2>Classes in package \"" + codeType + "\"</h2>");
+    addHeaderWithBreakdownContext(breakdown,outFile);
+    outFile.println("</center>");
+    outFile.println("<hr>");
+    outFile.println("</div>");
+    outFile.println("<div class='abs mainContent' style='overflow:auto'>");
+    outFile.println("<table style='width:100%'>");
+    outFile.println("<thead>");
+    outFile.println("<th class='barlabel'>Size</th>");
+    outFile.println("<th class='barlabel'></th>");
+    outFile.println("<th style='width:100%' class='barlabel'></th>");
+    outFile.println("</thead>");
+    for (    Float size : sortedClasses.keySet()) {
+      String className=sortedClasses.get(size);
+      float ratio=(size / maxSize) * 85;
+      if (ratio < 5) {
+        ratio=5;
+      }
+      outFile.println("<tr>");
+      outFile.println("<td class=\"barlabel\">" + size + "</td>");
+      outFile.println("<td class=\"barlabel\">" + className + "</td>");
+      outFile.println("<td class=\"box\">");
+      outFile.println("<div style=\"width:" + ratio + "%;\" class=\"lb\"><div class=\"rb\"><div class=\"bb\"><div class=\"blc\"><div class=\"brc\"><div class=\"tb\"><div class=\"tlc\"><div class=\"trc\"><div class=\"content\"></div></div></div></div></div></div></div></div>");
+      outFile.println("</td>");
+      outFile.println("</tr>");
+    }
+    addStandardHtmlEnding(outFile);
+    outFile.close();
+  }
+}
