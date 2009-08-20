@@ -1,0 +1,21 @@
+{
+  Set<JClassType> seen=new HashSet<JClassType>();
+  List<JClassType> searchTypes=new LinkedList<JClassType>();
+  searchTypes.add(this);
+  T toReturn=null;
+  while (!searchTypes.isEmpty()) {
+    JClassType current=searchTypes.remove(0);
+    if (!seen.add(current)) {
+      continue;
+    }
+    toReturn=current.getAnnotation(annotationType);
+    if (toReturn != null) {
+      break;
+    }
+    if (current.getSuperclass() != null) {
+      searchTypes.add(0,current.getSuperclass());
+    }
+    Collections.addAll(searchTypes,current.getImplementedInterfaces());
+  }
+  return toReturn;
+}
