@@ -4,7 +4,7 @@
   for (  Entry<JClassType,TreeLogger> entry : rootTypes.entrySet()) {
     ProblemReport problems=new ProblemReport();
     problems.setContextType(entry.getKey());
-    boolean entrySucceeded=checkTypeInstantiable(entry.getValue(),entry.getKey(),TypePaths.createRootPath(entry.getKey()),problems);
+    boolean entrySucceeded=computeTypeInstantiability(entry.getValue(),entry.getKey(),TypePaths.createRootPath(entry.getKey()),problems).hasInstantiableSubtypes();
     if (!entrySucceeded) {
       problems.report(logger,TreeLogger.ERROR,TreeLogger.INFO);
     }
@@ -29,7 +29,10 @@
   Set<JClassType> possiblyInstantiatedTypes=new TreeSet<JClassType>(JTYPE_COMPARATOR);
   Set<JClassType> fieldSerializableTypes=new TreeSet<JClassType>(JTYPE_COMPARATOR);
   for (  TypeInfoComputed tic : typeToTypeInfoComputed.values()) {
-    JClassType type=tic.getType();
+    if (!(tic.getType() instanceof JClassType)) {
+      continue;
+    }
+    JClassType type=(JClassType)tic.getType();
     type=type.getErasedType();
     if (tic.isInstantiable()) {
       assert(!type.isAbstract() || type.isEnum() != null);

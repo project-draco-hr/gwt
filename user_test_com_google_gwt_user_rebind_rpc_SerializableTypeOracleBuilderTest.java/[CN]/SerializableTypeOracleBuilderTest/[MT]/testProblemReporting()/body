@@ -75,7 +75,7 @@
   JClassType topInterface=to.getType("TopInterface");
   stob.addRootType(logger,topInterface);
   ProblemReport problems=new ProblemReport();
-  assertTrue("TopInterface should be (partially) serializable",stob.checkTypeInstantiable(logger,topInterface,null,problems));
+  assertTrue("TopInterface should be (partially) serializable",stob.computeTypeInstantiability(logger,topInterface,null,problems).hasInstantiableSubtypes());
   assertTrue("TopInterface should be a serializable type",problems.getProblemsForType(topInterface).isEmpty());
   assertTrue("AbstractSerializable should not be reported on",problems.getProblemsForType(to.getType("AbstractSerializable")).isEmpty());
   assertTrue("PureAbstractSerializable should not be reported on",problems.getProblemsForType(to.getType("PureAbstractSerializable")).isEmpty());
@@ -85,10 +85,10 @@
   assertTrue("ConcreteSerializable should be a serializable type",problems.getProblemsForType(to.getType("ConcreteSerializable")).isEmpty());
   assertTrue("SubSerializable should be a serializable type",problems.getProblemsForType(to.getType("SubSerializable")).isEmpty());
   problems=new ProblemReport();
-  assertFalse("PureAbstractClass should have no possible concrete implementation",stob.checkTypeInstantiable(logger,to.getType("PureAbstractClass"),null,problems));
+  assertFalse("PureAbstractClass should have no possible concrete implementation",stob.computeTypeInstantiability(logger,to.getType("PureAbstractClass"),null,problems).hasInstantiableSubtypes());
   assertTrue("PureAbstractClass should have a problem entry as the tested class",null != problems.getProblemsForType(to.getType("PureAbstractClass")));
   problems=new ProblemReport();
-  assertFalse("PureAbstractSerializable should have no possible concrete implementation",stob.checkTypeInstantiable(logger,to.getType("PureAbstractSerializable"),null,problems));
+  assertFalse("PureAbstractSerializable should have no possible concrete implementation",stob.computeTypeInstantiability(logger,to.getType("PureAbstractSerializable"),null,problems).hasInstantiableSubtypes());
   assertFalse("PureAbstractSerializable should have a problem entry",problems.getProblemsForType(to.getType("PureAbstractSerializable")).isEmpty());
   assertTrue("PureAbstractClassTwo should not have a problem entry as the middle class",problems.getProblemsForType(to.getType("PureAbstractClassTwo")).isEmpty());
   assertTrue("PureAbstractClassTwo should not have an auxiliary entry as the middle class",problems.getAuxiliaryMessagesForType(to.getType("PureAbstractClassTwo")).isEmpty());

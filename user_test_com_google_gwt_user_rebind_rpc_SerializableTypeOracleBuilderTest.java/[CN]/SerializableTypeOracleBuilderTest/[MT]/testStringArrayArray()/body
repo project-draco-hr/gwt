@@ -1,0 +1,26 @@
+{
+  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
+  addStandardClasses(units);
+{
+    StringBuilder code=new StringBuilder();
+    code.append("import java.io.Serializable;\n");
+    code.append("public class Data implements Serializable {\n");
+    code.append("  String justOneString;");
+    code.append("  String[][] stringsGalore;\n");
+    code.append("}\n");
+    units.add(createMockCompilationUnit("Data",code));
+  }
+  TreeLogger logger=createLogger();
+  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,units);
+  JClassType data=to.getType("Data");
+  JClassType string=to.getType(String.class.getCanonicalName());
+  JArrayType stringArray=to.getArrayType(string);
+  JArrayType stringArrayArray=to.getArrayType(stringArray);
+  SerializableTypeOracleBuilder sob=createSerializableTypeOracleBuilder(logger,to);
+  sob.addRootType(logger,data);
+  SerializableTypeOracle so=sob.build(logger);
+  assertSerializableTypes(so,data,string,stringArray,stringArrayArray);
+  assertInstantiable(so,data);
+  assertInstantiable(so,stringArrayArray);
+  assertInstantiable(so,stringArray);
+}
