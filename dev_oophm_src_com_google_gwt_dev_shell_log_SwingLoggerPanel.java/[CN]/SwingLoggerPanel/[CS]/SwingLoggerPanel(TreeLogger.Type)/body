@@ -3,6 +3,8 @@
   regexFilter="";
   levelFilter=maxLevel;
   topPanel=new JPanel();
+  topPanel.setLayout(new BorderLayout());
+  JPanel logButtons=new JPanel();
   JButton expandButton=new JButton("Expand All");
   expandButton.addActionListener(new ActionListener(){
     public void actionPerformed(    ActionEvent e){
@@ -10,17 +12,18 @@
     }
   }
 );
-  topPanel.add(expandButton);
-  JButton collapsButton=new JButton("Collapse All");
-  collapsButton.addActionListener(new ActionListener(){
+  logButtons.add(expandButton);
+  JButton collapseButton=new JButton("Collapse All");
+  collapseButton.addActionListener(new ActionListener(){
     public void actionPerformed(    ActionEvent e){
       collapseAll();
     }
   }
 );
-  topPanel.add(collapsButton);
+  logButtons.add(collapseButton);
+  topPanel.add(logButtons,BorderLayout.CENTER);
   if (false) {
-    topPanel.add(new JLabel("Filter Log Messages: "));
+    logButtons.add(new JLabel("Filter Log Messages: "));
     levelComboBox=new JComboBox();
     for (    TreeLogger.Type type : TreeLogger.Type.instances()) {
       if (type.compareTo(maxLevel) > 0) {
@@ -38,7 +41,7 @@
     }
 );
     regexField=new JTextField(20);
-    topPanel.add(regexField);
+    logButtons.add(regexField);
     JButton applyRegexButton=new JButton("Apply Regex");
     applyRegexButton.addActionListener(new ActionListener(){
       public void actionPerformed(      ActionEvent e){
@@ -46,7 +49,7 @@
       }
     }
 );
-    topPanel.add(applyRegexButton);
+    logButtons.add(applyRegexButton);
     JButton clearRegexButton=new JButton("Clear Regex");
     clearRegexButton.addActionListener(new ActionListener(){
       public void actionPerformed(      ActionEvent e){
@@ -55,8 +58,20 @@
       }
     }
 );
-    topPanel.add(clearRegexButton);
+    logButtons.add(clearRegexButton);
   }
+  closeLogger=new CloseButton("Close this log window");
+  closeLogger.setCallback(new Callback(){
+    public void onCloseRequest(){
+      if (disconnected && closeHandler != null) {
+        closeHandler.onCloseRequest(SwingLoggerPanel.this);
+      }
+    }
+  }
+);
+  closeLogger.setEnabled(false);
+  closeLogger.setVisible(false);
+  topPanel.add(closeLogger,BorderLayout.EAST);
   add(topPanel,BorderLayout.NORTH);
   root=new DefaultMutableTreeNode();
   treeModel=new DefaultTreeModel(root);

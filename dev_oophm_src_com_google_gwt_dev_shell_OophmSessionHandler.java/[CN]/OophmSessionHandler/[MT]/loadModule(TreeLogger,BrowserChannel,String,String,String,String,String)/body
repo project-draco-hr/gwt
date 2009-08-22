@@ -1,14 +1,15 @@
 {
+  logger=loadModuleLogger;
   try {
     BrowserChannelServer serverChannel=(BrowserChannelServer)channel;
-    ModuleSpaceHost msh=host.createModuleSpaceHost(logger,moduleName,userAgent,url,tabKey,sessionKey,channel.getRemoteEndpoint());
-    this.logger=logger=msh.getLogger();
+    ModuleSpaceHost msh=host.createModuleSpaceHost(loadModuleLogger,moduleName,userAgent,url,tabKey,sessionKey,channel.getRemoteEndpoint());
+    logger=msh.getLogger();
     ModuleSpace moduleSpace=new ModuleSpaceOOPHM(msh,moduleName,serverChannel);
     moduleMap.put(serverChannel,moduleSpace);
-    moduleSpace.onLoad(logger);
+    moduleSpace.onLoad(loadModuleLogger);
   }
  catch (  Throwable e) {
-    logger.log(TreeLogger.ERROR,"Failed to load module '" + moduleName + "' from user agent '"+ userAgent+ "' at "+ channel.getRemoteEndpoint(),e);
+    this.logger.log(TreeLogger.ERROR,"Failed to load module '" + moduleName + "' from user agent '"+ userAgent+ "' at "+ channel.getRemoteEndpoint(),e);
   }
-  return logger;
+  return this.logger;
 }

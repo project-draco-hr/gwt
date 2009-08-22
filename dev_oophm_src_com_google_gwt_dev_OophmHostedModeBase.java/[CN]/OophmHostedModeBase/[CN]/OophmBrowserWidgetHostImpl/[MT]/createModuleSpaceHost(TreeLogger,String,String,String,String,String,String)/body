@@ -1,17 +1,31 @@
 {
+  if (sessionKey == null) {
+    sessionKey=randomString();
+  }
   TreeLogger logger=mainLogger;
   TreeLogger.Type maxLevel=TreeLogger.INFO;
   if (mainLogger instanceof AbstractTreeLogger) {
     maxLevel=((AbstractTreeLogger)mainLogger).getMaxDetail();
   }
-  ModulePanel tab;
+  ModuleTabPanel tabPanel=null;
+  ModulePanel tab=null;
   if (!isHeadless()) {
-    tab=new ModulePanel(maxLevel,moduleName,userAgent,remoteSocket,tabs);
+    tabPanel=findModuleTab(userAgent,remoteSocket,url,tabKey,moduleName);
+    tab=tabPanel.addModuleSession(maxLevel,moduleName,sessionKey);
     logger=tab.getLogger();
+    TreeLogger branch=logger.branch(TreeLogger.INFO,"Loading module " + moduleName);
+    if (url != null) {
+      branch.log(TreeLogger.INFO,"Top URL: " + url);
+    }
+    branch.log(TreeLogger.INFO,"User agent: " + userAgent);
+    branch.log(TreeLogger.TRACE,"Remote socket: " + remoteSocket);
+    if (tabKey != null) {
+      branch.log(TreeLogger.DEBUG,"Tab key: " + tabKey);
+    }
+    if (sessionKey != null) {
+      branch.log(TreeLogger.DEBUG,"Session key: " + sessionKey);
+    }
     frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-  }
- else {
-    tab=null;
   }
   try {
     ModuleDef moduleDef=loadModule(logger,moduleName,true);
