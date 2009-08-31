@@ -1,0 +1,22 @@
+{
+  ConfigurationProperty compilerClassProp=module.getProperties().createConfiguration("x.compiler.class",false);
+  String compilerClassName=compilerClassProp.getValue();
+  if (compilerClassName == null || compilerClassName.length() == 0) {
+    return new JavaScriptCompiler();
+  }
+  Throwable caught;
+  try {
+    Class<?> compilerClass=Class.forName(compilerClassName);
+    return (AbstractCompiler)compilerClass.newInstance();
+  }
+ catch (  ClassNotFoundException e) {
+    caught=e;
+  }
+catch (  InstantiationException e) {
+    caught=e;
+  }
+catch (  IllegalAccessException e) {
+    caught=e;
+  }
+  throw new RuntimeException("Unable to instantiate compiler class '" + compilerClassName + "'",caught);
+}
