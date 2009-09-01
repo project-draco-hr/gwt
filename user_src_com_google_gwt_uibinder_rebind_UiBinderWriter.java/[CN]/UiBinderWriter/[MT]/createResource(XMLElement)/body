@@ -1,0 +1,26 @@
+{
+  String resourceName=elem.consumeRequiredAttribute("name");
+  String resourceTypeName=elem.consumeRequiredAttribute("type");
+  JClassType resourceType=oracle.findType(resourceTypeName);
+  if (resourceType == null) {
+    die("In %s, no such type %s",elem,resourceTypeName);
+  }
+  if (elem.getAttributeCount() > 0) {
+    die("In %s, should only find attributes \"name\" and \"type\"");
+  }
+  FieldWriter fieldWriter=fieldManager.registerField(resourceTypeName,resourceName);
+  OwnerField ownerField=getOwnerClass().getUiField(resourceName);
+  if (ownerField != null) {
+    if (!resourceType.equals(ownerField.getType().getRawType())) {
+      die("In %s, type must match %s",ownerField);
+    }
+    if (ownerField.isProvided()) {
+      fieldWriter.setInitializer("owner." + ownerField.getName());
+      return;
+    }
+  }
+  JMethod factoryMethod=getOwnerClass().getUiFactoryMethod(resourceType);
+  if (factoryMethod != null) {
+    fieldWriter.setInitializer(String.format("owner.%s()",factoryMethod.getName()));
+  }
+}
