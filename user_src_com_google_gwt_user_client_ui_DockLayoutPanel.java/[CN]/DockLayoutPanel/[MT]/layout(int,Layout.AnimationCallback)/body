@@ -1,0 +1,59 @@
+{
+  int left=0, top=0, right=0, bottom=0;
+  for (  Widget child : getChildren()) {
+    LayoutData data=(LayoutData)child.getLayoutData();
+    Layer layer=data.layer;
+switch (data.direction) {
+case NORTH:
+      layer.setLeftRight(left,unit,right,unit);
+    layer.setTopHeight(top,unit,data.size,unit);
+  top+=data.size;
+break;
+case SOUTH:
+layer.setLeftRight(left,unit,right,unit);
+layer.setBottomHeight(bottom,unit,data.size,unit);
+bottom+=data.size;
+break;
+case WEST:
+layer.setTopBottom(top,unit,bottom,unit);
+layer.setLeftWidth(left,unit,data.size,unit);
+left+=data.size;
+break;
+case EAST:
+layer.setTopBottom(top,unit,bottom,unit);
+layer.setRightWidth(right,unit,data.size,unit);
+right+=data.size;
+break;
+case CENTER:
+layer.setLeftRight(left,unit,right,unit);
+layer.setTopBottom(top,unit,bottom,unit);
+break;
+}
+}
+layout.layout(duration,new Layout.AnimationCallback(){
+public void onAnimationComplete(){
+for (Widget child : getChildren()) {
+LayoutData data=(LayoutData)child.getLayoutData();
+if (data.size != data.oldSize) {
+data.oldSize=data.size;
+if (child instanceof RequiresResize) {
+((RequiresResize)child).onResize();
+}
+}
+if (callback != null) {
+callback.onAnimationComplete();
+}
+}
+}
+public void onLayout(Layer layer,double progress){
+Widget child=(Widget)layer.getUserObject();
+if (child instanceof RequiresResize) {
+((RequiresResize)child).onResize();
+}
+if (callback != null) {
+callback.onLayout(layer,progress);
+}
+}
+}
+);
+}
