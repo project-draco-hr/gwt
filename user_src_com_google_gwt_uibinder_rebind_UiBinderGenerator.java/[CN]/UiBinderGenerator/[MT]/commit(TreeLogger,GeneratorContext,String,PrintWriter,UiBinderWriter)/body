@@ -3,11 +3,18 @@
   genCtx.commit(logger,pw);
   MessagesWriter messages=uiWriter.getMessages();
   if (messages.hasMessages()) {
-    PrintWriter mpw=genCtx.tryCreate(logger,packageName,messages.getMessagesClassName());
-    if (mpw == null) {
+    PrintWriter messagesPrintWriter=genCtx.tryCreate(logger,packageName,messages.getMessagesClassName());
+    if (messagesPrintWriter == null) {
       throw new RuntimeException("Tried to gen messages twice.");
     }
-    messages.write(mpw);
-    genCtx.commit(logger,mpw);
+    messages.write(messagesPrintWriter);
+    genCtx.commit(logger,messagesPrintWriter);
   }
+  ImplicitBundle bundleClass=uiWriter.getBundleClass();
+  PrintWriter bundlePrintWriter=genCtx.tryCreate(logger,packageName,bundleClass.getClassName());
+  if (bundlePrintWriter == null) {
+    throw new RuntimeException("Tried to gen bundle twice.");
+  }
+  new BundleWriter(bundleClass,bundlePrintWriter,genCtx.getTypeOracle()).write();
+  genCtx.commit(logger,bundlePrintWriter);
 }

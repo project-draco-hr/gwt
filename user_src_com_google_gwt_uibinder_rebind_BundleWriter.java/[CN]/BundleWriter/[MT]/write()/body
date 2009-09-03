@@ -1,0 +1,19 @@
+{
+  String packageName=bundleClass.getPackageName();
+  if (packageName.length() > 0) {
+    writer.write("package %1$s;",packageName);
+    writer.newline();
+  }
+  writer.write("import %s;",oracle.findType(ClientBundle.class.getName()).getQualifiedSourceName());
+  writer.write("import %s;",oracle.findType(Strict.class.getCanonicalName()).getQualifiedSourceName());
+  writer.newline();
+  writer.write("public interface %s extends ClientBundle {",bundleClass.getClassName());
+  writer.indent();
+  for (  CssResourceGetter css : bundleClass.getCssMethods()) {
+    writer.write("@Strict @Source(\"%s\")",css.getSource());
+    writer.write("%s %s();",css.getExtendedInterface().getQualifiedSourceName(),css.getName());
+    writer.newline();
+  }
+  writer.outdent();
+  writer.write("}");
+}

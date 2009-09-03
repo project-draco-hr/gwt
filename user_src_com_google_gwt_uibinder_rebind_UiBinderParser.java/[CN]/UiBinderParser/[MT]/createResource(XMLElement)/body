@@ -1,14 +1,10 @@
 {
-  String resourceName=elem.consumeRequiredAttribute("name");
-  String resourceTypeName=elem.consumeRequiredAttribute("type");
-  JClassType resourceType=writer.getOracle().findType(resourceTypeName);
-  if (resourceType == null) {
-    writer.die("In %s, no such type %s",elem,resourceTypeName);
-  }
+  String resourceName=elem.consumeRequiredAttribute("field");
+  JClassType resourceType=consumeTypeAttribute(elem);
   if (elem.getAttributeCount() > 0) {
-    writer.die("In %s, should only find attributes \"name\" and \"type\"");
+    writer.die("In %s, should only find attributes \"field\" and \"type\"");
   }
-  FieldWriter fieldWriter=fieldManager.registerField(resourceTypeName,resourceName);
+  FieldWriter fieldWriter=fieldManager.registerField(resourceType,resourceName);
   OwnerField ownerField=writer.getOwnerClass().getUiField(resourceName);
   if (ownerField != null) {
     if (!resourceType.equals(ownerField.getType().getRawType())) {

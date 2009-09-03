@@ -1,16 +1,24 @@
 {
-  Collection<OwnerField> ownerFields=getOwnerClass().getUiFields();
-  for (  OwnerField ownerField : ownerFields) {
-    FieldWriter fieldWriter=fieldManager.lookup(ownerField.getName());
+  for (  OwnerField ownerField : getOwnerClass().getUiFields()) {
+    String fieldName=ownerField.getName();
+    FieldWriter fieldWriter=fieldManager.lookup(fieldName);
     BundleAttributeParser bundleParser=bundleParsers.get(ownerField.getType().getRawType().getQualifiedSourceName());
     if (bundleParser != null) {
       maybeWriteFieldSetter(niceWriter,ownerField,bundleParser.bundleClass(),bundleParser.bundleInstance());
     }
  else     if (fieldWriter != null) {
-      maybeWriteFieldSetter(niceWriter,ownerField,fieldWriter.getType(),ownerField.getName());
+      JClassType type=fieldWriter.getType();
+      if (type != null) {
+        maybeWriteFieldSetter(niceWriter,ownerField,fieldWriter.getType(),fieldName);
+      }
+ else {
+        if (!ownerField.isProvided()) {
+          niceWriter.write("owner.%1$s = %1$s;",fieldName);
+        }
+      }
     }
  else {
-      die("Template %s has no %s attribute for %s.%s#%s",templatePath,getGwtFieldAttributeName(),uiOwnerType.getPackage().getName(),uiOwnerType.getName(),ownerField.getName());
+      die("Template %s has no %s attribute for %s.%s#%s",templatePath,getUiFieldAttributeName(),uiOwnerType.getPackage().getName(),uiOwnerType.getName(),fieldName);
     }
   }
 }
