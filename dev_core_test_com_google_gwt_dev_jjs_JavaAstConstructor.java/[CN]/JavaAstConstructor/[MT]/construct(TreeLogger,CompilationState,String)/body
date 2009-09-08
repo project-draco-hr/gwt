@@ -5,6 +5,10 @@
   }
   CompilationUnitDeclaration[] goldenCuds=BasicWebModeCompiler.getCompilationUnitDeclarations(logger,state,allRootTypes.toArray(Empty.STRINGS));
   JavaToJavaScriptCompiler.checkForErrors(logger,goldenCuds,false);
+  for (  CompilationUnitDeclaration jdtCud : goldenCuds) {
+    jdtCud.traverse(new FindDeferredBindingSitesVisitor(),jdtCud.scope);
+  }
+  JavaToJavaScriptCompiler.checkForErrors(logger,goldenCuds,true);
   CorrelationFactory correlator=new DummyCorrelationFactory();
   JProgram jprogram=new JProgram(correlator);
   JsProgram jsProgram=new JsProgram(correlator);
