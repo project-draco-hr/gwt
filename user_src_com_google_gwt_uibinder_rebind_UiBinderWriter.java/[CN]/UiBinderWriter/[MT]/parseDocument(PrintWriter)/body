@@ -1,0 +1,18 @@
+{
+  Document doc=null;
+  try {
+    doc=parseXmlResource(templatePath);
+  }
+ catch (  SAXParseException e) {
+    die("Error parsing XML (line " + e.getLineNumber() + "): "+ e.getMessage(),e);
+  }
+  JClassType uiBinderClass=getOracle().findType(UiBinder.class.getName());
+  if (!baseClass.isAssignableTo(uiBinderClass)) {
+    die(baseClass.getName() + " must implement UiBinder");
+  }
+  Element documentElement=doc.getDocumentElement();
+  gwtPrefix=documentElement.lookupPrefix(BINDER_URI);
+  XMLElement elem=new XMLElement(documentElement,this);
+  this.rendered=tokenator.detokenate(parseDocumentElement(elem));
+  printWriter.print(rendered);
+}

@@ -1,0 +1,13 @@
+{
+  MortalLogger logger=new MortalLogger(treeLogger);
+  String templatePath=deduceTemplateFile(logger,interfaceType);
+  UiBinderWriter uiBinderWriter=new UiBinderWriter(interfaceType,implName,templatePath,oracle,logger);
+  uiBinderWriter.parseDocument(binderPrintWrier);
+  MessagesWriter messages=uiBinderWriter.getMessages();
+  if (messages.hasMessages()) {
+    messages.write(writerManager.makePrintWriterFor(messages.getMessagesClassName()));
+  }
+  ImplicitClientBundle bundleClass=uiBinderWriter.getBundleClass();
+  new BundleWriter(bundleClass,writerManager,oracle,writerManager).write();
+  writerManager.commit();
+}

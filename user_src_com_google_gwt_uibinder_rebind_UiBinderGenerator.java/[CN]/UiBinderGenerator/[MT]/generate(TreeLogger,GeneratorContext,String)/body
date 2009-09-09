@@ -7,23 +7,12 @@
  catch (  NotFoundException e) {
     throw new RuntimeException(e);
   }
-  String implName=interfaceType.getName();
-  implName=implName.replace('.','_') + "Impl";
+  String implName=interfaceType.getName().replace('.','_') + "Impl";
   String packageName=interfaceType.getPackage().getName();
-  PrintWriter printWriter=genCtx.tryCreate(logger,packageName,implName);
+  PrintWriterManager writers=new PrintWriterManager(genCtx,logger,packageName);
+  PrintWriter printWriter=writers.tryToMakePrintWriterFor(implName);
   if (printWriter != null) {
-    String templateName=deduceTemplateFile(logger,interfaceType);
-    Document document;
-    try {
-      document=parseXmlResource(logger,templateName);
-    }
- catch (    SAXParseException e) {
-      logger.log(TreeLogger.ERROR,"Error parsing XML (line " + e.getLineNumber() + "): "+ e.getMessage(),e);
-      throw new UnableToCompleteException();
-    }
-    UiBinderWriter uiBinderWriter=new UiBinderWriter(interfaceType,implName,templateName,oracle,logger);
-    uiBinderWriter.parseDocument(document);
-    commit(logger,genCtx,packageName,printWriter,uiBinderWriter);
+    generateOnce(interfaceType,implName,packageName,printWriter,logger,oracle,writers);
   }
   return packageName + "." + implName;
 }
