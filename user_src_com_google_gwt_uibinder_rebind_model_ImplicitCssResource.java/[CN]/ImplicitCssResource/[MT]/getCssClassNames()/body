@@ -1,16 +1,15 @@
 {
-  ClassLoader classLoader=ImplicitCssResource.class.getClassLoader();
-  String path=packageName.replace(".","/");
-  String[] sources=source.split(" ");
-  URL[] urls=new URL[sources.length];
-  int i=0;
-  for (  String s : sources) {
-    String resourcePath=path + '/' + s;
-    URL found=classLoader.getResource(resourcePath);
-    if (null == found) {
-      logger.die("Unable to find resource: " + resourcePath);
+  URL[] urls;
+  if (body.length() == 0) {
+    urls=getExternalCss();
+  }
+ else {
+    try {
+      urls=new URL[]{getGeneratedFile().toURL()};
     }
-    urls[i++]=found;
+ catch (    MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
   }
   CssStylesheet sheet=GenerateCssAst.exec(logger.getTreeLogger(),urls);
   return ExtractClassNamesVisitor.exec(sheet);
