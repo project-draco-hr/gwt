@@ -1,0 +1,23 @@
+{
+  if (value == Undefined.instance) {
+    return new Value();
+  }
+  if (value instanceof JavaObject) {
+    Value returnVal=new Value();
+    int refId=((JavaObject)value).getRefId();
+    returnVal.setJavaObject(new JavaObjectRef(refId));
+    return returnVal;
+  }
+  if (value instanceof Scriptable) {
+    Integer refId=jsObjectToRef.get((Scriptable)value);
+    if (refId == null) {
+      refId=nextRefId++;
+      jsObjectToRef.put((Scriptable)value,refId);
+      refToJsObject.put(refId,(Scriptable)value);
+    }
+    Value returnVal=new Value();
+    returnVal.setJsObject(new JsObjectRef(refId));
+    return returnVal;
+  }
+  return new Value(value);
+}

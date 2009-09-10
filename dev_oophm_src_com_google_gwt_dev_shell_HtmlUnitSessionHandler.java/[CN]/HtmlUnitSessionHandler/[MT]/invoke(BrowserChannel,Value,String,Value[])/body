@@ -1,0 +1,32 @@
+{
+  logger.log(TreeLogger.DEBUG,"INVOKE: thisObj: " + thisObj + ", methodName: "+ methodName+ ", args: "+ args);
+  Context jsContext=Context.getCurrentContext();
+  ScriptableObject jsThis;
+  if (thisObj.getType() == ValueType.NULL) {
+    jsThis=(ScriptableObject)window;
+  }
+ else {
+    jsThis=(ScriptableObject)makeJsvalFromValue(jsContext,thisObj);
+  }
+  Object functionObject=ScriptableObject.getProperty((ScriptableObject)window,methodName);
+  if (functionObject == ScriptableObject.NOT_FOUND) {
+    logger.log(TreeLogger.ERROR,"function " + methodName + " NOT FOUND, thisObj: "+ jsThis+ ", methodName: "+ methodName);
+    return new ExceptionOrReturnValue(true,new Value(null));
+  }
+  Function jsFunction=(Function)functionObject;
+  logger.log(TreeLogger.SPAM,"INVOKE: jsFunction: " + jsFunction);
+  Object jsArgs[]=new Object[args.length];
+  for (int i=0; i < args.length; i++) {
+    jsArgs[i]=makeJsvalFromValue(jsContext,args[i]);
+  }
+  Object result=null;
+  try {
+    result=jsEngine.callFunction(htmlPage,jsFunction,jsContext,window,jsThis,jsArgs);
+  }
+ catch (  Exception ex) {
+    logger.log(TreeLogger.ERROR,"INVOKE: exception " + ex + ", message: "+ ex.getMessage()+ " when invoking "+ methodName);
+    return new ExceptionOrReturnValue(true,makeValueFromJsval(jsContext,Undefined.instance));
+  }
+  logger.log(TreeLogger.INFO,"INVOKE: result: " + result + " of jsFunction: "+ jsFunction);
+  return new ExceptionOrReturnValue(false,makeValueFromJsval(jsContext,result));
+}
