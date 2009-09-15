@@ -1,5 +1,5 @@
 {
-  int activeClients=messageQueue.getNumClientsRetrievedCurrentTest();
+  int activeClients=messageQueue.getNumClientsRetrievedTest(currentTestInfo);
   if (firstLaunch && runStyle instanceof RunStyleManual) {
     String[] newClients=messageQueue.getNewClients();
     int printIndex=activeClients - newClients.length + 1;
@@ -7,12 +7,20 @@
       System.out.println(printIndex + " - " + newClient);
       ++printIndex;
     }
-    if (activeClients == this.numClients) {
-      System.out.println("Starting tests");
-    }
- else {
+    if (activeClients != this.numClients) {
       return true;
     }
+  }
+  if (remoteUserAgents == null && !runStyle.isLocal() && messageQueue.getNumConnectedClients() == numClients) {
+    remoteUserAgents=messageQueue.getUserAgents();
+    String userAgentList="";
+    for (int i=0; i < remoteUserAgents.length; i++) {
+      if (i > 0) {
+        userAgentList+=", ";
+      }
+      userAgentList+=remoteUserAgents[i];
+    }
+    System.out.println("All clients connected (Limiting future permutations to: " + userAgentList + ")");
   }
   long currentTimeMillis=System.currentTimeMillis();
   if (activeClients == numClients) {
@@ -23,15 +31,26 @@
     }
  else     if (testMethodTimeout < currentTimeMillis) {
       double elapsed=(currentTimeMillis - testBeginTime) / 1000.0;
-      throw new TimeoutException("The browser did not complete the test method " + messageQueue.getCurrentTestName() + " in "+ TEST_METHOD_TIMEOUT_MILLIS+ "ms.\n  We have no results from: "+ messageQueue.getWorkingClients()+ "\n Actual time elapsed: "+ elapsed+ " seconds.\n");
+      throw new TimeoutException("The browser did not complete the test method " + currentTestInfo.toString() + " in "+ TEST_METHOD_TIMEOUT_MILLIS+ "ms.\n  We have no results from:\n"+ messageQueue.getWorkingClients(currentTestInfo)+ "Actual time elapsed: "+ elapsed+ " seconds.\n");
     }
   }
  else   if (testBeginTimeout < currentTimeMillis) {
     double elapsed=(currentTimeMillis - testBeginTime) / 1000.0;
-    throw new TimeoutException("The browser did not contact the server within " + TEST_BEGIN_TIMEOUT_MILLIS + "ms.\n"+ messageQueue.getUnretrievedClients()+ "\n Actual time elapsed: "+ elapsed+ " seconds.\n");
+    throw new TimeoutException("The browser did not contact the server within " + TEST_BEGIN_TIMEOUT_MILLIS + "ms.\n"+ messageQueue.getUnretrievedClients(currentTestInfo)+ "\n Actual time elapsed: "+ elapsed+ " seconds.\n");
   }
   if (runStyle.wasInterrupted()) {
     throw new TimeoutException("A remote browser died a mysterious death.");
   }
-  return !messageQueue.hasResult();
+  if (messageQueue.hasResults(currentTestInfo)) {
+    return false;
+  }
+ else   if (pendingException == null) {
+    try {
+      compileStrategy.maybeCompileAhead();
+    }
+ catch (    UnableToCompleteException e) {
+      pendingException=e;
+    }
+  }
+  return true;
 }

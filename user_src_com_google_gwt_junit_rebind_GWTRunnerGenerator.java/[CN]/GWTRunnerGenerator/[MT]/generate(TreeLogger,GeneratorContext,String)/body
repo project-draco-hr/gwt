@@ -20,12 +20,22 @@
     logger.log(TreeLogger.ERROR,"Could not resolve junit.moduleName property",e);
     throw new UnableToCompleteException();
   }
-  String generatedClass=requestedClass.getName().replace('.','_') + "Impl";
+  String userAgent;
+  try {
+    SelectionProperty prop=context.getPropertyOracle().getSelectionProperty(logger,"user.agent");
+    userAgent=prop.getCurrentValue();
+  }
+ catch (  BadPropertyValueException e) {
+    logger.log(TreeLogger.ERROR,"Could not resolve user.agent property",e);
+    throw new UnableToCompleteException();
+  }
+  String generatedClass=requestedClass.getName().replace('.','_') + "Impl" + userAgent;
   String packageName=requestedClass.getPackage().getName();
   String qualifiedStubClassName=packageName + "." + generatedClass;
   SourceWriter sourceWriter=getSourceWriter(logger,context,packageName,generatedClass,GWT_RUNNER_NAME);
   if (sourceWriter != null) {
-    Set<TestInfo> moduleTests=GWTTestCase.ALL_GWT_TESTS.get(moduleName);
+    TestModuleInfo moduleInfo=GWTTestCase.getTestsForModule(moduleName);
+    Set<TestInfo> moduleTests=(moduleInfo == null) ? null : moduleInfo.getTests();
     Set<String> testClasses;
     if (moduleTests == null || moduleTests.isEmpty()) {
       JClassType[] allTestTypes=getAllPossibleTestTypes(context.getTypeOracle());
@@ -38,6 +48,7 @@
       }
     }
     writeCreateNewTestCaseMethod(testClasses,sourceWriter);
+    writeGetUserAgentPropertyMethod(userAgent,sourceWriter);
     sourceWriter.commit(logger);
   }
   return qualifiedStubClassName;

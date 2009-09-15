@@ -1,0 +1,31 @@
+{
+  final long timeout=System.currentTimeMillis() + 15;
+  JUnitMessageQueue queue=createQueue(3,2,3);
+  TestInfo[] testBlock0=queue.getTestBlocks().get(0);
+  TestInfo test0_0=testBlock0[0];
+  JUnitResult result0=new JUnitResult();
+  result0.setException(new IllegalArgumentException("0"));
+  JUnitResult result1=new JUnitResult();
+  result0.setException(new IllegalArgumentException("1"));
+  JUnitResult result2=new JUnitResult();
+  result0.setException(new IllegalArgumentException("2"));
+{
+    Map<TestInfo,JUnitResult> results=new HashMap<TestInfo,JUnitResult>();
+    results.put(test0_0,result0);
+    queue.reportResults("client0","ie6",results);
+  }
+{
+    Map<TestInfo,JUnitResult> results=new HashMap<TestInfo,JUnitResult>();
+    results.put(test0_0,result1);
+    queue.reportResults("client1","ie6",results);
+  }
+{
+    Map<TestInfo,JUnitResult> results=new HashMap<TestInfo,JUnitResult>();
+    results.put(test0_0,result2);
+    queue.reportResults("client2","ie6",results);
+  }
+  Map<String,JUnitResult> results=queue.getResults(test0_0);
+  assertEquals(result0,results.get("client0"));
+  assertEquals(result1,results.get("client1"));
+  assertEquals(result2,results.get("client2"));
+}

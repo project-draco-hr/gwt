@@ -1,10 +1,12 @@
 {
   super.setName(name);
-  String moduleName=getModuleName();
-  Set<TestInfo> testsInThisModule=ALL_GWT_TESTS.get(moduleName);
-  if (testsInThisModule == null) {
-    testsInThisModule=new LinkedHashSet<TestInfo>();
-    ALL_GWT_TESTS.put(moduleName,testsInThisModule);
+synchronized (ALL_GWT_TESTS_LOCK) {
+    String syntheticModuleName=getSyntheticModuleName();
+    TestModuleInfo moduleInfo=ALL_GWT_TESTS.get(syntheticModuleName);
+    if (moduleInfo == null) {
+      moduleInfo=new TestModuleInfo(getModuleName(),syntheticModuleName,getStrategy());
+      ALL_GWT_TESTS.put(syntheticModuleName,moduleInfo);
+    }
+    moduleInfo.getTests().add(new TestInfo(syntheticModuleName,getClass().getName(),getName()));
   }
-  testsInThisModule.add(new TestInfo(moduleName + ".JUnit",getClass().getName(),getName()));
 }

@@ -2,10 +2,14 @@
   if (serverless) {
     return;
   }
+  if (result != null && failureMessage != null) {
+    RuntimeException ex=new RuntimeException(failureMessage);
+    result.setExceptionWrapper(new ExceptionWrapper(ex));
+  }
   TestInfo currentTest=getCurrentTest();
   currentResults.put(currentTest,result);
-  ++currentBlockIndex;
-  if (currentBlockIndex < currentBlock.length) {
+  ++currentTestIndex;
+  if (currentTestIndex < currentBlock.getTests().length) {
     DeferredCommand.addCommand(new Command(){
       public void execute(){
         doRunTest();

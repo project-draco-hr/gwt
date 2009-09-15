@@ -1,0 +1,26 @@
+{
+  final long timeout=System.currentTimeMillis() + 15;
+  JUnitMessageQueue queue=createQueue(15,1,1);
+  assertEquals(0,queue.getNewClients().length);
+{
+    queue.getTestBlock("client0","ie6",0,timeout);
+    queue.reportFatalLaunch("client1","gecko",null);
+    queue.reportResults("client2","safari",createTestResults(0));
+    assertSimilar(new String[]{"client0","client1","client2"},queue.getNewClients());
+    assertEquals(0,queue.getNewClients().length);
+  }
+{
+    queue.getTestBlock("client3","ie6",0,timeout);
+    queue.reportFatalLaunch("client3","ie6",null);
+    queue.reportResults("client4","safari",createTestResults(0));
+    queue.getTestBlock("client3","ie6",0,timeout);
+    assertSimilar(new String[]{"client3","client4"},queue.getNewClients());
+    assertEquals(0,queue.getNewClients().length);
+  }
+{
+    queue.getTestBlock("client0","ie6",0,timeout);
+    queue.reportFatalLaunch("client1","gecko",null);
+    queue.reportResults("client2","safari",createTestResults(0));
+    assertEquals(0,queue.getNewClients().length);
+  }
+}

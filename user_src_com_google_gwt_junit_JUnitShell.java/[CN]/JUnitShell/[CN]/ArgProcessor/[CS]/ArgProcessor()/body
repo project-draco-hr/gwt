@@ -132,14 +132,23 @@
       return "-batch";
     }
     @Override public String[] getTagArgs(){
-      return new String[]{"module"};
+      return new String[]{"none|class|module"};
     }
     @Override public boolean isUndocumented(){
       return true;
     }
     @Override public boolean setString(    String str){
-      if (str.equals("module")) {
+      if (str.equals("none")) {
+        batchingStrategy=new NoBatchingStrategy();
+      }
+ else       if (str.equals("class")) {
+        batchingStrategy=new ClassBatchingStrategy();
+      }
+ else       if (str.equals("module")) {
         batchingStrategy=new ModuleBatchingStrategy();
+      }
+ else {
+        return false;
       }
       return true;
     }
@@ -189,6 +198,55 @@
     }
     @Override public boolean setFlag(){
       setHeadless(false);
+      return true;
+    }
+  }
+);
+  registerHandler(new ArgHandlerString(){
+    @Override public String getPurpose(){
+      return "Precompile modules as tests are running (speeds up remote tests but requires more memory)";
+    }
+    @Override public String getTag(){
+      return "-precompile";
+    }
+    @Override public String[] getTagArgs(){
+      return new String[]{"simple|all|parallel"};
+    }
+    @Override public boolean isUndocumented(){
+      return true;
+    }
+    @Override public boolean setString(    String str){
+      if (str.equals("simple")) {
+        compileStrategy=new SimpleCompileStrategy();
+      }
+ else       if (str.equals("all")) {
+        compileStrategy=new PreCompileStrategy();
+      }
+ else       if (str.equals("parallel")) {
+        compileStrategy=new ParallelCompileStrategy();
+      }
+ else {
+        return false;
+      }
+      return true;
+    }
+  }
+);
+  registerHandler(new ArgHandlerString(){
+    @Override public String getPurpose(){
+      return "Specify the user agents to reduce the number of permutations for remote browser tests;" + " e.g. ie6,ie8,safari,gecko,gecko1_8,opera";
+    }
+    @Override public String getTag(){
+      return "-userAgents";
+    }
+    @Override public String[] getTagArgs(){
+      return new String[]{"userAgents"};
+    }
+    @Override public boolean setString(    String str){
+      remoteUserAgents=str.split(",");
+      for (int i=0; i < remoteUserAgents.length; i++) {
+        remoteUserAgents[i]=remoteUserAgents[i].trim();
+      }
       return true;
     }
   }

@@ -1,0 +1,21 @@
+{
+  Set<TestInfo> allTestsInModule=GWTTestCase.getTestsForModule(syntheticModuleName).getTests();
+  List<TestInfo[]> testBlocks=new ArrayList<TestInfo[]>();
+  String lastTestClass=null;
+  List<TestInfo> lastTestBlock=null;
+  for (  TestInfo testInfo : allTestsInModule) {
+    String testClass=testInfo.getTestClass();
+    if (!testClass.equals(lastTestClass)) {
+      if (lastTestBlock != null) {
+        testBlocks.add(lastTestBlock.toArray(new TestInfo[lastTestBlock.size()]));
+      }
+      lastTestClass=testClass;
+      lastTestBlock=new ArrayList<TestInfo>();
+    }
+    lastTestBlock.add(testInfo);
+  }
+  if (lastTestBlock != null) {
+    testBlocks.add(lastTestBlock.toArray(new TestInfo[lastTestBlock.size()]));
+  }
+  return testBlocks;
+}
