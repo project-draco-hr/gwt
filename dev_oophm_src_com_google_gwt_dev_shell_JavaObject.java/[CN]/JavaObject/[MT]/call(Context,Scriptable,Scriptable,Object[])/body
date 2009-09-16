@@ -8,8 +8,9 @@
   }
   Value thisValue=sessionData.getSessionHandler().makeValueFromJsval(cx,args[1]);
   int dispatchId=((Number)args[0]).intValue();
+  ExceptionOrReturnValue returnValue=getReturnFromJavaMethod(cx,sessionData.getSessionHandler(),sessionData.getChannel(),dispatchId,thisValue,valueArgs);
   Object ret[]=new Object[2];
-  ret[0]=Boolean.FALSE;
-  ret[1]=getReturnValueFromJavaMethod(cx,sessionData.getSessionHandler(),sessionData.getChannel(),dispatchId,thisValue,valueArgs);
+  ret[0]=returnValue.isException();
+  ret[1]=sessionData.getSessionHandler().makeJsvalFromValue(cx,returnValue.getReturnValue());
   return ret;
 }
