@@ -5,9 +5,11 @@
   ConfigurationProperty moduleNameProp=moduleDef.getProperties().createConfiguration("junit.moduleName",false);
   moduleNameProp.setValue(syntheticModuleName);
   runStyle.maybeCompileModule(syntheticModuleName);
-  compiledModuleCount++;
-  boolean isFinalModule=compiledModuleCount == GWTTestCase.getModuleCount();
-  List<TestInfo[]> testBlocks=batchingStrategy.getTestBlocks(syntheticModuleName);
-  JUnitShell.getMessageQueue().addTestBlocks(testBlocks,isFinalModule);
+  if (!compiledModuleNames.contains(syntheticModuleName)) {
+    compiledModuleNames.add(syntheticModuleName);
+    boolean isFinalModule=compiledModuleNames.size() == GWTTestCase.getModuleCount();
+    List<TestInfo[]> testBlocks=batchingStrategy.getTestBlocks(syntheticModuleName);
+    JUnitShell.getMessageQueue().addTestBlocks(testBlocks,isFinalModule);
+  }
   return moduleDef;
 }
