@@ -2,10 +2,13 @@
   ImageIcon gwtIcon=loadImageIcon("icon24.png");
   frame=new JFrame("GWT Development Mode");
   tabs=new JTabbedPane();
-  mainWnd=new ShellMainWindow(options.getLogLevel());
+  if (options.alsoLogToFile()) {
+    options.getLogDir().mkdirs();
+  }
+  mainWnd=new ShellMainWindow(options.getLogLevel(),options.getLogFile("main.log"));
   tabs.addTab("Development Mode",gwtIcon,mainWnd,"GWT Development mode");
   if (!options.isNoServer()) {
-    webServerLog=new WebServerPanel(getPort(),options.getLogLevel(),new RestartAction(){
+    webServerLog=new WebServerPanel(getPort(),options.getLogLevel(),options.getLogFile("webserver.log"),new RestartAction(){
       public void restartServer(      TreeLogger logger){
         try {
           OophmHostedModeBase.this.restartServer(logger);
