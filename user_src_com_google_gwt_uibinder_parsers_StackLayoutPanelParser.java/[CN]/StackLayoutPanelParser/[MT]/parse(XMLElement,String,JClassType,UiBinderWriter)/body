@@ -1,0 +1,29 @@
+{
+  Unit unit=elem.consumeEnumAttribute("unit",Unit.class);
+  writer.setFieldInitializerAsConstructor(fieldName,writer.getOracle().findType(StackLayoutPanel.class.getName()),DockLayoutPanelParser.getFullyQualifiedEnumName(unit));
+  for (  XMLElement child : elem.consumeChildElements()) {
+    if (!isElementType(elem,child,STACK_ELEM)) {
+      writer.die("In %s, Only <stack> children are allowed.",elem);
+    }
+    XMLElement headerElem=null, widgetElem=null;
+    for (    XMLElement stackChild : child.consumeChildElements()) {
+      if (isElementType(elem,stackChild,HEADER_ELEM)) {
+        if (headerElem != null) {
+          writer.die("In %s, Only one <header> allowed per <stack>",elem);
+        }
+        headerElem=stackChild;
+        continue;
+      }
+      if (widgetElem != null) {
+        writer.die("In %s, Only one child widget allowed per <stack>",elem);
+      }
+      widgetElem=stackChild;
+    }
+    double size=headerElem.consumeDoubleAttribute("size");
+    XMLElement headerWidgetElem=headerElem.consumeSingleChildElement();
+    String headerFieldName=writer.parseElementToField(headerWidgetElem);
+    String childFieldName=writer.parseElementToField(widgetElem);
+    writer.addStatement("%s.add(%s, %s, %f);",fieldName,childFieldName,headerFieldName,size);
+  }
+  writer.addStatement("%s.layout();",fieldName);
+}
