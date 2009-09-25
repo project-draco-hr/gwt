@@ -9,7 +9,9 @@ case FREE_VALUE:
   break;
 case INVOKE:
 final InvokeOnServerMessage imsg=InvokeOnServerMessage.receive(this);
-ReturnMessage.send(this,handler.invoke(this,imsg.getThis(),imsg.getMethodDispatchId(),imsg.getArgs()));
+ExceptionOrReturnValue result=handler.invoke(this,imsg.getThis(),imsg.getMethodDispatchId(),imsg.getArgs());
+sendFreedValues();
+ReturnMessage.send(this,result);
 break;
 case INVOKE_SPECIAL:
 handleInvokeSpecial(handler);
