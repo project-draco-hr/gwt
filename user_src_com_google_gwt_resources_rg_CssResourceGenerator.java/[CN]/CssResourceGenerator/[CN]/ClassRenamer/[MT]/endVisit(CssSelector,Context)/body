@@ -1,42 +1,29 @@
 {
   String sel=x.getSelector();
-  for (  Map.Entry<String,Map<JMethod,String>> outerEntry : classReplacementsWithPrefix.entrySet()) {
-    String prefix=outerEntry.getKey();
-    for (    Map.Entry<JMethod,String> entry : outerEntry.getValue().entrySet()) {
-      JMethod method=entry.getKey();
-      String sourceClassName=method.getName();
-      String obfuscatedClassName=entry.getValue();
-      ClassName className=method.getAnnotation(ClassName.class);
-      if (className != null) {
-        sourceClassName=className.value();
-      }
-      sourceClassName=prefix + sourceClassName;
-      Pattern p=Pattern.compile("(.*)\\.(" + Pattern.quote(sourceClassName) + ")([ :>+#.].*|$)");
-      Matcher m=p.matcher(sel);
-      if (m.find()) {
-        if (externalClasses.contains(sourceClassName)) {
-          actualReplacements.put(method,sourceClassName);
-        }
- else {
-          sel=m.group(1) + "." + obfuscatedClassName+ m.group(3);
-          actualReplacements.put(method,obfuscatedClassName);
-        }
-        missingClasses.remove(method);
-        if (strict) {
-          replacedClasses.add(obfuscatedClassName);
-        }
-      }
+  int originalLength=sel.length();
+  Matcher ma=CssSelector.CLASS_SELECTOR_PATTERN.matcher(sel);
+  StringBuilder sb=new StringBuilder(originalLength);
+  int start=0;
+  while (ma.find()) {
+    String sourceClassName=ma.group(1);
+    Replacement entry=potentialReplacements.get(sourceClassName);
+    if (entry == null) {
+      unknownClasses.add(sourceClassName);
+      continue;
     }
-  }
-  sel=sel.trim();
-  if (strict) {
-    Matcher m=CssSelector.CLASS_SELECTOR_PATTERN.matcher(sel);
-    while (m.find()) {
-      String classSelector=m.group(1);
-      if (!replacedClasses.contains(classSelector) && !externalClasses.contains(classSelector)) {
-        unknownClasses.add(classSelector);
-      }
+ else     if (entry == UNREFERENCED_EXTERNAL) {
+      continue;
     }
+    JMethod method=entry.getMethod();
+    String obfuscatedClassName=entry.getObfuscatedClassName();
+    sb.append(sel.subSequence(start,ma.start(1)));
+    sb.append(obfuscatedClassName);
+    start=ma.end(1);
+    actualReplacements.put(method,obfuscatedClassName);
+    missingClasses.remove(method);
   }
-  x.setSelector(sel);
+  if (start != 0) {
+    sb.append(sel.subSequence(start,originalLength));
+    x.setSelector(sb.toString());
+  }
 }
