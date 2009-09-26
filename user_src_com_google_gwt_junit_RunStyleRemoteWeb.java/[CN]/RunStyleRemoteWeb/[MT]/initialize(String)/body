@@ -1,4 +1,8 @@
 {
+  if (args == null || args.length() == 0) {
+    throw new JUnitFatalLaunchException("RemoteWeb runstyle requires comma-separated RMI URLs");
+  }
+  String[] urls=args.split(",");
   try {
     RMISocketFactoryWithTimeouts.init();
   }
@@ -25,5 +29,12 @@
       throw new JUnitFatalLaunchException(message,cause);
     }
   }
-  return new RunStyleRemoteWeb(shell,browserManagers,urls);
+synchronized (this) {
+    this.remoteBrowsers=new RemoteBrowser[browserManagers.length];
+    for (int i=0; i < browserManagers.length; ++i) {
+      remoteBrowsers[i]=new RemoteBrowser(browserManagers[i],urls[i]);
+    }
+  }
+  Runtime.getRuntime().addShutdownHook(new ShutdownCb());
+  return true;
 }
