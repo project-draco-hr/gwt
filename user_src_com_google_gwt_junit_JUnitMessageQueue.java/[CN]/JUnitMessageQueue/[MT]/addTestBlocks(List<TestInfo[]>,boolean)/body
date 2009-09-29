@@ -1,0 +1,17 @@
+{
+synchronized (clientStatusesLock) {
+    if (isLastTestBlockAvailable) {
+      throw new IllegalArgumentException("Cannot add test blocks after the last block is added");
+    }
+    for (    TestInfo[] testBlock : newTestBlocks) {
+      if (testBlock.length == 0) {
+        throw new IllegalArgumentException("TestBlocks cannot be empty");
+      }
+    }
+    testBlocks.addAll(newTestBlocks);
+    if (isLastBlock) {
+      isLastTestBlockAvailable=true;
+    }
+    clientStatusesLock.notifyAll();
+  }
+}

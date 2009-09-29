@@ -1,0 +1,25 @@
+{
+  Window.alert("Module 1 loaded");
+  grid.setHTML(0,0,"<b>Test<b>");
+  grid.setHTML(0,1,"<b>Description<b>");
+  grid.setHTML(0,2,"<b>Expected Results<b>");
+  addTest(BUTTON_1_ID,"Event is not cancelled by any module.","The event will fire in the button.",false);
+  addTest(BUTTON_2_ID,"Module 1 cancels event.","The event will not fire in the button.",true);
+  addTest(BUTTON_3_ID,"Module 2 cancels event.","The event will not fire in the button.",true);
+  Event.addNativePreviewHandler(new NativePreviewHandler(){
+    public void onPreviewNativeEvent(    NativePreviewEvent event){
+      if (event.getTypeInt() == Event.ONCLICK) {
+        Element target=event.getNativeEvent().getEventTarget().cast();
+        if (BUTTON_2_ID.equals(target.getId())) {
+          event.cancel();
+          Window.alert("Click handled by module 1 and cancelled");
+        }
+ else {
+          Window.alert("Click handled by module 1");
+        }
+      }
+    }
+  }
+);
+  return grid;
+}

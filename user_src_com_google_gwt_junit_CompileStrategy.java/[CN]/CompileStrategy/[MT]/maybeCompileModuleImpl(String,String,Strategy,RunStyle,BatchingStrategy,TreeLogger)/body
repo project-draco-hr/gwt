@@ -1,0 +1,15 @@
+{
+  ModuleDef moduleDef=ModuleDefLoader.createSyntheticModule(treeLogger,syntheticModuleName,new String[]{moduleName,strategy.getModuleInherit()},true);
+  moduleDef.clearEntryPoints();
+  moduleDef.addEntryPointTypeName(GWTRunner.class.getName());
+  ConfigurationProperty moduleNameProp=moduleDef.getProperties().createConfiguration("junit.moduleName",false);
+  moduleNameProp.setValue(syntheticModuleName);
+  junitShell.maybeCompileForWebMode(syntheticModuleName);
+  if (!compiledModuleNames.contains(syntheticModuleName)) {
+    compiledModuleNames.add(syntheticModuleName);
+    boolean isFinalModule=compiledModuleNames.size() == GWTTestCase.getModuleCount();
+    List<TestInfo[]> testBlocks=batchingStrategy.getTestBlocks(syntheticModuleName);
+    JUnitShell.getMessageQueue().addTestBlocks(testBlocks,isFinalModule);
+  }
+  return moduleDef;
+}

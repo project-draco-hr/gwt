@@ -1,0 +1,14 @@
+{
+synchronized (clientStatusesLock) {
+    if (results == null) {
+      throw new IllegalArgumentException("results cannot be null");
+    }
+    userAgents.add(userAgent);
+    ClientStatus clientStatus=ensureClientStatus(clientId);
+    for (    Map.Entry<TestInfo,JUnitResult> entry : results.entrySet()) {
+      TestInfo testInfo=entry.getKey();
+      ensureResults(testInfo).put(clientId,entry.getValue());
+    }
+    clientStatusesLock.notifyAll();
+  }
+}

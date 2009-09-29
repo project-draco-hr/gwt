@@ -1,28 +1,17 @@
 {
-  singleton=this;
-  topPanel.setWidth("100%");
-  mailList=new MailList();
-  mailList.setWidth("100%");
-  rightPanel.add(mailList);
-  rightPanel.add(mailDetail);
-  mailList.setWidth("100%");
-  mailDetail.setWidth("100%");
-  DockPanel outer=new DockPanel();
-  outer.add(topPanel,DockPanel.NORTH);
-  outer.add(shortcuts,DockPanel.WEST);
-  outer.add(rightPanel,DockPanel.CENTER);
-  outer.setWidth("100%");
-  outer.setSpacing(4);
-  outer.setCellWidth(rightPanel,"100%");
-  Window.addResizeHandler(this);
+  DockLayoutPanel outer=binder.createAndBindUi(this);
   Window.enableScrolling(false);
   Window.setMargin("0px");
-  RootPanel.get().add(outer);
-  DeferredCommand.addCommand(new Command(){
-    public void execute(){
-      onWindowResized(Window.getClientWidth(),Window.getClientHeight());
+  Element topElem=outer.getContainerElementFor(topPanel);
+  topElem.getStyle().setZIndex(2);
+  topElem.getStyle().setOverflow(Overflow.VISIBLE);
+  mailList.setListener(new MailList.Listener(){
+    public void onItemSelected(    MailItem item){
+      mailDetail.setItem(item);
     }
   }
 );
-  onWindowResized(Window.getClientWidth(),Window.getClientHeight());
+  RootLayoutPanel root=RootLayoutPanel.get();
+  root.add(outer);
+  root.layout();
 }

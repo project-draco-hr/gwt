@@ -1,0 +1,34 @@
+{
+  resetContainer(container);
+  BadWidget badWidget=new BadWidget();
+  badWidget.setFailOnUnload(true);
+  if (supportMultipleWidgets) {
+    adder.addChild(container,new Label("test0"));
+    adder.addChild(container,new Label("test1"));
+    adder.addChild(container,badWidget);
+    adder.addChild(container,new Label("test2"));
+    adder.addChild(container,new Label("test3"));
+  }
+ else {
+    adder.addChild(container,badWidget);
+  }
+  Assert.assertFalse(badWidget.isAttached());
+  RootPanel.get().add((Widget)container);
+  Assert.assertTrue(badWidget.isAttached());
+  try {
+    RootPanel.get().remove((Widget)container);
+  }
+ catch (  AttachDetachException e) {
+    Set<Throwable> causes=e.getCauses();
+    Assert.assertEquals(1,causes.size());
+    Throwable[] throwables=causes.toArray(new Throwable[1]);
+    Assert.assertTrue(throwables[0] instanceof IllegalArgumentException || throwables[0] instanceof AttachDetachException);
+  }
+  Iterator<Widget> children=container.iterator();
+  while (children.hasNext()) {
+    Widget w=children.next();
+    Assert.assertFalse(w.isAttached());
+    assertContainerIsOrHasChild(container,w);
+  }
+  Assert.assertNull(((Widget)container).getParent());
+}

@@ -1,0 +1,59 @@
+{
+  if (mustNotExecuteTest(testCase)) {
+    return;
+  }
+  if (lastLaunchFailed) {
+    throw new UnableToCompleteException();
+  }
+  String moduleName=testCase.getModuleName();
+  String syntheticModuleName=testCase.getSyntheticModuleName();
+  Strategy strategy=testCase.getStrategy();
+  boolean sameTest=(currentModule != null) && syntheticModuleName.equals(currentModule.getName());
+  if (sameTest && lastLaunchFailed) {
+    throw new UnableToCompleteException();
+  }
+  if (!sameTest) {
+    currentModule=compileStrategy.maybeCompileModule(moduleName,syntheticModuleName,strategy,runStyle,batchingStrategy,getTopLogger());
+  }
+  assert(currentModule != null);
+  JUnitFatalLaunchException launchException=checkTestClassInCurrentModule(getTopLogger(),currentModule,moduleName,testCase);
+  if (launchException != null) {
+    testResult.addError(testCase,launchException);
+    return;
+  }
+  currentTestInfo=new TestInfo(currentModule.getName(),testCase.getClass().getName(),testCase.getName());
+  if (messageQueue.hasResults(currentTestInfo)) {
+    processTestResult(testCase,testResult,strategy);
+    return;
+  }
+  try {
+    if (firstLaunch) {
+      runStyle.launchModule(currentModule.getName());
+    }
+  }
+ catch (  UnableToCompleteException e) {
+    lastLaunchFailed=true;
+    testResult.addError(testCase,new JUnitFatalLaunchException(e));
+    return;
+  }
+  try {
+    testBeginTime=System.currentTimeMillis();
+    testBeginTimeout=testBeginTime + TEST_BEGIN_TIMEOUT_MILLIS;
+    testMethodTimeout=0;
+    while (notDone()) {
+      messageQueue.waitForResults(1000);
+    }
+    if (pendingException != null) {
+      UnableToCompleteException e=pendingException;
+      pendingException=null;
+      throw e;
+    }
+  }
+ catch (  TimeoutException e) {
+    lastLaunchFailed=true;
+    testResult.addError(testCase,e);
+    return;
+  }
+  assert(messageQueue.hasResults(currentTestInfo));
+  processTestResult(testCase,testResult,testCase.getStrategy());
+}

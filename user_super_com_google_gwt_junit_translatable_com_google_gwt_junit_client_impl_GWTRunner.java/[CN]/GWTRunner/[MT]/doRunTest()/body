@@ -5,10 +5,22 @@
     runTest();
   }
  else {
-    String href=Window.Location.getHref();
-    String newHref=href.replace(currentModule,newModule);
-    Window.Location.replace(newHref);
+    Map<String,List<String>> paramMap=new HashMap<String,List<String>>();
+    paramMap.putAll(Window.Location.getParameterMap());
+    paramMap.put(BLOCKINDEX_QUERY_PARAM,Arrays.asList(String.valueOf(currentBlock.getIndex())));
+    paramMap.put(RETRYCOUNT_QUERY_PARAM,Arrays.asList(String.valueOf(maxRetryCount)));
+    String path=Window.Location.getPath().replace(currentModule,newModule);
+    StringBuilder query=new StringBuilder();
+    char prefix='?';
+    for (    Map.Entry<String,List<String>> entry : paramMap.entrySet()) {
+      for (      String val : entry.getValue()) {
+        query.append(prefix).append(entry.getKey()).append('=').append(val);
+        prefix='&';
+      }
+    }
+    String newUrl=Window.Location.getProtocol() + "//" + Window.Location.getHost()+ path+ query+ Window.Location.getHash();
+    Window.Location.replace(newUrl);
     currentBlock=null;
-    currentBlockIndex=0;
+    currentTestIndex=0;
   }
 }

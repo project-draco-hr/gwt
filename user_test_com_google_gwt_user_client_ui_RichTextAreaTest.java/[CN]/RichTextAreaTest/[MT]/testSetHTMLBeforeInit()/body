@@ -1,14 +1,19 @@
 {
   final RichTextArea richTextArea=new RichTextArea();
-  RootPanel.get().add(richTextArea);
-  richTextArea.setHTML("<b>foo</b>");
-  assertEquals("<b>foo</b>",richTextArea.getHTML().toLowerCase());
-  new Timer(){
-    @Override public void run(){
-      assertEquals("<b>foo</b>",richTextArea.getHTML().toLowerCase());
-      finishTest();
+  delayTestFinish(RICH_TEXT_ASYNC_DELAY);
+  richTextArea.addInitializeHandler(new InitializeHandler(){
+    public void onInitialize(    InitializeEvent event){
+      new Timer(){
+        @Override public void run(){
+          assertEquals("<b>foo</b>",richTextArea.getHTML().toLowerCase());
+          finishTest();
+        }
+      }
+.schedule(100);
     }
   }
-.schedule(200);
-  delayTestFinish(1000);
+);
+  richTextArea.setHTML("<b>foo</b>");
+  RootPanel.get().add(richTextArea);
+  assertEquals("<b>foo</b>",richTextArea.getHTML().toLowerCase());
 }

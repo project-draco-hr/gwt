@@ -1,0 +1,54 @@
+{
+  final long timeout=System.currentTimeMillis() + 15;
+  JUnitMessageQueue queue=createQueue(15,2,3);
+  TestInfo[] testBlock0=queue.getTestBlocks().get(0);
+  TestInfo test0_0=testBlock0[0];
+  TestInfo test0_1=testBlock0[1];
+  TestInfo test0_2=testBlock0[2];
+  TestInfo[] testBlock1=queue.getTestBlocks().get(1);
+  TestInfo test1_0=testBlock1[0];
+  TestInfo test1_1=testBlock1[1];
+  TestInfo test1_2=testBlock1[2];
+  assertEquals(0,queue.getNumClientsRetrievedTest(test0_0));
+  assertEquals(0,queue.getNumClientsRetrievedTest(test0_1));
+  assertEquals(0,queue.getNumClientsRetrievedTest(test0_2));
+  assertEquals(0,queue.getNumClientsRetrievedTest(test1_0));
+  assertEquals(0,queue.getNumClientsRetrievedTest(test1_1));
+  assertEquals(0,queue.getNumClientsRetrievedTest(test1_2));
+{
+    queue.getTestBlock("client0","ie6",0,timeout);
+    assertEquals(1,queue.getNumClientsRetrievedTest(test0_0));
+    assertEquals(1,queue.getNumClientsRetrievedTest(test0_1));
+    assertEquals(1,queue.getNumClientsRetrievedTest(test0_2));
+    assertEquals(0,queue.getNumClientsRetrievedTest(test1_0));
+    assertEquals(0,queue.getNumClientsRetrievedTest(test1_1));
+    assertEquals(0,queue.getNumClientsRetrievedTest(test1_2));
+  }
+{
+    queue.getTestBlock("client1","ie6",0,timeout);
+    assertEquals(2,queue.getNumClientsRetrievedTest(test0_0));
+    assertEquals(2,queue.getNumClientsRetrievedTest(test0_1));
+    assertEquals(2,queue.getNumClientsRetrievedTest(test0_2));
+    assertEquals(0,queue.getNumClientsRetrievedTest(test1_0));
+    assertEquals(0,queue.getNumClientsRetrievedTest(test1_1));
+    assertEquals(0,queue.getNumClientsRetrievedTest(test1_2));
+  }
+{
+    queue.getTestBlock("client0","ie6",1,timeout);
+    assertEquals(2,queue.getNumClientsRetrievedTest(test0_0));
+    assertEquals(2,queue.getNumClientsRetrievedTest(test0_1));
+    assertEquals(2,queue.getNumClientsRetrievedTest(test0_2));
+    assertEquals(1,queue.getNumClientsRetrievedTest(test1_0));
+    assertEquals(1,queue.getNumClientsRetrievedTest(test1_1));
+    assertEquals(1,queue.getNumClientsRetrievedTest(test1_2));
+  }
+{
+    queue.getTestBlock("client0","ie6",1,timeout);
+    assertEquals(2,queue.getNumClientsRetrievedTest(test0_0));
+    assertEquals(2,queue.getNumClientsRetrievedTest(test0_1));
+    assertEquals(2,queue.getNumClientsRetrievedTest(test0_2));
+    assertEquals(1,queue.getNumClientsRetrievedTest(test1_0));
+    assertEquals(1,queue.getNumClientsRetrievedTest(test1_1));
+    assertEquals(1,queue.getNumClientsRetrievedTest(test1_2));
+  }
+}

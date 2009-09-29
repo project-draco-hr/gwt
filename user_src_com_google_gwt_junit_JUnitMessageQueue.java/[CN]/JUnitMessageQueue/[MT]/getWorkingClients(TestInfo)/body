@@ -1,0 +1,24 @@
+{
+synchronized (clientStatusesLock) {
+    int itemCount=0;
+    StringBuilder buf=new StringBuilder();
+    Map<String,JUnitResult> results=testResults.get(testInfo);
+    if (results != null) {
+      for (      Map.Entry<String,JUnitResult> entry : results.entrySet()) {
+        if (entry.getValue() == null) {
+          buf.append(entry.getKey());
+          buf.append("\n");
+          itemCount++;
+        }
+      }
+    }
+    int difference=numClients - itemCount;
+    if (difference > 0) {
+      if (itemCount > 0) {
+        buf.append('\n');
+      }
+      buf.append(difference + " other client(s) haven't responded back to JUnitShell since the start of the test.");
+    }
+    return buf.toString();
+  }
+}
