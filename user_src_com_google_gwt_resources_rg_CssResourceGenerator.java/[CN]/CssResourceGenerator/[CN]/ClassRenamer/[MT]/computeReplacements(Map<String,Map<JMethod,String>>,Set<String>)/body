@@ -1,0 +1,24 @@
+{
+  Map<String,Replacement> toReturn=new HashMap<String,Replacement>();
+  for (  String externalClass : externalClasses) {
+    toReturn.put(externalClass,UNREFERENCED_EXTERNAL);
+  }
+  for (  Map.Entry<String,Map<JMethod,String>> outerEntry : classReplacementsWithPrefix.entrySet()) {
+    String prefix=outerEntry.getKey();
+    for (    Map.Entry<JMethod,String> entry : outerEntry.getValue().entrySet()) {
+      JMethod method=entry.getKey();
+      String sourceClassName=method.getName();
+      String obfuscatedClassName=entry.getValue();
+      ClassName className=method.getAnnotation(ClassName.class);
+      if (className != null) {
+        sourceClassName=className.value();
+      }
+      sourceClassName=prefix + sourceClassName;
+      if (externalClasses.contains(sourceClassName)) {
+        obfuscatedClassName=sourceClassName;
+      }
+      toReturn.put(sourceClassName,new Replacement(method,obfuscatedClassName));
+    }
+  }
+  return Collections.unmodifiableMap(toReturn);
+}
