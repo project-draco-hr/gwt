@@ -1,16 +1,17 @@
 {
   DefsCollector collector=new DefsCollector();
   collector.accept(sheet);
+  Set<String> defs=collector.getDefs();
   for (  JMethod toImplement : methods) {
     String name=toImplement.getName();
     if ("getName".equals(name) || "getText".equals(name)) {
       continue;
     }
-    if (collector.defs.contains(name) && obfuscatedClassNames.containsKey(toImplement)) {
+    if (defs.contains(name) && obfuscatedClassNames.containsKey(toImplement)) {
       logger.log(TreeLogger.ERROR,"@def shadows CSS class name: " + name + ". Fix by renaming the @def name or the CSS class name.");
       throw new UnableToCompleteException();
     }
-    if (collector.defs.contains(toImplement.getName()) && toImplement.getParameters().length == 0) {
+    if (defs.contains(toImplement.getName()) && toImplement.getParameters().length == 0) {
       writeDefAssignment(logger,sw,toImplement,sheet);
     }
  else     if (toImplement.getReturnType().equals(stringType) && toImplement.getParameters().length == 0) {
