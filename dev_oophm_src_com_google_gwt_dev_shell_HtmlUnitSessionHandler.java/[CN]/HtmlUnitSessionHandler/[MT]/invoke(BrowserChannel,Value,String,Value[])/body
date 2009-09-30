@@ -21,6 +21,15 @@
   }
   Object result=null;
   try {
+    if (args.length == 1 && methodName.indexOf(REPLACE_METHOD_SIGNATURE) != -1) {
+      String currentUrl=window.jsxGet_location().toString();
+      currentUrl=getUrlBeforeHash(currentUrl);
+      String newUrl=getUrlBeforeHash((String)args[0].getValue());
+      if (!newUrl.equals(currentUrl)) {
+        window.getWebWindow().getTopWindow().getJobManager().removeAllJobs();
+        ((BrowserChannelClient)channel).shouldDisconnect=true;
+      }
+    }
     result=jsEngine.callFunction(htmlPage,jsFunction,jsContext,window,jsThis,jsArgs);
   }
  catch (  JavaScriptException ex) {
