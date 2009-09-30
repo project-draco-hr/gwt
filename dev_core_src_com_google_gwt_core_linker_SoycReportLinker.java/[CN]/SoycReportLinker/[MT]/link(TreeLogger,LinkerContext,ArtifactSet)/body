@@ -1,5 +1,6 @@
 {
   ArtifactSet results=new ArtifactSet(artifacts);
+  boolean foundReports=false;
   for (  StandardCompilationAnalysis soycFiles : artifacts.find(StandardCompilationAnalysis.class)) {
     if (soycFiles.getDepFile() != null) {
       results.add(soycFiles.getDepFile());
@@ -11,6 +12,21 @@
       results.add(soycFiles.getDetailedStoriesFile());
     }
     results.add(soycFiles.getSplitPointsFile());
+    if (!soycFiles.getReportFiles().isEmpty()) {
+      results.addAll(soycFiles.getReportFiles());
+      foundReports=true;
+    }
+  }
+  if (foundReports) {
+    ArtifactsOutputDirectory out=new ArtifactsOutputDirectory();
+    try {
+      new SoycDashboard(out).generateCrossPermutationFiles(extractPermutationDescriptions(artifacts));
+    }
+ catch (    IOException e) {
+      logger.log(TreeLogger.ERROR,"Error while generating a Story of Your Compile",e);
+      e.printStackTrace();
+    }
+    results.addAll(out.getArtifacts());
   }
   return results;
 }
