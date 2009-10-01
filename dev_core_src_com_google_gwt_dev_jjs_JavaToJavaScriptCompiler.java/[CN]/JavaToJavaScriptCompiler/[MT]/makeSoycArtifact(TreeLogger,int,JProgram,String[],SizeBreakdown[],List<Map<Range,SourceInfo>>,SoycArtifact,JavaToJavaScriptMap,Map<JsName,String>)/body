@@ -1,6 +1,6 @@
 {
   ByteArrayOutputStream baos=new ByteArrayOutputStream();
-  PerfLogger.start("Recording SOYC output");
+  PerfLogger.start("Recording compile report output");
   PerfLogger.start("Record split points");
   SplitPointRecorder.recordSplitPoints(jprogram,baos,logger);
   SoycArtifact splitPoints=new SoycArtifact("splitPoints" + permutationId + ".xml.gz",baos.toByteArray());
@@ -22,5 +22,30 @@
     PerfLogger.end();
   }
   PerfLogger.end();
-  return new StandardCompilationAnalysis(dependencies,sizeMaps,splitPoints,detailedStories);
+  List<SoycArtifact> reportArtifacts=Lists.create();
+  if (sizeBreakdowns != null) {
+    PerfLogger.start("Generating compile report");
+    ArtifactsOutputDirectory outDir=new ArtifactsOutputDirectory();
+    SoycDashboard dashboard=new SoycDashboard(outDir);
+    dashboard.startNewPermutation(Integer.toString(permutationId));
+    try {
+      dashboard.readSplitPoints(openWithGunzip(splitPoints));
+      if (sizeMaps != null) {
+        dashboard.readSizeMaps(openWithGunzip(sizeMaps));
+      }
+      if (dependencies != null) {
+        dashboard.readDependencies(openWithGunzip(dependencies));
+      }
+    }
+ catch (    ParserConfigurationException e) {
+      throw new InternalCompilerException("Error reading compile report information that was just generated",e);
+    }
+catch (    SAXException e) {
+      throw new InternalCompilerException("Error reading compile report information that was just generated",e);
+    }
+    dashboard.generateForOnePermutation();
+    reportArtifacts=outDir.getArtifacts();
+    PerfLogger.end();
+  }
+  return new StandardCompilationAnalysis(dependencies,sizeMaps,splitPoints,detailedStories,reportArtifacts);
 }

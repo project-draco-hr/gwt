@@ -1,0 +1,44 @@
+{
+  String depGraphDescription=inferDepGraphDescription(depGraphName);
+  PrintWriter outFile=null;
+  String curPackageName="";
+  String curClassName="";
+  for (  String method : dependencies.keySet()) {
+    String packageName=method;
+    packageName=packageName.replaceAll("\\.\\p{Upper}.*","");
+    String className=method;
+    className=className.replaceAll("::.*","");
+    if ((curPackageName.compareTo("") == 0) || (curPackageName.compareTo(packageName) != 0)) {
+      curPackageName=packageName;
+      if (outFile != null) {
+        addStandardHtmlEnding(outFile);
+        outFile.close();
+      }
+      String outFileName=dependenciesFileName(depGraphName,curPackageName);
+      outFile=new PrintWriter(getOutFile(outFileName));
+      String packageDescription=packageName.length() == 0 ? "the default package" : packageName;
+      addDependenciesHtmlProlog(outFile,"Method Dependencies for " + depGraphDescription,"Showing Package: " + packageDescription);
+    }
+    String name=method;
+    if (curClassName.compareTo(className) != 0) {
+      name=className;
+      curClassName=className;
+      outFile.println("<h3>Class: " + curClassName + "</h3>");
+    }
+    outFile.println("<div class='main'>");
+    outFile.println("<a class='toggle' onclick='toggle.call(this)' name=" + name + "><span class='calledBy'> Call stack: </span>"+ name+ "</a>");
+    outFile.println("<ul>");
+    String depMethod=dependencies.get(method);
+    while (depMethod != null) {
+      String nextDep=dependencies.get(depMethod);
+      if (nextDep != null) {
+        outFile.println("<li>" + depMethod + "</li>");
+      }
+      depMethod=nextDep;
+    }
+    outFile.println("</ul>");
+    outFile.println("</div>");
+  }
+  addStandardHtmlEnding(outFile);
+  outFile.close();
+}

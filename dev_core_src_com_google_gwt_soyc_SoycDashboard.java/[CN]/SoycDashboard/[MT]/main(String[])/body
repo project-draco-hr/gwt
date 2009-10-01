@@ -1,92 +1,35 @@
 {
+  Settings settings;
   try {
-    System.out.println("Generating the Story of Your Compile...");
-    Settings settings=Settings.fromArgumentList(args);
-    MakeTopLevelHtmlForPerm makeTopLevelHtml=new MakeTopLevelHtmlForPerm();
-    makeTopLevelHtml.setSettings(settings);
-    settings.readPermutationInfo();
-    makeTopLevelHtml.makeTopLevelHtmlForAllPerms();
-    for (    String permutationId : settings.allPermsInfo.keySet()) {
-      GlobalInformation globalInformation=new GlobalInformation();
-      MakeTopLevelHtmlForPerm makeTopLevelHtmlForPerm=new MakeTopLevelHtmlForPerm(globalInformation);
-      makeTopLevelHtmlForPerm.setSettings(settings);
-      String storiesFileName=settings.storiesFileName;
-      String depFileName=settings.depFileName;
-      if (depFileName == null) {
-        depFileName="";
+    settings=Settings.fromArgumentList(args);
+  }
+ catch (  Settings.ArgumentListException e) {
+    System.err.println(e.getMessage());
+    System.err.println("Usage: " + "java com.google.gwt.soyc.SoycDashboard -resources dir -soycDir dir -symbolMaps dir [-out dir]");
+    System.err.println("(Legacy usage: " + "java com.google.gwt.soyc.SoycDashboard options stories0.xml[.gz] [dependencies0.xml[.gz]] [splitpoints0.xml[.gz]])");
+    System.err.println("Options:");
+    System.err.println(Settings.settingsHelp());
+    System.exit(1);
+    return;
+  }
+  System.out.println("Generating the Story of Your Compile...");
+  OutputDirectory outDir=new FileSystemOutputDirectory(new File(settings.out.get()));
+  try {
+    Map<String,String> permInfo=readPermutationInfo(settings);
+    SoycDashboard dashboard=new SoycDashboard(outDir);
+    for (    String permutationId : permInfo.keySet()) {
+      dashboard.startNewPermutation(permutationId);
+      if (settings.symbolMapsDir.get() == null) {
+        dashboard.readFromFilesNamed(settings.storiesFileName,settings.depFileName,settings.splitPointsFileName);
       }
-      String splitPointsFileName=settings.splitPointsFileName;
-      if (splitPointsFileName == null) {
-        splitPointsFileName="";
+ else {
+        String soycDir=settings.soycDir.get();
+        dashboard.readFromFilesNamed(soycInputFile(soycDir,"stories",permutationId),soycInputFile(soycDir,"dependencies",permutationId),soycInputFile(soycDir,"splitPoints",permutationId));
       }
-      if (settings.symbolMapsDir.get() != null) {
-        storiesFileName=settings.soycDir.get() + "/stories" + permutationId+ ".xml.gz";
-        if (!(new File(storiesFileName).exists())) {
-          storiesFileName=settings.soycDir.get() + "/stories" + permutationId+ ".xml";
-        }
-        depFileName=settings.soycDir.get() + "/dependencies" + permutationId+ ".xml.gz";
-        if (!(new File(depFileName).exists())) {
-          depFileName=settings.soycDir.get() + "/dependencies" + permutationId+ ".xml";
-        }
-        splitPointsFileName=settings.soycDir.get() + "/splitPoints" + permutationId+ ".xml.gz";
-        if (!(new File(splitPointsFileName).exists())) {
-          splitPointsFileName=settings.soycDir.get() + "/splitPoints" + permutationId+ ".xml";
-        }
-      }
-      settings.displayDependencies=(new File(depFileName)).exists();
-      settings.displaySplitPoints=(new File(splitPointsFileName)).exists();
-      new File(settings.out.get()).mkdir();
-      if (settings.displayDependencies) {
-        Map<String,Map<String,String>> dependencies=new TreeMap<String,Map<String,String>>();
-        DefaultHandler depHandler=parseXMLDocumentDependencies(dependencies);
-        SAXParserFactory depFactoryMain=SAXParserFactory.newInstance();
-        depFactoryMain.setNamespaceAware(true);
-        SAXParser saxParser=depFactoryMain.newSAXParser();
-        InputStream in=new FileInputStream(depFileName);
-        if (depFileName.endsWith(".gz")) {
-          in=new GZIPInputStream(in);
-        }
-        in=new BufferedInputStream(in);
-        saxParser.parse(in,depHandler);
-        makeTopLevelHtmlForPerm.makeDependenciesHtml(dependencies,permutationId);
-      }
-      if (settings.displaySplitPoints) {
-        DefaultHandler splitPointHandler=parseXMLDocumentSplitPoints(globalInformation);
-        SAXParserFactory splitPointsFactoryMain=SAXParserFactory.newInstance();
-        splitPointsFactoryMain.setNamespaceAware(true);
-        SAXParser saxParser=splitPointsFactoryMain.newSAXParser();
-        InputStream in=new FileInputStream(splitPointsFileName);
-        if (depFileName.endsWith(".gz")) {
-          in=new GZIPInputStream(in);
-        }
-        in=new BufferedInputStream(in);
-        saxParser.parse(in,splitPointHandler);
-      }
-      DefaultHandler handler=parseXMLDocumentSizeMap(globalInformation);
-      SAXParserFactory factoryMain=SAXParserFactory.newInstance();
-      factoryMain.setNamespaceAware(true);
-      SAXParser saxParser=factoryMain.newSAXParser();
-      InputStream in=new FileInputStream(storiesFileName);
-      if (storiesFileName.endsWith(".gz")) {
-        in=new GZIPInputStream(in);
-      }
-      in=new BufferedInputStream(in);
-      saxParser.parse(in,handler);
-      for (      SizeBreakdown breakdown : globalInformation.allSizeBreakdowns()) {
-        updateAllOtherCodeType(breakdown.nameToCodeColl,globalInformation);
-      }
-      globalInformation.computePackageSizes();
-      for (      SizeBreakdown breakdown : globalInformation.allSizeBreakdowns()) {
-        foldInRPCHeuristic(breakdown.nameToCodeColl);
-      }
-      makeTopLevelHtmlForPerm.makeSplitStatusPages(permutationId);
-      makeTopLevelHtmlForPerm.makeLeftoverStatusPages(permutationId);
-      for (      SizeBreakdown breakdown : globalInformation.allSizeBreakdowns()) {
-        DependencyLinker linker=chooseDependencyLinker(makeTopLevelHtmlForPerm,breakdown);
-        makeHTMLFiles(makeTopLevelHtmlForPerm,breakdown,linker,permutationId);
-      }
+      dashboard.generateForOnePermutation();
       System.out.println("Finished creating reports for permutation.");
     }
+    dashboard.generateCrossPermutationFiles(permInfo);
     System.out.println("Finished creating reports. To see the dashboard, open index.html in your browser.");
   }
  catch (  ParserConfigurationException e) {
@@ -103,14 +46,6 @@ catch (  FileNotFoundException e) {
   }
 catch (  IOException e) {
     System.err.println("Error creating html file. " + e.getMessage());
-    System.exit(1);
-  }
-catch (  Settings.ArgumentListException e) {
-    System.err.println(e.getMessage());
-    System.err.println("Usage: " + "java com.google.gwt.soyc.SoycDashboard -resources dir -soycDir dir -symbolMaps dir [-out dir]");
-    System.err.println("(Legacy usage: " + "java com.google.gwt.soyc.SoycDashboard options stories0.xml[.gz] [dependencies0.xml[.gz]] [splitpoints0.xml[.gz]])");
-    System.err.println("Options:");
-    System.err.println(Settings.settingsHelp());
     System.exit(1);
   }
 }

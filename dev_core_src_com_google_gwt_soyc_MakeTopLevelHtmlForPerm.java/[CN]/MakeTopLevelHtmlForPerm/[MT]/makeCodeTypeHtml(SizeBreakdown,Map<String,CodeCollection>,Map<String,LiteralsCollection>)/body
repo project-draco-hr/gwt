@@ -1,0 +1,84 @@
+{
+  String outFileName=breakdown.getId() + "-" + getPermutationId()+ "_codeTypeBreakdown.html";
+  float maxSize=0f;
+  float sumSize=0f;
+  TreeMap<Float,String> sortedCodeTypes=new TreeMap<Float,String>(Collections.reverseOrder());
+  for (  String codeType : nameToCodeColl.keySet()) {
+    float curSize=nameToCodeColl.get(codeType).getCumPartialSize(breakdown);
+    sumSize+=curSize;
+    if (curSize != 0f) {
+      sortedCodeTypes.put(curSize,codeType);
+      if (curSize > maxSize) {
+        maxSize=curSize;
+      }
+    }
+  }
+  final PrintWriter outFile=new PrintWriter(getOutFile(outFileName));
+  outFile.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"");
+  outFile.println("\"http://www.w3.org/TR/html4/strict.dtd\">");
+  outFile.println("<html>");
+  outFile.println("<head>");
+  outFile.println("<meta http-equiv=\"content-type\" content=\"text/html;charset=ISO-8859-1\">");
+  outFile.println("<link rel=\"stylesheet\" href=\"common.css\" media=\"screen\">");
+  outFile.println("</head>");
+  outFile.println("<body>");
+  outFile.println("<table style='width:100%'>");
+  outFile.println("<thead>");
+  outFile.println("<th class='barlabel'>Size</th>");
+  outFile.println("<th class='barlabel'>Percentage</th>");
+  outFile.println("<th class='barlabel'></th>");
+  outFile.println("<th style='width:100%' class='barlabel'></th>");
+  outFile.println("</thead>");
+  for (  Float size : sortedCodeTypes.keySet()) {
+    String codeType=sortedCodeTypes.get(size);
+    String drillDownFileName=breakdown.getId() + "_" + codeType+ "-"+ getPermutationId()+ "Classes.html";
+    float ratio=(size / maxSize) * 79;
+    float perc=(size / sumSize) * 100;
+    if (ratio < 5) {
+      ratio=5;
+    }
+    outFile.println("<tr>");
+    outFile.println("<td class=\"barlabel\">" + size + "</td>");
+    outFile.println("<td class=\"barlabel\">" + perc + "%</td>");
+    outFile.println("<td class=\"barlabel\"><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ codeType+ "</a></td>");
+    outFile.println("<td class=\"box\">");
+    outFile.println("<div style=\"width:" + ratio + "%;\" class=\"lb\"><div class=\"rb\"><div class=\"bb\"><div class=\"blc\"><div class=\"brc\"><div class=\"tb\"><div class=\"tlc\"><div class=\"trc\"><div class=\"content\"></div></div></div></div></div></div></div></div>");
+    outFile.println("</td>");
+    outFile.println("</tr>");
+  }
+  maxSize=0f;
+  sumSize=0f;
+  TreeMap<Float,String> sortedLitTypes=new TreeMap<Float,String>(Collections.reverseOrder());
+  for (  String literal : nameToLitColl.keySet()) {
+    float curSize=nameToLitColl.get(literal).size;
+    sumSize+=curSize;
+    if (curSize != 0f) {
+      sortedLitTypes.put(curSize,literal);
+      if (curSize > maxSize) {
+        maxSize=curSize;
+      }
+    }
+  }
+  for (  Float size : sortedLitTypes.keySet()) {
+    String literal=sortedLitTypes.get(size);
+    String drillDownFileName=breakdown.getId() + "_" + literal+ "-"+ getPermutationId()+ "Lits.html";
+    float ratio=(size / maxSize) * 79;
+    float perc=(size / sumSize) * 100;
+    if (ratio < 5) {
+      ratio=5;
+    }
+    outFile.println("<tr>");
+    outFile.println("<td class=\"barlabel\">" + size + "</td>");
+    outFile.println("<td class=\"barlabel\">" + perc + "%</td>");
+    outFile.println("<td class=\"barlabel\"><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ literal+ "</a></td>");
+    outFile.println("<td class=\"box\">");
+    outFile.println("<div style=\"width:" + ratio + "%;\" class=\"lb\"><div class=\"rb\"><div class=\"bb\"><div class=\"blc\"><div class=\"brc\"><div class=\"tb\"><div class=\"tlc\"><div class=\"trc\"><div class=\"content\"></div></div></div></div></div></div></div></div>");
+    outFile.println("</td>");
+    outFile.println("</tr>");
+  }
+  outFile.println("</table>");
+  outFile.println("</body>");
+  outFile.println("</html>");
+  outFile.close();
+  return outFileName;
+}
