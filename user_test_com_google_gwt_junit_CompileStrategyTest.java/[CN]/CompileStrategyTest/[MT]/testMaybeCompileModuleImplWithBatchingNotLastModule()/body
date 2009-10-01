@@ -1,0 +1,15 @@
+{
+  BatchingStrategy batchingStrategy=new ClassBatchingStrategy();
+  assertFalse(batchingStrategy.isSingleTestOnly());
+  RunStyle runStyle=new MockRunStyle();
+  GWTTestCase testCase=new MockGWTTestCase();
+  MockCompileStrategy strategy=new MockCompileStrategy(1000);
+  try {
+    strategy.maybeCompileModuleImpl(testCase.getModuleName(),testCase.getSyntheticModuleName(),testCase.getStrategy(),runStyle,batchingStrategy,TreeLogger.NULL);
+  }
+ catch (  UnableToCompleteException e) {
+    fail("Unexpected UnableToCompleteException: " + e.getMessage());
+  }
+  strategy.getMessageQueue().assertIsLastBlock(false);
+  strategy.getMessageQueue().assertTestBlocks(batchingStrategy.getTestBlocks(testCase.getSyntheticModuleName()));
+}
