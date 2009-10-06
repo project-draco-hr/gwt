@@ -1,0 +1,42 @@
+{
+  JParameter[] parameters=new JParameter[parameterTypes.length];
+  for (int i=0; i < parameterTypes.length; i++) {
+    final Class<?> realParameterType=parameterTypes[i];
+    JParameter parameter=createMock(JParameter.class);
+    parameters[i]=parameter;
+    expect(parameter.getEnclosingMethod()).andStubReturn(method);
+    expect(parameter.getType()).andStubAnswer(new IAnswer<JType>(){
+      public JType answer() throws Throwable {
+        return adaptType(realParameterType);
+      }
+    }
+);
+    final Annotation[] annotations=parameterAnnotations[i];
+    expect(parameter.isAnnotationPresent(isA(Class.class))).andStubAnswer(new IAnswer<Boolean>(){
+      public Boolean answer() throws Throwable {
+        Class<? extends Annotation> annotationClass=(Class<? extends Annotation>)EasyMock.getCurrentArguments()[0];
+        for (        Annotation annotation : annotations) {
+          if (annotation.equals(annotationClass)) {
+            return true;
+          }
+        }
+        return false;
+      }
+    }
+);
+    expect(parameter.getAnnotation(isA(Class.class))).andStubAnswer(new IAnswer<Annotation>(){
+      public Annotation answer() throws Throwable {
+        Class<? extends Annotation> annotationClass=(Class<? extends Annotation>)EasyMock.getCurrentArguments()[0];
+        for (        Annotation annotation : annotations) {
+          if (annotation.equals(annotationClass)) {
+            return annotation;
+          }
+        }
+        return null;
+      }
+    }
+);
+    EasyMock.replay(parameter);
+  }
+  return parameters;
+}

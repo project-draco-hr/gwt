@@ -1,0 +1,29 @@
+{
+  JClassType ownerType=gwtTypeAdapter.adaptJavaClass(UiFieldsClass.class);
+  JClassType labelType=gwtTypeAdapter.adaptJavaClass(Label.class);
+  JClassType buttonType=gwtTypeAdapter.adaptJavaClass(Button.class);
+  OwnerClass ownerClass=new OwnerClass(ownerType,logger);
+  OwnerField labelField=ownerClass.getUiField("label1");
+  OwnerField labelField2=ownerClass.getUiFieldForType(labelType);
+  assertNotNull(labelField);
+  assertNotNull(labelField2);
+  assertEquals(labelField,labelField2);
+  assertFalse(labelField.isProvided());
+  assertEquals(labelType,labelField.getType().getRawType());
+  assertEquals("label1",labelField.getName());
+  OwnerField buttonField=ownerClass.getUiField("button1");
+  OwnerField buttonField2=ownerClass.getUiFieldForType(buttonType);
+  assertNotNull(buttonField);
+  assertNotNull(buttonField2);
+  assertEquals(buttonField,buttonField2);
+  assertTrue(buttonField.isProvided());
+  assertEquals(buttonType,buttonField.getType().getRawType());
+  assertEquals("button1",buttonField.getName());
+  Collection<OwnerField> uiFields=ownerClass.getUiFields();
+  Set<OwnerField> uiFieldSet=new HashSet<OwnerField>(uiFields);
+  Set<OwnerField> expectedFieldSet=new HashSet<OwnerField>();
+  expectedFieldSet.add(labelField);
+  expectedFieldSet.add(buttonField);
+  assertEquals(expectedFieldSet,uiFieldSet);
+  gwtTypeAdapter.verifyAll();
+}

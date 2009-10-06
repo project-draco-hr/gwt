@@ -1,0 +1,32 @@
+{
+  final JMethod method=createMock(JMethod.class);
+  addCommonAbstractMethodBehaviour(realMethod,method,enclosingType);
+  addAnnotationBehaviour(realMethod,method);
+  addGenericsBehaviour(realMethod,method);
+  expect(method.isStatic()).andStubReturn(Modifier.isStatic(realMethod.getModifiers()));
+  expect(method.getReturnType()).andStubAnswer(new IAnswer<JType>(){
+    public JType answer() throws Throwable {
+      return adaptType(realMethod.getReturnType());
+    }
+  }
+);
+  expect(method.getParameters()).andStubAnswer(new IAnswer<JParameter[]>(){
+    public JParameter[] answer() throws Throwable {
+      return adaptParameters(realMethod.getParameterTypes(),realMethod.getParameterAnnotations(),method);
+    }
+  }
+);
+  expect(method.getThrows()).andStubAnswer(new IAnswer<JType[]>(){
+    public JType[] answer() throws Throwable {
+      Class<?>[] realThrows=realMethod.getExceptionTypes();
+      JType[] gwtThrows=new JType[realThrows.length];
+      for (int i=0; i < realThrows.length; i++) {
+        gwtThrows[i]=adaptType(realThrows[i]);
+      }
+      return gwtThrows;
+    }
+  }
+);
+  EasyMock.replay(method);
+  return method;
+}

@@ -1,0 +1,24 @@
+{
+  final JConstructor constructor=createMock(JConstructor.class);
+  addCommonAbstractMethodBehaviour(realConstructor,constructor,enclosingType);
+  addAnnotationBehaviour(realConstructor,constructor);
+  expect(constructor.getParameters()).andStubAnswer(new IAnswer<JParameter[]>(){
+    public JParameter[] answer() throws Throwable {
+      return adaptParameters(realConstructor.getParameterTypes(),realConstructor.getParameterAnnotations(),constructor);
+    }
+  }
+);
+  expect(constructor.getThrows()).andStubAnswer(new IAnswer<JType[]>(){
+    public JType[] answer() throws Throwable {
+      Class<?>[] realThrows=realConstructor.getExceptionTypes();
+      JType[] gwtThrows=new JType[realThrows.length];
+      for (int i=0; i < realThrows.length; i++) {
+        gwtThrows[i]=adaptType(realThrows[i]);
+      }
+      return gwtThrows;
+    }
+  }
+);
+  EasyMock.replay(constructor);
+  return constructor;
+}

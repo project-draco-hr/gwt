@@ -1,0 +1,37 @@
+{
+  JClassType ownerType=gwtTypeAdapter.adaptJavaClass(UiHandlersClass.class);
+  OwnerClass ownerClass=new OwnerClass(ownerType,logger);
+  List<JMethod> uiHandlers=ownerClass.getUiHandlers();
+  assertEquals(2,uiHandlers.size());
+  JMethod clickMethod=null, mouseOverMethod=null;
+  for (  JMethod method : uiHandlers) {
+    if (method.getName().equals("onMyFieldClicked")) {
+      clickMethod=method;
+    }
+ else     if (method.getName().equals("onMouseOver")) {
+      mouseOverMethod=method;
+    }
+  }
+  assertNotNull(clickMethod);
+  assertNotNull(mouseOverMethod);
+  JClassType clickEventType=gwtTypeAdapter.adaptJavaClass(ClickEvent.class);
+  JParameter[] clickParams=clickMethod.getParameters();
+  assertEquals(1,clickParams.length);
+  assertEquals(clickEventType,clickParams[0].getType());
+  assertTrue(clickMethod.isAnnotationPresent(UiHandler.class));
+  UiHandler clickAnnotation=clickMethod.getAnnotation(UiHandler.class);
+  String[] clickFields=clickAnnotation.value();
+  assertEquals(1,clickFields.length);
+  assertEquals("myField",clickFields[0]);
+  JClassType mouseOverEventType=gwtTypeAdapter.adaptJavaClass(MouseOverEvent.class);
+  JParameter[] mouseOverParams=mouseOverMethod.getParameters();
+  assertEquals(1,mouseOverParams.length);
+  assertEquals(mouseOverEventType,mouseOverParams[0].getType());
+  assertTrue(mouseOverMethod.isAnnotationPresent(UiHandler.class));
+  UiHandler mouseOverAnnotation=mouseOverMethod.getAnnotation(UiHandler.class);
+  String[] mouseOverFields=mouseOverAnnotation.value();
+  assertEquals(2,mouseOverFields.length);
+  assertEquals("myField",mouseOverFields[0]);
+  assertEquals("myOtherField",mouseOverFields[1]);
+  gwtTypeAdapter.verifyAll();
+}

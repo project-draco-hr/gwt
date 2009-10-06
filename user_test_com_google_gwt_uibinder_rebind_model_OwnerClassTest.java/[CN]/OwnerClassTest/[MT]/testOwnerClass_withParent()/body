@@ -1,0 +1,74 @@
+{
+  JClassType ownerType=gwtTypeAdapter.adaptJavaClass(ChildUiBinderClass.class);
+  JClassType labelType=gwtTypeAdapter.adaptJavaClass(Label.class);
+  JClassType buttonType=gwtTypeAdapter.adaptJavaClass(Button.class);
+  OwnerClass ownerClass=new OwnerClass(ownerType,logger);
+  OwnerField labelField=ownerClass.getUiField("label1");
+  OwnerField labelField2=ownerClass.getUiFieldForType(labelType);
+  assertNotNull(labelField);
+  assertNotNull(labelField2);
+  assertEquals(labelField,labelField2);
+  assertFalse(labelField.isProvided());
+  assertEquals(labelType,labelField.getType().getRawType());
+  assertEquals("label1",labelField.getName());
+  OwnerField buttonField=ownerClass.getUiField("button1");
+  OwnerField buttonField2=ownerClass.getUiFieldForType(buttonType);
+  assertNotNull(buttonField);
+  assertNotNull(buttonField2);
+  assertEquals(buttonField,buttonField2);
+  assertTrue(buttonField.isProvided());
+  assertEquals(buttonType,buttonField.getType().getRawType());
+  assertEquals("button1",buttonField.getName());
+  Collection<OwnerField> uiFields=ownerClass.getUiFields();
+  Set<OwnerField> uiFieldSet=new HashSet<OwnerField>(uiFields);
+  Set<OwnerField> expectedFieldSet=new HashSet<OwnerField>();
+  expectedFieldSet.add(labelField);
+  expectedFieldSet.add(buttonField);
+  assertEquals(expectedFieldSet,uiFieldSet);
+  JMethod labelFactoryMethod=ownerClass.getUiFactoryMethod(labelType);
+  assertNotNull(labelFactoryMethod);
+  assertEquals("createLabel",labelFactoryMethod.getName());
+  assertEquals(labelType,labelFactoryMethod.getReturnType());
+  JParameter[] labelParams=labelFactoryMethod.getParameters();
+  assertNotNull(labelParams);
+  assertEquals(0,labelParams.length);
+  JMethod buttonFactoryMethod=ownerClass.getUiFactoryMethod(labelType);
+  assertNotNull(buttonFactoryMethod);
+  assertEquals("createLabel",buttonFactoryMethod.getName());
+  assertEquals(labelType,buttonFactoryMethod.getReturnType());
+  JParameter[] buttonParams=buttonFactoryMethod.getParameters();
+  assertNotNull(buttonParams);
+  assertEquals(0,buttonParams.length);
+  List<JMethod> uiHandlers=ownerClass.getUiHandlers();
+  assertEquals(2,uiHandlers.size());
+  JMethod clickMethod=null, mouseOverMethod=null;
+  for (  JMethod method : uiHandlers) {
+    if (method.getName().equals("onButtonClicked")) {
+      clickMethod=method;
+    }
+ else     if (method.getName().equals("onLabelMouseOver")) {
+      mouseOverMethod=method;
+    }
+  }
+  assertNotNull(clickMethod);
+  assertNotNull(mouseOverMethod);
+  JClassType clickEventType=gwtTypeAdapter.adaptJavaClass(ClickEvent.class);
+  JParameter[] clickParams=clickMethod.getParameters();
+  assertEquals(1,clickParams.length);
+  assertEquals(clickEventType,clickParams[0].getType());
+  assertTrue(clickMethod.isAnnotationPresent(UiHandler.class));
+  UiHandler clickAnnotation=clickMethod.getAnnotation(UiHandler.class);
+  String[] clickFields=clickAnnotation.value();
+  assertEquals(1,clickFields.length);
+  assertEquals("button1",clickFields[0]);
+  JClassType mouseOverEventType=gwtTypeAdapter.adaptJavaClass(MouseOverEvent.class);
+  JParameter[] mouseOverParams=mouseOverMethod.getParameters();
+  assertEquals(1,mouseOverParams.length);
+  assertEquals(mouseOverEventType,mouseOverParams[0].getType());
+  assertTrue(mouseOverMethod.isAnnotationPresent(UiHandler.class));
+  UiHandler mouseOverAnnotation=mouseOverMethod.getAnnotation(UiHandler.class);
+  String[] mouseOverFields=mouseOverAnnotation.value();
+  assertEquals(1,mouseOverFields.length);
+  assertEquals("label1",mouseOverFields[0]);
+  gwtTypeAdapter.verifyAll();
+}
