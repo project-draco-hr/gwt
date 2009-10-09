@@ -1,0 +1,21 @@
+{
+  String name=elem.consumeRequiredAttribute(FIELD_ATTRIBUTE);
+  String source=elem.consumeAttribute(SOURCE_ATTRIBUTE,null);
+  Boolean flipRtl=null;
+  if (elem.hasAttribute(FLIP_RTL_ATTRIBUTE)) {
+    flipRtl=elem.consumeBooleanAttribute(FLIP_RTL_ATTRIBUTE);
+  }
+  RepeatStyle repeatStyle=null;
+  if (elem.hasAttribute(REPEAT_STYLE_ATTRIBUTE)) {
+    String value=elem.consumeAttribute(REPEAT_STYLE_ATTRIBUTE);
+    try {
+      repeatStyle=RepeatStyle.valueOf(value);
+    }
+ catch (    IllegalArgumentException e) {
+      writer.die("In %s, bad repeatStyle value %s",elem,value);
+    }
+  }
+  ImplicitImageResource imageMethod=bundleClass.createImageResource(name,source,flipRtl,repeatStyle);
+  FieldWriter field=fieldManager.registerField(imageResourceType,imageMethod.getName());
+  field.setInitializer(String.format("%s.%s()",bundleClass.getFieldName(),imageMethod.getName()));
+}
