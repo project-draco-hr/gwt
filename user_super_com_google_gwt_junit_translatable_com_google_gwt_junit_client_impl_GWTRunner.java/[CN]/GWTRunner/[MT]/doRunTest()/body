@@ -5,9 +5,19 @@
     runTest();
   }
  else {
-    UrlBuilder builder=Window.Location.createUrlBuilder();
-    builder.setParameter(BLOCKINDEX_QUERY_PARAM,Integer.toString(currentBlock.getIndex())).setPath(newModule + "/junit.html");
-    Window.Location.replace(builder.buildString());
+    String href=Window.Location.getHref();
+    if (href.contains("?")) {
+      href=href.substring(0,href.indexOf("?"));
+    }
+ else     if (href.contains("#")) {
+      href=href.substring(0,href.indexOf("#"));
+    }
+    String newHref=href.replace(currentModule,newModule);
+    newHref+="?" + BLOCKINDEX_QUERY_PARAM + "="+ currentBlock.getIndex();
+    if (maxRetryCount >= 0) {
+      newHref+="&" + RETRYCOUNT_QUERY_PARAM + "="+ maxRetryCount;
+    }
+    Window.Location.replace(newHref);
     currentBlock=null;
     currentTestIndex=0;
   }
