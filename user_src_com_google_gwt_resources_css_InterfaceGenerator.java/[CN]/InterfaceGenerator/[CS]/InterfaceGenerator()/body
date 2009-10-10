@@ -1,0 +1,64 @@
+{
+  registerHandler(new ArgHandlerFlag(){
+    @Override public String getPurpose(){
+      return "Add package and import statements to generated interface";
+    }
+    @Override public String getTag(){
+      return "-standalone";
+    }
+    @Override public boolean setFlag(){
+      standaloneFile=true;
+      logger.log(TreeLogger.DEBUG,"Creating standalone file");
+      return true;
+    }
+  }
+);
+  registerHandler(new ArgHandlerString(){
+    @Override public String getPurpose(){
+      return "The name of the generated CssResource subtype";
+    }
+    @Override public String getTag(){
+      return "-typeName";
+    }
+    @Override public String[] getTagArgs(){
+      return new String[]{"some.package.MyCssResource"};
+    }
+    @Override public boolean isRequired(){
+      return true;
+    }
+    @Override public boolean setString(    String str){
+      if (str.length() == 0) {
+        return false;
+      }
+      if (!Character.isJavaIdentifierStart(str.charAt(0))) {
+        return false;
+      }
+      for (int i=1, j=str.length(); i < j; i++) {
+        char c=str.charAt(i);
+        if (!(Character.isJavaIdentifierPart(c) || c == '.')) {
+          return false;
+        }
+      }
+      interfaceName=str;
+      logger.log(TreeLogger.DEBUG,"interfaceName = " + interfaceName);
+      return true;
+    }
+  }
+);
+  registerHandler(new ArgHandlerFile(){
+    @Override public String getPurpose(){
+      return "The input CSS file to process";
+    }
+    @Override public String getTag(){
+      return "-css";
+    }
+    @Override public boolean isRequired(){
+      return true;
+    }
+    @Override public void setFile(    File file){
+      inputFile=file;
+      logger.log(TreeLogger.DEBUG,"inputFile = " + file.getAbsolutePath());
+    }
+  }
+);
+}

@@ -1,0 +1,24 @@
+{
+  PrintWriter logWriter=new PrintWriter(System.err);
+  logger=new PrintWriterTreeLogger(logWriter);
+  ((PrintWriterTreeLogger)logger).setMaxDetail(LOG_LEVEL);
+  if (!processArgs(args)) {
+    System.exit(-1);
+  }
+  boolean error=false;
+  try {
+    System.out.println(process());
+  }
+ catch (  MalformedURLException e) {
+    logger.log(TreeLogger.ERROR,"Unable to load CSS",e);
+    error=true;
+  }
+catch (  UnableToCompleteException e) {
+    logger.log(TreeLogger.ERROR,"Unable to process CSS",e);
+    error=true;
+  }
+ finally {
+    logWriter.flush();
+  }
+  System.exit(error ? -1 : 0);
+}
