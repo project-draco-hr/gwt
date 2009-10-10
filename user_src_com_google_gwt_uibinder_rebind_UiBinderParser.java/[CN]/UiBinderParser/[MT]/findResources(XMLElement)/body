@@ -1,11 +1,26 @@
 {
   binderElement.consumeChildElements(new XMLElement.Interpreter<Boolean>(){
     public Boolean interpretElement(    XMLElement elem) throws UnableToCompleteException {
-      if (!(writer.isBinderElement(elem) && "with".equals(elem.getLocalName()))) {
-        return false;
+      if (writer.isBinderElement(elem)) {
+        final String localName=elem.getLocalName();
+        if ("with".equals(localName)) {
+          createResource(elem);
+        }
+ else         if ("image".equals(localName)) {
+          createImage(elem);
+        }
+ else         if ("style".equals(localName)) {
+          createStyle(elem);
+        }
+ else         if ("data".equals(localName)) {
+          createData(elem);
+        }
+ else {
+          writer.die("%s unrecognized, or not appropriate as a top level element");
+        }
+        return true;
       }
-      createResource(elem);
-      return true;
+      return false;
     }
   }
 );
