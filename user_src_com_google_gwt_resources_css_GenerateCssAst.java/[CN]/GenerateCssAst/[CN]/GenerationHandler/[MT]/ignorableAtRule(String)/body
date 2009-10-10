@@ -12,9 +12,17 @@ catch (  IllegalAccessException e) {
     errors.log(TreeLogger.ERROR,"Unable to invoke parse method ",e);
   }
 catch (  InvocationTargetException e) {
-    if (e.getCause() instanceof CSSException) {
-      throw (CSSException)e.getCause();
+    Throwable cause=e.getCause();
+    if (cause instanceof CSSException) {
+      throw (CSSException)cause;
     }
-    errors.log(TreeLogger.ERROR,"Unable to invoke parse method ",e);
+ else     if (cause != null) {
+      TreeLogger details=errors.branch(TreeLogger.ERROR,cause.getMessage());
+      details.log(TreeLogger.DEBUG,"Full stack trace",cause);
+    }
+ else {
+      TreeLogger details=errors.branch(TreeLogger.ERROR,"Unknown failure parsing " + ruleName);
+      details.log(TreeLogger.DEBUG,"Full stack trace",e);
+    }
   }
 }
