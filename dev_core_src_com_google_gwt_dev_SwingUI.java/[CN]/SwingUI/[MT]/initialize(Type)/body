@@ -1,0 +1,26 @@
+{
+  super.initialize(logLevel);
+  ImageIcon gwtIcon=loadImageIcon("icon24.png");
+  frame=new JFrame("GWT Development Mode");
+  tabs=new JTabbedPane();
+  if (options.alsoLogToFile()) {
+    options.getLogDir().mkdirs();
+  }
+  mainWnd=new ShellMainWindow(logLevel,options.getLogFile("main.log"));
+  topLogger=mainWnd.getLogger();
+  tabs.addTab("Development Mode",gwtIcon,mainWnd,"GWT Development Mode");
+  frame.getContentPane().add(tabs);
+  frame.setSize(950,700);
+  frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+  frame.addWindowListener(new WindowAdapter(){
+    @Override public void windowClosed(    WindowEvent e){
+      DoneCallback callback=getCallback(DoneEvent.getType());
+      if (callback != null) {
+        callback.onDone();
+      }
+    }
+  }
+);
+  frame.setIconImage(loadImageIcon("icon16.png").getImage());
+  frame.setVisible(true);
+}

@@ -1,0 +1,23 @@
+{
+  TestSessionHandler handler=new TestSessionHandler();
+  TestBrowserChannelServer server=new TestBrowserChannelServer(new FailErrorLogger(),clientToServer.getInputStream(),serverToClient.getOutputStream(),handler);
+  TestBrowserChannel client=new TestBrowserChannel(serverToClient.getInputStream(),clientToServer.getOutputStream());
+  new CheckVersionsMessage(client,2,2,HostedHtmlVersion.EXPECTED_GWT_ONLOAD_VERSION).send();
+  MessageType type=client.readMessageType();
+  assertEquals(MessageType.PROTOCOL_VERSION,type);
+  ProtocolVersionMessage protocolMessage=ProtocolVersionMessage.receive(client);
+  assertEquals(2,protocolMessage.getProtocolVersion());
+  new LoadModuleMessage(client,"url","tabkey","session","testModule","userAgent").send();
+  type=client.readMessageType();
+  assertEquals("testModule",handler.getModuleName());
+  assertEquals("userAgent",handler.getUserAgent());
+  assertEquals("url",handler.getUrl());
+  assertEquals("tabkey",handler.getTabKey());
+  assertEquals("session",handler.getSessionKey());
+  assertNull(handler.getUserAgentIcon());
+  assertEquals(MessageType.RETURN,type);
+  ReturnMessage.receive(client);
+  QuitMessage.send(client);
+  server.waitForClose();
+  assertNull(handler.getLoadedModule());
+}

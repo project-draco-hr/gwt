@@ -1,0 +1,21 @@
+{
+  if (webServerLog == null) {
+    RestartAction restartAction=null;
+    final RestartServerCallback callback=getCallback(RestartServerEvent.getType());
+    if (callback != null) {
+      restartAction=new RestartAction(){
+        public void restartServer(        TreeLogger logger){
+          callback.onRestartServer(logger);
+        }
+      }
+;
+    }
+    webServerLog=new WebServerPanel(options.getPort(),getLogLevel(),options.getLogFile("webserver.log"),restartAction);
+    Icon serverIconImage=null;
+    if (serverIcon != null) {
+      serverIconImage=new ImageIcon(serverIcon);
+    }
+    tabs.insertTab(serverName,serverIconImage,webServerLog,null,1);
+  }
+  return webServerLog.getLogger();
+}

@@ -11,7 +11,7 @@
       return true;
     }
   }
-  if (remoteUserAgents == null && !runStyle.isLocal() && messageQueue.getNumConnectedClients() == numClients) {
+  if (remoteUserAgents == null && messageQueue.getNumConnectedClients() == numClients) {
     remoteUserAgents=messageQueue.getUserAgents();
     String userAgentList="";
     for (int i=0; i < remoteUserAgents.length; i++) {
@@ -20,10 +20,13 @@
       }
       userAgentList+=remoteUserAgents[i];
     }
-    System.out.println("All clients connected (Limiting future permutations to: " + userAgentList + ")");
+    getTopLogger().log(TreeLogger.INFO,"All clients connected (Limiting future permutations to: " + userAgentList + ")");
   }
   long currentTimeMillis=System.currentTimeMillis();
-  if (activeClients == numClients) {
+  if (activeClients >= numClients) {
+    if (activeClients > numClients) {
+      getTopLogger().log(TreeLogger.WARN,"Too many clients: expected " + numClients + ", found "+ activeClients);
+    }
     firstLaunch=false;
     lastModule=currentModule;
     if (testMethodTimeout == 0) {

@@ -1,0 +1,34 @@
+{
+  do {
+    try {
+      getStreamToOtherSide().flush();
+      MessageType messageType=Message.readMessageType(getStreamFromOtherSide());
+switch (messageType) {
+case FREE_VALUE:
+        final FreeMessage freeMsg=FreeMessage.receive(this);
+      handler.freeValue(this,freeMsg.getIds());
+    break;
+case INVOKE:
+  InvokeOnServerMessage imsg=InvokeOnServerMessage.receive(this);
+ExceptionOrReturnValue result=handler.invoke(this,imsg.getThis(),imsg.getMethodDispatchId(),imsg.getArgs());
+sendFreedValues();
+ReturnMessage.send(this,result);
+break;
+case INVOKE_SPECIAL:
+handleInvokeSpecial(handler);
+break;
+case QUIT:
+return;
+default :
+throw new RemoteDeathError(new BrowserChannelException("Invalid message type " + messageType));
+}
+}
+ catch (IOException e) {
+throw new RemoteDeathError(e);
+}
+catch (BrowserChannelException e) {
+throw new RemoteDeathError(e);
+}
+}
+ while (true);
+}

@@ -1,0 +1,18 @@
+{
+  TestSessionHandler handler=new TestSessionHandler();
+  TestBrowserChannelServer server=new TestBrowserChannelServer(new FailErrorLogger(),clientToServer.getInputStream(),serverToClient.getOutputStream(),handler);
+  TestBrowserChannel client=new TestBrowserChannel(serverToClient.getInputStream(),clientToServer.getOutputStream());
+  new OldLoadModuleMessage(client,1,"testModule","userAgent").send();
+  MessageType type=client.readMessageType();
+  assertEquals("testModule",handler.getModuleName());
+  assertEquals("userAgent",handler.getUserAgent());
+  assertNull(handler.getUrl());
+  assertNull(handler.getTabKey());
+  assertNull(handler.getSessionKey());
+  assertNull(handler.getUserAgentIcon());
+  assertEquals(MessageType.RETURN,type);
+  ReturnMessage.receive(client);
+  QuitMessage.send(client);
+  server.waitForClose();
+  assertNull(handler.getLoadedModule());
+}

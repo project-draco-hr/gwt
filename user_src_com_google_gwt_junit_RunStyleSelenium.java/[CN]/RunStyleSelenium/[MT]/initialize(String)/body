@@ -1,0 +1,37 @@
+{
+  if (args == null || args.length() == 0) {
+    getLogger().log(TreeLogger.ERROR,"Selenium runstyle requires comma-separated Selenium-RC targets");
+    return false;
+  }
+  String[] targetsIn=args.split(",");
+  RCSelenium targets[]=new RCSelenium[targetsIn.length];
+  Pattern pattern=Pattern.compile("([\\w\\.-]+):([\\d]+)/([\\w\\s\\*(/\\w+)*]+)");
+  for (int i=0; i < targets.length; ++i) {
+    Matcher matcher=pattern.matcher(targetsIn[i]);
+    if (!matcher.matches()) {
+      getLogger().log(TreeLogger.ERROR,"Unable to parse Selenium target " + targetsIn[i] + " (expected format is [host]:[port]/[browser])");
+      return false;
+    }
+    RCSelenium instance=new RCSelenium(matcher.group(3),matcher.group(1),Integer.parseInt(matcher.group(2)));
+    targets[i]=instance;
+  }
+  this.remotes=targets;
+  shell.setNumClients(targets.length);
+  Runtime.getRuntime().addShutdownHook(new Thread(){
+    @Override public void run(){
+      for (      RCSelenium remote : remotes) {
+        if (remote.getSelenium() != null) {
+          try {
+            remote.getSelenium().stop();
+          }
+ catch (          SeleniumException se) {
+            shell.getTopLogger().log(TreeLogger.WARN,"Error stopping selenium session",se);
+          }
+        }
+      }
+    }
+  }
+);
+  start();
+  return true;
+}

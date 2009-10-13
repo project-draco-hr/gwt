@@ -3,6 +3,7 @@
   String url=null;
   String tabKey=null;
   String sessionKey=null;
+  byte[] iconBytes=null;
 switch (type) {
 case OLD_LOAD_MODULE:
     OldLoadModuleMessage oldLoadModule=OldLoadModuleMessage.receive(this);
@@ -20,8 +21,8 @@ CheckVersionsMessage hello=CheckVersionsMessage.receive(this);
 int minVersion=hello.getMinVersion();
 int maxVersion=hello.getMaxVersion();
 String hostedHtmlVersion=hello.getHostedHtmlVersion();
-if (minVersion > BROWSERCHANNEL_PROTOCOL_VERSION || maxVersion < BROWSERCHANNEL_PROTOCOL_VERSION) {
-connectError="No supported protocol version in range " + minVersion + " - "+ maxVersion;
+if (minVersion > PROTOCOL_VERSION_CURRENT || maxVersion < PROTOCOL_VERSION_OLDEST) {
+connectError="Client supported protocol version range " + minVersion + " - "+ maxVersion+ "; server "+ PROTOCOL_VERSION_OLDEST+ " - "+ PROTOCOL_VERSION_CURRENT;
 }
  else {
 if (!HostedHtmlVersion.validHostedHtmlVersion(logger,hostedHtmlVersion)) {
@@ -34,7 +35,7 @@ logger.log(TreeLogger.ERROR,"Connection error: " + connectError,null);
 new FatalErrorMessage(this,connectError).send();
 return;
 }
-protocolVersion=BROWSERCHANNEL_PROTOCOL_VERSION;
+protocolVersion=Math.min(PROTOCOL_VERSION_CURRENT,maxVersion);
 new ProtocolVersionMessage(this,protocolVersion).send();
 type=Message.readMessageType(getStreamFromOtherSide());
 if (type == MessageType.CHOOSE_TRANSPORT) {
@@ -58,17 +59,49 @@ sessionKey=loadModule.getSessionKey();
 moduleName=loadModule.getModuleName();
 userAgent=loadModule.getUserAgent();
 break;
+case REQUEST_PLUGIN:
+logger.log(TreeLogger.ERROR,"Plugin download not supported yet");
+new FatalErrorMessage(this,"Plugin download not supported").send();
+return;
 default :
 logger.log(TreeLogger.ERROR,"Unexpected message type " + type + "; expecting CheckVersions");
 return;
 }
+if (protocolVersion >= PROTOCOL_VERSION_GET_ICON) {
+synchronized (cacheLock) {
+if (iconCache.containsKey(userAgent)) {
+iconBytes=iconCache.get(userAgent);
+}
+ else {
+RequestIconMessage.send(this);
+type=Message.readMessageType(getStreamFromOtherSide());
+if (type != MessageType.USER_AGENT_ICON) {
+logger.log(TreeLogger.ERROR,"Unexpected message type " + type + "; expecting UserAgentIcon");
+return;
+}
+UserAgentIconMessage uaIconMessage=UserAgentIconMessage.receive(this);
+iconBytes=uaIconMessage.getIconBytes();
+iconCache.put(userAgent,iconBytes);
+}
+}
+}
 Thread.currentThread().setName("Hosting " + moduleName + " for "+ userAgent+ " on "+ url+ " @ "+ sessionKey);
-logger=handler.loadModule(logger,this,moduleName,userAgent,url,tabKey,sessionKey);
+logger=handler.loadModule(logger,this,moduleName,userAgent,url,tabKey,sessionKey,iconBytes);
+try {
 try {
 ReturnMessage.send(this,false,new Value());
+}
+ catch (IOException e) {
+throw new RemoteDeathError(e);
+}
 reactToMessages(handler);
 }
-  finally {
+ catch (RemoteDeathError e) {
+if (!ignoreRemoteDeath) {
+logger.log(TreeLogger.ERROR,e.getMessage(),e);
+}
+}
+ finally {
 handler.unloadModule(this,moduleName);
 }
 }
