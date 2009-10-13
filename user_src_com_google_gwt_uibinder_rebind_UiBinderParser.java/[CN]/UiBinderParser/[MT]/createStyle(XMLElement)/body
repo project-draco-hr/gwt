@@ -6,7 +6,15 @@
   String source=elem.consumeAttribute(SOURCE_ATTRIBUTE);
   String name=elem.consumeAttribute(FIELD_ATTRIBUTE,"style");
   JClassType publicType=consumeCssResourceType(elem);
-  ImplicitCssResource cssMethod=bundleClass.createCssResource(name,source,publicType,body);
+  String importTypeNames=elem.consumeAttribute(IMPORT_ATTRIBUTE,null);
+  LinkedHashSet<JClassType> importTypes=new LinkedHashSet<JClassType>();
+  if (importTypeNames != null) {
+    String[] typeNames=importTypeNames.split("\\s+");
+    for (    String type : typeNames) {
+      importTypes.add(findCssResourceType(elem,type));
+    }
+  }
+  ImplicitCssResource cssMethod=bundleClass.createCssResource(name,source,publicType,body,importTypes);
   FieldWriter field=fieldManager.registerFieldOfGeneratedType(cssMethod.getPackageName(),cssMethod.getClassName(),cssMethod.getName());
   field.setInitializer(String.format("%s.%s()",bundleClass.getFieldName(),cssMethod.getName()));
 }
