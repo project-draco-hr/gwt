@@ -1,0 +1,77 @@
+{
+  super(new BorderLayout());
+  this.tabPanelCollection=tabPanelCollection;
+  topPanel=new JPanel();
+  sessionDropdownPanel=new JPanel();
+  sessionDropdownPanel.add(new JLabel("Session: "));
+  sessionDropdown=new JComboBox();
+  sessionDropdown.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      Session session=(Session)sessionDropdown.getSelectedItem();
+      selectSession(session);
+    }
+  }
+);
+  sessionDropdown.setRenderer(new SessionRenderer());
+  sessionDropdownPanel.add(sessionDropdown);
+  sessionDropdownPanel.setEnabled(false);
+  sessionDropdownPanel.setVisible(false);
+  topPanel.add(sessionDropdownPanel);
+  moduleDropdownPanel=new JPanel();
+  moduleDropdownPanel.add(new JLabel("Module: "));
+  moduleDropdown=new JComboBox();
+  moduleDropdown.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      SessionModule sessionModule=(SessionModule)moduleDropdown.getSelectedItem();
+      if (sessionModule != null) {
+        currentSession.selectModule(sessionModule);
+      }
+    }
+  }
+);
+  moduleDropdown.setRenderer(new SessionModuleRenderer());
+  moduleDropdownPanel.add(moduleDropdown);
+  moduleDropdownPanel.setEnabled(false);
+  moduleDropdownPanel.setVisible(false);
+  topPanel.add(moduleDropdownPanel);
+  add(topPanel,BorderLayout.NORTH);
+  deckPanel=new JPanel();
+  cardLayout=new CardLayout();
+  deckPanel.setLayout(cardLayout);
+  add(deckPanel);
+  String tabTitle=url;
+  if (tabTitle == null) {
+    int idx=moduleName.lastIndexOf('.');
+    tabTitle=moduleName.substring(idx + 1);
+    url="";
+  }
+ else {
+    try {
+      URL parsedUrl=new URL(url);
+      tabTitle=getTabTitle(parsedUrl);
+      StringBuilder buf=new StringBuilder();
+      buf.append(parsedUrl.getProtocol()).append(':');
+      if (parsedUrl.getAuthority() != null && parsedUrl.getAuthority().length() > 0) {
+        buf.append("//").append(parsedUrl.getAuthority());
+      }
+      if (parsedUrl.getPath() != null) {
+        buf.append(parsedUrl.getPath());
+      }
+      buf.append(' ');
+      url=buf.toString();
+    }
+ catch (    MalformedURLException e1) {
+    }
+  }
+  ImageIcon browserIcon=null;
+  if (agentIconBytes != null) {
+    browserIcon=new ImageIcon(agentIconBytes);
+  }
+  String shortName=BrowserInfo.getShortName(userAgent);
+  if (browserIcon == null) {
+    if (shortName != null) {
+      tabTitle+=" (" + shortName + ")";
+    }
+  }
+  tabPanelCollection.addTab(this,browserIcon,tabTitle,url + "from " + remoteSocket+ " on "+ userAgent);
+}

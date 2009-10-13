@@ -1,0 +1,35 @@
+{
+  TestSessionHandler handler=new TestSessionHandler();
+  TestBrowserChannelServer server=new TestBrowserChannelServer(new FailErrorLogger(),clientToServer.getInputStream(),serverToClient.getOutputStream(),handler);
+  TestBrowserChannel client=new TestBrowserChannel(serverToClient.getInputStream(),clientToServer.getOutputStream());
+  new CheckVersionsMessage(client,2,3,HostedHtmlVersion.EXPECTED_GWT_ONLOAD_VERSION).send();
+  MessageType type=client.readMessageType();
+  assertEquals(MessageType.PROTOCOL_VERSION,type);
+  ProtocolVersionMessage protocolMessage=ProtocolVersionMessage.receive(client);
+  assertEquals(3,protocolMessage.getProtocolVersion());
+  new LoadModuleMessage(client,"url","tabkey","session","testModule","userAgent").send();
+  type=client.readMessageType();
+  byte[] iconBytes=null;
+  if (type == MessageType.REQUEST_ICON) {
+    RequestIconMessage.receive(client);
+    iconBytes=new byte[]{0,1,2,3,4,5};
+    UserAgentIconMessage.send(client,iconBytes);
+    type=client.readMessageType();
+  }
+  assertEquals("testModule",handler.getModuleName());
+  assertEquals("userAgent",handler.getUserAgent());
+  assertEquals("url",handler.getUrl());
+  assertEquals("tabkey",handler.getTabKey());
+  assertEquals("session",handler.getSessionKey());
+  byte[] receivedIcon=handler.getUserAgentIcon();
+  assertNotNull(receivedIcon);
+  assertEquals(iconBytes.length,receivedIcon.length);
+  for (int i=0; i < iconBytes.length; ++i) {
+    assertEquals(iconBytes[i],receivedIcon[i]);
+  }
+  assertEquals(MessageType.RETURN,type);
+  ReturnMessage.receive(client);
+  QuitMessage.send(client);
+  server.waitForClose();
+  assertNull(handler.getLoadedModule());
+}
