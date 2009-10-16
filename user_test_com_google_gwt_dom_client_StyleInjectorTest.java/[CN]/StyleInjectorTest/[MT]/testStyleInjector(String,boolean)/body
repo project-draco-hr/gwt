@@ -1,0 +1,27 @@
+{
+  final DivElement elt=Document.get().createDivElement();
+  elt.setId(testName);
+  elt.setInnerHTML("Hello");
+  Document.get().getBody().appendChild(elt);
+  StyleInjector.inject("#" + testName + " {position: absolute; left: 100px; width: 50px; height 50px;}",immediate);
+  StyleInjector.injectAtStart("#" + testName + " {left: 25px; width: 100px !important;}",immediate);
+  StyleInjector.injectAtEnd("#" + testName + " {height: 100px;}",immediate);
+  Command command=new Command(){
+    public void execute(){
+      assertEquals(100,elt.getOffsetLeft());
+      assertEquals(100,elt.getClientHeight());
+      assertEquals(100,elt.getClientWidth());
+      if (!immediate) {
+        finishTest();
+      }
+    }
+  }
+;
+  if (immediate) {
+    command.execute();
+  }
+ else {
+    DeferredCommand.addCommand(command);
+    delayTestFinish(TEST_DELAY);
+  }
+}
