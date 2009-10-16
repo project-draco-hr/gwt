@@ -11,32 +11,43 @@
   }
   String entryPointTypeName=null;
   try {
-    Class<?> clazz=loadClassFromSourceName("com.google.gwt.core.client.impl.Impl");
-    Method registerEntry=clazz.getMethod("registerEntry");
+    Class<?> implClass=loadClassFromSourceName("com.google.gwt.core.client.impl.Impl");
+    Method registerEntry=implClass.getDeclaredMethod("registerEntry");
+    registerEntry.setAccessible(true);
     registerEntry.invoke(null);
+    Method enter=implClass.getDeclaredMethod("enter");
+    enter.setAccessible(true);
+    enter.invoke(null);
     String[] entryPoints=host.getEntryPointTypeNames();
     if (entryPoints.length > 0) {
-      for (int i=0; i < entryPoints.length; i++) {
-        entryPointTypeName=entryPoints[i];
-        clazz=loadClassFromSourceName(entryPointTypeName);
-        Method onModuleLoad=null;
-        try {
-          onModuleLoad=clazz.getMethod("onModuleLoad");
-          if (!Modifier.isStatic(onModuleLoad.getModifiers())) {
-            onModuleLoad=null;
+      try {
+        for (int i=0; i < entryPoints.length; i++) {
+          entryPointTypeName=entryPoints[i];
+          Class<?> clazz=loadClassFromSourceName(entryPointTypeName);
+          Method onModuleLoad=null;
+          try {
+            onModuleLoad=clazz.getMethod("onModuleLoad");
+            if (!Modifier.isStatic(onModuleLoad.getModifiers())) {
+              onModuleLoad=null;
+            }
           }
+ catch (          NoSuchMethodException e) {
+          }
+          Object module=null;
+          if (onModuleLoad == null) {
+            module=rebindAndCreate(entryPointTypeName);
+            onModuleLoad=module.getClass().getMethod("onModuleLoad");
+            entryPointTypeName=module.getClass().getName().replace('$','.');
+          }
+          onModuleLoad.setAccessible(true);
+          invokeNativeVoid("fireOnModuleLoadStart",null,new Class[]{String.class},new Object[]{entryPointTypeName});
+          onModuleLoad.invoke(module);
         }
- catch (        NoSuchMethodException e) {
-        }
-        Object module=null;
-        if (onModuleLoad == null) {
-          module=rebindAndCreate(entryPointTypeName);
-          onModuleLoad=module.getClass().getMethod("onModuleLoad");
-          entryPointTypeName=module.getClass().getName().replace('$','.');
-        }
-        onModuleLoad.setAccessible(true);
-        invokeNativeVoid("fireOnModuleLoadStart",null,new Class[]{String.class},new Object[]{entryPointTypeName});
-        onModuleLoad.invoke(module);
+      }
+  finally {
+        Method exit=implClass.getDeclaredMethod("exit",boolean.class);
+        exit.setAccessible(true);
+        exit.invoke(null,true);
       }
     }
  else {
