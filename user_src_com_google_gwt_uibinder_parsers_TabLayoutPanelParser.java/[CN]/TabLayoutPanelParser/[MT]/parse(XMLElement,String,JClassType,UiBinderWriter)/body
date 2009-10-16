@@ -1,0 +1,36 @@
+{
+  double size=panelElem.consumeDoubleAttribute("barHeight");
+  Unit unit=panelElem.consumeEnumAttribute("barUnit",Unit.class);
+  String enumName=DockLayoutPanelParser.getFullyQualifiedEnumName(unit);
+  JClassType tlpType=writer.getOracle().findType(TabLayoutPanel.class.getName());
+  writer.setFieldInitializerAsConstructor(fieldName,tlpType,Double.toString(size),enumName);
+  for (  XMLElement tabElem : panelElem.consumeChildElements()) {
+    if (!isElementType(panelElem,tabElem,TAB)) {
+      writer.die("In %s, only <%s:%s> children are allowed.",panelElem,panelElem.getPrefix(),TAB);
+    }
+    Children children=findChildren(tabElem,writer);
+    if (children.body == null) {
+      writer.die("%s must have a child widget",tabElem);
+    }
+    if (!writer.isWidgetElement(children.body)) {
+      writer.die("In %s, %s must be a widget",tabElem,children.body);
+    }
+    String childFieldName=writer.parseElementToField(children.body);
+    if (children.header != null) {
+      HtmlInterpreter htmlInt=HtmlInterpreter.newInterpreterForUiObject(writer,fieldName);
+      String html=children.header.consumeInnerHtml(htmlInt);
+      writer.addStatement("%s.add(%s, \"%s\", true);",fieldName,childFieldName,html);
+    }
+ else     if (children.customHeader != null) {
+      XMLElement headerElement=children.customHeader.consumeSingleChildElement();
+      if (!writer.isWidgetElement(headerElement)) {
+        writer.die("In %s of %s, %s is not a widget",children.customHeader,tabElem,headerElement);
+      }
+      String headerField=writer.parseElementToField(headerElement);
+      writer.addStatement("%s.add(%s, %s);",fieldName,childFieldName,headerField);
+    }
+ else {
+      writer.die("%1$s requires either a <%2$s:%3$s> or <%2$s:%4$s>",tabElem,tabElem.getPrefix(),HEADER,CUSTOM);
+    }
+  }
+}
