@@ -1,9 +1,17 @@
 {
-  UncaughtExceptionHandler handler=GWT.getUncaughtExceptionHandler();
-  if (handler != null) {
-    fireOnResponseReceivedAndCatch(handler,callback);
+  if (xmlHttpRequest == null) {
+    return;
+  }
+  cancelTimer();
+  final XMLHttpRequest xhr=xmlHttpRequest;
+  xmlHttpRequest=null;
+  String errorMsg=getBrowserSpecificFailure(xhr);
+  if (errorMsg != null) {
+    Throwable exception=new RuntimeException(errorMsg);
+    callback.onError(this,exception);
   }
  else {
-    fireOnResponseReceivedImpl(callback);
+    Response response=createResponse(xhr);
+    callback.onResponseReceived(this,response);
   }
 }
