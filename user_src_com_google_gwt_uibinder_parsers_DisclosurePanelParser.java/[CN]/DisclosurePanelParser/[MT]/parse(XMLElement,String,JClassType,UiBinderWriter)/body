@@ -1,59 +1,33 @@
 {
-  String text=null;
-  if (elem.hasAttribute("text")) {
-    text=elem.consumeAttribute("text");
-    text='"' + UiBinderWriter.escapeTextForJavaStringLiteral(text) + '"';
-  }
-  String imageBundle=null;
-  if (elem.hasAttribute(ATTRIBUTE_HEADER_BUNDLE)) {
-    imageBundle=elem.consumeAttribute(ATTRIBUTE_HEADER_BUNDLE);
-  }
-  String initiallyOpen="false";
-  if (elem.hasAttribute(ATTRIBUTE_INITIALLY_OPEN)) {
-    initiallyOpen=elem.consumeAttribute(ATTRIBUTE_INITIALLY_OPEN);
-  }
-  String enableAnimation="true";
-  if (elem.hasAttribute(ATTRIBUTE_ENABLE_ANIMATION)) {
-    enableAnimation=elem.consumeAttribute(ATTRIBUTE_ENABLE_ANIMATION);
-  }
-  String childFieldName=null;
-  String headerFieldName=null;
-  for (  XMLElement child : elem.consumeChildElements()) {
-    boolean childIsHeader=false;
-    String headerAttributeName=elem.getPrefix() + ":" + ATTRIBUTE_HEADER_WIDGET;
-    if (child.hasAttribute(headerAttributeName)) {
-      if (headerFieldName != null) {
-        writer.die("In %s, DisclosurePanel cannot contain more than one header widget.",elem);
-      }
-      child.consumeAttribute(headerAttributeName);
-      headerFieldName=writer.parseElementToField(child);
-      childIsHeader=true;
+  Children children=findChildren(panelElem,writer);
+  if (null != children.body) {
+    if (!writer.isWidgetElement(children.body)) {
+      writer.die("In %s, %s must be a widget",panelElem,children.body);
     }
-    if (!childIsHeader) {
-      if (childFieldName != null) {
-        writer.die("In %s, DisclosurePanel cannot contain more than one content widget.",elem);
-      }
-      childFieldName=writer.parseElementToField(child);
+    String bodyField=writer.parseElementToField(children.body);
+    writer.addInitStatement("%s.add(%s);",panelField,bodyField);
+  }
+  if (null != children.customHeader) {
+    XMLElement headerElement=children.customHeader.consumeSingleChildElement();
+    if (!writer.isWidgetElement(headerElement)) {
+      writer.die("In %s of %s, %s is not a widget",children.customHeader,panelElem,headerElement);
     }
+    String headerField=writer.parseElementToField(headerElement);
+    writer.addInitStatement("%s.setHeader(%s);",panelField,headerField);
   }
-  if (imageBundle != null) {
-    writer.setFieldInitializerAsConstructor(fieldName,getDisclosurePanelClass(writer),imageBundle,(text != null ? text : "\"\""),initiallyOpen);
-  }
- else {
-    JClassType panelClass=getDisclosurePanelClass(writer);
-    if (text != null) {
-      writer.setFieldInitializerAsConstructor(fieldName,panelClass,text);
+  if (null != children.header) {
+    String openImage=getAttribute(OPEN_IMAGE,children.header,writer);
+    String closedImage=getAttribute(CLOSED_IMAGE,children.header,writer);
+    String headerText=children.header.consumeInnerTextEscapedAsHtmlStringLiteral(new TextInterpreter(writer));
+    if ((openImage == null || closedImage == null) && !(openImage == closedImage)) {
+      writer.die("In %s of %s, both %s and %s must be specified, or neither",children.header,panelElem,OPEN_IMAGE,CLOSED_IMAGE);
+    }
+    String panelTypeName=type.getQualifiedSourceName();
+    if (openImage != null) {
+      writer.setFieldInitializer(panelField,String.format("new %s(%s, %s, \"%s\")",panelTypeName,openImage,closedImage,headerText));
     }
  else {
-      writer.setFieldInitializerAsConstructor(fieldName,panelClass);
+      writer.setFieldInitializer(panelField,String.format("new %s(\"%s\")",panelTypeName,headerText));
     }
   }
-  if (childFieldName != null) {
-    writer.addStatement("%1$s.setContent(%2$s);",fieldName,childFieldName);
-  }
-  if (headerFieldName != null) {
-    writer.addStatement("%1$s.setHeader(%2$s);",fieldName,headerFieldName);
-  }
-  writer.addStatement("%1$s.setAnimationEnabled(%2$s);",fieldName,enableAnimation);
-  writer.addStatement("%1$s.setOpen(%2$s);",fieldName,initiallyOpen);
 }

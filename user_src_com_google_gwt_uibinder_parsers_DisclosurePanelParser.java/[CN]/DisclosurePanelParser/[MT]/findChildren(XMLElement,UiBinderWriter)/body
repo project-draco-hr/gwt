@@ -1,0 +1,35 @@
+{
+  final Children children=new Children();
+  elem.consumeChildElements(new XMLElement.Interpreter<Boolean>(){
+    public Boolean interpretElement(    XMLElement child) throws UnableToCompleteException {
+      if (hasAttribute(child,HEADER)) {
+        assertFirstHeader();
+        children.header=child;
+        return true;
+      }
+      if (hasAttribute(child,CUSTOM)) {
+        assertFirstHeader();
+        children.customHeader=child;
+        return true;
+      }
+      if (null != children.body) {
+        writer.die("In %s, may have only one body element",elem);
+      }
+      children.body=child;
+      return true;
+    }
+    void assertFirstHeader() throws UnableToCompleteException {
+      if ((null != children.header) && (null != children.customHeader)) {
+        writer.die("In %1$s, may have only one %2$s:header " + "or %2$s:customHeader",elem,elem.getPrefix());
+      }
+    }
+    private boolean hasAttribute(    XMLElement child,    final String attribute){
+      return rightNamespace(child) && child.getLocalName().equals(attribute);
+    }
+    private boolean rightNamespace(    XMLElement child){
+      return child.getNamespaceUri().equals(elem.getNamespaceUri());
+    }
+  }
+);
+  return children;
+}
