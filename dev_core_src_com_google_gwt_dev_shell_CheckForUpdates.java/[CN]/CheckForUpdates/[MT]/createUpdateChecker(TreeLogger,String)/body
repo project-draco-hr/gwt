@@ -1,17 +1,8 @@
 {
-  try {
-    for (int i=0; i < updaterClassNames.length; i++) {
-      try {
-        Class<? extends CheckForUpdates> clazz=Class.forName(updaterClassNames[i]).asSubclass(CheckForUpdates.class);
-        Constructor<? extends CheckForUpdates> ctor=clazz.getDeclaredConstructor(new Class[]{TreeLogger.class,String.class});
-        CheckForUpdates checker=ctor.newInstance(new Object[]{logger,entryPoint});
-        return checker;
-      }
- catch (      Exception e) {
-      }
-    }
+  if (System.getProperty("os.name").toLowerCase().contains("win")) {
+    return new CheckForUpdatesIE6(logger,entryPoint);
   }
- catch (  Throwable e) {
+ else {
+    return new CheckForUpdates(logger,entryPoint);
   }
-  return null;
 }
