@@ -1,6 +1,16 @@
 {
   JMethodCall newCall=new JMethodCall(x.getSourceInfo().makeChild(MakeCallsStatic.class,"Devirtualized function call"),null,newMethod);
-  newCall.addArg(x.getInstance());
-  newCall.addArgs(x.getArgs());
-  return newCall;
+  if (x.getInstance() instanceof JMultiExpression) {
+    JMultiExpression multi=(JMultiExpression)x.getInstance();
+    int lastIndex=multi.exprs.size() - 1;
+    newCall.addArg(multi.exprs.get(lastIndex));
+    newCall.addArgs(x.getArgs());
+    multi.exprs.set(lastIndex,newCall);
+    return multi;
+  }
+ else {
+    newCall.addArg(x.getInstance());
+    newCall.addArgs(x.getArgs());
+    return newCall;
+  }
 }
