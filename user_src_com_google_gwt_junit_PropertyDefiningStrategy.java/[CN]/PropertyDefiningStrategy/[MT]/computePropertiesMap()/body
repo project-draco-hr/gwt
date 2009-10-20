@@ -1,0 +1,33 @@
+{
+  if (properties == null) {
+    Set<Property> props=new TreeSet<Property>(new Comparator<Property>(){
+      public int compare(      Property p1,      Property p2){
+        int r=p1.name().compareTo(p2.name());
+        if (r == 0) {
+          r=p1.value().compareTo(p2.value());
+        }
+        return r;
+      }
+    }
+);
+    try {
+      String name=testCase.getName();
+      if (name != null) {
+        Method testMethod=testCase.getClass().getMethod(testCase.getName());
+        if (testMethod.isAnnotationPresent(WithProperties.class)) {
+          WithProperties annotation=testMethod.getAnnotation(WithProperties.class);
+          for (          Property property : annotation.value()) {
+            props.add(checkProperty(property));
+          }
+        }
+      }
+    }
+ catch (    SecurityException e) {
+      e.printStackTrace();
+    }
+catch (    NoSuchMethodException e) {
+      e.printStackTrace();
+    }
+    properties=props;
+  }
+}
