@@ -1,0 +1,13 @@
+{
+  LogData.Builder logDataBuilder=generateLogData(type,msg,caught,helpInfo);
+  ViewerRequest.AddLogBranch.Builder addlogBranchBuilder=ViewerRequest.AddLogBranch.newBuilder();
+  addlogBranchBuilder.setParentLogHandle(parentLogHandle);
+  addlogBranchBuilder.setIndexInParent(indexInParent);
+  addlogBranchBuilder.setLogData(logDataBuilder);
+  ViewerRequest.Builder viewerRequestBuilder=ViewerRequest.newBuilder();
+  viewerRequestBuilder.setRequestType(ViewerRequest.RequestType.ADD_LOG_BRANCH);
+  viewerRequestBuilder.setAddLogBranch(addlogBranchBuilder);
+  Request requestMessage=buildRequestMessageFromViewerRequest(viewerRequestBuilder).build();
+  Future<Response> responseFuture=transport.executeRequestAsync(requestMessage);
+  return waitForResponse(responseFuture).getViewerResponse().getAddLogBranch().getLogHandle();
+}

@@ -1,0 +1,33 @@
+{
+  MockNetwork network=createMockNetwork();
+  RequestProcessor requestProcessor=new RequestProcessor(){
+    public Response execute(    Request request) throws Exception {
+      fail("Should not reach here.");
+      return null;
+    }
+  }
+;
+  MessageTransport messageTransport=new MessageTransport(network.getClientSocket().getInputStream(),network.getClientSocket().getOutputStream(),requestProcessor);
+  Message.Request.Builder requestMessageBuilder=Message.Request.newBuilder();
+  requestMessageBuilder.setRequestId(0);
+  requestMessageBuilder.setServiceType(Message.Request.ServiceType.DEV_MODE);
+  Message.Request request=requestMessageBuilder.build();
+  network.getServerSocket().getInputStream().close();
+  Future<Response> responseFuture=null;
+  responseFuture=messageTransport.executeRequestAsync(request);
+  assertNotNull(responseFuture);
+  try {
+    responseFuture.get(2,TimeUnit.SECONDS);
+    fail("Should have thrown an exception");
+  }
+ catch (  TimeoutException te) {
+    fail("Should not have timed out");
+  }
+catch (  ExecutionException e) {
+    assertTrue(e.getCause() instanceof IllegalStateException);
+  }
+catch (  Exception e) {
+    fail("Should not have thrown any other exception");
+  }
+  network.shutdown();
+}

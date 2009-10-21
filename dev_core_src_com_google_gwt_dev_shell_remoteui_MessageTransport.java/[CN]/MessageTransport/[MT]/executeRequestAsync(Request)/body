@@ -1,0 +1,18 @@
+{
+  Future<Response> responseFuture=serverRequestExecutor.submit(new Callable<Response>(){
+    public Response call() throws Exception {
+      int requestId=nextMessageId.getAndIncrement();
+      Message.Request.Builder requestBuilder=Message.Request.newBuilder(requestMessage);
+      requestBuilder.setRequestId(requestId);
+      Message.Builder messageBuilder=Message.newBuilder();
+      messageBuilder.setMessageType(Message.MessageType.REQUEST);
+      messageBuilder.setRequest(requestBuilder);
+      Message message=messageBuilder.build();
+      PendingRequest pendingRequest=new PendingRequest(message);
+      sendQueue.put(pendingRequest);
+      return pendingRequest.waitForResponse();
+    }
+  }
+);
+  return responseFuture;
+}

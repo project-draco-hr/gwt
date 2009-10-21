@@ -1,0 +1,16 @@
+{
+  Message.Builder messageBuilder=Message.newBuilder();
+  messageBuilder.setMessageType(Message.MessageType.RESPONSE);
+  Response response=null;
+  try {
+    response=requestProcessor.execute(request);
+  }
+ catch (  Exception e) {
+    return;
+  }
+  Response.Builder responseBuilder=Response.newBuilder(response);
+  responseBuilder.setRequestId(requestId);
+  messageBuilder.setResponse(responseBuilder);
+  PendingResponse pendingResponse=new PendingResponse(messageBuilder.build());
+  sendQueue.put(pendingResponse);
+}

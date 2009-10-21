@@ -1,0 +1,29 @@
+{
+  int logHandle;
+  logHandle=viewerServiceClient.addModuleLog(remoteSocket,url,tabKey,moduleName,sessionKey,agentTag,agentIcon);
+  final ViewerServiceTreeLogger moduleLogger=new ViewerServiceTreeLogger(viewerServiceClient);
+  moduleLogger.setLogHandle(logHandle);
+  moduleLogger.setMaxDetail(getLogLevel());
+  ModuleHandle handle=new ModuleHandle(){
+    public TreeLogger getLogger(){
+      return moduleLogger;
+    }
+  }
+;
+synchronized (modulesLock) {
+    modules.add(handle);
+  }
+  TreeLogger branch=moduleLogger.branch(TreeLogger.INFO,"Loading module " + moduleName);
+  if (url != null) {
+    branch.log(TreeLogger.INFO,"Top URL: " + url);
+  }
+  branch.log(TreeLogger.INFO,"User agent: " + userAgent);
+  branch.log(TreeLogger.TRACE,"Remote socket: " + remoteSocket);
+  if (tabKey != null) {
+    branch.log(TreeLogger.DEBUG,"Tab key: " + tabKey);
+  }
+  if (sessionKey != null) {
+    branch.log(TreeLogger.DEBUG,"Session key: " + sessionKey);
+  }
+  return handle;
+}
