@@ -5,17 +5,15 @@ synchronized (settersByClass) {
       setters=new HashMap<String,Method>();
       Field[] fields=instanceClass.getDeclaredFields();
       for (      Field field : fields) {
-        int mod=field.getModifiers();
-        if (Modifier.isFinal(mod) || Modifier.isStatic(mod) || Modifier.isTransient(mod)) {
-          continue;
-        }
-        String fieldName=field.getName();
-        String setterName="set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
-        try {
-          Method setter=instanceClass.getMethod(setterName,field.getType());
-          setters.put(fieldName,setter);
-        }
- catch (        NoSuchMethodException e) {
+        if (SerializabilityUtil.isNotStaticTransientOrFinal(field)) {
+          String fieldName=field.getName();
+          String setterName="set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+          try {
+            Method setter=instanceClass.getMethod(setterName,field.getType());
+            setters.put(fieldName,setter);
+          }
+ catch (          NoSuchMethodException e) {
+          }
         }
       }
       settersByClass.put(instanceClass,setters);
