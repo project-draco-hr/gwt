@@ -1,13 +1,18 @@
 {
   int activeClients=messageQueue.getNumClientsRetrievedTest(currentTestInfo);
-  if (firstLaunch && runStyle instanceof RunStyleManual) {
-    String[] newClients=messageQueue.getNewClients();
-    int printIndex=activeClients - newClients.length + 1;
-    for (    String newClient : newClients) {
-      System.out.println(printIndex + " - " + newClient);
-      ++printIndex;
+  if (firstLaunch && runStyle.isStartDelayed()) {
+    if (runStyle instanceof RunStyleManual) {
+      String[] newClients=messageQueue.getNewClients();
+      int printIndex=activeClients - newClients.length + 1;
+      for (      String newClient : newClients) {
+        System.out.println(printIndex + " - " + newClient);
+        ++printIndex;
+      }
     }
-    if (activeClients != this.numClients) {
+    if (runStyle.wasInterrupted()) {
+      throw new TimeoutException("A remote browser died a mysterious death.");
+    }
+ else     if (activeClients != this.numClients) {
       return true;
     }
   }
