@@ -20,12 +20,12 @@
       return null;
     }
     assert(type == TYPE_BEGIN || type == TYPE_END || type == TYPE_TEXT);
-    Class returnType=method.getReturnType();
+    Class<?> returnType=method.getReturnType();
     boolean arbitraryChildren=false;
     if (type == TYPE_BEGIN) {
       if (Schema.class.isAssignableFrom(returnType)) {
         arbitraryChildren=false;
-        ReflectiveParser.registerSchemaLevel(returnType);
+        ReflectiveParser.registerSchemaLevel((Class<? extends Schema>)returnType);
       }
  else       if (returnType.equals(Void.TYPE)) {
         arbitraryChildren=true;
@@ -38,15 +38,15 @@
       throw new IllegalArgumentException("Only 'void' may be specified as a return type for 'end' and 'text' handlers");
     }
     if (type == TYPE_TEXT) {
-      Class[] paramTypes=method.getParameterTypes();
+      Class<?>[] paramTypes=method.getParameterTypes();
       if (paramTypes.length != 1 || !String.class.equals(paramTypes[0])) {
         throw new IllegalArgumentException("__text handlers must have exactly one String parameter");
       }
       return new HandlerMethod(method,type,false,EMPTY_HANDLERPARAMS);
     }
  else {
-      Class[] paramTypes=method.getParameterTypes();
-      List handlerParams=new ArrayList();
+      Class<?>[] paramTypes=method.getParameterTypes();
+      List<HandlerParam> handlerParams=new ArrayList<HandlerParam>();
       for (int i=0, n=paramTypes.length; i < n; ++i) {
         HandlerParam handlerParam=HandlerParam.create(method,normalizedTagName,i);
         if (handlerParam != null) {
@@ -56,7 +56,7 @@
           throw new IllegalArgumentException("In method '" + method.getName() + "', parameter "+ (i + 1)+ " is an unsupported type");
         }
       }
-      HandlerParam[] hpa=(HandlerParam[])handlerParams.toArray(EMPTY_HANDLERPARAMS);
+      HandlerParam[] hpa=handlerParams.toArray(EMPTY_HANDLERPARAMS);
       return new HandlerMethod(method,type,arbitraryChildren,hpa);
     }
   }
