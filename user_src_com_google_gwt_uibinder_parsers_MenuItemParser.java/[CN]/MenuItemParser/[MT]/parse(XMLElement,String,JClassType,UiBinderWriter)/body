@@ -1,15 +1,25 @@
 {
   writer.setFieldInitializerAsConstructor(fieldName,writer.getOracle().findType(MenuItem.class.getName()),"\"\"","(com.google.gwt.user.client.Command) null");
-  InterpreterPipe<String> interpreter=new InterpreterPipe<String>();
-  final HtmlInterpreter htmlInterpreter=HtmlInterpreter.newInterpreterForUiObject(writer,fieldName);
-  MenuItemGutsInterpreter guts=new MenuItemGutsInterpreter(writer,elem.getNamespaceUri(),elem.toString(),htmlInterpreter);
-  interpreter.add(guts);
-  interpreter.add(htmlInterpreter);
-  String html=elem.consumeInnerHtml(interpreter);
-  if (html.trim().length() > 0) {
-    writer.genStringPropertySet(fieldName,"HTML",html);
+  final JClassType menuBarType=writer.getOracle().findType(MenuBar.class.getCanonicalName());
+class MenuBarInterpreter implements Interpreter<Boolean> {
+    String menuBarField=null;
+    public Boolean interpretElement(    XMLElement child) throws UnableToCompleteException {
+      if (isMenuBar(child)) {
+        if (menuBarField != null) {
+          writer.die("In %s, only one MenuBar may be contained in a MenuItem",elem);
+        }
+        menuBarField=writer.parseElementToField(child);
+        return true;
+      }
+      return false;
+    }
+    boolean isMenuBar(    XMLElement child) throws UnableToCompleteException {
+      return menuBarType.equals(writer.findFieldType(child));
+    }
   }
-  if (guts.getMenuBarField() != null) {
-    writer.genPropertySet(fieldName,"subMenu",guts.getMenuBarField());
+  MenuBarInterpreter interpreter=new MenuBarInterpreter();
+  elem.consumeChildElements(interpreter);
+  if (interpreter.menuBarField != null) {
+    writer.genPropertySet(fieldName,"subMenu",interpreter.menuBarField);
   }
 }
