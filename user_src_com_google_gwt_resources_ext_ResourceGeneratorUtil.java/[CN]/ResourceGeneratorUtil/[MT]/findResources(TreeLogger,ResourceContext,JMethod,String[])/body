@@ -1,16 +1,5 @@
 {
-  URL[] toReturn=null;
-  Locator locator;
-  if (!namedFiles.isEmpty()) {
-    toReturn=findResources(logger,FileLocator.INSTANCE,context,method,defaultSuffixes,false);
-  }
-  if (toReturn == null) {
-    locator=new ResourceOracleLocator(context.getGeneratorContext().getResourcesOracle());
-    toReturn=findResources(logger,locator,context,method,defaultSuffixes,false);
-  }
-  if (toReturn == null) {
-    locator=new ClassLoaderLocator(Thread.currentThread().getContextClassLoader());
-    toReturn=findResources(logger,locator,context,method,defaultSuffixes,true);
-  }
+  Locator[] locators={FileLocator.INSTANCE,new ResourceOracleLocator(context.getGeneratorContext().getResourcesOracle()),new ClassLoaderLocator(Thread.currentThread().getContextClassLoader())};
+  URL[] toReturn=findResources(logger,locators,context,method,defaultSuffixes);
   return toReturn;
 }
