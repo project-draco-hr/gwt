@@ -16,13 +16,14 @@
   doAddFieldsAndRequirements(logger,generatorContext,fields,requirements);
   Map<ResourceGenerator,List<JMethod>> generators=initAndPrepare(logger,taskList,resourceContext,requirements);
   String generatedSimpleSourceName=generateSimpleSourceName(logger,resourceContext,requirements);
-  ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(sourceType.getPackage().getName(),generatedSimpleSourceName);
-  f.addImport(GWT.class.getName());
-  f.addImport(ResourcePrototype.class.getName());
-  f.addImplementedInterface(sourceType.getQualifiedSourceName());
-  String createdClassName=f.getCreatedClassName();
-  PrintWriter out=generatorContext.tryCreate(logger,sourceType.getPackage().getName(),generatedSimpleSourceName);
+  String packageName=sourceType.getPackage().getName();
+  String createdClassName=packageName + "." + generatedSimpleSourceName;
+  PrintWriter out=generatorContext.tryCreate(logger,packageName,generatedSimpleSourceName);
   if (out != null) {
+    ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(packageName,generatedSimpleSourceName);
+    f.addImport(GWT.class.getName());
+    f.addImport(ResourcePrototype.class.getName());
+    f.addImplementedInterface(sourceType.getQualifiedSourceName());
     SourceWriter sw=f.createSourceWriter(generatorContext,out);
     resourceContext.setSimpleSourceName(generatedSimpleSourceName);
     createFieldsAndAssignments(logger,sw,generators,resourceContext,fields);

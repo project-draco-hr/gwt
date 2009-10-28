@@ -1,10 +1,17 @@
 {
+  List<URL> sheets=Arrays.asList(stylesheets);
+  SoftReference<CssStylesheet> ref=SHEETS.get(sheets);
+  CssStylesheet toReturn=ref == null ? null : ref.get();
+  if (toReturn != null) {
+    logger.log(TreeLogger.DEBUG,"Using cached result");
+    return new CssStylesheet(toReturn);
+  }
   Parser p=new Parser();
   Errors errors=new Errors(logger);
   GenerationHandler g=new GenerationHandler(errors);
   p.setDocumentHandler(g);
   p.setErrorHandler(errors);
-  for (  URL stylesheet : stylesheets) {
+  for (  URL stylesheet : sheets) {
     TreeLogger branchLogger=logger.branch(TreeLogger.DEBUG,"Parsing CSS stylesheet " + stylesheet.toExternalForm());
     try {
       p.parseStyleSheet(stylesheet.toURI().toString());
@@ -24,5 +31,7 @@ catch (    URISyntaxException e) {
   if (errors.fatalErrorEncountered) {
     throw new UnableToCompleteException();
   }
-  return g.css;
+  toReturn=g.css;
+  SHEETS.put(new ArrayList<URL>(sheets),new SoftReference<CssStylesheet>(new CssStylesheet(toReturn)));
+  return toReturn;
 }
