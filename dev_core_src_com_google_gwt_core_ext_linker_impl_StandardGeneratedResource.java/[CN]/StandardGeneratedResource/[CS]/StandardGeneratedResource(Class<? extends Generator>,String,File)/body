@@ -1,5 +1,10 @@
 {
   super(StandardLinkerContext.class,generatorType,partialPath);
   this.lastModified=file.lastModified();
-  this.token=diskCache.writeByteArray(Util.readFileAsBytes(file));
+  try {
+    this.token=diskCache.transferFromStream(new FileInputStream(file));
+  }
+ catch (  FileNotFoundException e) {
+    throw new RuntimeException("Unable to open file '" + file.getAbsolutePath() + "'",e);
+  }
 }
