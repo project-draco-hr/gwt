@@ -1,28 +1,32 @@
 {
+  List<Artifact<?>> soycArtifacts=new ArrayList<Artifact<?>>();
   ByteArrayOutputStream baos=new ByteArrayOutputStream();
   PerfLogger.start("Recording compile report output");
   PerfLogger.start("Record split points");
   SplitPointRecorder.recordSplitPoints(jprogram,baos,logger);
-  SoycArtifact splitPoints=new SoycArtifact("splitPoints" + permutationId + ".xml.gz",baos.toByteArray());
+  SyntheticArtifact splitPoints=new SyntheticArtifact(SoycReportLinker.class,"splitPoints" + permutationId + ".xml.gz",baos.toByteArray());
+  soycArtifacts.add(splitPoints);
   PerfLogger.end();
-  SoycArtifact sizeMaps=null;
-  SoycArtifact detailedStories=null;
+  SyntheticArtifact sizeMaps=null;
   if (sizeBreakdowns != null) {
     PerfLogger.start("Record size map");
     baos.reset();
     SizeMapRecorder.recordMap(logger,baos,sizeBreakdowns,jjsmap,obfuscateMap);
-    sizeMaps=new SoycArtifact("stories" + permutationId + ".xml.gz",baos.toByteArray());
+    sizeMaps=new SyntheticArtifact(SoycReportLinker.class,"stories" + permutationId + ".xml.gz",baos.toByteArray());
+    soycArtifacts.add(sizeMaps);
     PerfLogger.end();
   }
   if (sourceInfoMaps != null) {
     PerfLogger.start("Record detailed stories");
     baos.reset();
     StoryRecorder.recordStories(logger,baos,sourceInfoMaps,js);
-    detailedStories=new SoycArtifact("detailedStories" + permutationId + ".xml.gz",baos.toByteArray());
+    soycArtifacts.add(new SyntheticArtifact(SoycReportLinker.class,"detailedStories" + permutationId + ".xml.gz",baos.toByteArray()));
     PerfLogger.end();
   }
+  if (dependencies != null) {
+    soycArtifacts.add(dependencies);
+  }
   PerfLogger.end();
-  List<SoycArtifact> reportArtifacts=Lists.create();
   if (sizeBreakdowns != null) {
     PerfLogger.start("Generating compile report");
     ArtifactsOutputDirectory outDir=new ArtifactsOutputDirectory();
@@ -44,8 +48,8 @@ catch (    SAXException e) {
       throw new InternalCompilerException("Error reading compile report information that was just generated",e);
     }
     dashboard.generateForOnePermutation();
-    reportArtifacts=outDir.getArtifacts();
+    soycArtifacts.addAll(outDir.getArtifacts());
     PerfLogger.end();
   }
-  return new StandardCompilationAnalysis(dependencies,sizeMaps,splitPoints,detailedStories,reportArtifacts);
+  return soycArtifacts;
 }

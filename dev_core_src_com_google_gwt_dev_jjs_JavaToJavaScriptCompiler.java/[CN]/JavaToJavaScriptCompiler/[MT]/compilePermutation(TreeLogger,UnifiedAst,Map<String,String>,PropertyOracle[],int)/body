@@ -48,7 +48,7 @@
  while (didChange);
     }
     JsStackEmulator.exec(jsProgram,propertyOracles);
-    SoycArtifact dependencies=null;
+    SyntheticArtifact dependencies=null;
     if (options.isAggressivelyOptimize() && options.isRunAsyncEnabled()) {
       ByteArrayOutputStream baos=new ByteArrayOutputStream();
       CodeSplitter.exec(logger,jprogram,jsProgram,map,chooseDependencyRecorder(options.isSoycEnabled(),baos));
@@ -56,7 +56,7 @@
         recordNonSplitDependencies(jprogram,baos);
       }
       if (baos.size() > 0) {
-        dependencies=new SoycArtifact("dependencies" + permutationId + ".xml.gz",baos.toByteArray());
+        dependencies=new SyntheticArtifact(SoycReportLinker.class,"dependencies" + permutationId + ".xml.gz",baos.toByteArray());
       }
     }
     Map<JsName,String> obfuscateMap=Maps.create();
@@ -93,7 +93,7 @@ SizeBreakdown[] sizeBreakdowns=options.isSoycEnabled() ? new SizeBreakdown[js.le
 List<Map<Range,SourceInfo>> sourceInfoMaps=options.isSoycExtra() ? new ArrayList<Map<Range,SourceInfo>>() : null;
 generateJavaScriptCode(options,jsProgram,map,js,ranges,sizeBreakdowns,sourceInfoMaps,splitBlocks);
 PermutationResult toReturn=new PermutationResultImpl(js,makeSymbolMap(symbolTable),ranges,permutationId);
-toReturn.getArtifacts().add(makeSoycArtifact(logger,permutationId,jprogram,js,sizeBreakdowns,sourceInfoMaps,dependencies,map,obfuscateMap));
+toReturn.getArtifacts().addAll(makeSoycArtifacts(logger,permutationId,jprogram,js,sizeBreakdowns,sourceInfoMaps,dependencies,map,obfuscateMap));
 logger.log(TreeLogger.TRACE,"Permutation took " + (System.currentTimeMillis() - permStart) + " ms");
 return toReturn;
 }
