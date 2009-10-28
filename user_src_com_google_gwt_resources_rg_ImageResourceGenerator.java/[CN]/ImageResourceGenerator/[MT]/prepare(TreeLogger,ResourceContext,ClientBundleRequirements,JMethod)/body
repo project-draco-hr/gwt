@@ -1,4 +1,7 @@
 {
+  if (prepared) {
+    return;
+  }
   URL[] resources=ResourceGeneratorUtil.findResources(logger,context,method);
   if (resources.length != 1) {
     logger.log(TreeLogger.ERROR,"Exactly one image may be specified",null);
@@ -15,22 +18,21 @@
       rect.setPosition(0,0);
       throw new UnsuitableForStripException(rect);
     }
-    buildersByImageRect.put(rect,builder);
+    shared.buildersByImageRect.put(rect,builder);
   }
  catch (  UnsuitableForStripException e) {
+    URL normalContents;
     rect=e.getImageRect();
-    String urlExpression;
     if (rect.isAnimated()) {
-      urlExpression=context.deploy(resource,false);
+      normalContents=resource;
     }
  else {
-      byte[] imageBytes=ImageBundleBuilder.toPng(logger,rect);
-      urlExpression=context.deploy(rect.getName() + ".png","image/png",imageBytes,false);
+      normalContents=reencodeToTempFile(logger,rect);
     }
-    urlsByExternalImageRect.put(rect,new String[]{urlExpression,null});
+    shared.urlsByExternalImageRect.put(rect,new URL[]{normalContents,null});
   }
-  imageRectsByName.put(name,rect);
+  shared.imageRectsByName.put(name,rect);
   if (getFlipRtl(method)) {
-    rtlImages.put(rect,null);
+    shared.rtlImages.add(rect);
   }
 }
