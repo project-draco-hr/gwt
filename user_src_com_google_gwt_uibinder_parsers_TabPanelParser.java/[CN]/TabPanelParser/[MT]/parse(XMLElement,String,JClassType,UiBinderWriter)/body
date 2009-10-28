@@ -1,4 +1,5 @@
 {
+  writer.warn("%1$s:%2$s is deprecated. Use the %1$s:TabLayoutPanel instead.",elem.getPrefix(),elem.getLocalName());
   for (  XMLElement child : elem.consumeChildElements()) {
     String ns=child.getNamespaceUri();
     String tagName=child.getLocalName();
@@ -21,10 +22,13 @@
       }
  else {
         if (childFieldName != null) {
-          writer.die("gwt:Tab may only have a single child widget");
+          writer.die("%s may only have a single child widget",child);
         }
         childFieldName=writer.parseElementToField(tabChild);
       }
+    }
+    if (childFieldName == null) {
+      writer.die("%s must have a child widget",child);
     }
     if (tabHTML != null) {
       writer.addStatement("%1$s.add(%2$s, \"%3$s\", true);",fieldName,childFieldName,tabHTML);
