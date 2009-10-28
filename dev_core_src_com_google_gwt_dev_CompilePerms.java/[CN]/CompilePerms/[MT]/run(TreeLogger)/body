@@ -2,39 +2,28 @@
   for (  String moduleName : options.getModuleNames()) {
     int[] permsToRun=options.getPermsToCompile();
     File compilerWorkDir=options.getCompilerWorkDir(moduleName);
-    Collection<PrecompilationFile> precomps;
+    File precompilationFile=new File(compilerWorkDir,Precompile.PRECOMPILE_FILENAME);
+    PrecompilationResult precompileResults;
     try {
-      precomps=PrecompilationFile.scanJarFile(new File(compilerWorkDir,Precompile.PRECOMPILE_FILENAME));
+      precompileResults=Util.readFileAsObject(precompilationFile,PrecompilationResult.class);
     }
  catch (    IOException e) {
-      logger.log(TreeLogger.ERROR,"Failed to scan " + Precompile.PRECOMPILE_FILENAME + "; has Precompile been run?",e);
+      logger.log(TreeLogger.ERROR,"Failed to read " + Precompile.PRECOMPILE_FILENAME + "; has Precompile been run?");
       return false;
     }
-    if (permsToRun != null) {
-      checking_perms:       for (      int perm : permsToRun) {
-        for (        PrecompilationFile precomp : precomps) {
-          if (precomp.isForPermutation(perm)) {
-            continue checking_perms;
-          }
-        }
-        logger.log(TreeLogger.ERROR,"No precompilation file found for permutation " + perm);
+catch (    ClassNotFoundException e) {
+      logger.log(TreeLogger.ERROR,"Failed to read " + Precompile.PRECOMPILE_FILENAME,e);
+      return false;
+    }
+    if (precompileResults instanceof PrecompileOptions) {
+      PrecompileOptions precompilationOptions=(PrecompileOptions)precompileResults;
+      if (!precompileAndCompile(logger,moduleName,compilerWorkDir,precompilationOptions)) {
         return false;
       }
     }
  else {
-    }
-    for (    PrecompilationFile precompilationFile : precomps) {
-      if (!isPrecompileForAnyOf(precompilationFile,permsToRun)) {
-        continue;
-      }
-      Precompilation precompilation;
-      try {
-        precompilation=precompilationFile.newInstance(logger);
-      }
- catch (      UnableToCompleteException e) {
-        return false;
-      }
-      Permutation[] subPerms=selectPermutationsForPrecompilation(permsToRun,precompilationFile,precompilation);
+      Precompilation precompilation=(Precompilation)precompileResults;
+      Permutation[] subPerms=selectPermutationsForPrecompilation(permsToRun,precompilation);
       List<FileBackedObject<PermutationResult>> resultFiles=makeResultFiles(compilerWorkDir,subPerms);
       compile(logger,precompilation,subPerms,options.getLocalWorkers(),resultFiles);
     }

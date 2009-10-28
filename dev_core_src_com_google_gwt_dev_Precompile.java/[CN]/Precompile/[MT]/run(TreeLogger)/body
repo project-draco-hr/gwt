@@ -1,76 +1,48 @@
 {
-  boolean originalCompilationStateRetained=options.isCompilationStateRetained();
   options.setOptimizePrecompile(false);
   for (  String moduleName : options.getModuleNames()) {
     File compilerWorkDir=options.getCompilerWorkDir(moduleName);
     Util.recursiveDelete(compilerWorkDir,true);
     compilerWorkDir.mkdirs();
-    JarOutputStream precompilationJar;
-    try {
-      precompilationJar=new JarOutputStream(new FileOutputStream(new File(compilerWorkDir,PRECOMPILE_FILENAME)));
-    }
- catch (    IOException e) {
-      logger.log(TreeLogger.ERROR,"Could not create " + PRECOMPILE_FILENAME,e);
-      return false;
-    }
+    File precompilationFile=new File(compilerWorkDir,PRECOMPILE_FILENAME);
     ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
-    module.getCompilationState(logger);
+    boolean generateOnShards=options.isEnabledGeneratingOnShards();
     if (options.isValidateOnly()) {
-      TreeLogger branch=logger.branch(TreeLogger.INFO,"Validating compilation " + module.getName());
-      if (!validate(branch,options,module,options.getGenDir(),compilerWorkDir,options.getDumpSignatureFile())) {
-        branch.log(TreeLogger.ERROR,"Validation failed");
-        return false;
-      }
-      branch.log(TreeLogger.INFO,"Validation succeeded");
+      generateOnShards=false;
+    }
+ else     if (options.getDumpSignatureFile() != null) {
+      logger.log(TreeLogger.INFO,"Precompiling on the start node, because a dump signature file was specified");
+      generateOnShards=false;
+    }
+    if (generateOnShards) {
+      TreeLogger branch=logger.branch(TreeLogger.INFO,"Precompiling (minimal) module " + module.getName());
+      Util.writeObjectAsFile(logger,precompilationFile,options);
+      int numPermutations=module.getProperties().numPermutations();
+      Util.writeStringAsFile(logger,new File(compilerWorkDir,PERM_COUNT_FILENAME),String.valueOf(numPermutations));
+      branch.log(TreeLogger.INFO,"Precompilation (minimal) succeeded, number of permutations: " + numPermutations);
     }
  else {
-      TreeLogger branch=logger.branch(TreeLogger.INFO,"Precompiling module " + module.getName());
-      PropertyPermutations allPermutations=new PropertyPermutations(module.getProperties());
-      int potentialPermutations=allPermutations.size();
-      int permutationsPerIteration=options.getMaxPermsPerPrecompile();
-      if (permutationsPerIteration <= 0) {
-        permutationsPerIteration=potentialPermutations;
+      module.getCompilationState(logger);
+      if (options.isValidateOnly()) {
+        TreeLogger branch=logger.branch(TreeLogger.INFO,"Validating compilation " + module.getName());
+        if (!validate(branch,options,module,options.getGenDir(),compilerWorkDir,options.getDumpSignatureFile())) {
+          branch.log(TreeLogger.ERROR,"Validation failed");
+          return false;
+        }
+        branch.log(TreeLogger.INFO,"Validation succeeded");
       }
-      int actualPermutations=0;
-      for (int potentialFirstPerm=0; potentialFirstPerm < potentialPermutations; potentialFirstPerm+=permutationsPerIteration) {
-        int numPermsToPrecompile=Math.min(potentialPermutations - potentialFirstPerm,permutationsPerIteration);
-        if (potentialFirstPerm != 0) {
-          module.getCompilationState(branch).refresh(branch);
-        }
-        if (potentialFirstPerm + numPermsToPrecompile < potentialPermutations) {
-          options.setCompilationStateRetained(true);
-        }
  else {
-          options.setCompilationStateRetained(originalCompilationStateRetained);
-        }
-        PropertyPermutations localPermutations=new PropertyPermutations(allPermutations,potentialFirstPerm,numPermsToPrecompile);
-        Precompilation precompilation=precompile(branch,options,module,actualPermutations,localPermutations,options.getGenDir(),compilerWorkDir,options.getDumpSignatureFile());
+        TreeLogger branch=logger.branch(TreeLogger.INFO,"Precompiling module " + module.getName());
+        Precompilation precompilation=precompile(branch,options,module,options.getGenDir(),compilerWorkDir,options.getDumpSignatureFile());
         if (precompilation == null) {
           branch.log(TreeLogger.ERROR,"Precompilation failed");
           return false;
         }
-        int actualNumPermsPrecompiled=precompilation.getPermutations().length;
-        String precompilationFilename=PrecompilationFile.fileNameForPermutations(actualPermutations,actualNumPermsPrecompiled);
-        try {
-          precompilationJar.putNextEntry(new ZipEntry(precompilationFilename));
-          Util.writeObjectToStream(precompilationJar,precompilation);
-        }
- catch (        IOException e) {
-          branch.log(TreeLogger.ERROR,"Failed to write a precompilation result",e);
-          return false;
-        }
-        actualPermutations+=actualNumPermsPrecompiled;
-        branch.log(TreeLogger.DEBUG,"Compiled " + actualNumPermsPrecompiled + " permutations starting from "+ potentialFirstPerm);
+        Util.writeObjectAsFile(logger,precompilationFile,precompilation);
+        int permsPrecompiled=precompilation.getPermutations().length;
+        Util.writeStringAsFile(logger,new File(compilerWorkDir,PERM_COUNT_FILENAME),String.valueOf(permsPrecompiled));
+        branch.log(TreeLogger.INFO,"Precompilation succeeded, number of permutations: " + permsPrecompiled);
       }
-      try {
-        precompilationJar.close();
-      }
- catch (      IOException e) {
-        branch.log(TreeLogger.ERROR,"Failed to finalize " + PRECOMPILE_FILENAME,e);
-        return false;
-      }
-      Util.writeStringAsFile(branch,new File(compilerWorkDir,PERM_COUNT_FILENAME),String.valueOf(actualPermutations));
-      branch.log(TreeLogger.INFO,"Precompilation succeeded, number of permutations: " + actualPermutations);
     }
   }
   return true;

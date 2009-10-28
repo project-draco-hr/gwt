@@ -1,14 +1,5 @@
 {
   for (  String moduleName : options.getModuleNames()) {
-    File compilerWorkDir=options.getCompilerWorkDir(moduleName);
-    Collection<PrecompilationFile> precomps;
-    try {
-      precomps=PrecompilationFile.scanJarFile(new File(compilerWorkDir,Precompile.PRECOMPILE_FILENAME));
-    }
- catch (    IOException e) {
-      logger.log(TreeLogger.ERROR,"Failed to scan " + Precompile.PRECOMPILE_FILENAME,e);
-      return false;
-    }
     ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
     OutputFileSet outFileSet;
     OutputFileSet extraFileSet;
@@ -34,29 +25,42 @@
       logger.log(TreeLogger.ERROR,"Unexpected exception while producing output",e);
       throw new UnableToCompleteException();
     }
-    if (precomps.isEmpty()) {
-      logger.log(TreeLogger.ERROR,"No precompilation files found in '" + compilerWorkDir.getAbsolutePath() + "'; please run Precompile first");
-      return false;
-    }
     List<Permutation> permsList=new ArrayList<Permutation>();
     ArtifactSet generatedArtifacts=new ArtifactSet();
     JJSOptions precompileOptions=null;
-    for (    PrecompilationFile precompilationFile : precomps) {
-      Precompilation precompilation;
-      try {
-        precompilation=precompilationFile.newInstance(logger);
+    File compilerWorkDir=options.getCompilerWorkDir(moduleName);
+    List<Integer> permutationIds=new ArrayList<Integer>();
+    PrecompilationResult precompileResults;
+    try {
+      precompileResults=Util.readFileAsObject(new File(compilerWorkDir,Precompile.PRECOMPILE_FILENAME),PrecompilationResult.class);
+    }
+ catch (    ClassNotFoundException e) {
+      logger.log(TreeLogger.ERROR,"Error reading " + Precompile.PRECOMPILE_FILENAME);
+      return false;
+    }
+catch (    IOException e) {
+      logger.log(TreeLogger.ERROR,"Error reading " + Precompile.PRECOMPILE_FILENAME);
+      return false;
+    }
+    if (precompileResults instanceof PrecompileOptions) {
+      precompileOptions=(JJSOptions)precompileResults;
+      int numPermutations=module.getProperties().numPermutations();
+      for (int i=0; i < numPermutations; ++i) {
+        permutationIds.add(i);
       }
- catch (      UnableToCompleteException e) {
-        return false;
-      }
+    }
+ else {
+      Precompilation precompilation=(Precompilation)precompileResults;
       permsList.addAll(Arrays.asList(precompilation.getPermutations()));
       generatedArtifacts.addAll(precompilation.getGeneratedArtifacts());
       precompileOptions=precompilation.getUnifiedAst().getOptions();
+      for (      Permutation perm : precompilation.getPermutations()) {
+        permutationIds.add(perm.getId());
+      }
     }
-    Permutation[] perms=permsList.toArray(new Permutation[permsList.size()]);
-    List<FileBackedObject<PermutationResult>> resultFiles=new ArrayList<FileBackedObject<PermutationResult>>(perms.length);
-    for (int i=0; i < perms.length; ++i) {
-      File f=CompilePerms.makePermFilename(compilerWorkDir,perms[i].getId());
+    List<FileBackedObject<PermutationResult>> resultFiles=new ArrayList<FileBackedObject<PermutationResult>>(permutationIds.size());
+    for (    int id : permutationIds) {
+      File f=CompilePerms.makePermFilename(compilerWorkDir,id);
       if (!f.exists()) {
         logger.log(TreeLogger.ERROR,"File not found '" + f.getAbsolutePath() + "'; please compile all permutations");
         return false;
@@ -65,7 +69,7 @@
     }
     TreeLogger branch=logger.branch(TreeLogger.INFO,"Linking module " + module.getName());
     StandardLinkerContext linkerContext=new StandardLinkerContext(branch,module,precompileOptions);
-    ArtifactSet artifacts=doLink(branch,linkerContext,generatedArtifacts,perms,resultFiles);
+    ArtifactSet artifacts=doLink(branch,linkerContext,generatedArtifacts,resultFiles);
     try {
       doProduceOutput(branch,artifacts,linkerContext,outFileSet,extraFileSet);
     }
