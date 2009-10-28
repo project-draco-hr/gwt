@@ -1,0 +1,25 @@
+{
+  String publicness=emitPrivates ? "private" : "public";
+  logger=logger.branch(TreeLogger.TRACE,"Linking " + publicness + " artifacts into "+ out.getPathDescription(),null);
+  for (  EmittedArtifact artifact : artifacts.find(EmittedArtifact.class)) {
+    TreeLogger artifactLogger=logger.branch(TreeLogger.DEBUG,"Emitting resource " + artifact.getPartialPath(),null);
+    if (artifact.isPrivate() != emitPrivates) {
+      continue;
+    }
+    String partialPath=artifact.getPartialPath();
+    if (artifact.isPrivate()) {
+      partialPath=getExtraPathForLinker(artifact.getLinker(),partialPath);
+      if (partialPath.startsWith("/")) {
+        partialPath=partialPath.substring(1);
+      }
+    }
+    try {
+      OutputStream artifactStream=out.openForWrite(partialPath,artifact.getLastModified());
+      artifact.writeTo(artifactLogger,artifactStream);
+      artifactStream.close();
+    }
+ catch (    IOException e) {
+      artifactLogger.log(TreeLogger.ERROR,"Fatal error emitting this artifact",e);
+    }
+  }
+}

@@ -10,6 +10,30 @@
       return false;
     }
     ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
+    OutputFileSet outFileSet;
+    OutputFileSet extraFileSet;
+    try {
+      if (options.getOutDir() == null) {
+        outFileSet=chooseOutputFileSet(options.getWarDir(),module.getName() + "/");
+        extraFileSet=chooseOutputFileSet(options.getExtraDir(),module.getName() + "/");
+      }
+ else {
+        outFileSet=chooseOutputFileSet(options.getOutDir(),module.getName() + "/");
+        if (options.getExtraDir() != null) {
+          extraFileSet=chooseOutputFileSet(options.getExtraDir(),module.getName() + "-aux/","");
+        }
+ else         if (outFileSet instanceof OutputFileSetOnDirectory) {
+          extraFileSet=chooseOutputFileSet(options.getOutDir(),module.getName() + "-aux/");
+        }
+ else {
+          extraFileSet=new NullOutputFileSet();
+        }
+      }
+    }
+ catch (    IOException e) {
+      logger.log(TreeLogger.ERROR,"Unexpected exception while producing output",e);
+      throw new UnableToCompleteException();
+    }
     if (precomps.isEmpty()) {
       logger.log(TreeLogger.ERROR,"No precompilation files found in '" + compilerWorkDir.getAbsolutePath() + "'; please run Precompile first");
       return false;
@@ -42,11 +66,11 @@
     TreeLogger branch=logger.branch(TreeLogger.INFO,"Linking module " + module.getName());
     StandardLinkerContext linkerContext=new StandardLinkerContext(branch,module,precompileOptions);
     ArtifactSet artifacts=doLink(branch,linkerContext,generatedArtifacts,perms,resultFiles);
-    if (options.getOutDir() == null) {
-      doProduceOutput(branch,artifacts,linkerContext,module,options.getWarDir(),options.getExtraDir());
+    try {
+      doProduceOutput(branch,artifacts,linkerContext,outFileSet,extraFileSet);
     }
- else {
-      doProduceLegacyOutput(branch,artifacts,linkerContext,module,options.getOutDir());
+ catch (    IOException e) {
+      logger.log(TreeLogger.ERROR,"Unexpected exception while producing output",e);
     }
   }
   return true;
