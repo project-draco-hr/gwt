@@ -26,7 +26,12 @@
       currentUrl=getUrlBeforeHash(currentUrl);
       String newUrl=getUrlBeforeHash((String)args[0].getValue());
       if (!newUrl.equals(currentUrl)) {
-        window.getWebWindow().getTopWindow().getJobManager().removeAllJobs();
+        WebWindow webWindow=window.getWebWindow();
+        do {
+          webWindow.getJobManager().removeAllJobs();
+          webWindow=webWindow.getParentWindow();
+        }
+ while (webWindow != webWindow.getTopWindow());
       }
     }
     result=jsEngine.callFunction(htmlPage,jsFunction,jsContext,window,jsThis,jsArgs);
