@@ -2,13 +2,16 @@
   for (  XMLElement child : elem.consumeChildElements()) {
     String ns=child.getNamespaceUri();
     String tagName=child.getLocalName();
-    if (ns.equals(elem.getNamespaceUri()) && localTagNameIsCell(tagName)) {
+    if (ns != null && ns.equals(elem.getNamespaceUri()) && localTagNameIsCell(tagName)) {
       XMLElement widget=child.consumeSingleChildElement();
       String childFieldName=writer.parseElementToField(widget);
       writer.addStatement("%1$s.add(%2$s);",fieldName,childFieldName);
       parseCellAttributes(child,fieldName,childFieldName,writer);
     }
  else {
+      if (!writer.isWidgetElement(child)) {
+        writer.die("In %s, expected a widget or <%s:%s>, found %s",elem,elem.getPrefix(),CELL_TAG.toLowerCase(),child);
+      }
       String childFieldName=writer.parseElementToField(child);
       writer.addStatement("%1$s.add(%2$s);",fieldName,childFieldName);
     }
