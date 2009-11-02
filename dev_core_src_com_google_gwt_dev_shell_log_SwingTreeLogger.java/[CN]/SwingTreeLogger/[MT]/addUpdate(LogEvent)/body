@@ -30,6 +30,14 @@
         if (event.type.needsAttention()) {
           panel.tree.makeVisible(new TreePath(node.getPath()));
         }
+        Type priority=event.getInheritedPriority();
+        while (parent != panel.treeModel.getRoot()) {
+          LogEvent parentEvent=(LogEvent)parent.getUserObject();
+          if (!parentEvent.updateInheritedPriority(priority)) {
+            break;
+          }
+          parent=(DefaultMutableTreeNode)parent.getParent();
+        }
       }
  catch (      InterruptedException e) {
         e.printStackTrace();
