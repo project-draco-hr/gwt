@@ -1,52 +1,41 @@
 {
-  String outFileName=breakdown.getId() + "-" + getPermutationId()+ "_"+ "packageBreakdown.html";
+  String outFileName=breakdown.getId() + "-" + getPermutationId()+ "-"+ "packageBreakdown.html";
   Map<String,Integer> packageToPartialSize=breakdown.packageToSize;
   TreeMap<Integer,String> sortedPackages=new TreeMap<Integer,String>(Collections.reverseOrder());
-  float maxSize=0f;
   float sumSize=0f;
   for (  String packageName : packageToPartialSize.keySet()) {
     sortedPackages.put(packageToPartialSize.get(packageName),packageName);
     sumSize+=packageToPartialSize.get(packageName);
-    if (packageToPartialSize.get(packageName) > maxSize) {
-      maxSize=packageToPartialSize.get(packageName);
-    }
   }
   final PrintWriter outFile=new PrintWriter(getOutFile(outFileName));
-  outFile.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"");
-  outFile.println("\"http://www.w3.org/TR/html4/strict.dtd\">");
-  outFile.println("<html>");
-  outFile.println("<head>");
-  outFile.println("<meta http-equiv=\"content-type\" content=\"text/html;charset=ISO-8859-1\">");
-  outFile.println("<link rel=\"stylesheet\" href=\"soycStyling.css\" media=\"screen\">");
-  outFile.println("</head>");
-  outFile.println("<body>");
-  outFile.println("<table style='width:100%'>");
+  addSmallHtmlProlog(outFile,"Package breakdown");
+  outFile.println("<body class=\"soyc-breakdown\">");
+  outFile.println("<div class=\"g-doc\">");
+  outFile.println("<table class=\"soyc-table\">");
+  outFile.println("<colgroup>");
+  outFile.println("<col id=\"soyc-splitpoint-type-col\">");
+  outFile.println("<col id=\"soyc-splitpoint-size-col\">");
+  outFile.println("</colgroup>");
   outFile.println("<thead>");
-  outFile.println("<th class='barlabel'>Size</th>");
-  outFile.println("<th class='barlabel'>Percentage</th>");
-  outFile.println("<th class='barlabel'>Package</th>");
-  outFile.println("<th style='width:100%' class='barlabel'></th>");
+  outFile.println("<th>Package</th>");
+  outFile.println("<th>Size <span class=\"soyc-th-units\">Bytes (% All Code)</span></th>");
   outFile.println("</thead>");
   for (  int size : sortedPackages.keySet()) {
     String packageName=sortedPackages.get(size);
     String drillDownFileName=classesInPackageFileName(breakdown,packageName,getPermutationId());
-    float ratio=(size / maxSize) * 79;
-    if (ratio < 1) {
-      ratio=1;
-    }
     float perc=(size / sumSize) * 100;
     outFile.println("<tr>");
-    outFile.println("<td class='barlabel'>" + size + "</td>");
-    outFile.println("<td class='barlabel'>" + formatNumber(perc) + "%</td>");
-    outFile.println("<td class='barlabel'><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ packageName+ "</a></td>");
-    outFile.println("<td class=\"box\">");
-    outFile.println("<div style=\"width:" + ratio + "%;\" class=\"sizebar\"/>");
+    outFile.println("<td><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ packageName+ "</a></td>");
+    outFile.println("<td>");
+    outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
+    outFile.println("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
+    outFile.println("</div>");
+    outFile.println(size + " (" + formatNumber(perc)+ "%)");
     outFile.println("</td>");
     outFile.println("</tr>");
   }
   outFile.println("</table>");
-  outFile.println("</body>");
-  outFile.println("</html>");
+  addStandardHtmlEnding(outFile);
   outFile.close();
   return outFileName;
 }

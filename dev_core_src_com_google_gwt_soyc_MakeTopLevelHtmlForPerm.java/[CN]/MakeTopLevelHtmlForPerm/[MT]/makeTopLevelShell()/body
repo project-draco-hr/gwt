@@ -1,72 +1,77 @@
 {
   String permutationId=getPermutationId();
   PrintWriter outFile=new PrintWriter(getOutFile("SoycDashboard" + "-" + getPermutationId() + "-index.html"));
-  addStandardHtmlProlog(outFile,"Compile report","Permutation " + permutationId);
-  if (globalInformation.getSplitPointToLocation().size() > 1) {
-    outFile.println("<b>Initial download size: <span style=\"color:maroon\">" + globalInformation.getInitialCodeBreakdown().sizeAllCode + "</span></span></b>");
-  }
-  outFile.println("<b>Full code size: <span style=\"color:maroon\">" + globalInformation.getTotalCodeBreakdown().sizeAllCode + "</span></span></b>");
-  outFile.println("<hr>");
+  addStandardHtmlProlog(outFile,"Compile report: Permutation " + permutationId,"Compile report: Permutation " + permutationId,"");
+  outFile.println("<div id=\"bd\">");
+  outFile.println("<div id=\"soyc-summary\" class=\"g-section\">");
+  outFile.println("<dl>");
+  outFile.println("<dt>Full code size</dt>");
+  outFile.println("<dd class=\"value\">" + globalInformation.getInitialCodeBreakdown().sizeAllCode + " Bytes</dd>");
+  outFile.println("<dd class=\"report\"><a href=\"total-" + permutationId + "-overallBreakdown.html\">Report</a></dd>");
+  outFile.println("</dl>");
+  outFile.println("<dl>");
+  outFile.println("<dt>Initial download size</dt>");
+  outFile.println("<dd class=\"value\">" + globalInformation.getTotalCodeBreakdown().sizeAllCode + " Bytes</dd>");
+  outFile.println("<dd class=\"report\"><a href=\"initial-" + permutationId + "-overallBreakdown.html\">Report</a></dd>");
+  outFile.println("</dl>");
+  outFile.println("<dl>");
+  outFile.println("<dt>Left over code</dt>");
+  outFile.println("<dd class=\"value\">" + globalInformation.getLeftoversBreakdown().sizeAllCode + " Bytes</dd>");
+  outFile.println("<dd class=\"report\"><a href=\"leftovers-" + permutationId + "-overallBreakdown.html\">Report</a></dd>");
+  outFile.println("</dl>");
   outFile.println("</div>");
-  outFile.println("<div class='abs mainContent' style=\"overflow: auto\" >");
-  outFile.println("<table style='width:100%'>");
+  outFile.println("<table id=\"soyc-table-splitpoints\" class=\"soyc-table\">");
+  outFile.println("<caption>");
+  outFile.println("<strong>Split Points</strong>");
+  outFile.println("</caption>");
+  outFile.println("<colgroup>");
+  outFile.println("<col id=\"soyc-splitpoint-number-col\">");
+  outFile.println("<col id=\"soyc-splitpoint-location-col\">");
+  outFile.println("<col id=\"soyc-splitpoint-size-col\">");
+  outFile.println("</colgroup>");
   outFile.println("<thead>");
-  outFile.println("<th class='barlabel'>Size</th>");
-  outFile.println("<th class='barlabel'>Percentage</th>");
-  outFile.println("<th class='barlabel'></th>");
-  outFile.println("<th style='width:100%' class='barlabel'></th>");
+  outFile.println("<th>#</th>");
+  outFile.println("<th>Location</th>");
+  outFile.println("<th>Size</th>");
   outFile.println("</thead>");
-  int numSplitPoints=globalInformation.getSplitPointToLocation().size();
-  int numRows=2;
-  if (numSplitPoints > 0) {
-    numRows+=numSplitPoints + 1;
-  }
-  int outerHeight=25 * numRows;
-  outFile.println("<div style=\"width:100%; margin:20px 0 20px 0; background-color:white;position:relative;height:" + outerHeight + "\">");
-  float maxSize=globalInformation.getTotalCodeBreakdown().sizeAllCode;
-  for (int i=FRAGMENT_NUMBER_TOTAL_PROGRAM; i <= numSplitPoints + 1; i++) {
-    if (i == 1 && numSplitPoints == 0) {
-      continue;
-    }
-    SizeBreakdown breakdown;
-    if (i == FRAGMENT_NUMBER_TOTAL_PROGRAM) {
-      breakdown=globalInformation.getTotalCodeBreakdown();
-    }
- else     if (i == numSplitPoints + 1) {
-      breakdown=globalInformation.getLeftoversBreakdown();
-    }
- else     if (i == FRAGMENT_NUMBER_INITIAL_DOWNLOAD) {
-      breakdown=globalInformation.getInitialCodeBreakdown();
-    }
+  outFile.println("<tbody>");
+  if (globalInformation.getSplitPointToLocation().size() > 1) {
+    int numSplitPoints=globalInformation.getSplitPointToLocation().size();
+    float maxSize=globalInformation.getTotalCodeBreakdown().sizeAllCode;
+    for (int i=FRAGMENT_NUMBER_TOTAL_PROGRAM; i <= numSplitPoints + 1; i++) {
+      SizeBreakdown breakdown;
+      if (i == FRAGMENT_NUMBER_TOTAL_PROGRAM) {
+        continue;
+      }
+ else       if (i == numSplitPoints + 1) {
+        continue;
+      }
+ else       if (i == FRAGMENT_NUMBER_INITIAL_DOWNLOAD) {
+        continue;
+      }
  else {
-      breakdown=globalInformation.splitPointCodeBreakdown(i);
+        breakdown=globalInformation.splitPointCodeBreakdown(i);
+      }
+      String drillDownFileName=shellFileName(breakdown,getPermutationId());
+      String splitPointDescription=globalInformation.getSplitPointToLocation().get(i);
+      float size=breakdown.sizeAllCode;
+      float ratio;
+      ratio=(size / maxSize) * 100;
+      outFile.println("<tr>");
+      outFile.println("<td>" + i + "</td>");
+      outFile.println("<td><a href=\"" + drillDownFileName + "\">"+ splitPointDescription+ "</a></td>");
+      outFile.println("<td>");
+      outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
+      outFile.println("<div style=\"width:" + ratio + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
+      outFile.println("</div>");
+      outFile.println((int)size + " Bytes (" + formatNumber(ratio)+ "%)");
+      outFile.println("</td>");
+      outFile.println("</tr>");
     }
-    String drillDownFileName=shellFileName(breakdown,getPermutationId());
-    String splitPointDescription=breakdown.getDescription();
-    float size=breakdown.sizeAllCode;
-    float ratio;
-    if (globalInformation.getInitialCodeBreakdown().sizeAllCode > 0) {
-      ratio=(size / globalInformation.getInitialCodeBreakdown().sizeAllCode) * 79;
-    }
- else {
-      ratio=(size / maxSize) * 79;
-    }
-    if (ratio < 1) {
-      ratio=1;
-    }
-    float perc=(size / maxSize) * 100;
-    outFile.println("<tr>");
-    outFile.println("<td class=\"barlabel\">" + size + "</td>");
-    outFile.println("<td class=\"barlabel\">" + formatNumber(perc) + "%</td>");
-    outFile.println("<td class=\"barlabel\"><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ splitPointDescription+ "</a></td>");
-    outFile.println("<td class=\"box\">");
-    if (splitPointDescription.compareTo("Total program") != 0) {
-      outFile.println("<div style=\"width:" + ratio + "%;\" class=\"sizebar\"/>");
-    }
-    outFile.println("</td>");
-    outFile.println("</tr>");
   }
+  outFile.println("</tbody>");
+  outFile.println("</table>");
   outFile.println("</div>");
-  outFile.println("</body></html>");
+  addStandardHtmlEnding(outFile);
   outFile.close();
 }

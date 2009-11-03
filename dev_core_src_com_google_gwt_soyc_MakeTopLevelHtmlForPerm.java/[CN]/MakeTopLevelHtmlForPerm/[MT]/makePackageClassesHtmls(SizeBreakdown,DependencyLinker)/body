@@ -1,7 +1,6 @@
 {
   for (  String packageName : globalInformation.getPackageToClasses().keySet()) {
     TreeMap<Float,String> sortedClasses=new TreeMap<Float,String>(Collections.reverseOrder());
-    float maxSize=0f;
     float sumSize=0f;
     for (    String className : globalInformation.getPackageToClasses().get(packageName)) {
       float curSize=0f;
@@ -13,47 +12,39 @@
       if (curSize != 0f) {
         sumSize+=curSize;
         sortedClasses.put(curSize,className);
-        if (curSize > maxSize) {
-          maxSize=curSize;
-        }
       }
     }
     PrintWriter outFile=new PrintWriter(getOutFile(classesInPackageFileName(breakdown,packageName,getPermutationId())));
-    addHeaderWithBreakdownContext(breakdown,outFile,"Classes in package " + packageName);
-    outFile.println("<hr>");
-    outFile.println("</div>");
-    outFile.println("<div class='abs mainContent' style='overflow:auto'>");
-    outFile.println("<table style='width:100%'>");
+    addStandardHtmlProlog(outFile,"Classes in package " + packageName,"Classes in package " + packageName,headerLineForBreakdown(breakdown));
+    outFile.println("<table class=\"soyc-table\">");
+    outFile.println("<colgroup>");
+    outFile.println("<col id=\"soyc-splitpoint-type-col\">");
+    outFile.println("<col id=\"soyc-splitpoint-size-col\">");
+    outFile.println("</colgroup>");
     outFile.println("<thead>");
-    outFile.println("<th class='barlabel'>Size</th>");
-    outFile.println("<th class='barlabel'>Percentage</th>");
-    outFile.println("<th class='barlabel'></th>");
-    outFile.println("<th style='width:100%' class='barlabel'></th>");
+    outFile.println("<th>Package</th>");
+    outFile.println("<th>Size <span class=\"soyc-th-units\">Bytes (% All Code)</span></th>");
     outFile.println("</thead>");
     for (    Float size : sortedClasses.keySet()) {
       String className=sortedClasses.get(size);
-      float ratio=(size / maxSize) * 85;
-      if (ratio < 1) {
-        ratio=1;
-      }
+      String drillDownFileName=depLinker.dependencyLinkForClass(className);
       float perc=(size / sumSize) * 100;
-      String dependencyLink=depLinker.dependencyLinkForClass(className);
       outFile.println("<tr>");
-      outFile.println("<td class=\"barlabel\">" + size + "</td>");
-      outFile.println("<td class=\"barlabel\">" + formatNumber(perc) + "%</td>");
-      if (dependencyLink != null) {
-        outFile.println("<td class=\"barlabel\"><a href=\"" + dependencyLink + "\" target=\"_top\">"+ className+ "</a></td>");
+      if (drillDownFileName == null) {
+        outFile.println("<td>" + className + "</td>");
       }
  else {
-        outFile.println("<td class=\"barlabel\">" + className + "</td>");
+        outFile.println("<td><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ className+ "</a></td>");
       }
-      outFile.println("<td class=\"box\">");
-      outFile.println("  <div style=\"width:" + ratio + "%;\" class=\"sizebar\"/>");
+      outFile.println("<td>");
+      outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
+      outFile.println("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
+      outFile.println("</div>");
+      outFile.println(size + " (" + formatNumber(perc)+ "%)");
       outFile.println("</td>");
       outFile.println("</tr>");
     }
     outFile.println("</table>");
-    outFile.println("</div>");
     addStandardHtmlEnding(outFile);
     outFile.close();
   }
