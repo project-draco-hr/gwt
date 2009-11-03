@@ -1,0 +1,24 @@
+{
+  if (canceled) {
+    return;
+  }
+  scheduled=false;
+  doBeforeLayout();
+  layout.layout(duration,new Layout.AnimationCallback(){
+    public void onAnimationComplete(){
+      if (callback != null) {
+        callback.onAnimationComplete();
+      }
+    }
+    public void onLayout(    Layer layer,    double progress){
+      Widget child=(Widget)layer.getUserObject();
+      if (child instanceof RequiresResize) {
+        ((RequiresResize)child).onResize();
+      }
+      if (callback != null) {
+        callback.onLayout(layer,progress);
+      }
+    }
+  }
+);
+}
