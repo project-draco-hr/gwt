@@ -1,18 +1,15 @@
 {
   String body=elem.consumeUnescapedInnerText();
-  String source=elem.consumeRawAttribute(SOURCE_ATTRIBUTE);
-  if (0 == body.length() && 0 == source.length()) {
+  String[] source=elem.consumeRawArrayAttribute(SOURCE_ATTRIBUTE);
+  if (0 == body.length() && 0 == source.length) {
     writer.die("%s must have either a src attribute or body text",elem);
   }
   String name=elem.consumeRawAttribute(FIELD_ATTRIBUTE,"style");
   JClassType publicType=consumeCssResourceType(elem);
-  String importTypeNames=elem.consumeRawAttribute(IMPORT_ATTRIBUTE,null);
+  String[] importTypeNames=elem.consumeRawArrayAttribute(IMPORT_ATTRIBUTE);
   LinkedHashSet<JClassType> importTypes=new LinkedHashSet<JClassType>();
-  if (importTypeNames != null) {
-    String[] typeNames=importTypeNames.split("\\s+");
-    for (    String type : typeNames) {
-      importTypes.add(findCssResourceType(elem,type));
-    }
+  for (  String type : importTypeNames) {
+    importTypes.add(findCssResourceType(elem,type));
   }
   ImplicitCssResource cssMethod=bundleClass.createCssResource(name,source,publicType,body,importTypes);
   FieldWriter field=fieldManager.registerFieldOfGeneratedType(cssMethod.getPackageName(),cssMethod.getClassName(),cssMethod.getName());

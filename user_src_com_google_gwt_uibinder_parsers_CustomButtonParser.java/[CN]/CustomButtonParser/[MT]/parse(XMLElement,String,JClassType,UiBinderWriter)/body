@@ -3,27 +3,19 @@
     String ns=child.getNamespaceUri();
     String faceName=child.getLocalName();
     if (!ns.equals(elem.getNamespaceUri())) {
-      writer.die("Invalid CustomButton child namespace: " + ns);
+      writer.die("In %s, invalid child namespace: %s",elem,ns);
     }
     if (!faceNames.contains(faceName)) {
-      writer.die("Invalid CustomButton face: " + faceName);
+      writer.die("In %s, invalid CustomButton face: %s:%s",elem,ns,faceName);
     }
     HtmlInterpreter interpreter=HtmlInterpreter.newInterpreterForUiObject(writer,fieldName);
     String innerHtml=child.consumeInnerHtml(interpreter).trim();
     if (innerHtml.length() > 0) {
-      writer.addStatement("%1$s.get%2$s().setHTML(\"%3$s\");",fieldName,faceName,innerHtml);
-    }
-    if (child.hasAttribute("html")) {
-      String html=child.consumeRawAttribute("html");
-      writer.addStatement("%1$s.get%2$s().setHTML(\"%3$s\");",fieldName,faceName,html);
-    }
-    if (child.hasAttribute("text")) {
-      String text=child.consumeRawAttribute("text");
-      writer.addStatement("%1$s.get%2$s().setText(\"%3$s\");",fieldName,faceName,text);
+      writer.addStatement("%s.%s().setHTML(\"%s\");",fieldName,faceNameGetter(faceName),innerHtml);
     }
     if (child.hasAttribute("image")) {
-      String image=child.consumeRawAttribute("image");
-      writer.addStatement("%1$s.get%2$s().setImage(new %3$s(\"%4$s\"));",fieldName,faceName,IMAGE_CLASS,image);
+      String image=child.consumeAttribute("image");
+      writer.addStatement("%s.%s().setImage(new %s(%s));",fieldName,faceNameGetter(faceName),IMAGE_CLASS,image);
     }
   }
 }

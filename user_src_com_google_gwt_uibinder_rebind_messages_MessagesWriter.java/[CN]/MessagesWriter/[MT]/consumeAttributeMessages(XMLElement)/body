@@ -12,6 +12,10 @@
     if (!elem.hasAttribute(attributeName)) {
       logger.die("%s has no attribute matching %s",elem,child);
     }
+    XMLAttribute attribute=elem.getAttribute(attributeName);
+    if (attribute.hasComputedValue()) {
+      logger.die("In %s, attribute \"%s\" has a field reference and " + "so cannot be marked for localization, but found %s",elem,attributeName,child);
+    }
     String defaultMessage=MessageWriter.escapeMessageFormat(elem.consumeRawAttribute(attributeName));
     defaultMessage=UiBinderWriter.escapeTextForJavaStringLiteral(defaultMessage);
     attributeMessages.add(new AttributeMessage(attributeName,declareMessage(child,defaultMessage)));

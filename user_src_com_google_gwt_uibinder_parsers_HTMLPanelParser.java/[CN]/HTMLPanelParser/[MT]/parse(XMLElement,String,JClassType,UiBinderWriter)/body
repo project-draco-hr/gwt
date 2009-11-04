@@ -1,14 +1,14 @@
 {
-  String customTag=UiBinderWriter.escapeTextForJavaStringLiteral(elem.consumeRawAttribute("tag"));
   WidgetInterpreter widgetInterpreter=new WidgetInterpreter(fieldName,writer);
   HtmlInterpreter htmlInterpreter=makeHtmlInterpreter(fieldName,writer);
   writer.beginAttachedSection(fieldName + ".getElement()");
   String html=elem.consumeInnerHtml(InterpreterPipe.newPipe(widgetInterpreter,htmlInterpreter));
   writer.endAttachedSection();
-  if ("".equals(customTag)) {
+  String customTag=elem.consumeStringAttribute("tag",null);
+  if (null == customTag) {
     writer.setFieldInitializerAsConstructor(fieldName,type,"\"" + html + "\"");
   }
  else {
-    writer.setFieldInitializerAsConstructor(fieldName,type,"\"" + customTag + "\"","\"" + html + "\"");
+    writer.setFieldInitializerAsConstructor(fieldName,type,customTag,"\"" + html + "\"");
   }
 }
