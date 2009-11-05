@@ -41,8 +41,15 @@
     double elapsed=(currentTimeMillis - testBeginTime) / 1000.0;
     throw new TimeoutException("The browser did not contact the server within " + TEST_BEGIN_TIMEOUT_MILLIS + "ms.\n"+ messageQueue.getUnretrievedClients(currentTestInfo)+ "\n Actual time elapsed: "+ elapsed+ " seconds.\n");
   }
-  if (runStyle.wasInterrupted()) {
-    throw new TimeoutException("A remote browser died a mysterious death.");
+  String[] interruptedHosts=runStyle.getInterruptedHosts();
+  if (interruptedHosts != null) {
+    StringBuilder msg=new StringBuilder();
+    msg.append("A remote browser died a mysterious death.\n");
+    msg.append("  We lost communication with:");
+    for (    String host : interruptedHosts) {
+      msg.append("\n  ").append(host);
+    }
+    throw new TimeoutException(msg.toString());
   }
   if (messageQueue.hasResults(currentTestInfo)) {
     return false;

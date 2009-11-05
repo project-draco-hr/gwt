@@ -7,9 +7,14 @@
         }
       }
  catch (      Throwable e) {
-        setWasInterrupted(true);
+synchronized (wasInterruptedLock) {
+          if (interruptedHosts == null) {
+            interruptedHosts=new HashSet<String>();
+          }
+          interruptedHosts.add(remote.getHost() + ":" + remote.getPort()+ "/"+ remote.getBrowser());
+        }
       }
     }
   }
-  return !wasInterrupted();
+  return interruptedHosts == null;
 }
