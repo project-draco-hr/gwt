@@ -1,0 +1,27 @@
+{
+  factory=DocumentBuilderFactory.newInstance();
+  factory.setNamespaceAware(true);
+  factory.setExpandEntityReferences(true);
+  try {
+    builder=factory.newDocumentBuilder();
+  }
+ catch (  ParserConfigurationException e) {
+    throw new RuntimeException(e);
+  }
+  builder.setEntityResolver(new GwtResourceEntityResolver());
+  builder.setErrorHandler(new ErrorHandler(){
+    public void error(    SAXParseException exception) throws SAXException {
+      logger.log(Type.ERROR,exception.getMessage());
+      logger.log(Type.DEBUG,"SAXParseException",exception);
+    }
+    public void fatalError(    SAXParseException exception) throws SAXException {
+      logger.log(Type.ERROR,exception.getMessage());
+      logger.log(Type.DEBUG,"SAXParseException",exception);
+    }
+    public void warning(    SAXParseException exception) throws SAXException {
+      logger.log(Type.WARN,exception.getMessage());
+      logger.log(Type.DEBUG,"SAXParseException",exception);
+    }
+  }
+);
+}
