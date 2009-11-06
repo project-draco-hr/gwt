@@ -1,0 +1,26 @@
+{
+  if (expr instanceof JsStringLiteral) {
+    return true;
+  }
+  Boolean toReturn=coercesToStringMap.get(expr);
+  if (toReturn != null) {
+    return toReturn;
+  }
+  toReturn=false;
+  if (expr instanceof JsBinaryOperation) {
+    JsBinaryOperation op=(JsBinaryOperation)expr;
+switch (op.getOperator()) {
+case ADD:
+      toReturn=additionCoercesToString(op.getArg1()) || additionCoercesToString(op.getArg2());
+    break;
+case COMMA:
+  toReturn=additionCoercesToString(op.getArg2());
+break;
+}
+if (op.getOperator().isAssignment()) {
+toReturn=additionCoercesToString(op.getArg2());
+}
+}
+coercesToStringMap.put(expr,toReturn);
+return toReturn;
+}
