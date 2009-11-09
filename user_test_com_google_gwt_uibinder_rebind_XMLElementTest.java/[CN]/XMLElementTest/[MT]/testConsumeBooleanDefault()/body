@@ -1,0 +1,18 @@
+{
+  init("<doc><elm yes='true' no='false' " + "fnord='fnord' ref='{foo.bar.baz}'/></doc>");
+  assertEquals("false",elm.consumeBooleanAttribute("foo",false));
+  assertEquals("true",elm.consumeBooleanAttribute("foo",true));
+  assertEquals("true",elm.consumeBooleanAttribute("yes",false));
+  assertEquals("false",elm.consumeBooleanAttribute("yes",false));
+  assertEquals("false",elm.consumeBooleanAttribute("no",true));
+  assertEquals("true",elm.consumeBooleanAttribute("no",true));
+  assertEquals("foo.bar().baz()",elm.consumeBooleanAttribute("ref",true));
+  assertEquals("true",elm.consumeBooleanAttribute("ref",true));
+  try {
+    elm.consumeBooleanAttribute("fnord");
+    fail("Should throw UnableToCompleteException on misparse");
+  }
+ catch (  UnableToCompleteException c) {
+    assertNotNull(logger.died);
+  }
+}

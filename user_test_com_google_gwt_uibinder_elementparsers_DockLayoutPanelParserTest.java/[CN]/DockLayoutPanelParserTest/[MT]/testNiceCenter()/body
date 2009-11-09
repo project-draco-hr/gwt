@@ -1,21 +1,17 @@
 {
   StringBuffer b=new StringBuffer();
-  b.append("<ui:UiBinder xmlns:ui='" + BINDER_URI + "'");
-  b.append("    xmlns:g='urn:import:com.google.gwt.user.client.ui'>");
-  b.append("  <g:DockLayoutPanel unit='EM'>");
-  b.append("    <g:center>");
-  b.append("      <g:Label id='center'>center</g:Label>");
-  b.append("    </g:center>");
-  b.append("    <g:north size='5'>");
-  b.append("      <g:Label id='north'>north</g:Label>");
-  b.append("    </g:north>");
-  b.append("  </g:DockLayoutPanel>");
-  b.append("</ui:UiBinder>");
+  b.append("<g:DockLayoutPanel unit='EM'>");
+  b.append("  <g:center>");
+  b.append("    <g:Label id='center'>center</g:Label>");
+  b.append("  </g:center>");
+  b.append("  <g:north size='5'>");
+  b.append("    <g:Label id='north'>north</g:Label>");
+  b.append("  </g:north>");
+  b.append("</g:DockLayoutPanel>");
   String[] expected={"fieldName.addNorth(<g:Label id='north'>, 5);","fieldName.add(<g:Label id='center'>);"};
-  parser.parse(getElem(b.toString()),fieldName,dockLayoutPanelType,writer);
-  FieldWriter w=fieldManager.lookup(fieldName);
-  assertEquals("new com.google.gwt.user.client.ui.DockLayoutPanel(com.google.gwt.dom.client.Style.Unit.EM)",w.getInitializer());
-  Iterator<String> i=writer.statements.iterator();
+  FieldWriter w=tester.parse(b.toString());
+  assertEquals("new " + PARSED_TYPE + "(com.google.gwt.dom.client.Style.Unit.EM)",w.getInitializer());
+  Iterator<String> i=tester.writer.statements.iterator();
   for (  String e : expected) {
     assertEquals(e,i.next());
   }
