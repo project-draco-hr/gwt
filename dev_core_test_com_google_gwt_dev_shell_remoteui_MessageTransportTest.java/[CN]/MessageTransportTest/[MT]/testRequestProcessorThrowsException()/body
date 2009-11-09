@@ -1,0 +1,25 @@
+{
+  MockNetwork network=createMockNetwork();
+  RequestProcessor requestProcessor=new RequestProcessor(){
+    public Response execute(    Request request) throws Exception {
+      throw new Exception("There was an exception processing this request.");
+    }
+  }
+;
+  MessageTransport messageTransport=new MessageTransport(network.getClientSocket().getInputStream(),network.getClientSocket().getOutputStream(),requestProcessor);
+  Message.Request.Builder clientRequestBuilder=Message.Request.newBuilder();
+  clientRequestBuilder.setServiceType(Message.Request.ServiceType.DEV_MODE);
+  final Message.Request clientRequest=clientRequestBuilder.build();
+  Message.Builder clientRequestMsgBuilder=Message.newBuilder();
+  clientRequestMsgBuilder.setMessageType(Message.MessageType.REQUEST);
+  clientRequestMsgBuilder.setMessageId(25);
+  clientRequestMsgBuilder.setRequest(clientRequest);
+  Message clientRequestMsg=clientRequestMsgBuilder.build();
+  clientRequestMsg.writeDelimitedTo(network.getServerSocket().getOutputStream());
+  Message receivedResponseMsg=Message.parseDelimitedFrom(network.getServerSocket().getInputStream());
+  assertEquals(receivedResponseMsg.getMessageId(),25);
+  assertEquals(receivedResponseMsg.getMessageType(),Message.MessageType.FAILURE);
+  assertNotNull(receivedResponseMsg.getFailure());
+  assertEquals(receivedResponseMsg.getFailure().getMessage(),"There was an exception processing this request.");
+  network.shutdown();
+}

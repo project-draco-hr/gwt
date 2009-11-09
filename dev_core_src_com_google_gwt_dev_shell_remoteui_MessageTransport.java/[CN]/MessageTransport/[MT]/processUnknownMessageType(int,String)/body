@@ -1,0 +1,18 @@
+{
+  Message.Builder messageBuilder=Message.newBuilder();
+  messageBuilder.setMessageId(messageId);
+  messageBuilder.setMessageType(Message.MessageType.FAILURE);
+  Message.Failure.Builder failureMessage=Message.Failure.newBuilder();
+  StringBuffer stringBuffer=new StringBuffer();
+  stringBuffer.append("Unknown message type '");
+  stringBuffer.append(messageTypeName);
+  stringBuffer.append("'. Known message types are: ");
+  for (  MessageType type : MessageType.values()) {
+    stringBuffer.append(type.name());
+    stringBuffer.append(" ");
+  }
+  failureMessage.setMessage(stringBuffer.toString());
+  messageBuilder.setFailure(failureMessage);
+  PendingResponse pendingResponse=new PendingResponse(messageBuilder.build());
+  sendQueue.put(pendingResponse);
+}

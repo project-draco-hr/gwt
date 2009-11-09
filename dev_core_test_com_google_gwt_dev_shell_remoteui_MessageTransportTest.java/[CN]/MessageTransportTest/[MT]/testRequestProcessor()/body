@@ -1,0 +1,32 @@
+{
+  MockNetwork network=createMockNetwork();
+  DevModeRequest.Builder devModeRequestBuilder=DevModeRequest.newBuilder();
+  devModeRequestBuilder.setRequestType(DevModeRequest.RequestType.CAPABILITY_EXCHANGE);
+  Message.Request.Builder clientRequestBuilder=Message.Request.newBuilder();
+  clientRequestBuilder.setDevModeRequest(devModeRequestBuilder);
+  clientRequestBuilder.setServiceType(Message.Request.ServiceType.DEV_MODE);
+  final Message.Request clientRequest=clientRequestBuilder.build();
+  DevModeResponse.Builder devModeResponseBuilder=DevModeResponse.newBuilder();
+  devModeResponseBuilder.setResponseType(DevModeResponse.ResponseType.CAPABILITY_EXCHANGE);
+  Message.Response.Builder clientResponseBuilder=Message.Response.newBuilder();
+  clientResponseBuilder.setDevModeResponse(devModeResponseBuilder);
+  final Message.Response clientResponse=clientResponseBuilder.build();
+  RequestProcessor requestProcessor=new RequestProcessor(){
+    public Response execute(    Request request) throws Exception {
+      assertEquals(clientRequest,request);
+      return clientResponse;
+    }
+  }
+;
+  MessageTransport messageTransport=new MessageTransport(network.getClientSocket().getInputStream(),network.getClientSocket().getOutputStream(),requestProcessor);
+  Message.Builder clientRequestMsgBuilder=Message.newBuilder();
+  clientRequestMsgBuilder.setMessageType(Message.MessageType.REQUEST);
+  clientRequestMsgBuilder.setMessageId(25);
+  clientRequestMsgBuilder.setRequest(clientRequest);
+  Message clientRequestMsg=clientRequestMsgBuilder.build();
+  clientRequestMsg.writeDelimitedTo(network.getServerSocket().getOutputStream());
+  Message receivedResponseMsg=Message.parseDelimitedFrom(network.getServerSocket().getInputStream());
+  assertEquals(receivedResponseMsg.getMessageId(),25);
+  assertEquals(receivedResponseMsg.getResponse(),clientResponse);
+  network.shutdown();
+}
