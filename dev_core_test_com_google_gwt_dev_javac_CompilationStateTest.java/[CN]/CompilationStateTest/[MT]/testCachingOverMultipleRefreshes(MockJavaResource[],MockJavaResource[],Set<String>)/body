@@ -1,0 +1,33 @@
+{
+  rebuildCompilationState();
+  assertEquals(oracle.getResources().size(),state.getCompilationUnits().size());
+  addGeneratedUnits(initialSet);
+  Map<String,CompilationUnit> units1=new HashMap<String,CompilationUnit>(state.getCompilationUnitMap());
+  assertEquals(oracle.getResources().size() + initialSet.length,units1.size());
+  assertUnitsChecked(units1.values());
+  rebuildCompilationState();
+  assertEquals(oracle.getResources().size(),state.getCompilationUnits().size());
+  addGeneratedUnits(updatedSet);
+  Map<String,CompilationUnit> units2=new HashMap<String,CompilationUnit>(state.getCompilationUnitMap());
+  assertEquals(oracle.getResources().size() + updatedSet.length,units2.size());
+  assertUnitsChecked(units2.values());
+  for (  MockJavaResource resource : updatedSet) {
+    String typeName=resource.getTypeName();
+    if (reusedTypes.contains(typeName)) {
+      assertSame(units1.get(typeName),units2.get(typeName));
+    }
+ else {
+      assertNotSame(units1.get(typeName),units2.get(typeName));
+    }
+  }
+  rebuildCompilationState();
+  assertEquals(oracle.getResources().size(),state.getCompilationUnits().size());
+  addGeneratedUnits(updatedSet);
+  Map<String,CompilationUnit> units3=new HashMap<String,CompilationUnit>(state.getCompilationUnitMap());
+  assertEquals(oracle.getResources().size() + updatedSet.length,units3.size());
+  assertUnitsChecked(units3.values());
+  for (  MockJavaResource resource : updatedSet) {
+    String typeName=resource.getTypeName();
+    assertSame(units2.get(typeName),units3.get(typeName));
+  }
+}

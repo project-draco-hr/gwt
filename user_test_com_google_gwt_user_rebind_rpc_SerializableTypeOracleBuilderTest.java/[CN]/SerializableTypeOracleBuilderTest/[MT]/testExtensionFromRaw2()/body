@@ -1,13 +1,13 @@
 {
-  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
-  addStandardClasses(units);
+  Set<Resource> resources=new HashSet<Resource>();
+  addStandardClasses(resources);
 {
     StringBuilder code=new StringBuilder();
     code.append("import java.io.Serializable;\n");
     code.append("public class HashSet<T extends Serializable> implements Serializable {\n");
     code.append("  T[] x;\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("HashSet",code));
+    resources.add(new StaticJavaResource("HashSet",code));
   }
 {
     StringBuilder code=new StringBuilder();
@@ -15,31 +15,31 @@
     code.append("public class NameSet<T extends SerClass> extends HashSet implements Serializable {\n");
     code.append("  T exposed;\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("NameSet",code));
+    resources.add(new StaticJavaResource("NameSet",code));
   }
 {
     StringBuilder code=new StringBuilder();
     code.append("import java.io.Serializable;\n");
     code.append("public class SerClass implements Serializable {\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("SerClass",code));
+    resources.add(new StaticJavaResource("SerClass",code));
   }
 {
     StringBuilder code=new StringBuilder();
     code.append("import java.io.Serializable;\n");
     code.append("public class SerClassSub extends SerClass {\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("SerClassSub",code));
+    resources.add(new StaticJavaResource("SerClassSub",code));
   }
 {
     StringBuilder code=new StringBuilder();
     code.append("import java.io.Serializable;\n");
     code.append("public class UnrelatedClass implements Serializable {\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("UnrelatedClass",code));
+    resources.add(new StaticJavaResource("UnrelatedClass",code));
   }
   TreeLogger logger=createLogger();
-  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,units);
+  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,resources);
   JClassType string=to.getType(String.class.getCanonicalName());
   JGenericType hashSet=to.getType("HashSet").isGenericType();
   JGenericType nameSet=to.getType("NameSet").isGenericType();

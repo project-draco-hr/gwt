@@ -1,12 +1,12 @@
 {
-  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
-  addStandardClasses(units);
+  Set<Resource> resources=new HashSet<Resource>();
+  addStandardClasses(resources);
 {
     StringBuilder code=new StringBuilder();
     code.append("import java.io.Serializable;\n");
     code.append("public class A implements Serializable {\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("A",code));
+    resources.add(new StaticJavaResource("A",code));
   }
 {
     StringBuilder code=new StringBuilder();
@@ -14,17 +14,17 @@
     code.append("public class B<T extends C> extends A {\n");
     code.append("  T c;\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("B",code));
+    resources.add(new StaticJavaResource("B",code));
   }
 {
     StringBuilder code=new StringBuilder();
     code.append("import java.io.Serializable;\n");
     code.append("public class C implements Serializable {\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("C",code));
+    resources.add(new StaticJavaResource("C",code));
   }
   TreeLogger logger=createLogger();
-  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,units);
+  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,resources);
   JClassType a=to.getType("A");
   JRawType rawB=to.getType("B").isGenericType().getRawType();
   JClassType c=to.getType("C");

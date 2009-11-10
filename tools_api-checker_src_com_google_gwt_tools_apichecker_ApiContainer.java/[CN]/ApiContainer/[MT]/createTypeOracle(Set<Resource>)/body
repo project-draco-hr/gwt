@@ -1,0 +1,15 @@
+{
+  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
+  for (  Resource resource : resources) {
+    units.add(new SourceFileCompilationUnit(resource));
+  }
+  JdtCompiler.compile(units);
+  if (CompilationUnitInvalidator.invalidateUnitsWithErrors(logger,units)) {
+    logger.log(TreeLogger.ERROR,"Unable to build typeOracle for " + getName());
+    throw new UnableToCompleteException();
+  }
+  TypeOracleMediator mediator=new TypeOracleMediator();
+  mediator.refresh(logger,units);
+  logger.log(TreeLogger.INFO,"API " + name + ", Finished with building typeOracle, added "+ units.size()+ " files",null);
+  return mediator.getTypeOracle();
+}

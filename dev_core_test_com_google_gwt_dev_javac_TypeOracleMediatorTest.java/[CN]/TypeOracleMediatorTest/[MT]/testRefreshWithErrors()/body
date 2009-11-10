@@ -2,29 +2,29 @@
   StringBuffer sb=new StringBuffer();
   sb.append("package java.lang;");
   sb.append("public class Object { }");
-  addCompilationUnit("java.lang.Object",sb);
+  addResource("java.lang.Object",sb);
   sb=new StringBuffer();
   sb.append("package test.refresh.with.errors;");
   sb.append("public class UnmodifiedClass { }");
-  addCompilationUnit("test.refresh.with.errors.UnmodifiedClass",sb);
+  addResource("test.refresh.with.errors.UnmodifiedClass",sb);
   sb=new StringBuffer();
   sb.append("package test.refresh.with.errors;\n");
   sb.append("public class GoodClass {\n");
   sb.append("  ClassThatWillGoBad ctwgb;\n");
   sb.append("}\n");
-  addCompilationUnit("test.refresh.with.errors.GoodClass",sb);
-  MockCompilationUnit unitThatWillGoBad=new MockCompilationUnit("test.refresh.with.errors.ClassThatWillGoBad"){
+  addResource("test.refresh.with.errors.GoodClass",sb);
+  MutableJavaResource unitThatWillGoBad=new MutableJavaResource("test.refresh.with.errors.ClassThatWillGoBad"){
     private String source="package test.refresh.with.errors;\n" + "public class ClassThatWillGoBad { }\n";
     @Override public String getSource(){
       return source;
     }
-    @Override void setFresh(){
-      super.setFresh();
+    @Override public void touch(){
+      super.touch();
       source="This will cause a syntax error.";
     }
   }
 ;
-  units.add(unitThatWillGoBad);
+  resources.add(unitThatWillGoBad);
   compileAndRefresh();
   assertNotNull(typeOracle.findType("test.refresh.with.errors.UnmodifiedClass"));
   assertNotNull(typeOracle.findType("test.refresh.with.errors.GoodClass"));
@@ -34,14 +34,14 @@
   sb.append("public class AnotherGoodClass {\n");
   sb.append("  UnmodifiedClass uc; // This will cause the runaway pruning.\n");
   sb.append("}\n");
-  addCompilationUnit("test.refresh.with.errors.AnotherGoodClass",sb);
+  addResource("test.refresh.with.errors.AnotherGoodClass",sb);
   sb=new StringBuffer();
   sb.append("package test.refresh.with.errors;\n");
   sb.append("public class BadClass {\n");
   sb.append("  This will trigger a syntax error.\n");
   sb.append("}\n");
-  addCompilationUnit("test.refresh.with.errors.BadClass",sb);
-  unitThatWillGoBad.setFresh();
+  addResource("test.refresh.with.errors.BadClass",sb);
+  unitThatWillGoBad.touch();
   compileAndRefresh();
   assertNotNull(typeOracle.findType("test.refresh.with.errors.UnmodifiedClass"));
   assertNotNull(typeOracle.findType("test.refresh.with.errors.AnotherGoodClass"));

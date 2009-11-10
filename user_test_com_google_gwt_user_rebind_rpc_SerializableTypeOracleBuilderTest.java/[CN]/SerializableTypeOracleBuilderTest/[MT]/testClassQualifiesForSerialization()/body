@@ -1,11 +1,11 @@
 {
-  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
-  addStandardClasses(units);
+  Set<Resource> resources=new HashSet<Resource>();
+  addStandardClasses(resources);
 {
     StringBuilder code=new StringBuilder();
     code.append("public class NotSerializable {\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("NotSerializable",code));
+    resources.add(new StaticJavaResource("NotSerializable",code));
   }
 {
     StringBuilder code=new StringBuilder();
@@ -14,7 +14,7 @@
     code.append("  interface IFoo extends Serializable {};\n");
     code.append("  IFoo createFoo() { return new IFoo(){};}\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("AutoSerializable",code));
+    resources.add(new StaticJavaResource("AutoSerializable",code));
   }
 {
     StringBuilder code=new StringBuilder();
@@ -23,14 +23,14 @@
     code.append("  static class StaticNested implements Serializable {};\n");
     code.append("  class NonStaticNested implements Serializable {};\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("OuterClass",code));
+    resources.add(new StaticJavaResource("OuterClass",code));
   }
 {
     StringBuilder code=new StringBuilder();
     code.append("import java.io.Serializable;\n");
     code.append("public abstract class AbstractSerializableClass implements Serializable {\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("AbstractSerializableClass",code));
+    resources.add(new StaticJavaResource("AbstractSerializableClass",code));
   }
 {
     StringBuilder code=new StringBuilder();
@@ -38,7 +38,7 @@
     code.append("public class NonDefaultInstantiableSerializable implements Serializable {\n");
     code.append("  NonDefaultInstantiableSerializable(int i) {}\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("NonDefaultInstantiableSerializable",code));
+    resources.add(new StaticJavaResource("NonDefaultInstantiableSerializable",code));
   }
 {
     StringBuilder code=new StringBuilder();
@@ -53,7 +53,7 @@
     code.append("    }\n");
     code.append("  }\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("PublicOuterClass",code));
+    resources.add(new StaticJavaResource("PublicOuterClass",code));
   }
 {
     StringBuilder code=new StringBuilder();
@@ -72,7 +72,7 @@
     code.append("  };\n");
     code.append("  public abstract String value();\n");
     code.append("};\n");
-    units.add(createMockCompilationUnit("EnumWithSubclasses",code));
+    resources.add(new StaticJavaResource("EnumWithSubclasses",code));
   }
 {
     StringBuilder code=new StringBuilder();
@@ -83,10 +83,10 @@
     code.append("    this.value = value;\n");
     code.append("  }\n");
     code.append("};\n");
-    units.add(createMockCompilationUnit("EnumWithNonDefaultCtors",code));
+    resources.add(new StaticJavaResource("EnumWithNonDefaultCtors",code));
   }
   TreeLogger logger=createLogger();
-  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,units);
+  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,resources);
   SerializableTypeOracleBuilder sob=createSerializableTypeOracleBuilder(logger,to);
   JClassType notSerializable=to.getType("NotSerializable");
   ProblemReport problems=new ProblemReport();

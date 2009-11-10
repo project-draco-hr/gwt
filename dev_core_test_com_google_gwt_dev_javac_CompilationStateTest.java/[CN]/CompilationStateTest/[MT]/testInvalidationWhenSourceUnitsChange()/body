@@ -1,21 +1,16 @@
 {
   validateCompilationState();
   oracle.add(JavaResourceBase.FOO);
-  state.refresh(createTreeLogger());
-  Set<CompilationUnit> generatedCups=getCompilationUnits(JavaResourceBase.BAR);
-  Map<String,CompilationUnit> usefulUnits=state.getUsefulGraveyardUnits(generatedCups);
-  assertEquals(0,usefulUnits.size());
-  state.addGeneratedCompilationUnits(createTreeLogger(),generatedCups,usefulUnits);
+  rebuildCompilationState();
+  addGeneratedUnits(JavaResourceBase.BAR);
   assertUnitsChecked(state.getCompilationUnits());
-  oracle.replace(new MockJavaResource(SourceFileCompilationUnit.getTypeName(JavaResourceBase.FOO)){
-    @Override protected CharSequence getContent(){
-      return SourceFileCompilationUnit.readSource(JavaResourceBase.FOO) + "\n";
-    }
-  }
-);
-  state.refresh(createTreeLogger());
-  usefulUnits=state.getUsefulGraveyardUnits(generatedCups);
-  assertEquals(0,usefulUnits.size());
-  state.addGeneratedCompilationUnits(createTreeLogger(),generatedCups,usefulUnits);
+  CompilationUnit oldBar=state.getCompilationUnitMap().get(JavaResourceBase.BAR.getTypeName());
+  assertNotNull(oldBar);
+  oracle.replace(new TweakedMockJavaResource(JavaResourceBase.FOO));
+  rebuildCompilationState();
+  addGeneratedUnits(JavaResourceBase.BAR);
   assertUnitsChecked(state.getCompilationUnits());
+  CompilationUnit newBar=state.getCompilationUnitMap().get(JavaResourceBase.BAR.getTypeName());
+  assertNotNull(newBar);
+  assertNotSame(oldBar,newBar);
 }

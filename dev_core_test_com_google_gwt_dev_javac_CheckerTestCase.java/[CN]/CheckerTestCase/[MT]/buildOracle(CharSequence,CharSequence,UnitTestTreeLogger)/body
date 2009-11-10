@@ -1,9 +1,11 @@
 {
-  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
-  addLongCheckingCups(units);
-  units.add(new MockCompilationUnit("Buggy",buggyCode.toString()));
+  Set<Resource> resources=new HashSet<Resource>();
+  addLongCheckingCups(resources);
+  StaticJavaResource buggyResource=new StaticJavaResource("Buggy",buggyCode);
+  Set<GeneratedUnit> generatedUnits=CompilationStateTestBase.getGeneratedUnits(buggyResource);
   if (extraCode != null) {
-    units.add(new MockCompilationUnit("Extra",extraCode.toString()));
+    StaticJavaResource extraResource=new StaticJavaResource("Extra",extraCode);
+    generatedUnits.addAll(CompilationStateTestBase.getGeneratedUnits(extraResource));
   }
-  return TypeOracleTestingUtils.buildStandardTypeOracleWith(logger,units.toArray(new CompilationUnit[units.size()]));
+  return TypeOracleTestingUtils.buildStandardTypeOracleWith(logger,resources,generatedUnits);
 }

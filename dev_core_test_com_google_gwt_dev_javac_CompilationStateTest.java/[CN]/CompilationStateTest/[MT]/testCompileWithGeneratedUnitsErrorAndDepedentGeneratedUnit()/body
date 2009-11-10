@@ -1,16 +1,18 @@
 {
   assertUnitsChecked(state.getCompilationUnits());
-  MockJavaResource badFoo=new MockJavaResource(SourceFileCompilationUnit.getTypeName(JavaResourceBase.FOO)){
+  MockJavaResource badFoo=new MockJavaResource(Shared.getTypeName(JavaResourceBase.FOO)){
     @Override protected CharSequence getContent(){
-      return SourceFileCompilationUnit.readSource(JavaResourceBase.FOO) + "\ncompilation error LOL!";
+      return Shared.readSource(JavaResourceBase.FOO) + "\ncompilation error LOL!";
     }
   }
 ;
-  state.addGeneratedCompilationUnits(createTreeLogger(),getCompilationUnits(badFoo,JavaResourceBase.BAR));
-  CompilationUnit badUnit=state.getCompilationUnitMap().get(SourceFileCompilationUnit.getTypeName(badFoo));
+  oracle.add(badFoo);
+  rebuildCompilationState();
+  addGeneratedUnits(JavaResourceBase.BAR);
+  CompilationUnit badUnit=state.getCompilationUnitMap().get(Shared.getTypeName(badFoo));
   assertSame(State.ERROR,badUnit.getState());
-  CompilationUnit invalidUnit=state.getCompilationUnitMap().get(SourceFileCompilationUnit.getTypeName(JavaResourceBase.BAR));
-  assertSame(State.FRESH,invalidUnit.getState());
+  CompilationUnit invalidUnit=state.getCompilationUnitMap().get(Shared.getTypeName(JavaResourceBase.BAR));
+  assertSame(State.ERROR,invalidUnit.getState());
   Set<CompilationUnit> goodUnits=new HashSet<CompilationUnit>(state.getCompilationUnits());
   goodUnits.remove(badUnit);
   goodUnits.remove(invalidUnit);

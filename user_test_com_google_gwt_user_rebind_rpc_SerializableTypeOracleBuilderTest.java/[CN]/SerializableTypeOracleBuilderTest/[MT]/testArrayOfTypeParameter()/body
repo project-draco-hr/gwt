@@ -1,12 +1,12 @@
 {
-  Set<CompilationUnit> units=new HashSet<CompilationUnit>();
-  addStandardClasses(units);
+  Set<Resource> resources=new HashSet<Resource>();
+  addStandardClasses(resources);
 {
     StringBuilder code=new StringBuilder();
     code.append("import java.io.Serializable;\n");
     code.append("public class A<T> implements Serializable {\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("A",code));
+    resources.add(new StaticJavaResource("A",code));
   }
 {
     StringBuilder code=new StringBuilder();
@@ -14,7 +14,7 @@
     code.append("public class B<T> extends A<T> implements Serializable {\n");
     code.append("  T[][] t;\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("B",code));
+    resources.add(new StaticJavaResource("B",code));
   }
 {
     StringBuilder code=new StringBuilder();
@@ -23,17 +23,17 @@
     code.append("  A<T[]> a1;\n");
     code.append("  A<Ser> a2;\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("C",code));
+    resources.add(new StaticJavaResource("C",code));
   }
 {
     StringBuilder code=new StringBuilder();
     code.append("import java.io.Serializable;\n");
     code.append("public class Ser implements Serializable {\n");
     code.append("}\n");
-    units.add(createMockCompilationUnit("Ser",code));
+    resources.add(new StaticJavaResource("Ser",code));
   }
   TreeLogger logger=createLogger();
-  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,units);
+  TypeOracle to=TypeOracleTestingUtils.buildTypeOracle(logger,resources);
   JGenericType a=to.getType("A").isGenericType();
   JGenericType b=to.getType("B").isGenericType();
   JGenericType c=to.getType("C").isGenericType();
