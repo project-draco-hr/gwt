@@ -25,19 +25,14 @@
       return null;
     }
     AnnotationEnum annotEnum=(AnnotationEnum)value;
-    Type type=Type.getType(annotEnum.getDesc());
-    JType resolvedType=resolveType(type);
-    if (resolvedType == null) {
-      logger.log(TreeLogger.WARN,"Unable to resolve annotation enum type of " + type.getClassName());
+    Class<? extends Enum> enumType=expectedType.asSubclass(Enum.class);
+    try {
+      return Enum.valueOf(enumType,annotEnum.getValue());
+    }
+ catch (    IllegalArgumentException e) {
+      logger.log(TreeLogger.WARN,"Unable to resolve annotation value '" + annotEnum.getValue() + "' within enum type '"+ enumType.getName()+ "'");
       return null;
     }
-    String enumValue=annotEnum.getValue();
-    Class<? extends Enum> enumType=getClassLiteral(logger,Enum.class,resolvedType);
-    if (enumType == null) {
-      logger.log(TreeLogger.WARN,"Unable to resolve annotation enum type of " + resolvedType.getQualifiedSourceName());
-      return null;
-    }
-    return Enum.valueOf(enumType,enumValue);
   }
  else   if (Annotation.class.isAssignableFrom(expectedType)) {
     if (!(value instanceof AnnotationData)) {
@@ -66,21 +61,11 @@
         return null;
       }
       Type valueType=(Type)value;
-      JRealClassType objType=resolveObject(valueType);
-      if (objType == null) {
-        try {
-          return Class.forName(valueType.getClassName(),false,getClass().getClassLoader());
-        }
- catch (        ClassNotFoundException e) {
-          logger.log(TreeLogger.ERROR,"Annotation error: cannot resolve " + valueType.getClassName(),e);
-          return null;
-        }
-      }
       try {
-        return Class.forName(objType.getQualifiedBinaryName(),false,TypeOracleMediator.class.getClassLoader());
+        return Class.forName(valueType.getClassName(),false,Thread.currentThread().getContextClassLoader());
       }
  catch (      ClassNotFoundException e) {
-        logger.log(TreeLogger.WARN,"Unable to load class literal for " + objType,e);
+        logger.log(TreeLogger.ERROR,"Annotation error: cannot resolve " + valueType.getClassName(),e);
         return null;
       }
     }
