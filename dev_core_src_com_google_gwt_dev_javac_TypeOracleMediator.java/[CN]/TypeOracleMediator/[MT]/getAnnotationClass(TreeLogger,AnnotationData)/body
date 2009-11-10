@@ -1,0 +1,19 @@
+{
+  Type type=Type.getType(annotData.getDesc());
+  JType resolvedType=resolveType(type);
+  if (resolvedType != null) {
+    return getClassLiteral(logger,Annotation.class,resolvedType);
+  }
+  try {
+    Class<?> clazz=Class.forName(type.getClassName(),false,getClass().getClassLoader());
+    if (!Annotation.class.isAssignableFrom(clazz)) {
+      logger.log(TreeLogger.ERROR,"Binary-only type " + type.getClassName() + " is not an annotation");
+      return null;
+    }
+    return clazz.asSubclass(Annotation.class);
+  }
+ catch (  ClassNotFoundException e) {
+    logger.log(TreeLogger.WARN,"Ignoring unresolvable annotation type " + type.getClassName(),e);
+    return null;
+  }
+}

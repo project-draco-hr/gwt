@@ -10,15 +10,6 @@
 {
     StringBuilder code=new StringBuilder();
     code.append("import java.io.Serializable;\n");
-    code.append("public class AutoSerializable {\n");
-    code.append("  interface IFoo extends Serializable {};\n");
-    code.append("  IFoo createFoo() { return new IFoo(){};}\n");
-    code.append("}\n");
-    resources.add(new StaticJavaResource("AutoSerializable",code));
-  }
-{
-    StringBuilder code=new StringBuilder();
-    code.append("import java.io.Serializable;\n");
     code.append("public class OuterClass {\n");
     code.append("  static class StaticNested implements Serializable {};\n");
     code.append("  class NonStaticNested implements Serializable {};\n");
@@ -91,9 +82,6 @@
   JClassType notSerializable=to.getType("NotSerializable");
   ProblemReport problems=new ProblemReport();
   assertFalse(sob.shouldConsiderFieldsForSerialization(notSerializable,problems));
-  JClassType iFoo=to.getType("AutoSerializable.IFoo");
-  problems=new ProblemReport();
-  assertFalse(sob.shouldConsiderFieldsForSerialization(iFoo.getSubtypes()[0],problems));
   JClassType staticNested=to.getType("OuterClass.StaticNested");
   problems=new ProblemReport();
   assertTrue(sob.shouldConsiderFieldsForSerialization(staticNested,problems));
@@ -119,8 +107,7 @@
   JClassType enumWithSubclasses=to.getType("EnumWithSubclasses");
   problems=new ProblemReport();
   assertTrue(sob.shouldConsiderFieldsForSerialization(enumWithSubclasses,problems));
-  problems=new ProblemReport();
-  assertFalse(sob.shouldConsiderFieldsForSerialization(enumWithSubclasses.getSubtypes()[0],problems));
+  assertEquals(0,enumWithSubclasses.getSubtypes().length);
   JClassType enumWithNonDefaultCtors=to.getType("EnumWithNonDefaultCtors");
   problems=new ProblemReport();
   assertTrue(sob.shouldConsiderFieldsForSerialization(enumWithNonDefaultCtors,problems));

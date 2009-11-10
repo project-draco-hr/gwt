@@ -1,0 +1,69 @@
+{
+  Map<Class<? extends Annotation>,Annotation> declaredAnnotations=new HashMap<Class<? extends Annotation>,Annotation>();
+  resolveAnnotations(logger,methodData.getAnnotations(),declaredAnnotations);
+  String name=methodData.getName();
+  if ("<clinit>".equals(name) || (methodData.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
+    return true;
+  }
+  if (type.isEnum() != null && "<init>".equals(name)) {
+    return true;
+  }
+  if (type.isEnum() != null && (methodData.getAccess() & Opcodes.ACC_STATIC) != 0) {
+    if ("values".equals(name) || "valueOf".equals(name)) {
+      return true;
+    }
+  }
+  JAbstractMethod method;
+  JTypeParameter[] typeParams=collectTypeParams(methodData.getSignature());
+  typeParamLookup.pushScope(typeParams);
+  boolean hasReturnType=true;
+  if ("<init>".equals(name)) {
+    name=type.getSimpleSourceName();
+    method=new JConstructor(type,name,declaredAnnotations,typeParams);
+    hasReturnType=false;
+  }
+ else {
+    if (type.isAnnotation() != null) {
+      method=new JAnnotationMethod(type,name,typeParams,declaredAnnotations);
+    }
+ else {
+      method=new JMethod(type,name,declaredAnnotations,typeParams);
+    }
+  }
+  method.addModifierBits(mapBits(ASM_TO_SHARED_MODIFIERS,methodData.getAccess()));
+  if (type.isInterface() != null) {
+    method.addModifierBits(Shared.MOD_PUBLIC | Shared.MOD_ABSTRACT);
+  }
+  if ((methodData.getAccess() & Opcodes.ACC_VARARGS) != 0) {
+    method.setVarArgs();
+  }
+  String signature=methodData.getSignature();
+  Type[] argTypes=methodData.getArgTypes();
+  String[] argNames=methodData.getArgNames();
+  if (signature != null) {
+    SignatureReader reader=new SignatureReader(signature);
+    ResolveMethodSignature methodResolver=new ResolveMethodSignature(resolver,logger,method,typeParamLookup,hasReturnType,methodData,argTypes,argNames);
+    reader.accept(methodResolver);
+    if (!methodResolver.finish()) {
+      return false;
+    }
+  }
+ else {
+    if (hasReturnType) {
+      Type returnType=Type.getReturnType(methodData.getDesc());
+      JType returnJType=resolveType(returnType);
+      if (returnJType == null) {
+        return false;
+      }
+      ((JMethod)method).setReturnType(returnJType);
+    }
+    if (!resolveParameters(logger,method,methodData)) {
+      return false;
+    }
+  }
+  if (!resolveThrows(method,methodData)) {
+    return false;
+  }
+  typeParamLookup.popScope();
+  return true;
+}

@@ -1,0 +1,89 @@
+{
+  if (expectedType.isArray()) {
+    Class<?> componentType=expectedType.getComponentType();
+    if (!value.getClass().isArray()) {
+      logger.log(TreeLogger.WARN,"Annotation error: expected array of " + componentType.getCanonicalName() + ", got "+ value.getClass().getCanonicalName());
+      return null;
+    }
+    int n=Array.getLength(value);
+    Object newArray=Array.newInstance(componentType,n);
+    for (int i=0; i < n; ++i) {
+      Object valueElement=Array.get(value,i);
+      Object resolvedValue=resolveAnnotationValue(logger,componentType,valueElement);
+      if (resolvedValue == null || !componentType.isAssignableFrom(resolvedValue.getClass())) {
+        logger.log(TreeLogger.ERROR,"Annotation error: expected " + componentType + ", got "+ resolvedValue);
+      }
+ else {
+        Array.set(newArray,i,resolvedValue);
+      }
+    }
+    return newArray;
+  }
+ else   if (expectedType.isEnum()) {
+    if (!(value instanceof AnnotationEnum)) {
+      logger.log(TreeLogger.ERROR,"Annotation error: expected an enum value," + " but got " + value);
+      return null;
+    }
+    AnnotationEnum annotEnum=(AnnotationEnum)value;
+    Type type=Type.getType(annotEnum.getDesc());
+    JType resolvedType=resolveType(type);
+    if (resolvedType == null) {
+      logger.log(TreeLogger.WARN,"Unable to resolve annotation enum type of " + type.getClassName());
+      return null;
+    }
+    String enumValue=annotEnum.getValue();
+    Class<? extends Enum> enumType=getClassLiteral(logger,Enum.class,resolvedType);
+    if (enumType == null) {
+      logger.log(TreeLogger.WARN,"Unable to resolve annotation enum type of " + resolvedType.getQualifiedSourceName());
+      return null;
+    }
+    return Enum.valueOf(enumType,enumValue);
+  }
+ else   if (Annotation.class.isAssignableFrom(expectedType)) {
+    if (!(value instanceof AnnotationData)) {
+      logger.log(TreeLogger.WARN,"Annotation error: expected annotation type " + expectedType.getCanonicalName() + ", got "+ value.getClass().getCanonicalName());
+      return null;
+    }
+    AnnotationData annotData=(AnnotationData)value;
+    Class<? extends Annotation> annotationClass=getAnnotationClass(logger,annotData);
+    if (!expectedType.isAssignableFrom(annotationClass)) {
+      logger.log(TreeLogger.WARN,"Annotation error: expected " + expectedType.getCanonicalName() + ", got "+ annotationClass.getCanonicalName());
+      return null;
+    }
+    return createAnnotation(logger,annotationClass,annotData);
+  }
+ else   if (expectedType.isPrimitive()) {
+    Class<?> wrapper=getWrapperClass(expectedType);
+    return wrapper.cast(value);
+  }
+ else {
+    if (expectedType.isAssignableFrom(value.getClass())) {
+      return value;
+    }
+    if (Class.class.equals(expectedType)) {
+      if (!(value instanceof Type)) {
+        logger.log(TreeLogger.WARN,"Annotation error: expected a class " + "literal, but received " + value);
+        return null;
+      }
+      Type valueType=(Type)value;
+      JRealClassType objType=resolveObject(valueType);
+      if (objType == null) {
+        try {
+          return Class.forName(valueType.getClassName(),false,getClass().getClassLoader());
+        }
+ catch (        ClassNotFoundException e) {
+          logger.log(TreeLogger.ERROR,"Annotation error: cannot resolve " + valueType.getClassName(),e);
+          return null;
+        }
+      }
+      try {
+        return Class.forName(objType.getQualifiedBinaryName(),false,TypeOracleMediator.class.getClassLoader());
+      }
+ catch (      ClassNotFoundException e) {
+        logger.log(TreeLogger.WARN,"Unable to load class literal for " + objType,e);
+        return null;
+      }
+    }
+    return value;
+  }
+}

@@ -1,0 +1,16 @@
+{
+  Type[] argTypes=methodData.getArgTypes();
+  String[] argNames=methodData.getArgNames();
+  boolean argNamesAreReal=methodData.hasActualArgNames();
+  List<CollectAnnotationData>[] paramAnnot=methodData.getArgAnnotations();
+  for (int i=0; i < argTypes.length; ++i) {
+    JType argType=resolveType(argTypes[i]);
+    if (argType == null) {
+      return false;
+    }
+    Map<Class<? extends Annotation>,Annotation> declaredAnnotations=new HashMap<Class<? extends Annotation>,Annotation>();
+    resolveAnnotations(logger,paramAnnot[i],declaredAnnotations);
+    new JParameter(method,argType,argNames[i],declaredAnnotations,argNamesAreReal);
+  }
+  return true;
+}

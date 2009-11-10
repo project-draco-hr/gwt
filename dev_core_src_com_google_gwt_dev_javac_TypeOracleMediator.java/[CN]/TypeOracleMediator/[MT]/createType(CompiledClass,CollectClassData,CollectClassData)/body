@@ -1,0 +1,34 @@
+{
+  int access=classData.getAccess();
+  String qname=compiledClass.getSourceName();
+  String className=Shared.getShortName(qname);
+  JRealClassType resultType=null;
+  String jpkgName=compiledClass.getPackageName();
+  JPackage pkg=typeOracle.getOrCreatePackage(jpkgName);
+  boolean isIntf=(access & Opcodes.ACC_INTERFACE) != 0;
+  boolean isLocalType=classData.isLocal();
+  String enclosingTypeName=null;
+  if (enclosingClassData != null) {
+    enclosingTypeName=InternalName.toSourceName(InternalName.getClassName(enclosingClassData.getName()));
+  }
+  if ((access & Opcodes.ACC_ANNOTATION) != 0) {
+    resultType=new JAnnotationType(typeOracle,pkg,enclosingTypeName,false,className,true);
+  }
+ else   if ((access & Opcodes.ACC_ENUM) != 0) {
+    resultType=new JEnumType(typeOracle,pkg,enclosingTypeName,isLocalType,className,isIntf);
+  }
+ else {
+    JTypeParameter[] typeParams=getTypeParametersForClass(classData);
+    if ((typeParams != null && typeParams.length > 0) || nonStaticInsideGeneric(classData,enclosingClassData)) {
+      resultType=new JGenericType(typeOracle,pkg,enclosingTypeName,isLocalType,className,isIntf,typeParams);
+    }
+ else {
+      resultType=new JRealClassType(typeOracle,pkg,enclosingTypeName,isLocalType,className,isIntf);
+    }
+  }
+  resultType.addModifierBits(mapBits(ASM_TO_SHARED_MODIFIERS,access));
+  if (isIntf) {
+    resultType.addModifierBits(Shared.MOD_STATIC | Shared.MOD_ABSTRACT);
+  }
+  return resultType;
+}

@@ -1,0 +1,29 @@
+{
+  Class<?> clazz=null;
+  if (resolvedType instanceof JPrimitiveType) {
+    clazz=getClassLiteralForPrimitive((JPrimitiveType)resolvedType);
+  }
+ else {
+    String binaryName;
+    if (resolvedType instanceof JArrayType) {
+      binaryName=((JArrayType)resolvedType).getQualifiedBinaryName();
+    }
+ else     if (resolvedType instanceof JRealClassType) {
+      binaryName=((JRealClassType)resolvedType).getQualifiedBinaryName();
+    }
+ else {
+      throw new IllegalArgumentException("Unexpected type for class literal '" + resolvedType.getQualifiedSourceName() + "'");
+    }
+    try {
+      clazz=Class.forName(binaryName,false,Thread.currentThread().getContextClassLoader());
+    }
+ catch (    ClassNotFoundException e) {
+      logger.log(TreeLogger.ERROR,"Unable to get class object for annotation " + resolvedType,e);
+      return null;
+    }
+  }
+  if (requestedClass.isAssignableFrom(clazz)) {
+    return clazz.asSubclass(requestedClass);
+  }
+  return null;
+}

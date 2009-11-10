@@ -1,0 +1,37 @@
+{
+  JGenericType genericType=returnTypeRef[0].isGenericType();
+  if (genericType != null) {
+    int actual=args.size();
+    JClassType[] typeArgs=new JClassType[actual];
+    for (int i=0; i < actual; ++i) {
+      JType type=args.get(i)[0];
+      if (!(type instanceof JClassType)) {
+        logger.log(TreeLogger.ERROR,"Parameterized type argument is " + type + ", expected reference type");
+      }
+ else {
+        typeArgs[i]=(JClassType)type;
+      }
+    }
+    returnTypeRef[0]=resolveGeneric(genericType,outerClass,typeArgs);
+    args.clear();
+  }
+  for (int i=0; i < arrayDepth; ++i) {
+    returnTypeRef[0]=resolver.getTypeOracle().getArrayType(returnTypeRef[0]);
+  }
+switch (wildcardMatch) {
+case '=':
+    break;
+case '*':
+  returnTypeRef[0]=resolver.getTypeOracle().getWildcardType(JWildcardType.BoundType.UNBOUND,(JClassType)returnTypeRef[0]);
+break;
+case '+':
+returnTypeRef[0]=resolver.getTypeOracle().getWildcardType(JWildcardType.BoundType.EXTENDS,(JClassType)returnTypeRef[0]);
+break;
+case '-':
+returnTypeRef[0]=resolver.getTypeOracle().getWildcardType(JWildcardType.BoundType.SUPER,(JClassType)returnTypeRef[0]);
+break;
+}
+if (returnTypeRef[0] instanceof JClassType) {
+outerClass=(JClassType)returnTypeRef[0];
+}
+}

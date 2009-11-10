@@ -1,0 +1,23 @@
+{
+  List<AbstractMethodDeclaration> candidates=findNamedMethods(type,jMethod.getName());
+  if (candidates.size() == 0) {
+    return null;
+  }
+  if (candidates.size() == 1) {
+    return candidates.get(0);
+  }
+  nextCandidate:   for (  AbstractMethodDeclaration candidate : candidates) {
+    int n=candidate.arguments == null ? 0 : candidate.arguments.length;
+    JParameter[] params=jMethod.getParameters();
+    if (n != params.length) {
+      continue;
+    }
+    for (int i=0; i < n; ++i) {
+      if (!typeMatches(candidate.arguments[i].type,params[i].getType())) {
+        continue nextCandidate;
+      }
+    }
+    return candidate;
+  }
+  return null;
+}
