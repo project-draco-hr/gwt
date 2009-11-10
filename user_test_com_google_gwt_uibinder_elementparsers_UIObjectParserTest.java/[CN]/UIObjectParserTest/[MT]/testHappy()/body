@@ -1,0 +1,14 @@
+{
+  StringBuffer b=new StringBuffer();
+  b.append("<g:UIObject debugId='blat' addStyleNames='foo, bar baz'");
+  b.append("    addStyleDependentNames='able, baker charlie' >");
+  b.append("</g:UIObject>");
+  String[] expected={"fieldName.ensureDebugId(\"blat\");","fieldName.addStyleName(\"foo\");","fieldName.addStyleName(\"bar\");","fieldName.addStyleName(\"baz\");","fieldName.addStyleDependentName(\"able\");","fieldName.addStyleDependentName(\"baker\");","fieldName.addStyleDependentName(\"charlie\");"};
+  tester.parse(b.toString());
+  Iterator<String> i=tester.writer.statements.iterator();
+  for (  String e : expected) {
+    assertEquals(e,i.next());
+  }
+  assertFalse(i.hasNext());
+  assertNull(tester.logger.died);
+}

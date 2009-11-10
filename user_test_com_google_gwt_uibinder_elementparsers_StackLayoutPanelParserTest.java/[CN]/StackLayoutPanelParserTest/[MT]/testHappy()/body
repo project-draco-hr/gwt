@@ -1,0 +1,24 @@
+{
+  StringBuffer b=new StringBuffer();
+  b.append("<g:StackLayoutPanel unit='PX'>");
+  b.append("  <g:stack>");
+  b.append("    <g:header size='3'>Re<b>mark</b>able</g:header>");
+  b.append("    <g:Label id='able'>able</g:Label>");
+  b.append("  </g:stack>");
+  b.append("  <g:stack>");
+  b.append("    <g:customHeader size='3'>");
+  b.append("      <g:Label id='custom'>Custom</g:Label>");
+  b.append("    </g:customHeader>");
+  b.append("    <g:Label id='baker'>baker</g:Label>");
+  b.append("  </g:stack>");
+  b.append("</g:StackLayoutPanel>");
+  String[] expected={"fieldName.add(<g:Label id='able'>, " + "new com.google.gwt.user.client.ui.HTML(\"Re<b>mark</b>able\"), 3);","fieldName.add(<g:Label id='baker'>, " + "<g:Label id='custom'>, 3);"};
+  FieldWriter w=tester.parse(b.toString());
+  assertEquals("new " + PARSED_TYPE + "(com.google.gwt.dom.client.Style.Unit.PX)",w.getInitializer());
+  Iterator<String> i=tester.writer.statements.iterator();
+  for (  String e : expected) {
+    assertEquals(e,i.next());
+  }
+  assertFalse(i.hasNext());
+  assertNull(tester.logger.died);
+}

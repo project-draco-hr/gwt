@@ -1,29 +1,42 @@
 {
   JEnumType unitEnumType=writer.getOracle().findType(Unit.class.getCanonicalName()).isEnum();
-  String unit=elem.consumeAttribute("unit",unitEnumType);
+  String unit=panelElem.consumeAttributeWithDefault("unit",String.format("%s.%s",unitEnumType.getQualifiedSourceName(),"PX"),unitEnumType);
   writer.setFieldInitializerAsConstructor(fieldName,writer.getOracle().findType(StackLayoutPanel.class.getName()),unit);
-  for (  XMLElement child : elem.consumeChildElements()) {
-    if (!isElementType(elem,child,STACK_ELEM)) {
-      writer.die("In %s, Only <stack> children are allowed.",elem);
+  for (  XMLElement stackElem : panelElem.consumeChildElements()) {
+    if (!isElementType(panelElem,stackElem,STACK)) {
+      writer.die("In %s, only <%s:%s> children are allowed.",panelElem,panelElem.getPrefix(),STACK);
     }
-    XMLElement headerElem=null, widgetElem=null;
-    for (    XMLElement stackChild : child.consumeChildElements()) {
-      if (isElementType(elem,stackChild,HEADER_ELEM)) {
-        if (headerElem != null) {
-          writer.die("In %s, Only one <header> allowed per <stack>",elem);
-        }
-        headerElem=stackChild;
-        continue;
-      }
-      if (widgetElem != null) {
-        writer.die("In %s, Only one child widget allowed per <stack>",elem);
-      }
-      widgetElem=stackChild;
+    Children children=findChildren(stackElem,writer);
+    if (children.body == null) {
+      writer.die("In %s, %s must have a child widget",panelElem,stackElem);
     }
-    String size=headerElem.consumeDoubleAttribute("size");
-    XMLElement headerWidgetElem=headerElem.consumeSingleChildElement();
-    String headerFieldName=writer.parseElementToField(headerWidgetElem);
-    String childFieldName=writer.parseElementToField(widgetElem);
-    writer.addStatement("%s.add(%s, %s, %s);",fieldName,childFieldName,headerFieldName,size);
+    if (!writer.isWidgetElement(children.body)) {
+      writer.die("In %s, %s must be a widget",stackElem,children.body);
+    }
+    String childFieldName=writer.parseElementToField(children.body);
+    if (children.header != null) {
+      HtmlInterpreter htmlInt=HtmlInterpreter.newInterpreterForUiObject(writer,fieldName);
+      String size=children.header.consumeDoubleAttribute("size");
+      if ("".equals(size)) {
+        writer.die("In %s, %s must have a size",panelElem,stackElem);
+      }
+      String html=children.header.consumeInnerHtml(htmlInt);
+      writer.addStatement("%s.add(%s, " + "new com.google.gwt.user.client.ui.HTML(\"%s\"), " + "%s);",fieldName,childFieldName,html,size);
+    }
+ else     if (children.customHeader != null) {
+      XMLElement headerElement=children.customHeader.consumeSingleChildElement();
+      String size=children.customHeader.consumeDoubleAttribute("size");
+      if ("".equals(size)) {
+        writer.die("In %s, %s must have a size",panelElem,stackElem);
+      }
+      if (!writer.isWidgetElement(headerElement)) {
+        writer.die("In %s of %s, %s is not a widget",children.customHeader,stackElem,headerElement);
+      }
+      String headerField=writer.parseElementToField(headerElement);
+      writer.addStatement("%s.add(%s, %s, %s);",fieldName,childFieldName,headerField,size);
+    }
+ else {
+      writer.die("In %1$s, %2$s requires either a <%3$s:%4$s> or <%3$s:%5$s>",panelElem,stackElem,stackElem.getPrefix(),HEADER,CUSTOM);
+    }
   }
 }
