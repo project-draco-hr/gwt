@@ -1,0 +1,34 @@
+{
+  String msg="Invoking " + toString();
+  logger=logger.branch(TreeLogger.DEBUG,msg,null);
+  Generator generator=generators.get(generatorClass);
+  if (generator == null) {
+    try {
+      generator=generatorClass.newInstance();
+      generators.put(generatorClass,generator);
+    }
+ catch (    Throwable e) {
+      logger.log(TreeLogger.ERROR,"Unexpected error trying to instantiate Generator '" + generatorClass.getName() + "'",e);
+      throw new UnableToCompleteException();
+    }
+  }
+  setCurrentGenerator(generatorClass);
+  long before=System.currentTimeMillis();
+  try {
+    String className=generator.generate(logger,this,typeName);
+    long after=System.currentTimeMillis();
+    if (className == null) {
+      msg="Generator returned null, so the requested type will be used as is";
+    }
+ else {
+      msg="Generator returned class '" + className + "'";
+    }
+    msg+="; in " + (after - before) + " ms";
+    logger.log(TreeLogger.DEBUG,msg,null);
+    return className;
+  }
+ catch (  RuntimeException e) {
+    logger.log(TreeLogger.ERROR,"Generator '" + generatorClass.getName() + "' threw threw an exception while rebinding '"+ typeName+ "'",e);
+    throw new UnableToCompleteException();
+  }
+}
