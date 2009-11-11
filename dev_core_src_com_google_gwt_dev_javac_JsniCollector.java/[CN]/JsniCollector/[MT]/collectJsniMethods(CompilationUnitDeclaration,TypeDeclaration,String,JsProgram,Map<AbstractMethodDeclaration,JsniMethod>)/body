@@ -1,0 +1,28 @@
+{
+  AbstractMethodDeclaration[] methods=typeDecl.methods;
+  if (methods == null) {
+    return;
+  }
+  String enclosingType=null;
+  String loc=null;
+  boolean lazyInitialized=false;
+  for (  AbstractMethodDeclaration method : methods) {
+    if (!method.isNative()) {
+      continue;
+    }
+    if (!lazyInitialized) {
+      char[] constantPoolName=typeDecl.binding.constantPoolName();
+      if (constantPoolName == null) {
+        return;
+      }
+      enclosingType=InternalName.toBinaryName(String.valueOf(constantPoolName));
+      loc=String.valueOf(cud.getFileName());
+      lazyInitialized=true;
+    }
+    JsFunction jsFunction=parseJsniFunction(method,source,enclosingType,loc,jsProgram);
+    if (jsFunction != null) {
+      String jsniSignature=getJsniSignature(enclosingType,method);
+      results.put(method,new JsniMethodImpl(jsniSignature,jsFunction));
+    }
+  }
+}

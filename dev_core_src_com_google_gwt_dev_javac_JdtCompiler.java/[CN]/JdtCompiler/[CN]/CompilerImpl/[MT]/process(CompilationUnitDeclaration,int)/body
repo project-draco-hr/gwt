@@ -1,10 +1,12 @@
 {
   super.process(cud,i);
+  FindTypesInCud typeFinder=new FindTypesInCud();
+  cud.traverse(typeFinder,cud.scope);
+  List<CompiledClass> compiledClasses=typeFinder.getClasses();
+  addBinaryTypes(compiledClasses);
   ICompilationUnit icu=cud.compilationResult().compilationUnit;
-  CompilationUnitAdapter adapter=(CompilationUnitAdapter)icu;
-  CompilationUnit unit=adapter.getUnit();
-  unit.setCompiled(cud);
-  if (!cud.compilationResult().hasErrors()) {
-    recordBinaryTypes(unit.getCompiledClasses());
-  }
+  Adapter adapter=(Adapter)icu;
+  CompilationUnitBuilder builder=adapter.getBuilder();
+  contentIdMap.put(builder.getLocation(),builder.getContentId());
+  processor.process(builder,cud,compiledClasses);
 }

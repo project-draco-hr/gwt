@@ -15,11 +15,10 @@
     return null;
   }
   Generated gcup;
-  PrintWriter pw;
+  StringWriter sw=new StringWriter();
+  PrintWriter pw=new PrintWriter(sw,true);
   if (this.genDir == null) {
-    StringWriter sw=new StringWriter();
-    pw=new PrintWriter(sw,true);
-    gcup=new GeneratedUnit(sw,typeName);
+    gcup=new GeneratedUnitImpl(sw,typeName);
   }
  else {
     File dir=new File(genDir,packageName.replace('.',File.separatorChar));
@@ -28,15 +27,7 @@
     if (srcFile.exists()) {
       srcFile.delete();
     }
-    try {
-      FileOutputStream fos=new FileOutputStream(srcFile);
-      OutputStreamWriter osw=new OutputStreamWriter(fos,Util.DEFAULT_ENCODING);
-      pw=new PrintWriter(osw);
-      gcup=new GeneratedUnitWithFile(srcFile,pw,packageName);
-    }
- catch (    IOException e) {
-      throw new RuntimeException("Error writing out generated unit at '" + srcFile.getAbsolutePath() + "'",e);
-    }
+    gcup=new GeneratedUnitWithFile(srcFile,sw,typeName);
   }
   uncommittedGeneratedCupsByPrintWriter.put(pw,gcup);
   newlyGeneratedTypeNames.add(typeName);

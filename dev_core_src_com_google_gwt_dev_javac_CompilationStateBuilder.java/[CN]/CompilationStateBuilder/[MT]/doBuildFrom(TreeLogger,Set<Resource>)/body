@@ -1,24 +1,31 @@
 {
-  final Map<String,Resource> resourceMap=new HashMap<String,Resource>();
+  Map<String,CompilationUnit> resultUnits=new HashMap<String,CompilationUnit>();
   for (  Resource resource : resources) {
-    resourceMap.put(resource.getPath(),resource);
-  }
-  final Set<Resource> finalResources=Collections.unmodifiableSet(resources);
-  final Map<String,Resource> finalMap=Collections.unmodifiableMap(resourceMap);
-  ResourceOracle oracle=new ResourceOracle(){
-    public void clear(){
-      throw new UnsupportedOperationException();
-    }
-    public Set<String> getPathNames(){
-      return finalMap.keySet();
-    }
-    public Map<String,Resource> getResourceMap(){
-      return finalMap;
-    }
-    public Set<Resource> getResources(){
-      return finalResources;
+    String location=resource.getLocation();
+    ResourceTag tag=resourceContentCache.get(location);
+    if (tag != null && tag.getLastModified() == resource.getLastModified()) {
+      ContentId contentId=tag.getContentId();
+      CompilationUnit existingUnit=unitCache.get(contentId);
+      if (existingUnit != null && existingUnit.isCompiled()) {
+        resultUnits.put(existingUnit.getTypeName(),existingUnit);
+      }
     }
   }
-;
-  return new CompilationState(logger,oracle);
+  CompilationUnitInvalidator.retainValidUnits(resultUnits.values());
+  CompileMoreLater compileMoreLater=new CompileMoreLater();
+  List<CompilationUnitBuilder> builders=new ArrayList<CompilationUnitBuilder>();
+  for (  Resource resource : resources) {
+    String typeName=Shared.toTypeName(resource.getPath());
+    CompilationUnit validUnit=resultUnits.get(typeName);
+    if (validUnit != null) {
+      compileMoreLater.addValidUnit(validUnit);
+      CompilationUnitInvalidator.reportErrors(logger,validUnit);
+    }
+ else {
+      builders.add(new ResourceCompilationUnitBuilder(typeName,resource));
+    }
+  }
+  compileMoreLater.compile(logger,builders,resultUnits);
+  invalidateUnitsWithInvalidRefs(resultUnits,Collections.<ContentId>emptySet());
+  return new CompilationState(logger,resultUnits.values(),compileMoreLater);
 }

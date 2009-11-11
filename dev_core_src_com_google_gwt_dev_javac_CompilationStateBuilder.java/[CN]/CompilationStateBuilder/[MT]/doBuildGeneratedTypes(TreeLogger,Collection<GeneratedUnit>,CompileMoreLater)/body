@@ -1,0 +1,24 @@
+{
+  Map<String,CompilationUnit> resultUnits=new HashMap<String,CompilationUnit>();
+  for (  GeneratedUnit generatedUnit : generatedUnits) {
+    ContentId contentId=new ContentId(generatedUnit.getTypeName(),generatedUnit.getStrongHash());
+    CompilationUnit existingUnit=unitCache.get(contentId);
+    if (existingUnit != null && existingUnit.isCompiled()) {
+      resultUnits.put(existingUnit.getTypeName(),existingUnit);
+    }
+  }
+  CompilationUnitInvalidator.retainValidUnits(resultUnits.values(),compileMoreLater.getValidDependencies());
+  for (  CompilationUnit validUnit : resultUnits.values()) {
+    compileMoreLater.addValidUnit(validUnit);
+    CompilationUnitInvalidator.reportErrors(logger,validUnit);
+  }
+  List<CompilationUnitBuilder> builders=new ArrayList<CompilationUnitBuilder>();
+  for (  GeneratedUnit generatedUnit : generatedUnits) {
+    if (!resultUnits.containsKey(generatedUnit.getTypeName())) {
+      builders.add(new GeneratedCompilationUnitBuilder(generatedUnit));
+    }
+  }
+  compileMoreLater.compile(logger,builders,resultUnits);
+  invalidateUnitsWithInvalidRefs(resultUnits,compileMoreLater.getValidDependencies());
+  return resultUnits.values();
+}

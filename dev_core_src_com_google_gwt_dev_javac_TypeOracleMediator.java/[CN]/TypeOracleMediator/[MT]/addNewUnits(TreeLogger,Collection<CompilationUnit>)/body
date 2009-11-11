@@ -2,19 +2,10 @@
   PerfLogger.start("TypeOracleMediator.addNewUnits");
   classMap=new HashMap<String,CollectClassData>();
   for (  CompilationUnit unit : units) {
-    if (unit.getState() == CompilationUnit.State.GRAVEYARD) {
-      for (      CompiledClass compiledClass : unit.getCompiledClasses()) {
-        JRealClassType type=compiledClass.getRealClassType();
-        if (type != null) {
-          type.resurrect();
-        }
-      }
+    if (!unit.isCompiled()) {
       continue;
     }
- else     if (!unit.isCompiled()) {
-      continue;
-    }
-    Set<CompiledClass> compiledClasses=unit.getCompiledClasses();
+    Collection<CompiledClass> compiledClasses=unit.getCompiledClasses();
     for (    CompiledClass compiledClass : compiledClasses) {
       CollectClassData cv=processClass(compiledClass);
       if (!cv.hasNoExternalName()) {
@@ -28,21 +19,20 @@
     if (!unit.isCompiled()) {
       continue;
     }
-    Set<CompiledClass> compiledClasses=unit.getCompiledClasses();
+    Collection<CompiledClass> compiledClasses=unit.getCompiledClasses();
     for (    CompiledClass compiledClass : compiledClasses) {
       String internalName=compiledClass.getInternalName();
       CollectClassData cv=classMap.get(internalName);
       if (cv == null) {
         continue;
       }
-      JRealClassType type=compiledClass.getRealClassType();
-      if (type == null) {
-        type=createType(compiledClass,unresolvedTypes);
-      }
- else {
-        resolved.add(type);
-      }
+      JRealClassType type=createType(compiledClass,unresolvedTypes);
       if (type != null) {
+        if (unit instanceof SourceFileCompilationUnit) {
+          SourceFileCompilationUnit sourceUnit=(SourceFileCompilationUnit)unit;
+          Resource sourceFile=sourceUnit.getSourceFile();
+          typeOracle.addSourceReference(type,sourceFile);
+        }
         binaryMapper.put(internalName,type);
         classMapType.put(type,cv);
       }
@@ -61,17 +51,6 @@
     }
   }
   typeOracle.finish();
-  for (  CompilationUnit unit : units) {
-    if (unit.isCompiled() && unit instanceof SourceFileCompilationUnit) {
-      SourceFileCompilationUnit sourceUnit=(SourceFileCompilationUnit)unit;
-      Resource sourceFile=sourceUnit.getSourceFile();
-      Set<CompiledClass> compiledClasses=unit.getCompiledClasses();
-      for (      CompiledClass compiledClass : compiledClasses) {
-        JRealClassType type=compiledClass.getRealClassType();
-        typeOracle.addSourceReference(type,sourceFile);
-      }
-    }
-  }
   classMap=null;
   classMapType=null;
   PerfLogger.end();

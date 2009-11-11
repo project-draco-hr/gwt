@@ -1,0 +1,31 @@
+{
+  ReferenceBinding type=null;
+  int p=typeName.indexOf('$');
+  if (p > 0) {
+    String cupName=typeName.substring(0,p);
+    char[][] chars=CharOperation.splitOn('.',cupName.toCharArray());
+    if (lookupEnvironment.getType(chars) != null) {
+      chars=CharOperation.splitOn('.',typeName.toCharArray());
+      type=lookupEnvironment.getCachedType(chars);
+      if (type == null) {
+        return null;
+      }
+    }
+  }
+ else {
+    char[][] chars=CharOperation.splitOn('.',typeName.toCharArray());
+    type=lookupEnvironment.getType(chars);
+  }
+  if (type != null) {
+    if (type instanceof UnresolvedReferenceBinding) {
+      type=BinaryTypeBinding.resolveType(type,lookupEnvironment,true);
+    }
+    return type;
+  }
+  p=typeName.lastIndexOf('.');
+  if (p >= 0) {
+    typeName=typeName.substring(0,p) + "$" + typeName.substring(p + 1);
+    return resolveType(lookupEnvironment,typeName);
+  }
+  return null;
+}

@@ -1,0 +1,39 @@
+{
+  Map<AbstractMethodDeclaration,JsniMethod> jsniMethods=JsniCollector.collectJsniMethods(cud,builder.getSource(),jsProgram);
+  final Set<String> jsniDeps=new HashSet<String>();
+  JsniChecker.check(cud,jsniMethods,new JsniChecker.TypeResolver(){
+    public ReferenceBinding resolveType(    String typeName){
+      ReferenceBinding resolveType=compiler.resolveType(typeName);
+      if (resolveType != null) {
+        String fileName=String.valueOf(resolveType.getFileName());
+        jsniDeps.add(fileName);
+      }
+      return resolveType;
+    }
+  }
+);
+  JSORestrictionsChecker.check(jsoState,cud);
+  ArtificialRescueChecker.check(cud,builder.isGenerated());
+  BinaryTypeReferenceRestrictionsChecker.check(cud);
+  CompilationUnitInvalidator.reportErrors(logger,cud,builder.getSource());
+  Set<ContentId> dependencies=compiler.computeDependencies(cud,jsniDeps);
+  CompilationUnit unit=builder.build(compiledClasses,dependencies,jsniMethods.values(),cud.compilationResult().getProblems());
+  if (cud.compilationResult().hasErrors()) {
+    unit=new ErrorCompilationUnit(unit);
+  }
+ else {
+    addValidUnit(unit);
+    ContentId contentId=builder.getContentId();
+    unitCache.put(contentId,unit);
+    if (builder instanceof ResourceCompilationUnitBuilder) {
+      ResourceCompilationUnitBuilder rcub=(ResourceCompilationUnitBuilder)builder;
+      ResourceTag resourceTag=new ResourceTag(rcub.getLastModifed(),contentId);
+      resourceContentCache.put(builder.getLocation(),resourceTag);
+      keepAliveLatestVersion.put(resourceTag,unit);
+    }
+ else     if (builder instanceof GeneratedCompilationUnitBuilder) {
+      keepAliveRecentlyGenerated.put(unit.getTypeName(),unit);
+    }
+  }
+  resultUnits.put(unit.getTypeName(),unit);
+}

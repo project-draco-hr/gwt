@@ -1,0 +1,27 @@
+{
+  Set<CompilationUnit> currentlyValidUnits=new HashSet<CompilationUnit>();
+  Set<ContentId> currentlyValidRefs=new HashSet<ContentId>(knownValidRefs);
+  for (  CompilationUnit unit : units) {
+    if (unit.isCompiled()) {
+      currentlyValidUnits.add(unit);
+      currentlyValidRefs.add(unit.getContentId());
+    }
+  }
+  boolean changed;
+  do {
+    changed=false;
+    iterating:     for (Iterator<CompilationUnit> it=currentlyValidUnits.iterator(); it.hasNext(); ) {
+      CompilationUnit unitToCheck=it.next();
+      for (      ContentId ref : unitToCheck.getDependencies()) {
+        if (!currentlyValidRefs.contains(ref)) {
+          it.remove();
+          currentlyValidRefs.remove(unitToCheck.getDisplayLocation());
+          changed=true;
+          continue iterating;
+        }
+      }
+    }
+  }
+ while (changed);
+  units.retainAll(currentlyValidUnits);
+}
