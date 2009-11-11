@@ -14,6 +14,7 @@
   }
   setCurrentGenerator(generatorClass);
   long before=System.currentTimeMillis();
+  PerfLogger.start("Generator '" + generator.getClass().getName() + "' produced '"+ typeName+ "'");
   try {
     String className=generator.generate(logger,this,typeName);
     long after=System.currentTimeMillis();
@@ -30,5 +31,8 @@
  catch (  RuntimeException e) {
     logger.log(TreeLogger.ERROR,"Generator '" + generatorClass.getName() + "' threw threw an exception while rebinding '"+ typeName+ "'",e);
     throw new UnableToCompleteException();
+  }
+ finally {
+    PerfLogger.end();
   }
 }

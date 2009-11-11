@@ -1,15 +1,21 @@
 {
   logger=loadModuleLogger;
   try {
+    PerfLogger.start("OophmSessionHandler.loadModule " + moduleName);
     BrowserChannelServer serverChannel=(BrowserChannelServer)channel;
     ModuleSpaceHost msh=host.createModuleSpaceHost(loadModuleLogger,moduleName,userAgent,url,tabKey,sessionKey,serverChannel,userAgentIcon);
     logger=msh.getLogger();
     ModuleSpace moduleSpace=new ModuleSpaceOOPHM(msh,moduleName,serverChannel);
     moduleMap.put(serverChannel,moduleSpace);
+    PerfLogger.start("ModuleSpace.onLoad");
     moduleSpace.onLoad(logger);
   }
  catch (  Throwable e) {
     this.logger.log(TreeLogger.ERROR,"Failed to load module '" + moduleName + "' from user agent '"+ userAgent+ "' at "+ channel.getRemoteEndpoint(),e);
+  }
+ finally {
+    PerfLogger.end();
+    PerfLogger.end();
   }
   return this.logger;
 }
