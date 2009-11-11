@@ -1,13 +1,6 @@
 {
-  String domain;
-  try {
-    String localhost=InetAddress.getLocalHost().getHostAddress();
-    domain="http://" + localhost + ":"+ shell.getPort()+ "/";
-  }
- catch (  UnknownHostException e) {
-    throw new RuntimeException("Unable to determine my ip address",e);
-  }
-  for (  RCSelenium remote : remotes) {
+  String domain="http://" + getLocalHostName() + ":"+ shell.getPort()+ "/";
+  for (  SeleniumWrapper remote : remotes) {
     try {
       String url=shell.getModuleUrl(moduleName);
       shell.getTopLogger().log(TreeLogger.TRACE,"Starting with domain: " + domain + " Opening URL: "+ url);
@@ -16,7 +9,7 @@
       remote.getSelenium().open(url);
     }
  catch (    Exception e) {
-      shell.getTopLogger().log(TreeLogger.ERROR,"Error launching browser via Selenium-RC at " + remote.getHost(),e);
+      shell.getTopLogger().log(TreeLogger.ERROR,"Error launching browser via Selenium-RC at " + remote.getSpecifier(),e);
     }
   }
 }
