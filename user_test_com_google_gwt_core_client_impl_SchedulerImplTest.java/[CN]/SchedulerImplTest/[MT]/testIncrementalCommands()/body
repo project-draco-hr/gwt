@@ -1,0 +1,25 @@
+{
+  final SchedulerImpl impl=new SchedulerImpl();
+  final int[] values={0,4};
+  final CountingCommand counter=new CountingCommand(values);
+  impl.scheduleIncremental(counter);
+  assertEquals(1,impl.deferredCommands.length());
+  impl.scheduleDeferred(new ScheduledCommand(){
+    public void execute(){
+      assertEquals(0,impl.deferredCommands.length());
+      assertTrue(String.valueOf(values[0]),values[0] <= values[1]);
+      if (values[0] == values[1]) {
+        assertEquals(0,impl.incrementalCommands.length());
+        finishTest();
+      }
+ else {
+        assertEquals(1,impl.incrementalCommands.length());
+        assertSame(counter,impl.incrementalCommands.get(0).getRepeating());
+        impl.scheduleDeferred(this);
+      }
+    }
+  }
+);
+  assertEquals(2,impl.deferredCommands.length());
+  delayTestFinish(TEST_DELAY);
+}

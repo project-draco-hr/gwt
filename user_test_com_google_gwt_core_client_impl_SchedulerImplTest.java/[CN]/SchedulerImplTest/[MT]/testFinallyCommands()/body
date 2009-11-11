@@ -1,0 +1,13 @@
+{
+  SchedulerImpl impl=new SchedulerImpl();
+  final boolean[] values={false};
+  impl.scheduleFinally(new ArraySetterCommand(values));
+  assertEquals(1,impl.finallyCommands.length());
+  ScheduledCommand nullCommand=new NullCommand();
+  impl.scheduleFinally(nullCommand);
+  assertEquals(2,impl.finallyCommands.length());
+  assertSame(nullCommand,impl.finallyCommands.get(1).getScheduled());
+  impl.flushFinallyCommands();
+  assertTrue(values[0]);
+  assertEquals(0,impl.finallyCommands.length());
+}

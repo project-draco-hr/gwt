@@ -1,0 +1,19 @@
+{
+  final SchedulerImpl impl=new SchedulerImpl();
+  final boolean[] values={false};
+  impl.scheduleDeferred(new ArraySetterCommand(values));
+  assertEquals(1,impl.deferredCommands.length());
+  ScheduledCommand nullCommand=new NullCommand();
+  impl.scheduleDeferred(nullCommand);
+  assertEquals(2,impl.deferredCommands.length());
+  assertSame(nullCommand,impl.deferredCommands.get(1).getScheduled());
+  impl.scheduleDeferred(new ScheduledCommand(){
+    public void execute(){
+      assertTrue(values[0]);
+      assertEquals(0,impl.deferredCommands.length());
+      finishTest();
+    }
+  }
+);
+  delayTestFinish(TEST_DELAY);
+}

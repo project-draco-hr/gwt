@@ -1,0 +1,18 @@
+{
+  final SchedulerImpl impl=new SchedulerImpl();
+  final int[] values={0,4};
+  impl.scheduleFixedPeriod(new CountingCommand(values),20);
+  assertFalse(impl.isWorkQueued());
+  impl.scheduleDeferred(new ScheduledCommand(){
+    public void execute(){
+      if (values[0] == values[1]) {
+        finishTest();
+      }
+ else {
+        impl.scheduleDeferred(this);
+      }
+    }
+  }
+);
+  delayTestFinish(TEST_DELAY);
+}
