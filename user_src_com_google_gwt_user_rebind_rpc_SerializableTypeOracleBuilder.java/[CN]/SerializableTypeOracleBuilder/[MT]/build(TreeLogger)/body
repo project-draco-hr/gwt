@@ -25,7 +25,6 @@
   }
   pruneUnreachableTypes();
   logReachableTypes(logger);
-  Set<JClassType> possiblyEnhancedTypes=new TreeSet<JClassType>(JTYPE_COMPARATOR);
   Set<JClassType> possiblyInstantiatedTypes=new TreeSet<JClassType>(JTYPE_COMPARATOR);
   Set<JClassType> fieldSerializableTypes=new TreeSet<JClassType>(JTYPE_COMPARATOR);
   for (  TypeInfoComputed tic : typeToTypeInfoComputed.values()) {
@@ -42,10 +41,10 @@
       assert(type.isInterface() == null);
       fieldSerializableTypes.add(type);
     }
-    if ((enhancedClasses != null && enhancedClasses.contains(type.getQualifiedSourceName())) || tic.maybeEnhanced()) {
-      possiblyEnhancedTypes.add(type);
+    if (tic.maybeEnhanced() || (enhancedClasses != null && enhancedClasses.contains(type.getQualifiedSourceName()))) {
+      type.setEnhanced();
     }
   }
   logSerializableTypes(logger,fieldSerializableTypes);
-  return new SerializableTypeOracleImpl(fieldSerializableTypes,possiblyInstantiatedTypes,possiblyEnhancedTypes);
+  return new SerializableTypeOracleImpl(fieldSerializableTypes,possiblyInstantiatedTypes);
 }
