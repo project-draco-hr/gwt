@@ -3,20 +3,20 @@
   if (enclosingType != null) {
     JClassType jsoImplType=program.typeOracle.getSingleJsoImpls().get(enclosingType);
     if (jsoImplType != null) {
-      reportJsniError(info,methodDecl,"Illegal reference to method '" + method.getName() + "' in type '"+ enclosingType.getName()+ "', which is implemented by an overlay type '"+ jsoImplType.getName()+ "'. Use a stronger type in the JSNI "+ "identifier or a Java trampoline method.");
+      JsniCollector.reportJsniError(info,methodDecl,"Illegal reference to method '" + method.getName() + "' in type '"+ enclosingType.getName()+ "', which is implemented by an overlay type '"+ jsoImplType.getName()+ "'. Use a stronger type in the JSNI "+ "identifier or a Java trampoline method.");
     }
  else     if (method.isStatic() && nameRef.getQualifier() != null) {
-      reportJsniError(info,methodDecl,"Cannot make a qualified reference to the static method " + method.getName());
+      JsniCollector.reportJsniError(info,methodDecl,"Cannot make a qualified reference to the static method " + method.getName());
     }
  else     if (!method.isStatic() && nameRef.getQualifier() == null) {
-      reportJsniError(info,methodDecl,"Cannot make an unqualified reference to the instance method " + method.getName());
+      JsniCollector.reportJsniError(info,methodDecl,"Cannot make an unqualified reference to the instance method " + method.getName());
     }
  else     if (!method.isStatic() && program.isJavaScriptObject(enclosingType)) {
-      reportJsniError(info,methodDecl,"Illegal reference to instance method '" + method.getName() + "' in type '"+ enclosingType.getName()+ "', which is an overlay type; only static references to overlay types are allowed from JSNI");
+      JsniCollector.reportJsniError(info,methodDecl,"Illegal reference to instance method '" + method.getName() + "' in type '"+ enclosingType.getName()+ "', which is an overlay type; only static references to overlay types are allowed from JSNI");
     }
   }
   if (ctx.isLvalue()) {
-    reportJsniError(info,methodDecl,"Cannot reassign the Java method " + method.getName());
+    JsniCollector.reportJsniError(info,methodDecl,"Cannot reassign the Java method " + method.getName());
   }
   JsniMethodRef methodRef=new JsniMethodRef(info,nameRef.getIdent(),method,program.getJavaScriptObject());
   nativeMethodBody.addJsniRef(methodRef);

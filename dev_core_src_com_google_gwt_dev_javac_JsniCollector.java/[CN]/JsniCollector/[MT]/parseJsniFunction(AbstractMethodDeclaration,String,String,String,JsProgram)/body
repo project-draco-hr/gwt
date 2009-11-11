@@ -1,0 +1,61 @@
+{
+  CompilationResult compResult=method.compilationResult;
+  int[] indexes=compResult.lineSeparatorPositions;
+  int startLine=Util.getLineNumber(method.sourceStart,indexes,0,indexes.length - 1);
+  SourceInfo info=SourceOrigin.create(method.sourceStart,method.bodyEnd,startLine,fileName);
+  String jsniCode=unitSource.substring(method.bodyStart,method.bodyEnd + 1);
+  int startPos=jsniCode.indexOf("/*-{");
+  int endPos=jsniCode.lastIndexOf("}-*/");
+  if (startPos < 0 && endPos < 0) {
+    reportJsniError(info,method,"Native methods require a JavaScript implementation enclosed with /*-{ and }-*/");
+    return null;
+  }
+  if (startPos < 0) {
+    reportJsniError(info,method,"Unable to find start of native block; begin your JavaScript block with: /*-{");
+    return null;
+  }
+  if (endPos < 0) {
+    reportJsniError(info,method,"Unable to find end of native block; terminate your JavaScript block with: }-*/");
+    return null;
+  }
+  startPos+=3;
+  endPos+=1;
+  jsniCode=jsniCode.substring(startPos,endPos);
+  StringBuilder functionSource=new StringBuilder("function (");
+  boolean first=true;
+  if (method.arguments != null) {
+    for (    Argument arg : method.arguments) {
+      if (first) {
+        first=false;
+      }
+ else {
+        functionSource.append(',');
+      }
+      functionSource.append(arg.binding.name);
+    }
+  }
+  functionSource.append(") ");
+  int functionHeaderLength=functionSource.length();
+  functionSource.append(jsniCode);
+  StringReader sr=new StringReader(functionSource.toString());
+  int absoluteJsStartPos=method.bodyStart + startPos;
+  int absoluteJsEndPos=absoluteJsStartPos + jsniCode.length();
+  int jsStartPos=absoluteJsStartPos - functionHeaderLength;
+  int jsEndPos=absoluteJsEndPos - functionHeaderLength;
+  int jsLine=info.getStartLine() + countLines(indexes,info.getStartPos(),absoluteJsStartPos);
+  SourceInfo jsInfo=SourceOrigin.create(jsStartPos,jsEndPos,jsLine,info.getFileName());
+  try {
+    List<JsStatement> result=JsParser.parse(jsInfo,jsProgram.getScope(),sr);
+    JsExprStmt jsExprStmt=(JsExprStmt)result.get(0);
+    return (JsFunction)jsExprStmt.getExpression();
+  }
+ catch (  IOException e) {
+    throw new InternalCompilerException("Internal error parsing JSNI in '" + enclosingType + '.'+ method.toString()+ '\'',e);
+  }
+catch (  JsParserException e) {
+    int problemCharPos=computeAbsoluteProblemPosition(indexes,e.getSourceDetail());
+    SourceInfo errorInfo=SourceOrigin.create(problemCharPos,problemCharPos,e.getSourceDetail().getLine(),info.getFileName());
+    reportJsniError(errorInfo,method,e.getMessage());
+    return null;
+  }
+}
