@@ -7,7 +7,11 @@
     }
   }
 ;
-  MessageTransport messageTransport=new MessageTransport(network.getClientSocket().getInputStream(),network.getClientSocket().getOutputStream(),requestProcessor);
+  MessageTransport messageTransport=new MessageTransport(network.getClientSocket().getInputStream(),network.getClientSocket().getOutputStream(),requestProcessor,new MessageTransport.TerminationCallback(){
+    public void onTermination(    Exception e){
+    }
+  }
+);
   Message.Request.Builder requestMessageBuilder=Message.Request.newBuilder();
   requestMessageBuilder.setServiceType(Message.Request.ServiceType.DEV_MODE);
   Message.Request request=requestMessageBuilder.build();
@@ -21,7 +25,7 @@
     fail("Should not have timed out");
   }
 catch (  ExecutionException e) {
-    assertTrue(e.getCause() instanceof IllegalStateException);
+    assertTrue("Expected: IllegalStateException, actual:" + e.getCause(),e.getCause() instanceof IllegalStateException);
   }
 catch (  Exception e) {
     fail("Should not have thrown any other exception");
