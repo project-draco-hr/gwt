@@ -1,0 +1,18 @@
+{
+  Iterator<String> i=path.iterator();
+  while (i.hasNext()) {
+    String pathElement=i.next();
+    JClassType referenceType=type.isClassOrInterface();
+    if (referenceType == null) {
+      logger.error("Cannot resolve member " + pathElement + " on non-reference type "+ type.getQualifiedSourceName());
+      return null;
+    }
+    JMethod m=findMethod(referenceType,pathElement);
+    if (m == null) {
+      logger.error("Could not find no-arg method named " + pathElement + " in type "+ type.getQualifiedSourceName());
+      return null;
+    }
+    type=m.getReturnType();
+  }
+  return type;
+}

@@ -1,13 +1,14 @@
 {
+  if (types.length == 0) {
+    throw new RuntimeException("Asked for attribute parser of no type");
+  }
   AttributeParser rtn=getForKey(getParametersKey(types));
   if (rtn != null || types.length > 1) {
     return rtn;
   }
-  if (types.length == 1) {
-    JEnumType enumType=types[0].isEnum();
-    if (enumType != null) {
-      return new EnumAttributeParser(enumType);
-    }
+  JEnumType enumType=types[0].isEnum();
+  if (enumType != null) {
+    return new EnumAttributeParser(converter,enumType,logger);
   }
-  return new StrictAttributeParser();
+  return new StrictAttributeParser(converter,types[0],logger);
 }

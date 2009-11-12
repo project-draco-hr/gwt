@@ -1,0 +1,29 @@
+{
+  init("<doc><elm minus='-123.45' plus='123.45' minus-one='-1' " + "plus-one='1' fnord='fnord' ref='{foo.bar.baz}'/></doc>");
+  assertEquals("1",elm.consumeRequiredDoubleAttribute("plus-one"));
+  assertEquals("-1",elm.consumeRequiredDoubleAttribute("minus-one"));
+  assertEquals("123.45",elm.consumeRequiredDoubleAttribute("plus"));
+  assertEquals("-123.45",elm.consumeRequiredDoubleAttribute("minus"));
+  assertEquals("(double)foo.bar().baz()",elm.consumeRequiredDoubleAttribute("ref"));
+  try {
+    elm.consumeRequiredDoubleAttribute("fnord");
+    fail("Should throw UnableToCompleteException on misparse");
+  }
+ catch (  UnableToCompleteException c) {
+    assertNotNull(logger.died);
+  }
+  try {
+    elm.consumeRequiredDoubleAttribute("plus-one");
+    fail("Should throw UnableToCompleteException consumed attribute");
+  }
+ catch (  UnableToCompleteException c) {
+    assertNotNull(logger.died);
+  }
+  try {
+    elm.consumeRequiredDoubleAttribute("empty");
+    fail("Should throw UnableToCompleteException on no such attribute");
+  }
+ catch (  UnableToCompleteException c) {
+    assertNotNull(logger.died);
+  }
+}
