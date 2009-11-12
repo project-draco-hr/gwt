@@ -17,15 +17,14 @@
   allRootTypes.add(FragmentLoaderCreator.ASYNC_FRAGMENT_LOADER);
   Memory.maybeDumpMemory("CompStateBuilt");
   CompilationUnitDeclaration[] goldenCuds=WebModeCompilerFrontEnd.getCompilationUnitDeclarations(logger,allRootTypes.toArray(new String[allRootTypes.size()]),rpo);
-  if (!options.isCompilationStateRetained()) {
-    module.clear();
-  }
+  rpo.clear();
   try {
     Class<?> clazz=Class.forName("com.google.gwt.i18n.rebind.ClearStaticData",false,Thread.currentThread().getContextClassLoader());
     clazz.getDeclaredMethod("clear").invoke(null);
   }
  catch (  Throwable e) {
   }
+  Memory.maybeDumpMemory("GoldenCudsBuilt");
   checkForErrors(logger,goldenCuds,false);
   PerfLogger.start("Build AST");
   CorrelationFactory correlator=options.isSoycExtra() ? new RealCorrelationFactory() : new DummyCorrelationFactory();
