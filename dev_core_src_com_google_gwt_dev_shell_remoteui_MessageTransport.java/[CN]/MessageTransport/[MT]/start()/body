@@ -1,0 +1,44 @@
+{
+  if (isStarted.getAndSet(true)) {
+    return;
+  }
+  Thread messageProcessingThread=new Thread(new Runnable(){
+    public void run(){
+      try {
+        while (true) {
+          Message message=Message.parseDelimitedFrom(inputStream);
+          processMessage(message);
+        }
+      }
+ catch (      IOException e) {
+        terminateDueToException(e);
+      }
+catch (      InterruptedException e) {
+        terminateDueToException(e);
+      }
+    }
+  }
+);
+  messageProcessingThread.start();
+  Thread sendThread=new Thread(new Runnable(){
+    public void run(){
+      while (true) {
+        try {
+          PendingSend pendingSend=sendQueue.take();
+          try {
+            pendingSend.send(outputStream);
+          }
+ catch (          IOException e) {
+            pendingSend.failed(e);
+          }
+        }
+ catch (        InterruptedException e) {
+          break;
+        }
+      }
+    }
+  }
+);
+  sendThread.setDaemon(true);
+  sendThread.start();
+}
