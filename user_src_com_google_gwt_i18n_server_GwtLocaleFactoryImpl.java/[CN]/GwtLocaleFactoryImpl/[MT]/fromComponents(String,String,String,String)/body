@@ -24,9 +24,11 @@
     variant=variant.toUpperCase(Locale.ENGLISH);
   }
   GwtLocaleImpl locale=new GwtLocaleImpl(this,language,region,script,variant);
-  if (instanceCache.containsKey(locale)) {
-    return instanceCache.get(locale);
+synchronized (instanceCacheLock) {
+    if (instanceCache.containsKey(locale)) {
+      return instanceCache.get(locale);
+    }
+    instanceCache.put(locale,locale);
   }
-  instanceCache.put(locale,locale);
   return locale;
 }

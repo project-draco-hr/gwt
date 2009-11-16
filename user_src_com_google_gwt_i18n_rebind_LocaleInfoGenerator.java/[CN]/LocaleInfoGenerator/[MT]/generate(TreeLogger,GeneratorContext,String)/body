@@ -1,7 +1,7 @@
 {
   TypeOracle typeOracle=context.getTypeOracle();
   PropertyOracle propertyOracle=context.getPropertyOracle();
-  LocaleUtils.init(logger,propertyOracle);
+  LocaleUtils localeUtils=LocaleUtils.getInstance(logger,propertyOracle);
   JClassType targetClass;
   try {
     targetClass=typeOracle.getType(typeName);
@@ -13,7 +13,7 @@
   assert(LocaleInfoImpl.class.getName().equals(targetClass.getQualifiedSourceName()));
   String packageName=targetClass.getPackage().getName();
   String superClassName=targetClass.getName().replace('.','_') + "_shared";
-  Set<GwtLocale> localeSet=LocaleUtils.getAllLocales();
+  Set<GwtLocale> localeSet=localeUtils.getAllLocales();
   GwtLocaleImpl[] allLocales=localeSet.toArray(new GwtLocaleImpl[localeSet.size()]);
   Arrays.sort(allLocales);
   PrintWriter pw=context.tryCreate(logger,packageName,superClassName);
@@ -98,9 +98,9 @@ catch (    IOException e) {
     writer.println("}-*/;");
     writer.commit(logger);
   }
-  GwtLocale locale=LocaleUtils.getCompileLocale();
+  GwtLocale locale=localeUtils.getCompileLocale();
   String className=targetClass.getName().replace('.','_') + "_" + locale.getAsString();
-  Set<GwtLocale> runtimeLocales=LocaleUtils.getRuntimeLocales();
+  Set<GwtLocale> runtimeLocales=localeUtils.getRuntimeLocales();
   if (!runtimeLocales.isEmpty()) {
     className+="_runtimeSelection";
   }
@@ -129,7 +129,7 @@ catch (    IOException e) {
     writer.println("@Override");
     writer.println("public DateTimeConstants getDateTimeConstants() {");
     LocalizableGenerator localizableGenerator=new LocalizableGenerator();
-    @SuppressWarnings("hiding") GeneratorContext subContext=new CachedGeneratorContext(context);
+    GeneratorContext subContext=new CachedGeneratorContext(context);
     generateConstantsLookup(logger,subContext,writer,localizableGenerator,runtimeLocales,locale,"com.google.gwt.i18n.client.constants.DateTimeConstantsImpl");
     writer.println("}");
     writer.println();

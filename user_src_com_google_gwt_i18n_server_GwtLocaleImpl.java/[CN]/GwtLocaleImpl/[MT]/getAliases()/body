@@ -1,35 +1,38 @@
 {
-  if (cachedAliases == null) {
-    cachedAliases=new ArrayList<GwtLocale>();
-    GwtLocale canonicalForm=getCanonicalForm();
-    Set<GwtLocale> seen=new HashSet<GwtLocale>();
-    cachedAliases.add(canonicalForm);
-    ArrayList<GwtLocale> nextGroup=new ArrayList<GwtLocale>();
-    nextGroup.add(this);
-    String defaultScript=DefaultLanguageScripts.getDefaultScript(language);
-    if (defaultScript != null) {
-      if (script == null) {
-        nextGroup.add(factory.fromComponents(language,defaultScript,region,variant));
-      }
- else       if (script.equals(defaultScript)) {
-        nextGroup.add(factory.fromComponents(language,null,region,variant));
-      }
-    }
-    while (!nextGroup.isEmpty()) {
-      List<GwtLocale> thisGroup=nextGroup;
-      nextGroup=new ArrayList<GwtLocale>();
-      for (      GwtLocale locale : thisGroup) {
-        if (seen.contains(locale)) {
-          continue;
+synchronized (cacheLock) {
+    if (cachedAliases == null) {
+      cachedAliases=new ArrayList<GwtLocale>();
+      GwtLocale canonicalForm=getCanonicalForm();
+      Set<GwtLocale> seen=new HashSet<GwtLocale>();
+      cachedAliases.add(canonicalForm);
+      ArrayList<GwtLocale> nextGroup=new ArrayList<GwtLocale>();
+      nextGroup.add(this);
+      String defaultScript=DefaultLanguageScripts.getDefaultScript(language);
+      if (defaultScript != null) {
+        if (script == null) {
+          nextGroup.add(factory.fromComponents(language,defaultScript,region,variant));
         }
-        seen.add(locale);
-        if (!locale.equals(canonicalForm)) {
-          cachedAliases.add(locale);
+ else         if (script.equals(defaultScript)) {
+          nextGroup.add(factory.fromComponents(language,null,region,variant));
         }
-        addDeprecatedPairs(factory,locale,nextGroup);
-        addSpecialAliases(factory,locale,nextGroup);
       }
+      while (!nextGroup.isEmpty()) {
+        List<GwtLocale> thisGroup=nextGroup;
+        nextGroup=new ArrayList<GwtLocale>();
+        for (        GwtLocale locale : thisGroup) {
+          if (seen.contains(locale)) {
+            continue;
+          }
+          seen.add(locale);
+          if (!locale.equals(canonicalForm)) {
+            cachedAliases.add(locale);
+          }
+          addDeprecatedPairs(factory,locale,nextGroup);
+          addSpecialAliases(factory,locale,nextGroup);
+        }
+      }
+      cachedAliases=Collections.unmodifiableList(cachedAliases);
     }
+    return cachedAliases;
   }
-  return Collections.unmodifiableList(cachedAliases);
 }
