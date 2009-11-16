@@ -1,8 +1,14 @@
 {
-  File file=dir;
-  for (  String part : (prefix + path).split("/")) {
-    file=new File(file,part);
+  final File file=makeFileForPath(path);
+  if (file.exists() && file.lastModified() >= lastModifiedTime) {
+    return new NullOutputStream();
   }
   mkdirs(file.getParentFile());
-  return new FileOutputStream(file);
+  return new FileOutputStream(file){
+    @Override public void close() throws IOException {
+      super.close();
+      file.setLastModified(lastModifiedTime);
+    }
+  }
+;
 }
