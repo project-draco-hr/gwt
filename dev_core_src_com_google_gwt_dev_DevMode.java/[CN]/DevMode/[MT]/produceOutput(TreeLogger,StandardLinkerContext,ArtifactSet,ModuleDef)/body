@@ -1,18 +1,11 @@
 {
   TreeLogger linkLogger=logger.branch(TreeLogger.DEBUG,"Linking module '" + module.getName() + "'");
-  try {
-    OutputFileSetOnDirectory outFileSet=new OutputFileSetOnDirectory(options.getWarDir(),module.getName() + "/");
-    OutputFileSet extraFileSet=new NullOutputFileSet();
-    if (options.getExtraDir() != null) {
-      extraFileSet=new OutputFileSetOnDirectory(options.getExtraDir(),module.getName() + "/");
-    }
-    linkerStack.produceOutput(linkLogger,artifacts,false,outFileSet);
+  OutputFileSetOnDirectory outFileSet=new OutputFileSetOnDirectory(options.getWarDir(),module.getName() + "/");
+  linkerStack.produceOutput(linkLogger,artifacts,false,outFileSet);
+  outFileSet.close();
+  if (options.getExtraDir() != null) {
+    OutputFileSetOnDirectory extraFileSet=new OutputFileSetOnDirectory(options.getExtraDir(),module.getName() + "/");
     linkerStack.produceOutput(linkLogger,artifacts,true,extraFileSet);
-    outFileSet.close();
     extraFileSet.close();
-  }
- catch (  IOException e) {
-    linkLogger.log(TreeLogger.ERROR,"I/O exception",e);
-    throw new UnableToCompleteException();
   }
 }
