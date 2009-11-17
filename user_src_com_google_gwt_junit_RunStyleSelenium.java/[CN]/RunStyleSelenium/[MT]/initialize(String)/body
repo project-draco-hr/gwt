@@ -1,7 +1,7 @@
 {
   if (args == null || args.length() == 0) {
     getLogger().log(TreeLogger.ERROR,"Selenium runstyle requires comma-separated Selenium-RC targets");
-    return false;
+    return -1;
   }
   String[] targetsIn=args.split(",");
   SeleniumWrapper targets[]=new SeleniumWrapper[targetsIn.length];
@@ -11,11 +11,10 @@
     }
  catch (    IllegalArgumentException e) {
       getLogger().log(TreeLogger.ERROR,e.getMessage());
-      return false;
+      return -1;
     }
   }
   this.remotes=targets;
-  shell.setNumClients(targets.length);
   Runtime.getRuntime().addShutdownHook(new Thread(){
     @Override public void run(){
       for (      SeleniumWrapper remote : remotes) {
@@ -32,5 +31,5 @@
   }
 );
   start();
-  return true;
+  return targets.length;
 }

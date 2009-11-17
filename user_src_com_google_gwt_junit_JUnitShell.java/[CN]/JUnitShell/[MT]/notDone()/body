@@ -1,5 +1,6 @@
 {
   int activeClients=messageQueue.getNumClientsRetrievedTest(currentTestInfo);
+  int expectedClients=messageQueue.getNumClients();
   if (firstLaunch && runStyle instanceof RunStyleManual) {
     String[] newClients=messageQueue.getNewClients();
     int printIndex=activeClients - newClients.length + 1;
@@ -7,11 +8,11 @@
       System.out.println(printIndex + " - " + newClient);
       ++printIndex;
     }
-    if (activeClients != this.numClients) {
+    if (activeClients != expectedClients) {
       return true;
     }
   }
-  if (remoteUserAgents == null && messageQueue.getNumConnectedClients() == numClients) {
+  if (remoteUserAgents == null && messageQueue.getNumConnectedClients() == expectedClients) {
     remoteUserAgents=messageQueue.getUserAgents();
     String userAgentList="";
     for (int i=0; i < remoteUserAgents.length; i++) {
@@ -23,9 +24,9 @@
     getTopLogger().log(TreeLogger.INFO,"All clients connected (Limiting future permutations to: " + userAgentList + ")");
   }
   long currentTimeMillis=System.currentTimeMillis();
-  if (activeClients >= numClients) {
-    if (activeClients > numClients) {
-      getTopLogger().log(TreeLogger.WARN,"Too many clients: expected " + numClients + ", found "+ activeClients);
+  if (activeClients >= expectedClients) {
+    if (activeClients > expectedClients) {
+      getTopLogger().log(TreeLogger.WARN,"Too many clients: expected " + expectedClients + ", found "+ activeClients);
     }
     firstLaunch=false;
     lastModule=currentModule;
