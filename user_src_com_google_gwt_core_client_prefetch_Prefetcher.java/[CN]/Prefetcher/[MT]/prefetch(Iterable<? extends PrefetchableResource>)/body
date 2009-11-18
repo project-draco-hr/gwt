@@ -1,0 +1,18 @@
+{
+  if (!GWT.isScript()) {
+    return;
+  }
+  List<Integer> runAsyncSplitPoints=new ArrayList<Integer>();
+  for (  PrefetchableResource resource : resources) {
+    if (resource instanceof RunAsyncCode) {
+      RunAsyncCode resourceRunAsync=(RunAsyncCode)resource;
+      int splitPoint=resourceRunAsync.getSplitPoint();
+      if (splitPoint >= 0) {
+        runAsyncSplitPoints.add(splitPoint);
+      }
+      continue;
+    }
+    throw new IllegalArgumentException("Unknown resource type: " + resource.getClass());
+  }
+  AsyncFragmentLoader.BROWSER_LOADER.setPrefetchQueue(runAsyncSplitPoints);
+}

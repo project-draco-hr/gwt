@@ -1,0 +1,28 @@
+{
+  MockLoadStrategy reqs=new MockLoadStrategy();
+  MockProgressLogger progress=new MockProgressLogger();
+  int numEntries=20;
+  AsyncFragmentLoader loader=new AsyncFragmentLoader(numEntries,new int[]{},reqs,progress);
+  loader.stopPrefetching();
+  loader.setPrefetchQueue(asList(1));
+  reqs.assertFragmentsRequested();
+  progress.assertNoEvents();
+  loader.inject(2,NULL_ERROR_HANDLER);
+  reqs.assertFragmentsRequested(numEntries);
+  progress.assertEvent("leftoversDownload",BEGIN,numEntries);
+  loader.leftoversFragmentHasLoaded();
+  reqs.assertFragmentsRequested(2);
+  progress.assertEvent("leftoversDownload",END,numEntries);
+  progress.assertEvent("download2",BEGIN,2);
+  loader.fragmentHasLoaded(2);
+  reqs.assertFragmentsRequested();
+  progress.assertEvent("download2",END,2);
+  progress.assertNoEvents();
+  loader.startPrefetching();
+  reqs.assertFragmentsRequested(1);
+  progress.assertEvent("download1",BEGIN,1);
+  loader.fragmentHasLoaded(1);
+  reqs.assertFragmentsRequested();
+  progress.assertEvent("download1",END,1);
+  progress.assertNoEvents();
+}

@@ -1,18 +1,7 @@
 {
-  if (haveInitialFragmentsLoaded()) {
-    logDownloadStart(splitPoint);
-    startLoadingFragment(splitPoint,loadErrorHandler);
-    return;
+  pendingDownloadErrorHandlers.put(splitPoint,loadErrorHandler);
+  if (!isInitial(splitPoint)) {
+    requestedExclusives.add(splitPoint);
   }
-  if (isInitial(splitPoint)) {
-    initialFragmentErrorHandlers.put(splitPoint,loadErrorHandler);
-  }
- else {
-    assert(waitingForInitialFragments.size() == waitingForInitialFragmentsErrorHandlers.size());
-    waitingForInitialFragments.add(splitPoint);
-    waitingForInitialFragmentsErrorHandlers.add(loadErrorHandler);
-  }
-  if (!initialFragmentsLoading) {
-    startLoadingNextInitial();
-  }
+  startLoadingNextFragment();
 }
