@@ -1,0 +1,28 @@
+{
+  if (annotations != null) {
+    for (    Annotation a : annotations) {
+      if (SuppressWarnings.class.getName().equals(CharOperation.toString(((ReferenceBinding)a.resolvedType).compoundName))) {
+        for (        MemberValuePair pair : a.memberValuePairs()) {
+          if (String.valueOf(pair.name).equals("value")) {
+            Expression valueExpr=pair.value;
+            if (valueExpr instanceof StringLiteral) {
+              return Sets.create(((StringLiteral)valueExpr).constant.stringValue().toLowerCase(Locale.ENGLISH));
+            }
+ else             if (valueExpr instanceof ArrayInitializer) {
+              ArrayInitializer ai=(ArrayInitializer)valueExpr;
+              String[] values=new String[ai.expressions.length];
+              for (int i=0, j=values.length; i < j; i++) {
+                values[i]=((StringLiteral)ai.expressions[i]).constant.stringValue().toLowerCase(Locale.ENGLISH);
+              }
+              return Sets.create(values);
+            }
+ else {
+              throw new InternalCompilerException("Unable to analyze SuppressWarnings annotation");
+            }
+          }
+        }
+      }
+    }
+  }
+  return Sets.create();
+}
