@@ -1,0 +1,17 @@
+{
+  StringBuffer code=new StringBuffer();
+  code.append("class Foo {\n");
+  code.append("  native void m(Object o) /*-{\n");
+  code.append("    o.@Foo::m(Ljava/lang/Object);\n");
+  code.append("  }-*/;\n");
+  code.append("}\n");
+  String source=code.toString();
+  List<JsNameRef> foundRefs=findJsniRefs("Foo",source);
+  assertEquals(1,foundRefs.size());
+  JsNameRef ref=foundRefs.get(0);
+  SourceInfo info=ref.getSourceInfo();
+  if (JSNI_PARSES_SOURCE_POSITION) {
+    assertEquals(source.indexOf('@'),info.getStartPos());
+  }
+  assertEquals(3,info.getStartLine());
+}
