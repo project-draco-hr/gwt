@@ -1,0 +1,59 @@
+{
+  for (  XMLElement layerElem : elem.consumeChildElements()) {
+    if (!isElementType(elem,layerElem,LAYER)) {
+      writer.die("In %s, only <%s:%s> children are allowed.",elem,elem.getPrefix(),LAYER);
+    }
+    String childFieldName=writer.parseElementToField(layerElem.consumeSingleChildElement());
+    writer.addStatement("%1$s.add(%2$s);",fieldName,childFieldName);
+    String left=maybeConsumeLengthAttribute(layerElem,"left");
+    String right=maybeConsumeLengthAttribute(layerElem,"right");
+    String width=maybeConsumeLengthAttribute(layerElem,"width");
+    if (left != null) {
+      if (right != null) {
+        if (width != null) {
+          writer.die(ERR_TOO_MANY,elem,layerElem,"horizontal");
+        }
+        generateConstraint(fieldName,childFieldName,"LeftRight",left,right,writer);
+      }
+ else       if (width != null) {
+        generateConstraint(fieldName,childFieldName,"LeftWidth",left,width,writer);
+      }
+ else {
+        writer.die(ERR_PAIRING,elem,layerElem,"left","right","width");
+      }
+    }
+ else     if (right != null) {
+      if (width != null) {
+        generateConstraint(fieldName,childFieldName,"RightWidth",right,width,writer);
+      }
+ else {
+        writer.die(ERR_PAIRING,elem,layerElem,"right","left","width");
+      }
+    }
+    String top=maybeConsumeLengthAttribute(layerElem,"top");
+    String bottom=maybeConsumeLengthAttribute(layerElem,"bottom");
+    String height=maybeConsumeLengthAttribute(layerElem,"height");
+    if (top != null) {
+      if (bottom != null) {
+        if (height != null) {
+          writer.die(ERR_TOO_MANY,elem,layerElem,"vertical");
+        }
+        generateConstraint(fieldName,childFieldName,"TopBottom",top,bottom,writer);
+      }
+ else       if (height != null) {
+        generateConstraint(fieldName,childFieldName,"TopHeight",top,height,writer);
+      }
+ else {
+        writer.die(ERR_PAIRING,elem,layerElem,"top","bottom","height");
+      }
+    }
+ else     if (bottom != null) {
+      if (height != null) {
+        generateConstraint(fieldName,childFieldName,"BottomHeight",bottom,height,writer);
+      }
+ else {
+        writer.die(ERR_PAIRING,elem,layerElem,"bottom","top","height");
+      }
+    }
+  }
+}
