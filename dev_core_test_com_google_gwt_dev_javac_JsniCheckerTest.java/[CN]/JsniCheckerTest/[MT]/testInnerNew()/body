@@ -1,0 +1,35 @@
+{
+  StringBuffer code=new StringBuffer();
+  code.append("public class Buggy {\n");
+  code.append("  class Inner {\n");
+  code.append("    long x = 3;\n");
+  code.append("    Inner(boolean b) { };\n");
+  code.append("  }\n");
+  code.append("  native void jsniMeth() /*-{\n");
+  code.append("    $wnd.alert(@Buggy.Inner::new(Z)(true).toString());\n");
+  code.append("  }-*/;\n");
+  code.append("}\n");
+  shouldGenerateWarning(code,7,"Referencing method 'Buggy.Inner.new(Z)': " + "unable to resolve method, expect subsequent failures");
+  code=new StringBuffer();
+  code.append("public class Buggy {\n");
+  code.append("  static class Inner {\n");
+  code.append("    long x = 3;\n");
+  code.append("    Inner(boolean b) { };\n");
+  code.append("  }\n");
+  code.append("  native void jsniMeth() /*-{\n");
+  code.append("    $wnd.alert(@Buggy.Inner::new(Z)(this, true).toString());\n");
+  code.append("  }-*/;\n");
+  code.append("}\n");
+  shouldGenerateNoWarning(code);
+  code=new StringBuffer();
+  code.append("public class Buggy {\n");
+  code.append("  class Inner {\n");
+  code.append("    long x = 3;\n");
+  code.append("    Inner(boolean b) { };\n");
+  code.append("  }\n");
+  code.append("  native void jsniMeth() /*-{\n");
+  code.append("    $wnd.alert(@Buggy.Inner::new(LBuggy;Z)(this, true).toString());\n");
+  code.append("  }-*/;\n");
+  code.append("}\n");
+  shouldGenerateNoWarning(code);
+}
