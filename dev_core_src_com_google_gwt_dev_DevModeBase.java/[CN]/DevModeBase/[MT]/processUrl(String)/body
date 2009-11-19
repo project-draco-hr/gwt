@@ -1,0 +1,27 @@
+{
+  URL parsedUrl=null;
+  try {
+    parsedUrl=new URL(url);
+    String path=parsedUrl.getPath();
+    String query=parsedUrl.getQuery();
+    String hash=parsedUrl.getRef();
+    String hostedParam=BrowserListener.getDevModeURLParams(listener.getEndpointIdentifier());
+    if (query == null) {
+      query=hostedParam;
+    }
+ else {
+      query+='&' + hostedParam;
+    }
+    path+='?' + query;
+    if (hash != null) {
+      path+='#' + hash;
+    }
+    parsedUrl=new URL(parsedUrl.getProtocol(),parsedUrl.getHost(),parsedUrl.getPort(),path);
+    url=parsedUrl.toExternalForm();
+  }
+ catch (  MalformedURLException e) {
+    getTopLogger().log(TreeLogger.ERROR,"Invalid URL " + url,e);
+    throw new UnableToCompleteException();
+  }
+  return parsedUrl;
+}

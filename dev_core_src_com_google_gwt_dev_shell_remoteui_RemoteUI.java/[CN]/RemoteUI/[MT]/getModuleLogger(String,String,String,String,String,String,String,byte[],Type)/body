@@ -1,0 +1,44 @@
+{
+  int logHandle;
+  logHandle=viewerServiceClient.addModuleLog(remoteSocket,url,tabKey,moduleName,sessionKey,agentTag,agentIcon);
+  final ViewerServiceTreeLogger moduleLogger=new ViewerServiceTreeLogger(viewerServiceClient);
+  moduleLogger.setLogHandle(logHandle);
+  moduleLogger.setMaxDetail(getLogLevel());
+  ModuleHandle handle=new ModuleHandle(){
+    public TreeLogger getLogger(){
+      return moduleLogger;
+    }
+    public void unload(){
+synchronized (modulesLock) {
+        if (!modules.contains(this)) {
+          return;
+        }
+      }
+      ViewerServiceTreeLogger moduleLogger=(ViewerServiceTreeLogger)(getLogger());
+      try {
+        viewerServiceClient.disconnectLog(moduleLogger.getLogHandle());
+      }
+  finally {
+synchronized (modulesLock) {
+          modules.remove(this);
+        }
+      }
+    }
+  }
+;
+synchronized (modulesLock) {
+    modules.add(handle);
+  }
+  if (url != null) {
+    moduleLogger.log(TreeLogger.SPAM,"Top URL: " + url);
+  }
+  moduleLogger.log(TreeLogger.SPAM,"User agent: " + userAgent);
+  moduleLogger.log(TreeLogger.SPAM,"Remote socket: " + remoteSocket);
+  if (tabKey != null) {
+    moduleLogger.log(TreeLogger.SPAM,"Tab key: " + tabKey);
+  }
+  if (sessionKey != null) {
+    moduleLogger.log(TreeLogger.SPAM,"Session key: " + sessionKey);
+  }
+  return handle;
+}

@@ -1,0 +1,29 @@
+{
+  PerfLogger.start("OophmSessionHandler.loadModule " + moduleName);
+  BrowserChannelServer serverChannel=(BrowserChannelServer)channel;
+  ModuleHandle moduleHandle=host.createModuleLogger(moduleName,userAgent,url,tabKey,sessionKey,serverChannel,userAgentIcon);
+  TreeLogger logger=moduleHandle.getLogger();
+  moduleHandleMap.put(serverChannel,moduleHandle);
+  ModuleSpace moduleSpace=null;
+  try {
+    ModuleSpaceHost msh=host.createModuleSpaceHost(moduleHandle,moduleName);
+    moduleSpace=new ModuleSpaceOOPHM(msh,moduleName,serverChannel);
+    moduleMap.put(serverChannel,moduleSpace);
+    PerfLogger.start("ModuleSpace.onLoad");
+    moduleSpace.onLoad(logger);
+  }
+ catch (  Throwable e) {
+    moduleHandle.getLogger().log(TreeLogger.ERROR,"Failed to load module '" + moduleName + "' from user agent '"+ userAgent+ "' at "+ channel.getRemoteEndpoint(),e);
+    if (moduleSpace != null) {
+      moduleSpace.dispose();
+    }
+    moduleHandle.unload();
+    moduleMap.remove(serverChannel);
+    moduleHandleMap.remove(serverChannel);
+  }
+ finally {
+    PerfLogger.end();
+    PerfLogger.end();
+  }
+  return moduleHandle.getLogger();
+}

@@ -1,0 +1,15 @@
+{
+  TreeLogger logger=module.getLogger();
+  try {
+    ModuleDef moduleDef=loadModule(logger,moduleName,true);
+    assert(moduleDef != null);
+    startupModules.remove(moduleDef.getName());
+    ShellModuleSpaceHost host=doCreateShellModuleSpaceHost(logger,moduleDef.getCompilationState(logger),moduleDef);
+    return host;
+  }
+ catch (  RuntimeException e) {
+    logger.log(TreeLogger.ERROR,"Exception initializing module",e);
+    module.unload();
+    throw e;
+  }
+}
