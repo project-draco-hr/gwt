@@ -3,7 +3,11 @@
     ui.setCallback(RestartServerEvent.getType(),this);
     TreeLogger serverLogger=ui.getWebServerLogger(getWebServerName(),null);
     serverLogger.log(TreeLogger.TRACE,"Starting HTTP on port " + getPort(),null);
-    server=options.getServletContainerLauncher().start(serverLogger,getPort(),options.getWarDir());
+    ServletContainerLauncher scl=options.getServletContainerLauncher();
+    if (scl instanceof JettyLauncher) {
+      ((JettyLauncher)scl).setBaseLogLevel(getBaseLogLevelForUI());
+    }
+    server=scl.start(serverLogger,getPort(),options.getWarDir());
     assert(server != null);
     return server.getPort();
   }

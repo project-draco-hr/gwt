@@ -1,11 +1,19 @@
 {
+  DevModeUI newUI=null;
   if (headlessMode) {
-    return new HeadlessUI(options);
+    newUI=new HeadlessUI(options);
   }
  else {
     if (options.useRemoteUI()) {
-      return new RemoteUI(options.getRemoteUIHost(),options.getRemoteUIHostPort(),options.getClientId(),options.getPort(),options.getCodeServerPort());
+      newUI=new RemoteUI(options.getRemoteUIHost(),options.getRemoteUIHostPort(),options.getClientId(),options.getPort(),options.getCodeServerPort());
+      baseLogLevelForUI=TreeLogger.Type.TRACE;
     }
   }
-  return new SwingUI(options);
+  if (newUI == null) {
+    newUI=new SwingUI(options);
+  }
+  if (baseLogLevelForUI == null) {
+    baseLogLevelForUI=TreeLogger.Type.INFO;
+  }
+  return newUI;
 }
