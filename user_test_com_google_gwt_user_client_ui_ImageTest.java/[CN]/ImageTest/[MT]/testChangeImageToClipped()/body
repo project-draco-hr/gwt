@@ -1,0 +1,24 @@
+{
+  final Image image=new Image("counting-forwards.png");
+  assertEquals("unclipped",getCurrentImageStateName(image));
+  delayTestFinish(5000);
+  image.addErrorHandler(new TestErrorHandler(image));
+  image.addLoadHandler(new LoadHandler(){
+    private int onLoadEventCount=0;
+    public void onLoad(    LoadEvent event){
+      if (getCurrentImageStateName(image).equals("unclipped")) {
+        image.setVisibleRect(12,13,8,8);
+      }
+      if (++onLoadEventCount == 2) {
+        assertEquals(12,image.getOriginLeft());
+        assertEquals(13,image.getOriginTop());
+        assertEquals(8,image.getWidth());
+        assertEquals(8,image.getHeight());
+        assertEquals("clipped",getCurrentImageStateName(image));
+        finishTest();
+      }
+    }
+  }
+);
+  RootPanel.get().add(image);
+}
