@@ -101,6 +101,17 @@ iconCache.put(userAgent,iconBytes);
 }
 Thread.currentThread().setName("Code server for " + moduleName + " from "+ userAgent+ " on "+ url+ " @ "+ sessionKey);
 logger=handler.loadModule(this,moduleName,userAgent,url,tabKey,sessionKey,iconBytes);
+if (logger == null) {
+try {
+Value errMsg=new Value();
+errMsg.setString("An error occurred loading the GWT module " + moduleName);
+ReturnMessage.send(this,true,errMsg);
+return;
+}
+ catch (IOException e) {
+throw new RemoteDeathError(e);
+}
+}
 try {
 try {
 ReturnMessage.send(this,false,new Value());

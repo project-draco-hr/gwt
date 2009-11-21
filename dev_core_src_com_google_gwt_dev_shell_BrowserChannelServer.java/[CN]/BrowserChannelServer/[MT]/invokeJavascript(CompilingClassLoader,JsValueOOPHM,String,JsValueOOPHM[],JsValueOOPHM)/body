@@ -12,15 +12,15 @@
     Value returnValue=msg.getReturnValue();
     convertToJsValue(ccl,remoteObjects,returnValue,returnJsValue);
     if (msg.isException()) {
+      Object exceptionValue;
       if (returnValue.isNull() || returnValue.isUndefined()) {
-        throw ModuleSpace.createJavaScriptException(ccl,null);
+        exceptionValue=null;
       }
  else       if (returnValue.isString()) {
-        throw ModuleSpace.createJavaScriptException(ccl,returnValue.getString());
+        exceptionValue=returnValue.getString();
       }
  else       if (returnValue.isJsObject()) {
-        Object jso=JsValueGlue.createJavaScriptObject(returnJsValue,ccl);
-        throw ModuleSpace.createJavaScriptException(ccl,jso);
+        exceptionValue=JsValueGlue.createJavaScriptObject(returnJsValue,ccl);
       }
  else       if (returnValue.isJavaObject()) {
         Object object=remoteObjects.get(returnValue.getJavaObject().getRefid());
@@ -29,10 +29,15 @@
           throw (Throwable)(target);
         }
  else {
-          throw ModuleSpace.createJavaScriptException(ccl,target);
+          exceptionValue=target;
         }
       }
-      throw ModuleSpace.createJavaScriptException(ccl,returnValue.getValue().toString());
+ else {
+        exceptionValue=returnValue.getValue().toString();
+      }
+      RuntimeException exception=ModuleSpace.createJavaScriptException(ccl,exceptionValue);
+      exception.fillInStackTrace();
+      throw exception;
     }
   }
  catch (  IOException e) {
