@@ -1,0 +1,32 @@
+{
+synchronized (clientStatusesLock) {
+    userAgents.add(clientInfo.getUserAgent());
+    ClientStatus clientStatus=ensureClientStatus(clientInfo);
+    clientStatus.blockIndex=blockIndex;
+    if (isLastTestBlockAvailable && blockIndex >= testBlocks.size()) {
+      return null;
+    }
+    long startTime=System.currentTimeMillis();
+    long stopTime=startTime + timeout;
+    while (blockIndex >= testBlocks.size()) {
+      long timeToWait=stopTime - System.currentTimeMillis();
+      if (timeToWait < 1) {
+        double elapsed=(System.currentTimeMillis() - startTime) / 1000.0;
+        throw new TimeoutException("The servlet did not respond to the " + "next query to test within " + timeout + "ms.\n"+ " Client description: "+ clientInfo.getDesc()+ "\n"+ " Actual time elapsed: "+ elapsed+ " seconds.\n");
+      }
+      try {
+        clientStatusesLock.wait(timeToWait);
+      }
+ catch (      InterruptedException e) {
+        System.err.println("Unexpected thread interruption");
+        e.printStackTrace();
+        return null;
+      }
+    }
+    TestInfo[] tests=testBlocks.get(blockIndex);
+    for (    TestInfo testInfo : tests) {
+      ensureResults(testInfo).put(clientStatus,null);
+    }
+    return new TestBlock(tests,blockIndex);
+  }
+}
