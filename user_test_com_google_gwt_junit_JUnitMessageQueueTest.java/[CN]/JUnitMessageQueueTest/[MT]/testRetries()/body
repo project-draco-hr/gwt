@@ -5,12 +5,20 @@
   JUnitResult junitResult=new JUnitResult();
   junitResult.setException(new AssertionError());
   results.put(testInfo,junitResult);
-  queue.reportResults("client0","ff3",results);
+  queue.reportResults("client0","desc0","ff3",results);
   assertTrue(queue.needsRerunning(testInfo));
-  assertTrue(queue.getResults(testInfo).get("client0").getException() != null);
+  Map<ClientStatus,JUnitResult> queueResults=queue.getResults(testInfo);
+  assertEquals(1,queueResults.size());
+  for (  JUnitResult result : queueResults.values()) {
+    assertNotNull(result.getException());
+  }
   queue.removeResults(testInfo);
-  queue.reportResults("client0","ff3",createTestResults(ONE_TEST_PER_BLOCK));
-  queue.reportResults("client1","ie6",createTestResults(ONE_TEST_PER_BLOCK));
+  queue.reportResults("client0","desc0","ff3",createTestResults(ONE_TEST_PER_BLOCK));
+  queue.reportResults("client1","desc1","ie6",createTestResults(ONE_TEST_PER_BLOCK));
   assertFalse(queue.needsRerunning(testInfo));
-  assertTrue(queue.getResults(testInfo).get("client0").getException() == null);
+  queueResults=queue.getResults(testInfo);
+  assertEquals(2,queueResults.size());
+  for (  JUnitResult result : queueResults.values()) {
+    assertNull(result.getException());
+  }
 }

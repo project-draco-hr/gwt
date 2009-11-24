@@ -11,20 +11,34 @@
 {
     Map<TestInfo,JUnitResult> results=new HashMap<TestInfo,JUnitResult>();
     results.put(test0_0,result0);
-    queue.reportResults("client0","ie6",results);
+    queue.reportResults("client0","desc0","ie6",results);
   }
 {
     Map<TestInfo,JUnitResult> results=new HashMap<TestInfo,JUnitResult>();
     results.put(test0_0,result1);
-    queue.reportResults("client1","ie6",results);
+    queue.reportResults("client1","desc1","ie6",results);
   }
 {
     Map<TestInfo,JUnitResult> results=new HashMap<TestInfo,JUnitResult>();
     results.put(test0_0,result2);
-    queue.reportResults("client2","ie6",results);
+    queue.reportResults("client2","desc2","ie6",results);
   }
-  Map<String,JUnitResult> results=queue.getResults(test0_0);
-  assertEquals(result0,results.get("client0"));
-  assertEquals(result1,results.get("client1"));
-  assertEquals(result2,results.get("client2"));
+  Map<ClientStatus,JUnitResult> results=queue.getResults(test0_0);
+  assertEquals(3,results.size());
+  for (  Entry<ClientStatus,JUnitResult> entry : results.entrySet()) {
+    ClientStatus client=entry.getKey();
+    JUnitResult result=entry.getValue();
+    if ("client0".equals(client.clientId)) {
+      assertEquals(result0,result);
+    }
+ else     if ("client1".equals(client.clientId)) {
+      assertEquals(result1,result);
+    }
+ else     if ("client2".equals(client.clientId)) {
+      assertEquals(result2,result);
+    }
+ else {
+      fail("Unexpected client");
+    }
+  }
 }
