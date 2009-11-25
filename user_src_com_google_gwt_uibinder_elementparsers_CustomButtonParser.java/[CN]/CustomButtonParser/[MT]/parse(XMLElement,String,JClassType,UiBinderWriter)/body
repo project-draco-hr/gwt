@@ -1,21 +1,25 @@
 {
-  for (  XMLElement child : elem.consumeChildElements()) {
-    String ns=child.getNamespaceUri();
-    String faceName=child.getLocalName();
-    if (!ns.equals(elem.getNamespaceUri())) {
-      writer.die("In %s, invalid child namespace: %s",elem,ns);
-    }
-    if (!faceNames.contains(faceName)) {
-      writer.die("In %s, invalid CustomButton face: %s:%s",elem,ns,faceName);
-    }
-    HtmlInterpreter interpreter=HtmlInterpreter.newInterpreterForUiObject(writer,fieldName);
-    String innerHtml=child.consumeInnerHtml(interpreter);
-    if (innerHtml.length() > 0) {
-      writer.addStatement("%s.%s().setHTML(\"%s\");",fieldName,faceNameGetter(faceName),innerHtml);
-    }
-    if (child.hasAttribute("image")) {
-      String image=child.consumeImageResourceAttribute("image");
-      writer.addStatement("%s.%s().setImage(new %s(%s));",fieldName,faceNameGetter(faceName),IMAGE_CLASS,image);
+  elem.consumeChildElements(new Interpreter<Boolean>(){
+    public Boolean interpretElement(    XMLElement child) throws UnableToCompleteException {
+      String ns=child.getNamespaceUri();
+      String faceName=child.getLocalName();
+      if (!ns.equals(elem.getNamespaceUri())) {
+        writer.die("In %s, invalid child namespace: %s",elem,ns);
+      }
+      if (!faceNames.contains(faceName)) {
+        writer.die("In %s, invalid CustomButton face: %s:%s",elem,ns,faceName);
+      }
+      HtmlInterpreter interpreter=HtmlInterpreter.newInterpreterForUiObject(writer,fieldName);
+      String innerHtml=child.consumeInnerHtml(interpreter);
+      if (innerHtml.length() > 0) {
+        writer.addStatement("%s.%s().setHTML(\"%s\");",fieldName,faceNameGetter(faceName),innerHtml);
+      }
+      if (child.hasAttribute("image")) {
+        String image=child.consumeImageResourceAttribute("image");
+        writer.addStatement("%s.%s().setImage(new %s(%s));",fieldName,faceNameGetter(faceName),IMAGE_CLASS,image);
+      }
+      return true;
     }
   }
+);
 }
