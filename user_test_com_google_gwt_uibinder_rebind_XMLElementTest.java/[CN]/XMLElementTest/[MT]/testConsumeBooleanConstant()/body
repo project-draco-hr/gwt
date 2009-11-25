@@ -5,7 +5,14 @@
   assertNull(elm.consumeBooleanConstantAttribute("yes"));
   assertFalse(elm.consumeBooleanConstantAttribute("no"));
   assertNull(elm.consumeBooleanConstantAttribute("no"));
-  assertNull(elm.consumeBooleanConstantAttribute("empty"));
+  assertNull(logger.died);
+  try {
+    elm.consumeBooleanConstantAttribute("empty");
+  }
+ catch (  UnableToCompleteException c) {
+    assertNotNull(logger.died);
+  }
+  logger.died=null;
   try {
     elm.consumeBooleanConstantAttribute("ref");
     fail("Should throw UnableToCompleteException on field ref");
@@ -13,6 +20,7 @@
  catch (  UnableToCompleteException c) {
     assertNotNull(logger.died);
   }
+  logger.died=null;
   try {
     elm.consumeBooleanConstantAttribute("fnord");
     fail("Should throw UnableToCompleteException on misparse");
