@@ -12,7 +12,7 @@
   }
   ServletValidator servletValidator=null;
   File webXml=new File(options.getWarDir(),"WEB-INF/web.xml");
-  if (webXml.exists()) {
+  if (!options.isNoServer() && webXml.exists()) {
     servletValidator=ServletValidator.create(getTopLogger(),webXml);
   }
   TreeLogger branch=getTopLogger().branch(TreeLogger.TRACE,"Loading modules");
@@ -22,7 +22,9 @@
       ModuleDef module=loadModule(moduleBranch,moduleName,false);
       startupModules.put(module.getName(),module);
       Util.recursiveDelete(options.getShellBaseWorkDir(module),false);
-      validateServletTags(moduleBranch,servletValidator,module,webXml);
+      if (!options.isNoServer()) {
+        validateServletTags(moduleBranch,servletValidator,module,webXml);
+      }
       TreeLogger loadLogger=moduleBranch.branch(TreeLogger.DEBUG,"Bootstrap link for command-line module '" + moduleName + "'");
       link(loadLogger,module);
     }
