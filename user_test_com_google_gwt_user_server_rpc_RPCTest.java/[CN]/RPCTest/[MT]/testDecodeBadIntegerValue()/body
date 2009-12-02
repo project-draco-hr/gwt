@@ -1,0 +1,49 @@
+{
+  String requestBase="" + AbstractSerializationStream.SERIALIZATION_STREAM_VERSION + RPC_SEPARATOR_CHAR+ "0"+ RPC_SEPARATOR_CHAR+ "6"+ RPC_SEPARATOR_CHAR+ WrapperIF.class.getName()+ RPC_SEPARATOR_CHAR+ "method1"+ RPC_SEPARATOR_CHAR+ "moduleBaseURL"+ RPC_SEPARATOR_CHAR+ "whitelistHashcode"+ RPC_SEPARATOR_CHAR+ Wrapper.class.getName()+ RPC_SEPARATOR_CHAR+ Wrapper.class.getName()+ "/316143997"+ RPC_SEPARATOR_CHAR+ "3"+ RPC_SEPARATOR_CHAR+ "4"+ RPC_SEPARATOR_CHAR+ "1"+ RPC_SEPARATOR_CHAR+ "2"+ RPC_SEPARATOR_CHAR+ "1"+ RPC_SEPARATOR_CHAR+ "5"+ RPC_SEPARATOR_CHAR+ "6"+ RPC_SEPARATOR_CHAR;
+  String goodRequest=requestBase + "12" + RPC_SEPARATOR_CHAR+ "345"+ RPC_SEPARATOR_CHAR+ "678"+ RPC_SEPARATOR_CHAR+ "9101112"+ RPC_SEPARATOR_CHAR;
+  RPC.decodeRequest(goodRequest);
+  for (int idx=0; idx < 12; idx++) {
+    String b="12";
+    String c="345";
+    String s="678";
+    String i="9101112";
+    String message=null;
+    String badValue=null;
+switch (idx / 4) {
+case 0:
+      badValue="123456789123456789";
+    message="out-of-range";
+  break;
+case 1:
+badValue="1.25";
+message="fractional";
+break;
+case 2:
+badValue="123ABC";
+message="non-numerical";
+break;
+}
+switch (idx % 4) {
+case 0:
+b=badValue;
+break;
+case 1:
+c=badValue;
+break;
+case 2:
+s=badValue;
+break;
+case 3:
+i=badValue;
+break;
+}
+String request=requestBase + b + RPC_SEPARATOR_CHAR+ c+ RPC_SEPARATOR_CHAR+ s+ RPC_SEPARATOR_CHAR+ i+ RPC_SEPARATOR_CHAR;
+try {
+RPC.decodeRequest(request);
+fail();
+}
+ catch (IncompatibleRemoteServiceException e) {
+assertTrue(e.getMessage().contains(message));
+}
+}
+}
