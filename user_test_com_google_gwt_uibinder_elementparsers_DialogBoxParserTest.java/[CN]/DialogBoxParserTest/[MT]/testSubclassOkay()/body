@@ -1,0 +1,24 @@
+{
+  DialogBoxParser parser=new DialogBoxParser();
+  String typeName="my.MyDialogBox";
+  tester=new ElementParserTester(typeName,parser,DIALOG_SUBCLASS);
+  StringBuffer b=new StringBuffer();
+  b.append("<ui:UiBinder xmlns:ui='" + ElementParserTester.BINDER_URI + "'");
+  b.append("    xmlns:my='urn:import:my'");
+  b.append("    xmlns:g='urn:import:com.google.gwt.user.client.ui'>");
+  b.append("  <my:MyDialogBox>");
+  b.append("    <g:caption>Hello, I <b>caption</b>you.</g:caption>");
+  b.append("    <g:Label>And your little dog, too!</g:Label>");
+  b.append("  </my:MyDialogBox> ");
+  b.append("</ui:UiBinder>");
+  String[] expected={"fieldName.setHTML(\"Hello, I <b>caption</b>you.\");","fieldName.setWidget(<g:Label>);"};
+  parser.parse(tester.getElem(b.toString(),"my:MyDialogBox"),"fieldName",tester.parsedType,tester.writer);
+  FieldWriter w=tester.fieldManager.lookup("fieldName");
+  assertNull(w.getInitializer());
+  Iterator<String> i=tester.writer.statements.iterator();
+  for (  String e : expected) {
+    assertEquals(e,i.next());
+  }
+  assertFalse(i.hasNext());
+  assertNull(tester.logger.died);
+}

@@ -2,9 +2,12 @@
   this.parser=parser;
   String templatePath="TemplatePath.ui.xml";
   String implName="ImplClass";
-  CompilationState state=CompilationStateBuilder.buildFrom(createLogger(),getUiResources());
+  Set<Resource> uiResources=getUiResources();
+  uiResources.addAll(Arrays.asList(moreJava));
+  CompilationState state=CompilationStateBuilder.buildFrom(createLogger(),uiResources);
   types=state.getTypeOracle();
-  elemProvider=new XMLElementProviderImpl(new AttributeParsers(types,null,logger),new BundleAttributeParsers(types,logger,null,templatePath,null),types,logger);
+  com.google.gwt.uibinder.attributeparsers.BundleAttributeParsers bundleParsers=new com.google.gwt.uibinder.attributeparsers.BundleAttributeParsers(types,logger,null,templatePath,null);
+  elemProvider=new XMLElementProviderImpl(new AttributeParsers(types,null,logger),bundleParsers,types,logger);
   fieldManager=new FieldManager(types,logger);
   JClassType baseType=types.findType("my.Ui.BaseClass");
   MessagesWriter messages=new MessagesWriter(BINDER_URI,logger,templatePath,baseType.getPackage().getName(),implName);
