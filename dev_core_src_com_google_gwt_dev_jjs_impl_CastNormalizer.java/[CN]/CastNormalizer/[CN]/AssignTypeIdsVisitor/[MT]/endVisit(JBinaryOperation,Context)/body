@@ -1,11 +1,11 @@
 {
-  if (x.getOp() == JBinaryOperator.ASG && x.getLhs() instanceof JArrayRef) {
-    JExpression instance=((JArrayRef)x.getLhs()).getInstance();
-    if (instance.getType() instanceof JNullType) {
+  if (x.getOp().isAssignment() && x.getLhs() instanceof JArrayRef) {
+    JArrayRef lhsArrayRef=(JArrayRef)x.getLhs();
+    JType elementType=lhsArrayRef.getType();
+    if (elementType instanceof JNullType) {
       return;
     }
-    JArrayType lhsArrayType=(JArrayType)instance.getType();
-    JType elementType=lhsArrayType.getElementType();
+    JArrayType lhsArrayType=lhsArrayRef.getArrayType();
     if (!(elementType instanceof JReferenceType)) {
       return;
     }
@@ -20,7 +20,7 @@
       if (typeOracle.canTheoreticallyCast(arrayType,lhsArrayType)) {
         JType itElementType=arrayType.getElementType();
         if (itElementType instanceof JReferenceType) {
-          recordCastInternal((JReferenceType)itElementType,refRhsType);
+          recordCast(itElementType,x.getRhs());
         }
       }
     }

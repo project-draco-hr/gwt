@@ -9,11 +9,11 @@
   generator.accept(program);
   final Map<JsName,JMethod> nameToMethodMap=new HashMap<JsName,JMethod>();
   final HashMap<JsName,JField> nameToFieldMap=new HashMap<JsName,JField>();
-  final HashMap<JsName,JReferenceType> constructorNameToTypeMap=new HashMap<JsName,JReferenceType>();
+  final HashMap<JsName,JClassType> constructorNameToTypeMap=new HashMap<JsName,JClassType>();
   for (  JDeclaredType type : program.getDeclaredTypes()) {
     JsName typeName=names.get(type);
-    if (typeName != null) {
-      constructorNameToTypeMap.put(typeName,type);
+    if (type instanceof JClassType && typeName != null) {
+      constructorNameToTypeMap.put(typeName,(JClassType)type);
     }
     for (    JField field : type.getFields()) {
       if (field.isStatic()) {
@@ -35,7 +35,7 @@
     public JsName nameForMethod(    JMethod method){
       return names.get(method);
     }
-    public JsName nameForType(    JReferenceType type){
+    public JsName nameForType(    JClassType type){
       return names.get(type);
     }
     public JField nameToField(    JsName name){
@@ -44,10 +44,10 @@
     public JMethod nameToMethod(    JsName name){
       return nameToMethodMap.get(name);
     }
-    public JReferenceType nameToType(    JsName name){
+    public JClassType nameToType(    JsName name){
       return constructorNameToTypeMap.get(name);
     }
-    public JReferenceType typeForStatement(    JsStatement stat){
+    public JClassType typeForStatement(    JsStatement stat){
       return typeForStatMap.get(stat);
     }
     public JMethod vtableInitToMethod(    JsStatement stat){

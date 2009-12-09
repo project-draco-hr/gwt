@@ -11,7 +11,7 @@
     myDidChange=true;
     return;
   }
-  JClassType concreteType=getSingleConcreteType(x.getType());
+  JReferenceType concreteType=getSingleConcreteType(x.getType());
   if (concreteType != null) {
     x.setType(concreteType);
     myDidChange=true;
@@ -20,7 +20,6 @@
     return;
   }
   List<JReferenceType> typeList=new ArrayList<JReferenceType>();
-  typeList.add(typeNull);
   Set<JExpression> myReturns=returns.get(x);
   if (myReturns != null) {
     for (    JExpression expr : myReturns) {
@@ -33,7 +32,13 @@
       typeList.add((JReferenceType)method.getType());
     }
   }
-  JReferenceType resultType=program.generalizeTypes(typeList);
+  JReferenceType resultType;
+  if (typeList.isEmpty()) {
+    resultType=typeNull;
+  }
+ else {
+    resultType=program.generalizeTypes(typeList);
+  }
   resultType=program.strongerType(refType,resultType);
   if (refType != resultType) {
     x.setType(resultType);

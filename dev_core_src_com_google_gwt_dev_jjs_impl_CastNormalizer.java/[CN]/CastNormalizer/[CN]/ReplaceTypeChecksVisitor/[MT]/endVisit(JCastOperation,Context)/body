@@ -14,18 +14,18 @@
   }
  else   if (toType instanceof JReferenceType) {
     JExpression curExpr=expr;
-    JReferenceType refType=(JReferenceType)toType;
+    JReferenceType refType=program.getRunTimeType((JReferenceType)toType);
     JReferenceType argType=(JReferenceType)expr.getType();
     if (program.typeOracle.canTriviallyCast(argType,refType)) {
       replaceExpr=curExpr;
     }
  else {
       JMethod method;
-      boolean isJsoCast=program.isJavaScriptObject(toType);
+      boolean isJsoCast=program.isJavaScriptObject(refType);
       if (isJsoCast) {
         method=program.getIndexedMethod("Cast.dynamicCastJso");
       }
- else       if (program.typeOracle.getSingleJsoImpls().containsKey(toType)) {
+ else       if (program.typeOracle.isDualJsoInterface(refType)) {
         method=program.getIndexedMethod("Cast.dynamicCastAllowJso");
       }
  else {

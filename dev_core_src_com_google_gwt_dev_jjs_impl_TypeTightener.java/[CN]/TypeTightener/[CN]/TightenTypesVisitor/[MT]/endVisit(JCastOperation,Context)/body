@@ -20,14 +20,14 @@
   if (triviallyTrue) {
     ctx.replaceMe(x.getExpr());
   }
- else   if (triviallyFalse) {
+ else   if (triviallyFalse && toType != program.getTypeNull()) {
     JCastOperation newOp=new JCastOperation(x.getSourceInfo(),program.getTypeNull(),x.getExpr());
     ctx.replaceMe(newOp);
   }
  else {
-    JClassType concreteType=getSingleConcreteType(toType);
-    if (concreteType != null) {
-      JCastOperation newOp=new JCastOperation(x.getSourceInfo(),concreteType,x.getExpr());
+    JReferenceType tighterType=getSingleConcreteType(toType);
+    if (tighterType != null && tighterType != toType) {
+      JCastOperation newOp=new JCastOperation(x.getSourceInfo(),tighterType,x.getExpr());
       ctx.replaceMe(newOp);
     }
   }

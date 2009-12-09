@@ -19,14 +19,14 @@
       myDidChange=true;
     }
   }
-  JClassType leafType=getSingleConcreteType(refType);
+  JReferenceType leafType=getSingleConcreteType(refType);
   if (leafType != null) {
     x.setType(leafType);
     myDidChange=true;
     return;
   }
   List<JReferenceType> typeList=new ArrayList<JReferenceType>();
-  if (!(x instanceof JParameter)) {
+  if ((x instanceof JField) && !x.hasInitializer()) {
     typeList.add(typeNull);
   }
   Set<JExpression> myAssignments=assignments.get(x);
@@ -47,11 +47,19 @@
       }
     }
   }
-  if (typeList.isEmpty()) {
-    return;
+  JReferenceType resultType;
+  if (!typeList.isEmpty()) {
+    resultType=program.generalizeTypes(typeList);
+    resultType=program.strongerType(refType,resultType);
   }
-  JReferenceType resultType=program.generalizeTypes(typeList);
-  resultType=program.strongerType(refType,resultType);
+ else {
+    if (x instanceof JParameter) {
+      resultType=refType;
+    }
+ else {
+      resultType=typeNull;
+    }
+  }
   if (refType != resultType) {
     x.setType(resultType);
     myDidChange=true;

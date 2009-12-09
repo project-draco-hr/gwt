@@ -1,17 +1,23 @@
 {
-  if (program.isJavaScriptObject(type)) {
-    return program.getJavaScriptObject();
+  if (!(type instanceof JReferenceType)) {
+    return type;
   }
- else   if (jsoSingleImpls.containsKey(type) && !dualImpls.contains(type)) {
-    return program.getJavaScriptObject();
+  JReferenceType refType=(JReferenceType)type;
+  boolean canBeNull=refType.canBeNull();
+  refType=refType.getUnderlyingType();
+  if (program.isJavaScriptObject(refType)) {
+    refType=program.getJavaScriptObject();
   }
- else   if (type instanceof JArrayType) {
-    JArrayType arrayType=(JArrayType)type;
+ else   if (program.typeOracle.getSingleJsoImpl(refType) != null && !program.typeOracle.isDualJsoInterface(refType)) {
+    refType=program.getJavaScriptObject();
+  }
+ else   if (refType instanceof JArrayType) {
+    JArrayType arrayType=(JArrayType)refType;
     JType leafType=arrayType.getLeafType();
     JType replacement=translate(leafType);
     if (leafType != replacement) {
-      return program.getTypeArray(replacement,arrayType.getDims());
+      refType=program.getTypeArray(replacement,arrayType.getDims());
     }
   }
-  return type;
+  return canBeNull ? refType : program.getNonNullType(refType);
 }

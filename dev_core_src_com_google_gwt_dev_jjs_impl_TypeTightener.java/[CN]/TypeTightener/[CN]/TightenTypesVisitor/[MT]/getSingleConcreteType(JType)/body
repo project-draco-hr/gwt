@@ -2,9 +2,12 @@
   if (type instanceof JReferenceType) {
     JReferenceType refType=(JReferenceType)type;
     if (refType.isAbstract()) {
-      JClassType singleConcrete=getSingleConcrete((JReferenceType)type,implementors);
+      JClassType singleConcrete=getSingleConcrete(refType.getUnderlyingType(),implementors);
       assert(singleConcrete == null || program.typeOracle.isInstantiatedType(singleConcrete));
-      return singleConcrete;
+      if (singleConcrete == null) {
+        return null;
+      }
+      return refType.canBeNull() ? singleConcrete : program.getNonNullType(singleConcrete);
     }
   }
   return null;

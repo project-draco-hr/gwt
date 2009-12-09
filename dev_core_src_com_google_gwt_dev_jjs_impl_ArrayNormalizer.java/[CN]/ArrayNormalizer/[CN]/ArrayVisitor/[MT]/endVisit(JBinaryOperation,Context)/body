@@ -1,13 +1,12 @@
 {
   if (x.getOp() == JBinaryOperator.ASG && x.getLhs() instanceof JArrayRef) {
     JArrayRef arrayRef=(JArrayRef)x.getLhs();
-    if (arrayRef.getType() instanceof JNullType) {
+    JType elementType=arrayRef.getType();
+    if (elementType instanceof JNullType) {
       return;
     }
-    JArrayType arrayType=(JArrayType)arrayRef.getInstance().getType();
-    JType elementType=arrayType.getElementType();
     if (elementType instanceof JReferenceType) {
-      if (!((JReferenceType)elementType).isFinal() || elementType != x.getRhs().getType()) {
+      if (!((JReferenceType)elementType).isFinal() || !program.typeOracle.canTriviallyCast((JReferenceType)x.getRhs().getType(),(JReferenceType)elementType)) {
         JMethodCall call=new JMethodCall(x.getSourceInfo(),null,setCheckMethod);
         call.addArgs(arrayRef.getInstance(),arrayRef.getIndexExpr(),x.getRhs());
         ctx.replaceMe(call);
