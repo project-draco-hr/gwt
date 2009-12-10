@@ -1,0 +1,29 @@
+{
+  PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
+  logger.setMaxDetail(TreeLogger.WARN);
+  int port=options.getPort();
+  try {
+    ServletContainer scl=new JettyLauncher().start(logger,port,warFile);
+    port=scl.getPort();
+  }
+ catch (  Exception e) {
+    System.err.println("Unable to start Jetty server");
+    e.printStackTrace();
+    return;
+  }
+  if (options.getStartupURLs().isEmpty()) {
+    options.addStartupURL("/");
+  }
+  for (  String startupUrl : options.getStartupURLs()) {
+    startupUrl=DevModeBase.normalizeURL(startupUrl,port,"localhost");
+    try {
+      BrowserLauncher.browse(startupUrl);
+    }
+ catch (    IOException e) {
+      System.err.println("Unable to start " + startupUrl);
+    }
+catch (    URISyntaxException e) {
+      System.err.println(startupUrl + " is not a valid URL");
+    }
+  }
+}
