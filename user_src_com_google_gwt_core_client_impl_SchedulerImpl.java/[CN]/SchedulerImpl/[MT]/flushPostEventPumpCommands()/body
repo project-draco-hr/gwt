@@ -1,6 +1,13 @@
 {
-  JsArray<Task> oldDeferred=deferredCommands;
-  deferredCommands=JavaScriptObject.createArray().cast();
-  runScheduledTasks(oldDeferred,incrementalCommands);
-  incrementalCommands=runRepeatingTasks(incrementalCommands);
+  if (deferredCommands != null) {
+    JsArray<Task> oldDeferred=deferredCommands;
+    deferredCommands=null;
+    if (incrementalCommands == null) {
+      incrementalCommands=createQueue();
+    }
+    runScheduledTasks(oldDeferred,incrementalCommands);
+  }
+  if (incrementalCommands != null) {
+    incrementalCommands=runRepeatingTasks(incrementalCommands);
+  }
 }

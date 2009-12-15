@@ -1,5 +1,12 @@
 {
-  JsArray<Task> oldFinally=finallyCommands;
-  finallyCommands=JavaScriptObject.createArray().cast();
-  runScheduledTasks(oldFinally,finallyCommands);
+  if (finallyCommands != null) {
+    JsArray<Task> rescheduled=null;
+    do {
+      JsArray<Task> oldQueue=finallyCommands;
+      finallyCommands=null;
+      rescheduled=runScheduledTasks(oldQueue,rescheduled);
+    }
+ while (finallyCommands != null);
+    finallyCommands=rescheduled;
+  }
 }

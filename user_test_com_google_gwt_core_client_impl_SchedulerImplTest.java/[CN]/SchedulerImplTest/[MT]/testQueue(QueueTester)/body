@@ -1,0 +1,26 @@
+{
+  boolean[] oneShotValues={false};
+  final boolean[] chainedValues={false};
+  int[] counterValues={0,2};
+  impl.schedule(new ArraySetterCommand(oneShotValues));
+  impl.schedule(new CountingCommand(counterValues));
+  impl.schedule(new ScheduledCommand(){
+    public void execute(){
+      impl.schedule(new ArraySetterCommand(chainedValues));
+    }
+  }
+);
+  assertEquals(3,impl.queue().length());
+  ScheduledCommand nullCommand=new NullCommand();
+  impl.schedule(nullCommand);
+  assertEquals(4,impl.queue().length());
+  assertSame(nullCommand,impl.queue().get(3).getScheduled());
+  impl.flush();
+  assertTrue(chainedValues[0]);
+  assertEquals(1,counterValues[0]);
+  assertEquals(1,impl.queue().length());
+  impl.flush();
+  assertEquals(2,counterValues[0]);
+  assertTrue(oneShotValues[0]);
+  assertNull(impl.queue());
+}
