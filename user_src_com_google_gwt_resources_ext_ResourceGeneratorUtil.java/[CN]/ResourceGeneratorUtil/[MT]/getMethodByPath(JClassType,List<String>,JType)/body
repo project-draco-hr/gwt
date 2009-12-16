@@ -1,0 +1,49 @@
+{
+  if (pathElements.isEmpty()) {
+    throw new NotFoundException("No path specified");
+  }
+  JMethod currentMethod=null;
+  JType currentType=rootType;
+  for (  String pathElement : pathElements) {
+    JClassType referenceType=currentType.isClassOrInterface();
+    if (referenceType == null) {
+      throw new NotFoundException("Cannot resolve member " + pathElement + " on type "+ currentType.getQualifiedSourceName());
+    }
+    currentMethod=null;
+    searchType:     for (    JClassType searchType : referenceType.getFlattenedSupertypeHierarchy()) {
+      for (      JMethod method : searchType.getOverloads(pathElement)) {
+        if (method.getParameters().length == 0) {
+          currentMethod=method;
+          break searchType;
+        }
+      }
+    }
+    if (currentMethod == null) {
+      throw new NotFoundException("Could not find no-arg method named " + pathElement + " in type "+ currentType.getQualifiedSourceName());
+    }
+    currentType=currentMethod.getReturnType();
+  }
+  if (expectedReturnType != null) {
+    JPrimitiveType expectedIsPrimitive=expectedReturnType.isPrimitive();
+    JClassType expectedIsClassType=expectedReturnType.isClassOrInterface();
+    boolean error=false;
+    if (expectedIsPrimitive != null) {
+      if (!expectedIsPrimitive.equals(currentMethod.getReturnType())) {
+        error=true;
+      }
+    }
+ else {
+      JClassType returnIsClassType=currentMethod.getReturnType().isClassOrInterface();
+      if (returnIsClassType == null) {
+        error=true;
+      }
+ else       if (!expectedIsClassType.isAssignableFrom(returnIsClassType)) {
+        error=true;
+      }
+    }
+    if (error) {
+      throw new NotFoundException("Expecting return type " + expectedReturnType.getQualifiedSourceName() + " found "+ currentMethod.getReturnType().getQualifiedSourceName());
+    }
+  }
+  return currentMethod;
+}

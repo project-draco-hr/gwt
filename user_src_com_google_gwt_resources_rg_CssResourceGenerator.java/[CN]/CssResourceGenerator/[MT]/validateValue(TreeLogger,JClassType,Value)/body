@@ -8,28 +8,12 @@
   }
   DotPathValue dot=value.isDotPathValue();
   if (dot != null) {
-    String[] elements=dot.getPath().split("\\.");
-    if (elements.length == 0) {
-      logger.log(TreeLogger.ERROR,"value() functions must specify a path");
+    try {
+      ResourceGeneratorUtil.getMethodByPath(resourceBundleType,dot.getParts(),null);
+    }
+ catch (    NotFoundException e) {
+      logger.log(TreeLogger.ERROR,e.getMessage());
       throw new UnableToCompleteException();
     }
-    JType currentType=resourceBundleType;
-    for (Iterator<String> i=Arrays.asList(elements).iterator(); i.hasNext(); ) {
-      String pathElement=i.next();
-      JClassType referenceType=currentType.isClassOrInterface();
-      if (referenceType == null) {
-        logger.log(TreeLogger.ERROR,"Cannot resolve member " + pathElement + " on non-reference type "+ currentType.getQualifiedSourceName());
-        throw new UnableToCompleteException();
-      }
-      try {
-        JMethod m=referenceType.getMethod(pathElement,new JType[0]);
-        currentType=m.getReturnType();
-      }
- catch (      NotFoundException e) {
-        logger.log(TreeLogger.ERROR,"Could not find no-arg method named " + pathElement + " in type "+ currentType.getQualifiedSourceName());
-        throw new UnableToCompleteException();
-      }
-    }
-    return;
   }
 }
