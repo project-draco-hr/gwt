@@ -29,6 +29,20 @@
   Cookies.removeCookie("test1+test1");
   cookies=Cookies.getCookieNames();
   assertEquals(curCount,cookies.size());
+  Cookies.setUriEncode(true);
+  Cookies.setCookie("test1.,/?:@&=+$#","value1");
+  assertEquals(curCount + 1,Cookies.getCookieNames().size());
+  Cookies.setUriEncode(false);
+  Cookies.removeCookie("test1.,/?:@&=+$#");
+  assertEquals(curCount + 1,Cookies.getCookieNames().size());
+  Cookies.setUriEncode(true);
+  Cookies.removeCookie("test1.,/?:@&=+$#");
+  assertEquals(curCount,Cookies.getCookieNames().size());
+  Cookies.setUriEncode(true);
+  Cookies.setCookie("testencodedvalue","value1,/?:@&=+$#");
+  Cookies.setUriEncode(false);
+  String encodedValue=Cookies.getCookie("testencodedvalue");
+  assertTrue(encodedValue.compareTo("value1%2C%2F%3F%3A%40%26%3D%2B%24%23") == 0);
   try {
     Cookies.setCookie("test1=test1","value1");
     fail("Should have thrown an IllegalArgumentException for bad cookie format.");
