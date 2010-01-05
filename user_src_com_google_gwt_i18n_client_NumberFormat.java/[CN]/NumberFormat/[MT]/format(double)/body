@@ -1,26 +1,26 @@
 {
+  StringBuffer result=new StringBuffer();
   if (Double.isNaN(number)) {
-    return numberConstants.notANumber();
+    result.append(numberConstants.notANumber());
+    return result.toString();
   }
   boolean isNegative=((number < 0.0) || (number == 0.0 && 1 / number < 0.0));
-  if (isNegative) {
-    number=-number;
-  }
-  StringBuilder buf=new StringBuilder();
+  result.append(isNegative ? negativePrefix : positivePrefix);
   if (Double.isInfinite(number)) {
-    buf.append(isNegative ? negativePrefix : positivePrefix);
-    buf.append(numberConstants.infinity());
-    buf.append(isNegative ? negativeSuffix : positiveSuffix);
-    return buf.toString();
+    result.append(numberConstants.infinity());
   }
-  number*=multiplier;
-  int scale=toScaledString(buf,number);
-  int preRound=buf.length() + scale + maximumFractionDigits+ 3;
-  if (preRound > 0 && preRound < buf.length() && buf.charAt(preRound) == '9') {
-    propagateCarry(buf,preRound - 1);
-    scale+=buf.length() - preRound;
-    buf.delete(preRound,buf.length());
+ else {
+    if (isNegative) {
+      number=-number;
+    }
+    number*=multiplier;
+    if (useExponentialNotation) {
+      subformatExponential(number,result);
+    }
+ else {
+      subformatFixed(number,result,minimumIntegerDigits);
+    }
   }
-  format(isNegative,buf,scale);
-  return buf.toString();
+  result.append(isNegative ? negativeSuffix : positiveSuffix);
+  return result.toString();
 }

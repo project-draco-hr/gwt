@@ -1,0 +1,58 @@
+{
+  double power=Math.pow(10,maximumFractionDigits);
+  String fixedString=toFixed(number,maximumFractionDigits + 3);
+  double intValue=0, fracValue=0;
+  int exponentIndex=fixedString.indexOf('e');
+  if (exponentIndex != -1) {
+    intValue=Math.floor(number);
+  }
+ else {
+    int decimalIndex=fixedString.indexOf('.');
+    int len=fixedString.length();
+    if (decimalIndex == -1) {
+      decimalIndex=len;
+    }
+    if (decimalIndex > 0) {
+      intValue=Double.parseDouble(fixedString.substring(0,decimalIndex));
+    }
+    if (decimalIndex < len - 1) {
+      fracValue=Double.parseDouble(fixedString.substring(decimalIndex + 1));
+      fracValue=(((int)fracValue) + 500) / 1000;
+      if (fracValue >= power) {
+        fracValue-=power;
+        intValue++;
+      }
+    }
+  }
+  boolean fractionPresent=(minimumFractionDigits > 0) || (fracValue > 0);
+  String intPart=makeIntString(intValue);
+  String grouping=isCurrencyFormat ? numberConstants.monetaryGroupingSeparator() : numberConstants.groupingSeparator();
+  String decimal=isCurrencyFormat ? numberConstants.monetarySeparator() : numberConstants.decimalSeparator();
+  int zeroDelta=numberConstants.zeroDigit().charAt(0) - '0';
+  int digitLen=intPart.length();
+  if (intValue > 0 || minIntDigits > 0) {
+    for (int i=digitLen; i < minIntDigits; i++) {
+      result.append(numberConstants.zeroDigit());
+    }
+    for (int i=0; i < digitLen; i++) {
+      result.append((char)(intPart.charAt(i) + zeroDelta));
+      if (digitLen - i > 1 && groupingSize > 0 && ((digitLen - i) % groupingSize == 1)) {
+        result.append(grouping);
+      }
+    }
+  }
+ else   if (!fractionPresent) {
+    result.append(numberConstants.zeroDigit());
+  }
+  if (decimalSeparatorAlwaysShown || fractionPresent) {
+    result.append(decimal);
+  }
+  String fracPart=makeIntString(Math.floor(fracValue + power + 0.5d));
+  int fracLen=fracPart.length();
+  while (fracPart.charAt(fracLen - 1) == '0' && fracLen > minimumFractionDigits + 1) {
+    fracLen--;
+  }
+  for (int i=1; i < fracLen; i++) {
+    result.append((char)(fracPart.charAt(i) + zeroDelta));
+  }
+}
