@@ -1,11 +1,13 @@
 {
-  String uid=Document.get().createUniqueId();
-  HTML formAndFrame=new HTML("<form id='" + uid + "' method='post' target='targetFrame' action='"+ GWT.getModuleBaseURL()+ "formHandler?sendHappyHtml'>"+ "<input type='submit' id='submitBtn'></input></form>"+ "<iframe src='javascript:\'\'' id='targetMe' name='targetFrame'></iframe>");
-  RootPanel.get().add(formAndFrame);
-  FormPanel form=FormPanel.wrap(Document.get().getElementById(uid));
-  assertEquals("targetFrame",form.getTarget());
+  String iframeId=Document.get().createUniqueId();
+  String iframeName=Document.get().createUniqueId();
+  final Element container=Document.get().createDivElement();
+  container.setInnerHTML("<form method='post' target='" + iframeName + "' action='"+ GWT.getModuleBaseURL()+ "formHandler?sendHappyHtml'>"+ "<input type='submit' id='submitBtn'></input></form>"+ "<iframe src=\"javascript:\'\'\" id='"+ iframeId+ "' "+ "name='"+ iframeName+ "'></iframe>");
+  Document.get().getBody().appendChild(container);
+  FormPanel form=FormPanel.wrap(container.getFirstChildElement());
+  assertEquals(iframeName,form.getTarget());
   assertNull(form.getSynthesizedIFrame());
-  delayTestFinish(5000);
+  delayTestFinish(TEST_DELAY);
   form.addSubmitHandler(new SubmitHandler(){
     public void onSubmit(    SubmitEvent event){
       finishTest();
