@@ -3,6 +3,12 @@
     memberById=new ArrayList<Member>();
     memberById.add(null);
     memberIdByName=new HashMap<String,Integer>();
-    lazyInitTargetMembersUsingReflectionHelper(cls,true);
+    LinkedHashMap<String,LinkedHashMap<String,Member>> members=findMostDerivedMembers(cls,true);
+    for (    Entry<String,LinkedHashMap<String,Member>> entry : members.entrySet()) {
+      String name=entry.getKey();
+      List<Member> membersForName=new ArrayList<Member>(entry.getValue().values());
+      addMemberIfUnique(name,membersForName);
+      addMemberIfUnique(name,filterOutSyntheticMembers(membersForName));
+    }
   }
 }

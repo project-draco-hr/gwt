@@ -14,6 +14,7 @@
     assertEquals("someMeth()",ref.memberSignature());
     assertTrue(ref.isMethod());
     assertFalse(ref.isField());
+    assertFalse(ref.matchesAnyOverload());
     assertEquals(0,ref.paramTypes().length);
   }
 {
@@ -22,6 +23,7 @@
     assertEquals("someMeth",ref.memberName());
     assertEquals("someMeth([[ZBCDFIJLjava/lang/String;S)",ref.memberSignature());
     assertTrue(ref.isMethod());
+    assertFalse(ref.matchesAnyOverload());
     assertEquals(9,ref.paramTypes().length);
     assertEquals("[[Z",ref.paramTypes()[0]);
     assertEquals("B",ref.paramTypes()[1]);
@@ -32,6 +34,17 @@
     assertEquals("J",ref.paramTypes()[6]);
     assertEquals("Ljava/lang/String;",ref.paramTypes()[7]);
     assertEquals("S",ref.paramTypes()[8]);
+  }
+{
+    JsniRef ref=JsniRef.parse("@some.package.SomeClass::someMeth(*)");
+    assertEquals("some.package.SomeClass",ref.className());
+    assertEquals("someMeth",ref.memberName());
+    assertTrue(ref.isMethod());
+    assertTrue(ref.matchesAnyOverload());
+  }
+{
+    assertNull(JsniRef.parse("@some.package.SomeClass::someMeth(*"));
+    assertNull(JsniRef.parse("@some.package.SomeClass::someMeth(I*)"));
   }
 {
     JsniRef ref=JsniRef.parse("some.package.SomeClass::someField");

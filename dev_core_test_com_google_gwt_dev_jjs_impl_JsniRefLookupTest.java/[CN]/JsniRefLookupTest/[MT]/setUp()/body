@@ -1,0 +1,78 @@
+{
+  sourceOracle.addOrReplace(new MockJavaResource("test.Intf"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("public interface Intf {\n");
+      code.append("  public int addTwoOverloaded(int x);\n");
+      code.append("  public int addOne(int x);\n");
+      code.append("  public int foo(int x);\n");
+      code.append("  public double foo(double x);\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  sourceOracle.addOrReplace(new MockJavaResource("test.Foo"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("public class Foo implements Intf {\n");
+      code.append("  public Foo() { }\n");
+      code.append("  public Foo(int x) { }\n");
+      code.append("  public static int intStatic;\n");
+      code.append("  public int intInstance;\n");
+      code.append("  public int addOne(int x) { return x+1; }\n");
+      code.append("  public int addTwoOverloaded(int x) { return x+2; }\n");
+      code.append("  public double addTwoOverloaded(double x) { return x+2; }\n");
+      code.append("  public int foo(int x) { return x+1; }\n");
+      code.append("  public double foo(double x) { return x+1; }\n");
+      code.append("  public int bar(int x) { return x+1; }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  sourceOracle.addOrReplace(new MockJavaResource("test.Bar"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("public class Bar extends Foo {\n");
+      code.append("  public Bar() { }\n");
+      code.append("  public int foo(int x) { return x+1; }\n");
+      code.append("  public int bar(int x) { return x+1; }\n");
+      code.append("  public double bar(double x) { return x+1; }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  sourceOracle.addOrReplace(new MockJavaResource("test.GenericClass"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("public abstract class GenericClass<T> {\n");
+      code.append("  abstract void set(T x);\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  sourceOracle.addOrReplace(new MockJavaResource("test.ClassWithBridge"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("class ClassWithBridge extends GenericClass<String> {\n");
+      code.append("  void set(String x) { }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  try {
+    program=compileSnippet("void","new test.Foo(); new test.Bar(); new ClassWithBridge();");
+  }
+ catch (  UnableToCompleteException e) {
+    throw new RuntimeException(e);
+  }
+}

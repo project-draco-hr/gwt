@@ -1,0 +1,37 @@
+{
+@SuppressWarnings("unused") class Super {
+    int field;
+    void bar(    int x){
+    }
+    void foo(    double x){
+    }
+    void foo(    int x){
+    }
+    void nonover(    int x){
+    }
+    void over(    double x){
+    }
+    void over(    int x){
+    }
+  }
+@SuppressWarnings("unused") class Sub extends Super {
+    void bar(    double x){
+    }
+    @Override void bar(    int x){
+    }
+    @Override void foo(    int x){
+    }
+  }
+  DispatchClassInfo dci=new DispatchClassInfo(Sub.class,42);
+  assertField(dci,"field","field");
+  assertMethod(dci,"foo(I)",Sub.class,"foo",Integer.TYPE);
+  assertMethod(dci,"bar(I)",Sub.class,"bar",Integer.TYPE);
+  assertMethod(dci,"bar(D)",Sub.class,"bar",Double.TYPE);
+  assertNonExistent(dci,"foo(*)");
+  assertNonExistent(dci,"bar(*)");
+  assertMethod(dci,"nonover(I)",Super.class,"nonover",Integer.TYPE);
+  assertMethod(dci,"nonover(*)",Super.class,"nonover",Integer.TYPE);
+  assertMethod(dci,"over(I)",Super.class,"over",Integer.TYPE);
+  assertMethod(dci,"over(D)",Super.class,"over",Double.TYPE);
+  assertNonExistent(dci,"over(*)");
+}

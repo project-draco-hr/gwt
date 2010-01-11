@@ -1,0 +1,24 @@
+{
+  if (targetType instanceof JClassType) {
+    JClassType targetClass=(JClassType)targetType;
+    if (targetClass.getSuperClass() != null) {
+      findMostDerivedMembers(matchesBySig,targetClass.getSuperClass(),memberName,false);
+    }
+  }
+  for (  JDeclaredType intf : targetType.getImplements()) {
+    findMostDerivedMembers(matchesBySig,intf,memberName,false);
+  }
+  for (  JMethod method : targetType.getMethods()) {
+    if (method.getName().equals(memberName)) {
+      if (addConstructors || !method.getName().equals(JsniRef.NEW)) {
+        addMember(matchesBySig,method,getJsniSignature(method,false));
+        addMember(matchesBySig,method,getJsniSignature(method,true));
+      }
+    }
+  }
+  for (  JField field : targetType.getFields()) {
+    if (field.getName().equals(memberName)) {
+      addMember(matchesBySig,field,field.getName());
+    }
+  }
+}

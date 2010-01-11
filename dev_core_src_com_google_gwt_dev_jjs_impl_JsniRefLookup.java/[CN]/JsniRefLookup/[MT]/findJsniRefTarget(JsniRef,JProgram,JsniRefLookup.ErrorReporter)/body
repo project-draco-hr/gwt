@@ -15,7 +15,7 @@
         return program.getNullField();
       }
     }
- else     if (fieldName.equals("class")) {
+ else     if (fieldName.equals(JsniRef.CLASS)) {
       JClassLiteral lit=program.getLiteralClass(type);
       return lit.getField();
     }
@@ -42,7 +42,7 @@
     return null;
   }
  else {
-    TreeSet<String> almostMatches=new TreeSet<String>();
+    LinkedHashMap<String,LinkedHashMap<String,HasEnclosingType>> matchesBySig=new LinkedHashMap<String,LinkedHashMap<String,HasEnclosingType>>();
     String methodName=ref.memberName();
     String jsniSig=ref.memberSignature();
     if (type == null) {
@@ -51,38 +51,31 @@
       }
     }
  else {
-      Queue<JDeclaredType> workList=new LinkedList<JDeclaredType>();
-      workList.add((JDeclaredType)type);
-      while (!workList.isEmpty()) {
-        JDeclaredType cur=workList.poll();
-        for (        JMethod method : cur.getMethods()) {
-          if (method.getName().equals(methodName)) {
-            String sig=JProgram.getJsniSig(method);
-            if (sig.equals(jsniSig)) {
-              return method;
-            }
- else             if (sig.startsWith(jsniSig) && jsniSig.endsWith(")")) {
-              return method;
-            }
- else {
-              almostMatches.add(sig);
-            }
-          }
-        }
-        if (cur.getSuperClass() != null) {
-          workList.add(cur.getSuperClass());
-        }
-        workList.addAll(cur.getImplements());
+      findMostDerivedMembers(matchesBySig,(JDeclaredType)type,ref.memberName(),true);
+      LinkedHashMap<String,HasEnclosingType> matches=matchesBySig.get(jsniSig);
+      if (matches != null && matches.size() == 1) {
+        return matches.values().iterator().next();
+      }
+      removeSyntheticMembers(matchesBySig);
+      matches=matchesBySig.get(jsniSig);
+      if (matches != null && matches.size() == 1) {
+        return matches.values().iterator().next();
       }
     }
-    if (almostMatches.isEmpty()) {
+    if (matchesBySig.isEmpty()) {
       errorReporter.reportError("Unresolvable native reference to method '" + methodName + "' in type '"+ className+ "'");
       return null;
     }
  else {
       StringBuilder suggestList=new StringBuilder();
       String comma="";
-      for (      String almost : almostMatches) {
+      TreeSet<String> almostMatchSigs=new TreeSet<String>();
+      for (      String sig : matchesBySig.keySet()) {
+        if (matchesBySig.get(sig).size() == 1) {
+          almostMatchSigs.add(sig);
+        }
+      }
+      for (      String almost : almostMatchSigs) {
         suggestList.append(comma + "'" + almost+ "'");
         comma=", ";
       }
