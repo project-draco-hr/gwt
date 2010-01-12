@@ -15,9 +15,10 @@
   JSORestrictionsChecker.check(jsoState,cud);
   ArtificialRescueChecker.check(cud,builder.isGenerated());
   BinaryTypeReferenceRestrictionsChecker.check(cud);
+  MethodArgNamesLookup methodArgs=MethodParamCollector.collect(cud);
   CompilationUnitInvalidator.reportErrors(logger,cud,builder.getSource());
   Set<ContentId> dependencies=compiler.computeDependencies(cud,jsniDeps);
-  CompilationUnit unit=builder.build(compiledClasses,dependencies,jsniMethods.values(),cud.compilationResult().getProblems());
+  CompilationUnit unit=builder.build(compiledClasses,dependencies,jsniMethods.values(),methodArgs,cud.compilationResult().getProblems());
   if (cud.compilationResult().hasErrors()) {
     unit=new ErrorCompilationUnit(unit);
   }

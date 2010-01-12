@@ -1,0 +1,24 @@
+{
+  AbstractMethodDeclaration[] methods=typeDecl.methods;
+  if (methods == null) {
+    return;
+  }
+  String enclosingType=null;
+  String loc=null;
+  boolean lazyInitialized=false;
+  for (  AbstractMethodDeclaration method : methods) {
+    if (!interestingMethod(method)) {
+      continue;
+    }
+    if (!lazyInitialized) {
+      char[] constantPoolName=typeDecl.binding.constantPoolName();
+      if (constantPoolName == null) {
+        return;
+      }
+      enclosingType=InternalName.toBinaryName(String.valueOf(constantPoolName));
+      loc=String.valueOf(cud.getFileName());
+      lazyInitialized=true;
+    }
+    processMethod(typeDecl,method,enclosingType,loc);
+  }
+}

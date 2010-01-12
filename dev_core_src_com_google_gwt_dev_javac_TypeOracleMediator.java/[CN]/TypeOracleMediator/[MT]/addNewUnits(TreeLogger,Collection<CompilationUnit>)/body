@@ -14,6 +14,7 @@
     }
   }
   classMapType=new HashMap<JRealClassType,CollectClassData>();
+  allMethodArgs=new MethodArgNamesLookup();
   Set<JRealClassType> unresolvedTypes=new HashSet<JRealClassType>();
   for (  CompilationUnit unit : units) {
     if (!unit.isCompiled()) {
@@ -28,11 +29,7 @@
       }
       JRealClassType type=createType(compiledClass,unresolvedTypes);
       if (type != null) {
-        if (unit instanceof SourceFileCompilationUnit) {
-          SourceFileCompilationUnit sourceUnit=(SourceFileCompilationUnit)unit;
-          Resource sourceFile=sourceUnit.getSourceFile();
-          typeOracle.addSourceReference(type,sourceFile);
-        }
+        allMethodArgs.mergeFrom(unit.getMethodArgs());
         binaryMapper.put(internalName,type);
         classMapType.put(type,cv);
       }
@@ -51,6 +48,7 @@
     }
   }
   typeOracle.finish();
+  allMethodArgs=null;
   classMap=null;
   classMapType=null;
   PerfLogger.end();

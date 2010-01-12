@@ -9,6 +9,15 @@
   if (argTypes.length != params.size()) {
     throw new IllegalStateException("Arg count mismatch between method descriptor (" + methodData.getDesc() + ") and signature ("+ methodData.getSignature()+ ")");
   }
+  String[] names=argNames;
+  boolean namesAreReal=argNamesAreReal;
+  if (!namesAreReal) {
+    String[] lookupArgNames=allMethodArgs.lookup(method,methodData);
+    if (lookupArgNames != null) {
+      names=lookupArgNames;
+      namesAreReal=true;
+    }
+  }
   for (int i=0; i < argTypes.length; ++i) {
     JType argType=params.get(i)[0];
     if (argType == null) {
@@ -17,7 +26,7 @@
     }
     Map<Class<? extends Annotation>,Annotation> declaredAnnotations=new HashMap<Class<? extends Annotation>,Annotation>();
     resolver.resolveAnnotations(logger,argAnnotations[i],declaredAnnotations);
-    new JParameter(method,argType,argNames[i],declaredAnnotations,argNamesAreReal);
+    new JParameter(method,argType,names[i],declaredAnnotations,namesAreReal);
   }
   for (  JType[] exc : exceptions) {
     if (exc[0] == null) {

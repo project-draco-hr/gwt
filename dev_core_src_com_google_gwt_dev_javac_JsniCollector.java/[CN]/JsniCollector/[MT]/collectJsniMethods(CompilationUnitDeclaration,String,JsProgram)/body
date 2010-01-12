@@ -1,16 +1,5 @@
 {
-  final Map<AbstractMethodDeclaration,JsniMethod> jsniMethods=new IdentityHashMap<AbstractMethodDeclaration,JsniMethod>();
-  cud.traverse(new ASTVisitor(){
-    @Override public void endVisit(    TypeDeclaration type,    BlockScope scope){
-      collectJsniMethods(cud,type,source,program,jsniMethods);
-    }
-    @Override public void endVisit(    TypeDeclaration type,    ClassScope scope){
-      collectJsniMethods(cud,type,source,program,jsniMethods);
-    }
-    @Override public void endVisit(    TypeDeclaration type,    CompilationUnitScope scope){
-      collectJsniMethods(cud,type,source,program,jsniMethods);
-    }
-  }
-,cud.scope);
+  Map<AbstractMethodDeclaration,JsniMethod> jsniMethods=new IdentityHashMap<AbstractMethodDeclaration,JsniMethod>();
+  new Visitor(source,program,jsniMethods).collect(cud);
   return IdentityMaps.normalizeUnmodifiable(jsniMethods);
 }
