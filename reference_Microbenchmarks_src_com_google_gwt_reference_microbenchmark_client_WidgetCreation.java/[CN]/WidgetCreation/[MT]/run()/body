@@ -1,21 +1,24 @@
 {
-  RootPanel r=RootPanel.get();
+  RootPanel root=RootPanel.get();
   Widget[] widgets=new Widget[getInstances()];
   grid.resizeColumns(grid.getColumnCount() + 1);
   int row=1;
+  double allTimes=0;
   for (  Maker maker : makers) {
     log(maker.name);
     double start=Duration.currentTimeMillis();
     for (int i=0; i < getInstances(); ++i) {
       widgets[i]=maker.make();
-      r.add(widgets[i]);
+      root.add(widgets[i]);
     }
     Document.get().getBody().getOffsetTop();
     double thisTime=Duration.currentTimeMillis() - start;
     record(row,thisTime);
+    allTimes+=thisTime;
     for (int i=0; i < getInstances(); ++i) {
-      r.remove(widgets[i]);
+      root.remove(widgets[i]);
     }
     row++;
   }
+  grid.setText(row,grid.getColumnCount() - 1,Util.format(allTimes));
 }
