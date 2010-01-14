@@ -1,24 +1,23 @@
 {
 class TextBoxEvents extends HandlesAllKeyEvents implements ValueChangeHandler<String> {
     public void onKeyDown(    KeyDownEvent event){
-      if (suggestionPopup.isAttached()) {
 switch (event.getNativeKeyCode()) {
 case KeyCodes.KEY_DOWN:
-          suggestionMenu.selectItem(suggestionMenu.getSelectedItemIndex() + 1);
-        break;
+        display.moveSelectionDown();
+      break;
 case KeyCodes.KEY_UP:
-      suggestionMenu.selectItem(suggestionMenu.getSelectedItemIndex() - 1);
-    break;
+    display.moveSelectionUp();
+  break;
 case KeyCodes.KEY_ENTER:
 case KeyCodes.KEY_TAB:
-  if (suggestionMenu.getSelectedItemIndex() < 0) {
-    suggestionPopup.hide();
-  }
- else {
-    suggestionMenu.doSelectedItemAction();
-  }
-break;
+Suggestion suggestion=display.getCurrentSelection();
+if (suggestion == null) {
+display.hideSuggestions();
 }
+ else {
+setNewSelection(suggestion);
+}
+break;
 }
 delegateEvent(SuggestBox.this,event);
 }

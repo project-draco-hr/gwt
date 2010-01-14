@@ -1,0 +1,31 @@
+{
+  if (suggestions == null || suggestions.size() == 0) {
+    hideSuggestions();
+    return;
+  }
+  if (suggestionPopup.isAttached()) {
+    suggestionPopup.hide();
+  }
+  suggestionMenu.clearItems();
+  for (  final Suggestion curSuggestion : suggestions) {
+    final SuggestionMenuItem menuItem=new SuggestionMenuItem(curSuggestion,isDisplayStringHTML);
+    menuItem.setCommand(new Command(){
+      public void execute(){
+        callback.onSuggestionSelected(curSuggestion);
+      }
+    }
+);
+    suggestionMenu.addItem(menuItem);
+  }
+  if (isAutoSelectEnabled) {
+    suggestionMenu.selectItem(0);
+  }
+  if (lastSuggestBox != suggestBox) {
+    if (lastSuggestBox != null) {
+      suggestionPopup.removeAutoHidePartner(lastSuggestBox.getElement());
+    }
+    lastSuggestBox=suggestBox;
+    suggestionPopup.addAutoHidePartner(suggestBox.getElement());
+  }
+  suggestionPopup.showRelativeTo(suggestBox);
+}
