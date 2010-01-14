@@ -77,16 +77,20 @@ break;
 default :
 throw new InternalCompilerException("Unknown output mode");
 }
-SelectionProperty userAgentProperty=null;
+boolean splitBlocks=false;
 for (PropertyOracle oracle : propertyOracles) {
 try {
-userAgentProperty=oracle.getSelectionProperty(logger,"user.agent");
-}
- catch (BadPropertyValueException e) {
+SelectionProperty userAgentProperty=oracle.getSelectionProperty(logger,"user.agent");
+if ("ie6".equals(userAgentProperty.getCurrentValue())) {
+splitBlocks=true;
 break;
 }
 }
-boolean splitBlocks=userAgentProperty == null || ("ie6".equals(userAgentProperty.getCurrentValue()));
+ catch (BadPropertyValueException e) {
+splitBlocks=true;
+break;
+}
+}
 if (splitBlocks) {
 JsIEBlockSizeVisitor.exec(jsProgram);
 }
