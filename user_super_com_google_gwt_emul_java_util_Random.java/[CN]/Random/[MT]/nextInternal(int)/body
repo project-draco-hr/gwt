@@ -1,0 +1,22 @@
+{
+  double hi=seedhi * multiplierLo + seedlo * multiplierHi;
+  double lo=seedlo * multiplierLo + 0xb;
+  double carry=Math.floor(lo * twoToTheMinus24);
+  hi+=carry;
+  lo-=carry * twoToThe24;
+  hi%=twoToThe24;
+  seedhi=hi;
+  seedlo=lo;
+  if (bits <= 24) {
+    return Math.floor(seedhi * twoToTheXMinus24[bits]);
+  }
+ else {
+    double h=seedhi * (1 << (bits - 24));
+    double l=Math.floor(seedlo * twoToTheXMinus48[bits]);
+    double dval=h + l;
+    if (dval >= twoToThe31) {
+      dval-=twoToThe32;
+    }
+    return dval;
+  }
+}
