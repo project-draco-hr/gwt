@@ -1,7 +1,10 @@
 {
   CssStylesheet sheet=GenerateCssAst.exec(logger,inputFile.toURI().toURL());
-  Set<String> classNames=new TreeSet<String>(CSS_CLASS_COMPARATOR);
-  classNames.addAll(ExtractClassNamesVisitor.exec(sheet));
+  Set<String> names=new TreeSet<String>(NAME_COMPARATOR);
+  names.addAll(ExtractClassNamesVisitor.exec(sheet));
+  DefsCollector defs=new DefsCollector();
+  defs.accept(sheet);
+  names.addAll(defs.getDefs());
   Set<String> methodNames=new HashSet<String>();
   SourceWriter sw=new StringSourceWriter();
   int lastDot=interfaceName.lastIndexOf('.');
@@ -14,7 +17,7 @@
   }
   sw.println("interface " + interfaceName.substring(lastDot + 1) + " extends CssResource {");
   sw.indent();
-  for (  String className : classNames) {
+  for (  String className : names) {
     String methodName=methodName(className);
     while (!methodNames.add(methodName)) {
       methodName+="_";
