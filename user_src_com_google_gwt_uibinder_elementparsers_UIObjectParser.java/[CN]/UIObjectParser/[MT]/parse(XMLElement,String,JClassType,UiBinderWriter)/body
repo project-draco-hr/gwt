@@ -3,12 +3,23 @@
   if (null != debugId) {
     writer.addStatement("%s.ensureDebugId(%s);",fieldName,debugId);
   }
-  String[] styleNames=elem.consumeStringArrayAttribute("addStyleNames");
-  for (  String s : styleNames) {
+  String styleName=elem.consumeStringAttribute("styleName",null);
+  String stylePrimaryName=elem.consumeStringAttribute("stylePrimaryName",null);
+  if (null != styleName && null != stylePrimaryName) {
+    writer.die("In %s, cannot set both \"styleName\" " + "and \"stylePrimaryName\"",elem);
+  }
+  if (null != styleName) {
+    writer.addStatement("%s.setStyleName(%s);",fieldName,styleName);
+  }
+  if (null != stylePrimaryName) {
+    writer.addStatement("%s.setStylePrimaryName(%s);",fieldName,stylePrimaryName);
+  }
+  String[] extraStyleNames=elem.consumeStringArrayAttribute("addStyleNames");
+  for (  String s : extraStyleNames) {
     writer.addStatement("%s.addStyleName(%s);",fieldName,s);
   }
-  styleNames=elem.consumeStringArrayAttribute("addStyleDependentNames");
-  for (  String s : styleNames) {
+  extraStyleNames=elem.consumeStringArrayAttribute("addStyleDependentNames");
+  for (  String s : extraStyleNames) {
     writer.addStatement("%s.addStyleDependentName(%s);",fieldName,s);
   }
 }
