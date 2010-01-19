@@ -1,6 +1,7 @@
 {
   logger=logger.branch(TreeLogger.TRACE,"Adding image '" + imageName + "'",null);
   BufferedImage image=null;
+  boolean lossy=true;
   try {
     MemoryCacheImageInputStream input=new MemoryCacheImageInputStream(imageUrl.openStream());
     Iterator<ImageReader> it=ImageIO.getImageReaders(input);
@@ -13,6 +14,28 @@
  else       if (numImages == 1) {
         try {
           image=reader.read(0);
+          IIOMetadata metadata=reader.getImageMetadata(0);
+          if (metadata != null && metadata.isStandardMetadataFormatSupported()) {
+            Node data=metadata.getAsTree(IIOMetadataFormatImpl.standardMetadataFormatName);
+            metadata:             for (int i=0, j=data.getChildNodes().getLength(); i < j; i++) {
+              Node child=data.getChildNodes().item(i);
+              if (child.getLocalName().equalsIgnoreCase("compression")) {
+                for (int k=0, l=child.getChildNodes().getLength(); k < l; k++) {
+                  Node child2=child.getChildNodes().item(k);
+                  if (child2.getLocalName().equalsIgnoreCase("lossless")) {
+                    Node value=child2.getAttributes().getNamedItem("value");
+                    if (value == null) {
+                      lossy=false;
+                    }
+ else {
+                      lossy=!Boolean.parseBoolean(value.getNodeValue());
+                    }
+                    break metadata;
+                  }
+                }
+              }
+            }
+          }
         }
  catch (        Exception e) {
           continue readers;
@@ -51,7 +74,8 @@ catch (  IOException e) {
     throw new UnableToCompleteException();
   }
   ImageRect toReturn=new ImageRect(imageName,image);
-  if (toReturn.height > IMAGE_MAX_SIZE || toReturn.width > IMAGE_MAX_SIZE) {
+  toReturn.setLossy(lossy);
+  if (lossy || toReturn.height > IMAGE_MAX_SIZE || toReturn.width > IMAGE_MAX_SIZE) {
     throw new UnsuitableForStripException(toReturn);
   }
   return toReturn;
