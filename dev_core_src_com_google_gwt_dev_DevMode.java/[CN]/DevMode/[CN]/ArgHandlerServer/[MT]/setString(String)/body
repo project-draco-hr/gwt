@@ -1,10 +1,22 @@
 {
   options.setNoServer(false);
+  String sclClassName;
+  String sclArgs;
+  int idx=arg.indexOf(':');
+  if (idx >= 0) {
+    sclArgs=arg.substring(idx + 1);
+    sclClassName=arg.substring(0,idx);
+  }
+ else {
+    sclArgs=null;
+    sclClassName=arg;
+  }
   Throwable t;
   try {
     Class<?> clazz=Class.forName(sclClassName,true,Thread.currentThread().getContextClassLoader());
     Class<? extends ServletContainerLauncher> sclClass=clazz.asSubclass(ServletContainerLauncher.class);
     options.setServletContainerLauncher(sclClass.newInstance());
+    options.setServletContainerLauncherArgs(sclArgs);
     return true;
   }
  catch (  ClassCastException e) {
