@@ -1,9 +1,21 @@
 {
-  if (child.getParent() != this) {
+  if (child.getParent() != layoutPanel) {
     return false;
   }
-  LayoutData data=(LayoutData)child.getLayoutData();
-  layoutPanel.remove(data.header);
-  layoutPanel.remove(child);
-  return true;
+  for (int i=0; i < layoutData.size(); ++i) {
+    LayoutData data=layoutData.get(i);
+    if (data.widget == child) {
+      layoutPanel.remove(data.header);
+      layoutPanel.remove(child);
+      layoutData.remove(i);
+      if (visibleWidget == child) {
+        visibleWidget=null;
+        if (layoutData.size() > 0) {
+          showWidget(layoutData.get(0).widget);
+        }
+      }
+      return true;
+    }
+  }
+  return false;
 }
