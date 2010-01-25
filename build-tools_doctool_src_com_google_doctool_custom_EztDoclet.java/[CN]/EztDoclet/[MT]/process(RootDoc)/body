@@ -1,36 +1,44 @@
 {
-  PrintWriter pw=new PrintWriter(System.out,true);
-  pw.println("<ol class=\"toc\" id=\"pageToc\">");
-  for (  PackageDoc pack : root.specifiedPackages()) {
-    pw.format("  <li><a href=\"#Package_%s\">%s</a></li>\n",pack.name().replace('.','_'),pack.name());
-  }
-  pw.println("</ol>\n");
-  for (  PackageDoc pack : root.specifiedPackages()) {
-    pw.format("<h1 id=\"Package_%s\">Package %s</h1>\n",pack.name().replace('.','_'),pack.name());
-    pw.println("<dl>");
-    String packURL=JAVADOC_URL + pack.name().replace(".","/") + "/";
-    ClassDoc[] classes=pack.allClasses(true);
-    Arrays.sort(classes,new Comparator<ClassDoc>(){
-      public int compare(      ClassDoc arg0,      ClassDoc arg1){
-        return arg0.name().compareTo(arg1.name());
-      }
+  try {
+    File outFile=new File(outputFile);
+    outFile.getParentFile().mkdirs();
+    FileWriter fw=new FileWriter(outFile);
+    PrintWriter pw=new PrintWriter(fw,true);
+    pw.println("<ol class=\"toc\" id=\"pageToc\">");
+    for (    PackageDoc pack : root.specifiedPackages()) {
+      pw.format("  <li><a href=\"#Package_%s\">%s</a></li>\n",pack.name().replace('.','_'),pack.name());
     }
+    pw.println("</ol>\n");
+    for (    PackageDoc pack : root.specifiedPackages()) {
+      pw.format("<h1 id=\"Package_%s\">Package %s</h1>\n",pack.name().replace('.','_'),pack.name());
+      pw.println("<dl>");
+      String packURL=JAVADOC_URL + pack.name().replace(".","/") + "/";
+      ClassDoc[] classes=pack.allClasses(true);
+      Arrays.sort(classes,new Comparator<ClassDoc>(){
+        public int compare(        ClassDoc arg0,        ClassDoc arg1){
+          return arg0.name().compareTo(arg1.name());
+        }
+      }
 );
-    Iterator<ClassDoc> iter=Arrays.asList(classes).iterator();
-    while (iter.hasNext()) {
-      ClassDoc cls=iter.next();
-      pw.format("  <dt><a href=\"%s%s.html\">%s</a></dt>\n",packURL,cls.name(),cls.name());
-      Collection<ExecutableMemberDoc> members=new ArrayList<ExecutableMemberDoc>();
-      members.addAll(Arrays.asList(cls.constructors(true)));
-      members.addAll(Arrays.asList(cls.methods(true)));
-      if (!members.isEmpty()) {
-        pw.format("  <dd>%s</dd>\n",createMemberList(members));
+      Iterator<ClassDoc> iter=Arrays.asList(classes).iterator();
+      while (iter.hasNext()) {
+        ClassDoc cls=iter.next();
+        pw.format("  <dt><a href=\"%s%s.html\">%s</a></dt>\n",packURL,cls.name(),cls.name());
+        Collection<ExecutableMemberDoc> members=new ArrayList<ExecutableMemberDoc>();
+        members.addAll(Arrays.asList(cls.constructors(true)));
+        members.addAll(Arrays.asList(cls.methods(true)));
+        if (!members.isEmpty()) {
+          pw.format("  <dd>%s</dd>\n",createMemberList(members));
+        }
+        if (iter.hasNext()) {
+          pw.print("\n");
+        }
       }
-      if (iter.hasNext()) {
-        pw.print("\n");
-      }
+      pw.println("</dl>\n");
     }
-    pw.println("</dl>\n");
+    pw.close();
   }
-  pw.close();
+ catch (  IOException e) {
+    throw new RuntimeException(e);
+  }
 }
