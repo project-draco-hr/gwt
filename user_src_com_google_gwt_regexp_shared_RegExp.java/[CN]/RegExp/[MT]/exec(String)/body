@@ -1,0 +1,30 @@
+{
+  int searchStartIndex=(globalFlag) ? lastIndex : 0;
+  Matcher matcher;
+  if (input == null || searchStartIndex < 0 || searchStartIndex > input.length()) {
+    matcher=null;
+  }
+ else {
+    matcher=pattern.matcher(input);
+    if (!matcher.find(searchStartIndex)) {
+      matcher=null;
+    }
+  }
+  if (matcher != null) {
+    int groupCount=matcher.groupCount();
+    List<String> groups=new ArrayList<String>(1 + groupCount);
+    for (int group=0; group <= groupCount; group++) {
+      groups.add(matcher.group(group));
+    }
+    if (globalFlag) {
+      lastIndex=matcher.end();
+    }
+    return new MatchResult(matcher.start(),input,groups);
+  }
+ else {
+    if (globalFlag) {
+      lastIndex=0;
+    }
+    return null;
+  }
+}
