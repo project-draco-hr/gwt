@@ -1,0 +1,96 @@
+{
+  if (x.binding.isAnnotationType()) {
+    currentClass=(JDeclaredType)typeMap.tryGet(x.binding);
+    if (currentClass != null) {
+      processHasAnnotations(currentClass,x.annotations);
+    }
+    return;
+  }
+  currentClass=(JDeclaredType)typeMap.get(x.binding);
+  processHasAnnotations(currentClass,x.annotations);
+  try {
+    currentClassScope=x.scope;
+    currentSeparatorPositions=x.compilationResult.lineSeparatorPositions;
+    currentFileName=String.valueOf(x.compilationResult.fileName);
+    if (currentClass.getSuperClass() != null) {
+      JMethod myClinit=currentClass.getMethods().get(0);
+      JMethod superClinit=currentClass.getSuperClass().getMethods().get(0);
+      JMethodCall superClinitCall=new JMethodCall(myClinit.getSourceInfo(),null,superClinit);
+      JMethodBody body=(JMethodBody)myClinit.getBody();
+      body.getBlock().addStmt(0,superClinitCall.makeStatement());
+    }
+    if (x.fields != null) {
+      for (int i=0, n=x.fields.length; i < n; ++i) {
+        FieldDeclaration fieldDeclaration=x.fields[i];
+        if (fieldDeclaration.isStatic()) {
+          currentMethod=currentClass.getMethods().get(0);
+          currentMethodBody=(JMethodBody)currentMethod.getBody();
+          currentMethodScope=x.staticInitializerScope;
+        }
+ else {
+          currentMethod=currentClass.getMethods().get(1);
+          currentMethodBody=(JMethodBody)currentMethod.getBody();
+          currentMethodScope=x.initializerScope;
+        }
+        if (fieldDeclaration instanceof Initializer) {
+          assert(currentClass instanceof JClassType);
+          processInitializer((Initializer)fieldDeclaration);
+        }
+ else {
+          processField(fieldDeclaration);
+        }
+      }
+    }
+    currentMethodScope=null;
+    currentMethod=null;
+    if (x.methods != null) {
+      for (int i=0, n=x.methods.length; i < n; ++i) {
+        if (x.methods[i].isConstructor()) {
+          assert(currentClass instanceof JClassType);
+          processConstructor((ConstructorDeclaration)x.methods[i]);
+        }
+ else         if (x.methods[i].isClinit()) {
+        }
+ else {
+          processMethod(x.methods[i]);
+        }
+      }
+    }
+    if (currentClass instanceof JClassType && currentClass != program.getTypeJavaLangObject() && currentClass != program.getIndexedType("Array")) {
+      JMethod method=currentClass.getMethods().get(2);
+      assert("getClass".equals(method.getName()));
+      if (program.isJavaScriptObject(currentClass) && currentClass != program.getJavaScriptObject()) {
+        currentClass.getMethods().remove(2);
+      }
+ else {
+        tryFindUpRefs(method);
+        implementMethod(method,program.getLiteralClass(currentClass));
+      }
+    }
+    if (currentClass == program.getIndexedType("GWT")) {
+      JMethod method=program.getIndexedMethod("GWT.isClient");
+      implementMethod(method,program.getLiteralBoolean(true));
+      method=program.getIndexedMethod("GWT.isScript");
+      implementMethod(method,program.getLiteralBoolean(true));
+    }
+    if (currentClass == program.getTypeJavaLangClass()) {
+      JMethod method=program.getIndexedMethod("Class.desiredAssertionStatus");
+      implementMethod(method,program.getLiteralBoolean(enableAsserts));
+      if (disableClassMetadata) {
+        JMethod isMetadataEnabledMethod=program.getIndexedMethod("Class.isClassMetadataEnabled");
+        implementMethod(isMetadataEnabledMethod,program.getLiteralBoolean(false));
+      }
+    }
+    if (currentClass instanceof JEnumType) {
+      processEnumType((JEnumType)currentClass);
+    }
+    processArtificialRescues(x);
+    currentClassScope=null;
+    currentClass=null;
+    currentSeparatorPositions=null;
+    currentFileName=null;
+  }
+ catch (  Throwable e) {
+    throw translateException(currentClass,e);
+  }
+}

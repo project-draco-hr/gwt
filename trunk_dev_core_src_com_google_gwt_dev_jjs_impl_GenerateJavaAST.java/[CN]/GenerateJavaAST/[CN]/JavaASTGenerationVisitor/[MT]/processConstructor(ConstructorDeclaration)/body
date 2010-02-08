@@ -1,0 +1,70 @@
+{
+  JMethod ctor=(JMethod)typeMap.get(x.binding);
+  try {
+    processHasAnnotations(ctor,x.annotations);
+    SourceInfo info=ctor.getSourceInfo();
+    currentMethod=ctor;
+    currentMethodBody=(JMethodBody)ctor.getBody();
+    currentMethodScope=x.scope;
+    JMethodCall superOrThisCall=null;
+    ExplicitConstructorCall ctorCall=x.constructorCall;
+    if (ctorCall != null) {
+      superOrThisCall=(JMethodCall)dispatch("processExpression",ctorCall);
+    }
+    boolean hasExplicitThis=(ctorCall != null) && !ctorCall.isSuperAccess();
+    JClassType enclosingType=(JClassType)ctor.getEnclosingType();
+    JMethod clinitMethod=enclosingType.getMethods().get(0);
+    JMethodCall clinitCall=new JMethodCall(info,null,clinitMethod);
+    JMethodBody body=(JMethodBody)ctor.getBody();
+    JBlock block=body.getBlock();
+    block.addStmt(clinitCall.makeStatement());
+    if (!hasExplicitThis) {
+      ReferenceBinding declaringClass=x.binding.declaringClass;
+      if (declaringClass instanceof NestedTypeBinding) {
+        Iterator<JParameter> paramIt=getSyntheticsIterator();
+        NestedTypeBinding nestedBinding=(NestedTypeBinding)declaringClass;
+        if (nestedBinding.enclosingInstances != null) {
+          for (int i=0; i < nestedBinding.enclosingInstances.length; ++i) {
+            SyntheticArgumentBinding arg=nestedBinding.enclosingInstances[i];
+            JParameter param=paramIt.next();
+            if (arg.matchingField != null) {
+              JField field=(JField)typeMap.get(arg);
+              block.addStmt(program.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
+            }
+          }
+        }
+        if (nestedBinding.outerLocalVariables != null) {
+          for (int i=0; i < nestedBinding.outerLocalVariables.length; ++i) {
+            SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
+            JParameter param=paramIt.next();
+            JField field=(JField)typeMap.get(arg);
+            block.addStmt(program.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
+          }
+        }
+      }
+    }
+    if (enclosingType.isEnumOrSubclass() != null) {
+      assert(superOrThisCall != null);
+      JVariableRef enumNameRef=createVariableRef(superOrThisCall.getSourceInfo(),ctor.getParams().get(0));
+      superOrThisCall.addArg(0,enumNameRef);
+      JVariableRef enumOrdinalRef=createVariableRef(superOrThisCall.getSourceInfo(),ctor.getParams().get(1));
+      superOrThisCall.addArg(1,enumOrdinalRef);
+    }
+    if (superOrThisCall != null) {
+      block.addStmt(superOrThisCall.makeStatement());
+    }
+    JExpression thisRef=createThisRef(info,enclosingType);
+    if (!hasExplicitThis) {
+      JMethod initMethod=enclosingType.getMethods().get(1);
+      JMethodCall initCall=new JMethodCall(info,thisRef,initMethod);
+      block.addStmt(initCall.makeStatement());
+    }
+    block.addStmts(processStatements(x.statements));
+    currentMethodScope=null;
+    currentMethod=null;
+    block.addStmt(new JReturnStatement(info,thisRef));
+  }
+ catch (  Throwable e) {
+    throw translateException(ctor,e);
+  }
+}
