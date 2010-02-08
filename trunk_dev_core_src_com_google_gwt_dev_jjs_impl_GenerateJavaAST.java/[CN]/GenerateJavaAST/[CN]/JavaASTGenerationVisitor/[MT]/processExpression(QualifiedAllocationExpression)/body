@@ -1,0 +1,37 @@
+{
+  if (x.enclosingInstance() == null) {
+    return processExpression((AllocationExpression)x);
+  }
+  SourceInfo info=makeSourceInfo(x);
+  MethodBinding b=x.binding;
+  JMethod ctor=(JMethod)typeMap.get(b);
+  JNewInstance newInstance=new JNewInstance(info,(JNonNullType)ctor.getType());
+  JMethodCall call=new JMethodCall(info,newInstance,ctor);
+  JExpression qualifier=dispProcessExpression(x.enclosingInstance);
+  List<JExpression> qualList=new ArrayList<JExpression>();
+  qualList.add(qualifier);
+  if (!currentMethod.isStatic()) {
+    JExpression implicitOuter=program.getExprThisRef(info,(JClassType)currentClass);
+    qualList.add(implicitOuter);
+  }
+  addCallArgs(x.arguments,call,b);
+  ReferenceBinding targetBinding=b.declaringClass;
+  if (targetBinding.isNestedType() && !targetBinding.isStatic()) {
+    NestedTypeBinding nestedBinding=(NestedTypeBinding)erasure(targetBinding);
+    if (nestedBinding.enclosingInstances != null) {
+      for (int i=0; i < nestedBinding.enclosingInstances.length; ++i) {
+        SyntheticArgumentBinding arg=nestedBinding.enclosingInstances[i];
+        JClassType syntheticThisType=(JClassType)typeMap.get(arg.type);
+        call.addArg(createThisRef(syntheticThisType,qualList));
+      }
+    }
+    if (nestedBinding.outerLocalVariables != null) {
+      for (int i=0; i < nestedBinding.outerLocalVariables.length; ++i) {
+        SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
+        JVariable variable=(JVariable)typeMap.get(arg.actualOuterLocalVariable);
+        call.addArg(createVariableRef(info,variable,arg.actualOuterLocalVariable));
+      }
+    }
+  }
+  return call;
+}
