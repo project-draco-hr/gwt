@@ -1,0 +1,28 @@
+{
+  this.cell=cell;
+  tmpElem=Document.get().createDivElement();
+  setElement(Document.get().createDivElement());
+  sinkEvents(Event.ONCLICK);
+  sinkEvents(Event.ONCHANGE);
+  reg=model.addListHandler(new ListHandler<T>(){
+    public void onDataChanged(    ListEvent<T> event){
+      int start=event.getStart(), len=event.getLength();
+      List<T> values=event.getValues();
+      for (int i=0; i < len; ++i) {
+        data.set(start + i,values.get(i));
+      }
+      render(start,len,values);
+    }
+    public void onSizeChanged(    SizeChangeEvent event){
+      int size=event.getSize();
+      data.ensureCapacity(size);
+      while (data.size() < size) {
+        data.add(null);
+      }
+      gc(size);
+      reg.setRangeOfInterest(0,size);
+    }
+  }
+);
+  reg.setRangeOfInterest(0,0);
+}

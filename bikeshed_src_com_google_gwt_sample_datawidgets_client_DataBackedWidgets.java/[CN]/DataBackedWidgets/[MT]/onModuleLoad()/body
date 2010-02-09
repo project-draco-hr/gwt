@@ -1,0 +1,27 @@
+{
+  appCache.addAsyncListModel(listModel1);
+  queryField.setText("G");
+  RootPanel.get("queryFieldContainer").add(queryField);
+  RootPanel.get("errorLabelContainer").add(errorLabel);
+  queryField.setFocus(true);
+  queryField.selectAll();
+  resultsTable0=new PagingTableListView2<StockQuote>(listModel1,10);
+  resultsTable0.addColumn(tickerColumn);
+  resultsTable0.addColumn(nameColumn);
+  resultsTable0.addColumn(priceColumn);
+  resultsTable0.addColumn(notesColumn);
+  notesColumn.setMutator(new Mutator<StockQuote,String>(){
+    public void mutate(    StockQuote object,    String after){
+      Window.alert("mutating " + object.getTicker() + " ("+ after+ ")");
+    }
+  }
+);
+  RootPanel.get().add(resultsTable0);
+  queryField.addKeyUpHandler(new KeyUpHandler(){
+    public void onKeyUp(    KeyUpEvent event){
+      sendQueryToServer();
+    }
+  }
+);
+  sendQueryToServer();
+}

@@ -1,0 +1,48 @@
+{
+  this.pageSize=pageSize;
+  initWidget(table);
+  table.setBorderWidth(3);
+  final Button nextButton=new Button("Next",new ClickHandler(){
+    public void onClick(    ClickEvent event){
+      setPage(curPage + 1);
+    }
+  }
+);
+  final Button prevButton=new Button("Prev",new ClickHandler(){
+    public void onClick(    ClickEvent event){
+      setPage(curPage - 1);
+    }
+  }
+);
+  listReg=listModel.addListHandler(new ListHandler<StockQuote>(){
+    public void onDataChanged(    ListEvent<StockQuote> event){
+      table.removeAllRows();
+      table.setHTML(0,0,"<b>Ticker</b>");
+      table.setHTML(0,1,"<b>Company</b>");
+      table.setHTML(0,2,"<b>Price</b>");
+      int row=table.getRowCount();
+      List<StockQuote> values=event.getValues();
+      for (      StockQuote value : values) {
+        table.setText(row,0,value.getTicker());
+        table.setText(row,1,value.getName());
+        table.setText(row,2,"" + value.getDisplayPrice());
+        row++;
+      }
+      table.setWidget(row,0,prevButton);
+      table.setText(row,1,"Page " + (curPage + 1) + " of "+ numPages);
+      table.setWidget(row,2,nextButton);
+    }
+    public void onSizeChanged(    SizeChangeEvent event){
+      int size=event.getSize();
+      if (size <= 0) {
+        numPages=0;
+      }
+ else {
+        numPages=1 + (size - 1) / pageSize;
+      }
+      setPage(curPage);
+    }
+  }
+);
+  listReg.setRangeOfInterest(0,pageSize);
+}

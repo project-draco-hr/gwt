@@ -1,0 +1,21 @@
+{
+  if (query == null) {
+    return;
+  }
+  dataService.getStockQuotes(query,ranges,new AsyncCallback<StockResponse>(){
+    public void onFailure(    Throwable caught){
+      Window.alert("ERROR: " + caught.getMessage());
+      updateTimer.schedule(UPDATE_DELAY);
+    }
+    public void onSuccess(    StockResponse result){
+      for (      AsyncListModel<StockQuote> listModel : asyncListModels) {
+        listModel.updateDataSize(result.getNumRows(),true);
+        for (        StockQuoteList list : result.getLists()) {
+          listModel.updateViewData(list.getStartIndex(),list.size(),list);
+        }
+      }
+      updateTimer.schedule(UPDATE_DELAY);
+    }
+  }
+);
+}

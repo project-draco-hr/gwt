@@ -1,0 +1,20 @@
+{
+  TableElement table=getElement().cast();
+  int numCols=columns.size();
+  int pageStart=curPage * pageSize;
+  for (int r=start; r < start + length; ++r) {
+    TableRowElement row=table.getRows().getItem(r - pageStart);
+    T q=values.get(r - start);
+    data.set(r - pageStart,q);
+    for (int c=0; c < numCols; ++c) {
+      TableCellElement cell=row.getCells().getItem(c);
+      StringBuilder sb=new StringBuilder();
+      columns.get(c).render(q,sb);
+      cell.setInnerHTML(sb.toString());
+      Element child=cell.getFirstChildElement();
+      if (child != null) {
+        Event.sinkEvents(child,Event.ONCHANGE | Event.ONFOCUS | Event.ONBLUR);
+      }
+    }
+  }
+}

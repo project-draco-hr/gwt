@@ -1,0 +1,19 @@
+{
+  EventTarget target=event.getEventTarget();
+  Node node=Node.as(target);
+  while (node != null) {
+    if (Element.is(node)) {
+      Element elem=Element.as(node);
+      if ("td".equalsIgnoreCase(elem.getTagName())) {
+        TableCellElement td=TableCellElement.as(elem);
+        TableRowElement tr=TableRowElement.as(td.getParentElement());
+        int row=tr.getRowIndex(), col=td.getCellIndex();
+        T value=data.get(row);
+        Column<T,?> column=columns.get(col);
+        column.onBrowserEvent(elem,value,event);
+        break;
+      }
+    }
+    node=node.getParentNode();
+  }
+}
