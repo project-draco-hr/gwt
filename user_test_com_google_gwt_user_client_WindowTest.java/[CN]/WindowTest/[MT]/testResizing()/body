@@ -1,0 +1,25 @@
+{
+  clearBodyContent();
+  final TestResizeHandler resizeHandler=new TestResizeHandler();
+  final HandlerRegistration handlerRegistration=Window.addResizeHandler(resizeHandler);
+  delayTestFinish(2000);
+  DeferredCommand.addCommand(new Command(){
+    public void execute(){
+      int width=900;
+      int height=500;
+      if (!ResizeHelper.resizeTo(width,height)) {
+        handlerRegistration.removeHandler();
+        finishTest();
+      }
+      assertEquals(width,Window.getClientWidth() + ResizeHelper.getExtraWidth());
+      assertEquals(height,Window.getClientHeight() + ResizeHelper.getExtraHeight());
+      ResizeHelper.resizeBy(10,20);
+      assertEquals(width + 10,Window.getClientWidth() + ResizeHelper.getExtraWidth());
+      assertEquals(height + 20,Window.getClientHeight() + ResizeHelper.getExtraHeight());
+      handlerRegistration.removeHandler();
+      ResizeHelper.restoreSize();
+      finishTest();
+    }
+  }
+);
+}
