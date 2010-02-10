@@ -4,13 +4,34 @@
   while (node != null) {
     if (Element.is(node)) {
       Element elem=Element.as(node);
-      if ("td".equalsIgnoreCase(elem.getTagName())) {
+      String tagName=elem.getTagName();
+      if ("td".equalsIgnoreCase(tagName)) {
         TableCellElement td=TableCellElement.as(elem);
         TableRowElement tr=TableRowElement.as(td.getParentElement());
         int row=tr.getRowIndex(), col=td.getCellIndex();
-        T value=data.get(row);
-        Column<T,?> column=columns.get(col);
-        column.onBrowserEvent(elem,value,event);
+        if (row < pageSize) {
+          T value=data.get(row);
+          Column<T,?> column=columns.get(col);
+          column.onBrowserEvent(elem,value,event);
+        }
+ else         if (row == pageSize) {
+          if (col == 0) {
+            prevButton.onBrowserEvent(elem,null,event,new Mutator<String,String>(){
+              public void mutate(              String object,              String after){
+                previousPage();
+              }
+            }
+);
+          }
+ else           if (col == 2) {
+            nextButton.onBrowserEvent(elem,null,event,new Mutator<String,String>(){
+              public void mutate(              String object,              String after){
+                nextPage();
+              }
+            }
+);
+          }
+        }
         break;
       }
     }

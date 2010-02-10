@@ -1,12 +1,32 @@
 {
   TableElement table=getElement().cast();
   int numCols=columns.size();
+  NodeList<TableRowElement> rows=table.getRows();
+  int numRows=table.getRows().getLength();
+  while (numRows-- > 0) {
+    table.deleteRow(0);
+  }
   for (int r=0; r < pageSize; ++r) {
-    TableRowElement row=table.insertRow(r);
+    TableRowElement row=table.insertRow(0);
+    row.setClassName("pagingTableListView " + ((r & 0x1) == 0 ? "evenRow" : "oddRow"));
     for (int c=0; c < numCols; ++c) {
       row.insertCell(c);
     }
   }
+  TableRowElement pageRow=table.insertRow(pageSize);
+  pageRow.insertCell(0);
+  pageRow.insertCell(1);
+  pageRow.insertCell(2);
+  StringBuilder sb;
+  sb=new StringBuilder();
+  prevButton.render("Previous",sb);
+  pageRow.getCells().getItem(0).setInnerHTML(sb.toString());
+  pageRow.getCells().getItem(1).setAttribute("colspan","" + (numCols - 2));
+  pageRow.getCells().getItem(1).setAttribute("align","center");
+  sb=new StringBuilder();
+  nextButton.render("Next",sb);
+  pageRow.getCells().getItem(2).setInnerHTML(sb.toString());
+  pageRow.getCells().getItem(2).setAttribute("align","right");
   data.ensureCapacity(pageSize);
   while (data.size() < pageSize) {
     data.add(null);
