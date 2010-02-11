@@ -1,0 +1,20 @@
+{
+  String ticker=transaction.getTicker();
+  Integer current=sharesOwnedBySymbol.get(ticker);
+  if (current == null) {
+    current=0;
+  }
+  int quantity=transaction.getQuantity();
+  if (transaction.isBuy()) {
+    current+=quantity;
+    addFavorite(ticker);
+  }
+ else {
+    if (quantity > current) {
+      throw new IllegalArgumentException("You cannot sell more stock than you own");
+    }
+    current-=quantity;
+  }
+  sharesOwnedBySymbol.put(ticker,current);
+  return new Transaction(true,ticker,quantity);
+}

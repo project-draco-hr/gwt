@@ -21,13 +21,47 @@
   resultsTable.addColumn(tickerColumn);
   resultsTable.addColumn(nameColumn);
   resultsTable.addColumn(priceColumn);
+  resultsTable.addColumn(buyColumn);
   favoritesTable=new PagingTableListView<StockQuote>(favoritesListModel,10);
   favoritesTable.addColumn(tickerColumn);
   favoritesTable.addColumn(priceColumn);
   favoritesTable.addColumn(sharesColumn);
+  favoritesTable.addColumn(buyColumn);
+  favoritesTable.addColumn(sellColumn);
   favoriteColumn.setMutator(new Mutator<StockQuote,Boolean>(){
     public void mutate(    StockQuote object,    Boolean after){
       setFavorite(object.getTicker(),after);
+    }
+  }
+);
+  buyColumn.setMutator(new Mutator<StockQuote,String>(){
+    public void mutate(    StockQuote object,    String after){
+      buySellPopup.setStockQuote(object,true);
+      buySellPopup.center();
+    }
+  }
+);
+  sellColumn.setMutator(new Mutator<StockQuote,String>(){
+    public void mutate(    StockQuote object,    String after){
+      buySellPopup.setStockQuote(object,false);
+      buySellPopup.center();
+    }
+  }
+);
+  buySellPopup.addCloseHandler(new CloseHandler<PopupPanel>(){
+    public void onClose(    CloseEvent<PopupPanel> event){
+      Transaction t=buySellPopup.getTransaction();
+      if (t != null) {
+        dataService.transact(t,new AsyncCallback<Transaction>(){
+          public void onFailure(          Throwable caught){
+            Window.alert("Error: " + caught.getMessage());
+          }
+          public void onSuccess(          Transaction result){
+            update();
+          }
+        }
+);
+      }
     }
   }
 );
