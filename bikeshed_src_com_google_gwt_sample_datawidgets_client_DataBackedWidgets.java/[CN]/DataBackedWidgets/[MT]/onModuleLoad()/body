@@ -6,40 +6,39 @@
   queryField.selectAll();
   searchListModel=new AsyncListModel<StockQuote>(new DataSource<StockQuote>(){
     public void requestData(    AsyncListModel<StockQuote> listModel){
-      sendSearchRequest(searchListModel.getRanges());
+      update();
     }
   }
 );
   favoritesListModel=new AsyncListModel<StockQuote>(new DataSource<StockQuote>(){
     public void requestData(    AsyncListModel<StockQuote> listModel){
-      sendFavoritesRequest(favoritesListModel.getRanges());
+      update();
     }
   }
 );
-  resultsTable0=new PagingTableListView<StockQuote>(searchListModel,10);
-  resultsTable0.addColumn(favoriteColumn);
-  resultsTable0.addColumn(tickerColumn);
-  resultsTable0.addColumn(nameColumn);
-  resultsTable0.addColumn(priceColumn);
-  resultsTable0.addColumn(notesColumn);
+  resultsTable=new PagingTableListView<StockQuote>(searchListModel,10);
+  resultsTable.addColumn(favoriteColumn);
+  resultsTable.addColumn(tickerColumn);
+  resultsTable.addColumn(nameColumn);
+  resultsTable.addColumn(priceColumn);
+  favoritesTable=new PagingTableListView<StockQuote>(favoritesListModel,10);
+  favoritesTable.addColumn(tickerColumn);
+  favoritesTable.addColumn(priceColumn);
+  favoritesTable.addColumn(sharesColumn);
   favoriteColumn.setMutator(new Mutator<StockQuote,Boolean>(){
     public void mutate(    StockQuote object,    Boolean after){
       setFavorite(object.getTicker(),after);
     }
   }
 );
-  notesColumn.setMutator(new Mutator<StockQuote,String>(){
-    public void mutate(    StockQuote object,    String after){
-      setNotes(object.getTicker(),after);
-    }
-  }
-);
-  RootPanel.get().add(resultsTable0);
+  RootPanel.get().add(resultsTable);
+  RootPanel.get().add(new HTML("<hr>"));
+  RootPanel.get().add(favoritesTable);
   queryField.addKeyUpHandler(new KeyUpHandler(){
     public void onKeyUp(    KeyUpEvent event){
-      setSearchQuery();
+      update();
     }
   }
 );
-  setSearchQuery();
+  update();
 }
