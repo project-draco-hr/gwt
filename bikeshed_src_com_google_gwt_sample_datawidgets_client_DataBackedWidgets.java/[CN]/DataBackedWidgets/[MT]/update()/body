@@ -9,17 +9,17 @@
   StockRequest request=new StockRequest(searchQuery,searchRanges[0],favoritesRanges[0]);
   dataService.getStockQuotes(request,new AsyncCallback<StockResponse>(){
     public void onFailure(    Throwable caught){
-      Window.alert("ERROR: " + caught.getMessage());
-      updateTimer.schedule(UPDATE_DELAY);
+      String message=caught.getMessage();
+      if (message.contains("Not logged in")) {
+        Window.Location.reload();
+      }
+ else {
+        Window.alert("ERROR: " + caught.getMessage());
+        updateTimer.schedule(UPDATE_DELAY);
+      }
     }
     public void onSuccess(    StockResponse result){
-      StockQuoteList searchResults=result.getSearchResults();
-      searchListModel.updateDataSize(result.getNumSearchResults(),true);
-      searchListModel.updateViewData(searchResults.getStartIndex(),searchResults.size(),searchResults);
-      StockQuoteList favorites=result.getFavorites();
-      favoritesListModel.updateDataSize(result.getNumFavorites(),true);
-      favoritesListModel.updateViewData(favorites.getStartIndex(),favorites.size(),favorites);
-      updateTimer.schedule(UPDATE_DELAY);
+      processStockResponse(result);
     }
   }
 );
