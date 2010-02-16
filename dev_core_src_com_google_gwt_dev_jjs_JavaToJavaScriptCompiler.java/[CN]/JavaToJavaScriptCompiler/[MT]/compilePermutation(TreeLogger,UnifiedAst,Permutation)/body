@@ -33,10 +33,10 @@
     EqualityNormalizer.exec(jprogram);
     Pruner.exec(jprogram,false);
     jprogram.typeOracle.recomputeAfterOptimizations();
-    JavaToJavaScriptMap map=GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput(),symbolTable);
+    JavaToJavaScriptMap map=GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput(),symbolTable,propertyOracles);
     JsNormalizer.exec(jsProgram);
     JsSymbolResolver.exec(jsProgram);
-    EvalFunctionsAtTopScope.exec(jsProgram);
+    EvalFunctionsAtTopScope.exec(jsProgram,map);
     if (options.isAggressivelyOptimize()) {
       boolean didChange;
       do {
@@ -67,7 +67,17 @@ switch (options.getOutput()) {
 case OBFUSCATED:
       obfuscateMap=JsStringInterner.exec(jprogram,jsProgram);
     JsObfuscateNamer.exec(jsProgram);
-  break;
+  if (JsStackEmulator.getStackMode(propertyOracles) == JsStackEmulator.StackMode.STRIP) {
+    boolean changed=false;
+    for (int i=0; i < jsProgram.getFragmentCount(); i++) {
+      JsBlock fragment=jsProgram.getFragmentBlock(i);
+      changed=JsDuplicateFunctionRemover.exec(jsProgram,fragment) || changed;
+    }
+    if (changed) {
+      JsUnusedFunctionRemover.exec(jsProgram);
+    }
+  }
+break;
 case PRETTY:
 JsPrettyNamer.exec(jsProgram);
 break;
