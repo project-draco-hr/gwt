@@ -1,0 +1,20 @@
+{
+  String ticker=transaction.getTicker();
+  if (ticker == null || ticker.length() < 0) {
+    throw new IllegalArgumentException("Stock could not be found");
+  }
+  Result result=query(ticker,new DefaultRange(0,1));
+  if (result.numRows != 1 || result.quotes.size() != 1) {
+    throw new IllegalArgumentException("Could not resolve stock ticker");
+  }
+  StockQuote quote=result.quotes.get(0);
+  int quantity=transaction.getQuantity();
+  int price=quote.getPrice();
+  if (transaction.isBuy()) {
+    ensurePlayer().buy(ticker,quantity,price);
+  }
+ else {
+    ensurePlayer().sell(ticker,quantity,price);
+  }
+  return new Transaction(true,ticker,quantity,price);
+}
