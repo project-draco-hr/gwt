@@ -1,0 +1,20 @@
+{
+synchronized (sessionHandler.getSynchronizationObject()) {
+    try {
+      new InvokeOnServerMessage(channel,dispatchId,thisValue,valueArgs).send();
+    }
+ catch (    IOException e) {
+      return DEFAULT_VALUE;
+    }
+    try {
+      ReturnMessage returnMessage=channel.reactToMessagesWhileWaitingForReturn(sessionHandler);
+      return new ExceptionOrReturnValue(returnMessage.isException(),returnMessage.getReturnValue());
+    }
+ catch (    IOException e) {
+      return DEFAULT_VALUE;
+    }
+catch (    BrowserChannelException e) {
+      return DEFAULT_VALUE;
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  while (true) {
+    ExceptionOrReturnValue returnValue;
+    MessageType type=Message.readMessageType(getStreamFromOtherSide());
+    logger.log(TreeLogger.INFO,"client: received " + type + ", thread: "+ Thread.currentThread().getName());
+    try {
+switch (type) {
+case INVOKE:
+        InvokeOnClientMessage invokeMessage=InvokeOnClientMessage.receive(this);
+      returnValue=handler.invoke(this,invokeMessage.getThis(),invokeMessage.getMethodName(),invokeMessage.getArgs());
+    new ReturnMessage(this,returnValue.isException(),returnValue.getReturnValue()).send();
+  break;
+case FREE_VALUE:
+FreeMessage freeMessage=FreeMessage.receive(this);
+logger.log(TreeLogger.DEBUG,type + " message " + freeMessage.getIds());
+handler.freeValue(this,freeMessage.getIds());
+break;
+case LOAD_JSNI:
+LoadJsniMessage loadJsniMessage=LoadJsniMessage.receive(this);
+String jsniString=loadJsniMessage.getJsni();
+handler.loadJsni(this,jsniString);
+break;
+case REQUEST_ICON:
+RequestIconMessage.receive(this);
+UserAgentIconMessage.send(this,null);
+break;
+case RETURN:
+if (!expectReturn) {
+logger.log(TreeLogger.ERROR,"Received unexpected " + MessageType.RETURN);
+}
+return ReturnMessage.receive(this);
+case QUIT:
+if (expectReturn) {
+logger.log(TreeLogger.ERROR,"Received " + MessageType.QUIT + " while waiting for return");
+}
+disconnectFromHost();
+return null;
+default :
+logger.log(TreeLogger.ERROR,"Unkown messageType: " + type + ", expectReturn: "+ expectReturn);
+disconnectFromHost();
+return null;
+}
+}
+ catch (Exception ex) {
+logger.log(TreeLogger.ERROR,"Unknown exception" + ex);
+ex.printStackTrace();
+}
+}
+}
