@@ -1,0 +1,37 @@
+{
+  char decimalSeparator;
+  char groupingSeparator;
+  if (isCurrencyFormat) {
+    decimalSeparator=numberConstants.monetarySeparator().charAt(0);
+    groupingSeparator=numberConstants.monetaryGroupingSeparator().charAt(0);
+  }
+ else {
+    decimalSeparator=numberConstants.decimalSeparator().charAt(0);
+    groupingSeparator=numberConstants.groupingSeparator().charAt(0);
+  }
+  exponent=0;
+  digitsLength=digits.length();
+  decimalPosition=digitsLength + scale;
+  boolean useExponent=this.useExponentialNotation;
+  int currentGroupingSize=this.groupingSize;
+  if (decimalPosition > 1024) {
+    useExponent=true;
+  }
+  if (useExponent) {
+    computeExponent(digits);
+  }
+  processLeadingZeros(digits);
+  roundValue(digits);
+  insertGroupingSeparators(digits,groupingSeparator,currentGroupingSize);
+  adjustFractionDigits(digits);
+  addZeroAndDecimal(digits,decimalSeparator);
+  if (useExponent) {
+    addExponent(digits);
+  }
+  char zeroChar=numberConstants.zeroDigit().charAt(0);
+  if (zeroChar != '0') {
+    localizeDigits(digits,zeroChar);
+  }
+  digits.insert(0,isNegative ? negativePrefix : positivePrefix);
+  digits.append(isNegative ? negativeSuffix : positiveSuffix);
+}
