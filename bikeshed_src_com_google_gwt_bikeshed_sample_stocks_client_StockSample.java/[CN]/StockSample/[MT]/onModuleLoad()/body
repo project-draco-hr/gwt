@@ -1,0 +1,124 @@
+{
+  queryField.setText("G");
+  RootPanel.get("queryFieldContainer").add(queryField);
+  RootPanel.get("errorLabelContainer").add(errorLabel);
+  queryField.setFocus(true);
+  queryField.selectAll();
+  searchListModel=new AsyncListModel<StockQuote>(new DataSource<StockQuote>(){
+    public void requestData(    AsyncListModel<StockQuote> listModel){
+      update();
+    }
+  }
+);
+  favoritesListModel=new AsyncListModel<StockQuote>(new DataSource<StockQuote>(){
+    public void requestData(    AsyncListModel<StockQuote> listModel){
+      update();
+    }
+  }
+);
+  transactionListModel=new ListListModel<Transaction>();
+  transactions=transactionListModel.getList();
+  resultsTable=new PagingTableListView<StockQuote>(searchListModel,10);
+  resultsTable.addColumn(Columns.favoriteColumn);
+  resultsTable.addColumn(Columns.tickerColumn);
+  resultsTable.addColumn(Columns.nameColumn);
+  resultsTable.addColumn(Columns.priceColumn);
+  resultsTable.addColumn(Columns.buyColumn);
+  favoritesTable=new PagingTableListView<StockQuote>(favoritesListModel,10);
+  favoritesTable.addColumn(Columns.tickerColumn);
+  favoritesTable.addColumn(Columns.priceColumn);
+  favoritesTable.addColumn(Columns.sharesColumn);
+  favoritesTable.addColumn(Columns.buyColumn);
+  favoritesTable.addColumn(Columns.sellColumn);
+  transactionTable=new PagingTableListView<Transaction>(transactionListModel,10);
+  transactionTable.addColumn(Columns.transactionColumn);
+  transactionTable.addColumn(Columns.subtotalColumn);
+  transactionTree=new TreeView(new TransactionTreeViewModel(tickersListModel,transactionListListModelsByTicker),null);
+  Columns.favoriteColumn.setFieldUpdater(new FieldUpdater<StockQuote,Boolean>(){
+    public void update(    StockQuote object,    Boolean value){
+      setFavorite(object.getTicker(),value);
+    }
+  }
+);
+  Columns.buyColumn.setFieldUpdater(new FieldUpdater<StockQuote,String>(){
+    public void update(    StockQuote object,    String value){
+      buySellPopup.setStockQuote(object,true);
+      buySellPopup.center();
+    }
+  }
+);
+  Columns.sellColumn.setFieldUpdater(new FieldUpdater<StockQuote,String>(){
+    public void update(    StockQuote object,    String value){
+      buySellPopup.setStockQuote(object,false);
+      buySellPopup.center();
+    }
+  }
+);
+  buySellPopup.addCloseHandler(new CloseHandler<PopupPanel>(){
+    public void onClose(    CloseEvent<PopupPanel> event){
+      Transaction t=buySellPopup.getTransaction();
+      if (t != null) {
+        dataService.transact(t,new AsyncCallback<Transaction>(){
+          public void onFailure(          Throwable caught){
+            Window.alert("Error: " + caught.getMessage());
+          }
+          public void onSuccess(          Transaction result){
+            recordTransaction(result);
+            update();
+          }
+          /** 
+ * Update transactions (list of all transactions),
+ * transactionTickers (set of all tickers involved in
+ * transactions), and transactionsByTicker (map from
+ * ticker to lists of transactions for that ticker).
+ */
+          private void recordTransaction(          Transaction result){
+            transactions.add(0,result);
+            String ticker=result.getTicker();
+            int index=0;
+            for (            String s : transactionTreeTickers) {
+              int compare=s.compareTo(ticker);
+              if (compare == 0) {
+                index=-1;
+                break;
+              }
+ else               if (compare > 0) {
+                break;
+              }
+              index++;
+            }
+            if (index != -1) {
+              transactionTreeTickers.add(index,ticker);
+            }
+            ListListModel<Transaction> t=transactionListListModelsByTicker.get(ticker);
+            if (t == null) {
+              t=new ListListModel<Transaction>();
+              transactionListListModelsByTicker.put(ticker,t);
+            }
+            t.getList().add(result);
+          }
+        }
+);
+      }
+    }
+  }
+);
+  HorizontalPanel hPanel=new HorizontalPanel();
+  hPanel.add(new HTML("<b>Available cash:</b>"));
+  hPanel.add(cashLabel);
+  RootPanel.get().add(hPanel);
+  RootPanel.get().add(resultsTable);
+  RootPanel.get().add(new HTML("<hr>"));
+  RootPanel.get().add(favoritesTable);
+  RootPanel.get().add(new HTML("<hr>"));
+  RootPanel.get().add(transactionTable);
+  RootPanel.get().add(new HTML("<hr>"));
+  RootPanel.get().add(transactionTree);
+  queryField.addKeyUpHandler(new KeyUpHandler(){
+    public void onKeyUp(    KeyUpEvent event){
+      update();
+    }
+  }
+);
+  update();
+}
