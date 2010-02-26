@@ -33,7 +33,8 @@
   transactionTable=new PagingTableListView<Transaction>(transactionListModel,10);
   transactionTable.addColumn(Columns.transactionColumn);
   transactionTable.addColumn(Columns.subtotalColumn);
-  transactionTree=new TreeView(new TransactionTreeViewModel(tickersListModel,transactionListListModelsByTicker),null);
+  transactionTree=new TreeView(new TransactionTreeViewModel(favoritesListModel,transactionListListModelsByTicker),null);
+  transactionTree.setAnimationEnabled(true);
   Columns.favoriteColumn.setFieldUpdater(new FieldUpdater<StockQuote,Boolean>(){
     public void update(    StockQuote object,    Boolean value){
       setFavorite(object.getTicker(),value);
@@ -75,21 +76,6 @@
           private void recordTransaction(          Transaction result){
             transactions.add(0,result);
             String ticker=result.getTicker();
-            int index=0;
-            for (            String s : transactionTreeTickers) {
-              int compare=s.compareTo(ticker);
-              if (compare == 0) {
-                index=-1;
-                break;
-              }
- else               if (compare > 0) {
-                break;
-              }
-              index++;
-            }
-            if (index != -1) {
-              transactionTreeTickers.add(index,ticker);
-            }
             ListListModel<Transaction> t=transactionListListModelsByTicker.get(ticker);
             if (t == null) {
               t=new ListListModel<Transaction>();
