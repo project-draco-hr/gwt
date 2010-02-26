@@ -4,11 +4,22 @@
       String prefix=value.endsWith("...") ? value.substring(0,value.length() - 3) : value;
       dataService.getNext(prefix,new AsyncCallback<List<String>>(){
         public void onFailure(        Throwable caught){
-          Window.alert("Error: " + caught);
+          String message=caught.getMessage();
+          if (message.contains("Not logged in")) {
+            Window.Location.reload();
+          }
+ else {
+            Window.alert("ERROR: " + caught.getMessage());
+          }
         }
-        public void onSuccess(        List<String> result){
-          listModel.updateDataSize(result.size(),true);
-          listModel.updateViewData(0,result.size(),result);
+        public void onSuccess(        final List<String> result){
+          new Timer(){
+            @Override public void run(){
+              listModel.updateDataSize(result.size(),true);
+              listModel.updateViewData(0,result.size(),result);
+            }
+          }
+.schedule(500);
         }
       }
 );

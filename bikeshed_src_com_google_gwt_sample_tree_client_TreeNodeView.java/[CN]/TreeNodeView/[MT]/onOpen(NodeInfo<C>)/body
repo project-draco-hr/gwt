@@ -1,7 +1,10 @@
 {
+  ensureChildContainer().setInnerHTML(tree.getLoadingHtml());
+  ensureAnimationFrame().getStyle().setProperty("display","");
   ListModel<C> listModel=nodeInfo.getListModel();
   listReg=listModel.addListHandler(new ListHandler<C>(){
     public void onDataChanged(    ListEvent<C> event){
+      ensureAnimationFrame().getStyle().setDisplay(Display.NONE);
       TreeViewModel model=tree.getTreeViewModel();
       int imageWidth=tree.getImageWidth();
       Cell<C> theCell=nodeInfo.getCell();
@@ -22,11 +25,6 @@
         sb.append("</div>");
         sb.append("</div>");
       }
-      if (childContainer == null) {
-        Element elem=getElement();
-        initChildContainer(Document.get().createDivElement());
-        elem.appendChild(childContainer);
-      }
       childContainer.setInnerHTML(sb.toString());
       children=new ArrayList<TreeNodeView<?>>();
       Element childElem=childContainer.getFirstChildElement();
@@ -35,6 +33,7 @@
         children.add(child);
         childElem=childElem.getNextSiblingElement();
       }
+      tree.maybeAnimateTreeNode(TreeNodeView.this);
     }
     public void onSizeChanged(    SizeChangeEvent event){
       if (children == null) {
