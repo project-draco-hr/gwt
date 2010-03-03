@@ -1,0 +1,29 @@
+{
+  if (onePermutation) {
+    artifacts=new ArtifactSet(artifacts);
+    Map<String,List<String>> allSerializableFields=new HashMap<String,List<String>>();
+    for (    RpcDataArtifact data : artifacts.find(RpcDataArtifact.class)) {
+      allSerializableFields.putAll(data.getOperableFields());
+    }
+    for (    CompilationResult result : artifacts.find(CompilationResult.class)) {
+      Builder builder=new Builder();
+      for (      Map.Entry<String,List<String>> entry : allSerializableFields.entrySet()) {
+        builder.setSerializableFields(entry.getKey(),entry.getValue());
+      }
+      for (      SymbolData symbolData : result.getSymbolMap()) {
+        builder.add(symbolData.getSymbolName(),symbolData.getJsniIdent(),symbolData.getClassName(),symbolData.getMemberName(),symbolData.getTypeId());
+      }
+      ByteArrayOutputStream out=new ByteArrayOutputStream();
+      try {
+        builder.getOracle().store(out);
+      }
+ catch (      IOException e) {
+        logger.log(TreeLogger.ERROR,"Unable to store deRPC data",e);
+        throw new UnableToCompleteException();
+      }
+      SyntheticArtifact a=emitBytes(logger,out.toByteArray(),result.getStrongName() + SUFFIX);
+      artifacts.add(a);
+    }
+  }
+  return artifacts;
+}

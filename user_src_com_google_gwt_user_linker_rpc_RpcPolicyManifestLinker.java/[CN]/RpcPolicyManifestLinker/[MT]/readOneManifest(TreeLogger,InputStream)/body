@@ -1,0 +1,35 @@
+{
+  Map<String,String> entries=new HashMap<String,String>();
+  try {
+    BufferedReader reader=new BufferedReader(new InputStreamReader(manifestStream,Util.DEFAULT_ENCODING));
+    String line;
+    while ((line=reader.readLine()) != null) {
+      int idx=line.indexOf(':');
+      if (idx < 0) {
+        throw new InternalCompilerException("invalid selection information line: " + line);
+      }
+      String propName=line.substring(0,idx).trim();
+      String propValue=line.substring(idx + 1).trim();
+      entries.put(propName,propValue);
+    }
+    reader.close();
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Unexpected IOException",e);
+    throw new UnableToCompleteException();
+  }
+  String serviceClass=entries.get("serviceClass");
+  if (serviceClass == null) {
+    logger.log(TreeLogger.ERROR,"Internal error: manifest file does not include a serviceClass");
+    throw new UnableToCompleteException();
+  }
+  String path=entries.get("path");
+  if (path == null) {
+    logger.log(TreeLogger.ERROR,"Internal error: manifest file does not include a path");
+    throw new UnableToCompleteException();
+  }
+  manifestBody.append(serviceClass);
+  manifestBody.append(", ");
+  manifestBody.append(path);
+  manifestBody.append("\n");
+}

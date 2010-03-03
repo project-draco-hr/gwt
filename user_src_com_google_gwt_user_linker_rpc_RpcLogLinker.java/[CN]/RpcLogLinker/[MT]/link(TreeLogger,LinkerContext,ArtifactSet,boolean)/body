@@ -1,0 +1,21 @@
+{
+  if (onePermutation) {
+    ArtifactSet toReturn=new ArtifactSet(artifacts);
+    logger=logger.branch(TreeLogger.TRACE,"Emitting RPC log files");
+    for (    CompilationResult result : artifacts.find(CompilationResult.class)) {
+      for (      RpcLogArtifact logArt : artifacts.find(RpcLogArtifact.class)) {
+        String policyStrongName=logArt.getSerializationPolicyStrongName();
+        if (policyStrongName.equals(RpcLogArtifact.UNSPECIFIED_STRONGNAME)) {
+          policyStrongName=result.getStrongName();
+        }
+        EmittedArtifact art=emitInputStream(logger,logArt.getContents(logger),logArt.getQualifiedSourceName() + "-" + policyStrongName+ ".rpc.log");
+        art.setPrivate(true);
+        toReturn.add(art);
+      }
+    }
+    return toReturn;
+  }
+ else {
+    return artifacts;
+  }
+}

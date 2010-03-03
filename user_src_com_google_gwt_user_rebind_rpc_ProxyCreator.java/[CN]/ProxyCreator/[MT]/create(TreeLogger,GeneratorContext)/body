@@ -27,14 +27,14 @@
     logger.log(TreeLogger.ERROR,"Configuration property " + TypeSerializerCreator.GWT_ELIDE_TYPE_NAMES_FROM_RPC + " is not defined. Is RemoteService.gwt.xml inherited?");
     throw new UnableToCompleteException();
   }
-  OutputStream pathInfo=context.tryCreateResource(logger,serviceIntf.getQualifiedSourceName() + ".rpc.log");
-  PrintWriter writer=null;
   SerializableTypeOracle typesSentFromBrowser;
   SerializableTypeOracle typesSentToBrowser;
-  try {
-    writer=new PrintWriter(pathInfo);
-    typesSentFromBrowserBuilder.setLogOutputStream(pathInfo);
-    typesSentToBrowserBuilder.setLogOutputStream(pathInfo);
+  String rpcLog;
+{
+    StringWriter stringWriter=new StringWriter();
+    PrintWriter writer=new PrintWriter(stringWriter);
+    typesSentFromBrowserBuilder.setLogOutputWriter(writer);
+    typesSentToBrowserBuilder.setLogOutputWriter(writer);
     writer.write("====================================\n");
     writer.write("Types potentially sent from browser:\n");
     writer.write("====================================\n\n");
@@ -45,14 +45,8 @@
     writer.write("===================================\n\n");
     writer.flush();
     typesSentToBrowser=typesSentToBrowserBuilder.build(logger);
-    if (pathInfo != null) {
-      context.commitResource(logger,pathInfo).setPrivate(true);
-    }
-  }
-  finally {
-    if (writer != null) {
-      writer.close();
-    }
+    writer.close();
+    rpcLog=stringWriter.toString();
   }
   generateTypeHandlers(logger,context,typesSentFromBrowser,typesSentToBrowser);
   String serializationPolicyStrongName=writeSerializationPolicyFile(logger,context,typesSentFromBrowser,typesSentToBrowser);
@@ -64,5 +58,6 @@
     generateStreamWriterOverride(srcWriter);
   }
   srcWriter.commit(logger);
+  context.commitArtifact(logger,new RpcLogArtifact(serviceIntf.getQualifiedSourceName(),serializationPolicyStrongName,rpcLog));
   return getProxyQualifiedName();
 }

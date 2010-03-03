@@ -34,26 +34,27 @@
       startPos+=text.length();
     }
   }
-  SortedSet<CompilationResult> compilations=artifacts.find(CompilationResult.class);
   startPos=selectionScript.indexOf("// __PERMUTATIONS_END__");
   if (startPos != -1) {
     StringBuffer text=new StringBuffer();
-    if (compilations.size() == 0) {
+    if (propMapsByStrongName.size() == 0) {
       text.append("alert(\"GWT module '" + context.getModuleName() + "' may need to be (re)compiled\");");
       text.append("return;");
     }
- else     if (compilations.size() == 1) {
-      Iterator<CompilationResult> iter=compilations.iterator();
-      CompilationResult result=iter.next();
-      text.append("strongName = '" + compilationStrongNames.get(result) + "';");
+ else     if (propMapsByStrongName.size() == 1) {
+      text.append("strongName = '" + propMapsByStrongName.keySet().iterator().next() + "';");
     }
  else {
-      for (      CompilationResult r : compilations) {
-        for (        Map<SelectionProperty,String> propertyMap : r.getPropertyMap()) {
+      Set<String> propertiesUsed=new HashSet<String>();
+      for (      String strongName : propMapsByStrongName.keySet()) {
+        for (        Map<String,String> propertyMap : propMapsByStrongName.get(strongName)) {
           text.append("unflattenKeylistIntoAnswers([");
           boolean needsComma=false;
           for (          SelectionProperty p : context.getProperties()) {
-            if (!propertyMap.containsKey(p)) {
+            if (p.tryGetValue() != null) {
+              continue;
+            }
+ else             if (p.isDerived()) {
               continue;
             }
             if (needsComma) {
@@ -62,18 +63,16 @@
  else {
               needsComma=true;
             }
-            text.append("'" + propertyMap.get(p) + "'");
+            text.append("'" + propertyMap.get(p.getName()) + "'");
+            propertiesUsed.add(p.getName());
           }
-          text.append("], '").append(compilationStrongNames.get(r)).append("');\n");
+          text.append("], '").append(strongName).append("');\n");
         }
       }
       text.append("strongName = answers[");
       boolean needsIndexMarkers=false;
       for (      SelectionProperty p : context.getProperties()) {
-        if (p.tryGetValue() != null) {
-          continue;
-        }
- else         if (p.isDerived()) {
+        if (!propertiesUsed.contains(p.getName())) {
           continue;
         }
         if (needsIndexMarkers) {

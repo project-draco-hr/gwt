@@ -1,0 +1,42 @@
+{
+  try {
+    JarOutputStream jar=new JarOutputStream(new FileOutputStream(jarFile));
+    StandardLinkerContext linkerContext=new StandardLinkerContext(logger,module,precompileOptions);
+    StandardCompilationResult compilation=new StandardCompilationResult(permResult);
+    addSelectionPermutations(compilation,permResult.getPermutation(),linkerContext);
+    ArtifactSet permArtifacts=new ArtifactSet(generatedArtifacts);
+    permArtifacts.addAll(permResult.getArtifacts());
+    permArtifacts.add(compilation);
+    ArtifactSet linkedArtifacts=linkerContext.invokeLinkForOnePermutation(logger,compilation,permArtifacts);
+    for (    EmittedArtifact art : linkedArtifacts.find(EmittedArtifact.class)) {
+      String jarEntryPath;
+      if (art.isPrivate()) {
+        String pathWithLinkerName=linkerContext.getExtraPathForLinker(art.getLinker(),art.getPartialPath());
+        if (pathWithLinkerName.startsWith("/")) {
+          pathWithLinkerName=pathWithLinkerName.substring(1);
+        }
+        jarEntryPath="aux/" + pathWithLinkerName;
+      }
+ else {
+        jarEntryPath="target/" + art.getPartialPath();
+      }
+      jar.putNextEntry(new ZipEntry(jarEntryPath));
+      art.writeTo(logger,jar);
+      jar.closeEntry();
+    }
+    int numSerializedArtifacts=0;
+    for (    Artifact art : linkedArtifacts) {
+      if (art.isTransferableFromShards() && !(art instanceof EmittedArtifact)) {
+        String jarEntryPath="arts/" + numSerializedArtifacts++;
+        jar.putNextEntry(new ZipEntry(jarEntryPath));
+        Util.writeObjectToStream(jar,art);
+        jar.closeEntry();
+      }
+    }
+    jar.close();
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Error linking",e);
+    throw new UnableToCompleteException();
+  }
+}

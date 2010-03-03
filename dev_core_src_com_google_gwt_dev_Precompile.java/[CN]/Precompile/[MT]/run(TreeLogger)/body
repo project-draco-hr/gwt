@@ -6,8 +6,20 @@
     compilerWorkDir.mkdirs();
     File precompilationFile=new File(compilerWorkDir,PRECOMPILE_FILENAME);
     ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
-    boolean generateOnShards=options.isEnabledGeneratingOnShards();
-    if (options.isValidateOnly()) {
+    StandardLinkerContext linkerContext=new StandardLinkerContext(TreeLogger.NULL,module,options);
+    boolean generateOnShards=true;
+    if (!options.isEnabledGeneratingOnShards()) {
+      logger.log(TreeLogger.INFO,"Precompiling on the start node");
+      generateOnShards=false;
+    }
+ else     if (!linkerContext.allLinkersAreShardable()) {
+      TreeLogger legacyLinkersLogger=logger.branch(TreeLogger.INFO,"Precompiling on the start node, because some linkers are not updated");
+      for (      Linker linker : linkerContext.findUnshardableLinkers()) {
+        legacyLinkersLogger.log(TreeLogger.INFO,"Linker" + linker.getClass().getCanonicalName() + " is not updated");
+      }
+      generateOnShards=false;
+    }
+ else     if (options.isValidateOnly()) {
       generateOnShards=false;
     }
  else     if (options.getDumpSignatureFile() != null) {

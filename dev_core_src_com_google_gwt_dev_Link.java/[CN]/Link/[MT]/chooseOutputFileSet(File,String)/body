@@ -1,3 +1,13 @@
 {
-  return chooseOutputFileSet(dirOrJar,pathPrefix,pathPrefix);
+  if (dirOrJar == null) {
+    return new NullOutputFileSet();
+  }
+  String name=dirOrJar.getName();
+  if (!dirOrJar.isDirectory() && (name.endsWith(".war") || name.endsWith(".jar") || name.endsWith(".zip"))) {
+    return new OutputFileSetOnJar(dirOrJar,pathPrefix);
+  }
+ else {
+    Util.recursiveDelete(new File(dirOrJar,pathPrefix),true);
+    return new OutputFileSetOnDirectory(dirOrJar,pathPrefix);
+  }
 }

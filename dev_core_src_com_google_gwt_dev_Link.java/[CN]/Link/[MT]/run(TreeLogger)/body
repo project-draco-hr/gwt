@@ -1,35 +1,7 @@
 {
-  for (  String moduleName : options.getModuleNames()) {
+  loop_modules:   for (  String moduleName : options.getModuleNames()) {
     ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
-    OutputFileSet outFileSet;
-    OutputFileSet extraFileSet;
-    try {
-      if (options.getOutDir() == null) {
-        outFileSet=chooseOutputFileSet(options.getWarDir(),module.getName() + "/");
-        extraFileSet=chooseOutputFileSet(options.getExtraDir(),module.getName() + "/");
-      }
- else {
-        outFileSet=chooseOutputFileSet(options.getOutDir(),module.getName() + "/");
-        if (options.getExtraDir() != null) {
-          extraFileSet=chooseOutputFileSet(options.getExtraDir(),module.getName() + "-aux/","");
-        }
- else         if (outFileSet instanceof OutputFileSetOnDirectory) {
-          extraFileSet=chooseOutputFileSet(options.getOutDir(),module.getName() + "-aux/");
-        }
- else {
-          extraFileSet=new NullOutputFileSet();
-        }
-      }
-    }
- catch (    IOException e) {
-      logger.log(TreeLogger.ERROR,"Unexpected exception while producing output",e);
-      throw new UnableToCompleteException();
-    }
-    List<Permutation> permsList=new ArrayList<Permutation>();
-    ArtifactSet generatedArtifacts=new ArtifactSet();
-    JJSOptions precompileOptions=null;
     File compilerWorkDir=options.getCompilerWorkDir(moduleName);
-    List<Integer> permutationIds=new ArrayList<Integer>();
     PrecompilationResult precompileResults;
     try {
       precompileResults=Util.readFileAsObject(new File(compilerWorkDir,Precompile.PRECOMPILE_FILENAME),PrecompilationResult.class);
@@ -43,38 +15,29 @@ catch (    IOException e) {
       return false;
     }
     if (precompileResults instanceof PrecompileOptions) {
-      precompileOptions=(JJSOptions)precompileResults;
-      int numPermutations=module.getProperties().numPermutations();
-      for (int i=0; i < numPermutations; ++i) {
-        permutationIds.add(i);
-      }
-    }
- else {
-      Precompilation precompilation=(Precompilation)precompileResults;
-      permsList.addAll(Arrays.asList(precompilation.getPermutations()));
-      generatedArtifacts.addAll(precompilation.getGeneratedArtifacts());
-      precompileOptions=precompilation.getUnifiedAst().getOptions();
-      for (      Permutation perm : precompilation.getPermutations()) {
-        permutationIds.add(perm.getId());
-      }
-    }
-    List<FileBackedObject<PermutationResult>> resultFiles=new ArrayList<FileBackedObject<PermutationResult>>(permutationIds.size());
-    for (    int id : permutationIds) {
-      File f=CompilePerms.makePermFilename(compilerWorkDir,id);
-      if (!f.exists()) {
-        logger.log(TreeLogger.ERROR,"File not found '" + f.getAbsolutePath() + "'; please compile all permutations");
+      if (!doLinkFinal(logger,compilerWorkDir,module,(JJSOptions)precompileResults)) {
         return false;
       }
-      resultFiles.add(new FileBackedObject<PermutationResult>(PermutationResult.class,f));
+      continue loop_modules;
     }
-    TreeLogger branch=logger.branch(TreeLogger.INFO,"Linking module " + module.getName());
-    StandardLinkerContext linkerContext=new StandardLinkerContext(branch,module,precompileOptions);
-    ArtifactSet artifacts=doLink(branch,linkerContext,generatedArtifacts,resultFiles);
-    try {
-      doProduceOutput(branch,artifacts,linkerContext,outFileSet,extraFileSet);
-    }
- catch (    IOException e) {
-      logger.log(TreeLogger.ERROR,"Unexpected exception while producing output",e);
+ else {
+      Precompilation precomp=(Precompilation)precompileResults;
+      Permutation[] perms=precomp.getPermutations();
+      List<FileBackedObject<PermutationResult>> resultFiles=CompilePerms.makeResultFiles(compilerWorkDir,perms);
+      for (      FileBackedObject<PermutationResult> file : resultFiles) {
+        if (!file.getFile().exists()) {
+          logger.log(TreeLogger.ERROR,"File not found '" + file.getFile().getAbsolutePath() + "'; please compile all permutations");
+          return false;
+        }
+      }
+      TreeLogger branch=logger.branch(TreeLogger.INFO,"Linking module " + module.getName());
+      try {
+        link(branch,module,precomp.getGeneratedArtifacts(),perms,resultFiles,options.getWarDir(),options.getExtraDir(),precomp.getUnifiedAst().getOptions());
+      }
+ catch (      IOException e) {
+        logger.log(TreeLogger.ERROR,"Unexpected exception while producing output",e);
+        throw new UnableToCompleteException();
+      }
     }
   }
   return true;

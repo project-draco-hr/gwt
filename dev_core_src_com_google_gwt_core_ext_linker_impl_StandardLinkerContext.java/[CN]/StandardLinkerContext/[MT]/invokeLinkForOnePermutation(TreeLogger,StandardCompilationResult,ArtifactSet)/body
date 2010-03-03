@@ -1,0 +1,20 @@
+{
+  ArtifactSet workingArtifacts=new ArtifactSet(permArtifacts);
+  workingArtifacts.add(permResult);
+  for (  Linker linker : linkers) {
+    if (linker.isShardable()) {
+      TreeLogger linkerLogger=logger.branch(TreeLogger.TRACE,"Invoking Linker " + linker.getDescription(),null);
+      try {
+        workingArtifacts.freeze();
+        workingArtifacts=linker.link(logger,this,workingArtifacts,true);
+      }
+ catch (      Throwable e) {
+        linkerLogger.log(TreeLogger.ERROR,"Failed to link",e);
+        throw new UnableToCompleteException();
+      }
+    }
+  }
+  resetLinkers(logger);
+  workingArtifacts.freeze();
+  return workingArtifacts;
+}

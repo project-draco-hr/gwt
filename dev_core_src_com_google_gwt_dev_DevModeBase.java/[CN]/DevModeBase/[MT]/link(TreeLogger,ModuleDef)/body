@@ -1,7 +1,9 @@
 {
   TreeLogger linkLogger=logger.branch(TreeLogger.DEBUG,"Linking module '" + module.getName() + "'");
   StandardLinkerContext linkerStack=new StandardLinkerContext(linkLogger,module,options);
-  ArtifactSet artifacts=linkerStack.invokeLink(linkLogger);
+  ArtifactSet artifacts=linkerStack.getArtifactsForPublicResources(logger,module);
+  artifacts=linkerStack.invokeLegacyLinkers(linkLogger,artifacts);
+  artifacts=linkerStack.invokeFinalLink(linkLogger,artifacts);
   produceOutput(linkLogger,linkerStack,artifacts,module,false);
   return linkerStack;
 }
