@@ -1,19 +1,27 @@
 {
-  if (getImgSrc(img).equals(src)) {
-    return;
-  }
+  boolean isSameSource=getImgSrc(img).equals(src);
   if (srcImgMap == null) {
     srcImgMap=JavaScriptObject.createObject();
   }
   String oldSrc=getPendingSrc(img);
   if (oldSrc != null) {
     Element top=getTop(srcImgMap,oldSrc);
-    assert(top != null);
-    if (top.equals(img)) {
+    if (top == null) {
+      cleanupExpandos(img);
+    }
+ else     if (top.equals(img)) {
+      if (isSameSource) {
+        return;
+      }
       removeTop(srcImgMap,top);
     }
+ else     if (removeChild(top,img,isSameSource)) {
+      if (isSameSource) {
+        return;
+      }
+    }
  else {
-      removeChild(top,img);
+      cleanupExpandos(img);
     }
   }
   Element top=getTop(srcImgMap,src);
