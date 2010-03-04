@@ -1,0 +1,36 @@
+{
+  super.onBrowserEvent(event);
+  int eventType=DOM.eventGetType(event);
+switch (eventType) {
+case Event.ONMOUSEUP:
+    Element currentTarget=event.getCurrentEventTarget().cast();
+  if (currentTarget == getElement()) {
+    Element target=event.getEventTarget().cast();
+    String id=target.getId();
+    boolean inCell=target.getClassName().equals("gwt-sstree-cell");
+    while (id == null || !id.startsWith("gwt-sstree")) {
+      target=target.getParentElement();
+      if (target == null) {
+        return;
+      }
+      id=target.getId();
+      inCell|=target.getClassName().equals("gwt-sstree-cell");
+    }
+    if (id.startsWith("gwt-sstree-")) {
+      id=id.substring(11);
+      String[] path=id.split("-");
+      TreeNodeView<?> nodeView=rootNode;
+      for (      String s : path) {
+        nodeView=nodeView.getChildTreeNodeView(Integer.parseInt(s));
+      }
+      if (inCell) {
+        nodeView.fireEventToCell(event);
+      }
+ else {
+        nodeView.setState(!nodeView.getState());
+      }
+    }
+  }
+break;
+}
+}

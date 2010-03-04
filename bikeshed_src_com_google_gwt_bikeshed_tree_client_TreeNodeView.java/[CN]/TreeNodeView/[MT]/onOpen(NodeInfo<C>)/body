@@ -13,38 +13,25 @@
           }
         }
       }
-      ensureAnimationFrame().getStyle().setDisplay(Display.NONE);
-      TreeViewModel model=tree.getTreeViewModel();
-      int imageWidth=tree.getImageWidth();
-      Cell<C> theCell=nodeInfo.getCell();
-      StringBuilder sb=new StringBuilder();
+      if (tree.isAnimationEnabled()) {
+        ensureAnimationFrame().getStyle().setDisplay(Display.NONE);
+      }
+      List<TreeNodeView<?>> savedViews=new ArrayList<TreeNodeView<?>>();
       for (      C childValue : event.getValues()) {
         TreeNodeView<?> savedView=map.get(nodeInfo.getKey(childValue));
         if (savedView != null) {
           savedView.getElement().removeFromParent();
         }
-        sb.append("<div style=\"position:relative;padding-left:");
-        sb.append(imageWidth);
-        sb.append("px;\">");
-        if (savedView != null) {
-          sb.append(tree.getOpenImageHtml());
-        }
- else         if (model.isLeaf(childValue)) {
-          sb.append(LEAF_IMAGE);
-        }
- else {
-          sb.append(tree.getClosedImageHtml());
-        }
-        sb.append("<div>");
-        theCell.render(childValue,sb);
-        sb.append("</div>");
-        sb.append("</div>");
+        savedViews.add(savedView);
       }
+      StringBuilder sb=new StringBuilder();
+      emitHtml(sb,nodeInfo,event.getValues(),savedViews);
       childContainer.setInnerHTML(sb.toString());
       children=new ArrayList<TreeNodeView<?>>();
       Element childElem=childContainer.getFirstChildElement();
+      int idx=0;
       for (      C childValue : event.getValues()) {
-        TreeNodeView<C> child=new TreeNodeView<C>(tree,TreeNodeView.this,nodeInfo,childElem,childValue);
+        TreeNodeView<C> child=createTreeNodeView(nodeInfo,childElem,childValue,idx);
         TreeNodeView<?> savedChild=map.get(nodeInfo.getKey(childValue));
         if (savedChild != null) {
           child.children=savedChild.children;
@@ -52,13 +39,16 @@
           child.listReg=savedChild.listReg;
           child.nodeInfo=savedChild.nodeInfo;
           child.nodeInfoLoaded=savedChild.nodeInfoLoaded;
-          child.open=savedChild.open;
+          child.open=savedChild.getState();
           child.getElement().appendChild(savedChild.childContainer.getParentElement());
         }
         children.add(child);
         childElem=childElem.getNextSiblingElement();
+        idx++;
       }
-      tree.maybeAnimateTreeNode(TreeNodeView.this);
+      if (tree.isAnimationEnabled()) {
+        tree.maybeAnimateTreeNode(TreeNodeView.this);
+      }
     }
     public void onSizeChanged(    SizeChangeEvent event){
     }
