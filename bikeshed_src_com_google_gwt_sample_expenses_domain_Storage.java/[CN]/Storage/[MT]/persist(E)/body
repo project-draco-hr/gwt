@@ -1,0 +1,21 @@
+{
+  E next=null;
+  E previous=null;
+  if (delta.getId() == null) {
+    next=delta.accept(new CreationVisitor<E>(++serial,0));
+    delta.accept(new NullFieldFiller(next));
+  }
+ else {
+    previous=get(delta);
+    if (!previous.getVersion().equals(delta.getVersion())) {
+      throw new IllegalArgumentException(String.format("Version mismatch of %s. Cannot update %d from %d",delta,previous.getVersion(),delta.getVersion()));
+    }
+    next=previous.accept(new CreationVisitor<E>(++serial,previous.getVersion() + 1));
+    NullFieldFiller filler=new NullFieldFiller(next);
+    delta.accept(filler);
+    previous.accept(filler);
+  }
+  updateIndices(previous,next);
+  soup.put(next.getId(),next);
+  return next;
+}

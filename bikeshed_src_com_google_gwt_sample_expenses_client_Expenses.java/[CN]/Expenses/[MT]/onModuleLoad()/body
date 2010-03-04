@@ -1,0 +1,58 @@
+{
+  RootLayoutPanel root=RootLayoutPanel.get();
+  final Shell shell=new Shell();
+  root.add(shell);
+  Command refresh=new Command(){
+    public void execute(){
+      RequestBuilder builder=new RequestBuilder(RequestBuilder.GET,"/expenses/data");
+      builder.setCallback(new RequestCallback(){
+        public void onResponseReceived(        Request request,        Response response){
+          if (200 == response.getStatusCode()) {
+            String text=response.getText();
+            JsArray<ValuesImpl<Employee>> valueArray=ValuesImpl.arrayFromJson(text);
+            shell.setValueList(valueArray);
+          }
+ else {
+            shell.error.setInnerText(SERVER_ERROR + " (" + response.getStatusText()+ ")");
+          }
+        }
+        public void onError(        Request request,        Throwable exception){
+          shell.error.setInnerText(SERVER_ERROR);
+        }
+      }
+);
+      try {
+        builder.send();
+      }
+ catch (      RequestException e) {
+        shell.error.setInnerText(SERVER_ERROR + " (" + e.getMessage()+ ")");
+      }
+    }
+  }
+;
+  refresh.execute();
+  shell.setRefresh(refresh);
+  final HasValueList<Values<Employee>> employees=new HasValueList<Values<Employee>>(){
+    public void editValueList(    boolean replace,    int index,    List<Values<Employee>> newValues){
+      throw new UnsupportedOperationException();
+    }
+    public void setValueList(    List<Values<Employee>> newValues){
+      shell.users.clear();
+      for (      Values<Employee> values : newValues) {
+        shell.users.addItem(values.get(Employee.DISPLAY_NAME),values.get(Employee.USER_NAME));
+      }
+    }
+    public void setValueListSize(    int size,    boolean exact){
+      throw new UnsupportedOperationException();
+    }
+  }
+;
+  requestFactory.employeeRequest().findAllEmployees().forProperty(Employee.DISPLAY_NAME).forProperty(Employee.USER_NAME).to(employees).fire();
+  final TextBox nameHolder=new TextBox();
+  shell.users.addChangeHandler(new ChangeHandler(){
+    public void onChange(    ChangeEvent event){
+      nameHolder.setText("gesundheit");
+    }
+  }
+);
+}
