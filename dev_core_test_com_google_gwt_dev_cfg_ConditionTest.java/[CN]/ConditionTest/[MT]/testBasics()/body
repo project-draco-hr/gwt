@@ -1,0 +1,38 @@
+{
+  assertTrue(isTrue(new ConditionAll(),null));
+  assertFalse(isTrue(new ConditionAny(),null));
+  assertTrue(isTrue(new ConditionNone(),null));
+  assertTrue(isTrue(new ConditionWhenPropertyIs("conf1","value1"),null));
+  assertFalse(isTrue(new ConditionWhenPropertyIs("conf1","value2"),null));
+  assertTrue(isTrue(new ConditionWhenPropertyIs("binding1","true"),null));
+  assertFalse(isTrue(new ConditionWhenPropertyIs("binding1","false"),null));
+  assertTrue(isTrue(new ConditionWhenLinkerAdded("linker1"),null));
+  assertFalse(isTrue(new ConditionWhenLinkerAdded("bogoLinker"),null));
+  ConditionWhenTypeAssignableTo assignableToObject=new ConditionWhenTypeAssignableTo("java.lang.Object");
+  assertTrue(isTrue(assignableToObject,"java.lang.String"));
+  assertFalse(isTrue(new ConditionWhenTypeAssignableTo("java.lang.String"),"java.lang.Object"));
+  ConditionWhenTypeIs isObject=new ConditionWhenTypeIs("java.lang.Object");
+  assertTrue(isTrue(isObject,"java.lang.Object"));
+  assertFalse(isTrue(isObject,"java.lang.String"));
+{
+    ConditionAll all=new ConditionAll();
+    all.getConditions().add(assignableToObject);
+    all.getConditions().add(isObject);
+    assertTrue(isTrue(all,"java.lang.Object"));
+    assertFalse(isTrue(all,"java.lang.String"));
+  }
+{
+    ConditionAny any=new ConditionAny();
+    any.getConditions().add(assignableToObject);
+    any.getConditions().add(isObject);
+    assertTrue(isTrue(any,"java.lang.Object"));
+    assertTrue(isTrue(any,"java.lang.String"));
+  }
+{
+    ConditionNone none=new ConditionNone();
+    none.getConditions().add(assignableToObject);
+    none.getConditions().add(isObject);
+    assertFalse(isTrue(none,"java.lang.Object"));
+    assertFalse(isTrue(none,"java.lang.String"));
+  }
+}
