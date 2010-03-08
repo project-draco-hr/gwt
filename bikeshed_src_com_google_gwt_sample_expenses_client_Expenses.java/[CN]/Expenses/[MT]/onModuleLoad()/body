@@ -2,36 +2,6 @@
   RootLayoutPanel root=RootLayoutPanel.get();
   final Shell shell=new Shell();
   root.add(shell);
-  Command refresh=new Command(){
-    public void execute(){
-      RequestBuilder builder=new RequestBuilder(RequestBuilder.GET,"/expenses/data");
-      builder.setCallback(new RequestCallback(){
-        public void onError(        Request request,        Throwable exception){
-          shell.error.setInnerText(SERVER_ERROR);
-        }
-        public void onResponseReceived(        Request request,        Response response){
-          if (200 == response.getStatusCode()) {
-            String text=response.getText();
-            JsArray<ValuesImpl<Employee>> valueArray=ValuesImpl.arrayFromJson(text);
-            shell.setValueList(valueArray);
-          }
- else {
-            shell.error.setInnerText(SERVER_ERROR + " (" + response.getStatusText()+ ")");
-          }
-        }
-      }
-);
-      try {
-        builder.send();
-      }
- catch (      RequestException e) {
-        shell.error.setInnerText(SERVER_ERROR + " (" + e.getMessage()+ ")");
-      }
-    }
-  }
-;
-  refresh.execute();
-  shell.setRefresh(refresh);
   final HasValueList<Values<Employee>> employees=new HasValueList<Values<Employee>>(){
     public void editValueList(    boolean replace,    int index,    List<Values<Employee>> newValues){
       throw new UnsupportedOperationException();
@@ -47,7 +17,7 @@
     }
   }
 ;
-  requestFactory.employeeRequest().findAllEmployees().forProperty(Employee.DISPLAY_NAME).forProperty(Employee.USER_NAME).to(employees).fire();
+  requestFactory.employeeRequest().findAllEmployees().forProperty(Employee.DISPLAY_NAME).forProperty(Employee.USER_NAME).to(shell).fire();
   final TextBox nameHolder=new TextBox();
   shell.users.addChangeHandler(new ChangeHandler(){
     public void onChange(    ChangeEvent event){

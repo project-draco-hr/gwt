@@ -1,6 +1,25 @@
 {
   response.setStatus(HttpServletResponse.SC_OK);
+  MethodName methodName=getMethodName(request.getParameter("methodName"));
   PrintWriter writer=response.getWriter();
-  writer.print("[ {USER_NAME: 'amitmanjhi', DISPLAY_NAME: 'Amit Manjhi'}, {USER_NAME: 'rjrjr', DISPLAY_NAME: 'Ray Ryan'}, {USER_NAME: 'jgw', DISPLAY_NAME: 'Joel Weber'} ]");
-  writer.flush();
+switch (methodName) {
+case FIND_ALL_EMPLOYEES:
+    JSONArray jsonArray=new JSONArray();
+  for (  Employee e : Employee.findAllEmployees()) {
+    try {
+      JSONObject jsonObject=new JSONObject();
+      jsonObject.put("USER_NAME",e.getUserName());
+      jsonObject.put("DISPLAY_NAME",e.getDisplayName());
+      jsonArray.put(jsonObject);
+    }
+ catch (    JSONException ex) {
+      System.err.println("Unable to create a JSON object " + ex);
+    }
+  }
+writer.print(jsonArray.toString());
+break;
+case FIND_EMPLOYEE:
+break;
+}
+writer.flush();
 }
