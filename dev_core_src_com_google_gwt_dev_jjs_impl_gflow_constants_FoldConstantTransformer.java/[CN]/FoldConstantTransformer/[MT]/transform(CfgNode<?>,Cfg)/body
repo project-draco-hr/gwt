@@ -1,0 +1,20 @@
+{
+  Preconditions.checkArgument(nodeToFold == node);
+  JModVisitor visitor=new JModVisitor(){
+    @Override public boolean visit(    JVariableRef x,    Context ctx){
+      JNode newNode=transform(x);
+      if (newNode != null) {
+        ctx.replaceMe(newNode);
+        return false;
+      }
+      return true;
+    }
+  }
+;
+  CfgNode<?> parentNode=nodeToFold.getParent();
+  JNode jnode=parentNode.getJNode();
+  Preconditions.checkNotNull(jnode);
+  visitor.accept(jnode);
+  Preconditions.checkState(visitor.didChange());
+  return true;
+}

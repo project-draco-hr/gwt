@@ -1,0 +1,25 @@
+{
+  final Updater result=new Updater(AssumptionUtil.join(g.getOutEdges(node),assumptionMap));
+  node.accept(new CfgVisitor(){
+    @Override public void visitReadNode(    CfgReadNode node){
+      JVariable target=node.getTarget();
+      if (target instanceof JLocal || target instanceof JParameter) {
+        result.use(target);
+      }
+    }
+    @Override public void visitReadWriteNode(    CfgReadWriteNode node){
+      JVariable target=node.getTargetVariable();
+      if (target instanceof JLocal || target instanceof JParameter) {
+        result.use(target);
+      }
+    }
+    @Override public void visitWriteNode(    CfgWriteNode node){
+      JVariable target=node.getTargetVariable();
+      if (target instanceof JLocal || target instanceof JParameter) {
+        result.kill(target);
+      }
+    }
+  }
+);
+  AssumptionUtil.setAssumptions(g.getInEdges(node),result.unwrap(),assumptionMap);
+}

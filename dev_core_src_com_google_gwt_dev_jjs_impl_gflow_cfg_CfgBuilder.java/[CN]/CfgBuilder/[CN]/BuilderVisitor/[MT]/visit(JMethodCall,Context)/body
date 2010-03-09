@@ -1,0 +1,21 @@
+{
+  if (x.getInstance() != null) {
+    accept(x.getInstance());
+  }
+  accept(x.getArgs());
+  CfgOptionalThrowNode node=addNode(new CfgOptionalThrowNode(parent,x));
+  addNormalExit(node,CfgOptionalThrowNode.NO_THROW);
+  for (  JClassType exceptionType : x.getTarget().getThrownExceptions()) {
+    addExit(Exit.createThrow(node,exceptionType,null));
+  }
+  JDeclaredType runtimeExceptionType=program.getFromTypeMap("java.lang.RuntimeException");
+  if (runtimeExceptionType != null) {
+    addExit(Exit.createThrow(node,runtimeExceptionType,CfgOptionalThrowNode.RUNTIME_EXCEPTION));
+  }
+  JDeclaredType errorExceptionType=program.getFromTypeMap("java.lang.Error");
+  if (errorExceptionType != null) {
+    addExit(Exit.createThrow(node,errorExceptionType,CfgOptionalThrowNode.ERROR));
+  }
+  addNode(new CfgMethodCallNode(parent,x));
+  return false;
+}

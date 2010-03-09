@@ -1,0 +1,50 @@
+{
+  pushNode(new CfgStatementNode<JStatement>(parent,x));
+  accept(x.getExpr());
+  JSwitchStatement oldSwitchStatement=switchStatement;
+  switchStatement=x;
+  int defaultPos=-1;
+  List<Exit> breakExits=new ArrayList<Exit>();
+  for (  JStatement s : x.getBody().getStatements()) {
+    if (s instanceof JCaseStatement) {
+      if (((JCaseStatement)s).getExpr() != null) {
+        List<Exit> elseExits=removeExits(Exit.Reason.CASE_ELSE);
+        for (        Exit e : elseExits) {
+          addNormalExit(e.getNode(),e.role);
+        }
+      }
+ else {
+        defaultPos=nodes.size();
+      }
+    }
+ else {
+      List<Exit> thenExits=removeExits(Exit.Reason.CASE_THEN);
+      for (      Exit e : thenExits) {
+        addNormalExit(e.getNode(),e.role);
+      }
+    }
+    accept(s);
+    breakExits.addAll(removeExits(Exit.Reason.BREAK));
+  }
+  List<Exit> thenExits=removeExits(Exit.Reason.CASE_THEN);
+  for (  Exit e : thenExits) {
+    addNormalExit(e.getNode(),e.role);
+  }
+  List<Exit> elseExits=removeExits(Exit.Reason.CASE_ELSE);
+  if (defaultPos >= 0) {
+    for (    Exit e : elseExits) {
+      addEdge(e,nodes.get(defaultPos));
+    }
+  }
+ else {
+    for (    Exit e : elseExits) {
+      addExit(Exit.createNormal(e.getNode(),e.role));
+    }
+  }
+  for (  Exit e : breakExits) {
+    addNormalExit(e.getNode(),e.role);
+  }
+  switchStatement=oldSwitchStatement;
+  popNode();
+  return false;
+}

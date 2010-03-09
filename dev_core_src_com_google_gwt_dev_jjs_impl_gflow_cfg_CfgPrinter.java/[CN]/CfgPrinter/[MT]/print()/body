@@ -1,0 +1,57 @@
+{
+  StringBuffer result=new StringBuffer();
+  List<CfgNode<?>> nodes=graph.getNodes();
+  Set<CfgNode<?>> targetNodes=new HashSet<CfgNode<?>>();
+  for (int i=1; i < nodes.size(); ++i) {
+    CfgNode<?> node=nodes.get(i);
+    List<CfgEdge> inEdges=graph.getInEdges(node);
+    for (    CfgEdge inEdge : inEdges) {
+      if (inEdge.getStart() != null && inEdge.getStart() != nodes.get(i - 1)) {
+        targetNodes.add(node);
+      }
+    }
+  }
+  Map<CfgNode<?>,String> labels=new HashMap<CfgNode<?>,String>();
+  for (int i=0, j=1; i < nodes.size(); ++i) {
+    if (targetNodes.contains(nodes.get(i))) {
+      labels.put(nodes.get(i),String.valueOf(j));
+      ++j;
+    }
+  }
+  for (int i=0; i < nodes.size(); ++i) {
+    CfgNode<?> node=nodes.get(i);
+    if (i != 0) {
+      result.append("\n");
+    }
+    if (labels.containsKey(node)) {
+      result.append(labels.get(node));
+      result.append(": ");
+    }
+    result.append(node.toDebugString());
+{
+      List<CfgEdge> out=graph.getOutEdges(node);
+      if (!out.isEmpty()) {
+        result.append(" -> [");
+        for (int j=0; j < out.size(); ++j) {
+          if (j > 0) {
+            result.append(", ");
+          }
+          CfgEdge edge=out.get(j);
+          if (edge.getRole() != null) {
+            result.append(edge.getRole());
+            result.append("=");
+          }
+          if (i + 1 < nodes.size() && edge.getEnd() != nodes.get(i + 1)) {
+            result.append(labels.get(edge.getEnd()));
+          }
+ else {
+            result.append("*");
+          }
+          appendEdgeInfo(result,edge);
+        }
+        result.append("]");
+      }
+    }
+  }
+  return result.toString();
+}

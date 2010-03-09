@@ -1,0 +1,28 @@
+{
+  Cfg cfg=CfgBuilder.build(program,methodBody.getBlock());
+  JMethod method=methodBody.getMethod();
+  JDeclaredType enclosingType=method.getEnclosingType();
+  String methodName=enclosingType.getName() + "." + method.getName();
+  Preconditions.checkNotNull(cfg,"Can't build flow for %s",methodName);
+  try {
+    CombinedIntegratedAnalysis<CfgNode<?>,CfgEdge,CfgTransformer,Cfg> fwdAnalysis=CombinedIntegratedAnalysis.createAnalysis();
+    fwdAnalysis.addAnalysis(new UnreachableAnalysis());
+    fwdAnalysis.addAnalysis(new ConstantsAnalysis(program));
+    fwdAnalysis.addAnalysis(new CopyAnalysis());
+    boolean madeChanges=false;
+    madeChanges=AnalysisSolver.solveIntegrated(cfg,fwdAnalysis,true) || madeChanges;
+    cfg=CfgBuilder.build(program,methodBody.getBlock());
+    Preconditions.checkNotNull(cfg);
+    CombinedIntegratedAnalysis<CfgNode<?>,CfgEdge,CfgTransformer,Cfg> bkwAnalysis=CombinedIntegratedAnalysis.createAnalysis();
+    bkwAnalysis.addAnalysis(new LivenessAnalysis());
+    madeChanges=AnalysisSolver.solveIntegrated(cfg,bkwAnalysis,false) || madeChanges;
+    if (madeChanges) {
+      didChange=true;
+      DeadCodeElimination.exec(program,methodBody);
+    }
+  }
+ catch (  Throwable t) {
+    throw new RuntimeException("Error optimizing: " + methodName,t);
+  }
+  return true;
+}

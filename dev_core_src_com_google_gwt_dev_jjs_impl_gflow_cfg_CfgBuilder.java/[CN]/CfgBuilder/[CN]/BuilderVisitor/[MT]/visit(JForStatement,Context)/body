@@ -1,0 +1,29 @@
+{
+  pushNode(new CfgStatementNode<JStatement>(parent,x));
+  accept(x.getInitializers());
+  CfgForNode cond=null;
+  int testPos=nodes.size();
+  if (x.getTestExpr() != null) {
+    accept(x.getTestExpr());
+    cond=addNode(new CfgForNode(parent,x));
+    addNormalExit(cond,CfgConditionalNode.THEN);
+  }
+  if (x.getBody() != null) {
+    accept(x.getBody());
+  }
+  int incrementsPos=nodes.size();
+  accept(x.getIncrements());
+  List<Exit> thenExits=removeNormalExits();
+  for (  Exit e : thenExits) {
+    addEdge(e,nodes.get(testPos));
+  }
+  String label=labels.get(x);
+  int continuePos=incrementsPos != nodes.size() ? incrementsPos : testPos;
+  addContinueEdges(nodes.get(continuePos),label);
+  addBreakExits(label);
+  if (cond != null) {
+    addNormalExit(cond,CfgConditionalNode.ELSE);
+  }
+  popNode();
+  return false;
+}

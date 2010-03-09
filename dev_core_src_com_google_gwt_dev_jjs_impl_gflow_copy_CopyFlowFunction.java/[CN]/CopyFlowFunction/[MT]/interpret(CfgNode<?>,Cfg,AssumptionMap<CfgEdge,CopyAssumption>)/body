@@ -1,0 +1,37 @@
+{
+  CopyAssumption in=AssumptionUtil.join(g.getInEdges(node),assumptionMap);
+  final Updater result=new Updater(in);
+  node.accept(new CfgVisitor(){
+    @Override public void visitReadWriteNode(    CfgReadWriteNode node){
+      JVariable targetVariable=node.getTargetVariable();
+      if (isSupportedVar(targetVariable)) {
+        result.kill(targetVariable);
+      }
+    }
+    @Override public void visitWriteNode(    CfgWriteNode node){
+      JVariable targetVariable=node.getTargetVariable();
+      if (!isSupportedVar(targetVariable)) {
+        return;
+      }
+      if (!(node.getValue() instanceof JVariableRef)) {
+        result.kill(targetVariable);
+        return;
+      }
+      JVariable original=((JVariableRef)node.getValue()).getTarget();
+      original=result.getMostOriginal(original);
+      if (original != targetVariable) {
+        result.kill(targetVariable);
+        if (isSupportedVar(original)) {
+          result.addCopy(original,targetVariable);
+        }
+      }
+ else {
+      }
+    }
+    private boolean isSupportedVar(    JVariable targetVariable){
+      return targetVariable instanceof JParameter || targetVariable instanceof JLocal;
+    }
+  }
+);
+  AssumptionUtil.setAssumptions(g.getOutEdges(node),result.unwrap(),assumptionMap);
+}

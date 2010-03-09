@@ -1,0 +1,17 @@
+{
+  pushNode(new CfgStatementNode<JStatement>(parent,x));
+  accept(x.getIfExpr());
+  CfgIfNode node=addNode(new CfgIfNode(parent,x));
+  addNormalExit(node,CfgConditionalNode.THEN);
+  if (x.getThenStmt() != null) {
+    accept(x.getThenStmt());
+  }
+  List<Exit> thenExits=removeNormalExits();
+  addNormalExit(node,CfgConditionalNode.ELSE);
+  if (x.getElseStmt() != null) {
+    accept(x.getElseStmt());
+  }
+  addExits(thenExits);
+  popNode();
+  return false;
+}

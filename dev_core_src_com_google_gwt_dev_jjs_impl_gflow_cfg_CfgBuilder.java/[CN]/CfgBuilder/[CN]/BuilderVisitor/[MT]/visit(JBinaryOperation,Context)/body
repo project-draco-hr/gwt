@@ -1,0 +1,34 @@
+{
+  if (x.isAssignment()) {
+    accept(x.getRhs());
+    acceptExpressionSubreads(x.getLhs());
+    if (x.getOp() == JBinaryOperator.ASG) {
+      addNode(new CfgWriteNode(parent,x,x.getLhs(),x.getRhs()));
+    }
+ else {
+      addNode(new CfgReadWriteNode(parent,x,x.getLhs(),null));
+    }
+    return false;
+  }
+ else   if (x.getOp() == JBinaryOperator.AND || x.getOp() == JBinaryOperator.OR) {
+    accept(x.getLhs());
+    CfgBinaryConditionalOperationNode node=pushNode(new CfgBinaryConditionalOperationNode(parent,x));
+    if (x.getOp() == JBinaryOperator.AND) {
+      addNormalExit(node,CfgConditionalNode.THEN);
+      accept(x.getRhs());
+      List<Exit> thenExits=removeNormalExits();
+      addNormalExit(node,CfgConditionalNode.ELSE);
+      addExits(thenExits);
+    }
+ else {
+      addNormalExit(node,CfgConditionalNode.ELSE);
+      accept(x.getRhs());
+      List<Exit> elseExits=removeNormalExits();
+      addNormalExit(node,CfgConditionalNode.THEN);
+      addExits(elseExits);
+    }
+    popNode();
+    return false;
+  }
+  return true;
+}

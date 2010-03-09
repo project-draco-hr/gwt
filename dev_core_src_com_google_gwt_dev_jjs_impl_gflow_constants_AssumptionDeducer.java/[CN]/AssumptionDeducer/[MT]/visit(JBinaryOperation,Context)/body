@@ -1,0 +1,50 @@
+{
+switch (x.getOp()) {
+case EQ:
+    if (isTrue(currentValue)) {
+      if (x.getRhs() instanceof JValueLiteral && isSubstitutableIfEquals(x.getRhs())) {
+        currentValue=(JValueLiteral)x.getRhs();
+        accept(x.getLhs());
+        return false;
+      }
+ else       if (x.getLhs() instanceof JValueLiteral && isSubstitutableIfEquals(x.getLhs())) {
+        currentValue=(JValueLiteral)x.getLhs();
+        accept(x.getRhs());
+        return false;
+      }
+    }
+  break;
+case NEQ:
+if (isFalse(currentValue)) {
+  if (x.getRhs() instanceof JValueLiteral && isSubstitutableIfEquals(x.getRhs())) {
+    currentValue=(JValueLiteral)x.getRhs();
+    accept(x.getLhs());
+    return false;
+  }
+ else   if (x.getLhs() instanceof JValueLiteral && isSubstitutableIfEquals(x.getLhs())) {
+    currentValue=(JValueLiteral)x.getLhs();
+    accept(x.getRhs());
+    return false;
+  }
+}
+break;
+case AND:
+if (isTrue(currentValue)) {
+accept(x.getLhs());
+currentValue=JBooleanLiteral.get(true);
+accept(x.getRhs());
+return false;
+}
+break;
+case OR:
+if (isFalse(currentValue)) {
+accept(x.getLhs());
+currentValue=JBooleanLiteral.FALSE;
+accept(x.getRhs());
+return false;
+}
+break;
+}
+currentValue=null;
+return true;
+}

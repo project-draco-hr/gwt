@@ -1,0 +1,13 @@
+{
+  CopyAssumption in=AssumptionUtil.join(graph.getInEdges(node),assumptionMap);
+  if (in != null && node instanceof CfgReadNode) {
+    JVariable v=((CfgReadNode)node).getTarget();
+    final JVariable original=in.getOriginal(v);
+    Preconditions.checkState(v != original,"Variable is a copy of itself: %s",v);
+    if (original != null) {
+      return new CopyTransformation(node,original,graph);
+    }
+  }
+  FLOW_FUNCTION.interpret(node,graph,assumptionMap);
+  return null;
+}

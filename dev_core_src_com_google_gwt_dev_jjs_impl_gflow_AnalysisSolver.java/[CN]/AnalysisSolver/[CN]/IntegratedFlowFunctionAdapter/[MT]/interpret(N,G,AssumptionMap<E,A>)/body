@@ -1,0 +1,49 @@
+{
+  final boolean[] mapWasModified=new boolean[1];
+  Transformation<T,G> transformation=flowFunction.interpretOrReplace(node,graph,new AssumptionMap<E,A>(){
+    public A getAssumption(    E edge){
+      return assumptionMap.getAssumption(edge);
+    }
+    public void setAssumption(    E edge,    A assumption){
+      mapWasModified[0]=true;
+      assumptionMap.setAssumption(edge,assumption);
+    }
+  }
+);
+  if (transformation == null) {
+    return;
+  }
+  Preconditions.checkArgument(!mapWasModified[0]);
+  final G newSubgraph=transformation.getNewSubgraph();
+  if (debug) {
+    System.err.println("Applying transformation: " + transformation);
+    System.err.println("Replacing");
+    System.err.println(graph);
+    System.err.println("With");
+    System.err.println(newSubgraph);
+  }
+  final List<E> inEdges=graph.getInEdges(node);
+  final List<E> outEdges=graph.getOutEdges(node);
+  Preconditions.checkArgument(newSubgraph.getGraphInEdges().size() == inEdges.size());
+  Preconditions.checkArgument(newSubgraph.getGraphOutEdges().size() == outEdges.size());
+  iterate(newSubgraph,new IntegratedAnalysis<N,E,T,G,A>(){
+    public IntegratedFlowFunction<N,E,T,G,A> getIntegratedFlowFunction(){
+      return flowFunction;
+    }
+    public void setInitialGraphAssumptions(    G graph,    AssumptionMap<E,A> newAssumptionMap){
+      for (int i=0; i < inEdges.size(); ++i) {
+        newAssumptionMap.setAssumption(newSubgraph.getGraphInEdges().get(i),assumptionMap.getAssumption(inEdges.get(i)));
+      }
+      for (int i=0; i < outEdges.size(); ++i) {
+        newAssumptionMap.setAssumption(newSubgraph.getGraphOutEdges().get(i),assumptionMap.getAssumption(outEdges.get(i)));
+      }
+    }
+  }
+);
+  for (int i=0; i < inEdges.size(); ++i) {
+    assumptionMap.setAssumption(inEdges.get(i),getEdgeAssumption(newSubgraph,newSubgraph.getGraphInEdges().get(i)));
+  }
+  for (int i=0; i < outEdges.size(); ++i) {
+    assumptionMap.setAssumption(outEdges.get(i),getEdgeAssumption(newSubgraph,newSubgraph.getGraphOutEdges().get(i)));
+  }
+}

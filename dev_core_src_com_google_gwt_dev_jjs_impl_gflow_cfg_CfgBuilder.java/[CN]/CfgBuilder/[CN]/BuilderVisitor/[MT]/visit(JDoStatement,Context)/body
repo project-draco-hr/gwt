@@ -1,0 +1,18 @@
+{
+  pushNode(new CfgStatementNode<JStatement>(parent,x));
+  int pos=nodes.size();
+  if (x.getBody() != null) {
+    accept(x.getBody());
+  }
+  if (x.getTestExpr() != null) {
+    accept(x.getTestExpr());
+  }
+  CfgDoNode node=addNode(new CfgDoNode(parent,x));
+  addEdge(node,nodes.get(pos),new CfgEdge(CfgConditionalNode.THEN));
+  String label=labels.get(x);
+  addContinueEdges(nodes.get(pos),label);
+  addBreakExits(label);
+  addNormalExit(node,CfgConditionalNode.ELSE);
+  popNode();
+  return false;
+}

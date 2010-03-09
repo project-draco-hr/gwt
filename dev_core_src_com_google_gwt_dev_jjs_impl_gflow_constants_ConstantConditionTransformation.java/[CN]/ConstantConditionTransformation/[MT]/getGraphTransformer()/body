@@ -1,0 +1,27 @@
+{
+  return new CfgTransformer(){
+    public boolean transform(    CfgNode<?> cfgNode,    Cfg cfgGraph){
+      Preconditions.checkArgument(cfgNode == node);
+      if (cfgNode instanceof CfgCaseNode) {
+        return false;
+      }
+      final JExpression oldCondition=node.getCondition();
+      final JExpression newCondition=JBooleanLiteral.get(conditionValue);
+      JModVisitor visitor=new JModVisitor(){
+        @Override public boolean visit(        JExpression x,        Context ctx){
+          if (x == oldCondition) {
+            ctx.replaceMe(newCondition);
+            return false;
+          }
+          return true;
+        }
+      }
+;
+      JNode startNode=node.getJNode();
+      visitor.accept(startNode);
+      Preconditions.checkState(visitor.didChange(),"Couldn't replace %s with %s in %s",oldCondition,newCondition,startNode);
+      return visitor.didChange();
+    }
+  }
+;
+}

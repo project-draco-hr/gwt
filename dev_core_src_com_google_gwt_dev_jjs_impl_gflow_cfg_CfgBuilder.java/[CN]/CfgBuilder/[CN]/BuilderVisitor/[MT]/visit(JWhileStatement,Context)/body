@@ -1,0 +1,20 @@
+{
+  pushNode(new CfgStatementNode<JStatement>(parent,x));
+  int pos=nodes.size();
+  accept(x.getTestExpr());
+  CfgWhileNode node=addNode(new CfgWhileNode(parent,x));
+  addNormalExit(node,CfgConditionalNode.THEN);
+  if (x.getBody() != null) {
+    accept(x.getBody());
+  }
+  List<Exit> thenExits=removeNormalExits();
+  for (  Exit e : thenExits) {
+    addEdge(e,nodes.get(pos));
+  }
+  String label=labels.get(x);
+  addContinueEdges(nodes.get(pos),label);
+  addBreakExits(label);
+  addNormalExit(node,CfgConditionalNode.ELSE);
+  popNode();
+  return false;
+}

@@ -1,0 +1,19 @@
+{
+  return new CfgTransformer(){
+    public boolean transform(    CfgNode<?> node,    Cfg cfgGraph){
+      if (node.getParent() == null) {
+        throw new IllegalArgumentException("Null parent in " + node);
+      }
+      JNode jNode=node.getJNode();
+      if (node instanceof CfgStatementNode<?> && !(jNode instanceof JBlock)) {
+        CfgNode<?> parentNode=CfgUtil.findParentOfContainingStatement(node);
+        JNode parentJNode=parentNode.getJNode();
+        boolean didChange=DeleteNodeVisitor.delete(jNode,parentJNode);
+        Preconditions.checkState(didChange,"Can't delete %s (%s) from under %s (%s)",jNode,node,parentJNode,parentNode);
+        return true;
+      }
+      return false;
+    }
+  }
+;
+}

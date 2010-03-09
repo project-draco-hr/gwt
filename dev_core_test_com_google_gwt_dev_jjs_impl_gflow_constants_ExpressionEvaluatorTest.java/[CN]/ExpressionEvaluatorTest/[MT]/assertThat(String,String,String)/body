@@ -1,0 +1,20 @@
+{
+  ConstantsAssumption.Updater updater=new ConstantsAssumption.Updater(new ConstantsAssumption());
+  String codeSnippet=decls;
+  codeSnippet+="return " + expr + ";";
+  JProgram program=compileSnippet(type,codeSnippet);
+  JMethod mainMethod=findMainMethod(program);
+  JBlock block=((JMethodBody)mainMethod.getBody()).getBlock();
+  List<JStatement> statements=block.getStatements();
+  for (  JStatement stmt : statements) {
+    if (!(stmt instanceof JDeclarationStatement)) {
+      continue;
+    }
+    JDeclarationStatement decl=(JDeclarationStatement)stmt;
+    if (decl.getInitializer() != null) {
+      updater.set(decl.getVariableRef().getTarget(),(JValueLiteral)decl.getInitializer());
+    }
+  }
+  JReturnStatement returnStatement=(JReturnStatement)statements.get(statements.size() - 1);
+  return new Result(ExpressionEvaluator.evaluate(returnStatement.getExpr(),updater.unwrap()));
+}

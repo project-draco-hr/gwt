@@ -1,0 +1,14 @@
+{
+  JExpression condition=node.getCondition();
+  if (condition instanceof JValueLiteral) {
+    return;
+  }
+  Preconditions.checkNotNull(condition,"Null condition in %s: %s",node,node.getJNode());
+  JValueLiteral evaluatedCondition=ExpressionEvaluator.evaluate(condition,assumption);
+  if (evaluatedCondition == null || !(evaluatedCondition instanceof JBooleanLiteral)) {
+    super.visitConditionalNode(node);
+    return;
+  }
+  final boolean b=((JBooleanLiteral)evaluatedCondition).getValue();
+  result=new ConstantConditionTransformation(graph,b,node);
+}

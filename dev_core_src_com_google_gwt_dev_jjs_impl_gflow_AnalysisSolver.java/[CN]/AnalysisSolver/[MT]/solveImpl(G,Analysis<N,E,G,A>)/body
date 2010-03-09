@@ -1,0 +1,39 @@
+{
+  FlowFunction<N,E,G,A> flowFunction=analysis.getFlowFunction();
+  final LinkedHashSet<N> worklist=buildInitialWorklist(graph);
+  resetEdgeData(graph);
+  initGraphAssumptions(analysis,graph);
+  while (!worklist.isEmpty()) {
+    Iterator<N> iterator=worklist.iterator();
+    final N node=iterator.next();
+    iterator.remove();
+    flowFunction.interpret(node,graph,new AssumptionMap<E,A>(){
+      public A getAssumption(      E edge){
+        Preconditions.checkArgument(graph.getStart(edge) == node || graph.getEnd(edge) == node);
+        return getEdgeAssumption(graph,edge);
+      }
+      public void setAssumption(      E edge,      A assumption){
+        N start=graph.getStart(edge);
+        N end=graph.getEnd(edge);
+        Preconditions.checkArgument(start == node || end == node);
+        if (!AssumptionUtil.equals(getEdgeAssumption(graph,edge),assumption)) {
+          setEdgeAssumption(graph,edge,assumption);
+          if (start == node) {
+            if (end != null) {
+              worklist.add(end);
+            }
+          }
+ else           if (end == node) {
+            if (start != null) {
+              worklist.add(start);
+            }
+          }
+ else {
+            throw new IllegalStateException();
+          }
+        }
+      }
+    }
+);
+  }
+}

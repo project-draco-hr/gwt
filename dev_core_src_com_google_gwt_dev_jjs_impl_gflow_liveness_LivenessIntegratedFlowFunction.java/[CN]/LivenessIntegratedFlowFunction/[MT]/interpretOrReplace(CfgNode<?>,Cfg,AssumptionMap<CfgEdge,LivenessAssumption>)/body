@@ -1,0 +1,12 @@
+{
+  LivenessAssumption assumptions=AssumptionUtil.join(graph.getOutEdges(node),assumptionMap);
+  if (node instanceof CfgWriteNode) {
+    CfgWriteNode write=(CfgWriteNode)node;
+    JVariable variable=write.getTargetVariable();
+    if ((variable instanceof JLocal || variable instanceof JParameter) && !isLive(assumptions,variable) && write.getValue() != null) {
+      return new LivenessTransformation(graph,write);
+    }
+  }
+  flowFunction.interpret(node,graph,assumptionMap);
+  return null;
+}

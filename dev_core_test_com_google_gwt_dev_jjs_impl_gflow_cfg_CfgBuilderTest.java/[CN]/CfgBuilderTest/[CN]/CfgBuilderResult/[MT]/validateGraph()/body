@@ -1,0 +1,20 @@
+{
+  for (  CfgNode<?> node : cfg.getNodes()) {
+    List<CfgEdge> incomingEdges=cfg.getInEdges(node);
+    for (    CfgEdge e : incomingEdges) {
+      CfgNode<?> start=e.getStart();
+      if (cfg.getGraphInEdges().contains(e)) {
+        assertNull(start);
+        continue;
+      }
+      assertNotNull("No start in edge " + e.getRole() + " to "+ node,start);
+      assertTrue(start + " doesn't have outgoing edge to " + node,cfg.getOutEdges(start).contains(e));
+    }
+    List<CfgEdge> outcomingEdges=cfg.getOutEdges(node);
+    for (    CfgEdge e : outcomingEdges) {
+      CfgNode<?> end=e.getEnd();
+      assertNotNull("No end in edge " + e.getRole() + " from "+ node,end);
+      assertTrue(end + " doesn't have incoming edge from " + node,cfg.getInEdges(end).contains(e));
+    }
+  }
+}

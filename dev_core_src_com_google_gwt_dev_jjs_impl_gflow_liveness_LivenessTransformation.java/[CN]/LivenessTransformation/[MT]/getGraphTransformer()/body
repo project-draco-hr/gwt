@@ -1,0 +1,46 @@
+{
+  return new CfgTransformer(){
+    public boolean transform(    CfgNode<?> node,    Cfg cfgGraph){
+      JModVisitor visitor=new JModVisitor(){
+        @Override public void endVisit(        JBinaryOperation x,        Context ctx){
+          if (!shouldKill(x)) {
+            return;
+          }
+          ctx.replaceMe(x.getRhs());
+        }
+        @Override public void endVisit(        JDeclarationStatement x,        Context ctx){
+          if (writeToKill.getValue() != x.getInitializer() || x != writeToKill.getJNode()) {
+            return;
+          }
+          if (x.getInitializer().hasSideEffects()) {
+            ctx.insertBefore(x.getInitializer().makeStatement());
+          }
+          x.initializer=null;
+          didChange=true;
+        }
+        @Override public boolean visit(        JExpressionStatement x,        Context ctx){
+          JExpression expr=x.getExpr();
+          if (expr instanceof JBinaryOperation) {
+            JBinaryOperation binop=(JBinaryOperation)expr;
+            if (shouldKill(binop) && !binop.getRhs().hasSideEffects()) {
+              ctx.removeMe();
+              return false;
+            }
+          }
+          return true;
+        }
+        private boolean shouldKill(        JBinaryOperation x){
+          return writeToKill.getJNode() == x;
+        }
+      }
+;
+      CfgNode<?> parentNode=CfgUtil.findParentOfContainingStatement(node);
+      Preconditions.checkNotNull(parentNode,"Can't find parent of stmt of %s",node);
+      JNode parentJNode=parentNode.getJNode();
+      visitor.accept(parentJNode);
+      Preconditions.checkState(visitor.didChange(),"Can't remove write in %s",node.getJNode());
+      return visitor.didChange();
+    }
+  }
+;
+}
