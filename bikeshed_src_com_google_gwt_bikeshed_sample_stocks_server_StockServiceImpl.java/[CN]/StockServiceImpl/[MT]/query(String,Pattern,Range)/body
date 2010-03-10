@@ -1,6 +1,6 @@
 {
   PlayerStatus player=ensurePlayer();
-  List<String> symbols=getTickers(query);
+  List<String> symbols=getTickers(query,queryPattern);
   if (symbols.size() == 0) {
     return new Result(new StockQuoteList(0),0);
   }
@@ -39,14 +39,12 @@ catch (  IOException ioe) {
     System.err.println(ioe);
   }
   Map<String,StockQuote> priceMap=new HashMap<String,StockQuote>();
-  Pattern pattern=Pattern.compile("\\{[^\\}]*\\}");
-  Matcher matcher=pattern.matcher(content);
+  Matcher matcher=QUOTE_PATTERN.matcher(content);
   while (matcher.find()) {
     String group=matcher.group();
     String symbol=null;
     String price=null;
-    Pattern dataPattern=Pattern.compile("\"([^\"]*)\"\\s*:\\s*\"([^\"]*)\"");
-    Matcher dataMatcher=dataPattern.matcher(group);
+    Matcher dataMatcher=DATA_PATTERN.matcher(group);
     while (dataMatcher.find()) {
       String tag=dataMatcher.group(1);
       String data=dataMatcher.group(2);
