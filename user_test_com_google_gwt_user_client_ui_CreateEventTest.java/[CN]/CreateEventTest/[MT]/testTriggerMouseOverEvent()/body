@@ -1,13 +1,17 @@
 {
   MouseEventListener listener=new MouseEventListener("mouseover"){
-    public void onBrowserEvent(    Event event){
+    @Override public void onBrowserEvent(    Event event){
       super.onBrowserEvent(event);
+      Element relatedTarget=event.getRelatedEventTarget().cast();
+      assertEquals("Expected relatedElement to be img",img,relatedTarget);
     }
   }
 ;
-  Event.setEventListener(parent,listener);
-  Event.setEventListener(child,listener);
-  child.dispatchEvent(Document.get().createMouseOverEvent(MOUSE_DETAIL,SCREEN_X,SCREEN_Y,CLIENT_X,CLIENT_Y,true,true,true,true,Event.BUTTON_LEFT,img));
-  assertTrue("Expected child to receive event",listener.childReceived);
-  assertTrue("Expected parent to receive event",listener.parentReceived);
+  EventCreator creator=new EventCreator(){
+    public NativeEvent createEvent(    boolean ctrlKey,    boolean altKey,    boolean shiftKey,    boolean metaKey){
+      return Document.get().createMouseOverEvent(MOUSE_DETAIL,SCREEN_X,SCREEN_Y,CLIENT_X,CLIENT_Y,ctrlKey,altKey,shiftKey,metaKey,Event.BUTTON_LEFT,img);
+    }
+  }
+;
+  testTriggerEventWithShiftKeys(listener,creator);
 }

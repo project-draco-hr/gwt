@@ -1,8 +1,10 @@
 {
   MouseEventListener listener=new MouseEventListener("mousedown");
-  Event.setEventListener(parent,listener);
-  Event.setEventListener(child,listener);
-  child.dispatchEvent(Document.get().createMouseDownEvent(MOUSE_DETAIL,SCREEN_X,SCREEN_Y,CLIENT_X,CLIENT_Y,true,true,true,true,Event.BUTTON_LEFT));
-  assertTrue("Expected child to receive event",listener.childReceived);
-  assertTrue("Expected parent to receive event",listener.parentReceived);
+  EventCreator creator=new EventCreator(){
+    public NativeEvent createEvent(    boolean ctrlKey,    boolean altKey,    boolean shiftKey,    boolean metaKey){
+      return Document.get().createMouseDownEvent(MOUSE_DETAIL,SCREEN_X,SCREEN_Y,CLIENT_X,CLIENT_Y,ctrlKey,altKey,shiftKey,metaKey,Event.BUTTON_LEFT);
+    }
+  }
+;
+  testTriggerEventWithShiftKeys(listener,creator);
 }
