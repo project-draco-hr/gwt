@@ -1,6 +1,5 @@
 {
   return new EntityListRequest<Employee>(){
-    Set<Property<Employee,?>> properties=new HashSet<Property<Employee,?>>();
     private HasValueList<Values<Employee>> watcher;
     public void fire(){
       RequestBuilder builder=new RequestBuilder(RequestBuilder.GET,"/expenses/data?methodName=" + MethodName.FIND_ALL_EMPLOYEES.name());
@@ -13,7 +12,9 @@
             JsArray<ValuesImpl<Employee>> valueArray=ValuesImpl.arrayFromJson(text);
             List<Values<Employee>> valueList=new ArrayList<Values<Employee>>(valueArray.length());
             for (int i=0; i < valueArray.length(); i++) {
-              valueList.add(valueArray.get(i));
+              ValuesImpl<Employee> values=valueArray.get(i);
+              values.setPropertyHolder(new Employee(values.get(Employee.ID),values.get(Employee.VERSION)));
+              valueList.add(values);
             }
             watcher.setValueList(valueList);
           }
@@ -29,7 +30,6 @@
       }
     }
     public EntityListRequest<Employee> forProperty(    Property<Employee,?> property){
-      properties.add(property);
       return this;
     }
     public EntityListRequest<Employee> to(    HasValueList<Values<Employee>> watcher){

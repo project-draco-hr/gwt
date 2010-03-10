@@ -1,0 +1,19 @@
+{
+  Storage s=new Storage();
+  Storage.fill(s);
+  Employee abc=s.findEmployeeByUserName("abc");
+  List<Report> reports=s.findReportsByEmployee(abc.getId());
+  for (  Report report : reports) {
+    assertEquals(abc.getVersion(),report.getReporter().getVersion());
+  }
+  abc.setDisplayName("Herbert");
+  s.persist(abc);
+  List<Report> fresherReports=s.findReportsByEmployee(abc.getId());
+  assertEquals(reports.size(),fresherReports.size());
+  Integer expectedVersion=abc.getVersion() + 1;
+  for (  Report report : fresherReports) {
+    assertEquals(abc.getId(),report.getReporter().getId());
+    assertEquals(expectedVersion,report.getReporter().getVersion());
+    assertEquals("Herbert",report.getReporter().getDisplayName());
+  }
+}

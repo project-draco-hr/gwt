@@ -10,12 +10,13 @@
     if (!previous.getVersion().equals(delta.getVersion())) {
       throw new IllegalArgumentException(String.format("Version mismatch of %s. Cannot update %d from %d",delta,previous.getVersion(),delta.getVersion()));
     }
-    next=previous.accept(new CreationVisitor<E>(++serial,previous.getVersion() + 1));
+    next=previous.accept(new CreationVisitor<E>(previous.getId(),previous.getVersion() + 1));
     NullFieldFiller filler=new NullFieldFiller(next);
     delta.accept(filler);
     previous.accept(filler);
   }
+  next.accept(new RelationshipValidationVisitor());
   updateIndices(previous,next);
   soup.put(next.getId(),next);
-  return next;
+  return get(next);
 }
