@@ -1,12 +1,17 @@
 {
+  if (queryWidget == null) {
+    return;
+  }
   updateTimer.cancel();
   Range[] searchRanges=searchListModel.getRanges();
   Range[] favoritesRanges=favoritesListModel.getRanges();
+  SectorListModel sectorListModel=treeModel.getSectorListModel();
+  Range[] sectorRanges=sectorListModel == null ? null : sectorListModel.getRanges();
   if (searchRanges == null || searchRanges.length == 0 || favoritesRanges == null || favoritesRanges.length == 0) {
     return;
   }
-  String searchQuery=queryField.getText();
-  StockRequest request=new StockRequest(searchQuery,searchRanges[0],favoritesRanges[0]);
+  String searchQuery=queryWidget.getSearchQuery();
+  StockRequest request=new StockRequest(searchQuery,sectorListModel != null ? sectorListModel.getSector() : null,searchRanges[0],favoritesRanges[0],sectorRanges != null && sectorRanges.length > 0 ? sectorRanges[0] : null);
   dataService.getStockQuotes(request,new AsyncCallback<StockResponse>(){
     public void onFailure(    Throwable caught){
       String message=caught.getMessage();
