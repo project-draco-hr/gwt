@@ -2,22 +2,24 @@
   super(false,true);
   setGlassEnabled(true);
   setWidget(layout);
-  layout.setHTML(0,0,"<b>Ticker:</b>");
-  layout.setHTML(1,0,"<b>Name:</b>");
-  layout.setHTML(2,0,"<b>Price:</b>");
-  layout.setHTML(3,0,"<b>Quantity:</b>");
-  layout.setWidget(3,1,quantityBox);
-  layout.setHTML(4,0,"<b>Total:</b>");
-  layout.setHTML(5,0,"<b>Available:</b>");
+  layout.setHTML(TICKER,0,"<b>Ticker:</b>");
+  layout.setHTML(NAME,0,"<b>Name:</b>");
+  layout.setHTML(PRICE,0,"<b>Price:</b>");
+  layout.setHTML(MAX_QUANTITY,0,"<b>Max Quantity:</b>");
+  layout.setHTML(QUANTITY,0,"<b>Quantity:</b>");
+  layout.setWidget(QUANTITY,1,quantityBox);
+  layout.setHTML(TOTAL,0,"<b>Total:</b>");
+  layout.setHTML(AVAILABLE,0,"<b>Available:</b>");
   quantityBox.addKeyUpHandler(new KeyUpHandler(){
     public void onKeyUp(    KeyUpEvent event){
       try {
-        int quantity=Integer.parseInt(quantityBox.getText());
+        String text=quantityBox.getText();
+        int quantity=text.length() == 0 ? 0 : Integer.parseInt(text);
         double totalPrice=quantity * quote.getPrice() / 100.0;
-        layout.setText(4,1,NumberFormat.getCurrencyFormat("USD").format(totalPrice));
+        layout.setText(TOTAL,1,NumberFormat.getCurrencyFormat("USD").format(totalPrice));
       }
  catch (      NumberFormatException e) {
-        layout.setText(4,1,"Invalid quantity");
+        layout.setText(TOTAL,1,"Invalid quantity");
       }
     }
   }
@@ -35,12 +37,12 @@
     }
   }
 );
-  layout.setWidget(6,0,opButton);
+  layout.setWidget(BUTTONS,0,opButton);
   Button cancelButton=new Button("Cancel",new ClickHandler(){
     public void onClick(    ClickEvent event){
       hide();
     }
   }
 );
-  layout.setWidget(6,1,cancelButton);
+  layout.setWidget(BUTTONS,1,cancelButton);
 }
