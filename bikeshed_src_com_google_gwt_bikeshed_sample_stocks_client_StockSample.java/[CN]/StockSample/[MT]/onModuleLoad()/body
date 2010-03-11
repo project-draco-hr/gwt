@@ -11,19 +11,10 @@
     }
   }
 );
+  treeModel=new TransactionTreeViewModel(this,favoritesListModel,transactionListListModelsByTicker);
   transactionListModel=new ListListModel<Transaction>();
   transactions=transactionListModel.getList();
-  favoritesTable=new PagingTableListView<StockQuote>(favoritesListModel,10);
-  favoritesTable.addColumn(Columns.tickerColumn,new TextHeader("ticker"));
-  favoritesTable.addColumn(Columns.priceColumn,new TextHeader("price"));
-  favoritesTable.addColumn(Columns.changeColumn,new TextHeader("change"));
-  favoritesTable.addColumn(Columns.sharesColumn,new TextHeader("shares"));
-  favoritesTable.addColumn(Columns.dollarsColumn,new TextHeader("value"));
-  favoritesTable.addColumn(Columns.profitLossColumn,new TextHeader("profit"));
-  favoritesTable.addColumn(Columns.buyColumn);
-  favoritesTable.addColumn(Columns.sellColumn);
-  treeModel=new TransactionTreeViewModel(this,favoritesListModel,transactionListListModelsByTicker);
-  transactionTree=new SideBySideTreeView(treeModel,null,200,200);
+  RootLayoutPanel.get().add(binder.createAndBindUi(this));
   Columns.favoriteColumn.setFieldUpdater(new FieldUpdater<StockQuote,Boolean>(){
     public void update(    StockQuote object,    Boolean value){
       setFavorite(object.getTicker(),value);
@@ -48,61 +39,10 @@
     public void onClose(    CloseEvent<PopupPanel> event){
       Transaction t=buySellPopup.getTransaction();
       if (t != null) {
-        dataService.transact(t,new AsyncCallback<Transaction>(){
-          public void onFailure(          Throwable caught){
-            Window.alert("Error: " + caught.getMessage());
-          }
-          public void onSuccess(          Transaction result){
-            recordTransaction(result);
-            update();
-          }
-          /** 
- * Update transactions (list of all transactions),
- * transactionTickers (set of all tickers involved in
- * transactions), and transactionsByTicker (map from
- * ticker to lists of transactions for that ticker).
- */
-          private void recordTransaction(          Transaction result){
-            transactions.add(0,result);
-            String ticker=result.getTicker();
-            ListListModel<Transaction> t=transactionListListModelsByTicker.get(ticker);
-            if (t == null) {
-              t=new ListListModel<Transaction>();
-              transactionListListModelsByTicker.put(ticker,t);
-            }
-            t.getList().add(result);
-          }
-        }
-);
+        transact(t);
       }
     }
   }
 );
-  Widget headerWidget=new HTML("<b>Stock Game</b>");
-  HorizontalPanel cashPanel=new HorizontalPanel();
-  cashPanel.add(new HTML("<b>Available cash:</b>"));
-  cashPanel.add(cashLabel);
-  HorizontalPanel netWorthPanel=new HorizontalPanel();
-  netWorthPanel.add(new HTML("<b>Net worth:</b>"));
-  netWorthPanel.add(netWorthLabel);
-  VerticalPanel moneyPanel=new VerticalPanel();
-  moneyPanel.add(cashPanel);
-  moneyPanel.add(netWorthPanel);
-  DockLayoutPanel westPanel=new DockLayoutPanel(Unit.PCT);
-  westPanel.addNorth(moneyPanel,25.0);
-  westPanel.add(new HTML("<table>" + "<tr><td>Dan Rice</td><td>$10000</td></tr>" + "<tr><td>Joel Webber</td><td>$10000</td></tr>"+ "<tr><td>John Labanca</td><td>$10000</td></tr>"+ "</table>"));
-  DockLayoutPanel layoutPanel=new DockLayoutPanel(Unit.EM);
-  layoutPanel.addNorth(headerWidget,4.0);
-  layoutPanel.addWest(westPanel,15.0);
-  layoutPanel.addNorth(transactionTree,18.0);
-  DockLayoutPanel innerLayoutPanel=new DockLayoutPanel(Unit.PCT);
-  this.queryWidget=new StockQueryWidget(searchListModel,this);
-  innerLayoutPanel.addWest(queryWidget,60.0);
-  DockLayoutPanel favoritesLayoutPanel=new DockLayoutPanel(Unit.EM);
-  favoritesLayoutPanel.addNorth(new Label("Portfolio / Favorites"),2.0);
-  favoritesLayoutPanel.add(new ScrollPanel(favoritesTable));
-  innerLayoutPanel.add(favoritesLayoutPanel);
-  layoutPanel.add(innerLayoutPanel);
-  RootLayoutPanel.get().add(layoutPanel);
   update();
 }
