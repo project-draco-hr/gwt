@@ -1,6 +1,6 @@
 {
   PlayerStatus player=ensurePlayer();
-  List<String> symbols=getTickers(query,queryPattern);
+  List<String> symbols=getTickers(query,queryPattern,matchNames);
   if (symbols.size() == 0) {
     return new Result(new StockQuoteList(0),0);
   }
@@ -44,6 +44,7 @@ catch (  IOException ioe) {
     String group=matcher.group();
     String symbol=null;
     String price=null;
+    String change=null;
     Matcher dataMatcher=DATA_PATTERN.matcher(group);
     while (dataMatcher.find()) {
       String tag=dataMatcher.group(1);
@@ -54,6 +55,9 @@ catch (  IOException ioe) {
  else       if (tag.equals("l_cur")) {
         price=data;
       }
+ else       if (tag.equals("c")) {
+        change=data;
+      }
     }
     if (symbol != null && price != null) {
       int iprice=0;
@@ -62,7 +66,8 @@ catch (  IOException ioe) {
         String name=companyNamesBySymbol.get(symbol);
         Integer sharesOwned=player.getSharesOwned(symbol);
         boolean favorite=player.isFavorite(symbol);
-        priceMap.put(symbol,new StockQuote(symbol,name,iprice,sharesOwned == null ? 0 : sharesOwned.intValue(),favorite));
+        int totalPaid=player.getAverageCostBasis(symbol);
+        priceMap.put(symbol,new StockQuote(symbol,name,iprice,change,sharesOwned == null ? 0 : sharesOwned.intValue(),favorite,totalPaid));
       }
  catch (      NumberFormatException e) {
         System.out.println("Bad price " + price + " for symbol "+ symbol);
