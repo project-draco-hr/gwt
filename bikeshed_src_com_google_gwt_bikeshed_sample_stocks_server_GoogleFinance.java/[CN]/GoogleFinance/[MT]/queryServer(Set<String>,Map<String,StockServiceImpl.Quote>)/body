@@ -1,0 +1,57 @@
+{
+  StringBuilder sb=new StringBuilder("http://www.google.com/finance/info?client=ig&q=");
+  boolean first=true;
+  for (  String symbol : symbolsInRange) {
+    if (!first) {
+      sb.append(',');
+    }
+    sb.append(symbol);
+    first=false;
+  }
+  String content="";
+  try {
+    String urlString=sb.toString();
+    URL url=new URL(urlString);
+    InputStream urlInputStream=url.openStream();
+    Scanner contentScanner=new Scanner(urlInputStream,"UTF-8");
+    if (contentScanner.hasNextLine()) {
+      content=contentScanner.useDelimiter("\\A").next();
+    }
+  }
+ catch (  MalformedURLException mue) {
+    System.err.println(mue);
+  }
+catch (  IOException ioe) {
+    System.err.println(ioe);
+  }
+  Matcher matcher=QUOTE_PATTERN.matcher(content);
+  while (matcher.find()) {
+    String group=matcher.group();
+    String symbol=null;
+    String dprice=null;
+    String change=null;
+    Matcher dataMatcher=DATA_PATTERN.matcher(group);
+    while (dataMatcher.find()) {
+      String tag=dataMatcher.group(1);
+      String data=dataMatcher.group(2);
+      if (tag.equals("t")) {
+        symbol=data;
+      }
+ else       if (tag.equals("l_cur")) {
+        dprice=data;
+      }
+ else       if (tag.equals("c")) {
+        change=data;
+      }
+    }
+    if (symbol != null && dprice != null && change != null) {
+      try {
+        int price=(int)(Double.parseDouble(dprice) * 100);
+        quotes.put(symbol,new StockServiceImpl.Quote(price,change));
+      }
+ catch (      NumberFormatException e) {
+        System.out.println("Bad price " + dprice + " for symbol "+ symbol);
+      }
+    }
+  }
+}

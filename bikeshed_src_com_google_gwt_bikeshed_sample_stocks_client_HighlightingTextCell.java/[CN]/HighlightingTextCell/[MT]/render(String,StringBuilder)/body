@@ -1,0 +1,30 @@
+{
+  sb.append("<div style='overflow:hidden; white-space:nowrap; text-overflow:ellipsis;'>");
+  if (highlightRegex == null || highlightRegex.length() == 0) {
+    sb.append(value);
+    sb.append("</div>");
+    return;
+  }
+  RegExp regExp=RegExp.compile(highlightRegex,"gi");
+  int fromIndex=0;
+  int length=value.length();
+  MatchResult result;
+  while (fromIndex < length) {
+    result=regExp.exec(value);
+    if (result == null) {
+      break;
+    }
+    int index=result.getIndex();
+    String match=result.getGroup(0);
+    sb.append(value.substring(fromIndex,index));
+    sb.append("<b>");
+    sb.append(match);
+    sb.append("</b>");
+    fromIndex=index + match.length();
+    regExp.setLastIndex(fromIndex);
+  }
+  if (fromIndex < length) {
+    sb.append(value.substring(fromIndex));
+  }
+  sb.append("</div>");
+}
