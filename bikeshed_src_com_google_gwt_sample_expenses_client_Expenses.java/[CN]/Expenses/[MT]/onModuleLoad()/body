@@ -3,6 +3,16 @@
   final Shell shell=new Shell();
   final EmployeeList employees=new EmployeeList(shell.users);
   root.add(shell);
+  shell.setListener(new Shell.Listener(){
+    public void setFirstPurpose(    String purpose){
+      ValuesImpl<Report> reportValues=(ValuesImpl<Report>)shell.getValues().get(0);
+      reportValues.setString(Report.PURPOSE,purpose);
+      List<Values<Report>> deltaValueStore=new ArrayList<Values<Report>>();
+      deltaValueStore.add(reportValues);
+      requestFactory.syncRequest(deltaValueStore).fire();
+    }
+  }
+);
   employees.setListener(new EmployeeList.Listener(){
     public void onEmployeeSelected(    Employee e){
       requestFactory.reportRequest().findReportsByEmployee(e.slot(Employee.ID)).forProperty(Report.CREATED).forProperty(Report.PURPOSE).to(shell).fire();
