@@ -2,6 +2,9 @@
   pushNode(new CfgStatementNode<JStatement>(parent,x));
   accept(x.getExpr());
   JSwitchStatement oldSwitchStatement=switchStatement;
+  List<Exit> oldCaseElseExits=removeExits(Exit.Reason.CASE_ELSE);
+  List<Exit> oldCaseThenExits=removeExits(Exit.Reason.CASE_THEN);
+  List<Exit> oldBreakExits=removeExits(Exit.Reason.BREAK);
   switchStatement=x;
   int defaultPos=-1;
   List<Exit> breakExits=new ArrayList<Exit>();
@@ -45,6 +48,9 @@
     addNormalExit(e.getNode(),e.role);
   }
   switchStatement=oldSwitchStatement;
+  addExits(oldCaseElseExits);
+  addExits(oldCaseThenExits);
+  addExits(oldBreakExits);
   popNode();
   return false;
 }
