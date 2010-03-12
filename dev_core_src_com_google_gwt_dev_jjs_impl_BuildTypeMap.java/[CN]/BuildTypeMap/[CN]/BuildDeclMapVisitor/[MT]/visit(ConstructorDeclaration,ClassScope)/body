@@ -2,16 +2,15 @@
   try {
     MethodBinding b=ctorDecl.binding;
     JClassType enclosingType=(JClassType)typeMap.get(scope.enclosingSourceType());
-    String name=enclosingType.getShortName();
     SourceInfo info=makeSourceInfo(ctorDecl,enclosingType);
-    JMethod newMethod=program.createMethod(info,name.toCharArray(),enclosingType,program.getNonNullType(enclosingType),false,false,true,b.isPrivate(),false);
+    JConstructor newCtor=program.createConstructor(info,enclosingType);
     if (enclosingType.isEnumOrSubclass() != null) {
-      program.createParameter(info,"enum$name".toCharArray(),program.getTypeJavaLangString(),true,false,newMethod);
-      program.createParameter(info,"enum$ordinal".toCharArray(),program.getTypePrimitiveInt(),true,false,newMethod);
+      program.createParameter(info,"enum$name".toCharArray(),program.getTypeJavaLangString(),true,false,newCtor);
+      program.createParameter(info,"enum$ordinal".toCharArray(),program.getTypePrimitiveInt(),true,false,newCtor);
     }
-    mapParameters(newMethod,ctorDecl);
-    addThrownExceptions(ctorDecl.binding,newMethod);
-    info.addCorrelation(program.getCorrelator().by(newMethod));
+    mapParameters(newCtor,ctorDecl);
+    addThrownExceptions(ctorDecl.binding,newCtor);
+    info.addCorrelation(program.getCorrelator().by(newCtor));
     int syntheticParamCount=0;
     ReferenceBinding declaringClass=b.declaringClass;
     if (declaringClass.isNestedType() && !declaringClass.isStatic()) {
@@ -24,7 +23,7 @@
           if (alreadyNamedVariables.contains(argName)) {
             argName+="_" + i;
           }
-          createParameter(arg,argName,newMethod);
+          createParameter(arg,argName,newCtor);
           ++syntheticParamCount;
           alreadyNamedVariables.add(argName);
         }
@@ -36,17 +35,17 @@
           if (alreadyNamedVariables.contains(argName)) {
             argName+="_" + i;
           }
-          createParameter(arg,argName,newMethod);
+          createParameter(arg,argName,newCtor);
           ++syntheticParamCount;
           alreadyNamedVariables.add(argName);
         }
       }
     }
-    typeMap.put(b,newMethod);
+    typeMap.put(b,newCtor);
     if (!enclosingType.isAbstract()) {
       ReferenceBinding enclosingBinding=ctorDecl.binding.declaringClass.enclosingType();
       JReferenceType outerType=enclosingBinding == null ? null : (JReferenceType)typeMap.get(enclosingBinding);
-      createSyntheticConstructor(newMethod,ctorDecl.binding.declaringClass.isStatic(),outerType);
+      createSyntheticConstructor(newCtor,ctorDecl.binding.declaringClass.isStatic(),outerType);
     }
     return true;
   }

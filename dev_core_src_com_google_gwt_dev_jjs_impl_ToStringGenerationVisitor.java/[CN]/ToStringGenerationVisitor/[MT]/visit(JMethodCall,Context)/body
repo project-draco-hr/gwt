@@ -1,19 +1,26 @@
 {
   JExpression instance=x.getInstance();
   JMethod target=x.getTarget();
-  if (instance != null) {
+  if (instance == null) {
+    printTypeName(target.getEnclosingType());
+    print('.');
+    printName(target);
+  }
+ else   if (x.isStaticDispatchOnly()) {
+    JReferenceType thisType=(JReferenceType)x.getInstance().getType();
+    thisType=thisType.getUnderlyingType();
+    if (thisType == target.getEnclosingType()) {
+      print(CHARS_THIS);
+    }
+ else {
+      print(CHARS_SUPER);
+    }
+  }
+ else {
     parenPush(x,instance);
     accept(instance);
     parenPop(x,instance);
-  }
- else {
-    printTypeName(target.getEnclosingType());
-  }
-  print('.');
-  if (target.isStatic()) {
-    printUniqueName(target);
-  }
- else {
+    print('.');
     printName(target);
   }
   lparen();

@@ -1,0 +1,13 @@
+{
+  super.endVisit(x,ctx);
+  if (!ignoringExpressionOutput.contains(x) || !x.getTarget().isEmpty()) {
+    return;
+  }
+  JMultiExpression multi=new JMultiExpression(x.getSourceInfo());
+  multi.exprs.addAll(x.getArgs());
+  JMethodCall clinit=maybeCreateClinitCall(x);
+  if (clinit != null) {
+    multi.exprs.add(clinit);
+  }
+  ctx.replaceMe(accept(multi));
+}

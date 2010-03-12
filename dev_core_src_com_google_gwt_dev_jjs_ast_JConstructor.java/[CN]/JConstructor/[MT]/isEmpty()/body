@@ -1,0 +1,26 @@
+{
+  if (isEmpty) {
+    return true;
+  }
+  JMethodBody body=getBody();
+  List<JStatement> statements=body.getStatements();
+  if (statements.isEmpty()) {
+    return (isEmpty=true);
+  }
+  if (statements.size() > 1) {
+    return false;
+  }
+  JStatement stmt=statements.get(0);
+  if (stmt instanceof JExpressionStatement) {
+    JExpressionStatement exprStmt=(JExpressionStatement)stmt;
+    JExpression expr=exprStmt.getExpr();
+    if (expr instanceof JMethodCall && !(expr instanceof JNewInstance)) {
+      JMethodCall call=(JMethodCall)expr;
+      JMethod target=call.getTarget();
+      if (target instanceof JConstructor) {
+        return isEmpty=((JConstructor)target).isEmpty();
+      }
+    }
+  }
+  return false;
+}

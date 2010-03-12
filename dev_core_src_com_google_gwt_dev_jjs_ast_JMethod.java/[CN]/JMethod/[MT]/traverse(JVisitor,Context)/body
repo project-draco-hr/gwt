@@ -1,25 +1,9 @@
 {
   String before=null;
-  if (trace && visitor instanceof JModVisitor) {
-    before=this.toSource();
-    if (traceFirst) {
-      traceFirst=false;
-      trace("JAVA INITIAL",before);
-    }
-  }
+  before=traceBefore(visitor);
   if (visitor.visit(this,ctx)) {
-    annotations=visitor.acceptImmutable(annotations);
-    params=visitor.acceptImmutable(params);
-    if (body != null) {
-      body=(JAbstractMethodBody)visitor.accept(body);
-    }
+    visitChildren(visitor);
   }
   visitor.endVisit(this,ctx);
-  if (trace && visitor instanceof JModVisitor) {
-    String after=this.toSource();
-    if (!after.equals(before)) {
-      String title=visitor.getClass().getSimpleName();
-      trace(title,after);
-    }
-  }
+  traceAfter(visitor,before);
 }
