@@ -1,0 +1,39 @@
+{
+  return new SyncRequest(){
+    public void fire(){
+      RequestBuilder builder=new RequestBuilder(RequestBuilder.POST,"/expenses/data?methodName=" + MethodName.SYNC.name());
+      StringBuilder requestData=new StringBuilder("{");
+      boolean first=true;
+      for (      Values<?> v : deltaValueStore) {
+        ValuesImpl<?> impl=(ValuesImpl<?>)v;
+        if (first) {
+          first=false;
+        }
+ else {
+          requestData.append(",");
+        }
+        requestData.append(impl.toJson());
+      }
+      requestData.append("}");
+      builder.setRequestData(requestData.toString());
+      builder.setCallback(new RequestCallback(){
+        public void onError(        Request request,        Throwable exception){
+        }
+        public void onResponseReceived(        Request request,        Response response){
+          if (200 == response.getStatusCode()) {
+            String text=response.getText();
+          }
+ else {
+          }
+        }
+      }
+);
+      try {
+        builder.send();
+      }
+ catch (      RequestException e) {
+      }
+    }
+  }
+;
+}
