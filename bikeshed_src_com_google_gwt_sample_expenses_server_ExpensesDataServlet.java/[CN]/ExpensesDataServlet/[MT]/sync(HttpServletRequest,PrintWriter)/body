@@ -1,0 +1,27 @@
+{
+  int contentLength=request.getContentLength();
+  byte contentBytes[]=new byte[contentLength];
+  BufferedInputStream bis=new BufferedInputStream(request.getInputStream());
+  int readBytes=0;
+  while (bis.read(contentBytes,readBytes,contentLength - readBytes) > 0) {
+  }
+  String content=new String(contentBytes);
+  try {
+    JSONArray reportArray=new JSONArray(content);
+    int length=reportArray.length();
+    if (length > 0) {
+      JSONObject report=reportArray.getJSONObject(0);
+      Report r=Report.findReport(report.getLong(com.google.gwt.sample.expenses.shared.ReportRef.ID.getName()));
+      r.setPurpose(report.getString(com.google.gwt.sample.expenses.shared.ReportRef.PURPOSE.getName()));
+      r=Storage.INSTANCE.persist(r);
+      report.put(com.google.gwt.sample.expenses.shared.ReportRef.VERSION.getName(),r.getVersion());
+      JSONArray returnArray=new JSONArray();
+      returnArray.put(report);
+      writer.print(returnArray.toString());
+    }
+  }
+ catch (  JSONException e) {
+    e.printStackTrace();
+  }
+  return;
+}

@@ -1,0 +1,47 @@
+{
+  return new EntityListRequest<ReportRef>(){
+    private HasValueList<Values<ReportRef>> watcher;
+    public void fire(){
+      RequestBuilder builder=new RequestBuilder(RequestBuilder.GET,"/expenses/data?methodName=" + MethodName.FIND_ALL_REPORTS.name());
+      builder.setCallback(new RequestCallback(){
+        public void onError(        Request request,        Throwable exception){
+        }
+        public void onResponseReceived(        Request request,        Response response){
+          if (200 == response.getStatusCode()) {
+            String text=response.getText();
+            JsArray<ValuesImpl<ReportRef>> valueArray=ValuesImpl.arrayFromJson(text);
+            List<Values<ReportRef>> valueList=new ArrayList<Values<ReportRef>>(valueArray.length());
+            for (int i=0; i < valueArray.length(); i++) {
+              ValuesImpl<ReportRef> values=valueArray.get(i);
+              values.setPropertyHolder(new ReportRef(values.get(ReportRef.ID),values.get(ReportRef.VERSION)));
+              valueList.add(values);
+            }
+            watcher.setValueList(valueList);
+          }
+ else {
+          }
+        }
+      }
+);
+      try {
+        builder.send();
+      }
+ catch (      RequestException e) {
+      }
+    }
+    public EntityListRequest<ReportRef> forProperties(    Collection<Property<ReportRef,?>> properties){
+      for (      Property<ReportRef,?> property : properties) {
+        forProperty(property);
+      }
+      return this;
+    }
+    public EntityListRequest<ReportRef> forProperty(    Property<ReportRef,?> property){
+      return this;
+    }
+    public EntityListRequest<ReportRef> to(    HasValueList<Values<ReportRef>> watcher){
+      this.watcher=watcher;
+      return this;
+    }
+  }
+;
+}

@@ -1,0 +1,13 @@
+{
+  final ExpenseRequestFactory requests=GWT.create(ExpenseRequestFactory.class);
+  final HandlerManager eventBus=new HandlerManager(null);
+  final PlaceController<ExpensesScaffoldPlace> placeController=new PlaceController<ExpensesScaffoldPlace>(eventBus);
+  final ExpensesScaffoldShell shell=new ExpensesScaffoldShell();
+  PlacePicker<ExpensesScaffoldPlace> placePicker=new PlacePicker<ExpensesScaffoldPlace>(shell.getPlacesBox(),placeController);
+  placePicker.setPlaces(Places.getListPlacesAndNames());
+  final TableEntityListView entitiesView=new TableEntityListView();
+  eventBus.addHandler(PlaceChanged.TYPE,new ListRequester(shell.getBody(),entitiesView,requests));
+  Element loading=Document.get().getElementById("loading");
+  loading.getParentElement().removeChild(loading);
+  RootLayoutPanel.get().add(shell);
+}
