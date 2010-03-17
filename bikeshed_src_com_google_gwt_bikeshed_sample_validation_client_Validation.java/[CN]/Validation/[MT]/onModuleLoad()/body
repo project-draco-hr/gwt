@@ -1,0 +1,56 @@
+{
+  ListListModel<Address> listModel=new ListListModel<Address>();
+  final List<Address> list=listModel.getList();
+  for (int i=10; i < 50; i++) {
+    if (zipInvalid(30000 + i)) {
+      continue;
+    }
+    String zip="300" + i;
+    list.add(new Address("GA",zip));
+  }
+  PagingTableListView<Address> table=new PagingTableListView<Address>(listModel,10);
+  Column<Address,String> stateColumn=new Column<Address,String>(new TextCell()){
+    @Override protected String getValue(    Address object){
+      return object.state;
+    }
+  }
+;
+  ValidatableColumn<Address,String> zipColumn=new ValidatableColumn<Address,String>(new ValidatableInputCell()){
+    @Override protected String getValidatableValue(    Address object){
+      return object.zip;
+    }
+  }
+;
+  zipColumn.setFieldUpdater(new FieldUpdater<Address,ValidatableField<String>>(){
+    public void update(    final int index,    final Address object,    final ValidatableField<String> value){
+      new Timer(){
+        @Override public void run(){
+          String pendingValue=value.getPendingValue();
+          int zip=Integer.parseInt(pendingValue);
+          boolean zipInvalid=Validation.zipInvalid(zip);
+          final Address newValue=new Address(object);
+          newValue.zip=pendingValue == null ? value.getValue() : pendingValue;
+          newValue.zipInvalid=zipInvalid;
+          value.setInvalid(zipInvalid);
+          if (!zipInvalid) {
+            value.setValue(pendingValue);
+            value.setPendingValue(null);
+          }
+          list.set(index,newValue);
+        }
+      }
+.schedule(2000);
+    }
+  }
+);
+  Column<Address,String> messageColumn=new Column<Address,String>(new TextCell()){
+    @Override protected String getValue(    Address object){
+      return object.zipInvalid ? "Please fix the zip code" : "";
+    }
+  }
+;
+  table.addColumn(stateColumn);
+  table.addColumn(zipColumn);
+  table.addColumn(messageColumn);
+  RootPanel.get().add(table);
+}
