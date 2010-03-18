@@ -16,7 +16,13 @@
   Message.Request.Builder requestMessageBuilder=Message.Request.newBuilder();
   requestMessageBuilder.setServiceType(Message.Request.ServiceType.DEV_MODE);
   Message.Request request=requestMessageBuilder.build();
-  network.getServerSocket().getInputStream().close();
+  network.getServerSocket().close();
+  int sleepCycles=0;
+  while (!network.getServerSocket().isClosed() && sleepCycles < 8) {
+    Thread.sleep(250);
+    sleepCycles++;
+  }
+  assertTrue("Unable to shut down server's input stream; cannot proceed with the test.",network.getServerSocket().isClosed());
   Future<Response> responseFuture=null;
   responseFuture=messageTransport.executeRequestAsync(request);
   assertNotNull(responseFuture);
