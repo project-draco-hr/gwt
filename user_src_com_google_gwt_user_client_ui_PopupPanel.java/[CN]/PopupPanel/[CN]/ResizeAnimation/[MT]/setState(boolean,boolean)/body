@@ -1,6 +1,14 @@
 {
+  this.isUnloading=isUnloading;
   cancel();
-  boolean animate=curPanel.isAnimationEnabled;
+  if (showTimer != null) {
+    showTimer.cancel();
+    showTimer=null;
+    onComplete();
+  }
+  curPanel.showing=showing;
+  curPanel.updateHandlers();
+  boolean animate=!isUnloading && curPanel.isAnimationEnabled;
   if (curPanel.animType != AnimationType.CENTER && !showing) {
     animate=false;
   }
@@ -15,13 +23,18 @@
       impl.setClip(curPanel.getElement(),getRectString(0,0,0,0));
       RootPanel.get().add(curPanel);
       impl.onShow(curPanel.getElement());
-    }
-    DeferredCommand.addCommand(new Command(){
-      public void execute(){
-        run(ANIMATION_DURATION);
+      showTimer=new Timer(){
+        @Override public void run(){
+          showTimer=null;
+          ResizeAnimation.this.run(ANIMATION_DURATION);
+        }
       }
+;
+      showTimer.schedule(1);
     }
-);
+ else {
+      run(ANIMATION_DURATION);
+    }
   }
  else {
     onInstantaneousRun();
