@@ -5,12 +5,13 @@
   }
   Object firstElement=resultList.get(0);
   Class<?> entityClass=firstElement.getClass();
-  Class<?> entityRefClass=Class.forName("com.google.gwt.sample.expenses.shared." + entityClass.getSimpleName() + "Ref");
+  Class<?> entityKeyClass=Class.forName("com.google.gwt.sample.expenses.shared." + entityClass.getSimpleName() + "Key");
+  EntityKey<?> key=(EntityKey<?>)entityKeyClass.getMethod("get").invoke(null);
   for (  Object entityElement : resultList) {
     JSONObject jsonObject=new JSONObject();
-    for (    Field field : entityRefClass.getFields()) {
-      if (isProperty(field) && requestedProperty(field)) {
-        String propertyName=getPropertyName(field);
+    for (    Property<?,?> p : key.getProperties()) {
+      if (requestedProperty(p)) {
+        String propertyName=p.getName();
         jsonObject.put(propertyName,getPropertyValue(entityElement,propertyName));
       }
     }

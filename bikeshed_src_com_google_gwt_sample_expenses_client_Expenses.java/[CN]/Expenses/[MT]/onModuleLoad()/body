@@ -5,8 +5,8 @@
   root.add(shell);
   shell.setListener(new Shell.Listener(){
     public void setFirstPurpose(    String purpose){
-      ValuesImpl<ReportRef> reportValues=(ValuesImpl<ReportRef>)shell.getValues().get(0);
-      reportValues.setString(ReportRef.PURPOSE,purpose);
+      ValuesImpl<ReportKey> reportValues=(ValuesImpl<ReportKey>)shell.getValues().get(0);
+      reportValues.setString(ReportKey.get().getPurpose(),purpose);
       List<Values<?>> deltaValueStore=new ArrayList<Values<?>>();
       deltaValueStore.add(reportValues);
       requestFactory.syncRequest(deltaValueStore).fire();
@@ -14,10 +14,10 @@
   }
 );
   employees.setListener(new EmployeeList.Listener(){
-    public void onEmployeeSelected(    EmployeeRef e){
-      requestFactory.reportRequest().findReportsByEmployee(e.getFieldRef(EmployeeRef.ID)).forProperty(ReportRef.CREATED).forProperty(ReportRef.PURPOSE).to(shell).fire();
+    public void onEmployeeSelected(    Values<EmployeeKey> e){
+      requestFactory.reportRequest().findReportsByEmployee(e.getRef(EmployeeKey.get().getId())).forProperty(ReportKey.get().getCreated()).forProperty(ReportKey.get().getPurpose()).to(shell).fire();
     }
   }
 );
-  requestFactory.employeeRequest().findAllEmployees().forProperty(EmployeeRef.DISPLAY_NAME).forProperty(EmployeeRef.USER_NAME).to(employees).fire();
+  requestFactory.employeeRequest().findAllEmployees().forProperty(EmployeeKey.get().getDisplayName()).forProperty(EmployeeKey.get().getUserName()).to(employees).fire();
 }

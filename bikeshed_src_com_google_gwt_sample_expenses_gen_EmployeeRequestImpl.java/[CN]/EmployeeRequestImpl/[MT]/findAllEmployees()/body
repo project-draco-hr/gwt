@@ -1,6 +1,7 @@
 {
-  return new EntityListRequest<EmployeeRef>(){
-    private HasValueList<Values<EmployeeRef>> watcher;
+  return new EntityListRequest<EmployeeKey>(){
+    private HasValueList<Values<EmployeeKey>> watcher;
+    private Set<Property<EmployeeKey,?>> properties=new HashSet<Property<EmployeeKey,?>>();
     public void fire(){
       RequestBuilder builder=new RequestBuilder(RequestBuilder.GET,"/expenses/data?methodName=" + MethodName.FIND_ALL_EMPLOYEES.name());
       builder.setCallback(new RequestCallback(){
@@ -9,11 +10,11 @@
         public void onResponseReceived(        Request request,        Response response){
           if (200 == response.getStatusCode()) {
             String text=response.getText();
-            JsArray<ValuesImpl<EmployeeRef>> valueArray=ValuesImpl.arrayFromJson(text);
-            List<Values<EmployeeRef>> valueList=new ArrayList<Values<EmployeeRef>>(valueArray.length());
+            JsArray<ValuesImpl<EmployeeKey>> valueArray=ValuesImpl.arrayFromJson(text);
+            List<Values<EmployeeKey>> valueList=new ArrayList<Values<EmployeeKey>>(valueArray.length());
             for (int i=0; i < valueArray.length(); i++) {
-              ValuesImpl<EmployeeRef> values=valueArray.get(i);
-              values.setPropertyHolder(new EmployeeRef(values.get(EmployeeRef.ID),values.get(EmployeeRef.VERSION)));
+              ValuesImpl<EmployeeKey> values=valueArray.get(i);
+              values.setPropertyHolder(EmployeeKey.get());
               valueList.add(values);
             }
             watcher.setValueList(valueList);
@@ -29,16 +30,17 @@
  catch (      RequestException e) {
       }
     }
-    public EntityListRequest<EmployeeRef> forProperties(    Collection<Property<EmployeeRef,?>> properties){
-      for (      Property<EmployeeRef,?> property : properties) {
+    public EntityListRequest<EmployeeKey> forProperties(    Collection<Property<EmployeeKey,?>> properties){
+      for (      Property<EmployeeKey,?> property : properties) {
         forProperty(property);
       }
       return this;
     }
-    public EntityListRequest<EmployeeRef> forProperty(    Property<EmployeeRef,?> property){
+    public EntityListRequest<EmployeeKey> forProperty(    Property<EmployeeKey,?> property){
+      properties.add(property);
       return this;
     }
-    public EntityListRequest<EmployeeRef> to(    HasValueList<Values<EmployeeRef>> watcher){
+    public EntityListRequest<EmployeeKey> to(    HasValueList<Values<EmployeeKey>> watcher){
       this.watcher=watcher;
       return this;
     }

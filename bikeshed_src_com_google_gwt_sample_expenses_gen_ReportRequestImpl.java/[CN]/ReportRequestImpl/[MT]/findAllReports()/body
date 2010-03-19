@@ -1,6 +1,6 @@
 {
-  return new EntityListRequest<ReportRef>(){
-    private HasValueList<Values<ReportRef>> watcher;
+  return new EntityListRequest<ReportKey>(){
+    private HasValueList<Values<ReportKey>> watcher;
     public void fire(){
       RequestBuilder builder=new RequestBuilder(RequestBuilder.GET,"/expenses/data?methodName=" + MethodName.FIND_ALL_REPORTS.name());
       builder.setCallback(new RequestCallback(){
@@ -9,11 +9,11 @@
         public void onResponseReceived(        Request request,        Response response){
           if (200 == response.getStatusCode()) {
             String text=response.getText();
-            JsArray<ValuesImpl<ReportRef>> valueArray=ValuesImpl.arrayFromJson(text);
-            List<Values<ReportRef>> valueList=new ArrayList<Values<ReportRef>>(valueArray.length());
+            JsArray<ValuesImpl<ReportKey>> valueArray=ValuesImpl.arrayFromJson(text);
+            List<Values<ReportKey>> valueList=new ArrayList<Values<ReportKey>>(valueArray.length());
             for (int i=0; i < valueArray.length(); i++) {
-              ValuesImpl<ReportRef> values=valueArray.get(i);
-              values.setPropertyHolder(new ReportRef(values.get(ReportRef.ID),values.get(ReportRef.VERSION)));
+              ValuesImpl<ReportKey> values=valueArray.get(i);
+              values.setPropertyHolder(ReportKey.get());
               valueList.add(values);
             }
             watcher.setValueList(valueList);
@@ -29,16 +29,16 @@
  catch (      RequestException e) {
       }
     }
-    public EntityListRequest<ReportRef> forProperties(    Collection<Property<ReportRef,?>> properties){
-      for (      Property<ReportRef,?> property : properties) {
+    public EntityListRequest<ReportKey> forProperties(    Collection<Property<ReportKey,?>> properties){
+      for (      Property<ReportKey,?> property : properties) {
         forProperty(property);
       }
       return this;
     }
-    public EntityListRequest<ReportRef> forProperty(    Property<ReportRef,?> property){
+    public EntityListRequest<ReportKey> forProperty(    Property<ReportKey,?> property){
       return this;
     }
-    public EntityListRequest<ReportRef> to(    HasValueList<Values<ReportRef>> watcher){
+    public EntityListRequest<ReportKey> to(    HasValueList<Values<ReportKey>> watcher){
       this.watcher=watcher;
       return this;
     }
