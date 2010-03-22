@@ -1,0 +1,22 @@
+{
+  StringBuffer metas=new StringBuffer();
+  metas.append("<meta name=\"gwt:property\" content=\"baseUrl=http://new/base\">\n");
+  metas.append("<meta name=\"gwt:property\" content=\"novalue\">\n");
+  metas.append("<meta name=\"gwt:onPropertyErrorFn\" content=\"function() { alert('custom prop error called');}\"}>\n");
+  metas.append("<meta name=\"gwt:onLoadErrorFn\" content=\"function() { alert('custom onLoad error called');}\">\n");
+  StringBuffer testCode=new StringBuffer();
+  testCode.append(loadProcessMetas());
+  testCode.append("alert('baseUrl='+metaProps['baseUrl']);\n");
+  testCode.append("alert('novalue='+metaProps['novalue']);\n");
+  testCode.append("alert('absent='+metaProps['absent']);\n");
+  testCode.append("propertyErrorFunc();\n");
+  testCode.append("onLoadErrorFunc();\n");
+  List<String> alerts=loadPage(makeHostPage(metas),testCode);
+  assertEquals(5,alerts.size());
+  Iterator<String> alertsIter=alerts.iterator();
+  assertEquals("baseUrl=http://new/base",alertsIter.next());
+  assertEquals("novalue=",alertsIter.next());
+  assertEquals("absent=undefined",alertsIter.next());
+  assertEquals("custom prop error called",alertsIter.next());
+  assertEquals("custom onLoad error called",alertsIter.next());
+}
