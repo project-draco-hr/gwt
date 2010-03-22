@@ -9,32 +9,31 @@
     list.add(new Address("GA",zip));
   }
   PagingTableListView<Address> table=new PagingTableListView<Address>(listModel,10);
-  Column<Address,String> stateColumn=new Column<Address,String>(new TextCell()){
+  Column<Address,String,Void> stateColumn=new Column<Address,String,Void>(new TextCell()){
     @Override protected String getValue(    Address object){
       return object.state;
     }
   }
 ;
-  ValidatableColumn<Address,String> zipColumn=new ValidatableColumn<Address,String>(new ValidatableInputCell()){
-    @Override protected String getValidatableValue(    Address object){
+  Column<Address,String,ValidatableField<String>> zipColumn=new Column<Address,String,ValidatableField<String>>(new ValidatableInputCell()){
+    @Override protected String getValue(    Address object){
       return object.zip;
     }
   }
 ;
-  zipColumn.setFieldUpdater(new FieldUpdater<Address,ValidatableField<String>>(){
-    public void update(    final int index,    final Address object,    final ValidatableField<String> value){
+  zipColumn.setFieldUpdater(new FieldUpdater<Address,String,ValidatableField<String>>(){
+    public void update(    final int index,    final Address object,    final String value,    final ValidatableField<String> viewData){
       new Timer(){
         @Override public void run(){
-          String pendingValue=value.getPendingValue();
+          String pendingValue=viewData.getValue();
           int zip=Integer.parseInt(pendingValue);
           boolean zipInvalid=Validation.zipInvalid(zip);
           final Address newValue=new Address(object);
-          newValue.zip=pendingValue == null ? value.getValue() : pendingValue;
+          newValue.zip=pendingValue == null ? value : pendingValue;
           newValue.zipInvalid=zipInvalid;
-          value.setInvalid(zipInvalid);
+          viewData.setInvalid(zipInvalid);
           if (!zipInvalid) {
-            value.setValue(pendingValue);
-            value.setPendingValue(null);
+            viewData.setValue(null);
           }
           list.set(index,newValue);
         }
@@ -43,7 +42,7 @@
     }
   }
 );
-  Column<Address,String> messageColumn=new Column<Address,String>(new TextCell()){
+  Column<Address,String,Void> messageColumn=new Column<Address,String,Void>(new TextCell()){
     @Override protected String getValue(    Address object){
       return object.zipInvalid ? "Please fix the zip code" : "";
     }
