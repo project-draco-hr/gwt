@@ -1,0 +1,66 @@
+{
+  addAsyncLoader(1);
+  addAsyncLoader(2);
+  addAsyncLoader(3);
+  sourceOracle.addOrReplace(new MockJavaResource("com.google.gwt.core.client.impl.AsyncFragmentLoader"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package com.google.gwt.core.client.impl;\n");
+      code.append("public class AsyncFragmentLoader {\n");
+      code.append("  private static AsyncFragmentLoader BROWSER_LOADER =\n");
+      code.append("    makeBrowserLoader(1, new int[] {});\n");
+      code.append("  private static AsyncFragmentLoader makeBrowserLoader(\n");
+      code.append("    int numSp, int[] initial) {\n");
+      code.append("    return null;\n");
+      code.append("  }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  addSnippetImport("com.google.gwt.core.client.impl.AsyncFragmentLoader");
+  sourceOracle.addOrReplace(new MockJavaResource("com.google.gwt.core.client.prefetch.RunAsyncCode"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package com.google.gwt.core.client.prefetch;\n");
+      code.append("public class RunAsyncCode {\n");
+      code.append("  public static RunAsyncCode runAsyncCode(Class<?> splitPoint) {\n");
+      code.append("    return null;\n");
+      code.append("  }");
+      code.append("}");
+      return code;
+    }
+  }
+);
+  addSnippetImport("com.google.gwt.core.client.prefetch.RunAsyncCode");
+  sourceOracle.addOrReplace(new MockJavaResource("test.SplitPoint1"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("import com.google.gwt.core.client.GWT;\n");
+      code.append("public class SplitPoint1 {\n");
+      code.append("  void doStuff() {\n");
+      code.append("    GWT.runAsync(SplitPoint1.class, null);\n");
+      code.append("  }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  addSnippetImport("test.SplitPoint1");
+  sourceOracle.addOrReplace(new MockJavaResource("test.SplitPoint2"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("import com.google.gwt.core.client.GWT;\n");
+      code.append("public class SplitPoint2 {\n");
+      code.append("  void doStuff() {\n");
+      code.append("    GWT.runAsync(SplitPoint2.class, null);\n");
+      code.append("  }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  addSnippetImport("test.SplitPoint2");
+}

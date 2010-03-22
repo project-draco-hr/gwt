@@ -1,14 +1,19 @@
 {
   if (x.getTarget() == program.getIndexedMethod("RunAsyncCode.runAsyncCode")) {
-    JClassLiteral lit=(JClassLiteral)x.getArgs().get(0);
+    JExpression arg0=x.getArgs().get(0);
+    if (!(arg0 instanceof JClassLiteral)) {
+      error(arg0.getSourceInfo(),"Only a class literal may be passed to runAsyncCode");
+      return;
+    }
+    JClassLiteral lit=(JClassLiteral)arg0;
     String name=nameFromClassLiteral(lit);
     List<RunAsyncReplacement> matches=replacementsByName.get(name);
     if (matches == null || matches.size() == 0) {
-      error("No runAsync call is named " + name);
+      error(x.getSourceInfo(),"No runAsync call is named " + name);
       return;
     }
     if (matches.size() > 1) {
-      TreeLogger branch=error("Multiple runAsync calls are named " + name);
+      TreeLogger branch=error(x.getSourceInfo(),"Multiple runAsync calls are named " + name);
       for (      RunAsyncReplacement match : matches) {
         branch.log(TreeLogger.ERROR,"One call is in " + methodDescription(match.getEnclosingMethod()));
       }

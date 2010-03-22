@@ -1,0 +1,21 @@
+{
+  sourceOracle.addOrReplace(new MockJavaResource("test.SplitPoint3"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("import com.google.gwt.core.client.GWT;\n");
+      code.append("public class SplitPoint3 {\n");
+      code.append("  void doStuff() {\n");
+      code.append("    GWT.runAsync(SplitPoint1.class, null);\n");
+      code.append("  }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  addSnippetImport("test.SplitPoint3");
+  expectError("Line 12: Multiple runAsync calls are named test.SplitPoint1");
+  expectError("One call is in test.SplitPoint1.doStuff (/mock/test/SplitPoint1.java:4)");
+  expectError("One call is in test.SplitPoint3.doStuff (/mock/test/SplitPoint3.java:4)");
+  testSnippet("RunAsyncCode.runAsyncCode(SplitPoint1.class);");
+}
