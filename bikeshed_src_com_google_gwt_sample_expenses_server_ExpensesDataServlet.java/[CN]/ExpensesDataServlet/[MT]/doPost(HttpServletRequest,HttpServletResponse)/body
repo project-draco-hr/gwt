@@ -1,62 +1,56 @@
 {
-  MethodName methodName=null;
+  String className=null;
+  String methodName=null;
   try {
     response.setStatus(HttpServletResponse.SC_OK);
     JSONObject topLevelJsonObject=new JSONObject(getContent(request));
-    methodName=getMethodName(topLevelJsonObject.getString(RequestDataManager.METHOD_TOKEN));
+    className=topLevelJsonObject.getString(RequestDataManager.CLASS_TOKEN);
+    methodName=topLevelJsonObject.getString(RequestDataManager.METHOD_TOKEN);
     PrintWriter writer=response.getWriter();
-switch (methodName) {
-case FIND_ALL_EMPLOYEES:
-case FIND_ALL_REPORTS:
-case FIND_EMPLOYEE:
-case FIND_REPORTS_BY_EMPLOYEE:
-      Class<?> classOperation=Class.forName("com.google.gwt.sample.expenses.server.domain." + methodName.getClassName());
-    Method methodOperation=null;
-  for (  Method method : classOperation.getDeclaredMethods()) {
-    if (method.getName().equals(methodName.getMethodName())) {
-      methodOperation=method;
-      break;
+    if (methodName.equals("sync")) {
+      sync(topLevelJsonObject.getString(RequestDataManager.CONTENT_TOKEN),writer);
     }
+ else {
+      Class<?> classOperation=Class.forName("com.google.gwt.sample.expenses.server.domain." + className);
+      Method methodOperation=null;
+      for (      Method method : classOperation.getDeclaredMethods()) {
+        if (method.getName().equals(methodName)) {
+          methodOperation=method;
+          break;
+        }
+      }
+      if (methodOperation == null) {
+        throw new IllegalArgumentException("unable to find " + methodName + " in "+ classOperation);
+      }
+      if (!Modifier.isStatic(methodOperation.getModifiers())) {
+        throw new IllegalArgumentException("the " + methodOperation.getName() + " is not static");
+      }
+      Object args[]=RequestDataManager.getObjectsFromParameterMap(getParameterMap(topLevelJsonObject),methodOperation.getParameterTypes());
+      Object resultList=methodOperation.invoke(null,args);
+      if (!(resultList instanceof List)) {
+        throw new IllegalArgumentException("return value not a list " + resultList);
+      }
+      JSONArray jsonArray=getJsonArray((List<?>)resultList);
+      writer.print(jsonArray.toString());
+    }
+    writer.flush();
   }
-if (methodOperation == null) {
-  throw new IllegalArgumentException("unable to find " + methodName.getMethodName() + " in "+ classOperation);
-}
-if (!Modifier.isStatic(methodOperation.getModifiers())) {
-throw new IllegalArgumentException("the " + methodOperation.getName() + " is not static");
-}
-Object args[]=RequestDataManager.getObjectsFromParameterMap(getParameterMap(topLevelJsonObject),methodOperation.getParameterTypes());
-Object resultList=methodOperation.invoke(null,args);
-if (!(resultList instanceof List)) {
-throw new IllegalArgumentException("return value not a list " + resultList);
-}
-JSONArray jsonArray=getJsonArray((List<?>)resultList);
-writer.print(jsonArray.toString());
-break;
-case SYNC:
-sync(topLevelJsonObject.getString(RequestDataManager.CONTENT_TOKEN),writer);
-break;
-default :
-System.err.println("POST: unknown method " + methodName);
-break;
-}
-writer.flush();
-}
- catch (ClassNotFoundException e) {
-throw new IllegalArgumentException("unable to load the class: " + methodName);
-}
-catch (IllegalAccessException e) {
-throw new IllegalArgumentException(e);
-}
-catch (InvocationTargetException e) {
-throw new IllegalArgumentException(e);
-}
-catch (SecurityException e) {
-throw new IllegalArgumentException(e);
-}
-catch (JSONException e) {
-throw new IllegalArgumentException(e);
-}
-catch (NoSuchMethodException e) {
-throw new IllegalArgumentException(e);
-}
+ catch (  ClassNotFoundException e) {
+    throw new IllegalArgumentException("unable to load the class: " + className);
+  }
+catch (  IllegalAccessException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  InvocationTargetException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  SecurityException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  JSONException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  NoSuchMethodException e) {
+    throw new IllegalArgumentException(e);
+  }
 }
