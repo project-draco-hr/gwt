@@ -7,6 +7,7 @@
     statements=Collections.emptyList();
   }
   List<JsExpression> hoisted=new ArrayList<JsExpression>(statements.size());
+  JsExpression thisExpr=((JsNameRef)x.getQualifier()).getQualifier();
   List<JsName> localVariableNames=new ArrayList<JsName>();
   boolean sawReturnStatement=false;
   for (  JsStatement statement : statements) {
@@ -38,10 +39,10 @@
     outerOp.setArg2(op);
     op=outerOp;
   }
-  if (!isInlinable(program,callerFunction,invokedFunction,x.getArguments(),op)) {
+  if (!isInlinable(program,callerFunction,invokedFunction,thisExpr,x.getArguments(),op)) {
     return x;
   }
-  NameRefReplacerVisitor v=new NameRefReplacerVisitor(x,invokedFunction);
+  NameRefReplacerVisitor v=new NameRefReplacerVisitor(thisExpr,x.getArguments(),invokedFunction.getParameters());
   for (ListIterator<JsName> nameIterator=localVariableNames.listIterator(); nameIterator.hasNext(); ) {
     JsName name=nameIterator.next();
     String ident;
