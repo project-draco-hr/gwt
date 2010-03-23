@@ -1,56 +1,52 @@
 {
-  String className=null;
-  String methodName=null;
+  ServerSideOperation operation=null;
   try {
     response.setStatus(HttpServletResponse.SC_OK);
     JSONObject topLevelJsonObject=new JSONObject(getContent(request));
-    className=topLevelJsonObject.getString(RequestDataManager.CLASS_TOKEN);
-    methodName=topLevelJsonObject.getString(RequestDataManager.METHOD_TOKEN);
+    operation=getOperationFromName(topLevelJsonObject.getString(RequestDataManager.OPERATION_TOKEN));
     PrintWriter writer=response.getWriter();
-    if (methodName.equals("sync")) {
+switch (operation) {
+case SYNC:
       sync(topLevelJsonObject.getString(RequestDataManager.CONTENT_TOKEN),writer);
-    }
- else {
-      Class<?> classOperation=Class.forName("com.google.gwt.sample.expenses.server.domain." + className);
-      Method methodOperation=null;
-      for (      Method method : classOperation.getDeclaredMethods()) {
-        if (method.getName().equals(methodName)) {
-          methodOperation=method;
-          break;
-        }
-      }
-      if (methodOperation == null) {
-        throw new IllegalArgumentException("unable to find " + methodName + " in "+ classOperation);
-      }
-      if (!Modifier.isStatic(methodOperation.getModifiers())) {
-        throw new IllegalArgumentException("the " + methodOperation.getName() + " is not static");
-      }
-      Object args[]=RequestDataManager.getObjectsFromParameterMap(getParameterMap(topLevelJsonObject),methodOperation.getParameterTypes());
-      Object resultList=methodOperation.invoke(null,args);
-      if (!(resultList instanceof List)) {
-        throw new IllegalArgumentException("return value not a list " + resultList);
-      }
-      JSONArray jsonArray=getJsonArray((List<?>)resultList);
-      writer.print(jsonArray.toString());
-    }
-    writer.flush();
-  }
- catch (  ClassNotFoundException e) {
-    throw new IllegalArgumentException("unable to load the class: " + className);
-  }
-catch (  IllegalAccessException e) {
-    throw new IllegalArgumentException(e);
-  }
-catch (  InvocationTargetException e) {
-    throw new IllegalArgumentException(e);
-  }
-catch (  SecurityException e) {
-    throw new IllegalArgumentException(e);
-  }
-catch (  JSONException e) {
-    throw new IllegalArgumentException(e);
-  }
-catch (  NoSuchMethodException e) {
-    throw new IllegalArgumentException(e);
-  }
+    break;
+case FIND_ALL_EMPLOYEES:
+case FIND_ALL_REPORTS:
+case FIND_EMPLOYEE:
+case FIND_REPORTS_BY_EMPLOYEE:
+  Class<?> domainClass=Class.forName(operation.getDomainClassName());
+Method domainMethod=domainClass.getMethod(operation.getDomainMethodName(),operation.getParameterTypes());
+if (!Modifier.isStatic(domainMethod.getModifiers())) {
+throw new IllegalArgumentException("the " + domainMethod.getName() + " is not static");
+}
+Object args[]=RequestDataManager.getObjectsFromParameterMap(getParameterMap(topLevelJsonObject),domainMethod.getParameterTypes());
+Object resultList=domainMethod.invoke(null,args);
+if (!(resultList instanceof List)) {
+throw new IllegalArgumentException("return value not a list " + resultList);
+}
+JSONArray jsonArray=getJsonArray((List<?>)resultList,operation.getReturnType());
+writer.print(jsonArray.toString());
+break;
+default :
+throw new IllegalArgumentException("Unknow operation " + operation);
+}
+writer.flush();
+}
+ catch (ClassNotFoundException e) {
+throw new IllegalArgumentException("unable to load the class: " + operation.getDomainClassName());
+}
+catch (IllegalAccessException e) {
+throw new IllegalArgumentException(e);
+}
+catch (InvocationTargetException e) {
+throw new IllegalArgumentException(e);
+}
+catch (SecurityException e) {
+throw new IllegalArgumentException(e);
+}
+catch (JSONException e) {
+throw new IllegalArgumentException(e);
+}
+catch (NoSuchMethodException e) {
+throw new IllegalArgumentException(e);
+}
 }
