@@ -16,17 +16,25 @@
   Message.Request.Builder requestMessageBuilder=Message.Request.newBuilder();
   requestMessageBuilder.setServiceType(Message.Request.ServiceType.DEV_MODE);
   Message.Request request=requestMessageBuilder.build();
-  network.getServerSocket().getOutputStream().close();
+  network.getServerSocket().close();
+  int sleepCycles=0;
+  while (!network.getServerSocket().isClosed() && sleepCycles < 8) {
+    Thread.sleep(250);
+    sleepCycles++;
+  }
+  assertTrue("Unable to close socket; cannot proceed with the test.",network.getServerSocket().isClosed());
+  Future<Response> responseFuture=null;
+  responseFuture=messageTransport.executeRequestAsync(request);
+  assertNotNull(responseFuture);
   try {
-    Future<Response> response=messageTransport.executeRequestAsync(request);
-    response.get(2,TimeUnit.SECONDS);
+    responseFuture.get(2,TimeUnit.SECONDS);
     fail("Should have thrown an exception");
   }
  catch (  TimeoutException te) {
     fail("Should not have timed out");
   }
 catch (  ExecutionException e) {
-    assertTrue("Expected: IllegalStateException, actual:" + e.getCause(),e.getCause() instanceof IllegalStateException);
+    assertTrue("Expected: IllegalStateException or IOException, actual:" + e.getCause(),e.getCause() instanceof IllegalStateException || e.getCause() instanceof IOException);
   }
 catch (  Exception e) {
     fail("Should not have thrown any other exception");
