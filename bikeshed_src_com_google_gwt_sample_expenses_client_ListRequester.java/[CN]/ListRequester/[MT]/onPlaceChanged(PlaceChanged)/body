@@ -1,18 +1,25 @@
 {
-  Place newPlace=event.getNewPlace();
-  if (!(newPlace instanceof EntityListPlace)) {
+  if (!(event.getNewPlace() instanceof EntityListPlace)) {
     return;
   }
+  EntityListPlace newPlace=(EntityListPlace)event.getNewPlace();
+  final String name=listNameFilter.render(newPlace);
+  final ExpensesEntityKey<?> key=newPlace.getKey();
+  key.accept(new ExpensesEntityVisitor(){
+    public void visit(    EmployeeKey employeeKey){
+      List<Property<EmployeeKey,?>> columns=getEmployeeColumns();
+      EntityListPresenter<EmployeeKey> presenter=new EntityListPresenter<EmployeeKey>(name,entitiesView,columns,places);
+      requests.employeeRequest().findAllEmployees().forProperties(columns).to(presenter).fire();
+    }
+    public void visit(    ReportKey reportKey){
+      List<Property<ReportKey,?>> columns=getReportColumns();
+      EntityListPresenter<ReportKey> presenter=new EntityListPresenter<ReportKey>(name,entitiesView,columns,places);
+      requests.reportRequest().findAllReports().forProperties(columns).to(presenter).fire();
+    }
+  }
+);
   if (entitiesView.getParent() == null) {
     panel.clear();
     panel.add(entitiesView);
-  }
-  if (newPlace == Places.EMPLOYEE_LIST) {
-    EntityList<EmployeeKey> list=new EntityList<EmployeeKey>("Employees",entitiesView,employeeColumns);
-    requests.employeeRequest().findAllEmployees().forProperties(employeeColumns).to(list).fire();
-  }
- else   if (newPlace == Places.REPORT_LIST) {
-    EntityList<ReportKey> list=new EntityList<ReportKey>("Reports",entitiesView,reportColumns);
-    requests.reportRequest().findAllReports().forProperties(reportColumns).to(list).fire();
   }
 }

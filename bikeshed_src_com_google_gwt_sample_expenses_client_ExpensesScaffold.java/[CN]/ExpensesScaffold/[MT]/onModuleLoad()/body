@@ -1,12 +1,17 @@
 {
   final ExpenseRequestFactory requests=GWT.create(ExpenseRequestFactory.class);
   final HandlerManager eventBus=new HandlerManager(null);
-  final PlaceController<ExpensesScaffoldPlace> placeController=new PlaceController<ExpensesScaffoldPlace>(eventBus);
+  final PlaceController<AbstractExpensesPlace> placeController=new PlaceController<AbstractExpensesPlace>(eventBus);
+  final Places places=new Places(placeController);
+  final EntityNameRenderer entityNamer=new EntityNameRenderer();
+  final ListPlaceRenderer listPlaceNamer=new ListPlaceRenderer(entityNamer);
   final ExpensesScaffoldShell shell=new ExpensesScaffoldShell();
-  PlacePicker<ExpensesScaffoldPlace> placePicker=new PlacePicker<ExpensesScaffoldPlace>(shell.getPlacesBox(),placeController);
-  placePicker.setPlaces(Places.getListPlacesAndNames());
+  PlacePicker<EntityListPlace> placePicker=new PlacePicker<EntityListPlace>(shell.getPlacesBox(),placeController,listPlaceNamer);
+  placePicker.setPlaces(places.getListPlaces());
   final TableEntityListView entitiesView=new TableEntityListView();
-  eventBus.addHandler(PlaceChanged.TYPE,new ListRequester(shell.getBody(),entitiesView,requests));
+  eventBus.addHandler(PlaceChanged.TYPE,new ListRequester(places,shell.getBody(),entitiesView,requests,listPlaceNamer));
+  final HTML detailsView=new HTML();
+  eventBus.addHandler(PlaceChanged.TYPE,new DetailsRequester(entityNamer,shell.getBody(),detailsView));
   Element loading=Document.get().getElementById("loading");
   loading.getParentElement().removeChild(loading);
   RootLayoutPanel.get().add(shell);
