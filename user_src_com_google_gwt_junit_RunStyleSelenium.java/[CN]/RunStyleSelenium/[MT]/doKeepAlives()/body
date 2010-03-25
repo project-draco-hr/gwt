@@ -1,20 +1,26 @@
 {
-  if (remotes != null) {
-    for (    SeleniumWrapper remote : remotes) {
-      try {
-        if (remote.getSelenium() != null) {
-          remote.getSelenium().getTitle();
-        }
+synchronized (lock) {
+    if (remotes != null) {
+      if (stopped) {
+        return false;
       }
- catch (      Throwable e) {
-synchronized (wasInterruptedLock) {
-          if (interruptedHosts == null) {
-            interruptedHosts=new HashSet<String>();
+      for (      SeleniumWrapper remote : remotes) {
+        try {
+          if (remote.getSelenium() != null) {
+            remote.getSelenium().getTitle();
           }
-          interruptedHosts.add(remote.getSpecifier());
+        }
+ catch (        Throwable e) {
+          String message=e.getMessage();
+          if (message != null && message.toLowerCase().contains("permission denied")) {
+            if (interruptedHosts == null) {
+              interruptedHosts=new HashSet<String>();
+            }
+            interruptedHosts.add(remote.getSpecifier());
+          }
         }
       }
     }
+    return interruptedHosts == null;
   }
-  return interruptedHosts == null;
 }
