@@ -15,13 +15,12 @@
     PerfLogger.start("Precompile");
     UnifiedAst unifiedAst=getCompiler(module).precompile(logger,module,rpo,declEntryPts,null,jjsOptions,rpo.getPermuationCount() == 1);
     PerfLogger.end();
-    Permutation[] permutations=rpo.getPermutations();
-    SortedMap<String,Permutation> merged=new TreeMap<String,Permutation>();
+    List<Permutation> permutations=new ArrayList<Permutation>(Arrays.asList(rpo.getPermutations()));
+    mergeCollapsedPermutations(permutations);
+    SortedMap<RebindAnswersPermutationKey,Permutation> merged=new TreeMap<RebindAnswersPermutationKey,Permutation>();
     SortedSet<String> liveRebindRequests=unifiedAst.getRebindRequests();
     for (    Permutation permutation : permutations) {
-      SortedMap<String,String> rebindAnswers=new TreeMap<String,String>(permutation.getRebindAnswers());
-      rebindAnswers.keySet().retainAll(liveRebindRequests);
-      String key=rebindAnswers.toString();
+      RebindAnswersPermutationKey key=new RebindAnswersPermutationKey(permutation,liveRebindRequests);
       if (merged.containsKey(key)) {
         Permutation existing=merged.get(key);
         existing.mergeFrom(permutation,liveRebindRequests);

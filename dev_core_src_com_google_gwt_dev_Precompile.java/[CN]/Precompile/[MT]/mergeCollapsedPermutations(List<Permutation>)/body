@@ -1,0 +1,28 @@
+{
+  if (permutations.size() < 2) {
+    return;
+  }
+  SortedMap<CollapsedPropertyKey,List<Permutation>> mergedByCollapsedProperties=new TreeMap<CollapsedPropertyKey,List<Permutation>>();
+  for (Iterator<Permutation> it=permutations.iterator(); it.hasNext(); ) {
+    Permutation entry=it.next();
+    CollapsedPropertyKey key=new CollapsedPropertyKey(entry);
+    List<Permutation> equivalenceSet=mergedByCollapsedProperties.get(key);
+    if (equivalenceSet == null) {
+      equivalenceSet=Lists.create();
+    }
+ else {
+      it.remove();
+      equivalenceSet=Lists.add(equivalenceSet,entry);
+    }
+    mergedByCollapsedProperties.put(key,equivalenceSet);
+  }
+  for (  Map.Entry<CollapsedPropertyKey,List<Permutation>> entry : mergedByCollapsedProperties.entrySet()) {
+    Permutation mergeInto=entry.getKey().getPermutation();
+    for (    Permutation mergeFrom : entry.getValue()) {
+      mergeInto.mergeRebindsFromCollapsed(mergeFrom);
+    }
+  }
+  for (int i=0, j=permutations.size(); i < j; i++) {
+    permutations.set(i,new Permutation(i,permutations.get(i)));
+  }
+}

@@ -21,13 +21,20 @@
   JsName errFn=fnScope.declareName("errFn");
   JsName modName=fnScope.declareName("modName");
   JsName modBase=fnScope.declareName("modBase");
+  JsName softPermutationId=fnScope.declareName("softPermutationId");
   params.add(new JsParameter(sourceInfo,errFn));
   params.add(new JsParameter(sourceInfo,modName));
   params.add(new JsParameter(sourceInfo,modBase));
+  params.add(new JsParameter(sourceInfo,softPermutationId));
   JsExpression asg=createAssignment(topScope.findExistingUnobfuscatableName("$moduleName").makeRef(sourceInfo),modName.makeRef(sourceInfo));
   body.getStatements().add(asg.makeStmt());
   asg=createAssignment(topScope.findExistingUnobfuscatableName("$moduleBase").makeRef(sourceInfo),modBase.makeRef(sourceInfo));
   body.getStatements().add(asg.makeStmt());
+  JsName permutationIdFieldName=names.get(program.getIndexedField("CollapsedPropertyHolder.permutationId"));
+  if (permutationIdFieldName != null) {
+    asg=createAssignment(permutationIdFieldName.makeRef(sourceInfo),softPermutationId.makeRef(sourceInfo));
+    body.getStatements().add(asg.makeStmt());
+  }
   JsIf jsIf=new JsIf(sourceInfo);
   body.getStatements().add(jsIf);
   jsIf.setIfExpr(errFn.makeRef(sourceInfo));

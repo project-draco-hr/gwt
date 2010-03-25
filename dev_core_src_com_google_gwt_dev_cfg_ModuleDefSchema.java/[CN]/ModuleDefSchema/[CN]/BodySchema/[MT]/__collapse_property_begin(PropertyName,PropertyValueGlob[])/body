@@ -1,0 +1,30 @@
+{
+  Property prop=moduleDef.getProperties().find(name.token);
+  if (prop == null) {
+    logger.log(TreeLogger.ERROR,"No property named " + name.token + " has been defined");
+    throw new UnableToCompleteException();
+  }
+ else   if (!(prop instanceof BindingProperty)) {
+    logger.log(TreeLogger.ERROR,"The property " + name.token + " is not a deferred-binding property");
+    throw new UnableToCompleteException();
+  }
+  BindingProperty binding=(BindingProperty)prop;
+  List<String> allowed=Arrays.asList(binding.getDefinedValues());
+  String[] tokens=new String[values.length];
+  boolean error=false;
+  for (int i=0, j=values.length; i < j; i++) {
+    tokens[i]=values[i].token;
+    if (values[i].isGlob()) {
+      continue;
+    }
+ else     if (!allowed.contains(tokens[i])) {
+      logger.log(TreeLogger.ERROR,"The value " + tokens[i] + " was not previously defined for the property "+ binding.getName());
+      error=true;
+    }
+  }
+  if (error) {
+    throw new UnableToCompleteException();
+  }
+  binding.addCollapsedValues(tokens);
+  return null;
+}

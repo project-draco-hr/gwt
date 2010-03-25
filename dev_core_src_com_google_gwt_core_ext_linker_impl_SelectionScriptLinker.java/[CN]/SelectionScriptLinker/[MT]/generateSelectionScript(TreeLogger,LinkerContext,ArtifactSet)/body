@@ -43,17 +43,17 @@
   startPos=selectionScript.indexOf("// __PERMUTATIONS_END__");
   if (startPos != -1) {
     StringBuffer text=new StringBuffer();
-    if (propMapsByStrongName.size() == 0) {
+    if (propMapsByPermutation.size() == 0) {
       text.append("alert(\"GWT module '" + context.getModuleName() + "' may need to be (re)compiled\");");
       text.append("return;");
     }
- else     if (propMapsByStrongName.size() == 1) {
-      text.append("strongName = '" + propMapsByStrongName.keySet().iterator().next() + "';");
+ else     if (propMapsByPermutation.size() == 1) {
+      text.append("strongName = '" + propMapsByPermutation.keySet().iterator().next() + "';");
     }
  else {
       Set<String> propertiesUsed=new HashSet<String>();
-      for (      String strongName : propMapsByStrongName.keySet()) {
-        for (        Map<String,String> propertyMap : propMapsByStrongName.get(strongName)) {
+      for (      PermutationId permutationId : propMapsByPermutation.keySet()) {
+        for (        Map<String,String> propertyMap : propMapsByPermutation.get(permutationId)) {
           text.append("unflattenKeylistIntoAnswers([");
           boolean needsComma=false;
           for (          SelectionProperty p : context.getProperties()) {
@@ -72,7 +72,7 @@
             text.append("'" + propertyMap.get(p.getName()) + "'");
             propertiesUsed.add(p.getName());
           }
-          text.append("], '").append(strongName).append("');\n");
+          text.append("], '").append(permutationId.getStrongName()).append("' + ':").append(permutationId.getSoftPermutationId()).append("');\n");
         }
       }
       text.append("strongName = answers[");
