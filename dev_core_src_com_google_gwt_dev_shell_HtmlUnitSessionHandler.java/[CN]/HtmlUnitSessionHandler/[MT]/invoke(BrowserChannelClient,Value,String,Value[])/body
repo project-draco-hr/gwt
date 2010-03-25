@@ -1,12 +1,22 @@
 {
   logger.log(TreeLogger.DEBUG,"INVOKE: thisObj: " + thisObj + ", methodName: "+ methodName+ ", args: "+ args);
   Context jsContext=Context.getCurrentContext();
-  ScriptableObject jsThis;
+  ScriptableObject jsThis=null;
   if (thisObj.getType() == ValueType.NULL) {
     jsThis=window;
   }
  else {
-    jsThis=(ScriptableObject)makeJsvalFromValue(jsContext,thisObj);
+    Object obj=makeJsvalFromValue(jsContext,thisObj);
+    if (obj instanceof ScriptableObject) {
+      jsThis=(ScriptableObject)obj;
+    }
+ else     if (obj instanceof SimpleScriptableProxy) {
+      jsThis=((SimpleScriptableProxy<SimpleScriptable>)obj).getDelegee();
+    }
+ else {
+      logger.log(TreeLogger.ERROR,"Unable to convert " + obj + " to either "+ " ScriptableObject or SimpleScriptableProxy");
+      return new ExceptionOrReturnValue(true,new Value(null));
+    }
   }
   Object functionObject=ScriptableObject.getProperty(window,methodName);
   if (functionObject == ScriptableObject.NOT_FOUND) {
