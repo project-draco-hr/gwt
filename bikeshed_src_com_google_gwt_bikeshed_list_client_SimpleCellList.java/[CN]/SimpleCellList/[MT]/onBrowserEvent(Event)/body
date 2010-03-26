@@ -1,11 +1,21 @@
 {
   Element target=event.getEventTarget().cast();
-  String idxString="";
-  while ((target != null) && ((idxString=target.getAttribute("__idx")).length() == 0)) {
-    target=target.getParentElement();
+  if (target.getParentElement() == showMoreElem) {
+    this.maxSize+=increment;
+    reg.setRangeOfInterest(0,maxSize);
   }
-  if (idxString.length() > 0) {
-    int idx=Integer.parseInt(idxString);
-    cell.onBrowserEvent(target,data.get(idx),null,event,valueUpdater);
+ else   if (target.getParentElement() == showFewerElem) {
+    this.maxSize=Math.max(initialMaxSize,maxSize - increment);
+    reg.setRangeOfInterest(0,maxSize);
+  }
+ else {
+    String idxString="";
+    while ((target != null) && ((idxString=target.getAttribute("__idx")).length() == 0)) {
+      target=target.getParentElement();
+    }
+    if (idxString.length() > 0) {
+      int idx=Integer.parseInt(idxString);
+      cell.onBrowserEvent(target,data.get(idx),null,event,valueUpdater);
+    }
   }
 }
