@@ -1,0 +1,12 @@
+{
+  ArtifactSet updated=linkArtifacts();
+  EmittedArtifact foo=findArtifact(updated,"foo.js");
+  assertNotNull(foo);
+  EmittedArtifact fooGz=findArtifact(updated,"foo.js.gz");
+  assertNotNull(fooGz);
+  assertEqualBytes(contents(foo),decompress(contents(fooGz)));
+  EmittedArtifact barGz=findArtifact(updated,"bar.js.gz");
+  assertNull("bar.js is private and should not have been compressed",barGz);
+  EmittedArtifact uncompressibleGz=findArtifact(updated,"uncompressible.js.gz");
+  assertNull("uncompressible.js is not compressible and should have been left alone",uncompressibleGz);
+}

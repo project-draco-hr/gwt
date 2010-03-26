@@ -1,0 +1,50 @@
+{
+  ConfigurationProperty leaveOriginalsProp=findProperty(logger,context.getConfigurationProperties(),PROP_LEAVE_ORIGINALS);
+  boolean leaveOriginals=Boolean.valueOf(leaveOriginalsProp.getValues().get(0));
+  PrecompressFilter filter=new PrecompressFilter(logger.branch(TreeLogger.TRACE,"Analyzing the path patterns"),findProperty(logger,context.getConfigurationProperties(),PROP_PATH_REGEXES).getValues());
+  Set<String> allPaths=new HashSet<String>();
+  for (  EmittedArtifact art : artifacts.find(EmittedArtifact.class)) {
+    allPaths.add(art.getPartialPath());
+  }
+  try {
+    byte[] buf=new byte[BUF_SIZE];
+    ArtifactSet updated=new ArtifactSet(artifacts);
+    for (    EmittedArtifact art : artifacts.find(EmittedArtifact.class)) {
+      if (art.isPrivate()) {
+        continue;
+      }
+      if (art.getPartialPath().endsWith(".gz")) {
+        continue;
+      }
+      if (allPaths.contains(art.getPartialPath() + ".gz")) {
+        continue;
+      }
+      if (!filter.isIncluded(logger.branch(TreeLogger.TRACE,"Checking the path patterns"),art.getPartialPath())) {
+        continue;
+      }
+      TreeLogger compressBranch=logger.branch(TreeLogger.TRACE,"Compressing " + art.getPartialPath());
+      InputStream originalBytes=art.getContents(compressBranch);
+      ByteArrayOutputStream compressedBytes=new ByteArrayOutputStream();
+      GZIPOutputStream gzip=new GZIPOutputStream(compressedBytes);
+      int originalLength=0;
+      int n;
+      while ((n=originalBytes.read(buf)) > 0) {
+        originalLength+=n;
+        gzip.write(buf,0,n);
+      }
+      gzip.close();
+      byte[] compressed=compressedBytes.toByteArray();
+      if (compressed.length < originalLength) {
+        updated.add(emitBytes(compressBranch,compressed,art.getPartialPath() + ".gz"));
+        if (!leaveOriginals) {
+          updated.remove(art);
+        }
+      }
+    }
+    return updated;
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Unexpected exception",e);
+    throw new UnableToCompleteException();
+  }
+}

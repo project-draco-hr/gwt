@@ -1,0 +1,29 @@
+{
+  ConfigurationProperty prop;
+  this.values=values;
+  int size=values.size();
+  typePatterns=new ArrayList<Pattern>(size);
+  includeType=new ArrayList<Boolean>(size);
+  for (  String regex : values) {
+    boolean include=entriesArePositiveByDefault();
+    if (regex.length() == 0) {
+      logger.log(TreeLogger.ERROR,"Got empty blacklist entry");
+      throw new UnableToCompleteException();
+    }
+    char c=regex.charAt(0);
+    if (c == '+' || c == '-') {
+      regex=regex.substring(1);
+      include=(c == '+');
+    }
+    try {
+      Pattern p=Pattern.compile(regex);
+      typePatterns.add(p);
+      includeType.add(include);
+      logger.log(TreeLogger.DEBUG,"Got filter entry '" + regex + "'");
+    }
+ catch (    PatternSyntaxException e) {
+      logger.log(TreeLogger.ERROR,"Got malformed filter entry '" + regex + "'");
+      throw new UnableToCompleteException();
+    }
+  }
+}
