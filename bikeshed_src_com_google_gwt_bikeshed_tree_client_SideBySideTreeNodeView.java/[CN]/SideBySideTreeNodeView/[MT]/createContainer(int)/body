@@ -1,6 +1,6 @@
 {
   Element rootElement=getTree().getElement();
-  rootElement.getStyle().setWidth((level + 1) * columnWidth,Unit.PX);
+  rootElement.getStyle().setWidth(Math.min(maxColumns,level + 1) * columnWidth,Unit.PX);
   int childCount=rootElement.getChildCount();
   while (childCount <= level) {
     Element div=rootElement.appendChild(Document.get().createDivElement());
@@ -8,9 +8,22 @@
     Style style=div.getStyle();
     style.setPosition(Position.ABSOLUTE);
     style.setTop(0,Unit.PX);
-    style.setLeft(level * columnWidth,Unit.PX);
     style.setWidth(columnWidth,Unit.PX);
     childCount++;
+  }
+  Element child=rootElement.getFirstChild().cast();
+  int x=Math.min(0,maxColumns - (level + 1));
+  while (child != null) {
+    Style style=child.getStyle();
+    style.setLeft(x * columnWidth,Unit.PX);
+    if (x < 0) {
+      style.setDisplay(Display.NONE);
+    }
+ else {
+      style.clearDisplay();
+    }
+    child=child.getNextSibling().cast();
+    x++;
   }
   return rootElement.getChild(level).cast();
 }
