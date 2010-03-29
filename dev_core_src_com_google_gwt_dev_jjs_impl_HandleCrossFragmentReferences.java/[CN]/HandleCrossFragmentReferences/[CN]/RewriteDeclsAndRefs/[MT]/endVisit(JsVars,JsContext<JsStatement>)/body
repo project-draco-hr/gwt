@@ -1,0 +1,25 @@
+{
+  if (!ctx.canInsert()) {
+    return;
+  }
+  JsVars currentVar=null;
+  Iterator<JsVar> varsIterator=x.iterator();
+  while (varsIterator.hasNext()) {
+    JsVar var=varsIterator.next();
+    if (namesToPredefine.contains(var.getName())) {
+      if (var.getInitExpr() != null) {
+        JsBinaryOperation asg=new JsBinaryOperation(var.getSourceInfo(),JsBinaryOperator.ASG,makeRefViaJslink(var.getName(),var.getSourceInfo()),var.getInitExpr());
+        ctx.insertBefore(asg.makeStmt());
+        currentVar=null;
+      }
+    }
+ else {
+      if (currentVar == null) {
+        currentVar=new JsVars(x.getSourceInfo());
+        ctx.insertBefore(currentVar);
+      }
+      currentVar.add(var);
+    }
+  }
+  ctx.removeMe();
+}

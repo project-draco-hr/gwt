@@ -1,0 +1,23 @@
+{
+  if (fragmentLoading != fragment) {
+    return;
+  }
+  LoadTerminatedHandler[] handlersToRun=pendingDownloadErrorHandlers;
+  pendingDownloadErrorHandlers=new LoadTerminatedHandler[numEntries + 1];
+  requestedExclusives.clear();
+  fragmentLoading=-1;
+  RuntimeException lastException=null;
+  for (  LoadTerminatedHandler handler : handlersToRun) {
+    if (handler != null) {
+      try {
+        handler.loadTerminated(reason);
+      }
+ catch (      RuntimeException e) {
+        lastException=e;
+      }
+    }
+  }
+  if (lastException != null) {
+    throw lastException;
+  }
+}
