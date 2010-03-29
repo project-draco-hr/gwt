@@ -1,0 +1,58 @@
+{
+  TextCell textCell=new TextCell();
+  ListListModel<Message> listModel=new ListListModel<Message>();
+  List<Message> messages=listModel.getList();
+  Random rand=new Random();
+  for (int i=0; i < 1000; i++) {
+    Message message=new Message(i,senders[rand.nextInt(senders.length)],subjects[rand.nextInt(subjects.length)]);
+    message.isRead=rand.nextBoolean();
+    messages.add(message);
+  }
+  final SelectionModel<Message> selectionModel=new MailSelectionModel();
+  final PagingTableListView<Message> table=new PagingTableListView<Message>(listModel,10);
+  Column<Message,Boolean,Void> selectedColumn=new Column<Message,Boolean,Void>(new CheckboxCell()){
+    @Override public Boolean getValue(    Message object){
+      return selectionModel.isSelected(object);
+    }
+  }
+;
+  selectedColumn.setFieldUpdater(new FieldUpdater<Message,Boolean,Void>(){
+    public void update(    int index,    Message object,    Boolean value,    Void viewData){
+      selectionModel.setSelected(object,value);
+      table.refresh();
+    }
+  }
+);
+  Header<String> selectedHeader=new Header<String>(textCell);
+  selectedHeader.setValue("Selected");
+  table.addColumn(selectedColumn,selectedHeader);
+  Column<Message,String,Void> isReadColumn=new Column<Message,String,Void>(textCell){
+    @Override public String getValue(    Message object){
+      return object.isRead ? "read" : "unread";
+    }
+  }
+;
+  Header<String> isReadHeader=new Header<String>(textCell);
+  isReadHeader.setValue("Read");
+  table.addColumn(isReadColumn,isReadHeader);
+  Column<Message,String,Void> senderColumn=new Column<Message,String,Void>(new TextCell()){
+    @Override public String getValue(    Message object){
+      return object.getSender();
+    }
+  }
+;
+  Header<String> senderHeader=new Header<String>(textCell);
+  senderHeader.setValue("Sender");
+  table.addColumn(senderColumn,senderHeader);
+  Column<Message,String,Void> subjectColumn=new Column<Message,String,Void>(textCell){
+    @Override public String getValue(    Message object){
+      return object.getSubject();
+    }
+  }
+;
+  Header<String> subjectHeader=new Header<String>(textCell);
+  subjectHeader.setValue("Subject");
+  table.addColumn(subjectColumn,subjectHeader);
+  table.setSelectionModel(selectionModel);
+  RootPanel.get().add(table);
+}
