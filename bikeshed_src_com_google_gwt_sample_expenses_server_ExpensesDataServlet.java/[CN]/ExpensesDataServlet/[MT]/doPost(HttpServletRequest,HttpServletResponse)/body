@@ -1,52 +1,52 @@
 {
-  ServerSideOperation operation=null;
+  RequestDefinition operation=null;
   try {
     response.setStatus(HttpServletResponse.SC_OK);
-    JSONObject topLevelJsonObject=new JSONObject(getContent(request));
-    operation=getOperationFromName(topLevelJsonObject.getString(RequestDataManager.OPERATION_TOKEN));
     PrintWriter writer=response.getWriter();
-switch (operation) {
-case SYNC:
+    JSONObject topLevelJsonObject=new JSONObject(getContent(request));
+    String operationName=topLevelJsonObject.getString(RequestDataManager.OPERATION_TOKEN);
+    if (operationName.equals(RequestFactory.UPDATE_STRING)) {
       sync(topLevelJsonObject.getString(RequestDataManager.CONTENT_TOKEN),writer);
-    break;
-case FIND_ALL_EMPLOYEES:
-case FIND_ALL_REPORTS:
-case FIND_EMPLOYEE:
-case FIND_REPORTS_BY_EMPLOYEE:
-  Class<?> domainClass=Class.forName(operation.getDomainClassName());
-Method domainMethod=domainClass.getMethod(operation.getDomainMethodName(),operation.getParameterTypes());
-if (!Modifier.isStatic(domainMethod.getModifiers())) {
-throw new IllegalArgumentException("the " + domainMethod.getName() + " is not static");
-}
-Object args[]=RequestDataManager.getObjectsFromParameterMap(getParameterMap(topLevelJsonObject),domainMethod.getParameterTypes());
-Object resultList=domainMethod.invoke(null,args);
-if (!(resultList instanceof List)) {
-throw new IllegalArgumentException("return value not a list " + resultList);
-}
-JSONArray jsonArray=getJsonArray((List<?>)resultList,operation.getReturnType());
-writer.print(jsonArray.toString());
-break;
-default :
-throw new IllegalArgumentException("Unknow operation " + operation);
-}
-writer.flush();
-}
- catch (ClassNotFoundException e) {
-throw new IllegalArgumentException("unable to load the class: " + operation.getDomainClassName());
-}
-catch (IllegalAccessException e) {
-throw new IllegalArgumentException(e);
-}
-catch (InvocationTargetException e) {
-throw new IllegalArgumentException(e);
-}
-catch (SecurityException e) {
-throw new IllegalArgumentException(e);
-}
-catch (JSONException e) {
-throw new IllegalArgumentException(e);
-}
-catch (NoSuchMethodException e) {
-throw new IllegalArgumentException(e);
-}
+    }
+ else {
+      InputStream is=this.getClass().getClassLoader().getResourceAsStream(PROPERTY_FILENAME);
+      if (is == null) {
+        throw new IllegalArgumentException("unable to find servlet.properties");
+      }
+      Properties properties=new Properties();
+      properties.load(is);
+      operation=getOperationFromName(operationName,(Class<RequestDefinition>)Class.forName(properties.getProperty("servlet.serveroperation")));
+      Class<?> domainClass=Class.forName(operation.getDomainClassName());
+      Method domainMethod=domainClass.getMethod(operation.getDomainMethodName(),operation.getParameterTypes());
+      if (!Modifier.isStatic(domainMethod.getModifiers())) {
+        throw new IllegalArgumentException("the " + domainMethod.getName() + " is not static");
+      }
+      Object args[]=RequestDataManager.getObjectsFromParameterMap(getParameterMap(topLevelJsonObject),domainMethod.getParameterTypes());
+      Object resultList=domainMethod.invoke(null,args);
+      if (!(resultList instanceof List)) {
+        throw new IllegalArgumentException("return value not a list " + resultList);
+      }
+      JSONArray jsonArray=getJsonArray((List<?>)resultList,operation.getReturnType());
+      writer.print(jsonArray.toString());
+    }
+    writer.flush();
+  }
+ catch (  ClassNotFoundException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  IllegalAccessException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  InvocationTargetException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  SecurityException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  JSONException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  NoSuchMethodException e) {
+    throw new IllegalArgumentException(e);
+  }
 }
