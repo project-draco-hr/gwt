@@ -1,0 +1,19 @@
+{
+  if (!writer.getMessages().isMessage(elem) && !isPlaceholderElement(elem)) {
+    String tag=elem.getLocalName();
+    if ("tbody".equalsIgnoreCase(tag)) {
+      pathComponents.getLast().isTableWithoutTbody=false;
+    }
+    if ("td".equalsIgnoreCase(tag) && !"tr".equalsIgnoreCase(elem.getParent().getLocalName())) {
+      writer.die("TD tags must be inside of a TR tag");
+    }
+    pathComponents.addLast(new PathComponent(elem));
+    writer.addInitComment("visit DomCursor %s",this.toString());
+    if (isInsideParagraph() && isUnsafeParagraphTag(tag)) {
+      paragraphs.getLast().beginUnsafeTag();
+    }
+    if ("p".equalsIgnoreCase(tag)) {
+      beginParagraph();
+    }
+  }
+}

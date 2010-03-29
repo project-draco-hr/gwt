@@ -1,10 +1,11 @@
 {
-  for (  String idHolder : idToWidgetElement.keySet()) {
-    XMLElement childElem=idToWidgetElement.get(idHolder);
+  for (  Map.Entry<String,XMLElement> entry : elementHolderToWidgetElement.entrySet()) {
+    String element=entry.getKey();
+    XMLElement childElem=entry.getValue();
     String childField=uiWriter.parseElementToField(childElem);
-    genSetWidgetTextCall(idHolder,childField);
-    uiWriter.addInitStatement("%1$s.addAndReplaceElement(%2$s, %3$s);",fieldName,childField,idHolder);
+    genSetWidgetTextCall(element,childField);
+    uiWriter.addInitStatement("%1$s.addAndReplaceElement(%2$s, " + "(com.google.gwt.user.client.Element)%3$s);",fieldName,childField,element);
   }
-  idToWidgetElement.clear();
+  elementHolderToWidgetElement.clear();
   return super.postProcess(consumed);
 }

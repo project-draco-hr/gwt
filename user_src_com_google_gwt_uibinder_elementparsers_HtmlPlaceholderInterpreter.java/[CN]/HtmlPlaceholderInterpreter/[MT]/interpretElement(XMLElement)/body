@@ -8,9 +8,11 @@
     }
     String openTag=elem.consumeOpeningTag();
     String openPlaceholder=nextPlaceholder(name + "Begin",stripTokens(openTag),uiWriter.detokenate(openTag));
-    String body=tokenator.nextToken(elem.consumeInnerHtml(this));
+    DomCursor currentDomCursor=uiWriter.getCurrentDomCursor();
+    String body=tokenator.nextToken(elem.consumeInnerHtml(this,currentDomCursor));
     String closeTag=elem.getClosingTag();
     String closePlaceholder=nextPlaceholder(name + "End",closeTag,closeTag);
+    currentDomCursor.advanceChild();
     return openPlaceholder + body + closePlaceholder;
   }
   return super.interpretElement(elem);

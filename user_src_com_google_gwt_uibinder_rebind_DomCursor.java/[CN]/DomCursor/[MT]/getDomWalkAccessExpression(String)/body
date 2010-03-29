@@ -1,0 +1,33 @@
+{
+  writer.addInitComment("DomWalkAccess %s",this.toString());
+  int end=pathComponents.size();
+  String var=null;
+  for (; end > 0; --end) {
+    var=domPathCache.get(pathComponents.subList(0,end));
+    if (var != null) {
+      break;
+    }
+  }
+  StringBuilder builder=new StringBuilder();
+  if (var != null) {
+    builder.append(var);
+  }
+ else {
+    builder.append(parent);
+  }
+  for (int i=end; i < pathComponents.size(); ++i) {
+    PathComponent component=pathComponents.get(i);
+    if (i < (pathComponents.size() - 1)) {
+      String varName="intermediate" + writer.getUniqueId();
+      writer.addInitStatement("com.google.gwt.dom.client.Node %s = %s(%s, %d);",varName,getLookupMethod(component,tag),builder.toString(),component.childIndex);
+      domPathCache.put(new LinkedList<PathComponent>(pathComponents.subList(0,i + 1)),varName);
+      builder=new StringBuilder(varName);
+    }
+ else {
+      builder.insert(0,getLookupMethod(component,tag) + "(");
+      builder.append(", ").append(component.childIndex).append(")");
+    }
+  }
+  builder.append(".cast()");
+  return builder.toString();
+}
