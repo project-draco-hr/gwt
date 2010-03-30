@@ -1,14 +1,19 @@
 {
-  PendingResource pendingResource=pendingResourcesByOutputStream.get(os);
-  if (pendingResource != null) {
-    pendingResource.commit(logger);
-    GeneratedResource toReturn=new StandardGeneratedResource(currentGenerator,pendingResource.getPartialPath(),pendingResource.getFile());
-    commitArtifact(logger,toReturn);
-    pendingResourcesByOutputStream.remove(os);
-    return toReturn;
+  PendingResource pendingResource=null;
+  String partialPath=null;
+  if (os instanceof PendingResource) {
+    pendingResource=(PendingResource)os;
+    partialPath=pendingResource.getPartialPath();
+    if (pendingResource != pendingResources.get(partialPath)) {
+      pendingResource=null;
+    }
   }
- else {
+  if (pendingResource == null) {
     logger.log(TreeLogger.WARN,"Generator attempted to commit an unknown OutputStream",null);
     throw new UnableToCompleteException();
   }
+  GeneratedResource toReturn=new StandardGeneratedResource(currentGenerator,partialPath,pendingResource.takeBytes());
+  commitArtifact(logger,toReturn);
+  pendingResources.remove(pendingResource.getPartialPath());
+  return toReturn;
 }

@@ -1,15 +1,11 @@
 {
-  if (pendingResourcesByOutputStream.isEmpty()) {
+  if (pendingResources.isEmpty()) {
     return;
   }
   logger=logger.branch(TreeLogger.WARN,"The following resources will not be created because they were never committed (did you forget to call commit()?)",null);
-  try {
-    for (Iterator<PendingResource> iter=pendingResourcesByOutputStream.values().iterator(); iter.hasNext(); ) {
-      PendingResource pendingResource=iter.next();
-      logger.log(TreeLogger.WARN,pendingResource.getFile().getAbsolutePath(),null);
-    }
+  for (  Entry<String,PendingResource> entry : pendingResources.entrySet()) {
+    logger.log(TreeLogger.WARN,entry.getKey());
+    entry.getValue().abort();
   }
-  finally {
-    pendingResourcesByOutputStream.clear();
-  }
+  pendingResources.clear();
 }

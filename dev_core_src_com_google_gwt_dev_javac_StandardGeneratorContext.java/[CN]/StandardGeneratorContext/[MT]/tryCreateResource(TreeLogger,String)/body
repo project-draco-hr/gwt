@@ -4,8 +4,7 @@
     logger.log(TreeLogger.ERROR,"The resource name must be a non-empty string",null);
     throw new UnableToCompleteException();
   }
-  File f=new File(partialPath);
-  if (f.isAbsolute()) {
+  if (new File(partialPath).isAbsolute()) {
     logger.log(TreeLogger.ERROR,"Resource paths are intended to be relative to the compiled output directory and cannot be absolute",null);
     throw new UnableToCompleteException();
   }
@@ -23,15 +22,11 @@
       return null;
     }
   }
-  for (Iterator<PendingResource> iter=pendingResourcesByOutputStream.values().iterator(); iter.hasNext(); ) {
-    PendingResource pendingResource=iter.next();
-    if (pendingResource.getPartialPath().equals(partialPath)) {
-      logger.log(TreeLogger.WARN,"The file '" + partialPath + "' is already a pending resource",null);
-      return null;
-    }
+  if (pendingResources.containsKey(partialPath)) {
+    logger.log(TreeLogger.WARN,"The file '" + partialPath + "' is already a pending resource",null);
+    return null;
   }
-  PendingResource pendingResource=new PendingResource(generatorResourcesDir,partialPath);
-  OutputStream os=pendingResource.getOutputStream();
-  pendingResourcesByOutputStream.put(os,pendingResource);
-  return os;
+  PendingResource pendingResource=new PendingResource(partialPath);
+  pendingResources.put(partialPath,pendingResource);
+  return pendingResource;
 }
