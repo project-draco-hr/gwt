@@ -1,37 +1,25 @@
 {
   String webXmlUrlString=webXmlUrl.toExternalForm();
-  String oldProp=System.getProperty("org.mortbay.xml.XmlParser.Validating","false");
   try {
-    System.setProperty("org.mortbay.xml.XmlParser.Validating","false");
-    WebXmlConfiguration wxc=new WebXmlConfiguration();
-    ServletHandler myServletHandler=new ServletHandler();
-    wxc.setWebAppContext(new WebAppContext(null,null,myServletHandler,null));
-    wxc.configure(webXmlUrlString);
-    ServletMapping[] mappings=myServletHandler.getServletMappings();
-    ServletHolder[] servlets=myServletHandler.getServlets();
-    Map<String,String> servletNameToClassName=new HashMap<String,String>();
-    Map<String,Set<String>> classNameToPaths=new HashMap<String,Set<String>>();
+    final TreeLogger branch=logger.branch(TreeLogger.DEBUG,"Parsing " + webXmlUrlString);
+    SAXParserFactory fac=SAXParserFactory.newInstance();
+    fac.setValidating(false);
+    fac.setNamespaceAware(false);
+    SAXParser parser=fac.newSAXParser();
+    parser.getXMLReader().setFeature("http://xml.org/sax/features/validation",false);
+    parser.getXMLReader().setFeature("http://xml.org/sax/features/namespaces",false);
+    parser.getXMLReader().setFeature("http://xml.org/sax/features/namespace-prefixes",false);
     Map<String,String> classNameToServletName=new HashMap<String,String>();
-    for (    ServletHolder servlet : servlets) {
-      servletNameToClassName.put(servlet.getName(),servlet.getClassName());
-      classNameToServletName.put(servlet.getClassName(),servlet.getName());
-      classNameToPaths.put(servlet.getClassName(),new HashSet<String>());
-    }
-    for (    ServletMapping mapping : mappings) {
-      String servletName=mapping.getServletName();
-      String className=servletNameToClassName.get(servletName);
-      assert(className != null);
-      Set<String> paths=classNameToPaths.get(className);
-      assert(paths != null);
-      paths.addAll(Arrays.asList(mapping.getPathSpecs()));
+    Map<String,Set<String>> servletNameToPaths=new HashMap<String,Set<String>>();
+    parser.parse(webXmlUrlString,new WebXmlDataCollector(branch,classNameToServletName,servletNameToPaths));
+    Map<String,Set<String>> classNameToPaths=new HashMap<String,Set<String>>();
+    for (    Entry<String,String> entry : classNameToServletName.entrySet()) {
+      classNameToPaths.put(entry.getKey(),servletNameToPaths.get(entry.getValue()));
     }
     return new ServletValidator(classNameToServletName,classNameToPaths);
   }
  catch (  Exception e) {
     logger.log(TreeLogger.WARN,"Unable to process '" + webXmlUrlString + "' for servlet validation",e);
     return null;
-  }
- finally {
-    System.setProperty("org.mortbay.xml.XmlParser.Validating",oldProp);
   }
 }
