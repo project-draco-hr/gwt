@@ -11,8 +11,8 @@
   final MailSelectionModel selectionModel=new MailSelectionModel();
   final PagingTableListView<Message> table=new PagingTableListView<Message>(listModel,10);
   Column<Message,Boolean,Void> selectedColumn=new Column<Message,Boolean,Void>(new CheckboxCell()){
-    @Override public Boolean getValue(    Message object,    int index){
-      return selectionModel.isSelected(object,index);
+    @Override public Boolean getValue(    Message object){
+      return selectionModel.isSelected(object);
     }
   }
 ;
@@ -26,7 +26,7 @@
   selectedHeader.setValue("Selected");
   table.addColumn(selectedColumn,selectedHeader);
   Column<Message,String,Void> isReadColumn=new Column<Message,String,Void>(textCell){
-    @Override public String getValue(    Message object,    int index){
+    @Override public String getValue(    Message object){
       return object.isRead ? "read" : "unread";
     }
   }
@@ -35,7 +35,7 @@
   isReadHeader.setValue("Read");
   table.addColumn(isReadColumn,isReadHeader);
   Column<Message,String,Void> senderColumn=new Column<Message,String,Void>(new TextCell()){
-    @Override public String getValue(    Message object,    int index){
+    @Override public String getValue(    Message object){
       return object.getSender();
     }
   }
@@ -44,7 +44,7 @@
   senderHeader.setValue("Sender");
   table.addColumn(senderColumn,senderHeader);
   Column<Message,String,Void> subjectColumn=new Column<Message,String,Void>(textCell){
-    @Override public String getValue(    Message object,    int index){
+    @Override public String getValue(    Message object){
       return object.getSubject();
     }
   }
@@ -76,8 +76,7 @@
 );
   allOnPageButton.addClickHandler(new ClickHandler(){
     public void onClick(    ClickEvent event){
-      int pageSize=table.getPageSize();
-      selectionModel.setSelected(table.getPage() * pageSize,pageSize,true);
+      selectionModel.setSelected(table.getDisplayedItems(),true);
     }
   }
 );
