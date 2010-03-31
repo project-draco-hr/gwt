@@ -1,0 +1,18 @@
+{
+  for (int i=0, l=newRecords.length(); i < l; i++) {
+    ValuesImpl<K> newRecord=newRecords.get(i);
+    RecordKey recordKey=new RecordKey(newRecord);
+    ValuesImpl<?> oldRecord=records.get(recordKey);
+    if (oldRecord == null) {
+      records.put(recordKey,newRecord);
+    }
+ else {
+      boolean changed=oldRecord.merge(newRecord);
+      newRecord=oldRecord.cast();
+      newRecords.set(i,newRecord);
+      if (changed) {
+        eventBus.fireEvent(newRecord.createChangeEvent());
+      }
+    }
+  }
+}

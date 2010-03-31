@@ -1,23 +1,26 @@
 {
+  final HandlerManager eventBus=new HandlerManager(null);
+  final ValueStoreJsonImpl valueStore=new ValueStoreJsonImpl(eventBus);
+  final ExpenseRequestFactoryImpl requestFactory=new ExpenseRequestFactoryImpl(valueStore);
   RootLayoutPanel root=RootLayoutPanel.get();
   final Shell shell=new Shell();
   final EmployeeList employees=new EmployeeList(shell.users);
   root.add(shell);
   shell.setListener(new Shell.Listener(){
     public void setFirstPurpose(    String purpose){
-      ValuesImpl<ReportKey> reportValues=(ValuesImpl<ReportKey>)shell.getValues().get(0);
-      reportValues.setString(ReportKey.get().getPurpose(),purpose);
-      List<Values<?>> deltaValueStore=new ArrayList<Values<?>>();
-      deltaValueStore.add(reportValues);
+      DeltaValueStore deltaValueStore=requestFactory.getValueStore().spawnDeltaView();
+      Values<ReportKey> report=shell.getValues().get(0);
+      deltaValueStore.set(report.getKey().getPurpose(),report,purpose);
       requestFactory.syncRequest(deltaValueStore).fire();
     }
   }
 );
   employees.setListener(new EmployeeList.Listener(){
     public void onEmployeeSelected(    Values<EmployeeKey> e){
-      requestFactory.reportRequest().findReportsByEmployee(e.getRef(EmployeeKey.get().getId())).forProperty(ReportKey.get().getCreated()).forProperty(ReportKey.get().getPurpose()).to(shell).fire();
+      requestFactory.reportRequest().findReportsByEmployee(e.getRef(EmployeeKey.get().getId())).forProperties(getReportColumns()).to(shell).fire();
     }
   }
 );
-  requestFactory.employeeRequest().findAllEmployees().forProperty(EmployeeKey.get().getDisplayName()).forProperty(EmployeeKey.get().getUserName()).to(employees).fire();
+  eventBus.addHandler(ReportChanged.TYPE,shell);
+  requestFactory.employeeRequest().findAllEmployees().forProperties(getEmployeeMenuProperties()).to(employees).fire();
 }

@@ -1,14 +1,17 @@
 {
-  if (Integer.class.equals(property.getValueType())) {
-    return (V)Integer.valueOf(getInt(property.getName()));
-  }
-  if (Date.class.equals(property.getValueType())) {
-    double millis=getDouble(property.getName());
-    if (GWT.isScript()) {
-      return (V)dateForDouble(millis);
+  if (property instanceof PrimitiveProperty) {
+    PrimitiveProperty<K,V> prim=(PrimitiveProperty<K,V>)property;
+    if (Integer.class.equals(prim.getValueType())) {
+      return (V)Integer.valueOf(getInt(prim.getName()));
     }
+    if (Date.class.equals(prim.getValueType())) {
+      double millis=getDouble(prim.getName());
+      if (GWT.isScript()) {
+        return (V)dateForDouble(millis);
+      }
  else {
-      return (V)new Date((long)millis);
+        return (V)new Date((long)millis);
+      }
     }
   }
   return nativeGet(property);

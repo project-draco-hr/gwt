@@ -1,0 +1,18 @@
+{
+  JSONArray jsonArray=new JSONArray();
+  if (resultList.size() == 0) {
+    return jsonArray;
+  }
+  ValuesKey<?> key=(ValuesKey<?>)entityKeyClass.getMethod("get").invoke(null);
+  for (  Object entityElement : resultList) {
+    JSONObject jsonObject=new JSONObject();
+    for (    Property<?,?> p : key.all()) {
+      if (requestedProperty(p)) {
+        String propertyName=p.getName();
+        jsonObject.put(propertyName,getPropertyValue(entityElement,propertyName));
+      }
+    }
+    jsonArray.put(jsonObject);
+  }
+  return jsonArray;
+}
