@@ -1,0 +1,38 @@
+{
+  ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(packageName,implName);
+  f.addImport(RequestFactoryJsonImpl.class.getName());
+  f.addImport(ValueStoreJsonImpl.class.getName());
+  f.addImplementedInterface(interfaceType.getQualifiedSourceName());
+  f.setSuperclass(RequestFactoryJsonImpl.class.getName());
+  SourceWriter sw=f.createSourceWriter(generatorContext,out);
+  sw.println();
+  List<JClassType> nestedInterfaces=new ArrayList<JClassType>();
+  for (  JClassType nestedType : interfaceType.getNestedTypes()) {
+    if (nestedType.isInterface() != null) {
+      nestedInterfaces.add(nestedType);
+    }
+  }
+  for (  JClassType nestedInterface : nestedInterfaces) {
+    String simpleSourceName=nestedInterface.getSimpleSourceName();
+    sw.println("public " + simpleSourceName + " "+ getMethodName(simpleSourceName)+ "() {");
+    sw.indent();
+    sw.println("return new " + simpleSourceName + "Impl(this);");
+    sw.outdent();
+    sw.println("}");
+    sw.println();
+  }
+  sw.outdent();
+  sw.println("}");
+  String interfacePrefix=interfaceType.getName() + ".";
+  for (  JClassType nestedInterface : nestedInterfaces) {
+    String nestedImplName=nestedInterface.getName();
+    if (nestedImplName.startsWith(interfacePrefix)) {
+      nestedImplName=nestedImplName.substring(interfacePrefix.length(),nestedImplName.length()) + "Impl";
+    }
+    PrintWriter pw=printWriters.makePrintWriterFor(nestedImplName);
+    if (pw != null) {
+      generateNestedInterfaceImplementation(logger,generatorContext,pw,nestedInterface,interfaceType,packageName,nestedImplName);
+    }
+  }
+  printWriters.commit();
+}
