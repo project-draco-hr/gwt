@@ -10,10 +10,16 @@
   }
   for (  JMethod method : targetType.getMethods()) {
     if (method.getName().equals(memberName)) {
-      if (addConstructors || !method.getName().equals(JsniRef.NEW)) {
-        addMember(matchesBySig,method,getJsniSignature(method,false));
-        addMember(matchesBySig,method,getJsniSignature(method,true));
+      if (!addConstructorsAndPrivates) {
+        if (method.getName().equals(JsniRef.NEW)) {
+          continue;
+        }
+        if (method.isPrivate()) {
+          continue;
+        }
       }
+      addMember(matchesBySig,method,getJsniSignature(method,false));
+      addMember(matchesBySig,method,getJsniSignature(method,true));
     }
   }
   for (  JField field : targetType.getFields()) {

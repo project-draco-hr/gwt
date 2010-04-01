@@ -69,8 +69,35 @@
     }
   }
 );
+  sourceOracle.addOrReplace(new MockJavaResource("test.PrivateSup"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("public class PrivateSup {\n");
+      code.append("  private static int field;\n");
+      code.append("  private static int method() { return 0; }\n");
+      code.append("  private static int fieldSup;\n");
+      code.append("  private static int methodSuP() { return 0; }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  sourceOracle.addOrReplace(new MockJavaResource("test.PrivateSub"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("public class PrivateSub extends PrivateSup {\n");
+      code.append("  private static float field;\n");
+      code.append("  private static float method() { return 0; }\n");
+      code.append("  private static float methodSub() { return 0; }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
   try {
-    program=compileSnippet("void","new test.Foo(); new test.Bar(); new ClassWithBridge();");
+    program=compileSnippet("void","new test.Foo(); new test.Bar(); new ClassWithBridge(); new PrivateSub();");
   }
  catch (  UnableToCompleteException e) {
     throw new RuntimeException(e);
