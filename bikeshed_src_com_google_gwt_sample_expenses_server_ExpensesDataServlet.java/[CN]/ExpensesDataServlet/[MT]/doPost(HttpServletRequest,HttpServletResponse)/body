@@ -9,13 +9,7 @@
       sync(topLevelJsonObject.getString(RequestDataManager.CONTENT_TOKEN),writer);
     }
  else {
-      InputStream is=this.getClass().getClassLoader().getResourceAsStream(PROPERTY_FILENAME);
-      if (is == null) {
-        throw new IllegalArgumentException("unable to find servlet.properties");
-      }
-      Properties properties=new Properties();
-      properties.load(is);
-      operation=getOperationFromName(operationName,(Class<RequestDefinition>)Class.forName(properties.getProperty("servlet.serveroperation")));
+      operation=getOperationFromName(operationName,(Class<RequestDefinition>)Class.forName(getServletContext().getInitParameter("servlet.serverOperation")));
       Class<?> domainClass=Class.forName(operation.getDomainClassName());
       Method domainMethod=domainClass.getMethod(operation.getDomainMethodName(),operation.getParameterTypes());
       if (!Modifier.isStatic(domainMethod.getModifiers())) {
