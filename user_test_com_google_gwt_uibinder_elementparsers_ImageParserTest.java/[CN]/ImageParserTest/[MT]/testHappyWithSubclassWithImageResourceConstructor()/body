@@ -1,0 +1,15 @@
+{
+  ImageParser parser=new ImageParser();
+  tester=new ElementParserTester("my.MyConstructedImage",new ImageParser(),IMAGE_SUBCLASS_NO_CONSTRUCTOR,IMAGE_SUBCLASS_RESOURCE_CONSTRUCTOR);
+  StringBuffer b=new StringBuffer();
+  b.append("<ui:UiBinder xmlns:ui='" + ElementParserTester.BINDER_URI + "'");
+  b.append("    xmlns:my='urn:import:my'");
+  b.append("    xmlns:g='urn:import:com.google.gwt.user.client.ui'>");
+  b.append("  <my:MyConstructedImage resource='{someImageResource}'/> ");
+  b.append("</ui:UiBinder>");
+  parser.parse(tester.getElem(b.toString(),"my:MyConstructedImage"),"fieldName",tester.parsedType,tester.writer);
+  FieldWriter w=tester.fieldManager.lookup("fieldName");
+  assertEquals("new my.MyConstructedImage(someImageResource)",w.getInitializer());
+  assertTrue(tester.writer.statements.isEmpty());
+  assertNull(tester.logger.died);
+}
