@@ -1,0 +1,23 @@
+{
+  if (!enabled) {
+    return;
+  }
+  long finishTime=System.nanoTime();
+  Map<String,Long> startTimes=operationsStartTime.get();
+  Long startTime;
+synchronized (startTimes) {
+    startTime=startTimes.remove(operation);
+  }
+  Preconditions.checkNotNull(startTime);
+synchronized (operationStats) {
+    OperationStats stats=getStats(operation);
+    stats.count++;
+    long elapsedTime=finishTime - startTime.longValue();
+    stats.totalTimeNanos+=elapsedTime;
+    stats.maxTimeNanos=Math.max(stats.maxTimeNanos,elapsedTime);
+    if (elapsedTime > slowThresholdNano) {
+      stats.slowCount++;
+      stats.totalSlowTimeNanos+=elapsedTime;
+    }
+  }
+}
