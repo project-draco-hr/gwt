@@ -2,7 +2,6 @@
   if (!uiWriter.isWidgetElement(elem)) {
     return super.interpretElement(elem);
   }
-  uiWriter.addInitComment("WidgetPlaceholderInterpreter.interpretElement");
   JClassType type=uiWriter.findFieldType(elem);
   TypeOracle oracle=uiWriter.getOracle();
   MessagesWriter mw=uiWriter.getMessages();
@@ -10,15 +9,13 @@
   if ("".equals(name)) {
     name="widget" + (++serial);
   }
-  DomCursor cursor=uiWriter.getCurrentDomCursor();
-  String elementHolder=cursor.getAccessExpression();
-  cursor.advanceChild();
-  elementHolderToWidgetElement.put(elementHolder,elem);
+  String idHolder=uiWriter.declareDomIdHolder();
+  idToWidgetElement.put(idHolder,elem);
   if (oracle.findType(HasHTML.class.getName()).isAssignableFrom(type)) {
-    return handleHasHTMLPlaceholder(elem,name,elementHolder);
+    return handleHasHTMLPlaceholder(elem,name,idHolder);
   }
   if (oracle.findType(HasText.class.getName()).isAssignableFrom(type)) {
-    return handleHasTextPlaceholder(elem,name,elementHolder);
+    return handleHasTextPlaceholder(elem,name,idHolder);
   }
-  return handleOpaqueWidgetPlaceholder(name);
+  return handleOpaqueWidgetPlaceholder(name,idHolder);
 }
