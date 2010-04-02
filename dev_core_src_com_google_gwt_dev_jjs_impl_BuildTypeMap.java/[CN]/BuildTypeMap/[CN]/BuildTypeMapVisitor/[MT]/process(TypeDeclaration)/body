@@ -1,19 +1,13 @@
 {
   try {
-    char[][] name=typeDeclaration.binding.compoundName;
+    String name=dotify(typeDeclaration.binding.compoundName);
     SourceTypeBinding binding=typeDeclaration.binding;
     if (binding instanceof LocalTypeBinding) {
       char[] localName=binding.constantPoolName();
       if (localName == null) {
         return false;
       }
-      for (int i=0, c=localName.length; i < c; ++i) {
-        if (localName[i] == '/') {
-          localName[i]='.';
-        }
-      }
-      name=new char[1][0];
-      name[0]=localName;
+      name=new String(localName).replace('/','.');
     }
     SourceInfo info=makeSourceInfo(typeDeclaration);
     JDeclaredType newType;
@@ -36,11 +30,11 @@
       return false;
     }
     info.addCorrelation(program.getCorrelator().by(newType));
-    JMethod clinit=program.createMethod(info.makeChild(BuildTypeMapVisitor.class,"Class initializer"),"$clinit".toCharArray(),newType,program.getTypeVoid(),false,true,true,true,false);
+    JMethod clinit=program.createMethod(info.makeChild(BuildTypeMapVisitor.class,"Class initializer"),"$clinit",newType,program.getTypeVoid(),false,true,true,true,false);
     clinit.freezeParamTypes();
     clinit.setSynthetic();
     if (newType instanceof JClassType) {
-      JMethod init=program.createMethod(info.makeChild(BuildTypeMapVisitor.class,"Instance initializer"),"$init".toCharArray(),newType,program.getTypeVoid(),false,false,true,true,false);
+      JMethod init=program.createMethod(info.makeChild(BuildTypeMapVisitor.class,"Instance initializer"),"$init",newType,program.getTypeVoid(),false,false,true,true,false);
       init.freezeParamTypes();
       init.setSynthetic();
     }

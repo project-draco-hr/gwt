@@ -15,9 +15,9 @@
   assert(elementDecl.initializer == null);
   JForStatement result;
   if (x.collection.resolvedType.isArrayType()) {
-    JLocal arrayVar=createSyntheticLocal(info,elementVarName + "$array",(JType)typeMap.get(x.collection.resolvedType));
-    JLocal indexVar=createSyntheticLocal(info,elementVarName + "$index",program.getTypePrimitiveInt());
-    JLocal maxVar=createSyntheticLocal(info,elementVarName + "$max",program.getTypePrimitiveInt());
+    JLocal arrayVar=JProgram.createLocal(info,elementVarName + "$array",((JType)typeMap.get(x.collection.resolvedType)),true,currentMethodBody);
+    JLocal indexVar=JProgram.createLocal(info,elementVarName + "$index",program.getTypePrimitiveInt(),false,currentMethodBody);
+    JLocal maxVar=JProgram.createLocal(info,elementVarName + "$max",program.getTypePrimitiveInt(),true,currentMethodBody);
     List<JStatement> initializers=new ArrayList<JStatement>(3);
     initializers.add(createDeclaration(info,arrayVar,dispProcessExpression(x.collection)));
     initializers.add(createDeclaration(info,indexVar,program.getLiteralInt(0)));
@@ -30,7 +30,7 @@
     result=new JForStatement(info,initializers,condition,increments,body);
   }
  else {
-    JLocal iteratorVar=createSyntheticLocal(info,elementVarName + "$iterator",program.getIndexedType("Iterator"));
+    JLocal iteratorVar=JProgram.createLocal(info,(elementVarName + "$iterator"),program.getIndexedType("Iterator"),false,currentMethodBody);
     List<JStatement> initializers=new ArrayList<JStatement>(1);
     initializers.add(createDeclaration(info,iteratorVar,new JMethodCall(info,dispProcessExpression(x.collection),program.getIndexedMethod("Iterable.iterator"))));
     JExpression condition=new JMethodCall(info,createVariableRef(info,iteratorVar),program.getIndexedMethod("Iterator.hasNext"));
