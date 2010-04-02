@@ -1,15 +1,15 @@
 {
-  JDeclaredType targetEnclosingType=x.getTarget().getEnclosingType();
-  if (!currentMethod.getEnclosingType().checkClinitTo(targetEnclosingType)) {
+  JDeclaredType targetType=x.getTarget().getEnclosingType().getClinitTarget();
+  if (!currentMethod.getEnclosingType().checkClinitTo(targetType)) {
     return null;
   }
   if (program.isStaticImpl(x.getTarget())) {
     return null;
   }
-  if (x.getTarget() == x.getTarget().getEnclosingType().getMethods().get(0)) {
+  if (JProgram.isClinit(x.getTarget())) {
     return null;
   }
-  JMethod clinit=targetEnclosingType.getMethods().get(0);
+  JMethod clinit=targetType.getMethods().get(0);
   if (!clinit.isNative() && (((JMethodBody)clinit.getBody())).getStatements().size() == 0) {
     return null;
   }
