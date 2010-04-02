@@ -9,7 +9,7 @@
       sync(topLevelJsonObject.getString(RequestDataManager.CONTENT_TOKEN),writer);
     }
  else {
-      operation=getOperationFromName(operationName,(Class<RequestDefinition>)Class.forName(getServletContext().getInitParameter("servlet.serverOperation")));
+      operation=getOperationFromName(operationName,getConfigClass());
       Class<?> domainClass=Class.forName(operation.getDomainClassName());
       Method domainMethod=domainClass.getMethod(operation.getDomainMethodName(),operation.getParameterTypes());
       if (!Modifier.isStatic(domainMethod.getModifiers())) {
@@ -17,7 +17,7 @@
       }
       Object args[]=RequestDataManager.getObjectsFromParameterMap(getParameterMap(topLevelJsonObject),domainMethod.getParameterTypes());
       Object resultList=domainMethod.invoke(null,args);
-      if (!(resultList instanceof List)) {
+      if (!(resultList instanceof List<?>)) {
         throw new IllegalArgumentException("return value not a list " + resultList);
       }
       JSONArray jsonArray=getJsonArray((List<?>)resultList,operation.getReturnType());
