@@ -1,0 +1,35 @@
+{
+  boolean allComplete;
+  long endTime=System.currentTimeMillis() + LAUNCH_TIMEOUT;
+  do {
+    try {
+      Thread.sleep(sleepTime);
+    }
+ catch (    InterruptedException e) {
+      throw new UnableToCompleteException();
+    }
+    allComplete=true;
+synchronized (lock) {
+      for (      SeleniumThread thread : threads) {
+        if (!thread.isComplete()) {
+          allComplete=false;
+        }
+      }
+    }
+    if (!allComplete && endTime < System.currentTimeMillis()) {
+      allComplete=true;
+      String message="The following Selenium instances did not " + action + " within "+ LAUNCH_TIMEOUT+ "ms:\n";
+synchronized (lock) {
+        message+=getIncompleteSpecifierList(threads);
+      }
+      if (fatalExceptions) {
+        shell.getTopLogger().log(TreeLogger.ERROR,message);
+        throw new UnableToCompleteException();
+      }
+ else {
+        shell.getTopLogger().log(TreeLogger.WARN,message);
+      }
+    }
+  }
+ while (!allComplete);
+}

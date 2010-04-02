@@ -17,22 +17,24 @@
   this.remotes=targets;
   Runtime.getRuntime().addShutdownHook(new Thread(){
     @Override public void run(){
+      List<StopThread> stopThreads=new ArrayList<StopThread>();
 synchronized (lock) {
         stopped=true;
-        for (        SeleniumWrapper remote : remotes) {
-          if (remote.getSelenium() != null) {
-            try {
-              remote.getSelenium().stop();
-            }
- catch (            SeleniumException se) {
-              shell.getTopLogger().log(TreeLogger.WARN,"Error stopping selenium session",se);
-            }
+        for (        LaunchThread launchThread : launchThreads) {
+          if (launchThread.isComplete()) {
+            StopThread stopThread=new StopThread(launchThread.getRemote());
+            stopThreads.add(stopThread);
+            stopThread.start();
           }
         }
+      }
+      try {
+        waitForThreadsToComplete(stopThreads,false,"stop",500);
+      }
+ catch (      UnableToCompleteException e) {
       }
     }
   }
 );
-  start();
   return targets.length;
 }
