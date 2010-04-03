@@ -2,22 +2,26 @@
   if (!(event.getNewPlace() instanceof EntityListPlace)) {
     return;
   }
-  EntityListPlace newPlace=(EntityListPlace)event.getNewPlace();
-  final String name=listNameFilter.render(newPlace);
-  final ExpensesEntityKey<?> key=newPlace.getKey();
+  final EntityListPlace newPlace=(EntityListPlace)event.getNewPlace();
+  ExpensesEntityKey<?> key=newPlace.getKey();
   key.accept(new ExpensesEntityVisitor(){
     public void visit(    EmployeeKey employeeKey){
-      List<Property<EmployeeKey,?>> columns=getEmployeeColumns();
-      EntityListPresenter<EmployeeKey> presenter=new EntityListPresenter<EmployeeKey>(name,entitiesView,columns,places);
-      requests.employeeRequest().findAllEmployees().forProperties(columns).to(presenter).fire();
+      ValuesListViewTable<?> view=viewMap.get(newPlace);
+      if (null == view) {
+        view=new EmployeeListView(placeRenderer.render(newPlace),places,requests);
+        viewMap.put(newPlace,view);
+      }
     }
     public void visit(    ReportKey reportKey){
-      List<Property<ReportKey,?>> columns=getReportColumns();
-      EntityListPresenter<ReportKey> presenter=new EntityListPresenter<ReportKey>(name,entitiesView,columns,places);
-      requests.reportRequest().findAllReports().forProperties(columns).to(presenter).fire();
+      ValuesListViewTable<?> view=viewMap.get(newPlace);
+      if (null == view) {
+        view=new ReportListView(placeRenderer.render(newPlace),places,requests);
+        viewMap.put(newPlace,view);
+      }
     }
   }
 );
+  ValuesListViewTable<?> entitiesView=viewMap.get(newPlace);
   if (entitiesView.getParent() == null) {
     panel.clear();
     panel.add(entitiesView);
