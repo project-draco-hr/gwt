@@ -1,0 +1,29 @@
+{
+  if (!(event.getNewPlace() instanceof ExpensesListPlace)) {
+    return;
+  }
+  final ExpensesListPlace newPlace=(ExpensesListPlace)event.getNewPlace();
+  ExpensesKey<?> key=newPlace.getKey();
+  key.accept(new ExpensesKeyVisitor(){
+    public void visit(    EmployeeKey employeeKey){
+      ValuesListViewTable<?> view=viewMap.get(newPlace);
+      if (null == view) {
+        view=new EmployeeListView(placeRenderer.render(newPlace),places,requests);
+        viewMap.put(newPlace,view);
+      }
+    }
+    public void visit(    ReportKey reportKey){
+      ValuesListViewTable<?> view=viewMap.get(newPlace);
+      if (null == view) {
+        view=new ReportListView(placeRenderer.render(newPlace),places,requests);
+        viewMap.put(newPlace,view);
+      }
+    }
+  }
+);
+  ValuesListViewTable<?> entitiesView=viewMap.get(newPlace);
+  if (entitiesView.getParent() == null) {
+    panel.clear();
+    panel.add(entitiesView);
+  }
+}

@@ -1,0 +1,22 @@
+{
+  final HandlerManager eventBus=new HandlerManager(null);
+  final ExpensesRequestFactory requestFactory=GWT.create(ExpensesRequestFactory.class);
+  requestFactory.init(eventBus);
+  final PlaceController<ExpensesPlace> placeController=new PlaceController<ExpensesPlace>(eventBus);
+  final ExpensesPlaces places=new ExpensesPlaces(placeController);
+  final ExpensesKeyNameRenderer entityNamer=new ExpensesKeyNameRenderer();
+  final ListPlaceRenderer listPlaceNamer=new ListPlaceRenderer(entityNamer);
+  final ScaffoldShell shell=new ScaffoldShell();
+  PlacePicker<ExpensesListPlace> placePicker=new PlacePicker<ExpensesListPlace>(shell.getPlacesBox(),placeController,listPlaceNamer);
+  List<ExpensesListPlace> topPlaces=new ArrayList<ExpensesListPlace>();
+  topPlaces.add(new ExpensesListPlace(EmployeeKey.get()));
+  topPlaces.add(new ExpensesListPlace(ReportKey.get()));
+  topPlaces=Collections.unmodifiableList(topPlaces);
+  placePicker.setPlaces(topPlaces);
+  eventBus.addHandler(PlaceChanged.TYPE,new ScaffoldListRequester(places,shell.getBody(),requestFactory,listPlaceNamer));
+  final HTML detailsView=new HTML();
+  eventBus.addHandler(PlaceChanged.TYPE,new ScaffoldDetailsRequester(entityNamer,shell.getBody(),detailsView));
+  Element loading=Document.get().getElementById("loading");
+  loading.getParentElement().removeChild(loading);
+  RootLayoutPanel.get().add(shell);
+}

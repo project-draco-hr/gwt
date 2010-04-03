@@ -1,0 +1,26 @@
+{
+  final HandlerManager eventBus=new HandlerManager(null);
+  final ExpensesRequestFactory requestFactory=GWT.create(ExpensesRequestFactory.class);
+  requestFactory.init(eventBus);
+  RootLayoutPanel root=RootLayoutPanel.get();
+  final CustomizedShell shell=new CustomizedShell();
+  final EmployeeList employees=new EmployeeList(shell.users);
+  root.add(shell);
+  shell.setListener(new CustomizedShell.Listener(){
+    public void setFirstPurpose(    String purpose){
+      DeltaValueStore deltaValueStore=requestFactory.getValueStore().spawnDeltaView();
+      Values<ReportKey> report=shell.getValues().get(0);
+      deltaValueStore.set(report.getKey().getPurpose(),report,purpose);
+      requestFactory.syncRequest(deltaValueStore).fire();
+    }
+  }
+);
+  employees.setListener(new EmployeeList.Listener(){
+    public void onEmployeeSelected(    Values<EmployeeKey> e){
+      requestFactory.reportRequest().findReportsByEmployee(e.getRef(EmployeeKey.get().getId())).forProperties(getReportColumns()).to(shell).fire();
+    }
+  }
+);
+  eventBus.addHandler(ReportChanged.TYPE,shell);
+  requestFactory.employeeRequest().findAllEmployees().forProperties(getEmployeeMenuProperties()).to(employees).fire();
+}
