@@ -1,0 +1,34 @@
+{
+  if (config == null) {
+synchronized (this) {
+      if (config != null) {
+        return;
+      }
+      try {
+        final String serverOperation=getServletContext().getInitParameter(SERVER_OPERATION_CONTEXT_PARAM);
+        if (null == serverOperation) {
+          failConfig();
+        }
+        Class<?> clazz=Class.forName(serverOperation);
+        if (Config.class.isAssignableFrom(clazz)) {
+          config=((Class<? extends Config>)clazz).newInstance();
+        }
+      }
+ catch (      ClassNotFoundException e) {
+        failConfig(e);
+      }
+catch (      InstantiationException e) {
+        failConfig(e);
+      }
+catch (      IllegalAccessException e) {
+        failConfig(e);
+      }
+catch (      SecurityException e) {
+        failConfig(e);
+      }
+catch (      ClassCastException e) {
+        failConfig(e);
+      }
+    }
+  }
+}
