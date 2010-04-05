@@ -1,4 +1,5 @@
 {
+  logger=logger.branch(TreeLogger.INFO,String.format("Generating implementation of %s",interfaceType.getName()));
   ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(packageName,implName);
   f.addImport(RequestFactoryJsonImpl.class.getName());
   f.addImport(ValueStoreJsonImpl.class.getName());
@@ -6,14 +7,22 @@
   f.setSuperclass(RequestFactoryJsonImpl.class.getName());
   SourceWriter sw=f.createSourceWriter(generatorContext,out);
   sw.println();
-  List<JClassType> nestedInterfaces=new ArrayList<JClassType>();
-  for (  JClassType nestedType : interfaceType.getNestedTypes()) {
-    if (nestedType.isInterface() != null) {
-      nestedInterfaces.add(nestedType);
+  Set<JClassType> requestSelectors=new HashSet<JClassType>();
+  for (  JMethod methodType : interfaceType.getMethods()) {
+    JType returnType=methodType.getReturnType();
+    if (null == returnType) {
+      logger.log(TreeLogger.ERROR,String.format("Illegal return type for %s. Methods of %s must return interfaces",methodType.getName(),interfaceType.getName()));
+      throw new UnableToCompleteException();
     }
+    JClassType asInterface=returnType.isInterface();
+    if (null == asInterface) {
+      logger.log(TreeLogger.ERROR,String.format("Illegal return type for %s. Methods of %s must return interfaces",methodType.getName(),interfaceType.getName()));
+      throw new UnableToCompleteException();
+    }
+    requestSelectors.add(asInterface);
   }
-  for (  JClassType nestedInterface : nestedInterfaces) {
-    String simpleSourceName=nestedInterface.getSimpleSourceName();
+  for (  JClassType requestSelector : requestSelectors) {
+    String simpleSourceName=requestSelector.getSimpleSourceName();
     sw.println("public " + simpleSourceName + " "+ getMethodName(simpleSourceName)+ "() {");
     sw.indent();
     sw.println("return new " + simpleSourceName + "Impl(this);");
@@ -23,15 +32,11 @@
   }
   sw.outdent();
   sw.println("}");
-  String interfacePrefix=interfaceType.getName() + ".";
-  for (  JClassType nestedInterface : nestedInterfaces) {
-    String nestedImplName=nestedInterface.getName();
-    if (nestedImplName.startsWith(interfacePrefix)) {
-      nestedImplName=nestedImplName.substring(interfacePrefix.length(),nestedImplName.length()) + "Impl";
-    }
+  for (  JClassType nestedInterface : requestSelectors) {
+    String nestedImplName=nestedInterface.getName() + "Impl";
     PrintWriter pw=printWriters.makePrintWriterFor(nestedImplName);
     if (pw != null) {
-      generateNestedInterfaceImplementation(logger,generatorContext,pw,nestedInterface,interfaceType,packageName,nestedImplName);
+      generateRequestSelectorImplementation(logger,generatorContext,pw,nestedInterface,interfaceType,packageName,nestedImplName);
     }
   }
   printWriters.commit();
