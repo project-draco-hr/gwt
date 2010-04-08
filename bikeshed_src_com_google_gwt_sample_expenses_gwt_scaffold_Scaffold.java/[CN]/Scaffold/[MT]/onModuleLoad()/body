@@ -8,14 +8,11 @@
   final ListPlaceRenderer listPlaceNamer=new ListPlaceRenderer(entityNamer);
   final ScaffoldShell shell=new ScaffoldShell();
   PlacePicker<ExpensesListPlace> placePicker=new PlacePicker<ExpensesListPlace>(shell.getPlacesBox(),placeController,listPlaceNamer);
-  List<ExpensesListPlace> topPlaces=new ArrayList<ExpensesListPlace>();
-  topPlaces.add(new ExpensesListPlace(EmployeeKey.get()));
-  topPlaces.add(new ExpensesListPlace(ReportKey.get()));
-  topPlaces=Collections.unmodifiableList(topPlaces);
+  List<ExpensesListPlace> topPlaces=getTopPlaces();
   placePicker.setPlaces(topPlaces);
-  eventBus.addHandler(PlaceChanged.TYPE,new ScaffoldListRequester(places,shell.getBody(),requestFactory,listPlaceNamer));
+  eventBus.addHandler(PlaceChanged.TYPE,new ScaffoldListRequester(shell.getBody(),new ScaffoldListViewBuilder(places,requestFactory,listPlaceNamer)));
   final HTML detailsView=new HTML();
-  eventBus.addHandler(PlaceChanged.TYPE,new ScaffoldDetailsRequester(entityNamer,shell.getBody(),detailsView));
+  eventBus.addHandler(PlaceChanged.TYPE,new ScaffoldDetailsRequester(entityNamer,shell.getBody(),detailsView,new ScaffoldDetailsViewBuilder()));
   Element loading=Document.get().getElementById("loading");
   loading.getParentElement().removeChild(loading);
   RootLayoutPanel.get().add(shell);
