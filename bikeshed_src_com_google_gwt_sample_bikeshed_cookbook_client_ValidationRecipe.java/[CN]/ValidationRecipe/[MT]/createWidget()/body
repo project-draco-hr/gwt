@@ -1,0 +1,61 @@
+{
+  ListListModel<Address> listModel=new ListListModel<Address>();
+  final List<Address> list=listModel.getList();
+  for (int i=10; i < 50; i++) {
+    if (zipInvalid(30000 + i)) {
+      continue;
+    }
+    String zip="300" + i;
+    list.add(new Address("GA",zip));
+  }
+  listModel.setKeyProvider(new ProvidesKey<Address>(){
+    public Object getKey(    Address object){
+      return object.key;
+    }
+  }
+);
+  PagingTableListView<Address> table=new PagingTableListView<Address>(listModel,10);
+  TextColumn<Address> stateColumn=new TextColumn<Address>(){
+    @Override public String getValue(    Address object){
+      return object.state;
+    }
+  }
+;
+  Column<Address,String,ValidatableField<String>> zipColumn=new Column<Address,String,ValidatableField<String>>(new ValidatableInputCell()){
+    @Override public String getValue(    Address object){
+      return object.zip;
+    }
+  }
+;
+  zipColumn.setFieldUpdater(new FieldUpdater<Address,String,ValidatableField<String>>(){
+    public void update(    final int index,    final Address object,    final String value,    final ValidatableField<String> viewData){
+      new Timer(){
+        @Override public void run(){
+          String pendingValue=viewData.getValue();
+          int zip=Integer.parseInt(pendingValue);
+          boolean zipInvalid=ValidationRecipe.zipInvalid(zip);
+          final Address newValue=new Address(object);
+          newValue.zip=pendingValue == null ? value : pendingValue;
+          newValue.zipInvalid=zipInvalid;
+          viewData.setInvalid(zipInvalid);
+          if (!zipInvalid) {
+            viewData.setValue(null);
+          }
+          list.set(index,newValue);
+        }
+      }
+.schedule(2000);
+    }
+  }
+);
+  TextColumn<Address> messageColumn=new TextColumn<Address>(){
+    @Override public String getValue(    Address object){
+      return object.zipInvalid ? "Please fix the zip code" : "";
+    }
+  }
+;
+  table.addColumn(stateColumn);
+  table.addColumn(zipColumn);
+  table.addColumn(messageColumn);
+  return table;
+}

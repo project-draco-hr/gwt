@@ -1,0 +1,56 @@
+{
+  final ListListModel<String> model=new ListListModel<String>();
+  final PagingTableListView<String> table=new PagingTableListView<String>(model,10);
+  for (int i=0; i < 25; ++i) {
+    model.getList().add("" + i);
+  }
+  EditTextColumn column=new EditTextColumn();
+  Header<String> header=new Header<String>(TextCell.getInstance());
+  header.setValue("<b>item</b>");
+  table.addColumn(column,header);
+  column.setFieldUpdater(new FieldUpdater<String,String,String>(){
+    @Override public void update(    int index,    String object,    String value,    String viewData){
+      model.getList().set(index,value);
+    }
+  }
+);
+  FlowPanel plusMinusPanel=new FlowPanel();
+  Button addBtn=new Button("+",new ClickHandler(){
+    @Override public void onClick(    ClickEvent event){
+      List<String> list=model.getList();
+      list.add("" + list.size());
+    }
+  }
+);
+  Button removeBtn=new Button("-",new ClickHandler(){
+    @Override public void onClick(    ClickEvent event){
+      int size=model.getList().size();
+      if (size > 0) {
+        model.getList().remove(size - 1);
+      }
+    }
+  }
+);
+  plusMinusPanel.add(addBtn);
+  plusMinusPanel.add(removeBtn);
+  FlowPanel nextPrevPanel=new FlowPanel();
+  Button prevBtn=new Button("<",new ClickHandler(){
+    @Override public void onClick(    ClickEvent event){
+      table.previousPage();
+    }
+  }
+);
+  Button nextBtn=new Button(">",new ClickHandler(){
+    @Override public void onClick(    ClickEvent event){
+      table.nextPage();
+    }
+  }
+);
+  nextPrevPanel.add(prevBtn);
+  nextPrevPanel.add(nextBtn);
+  FlowPanel fp=new FlowPanel();
+  fp.add(table);
+  fp.add(nextPrevPanel);
+  fp.add(plusMinusPanel);
+  return fp;
+}

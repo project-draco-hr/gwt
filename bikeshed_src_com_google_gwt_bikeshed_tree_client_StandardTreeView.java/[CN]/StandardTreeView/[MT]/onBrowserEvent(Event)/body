@@ -1,14 +1,24 @@
 {
   super.onBrowserEvent(event);
-  int eventType=DOM.eventGetType(event);
-switch (eventType) {
-case Event.ONMOUSEUP:
-case Event.ONCHANGE:
-    Element currentTarget=event.getCurrentEventTarget().cast();
-  if (currentTarget == getElement()) {
-    Element target=event.getEventTarget().cast();
-    elementClicked(target,event,getRootTreeNodeView());
+  Element target=event.getEventTarget().cast();
+  TreeNodeView<?> rootNode=getRootTreeNodeView();
+  ArrayList<Element> chain=new ArrayList<Element>();
+  ArrayList<String> ids=new ArrayList<String>();
+  collectElementChain(chain,ids,getElement(),target);
+  TreeNodeView<?> nodeView=findItemByChain(chain,0,rootNode);
+  if (nodeView != null && nodeView != rootNode) {
+    if (nodeView.getImageElement().isOrHasChild(target)) {
+      if ("click".equals(event.getType())) {
+        nodeView.setState(!nodeView.getState());
+      }
+    }
+ else     if (nodeView.getCellParent().isOrHasChild(target)) {
+      nodeView.fireEventToCell(event);
+      if (getSelectionModel() != null) {
+        if ("click".equals(event.getType())) {
+          getSelectionModel().setSelected(nodeView.getValue(),true);
+        }
+      }
+    }
   }
-break;
-}
 }
