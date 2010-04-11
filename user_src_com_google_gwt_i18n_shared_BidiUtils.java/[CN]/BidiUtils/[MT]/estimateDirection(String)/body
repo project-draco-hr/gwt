@@ -1,0 +1,23 @@
+{
+  int rtlCount=0;
+  int total=0;
+  boolean hasWeaklyLtr=false;
+  SplitResult tokens=WORD_SEPARATOR_RE.split(str);
+  for (int i=0; i < tokens.length(); i++) {
+    String token=tokens.get(i);
+    if (startsWithRtl(token)) {
+      rtlCount++;
+      total++;
+    }
+ else     if (IS_REQUIRED_LTR_RE.test(token)) {
+      hasWeaklyLtr=true;
+    }
+ else     if (hasAnyLtr(token)) {
+      total++;
+    }
+ else     if (HAS_NUMERALS_RE.test(token)) {
+      hasWeaklyLtr=true;
+    }
+  }
+  return total == 0 ? (hasWeaklyLtr ? Direction.LTR : Direction.DEFAULT) : ((float)rtlCount / total > RTL_DETECTION_THRESHOLD ? Direction.RTL : Direction.LTR);
+}
