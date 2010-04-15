@@ -1,9 +1,11 @@
 {
   ListViewAdapter<Message> adapter=new ListViewAdapter<Message>();
   List<Message> messages=adapter.getList();
+  Date now=new Date();
   Random rand=new Random();
   for (int i=0; i < 1000; i++) {
-    Message message=new Message(10000 + i,senders[rand.nextInt(senders.length)],subjects[rand.nextInt(subjects.length)]);
+    long dateOffset=rand.nextInt(60 * 60 * 24* 90) * 1000L;
+    Message message=new Message(10000 + i,senders[rand.nextInt(senders.length)],subjects[rand.nextInt(subjects.length)],new Date(now.getTime() - dateOffset));
     message.isRead=rand.nextBoolean();
     messages.add(message);
   }
@@ -40,6 +42,21 @@
   }
 ;
   table.addColumn(isReadColumn,"Read");
+  Column<Message,Date,Void> dateColumn=new Column<Message,Date,Void>(new DatePickerCell<Void>()){
+    @Override public Date getValue(    Message object){
+      return object.getDate();
+    }
+  }
+;
+  dateColumn.setFieldUpdater(new FieldUpdater<Message,Date,Void>(){
+    public void update(    int index,    Message object,    Date value,    Void viewData){
+      Window.alert("Changed date from " + object.date + " to "+ value);
+      object.date=value;
+      table.refresh();
+    }
+  }
+);
+  table.addColumn(dateColumn,"Date");
   TextColumn<Message> senderColumn=new TextColumn<Message>(){
     @Override public String getValue(    Message object){
       return object.getSender();
