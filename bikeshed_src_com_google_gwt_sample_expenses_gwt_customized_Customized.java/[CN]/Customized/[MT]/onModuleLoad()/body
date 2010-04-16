@@ -7,19 +7,19 @@
   final EmployeeList employees=new EmployeeList(shell.users);
   root.add(shell);
   shell.setListener(new CustomizedShell.Listener(){
-    public void setPurpose(    Values<ReportKey> report,    String purpose){
+    public void setPurpose(    ReportRecord report,    String purpose){
       DeltaValueStore deltaValueStore=requestFactory.getValueStore().spawnDeltaView();
-      deltaValueStore.set(report.getKey().getPurpose(),report,purpose);
+      deltaValueStore.set(ReportRecord.purpose,report,purpose);
       requestFactory.syncRequest(deltaValueStore).fire();
     }
   }
 );
   employees.setListener(new EmployeeList.Listener(){
-    public void onEmployeeSelected(    Values<EmployeeKey> e){
-      requestFactory.reportRequest().findReportsByEmployee(e.getRef(EmployeeKey.get().getId())).forProperties(getReportColumns()).to(shell).fire();
+    public void onEmployeeSelected(    EmployeeRecord e){
+      requestFactory.reportRequest().findReportsByEmployee(e.getRef(Record.id)).forProperties(getReportColumns()).to(shell).fire();
     }
   }
 );
-  eventBus.addHandler(ReportChanged.TYPE,shell);
+  eventBus.addHandler(ReportRecordChanged.TYPE,shell);
   requestFactory.employeeRequest().findAllEmployees().forProperties(getEmployeeMenuProperties()).to(employees).fire();
 }
