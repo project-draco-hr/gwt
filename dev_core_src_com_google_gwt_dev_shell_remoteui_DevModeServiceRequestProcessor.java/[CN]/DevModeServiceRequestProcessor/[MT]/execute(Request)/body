@@ -2,15 +2,18 @@
   if (request.getServiceType() != Request.ServiceType.DEV_MODE) {
     throw new IllegalArgumentException("Unknown Service Type: This request processor cannot handle requests of type " + request.getServiceType().name());
   }
-switch (request.getDevModeRequest().getRequestType()) {
+  RequestType requestType=request.getDevModeRequest().getRequestType();
+  if (requestType != null) {
+switch (requestType) {
 case CAPABILITY_EXCHANGE:
-    return processCapabilityExchange();
+      return processCapabilityExchange();
 case RESTART_WEB_SERVER:
-  return processRestartServer();
+    return processRestartServer();
 default :
 {
-  break;
+    break;
+  }
 }
 }
-throw new IllegalArgumentException("Unknown DevModeService Request: The DevModeService cannot handle requests of type " + request.getDevModeRequest().getRequestType().name());
+throw new IllegalArgumentException("Unknown DevModeService Request: The DevModeService cannot handle requests of type " + requestType == null ? "(unknown)" : requestType.name());
 }
