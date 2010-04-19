@@ -1,9 +1,14 @@
 {
   JClassType fieldType=ownerField.getType().getRawType();
-  if (!templateClass.isAssignableTo(fieldType)) {
-    die("Template field and owner field types don't match: %s != %s",templateClass.getQualifiedSourceName(),fieldType.getQualifiedSourceName());
-  }
   if (!ownerField.isProvided()) {
+    if (!templateClass.isAssignableTo(fieldType)) {
+      die("In @UiField %s, template field and owner field types don't match: %s is not assignable to %s",ownerField.getName(),templateClass.getQualifiedSourceName(),fieldType.getQualifiedSourceName());
+    }
     niceWriter.write("owner.%1$s = %2$s;",ownerField.getName(),templateField);
+  }
+ else {
+    if (!fieldType.isAssignableTo(templateClass)) {
+      die("In UiField(provided = true) %s, template field and field types don't match: " + "@UiField(provided=true)%s is not assignable to %s",ownerField.getName(),fieldType.getQualifiedSourceName(),templateClass.getQualifiedSourceName());
+    }
   }
 }
