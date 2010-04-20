@@ -8,24 +8,29 @@
     }
     th=th.getNextSibling().cast();
   }
+  int numCols=columns.size();
   NodeList<TableRowElement> rows=tbody.getRows();
   for (int indexOnPage=0; indexOnPage < pageSize; indexOnPage++) {
     TableRowElement row=rows.getItem(indexOnPage);
-    T q=data.get(indexOnPage);
-    if (q != null && selectionModel != null && selectionModel.isSelected(q)) {
-      row.setClassName("pagingTableListView selected");
-    }
+    T q=dataValues.get(indexOnPage);
+    boolean qSelected=dataSelected.get(indexOnPage);
+    boolean selected=q != null && selectionModel.isSelected(q);
+    if (qSelected != selected) {
+      dataSelected.set(indexOnPage,selected);
+      if (selected) {
+        row.setClassName("pagingTableListView selected");
+      }
  else {
-      row.setClassName("pagingTableListView " + ((indexOnPage & 0x1) == 0 ? "evenRow" : "oddRow"));
-    }
-    int numCols=columns.size();
-    for (int c=0; c < numCols; ++c) {
-      TableCellElement cell=row.getCells().getItem(c);
-      StringBuilder sb=new StringBuilder();
-      Column<T,?,?> column=columns.get(c);
-      if (column.dependsOnSelection()) {
-        columns.get(c).render(q,sb);
-        cell.setInnerHTML(sb.toString());
+        row.setClassName("pagingTableListView " + ((indexOnPage & 0x1) == 0 ? "evenRow" : "oddRow"));
+      }
+      for (int c=0; c < numCols; ++c) {
+        Column<T,?,?> column=columns.get(c);
+        if (column.dependsOnSelection()) {
+          TableCellElement cell=row.getCells().getItem(c);
+          StringBuilder sb=new StringBuilder();
+          columns.get(c).render(q,sb);
+          cell.setInnerHTML(sb.toString());
+        }
       }
     }
   }

@@ -10,14 +10,13 @@
     public Range getRange(){
       return new DefaultRange(0,100);
     }
-    public void onDataChanged(    ListEvent<C> event){
-      int start=event.getStart();
-      int end=start + event.getLength();
+    public void setData(    int start,    int length,    List<C> values){
+      int end=start + length;
       while (localSavedInfo.values.size() < end) {
         savedInfo.values.add(null);
       }
-      int index=event.getStart();
-      for (      C childValue : event.getValues()) {
+      int index=start;
+      for (      C childValue : values) {
         localSavedInfo.values.set(index++,childValue);
       }
       Map<Object,TreeNodeView<?>> map=new HashMap<Object,TreeNodeView<?>>();
@@ -32,7 +31,7 @@
         ensureAnimationFrame().getStyle().setDisplay(Display.NONE);
       }
       List<TreeNodeView<?>> savedViews=new ArrayList<TreeNodeView<?>>();
-      for (      C childValue : event.getValues()) {
+      for (      C childValue : values) {
         TreeNodeView<?> savedView=map.get(providesKey.getKey(childValue));
         if (savedView != null) {
           savedView.getContainer().getFirstChild().removeFromParent();
@@ -40,12 +39,12 @@
         savedViews.add(savedView);
       }
       StringBuilder sb=new StringBuilder();
-      emitHtml(sb,event.getValues(),nodeInfo.getHasCells(),savedViews);
+      emitHtml(sb,values,nodeInfo.getHasCells(),savedViews);
       childContainer.setInnerHTML(sb.toString());
       children=new ArrayList<TreeNodeView<?>>();
       Element childElem=childContainer.getFirstChildElement();
       int idx=0;
-      for (      C childValue : event.getValues()) {
+      for (      C childValue : values) {
         TreeNodeView<C> child=createTreeNodeView(nodeInfo,childElem,childValue,null,idx);
         TreeNodeView<?> savedChild=map.get(providesKey.getKey(childValue));
         if (savedChild != null) {
@@ -64,8 +63,8 @@
         tree.maybeAnimateTreeNode(TreeNodeView.this);
       }
     }
-    public void onSizeChanged(    SizeChangeEvent event){
-      if (event.getSize() == 0 && event.isExact()) {
+    public void setDataSize(    int size,    boolean isExact){
+      if (size == 0 && isExact) {
         ensureChildContainer().setInnerHTML("<i>no data</i>");
         if (children != null) {
           for (          TreeNodeView<?> child : children) {
