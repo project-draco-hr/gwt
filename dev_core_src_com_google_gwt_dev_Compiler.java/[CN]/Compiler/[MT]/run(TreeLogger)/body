@@ -1,8 +1,59 @@
 {
-  ModuleDef[] modules=new ModuleDef[options.getModuleNames().size()];
-  int i=0;
-  for (  String moduleName : options.getModuleNames()) {
-    modules[i++]=ModuleDefLoader.loadFromClassPath(logger,moduleName,true);
+  PerfLogger.start("compile");
+  boolean tempWorkDir=false;
+  try {
+    if (options.getWorkDir() == null) {
+      options.setWorkDir(Utility.makeTemporaryDirectory(null,"gwtc"));
+      tempWorkDir=true;
+    }
+    if (options.isSoycEnabled() && options.getExtraDir() == null) {
+      options.setExtraDir(new File("extras"));
+    }
+    for (    String moduleName : options.getModuleNames()) {
+      ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName,true);
+      if (options.isValidateOnly()) {
+        if (!Precompile.validate(logger,options,module,options.getGenDir(),options.getDumpSignatureFile())) {
+          return false;
+        }
+      }
+ else {
+        long compileStart=System.currentTimeMillis();
+        TreeLogger branch=logger.branch(TreeLogger.INFO,"Compiling module " + moduleName);
+        options.setOptimizePrecompile(true);
+        Precompilation precompilation=Precompile.precompile(branch,options,module,options.getGenDir(),options.getDumpSignatureFile());
+        if (precompilation == null) {
+          return false;
+        }
+        Permutation[] allPerms=precompilation.getPermutations();
+        List<FileBackedObject<PermutationResult>> resultFiles=CompilePerms.makeResultFiles(options.getCompilerWorkDir(moduleName),allPerms);
+        CompilePerms.compile(branch,precompilation,allPerms,options.getLocalWorkers(),resultFiles);
+        ArtifactSet generatedArtifacts=precompilation.getGeneratedArtifacts();
+        JJSOptions precompileOptions=precompilation.getUnifiedAst().getOptions();
+        precompilation=null;
+        File absPath=new File(options.getWarDir(),module.getName());
+        absPath=absPath.getAbsoluteFile();
+        String logMessage="Linking into " + absPath;
+        if (options.getExtraDir() != null) {
+          File absExtrasPath=new File(options.getExtraDir(),module.getName());
+          absExtrasPath=absExtrasPath.getAbsoluteFile();
+          logMessage+="; Writing extras to " + absExtrasPath;
+        }
+        Link.link(logger.branch(TreeLogger.TRACE,logMessage),module,generatedArtifacts,allPerms,resultFiles,options.getWarDir(),options.getExtraDir(),precompileOptions);
+        long compileDone=System.currentTimeMillis();
+        long delta=compileDone - compileStart;
+        branch.log(TreeLogger.INFO,"Compilation succeeded -- " + String.format("%.3f",delta / 1000d) + "s");
+      }
+    }
   }
-  return run(logger,modules);
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Unable to create compiler work directory",e);
+    return false;
+  }
+ finally {
+    PerfLogger.end();
+    if (tempWorkDir) {
+      Util.recursiveDelete(options.getWorkDir(),false);
+    }
+  }
+  return true;
 }

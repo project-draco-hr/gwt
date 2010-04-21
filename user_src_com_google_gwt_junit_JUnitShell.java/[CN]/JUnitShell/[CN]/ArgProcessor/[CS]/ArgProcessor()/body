@@ -1,46 +1,53 @@
 {
+  super(options,true,true);
+  registerHandler(new ArgHandlerScriptStyle(options));
+  registerHandler(new ArgHandlerEnableAssertions(options));
+  registerHandler(new ArgHandlerDisableAggressiveOptimization(options));
+  registerHandler(new ArgHandlerDisableClassMetadata(options));
+  registerHandler(new ArgHandlerDisableCastChecking(options));
+  registerHandler(new ArgHandlerDraftCompile(options));
+  registerHandler(new ArgHandlerLocalWorkers(options));
   registerHandler(new ArgHandlerPort(options){
     @Override public String[] getDefaultArgs(){
       return new String[]{"-port","auto"};
     }
   }
 );
-  registerHandler(new ArgHandlerWhitelist());
-  registerHandler(new ArgHandlerBlacklist());
-  registerHandler(new ArgHandlerLogDir(options));
-  registerHandler(new ArgHandlerLogLevel(options));
-  registerHandler(new ArgHandlerGenDir(options));
   registerHandler(new ArgHandlerCodeServerPort(options){
     @Override public String[] getDefaultArgs(){
       return new String[]{this.getTag(),"auto"};
     }
   }
 );
-  options.setServletContainerLauncher(new MyJettyLauncher());
-  registerHandler(new com.google.gwt.dev.ArgHandlerOutDirDeprecated(options));
-  registerHandler(new ArgHandlerWarDir(options){
+  registerHandler(new ArgHandlerBindAddress(options){
     @Override public String[] getDefaultArgs(){
-      if (options.getOutDir() != null) {
-        return null;
-      }
-      return super.getDefaultArgs();
+      return null;
+    }
+    @Override public boolean isUndocumented(){
+      return true;
+    }
+    @Override public boolean setString(    String value){
+      System.err.println("-bindAddress is not supported for JUnitShell");
+      return false;
     }
   }
 );
-  registerHandler(new ArgHandlerExtraDir(options));
-  registerHandler(new ArgHandlerWorkDirOptional(options));
-  registerHandler(new ArgHandlerScriptStyle(options));
-  registerHandler(new ArgHandlerEnableAssertions(options));
-  registerHandler(new ArgHandlerDisableAggressiveOptimization(options));
-  registerHandler(new ArgHandlerDisableClassMetadata(options));
-  registerHandler(new ArgHandlerDisableCastChecking(options));
-  registerHandler(new ArgHandlerDisableRunAsync(options));
-  registerHandler(new ArgHandlerDraftCompile(options));
-  registerHandler(new ArgHandlerMaxPermsPerPrecompile(options));
-  registerHandler(new ArgHandlerLocalWorkers(options));
   registerHandler(new ArgHandlerLogLevel(options){
     @Override protected Type getDefaultLogLevel(){
       return TreeLogger.WARN;
+    }
+  }
+);
+  registerHandler(new ArgHandlerFlag(){
+    @Override public String getPurpose(){
+      return "Causes your test to run in -noserver development mode (defaults to development mode)";
+    }
+    @Override public String getTag(){
+      return "-noserver";
+    }
+    @Override public boolean setFlag(){
+      shouldAutoGenerateResources=false;
+      return true;
     }
   }
 );
@@ -172,7 +179,7 @@
       return "-notHeadless";
     }
     @Override public boolean setFlag(){
-      JUnitShell.this.setHeadless(false);
+      setHeadlessAccessor(false);
       return true;
     }
   }
