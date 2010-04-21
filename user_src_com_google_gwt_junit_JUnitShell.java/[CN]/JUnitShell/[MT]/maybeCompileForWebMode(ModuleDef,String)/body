@@ -1,0 +1,23 @@
+{
+  for (  String path : module.getServletPaths()) {
+    String servletClass=module.findServletForPath(path);
+    path='/' + module.getName() + path;
+    if (!servletClass.equals(loadedServletsByPath.get(path))) {
+      try {
+        wac.addServlet(servletClass,path);
+        loadedServletsByPath.put(path,servletClass);
+      }
+ catch (      RuntimeException alreadyLoggedByJetty) {
+      }
+    }
+  }
+  if (developmentMode) {
+    if (module.getLinker("std") != null) {
+      module.addLinker("std");
+    }
+    super.link(getTopLogger(),module);
+  }
+ else {
+    compileForWebMode(module,userAgents);
+  }
+}
