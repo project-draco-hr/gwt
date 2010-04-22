@@ -1,3 +1,26 @@
 {
-  render(start,length,values);
+  int numCols=columns.size();
+  NodeList<TableRowElement> rows=tbody.getRows();
+  for (int r=start; r < start + length; ++r) {
+    int indexOnPage=r - pageStart;
+    TableRowElement row=rows.getItem(indexOnPage);
+    T q=values.get(r - start);
+    if (selectionModel != null && selectionModel.isSelected(q)) {
+      row.setClassName("pagingTableListView selected");
+    }
+ else {
+      row.setClassName("pagingTableListView " + ((indexOnPage & 0x1) == 0 ? "evenRow" : "oddRow"));
+    }
+    dataValues.set(indexOnPage,q);
+    for (int c=0; c < numCols; ++c) {
+      TableCellElement cell=row.getCells().getItem(c);
+      StringBuilder sb=new StringBuilder();
+      columns.get(c).render(q,sb);
+      cell.setInnerHTML(sb.toString());
+      Element child=cell.getFirstChildElement();
+      if (child != null) {
+        Event.sinkEvents(child,Event.ONFOCUS | Event.ONBLUR);
+      }
+    }
+  }
 }
