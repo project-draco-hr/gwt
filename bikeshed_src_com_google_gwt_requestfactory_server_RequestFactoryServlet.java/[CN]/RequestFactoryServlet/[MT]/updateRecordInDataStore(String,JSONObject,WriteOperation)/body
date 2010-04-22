@@ -1,0 +1,29 @@
+{
+  Class<?> entity=tokenToEntityRecord.get(recordToken).entity;
+  Class<? extends Record> record=tokenToEntityRecord.get(recordToken).record;
+  Map<String,Class<?>> propertiesInRecord=getPropertiesFromRecord(record);
+  validateKeys(recordObject,propertiesInRecord);
+  Object entityInstance=getEntityInstance(writeOperation,entity,recordObject.getString("id"),propertiesInRecord.get("id"));
+  if (writeOperation == WriteOperation.DELETE) {
+    entity.getMethod("remove").invoke(entityInstance);
+  }
+ else {
+    Iterator<?> keys=recordObject.keys();
+    while (keys.hasNext()) {
+      String key=(String)keys.next();
+      Object value=recordObject.getString(key);
+      Class<?> propertyType=propertiesInRecord.get(key);
+      if ("version".equals(key)) {
+        propertyType=Long.class;
+        value=new Long(value.toString());
+      }
+      if (writeOperation == WriteOperation.CREATE && ("id".equals(key))) {
+      }
+ else {
+        entity.getMethod(getMethodNameFromPropertyName(key,"set"),propertyType).invoke(entityInstance,value);
+      }
+    }
+    entity.getMethod("persist").invoke(entityInstance);
+  }
+  return getReturnRecord(writeOperation,entity,entityInstance,recordObject);
+}

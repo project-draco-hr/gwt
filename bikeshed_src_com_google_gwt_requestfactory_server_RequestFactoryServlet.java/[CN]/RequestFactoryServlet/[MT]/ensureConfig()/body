@@ -12,6 +12,15 @@ synchronized (this) {
         Class<?> clazz=Class.forName(serverOperation);
         if (Config.class.isAssignableFrom(clazz)) {
           config=((Class<? extends Config>)clazz).newInstance();
+          tokenToEntityRecord=new HashMap<String,EntityRecordPair>();
+          for (          Class<? extends Record> recordClass : config.recordTypes()) {
+            ServerType serverType=recordClass.getAnnotation(ServerType.class);
+            String token=serverType.token();
+            if ("[UNASSIGNED]".equals(token)) {
+              token=recordClass.getSimpleName();
+            }
+            tokenToEntityRecord.put(token,new EntityRecordPair(serverType.type(),recordClass));
+          }
         }
       }
  catch (      ClassNotFoundException e) {

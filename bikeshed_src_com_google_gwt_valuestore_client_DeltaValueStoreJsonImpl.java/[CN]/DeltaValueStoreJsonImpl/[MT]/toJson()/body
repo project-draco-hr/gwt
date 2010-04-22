@@ -1,16 +1,16 @@
 {
-  StringBuffer requestData=new StringBuffer("[");
-  boolean first=true;
-  for (  Map.Entry<RecordKey,RecordJsoImpl> entry : changes.entrySet()) {
-    RecordJsoImpl impl=entry.getValue();
-    if (first) {
-      first=false;
+  used=true;
+  StringBuffer jsonData=new StringBuffer("{");
+  for (  WriteOperation writeOperation : WriteOperation.values()) {
+    String jsonDataForOperation=getJsonForOperation(writeOperation);
+    if (jsonDataForOperation.equals("")) {
+      continue;
     }
- else {
-      requestData.append(",");
+    if (jsonData.length() > 1) {
+      jsonData.append(",");
     }
-    requestData.append(impl.toJson());
+    jsonData.append(jsonDataForOperation);
   }
-  requestData.append("]");
-  return requestData.toString();
+  jsonData.append("}");
+  return jsonData.toString();
 }

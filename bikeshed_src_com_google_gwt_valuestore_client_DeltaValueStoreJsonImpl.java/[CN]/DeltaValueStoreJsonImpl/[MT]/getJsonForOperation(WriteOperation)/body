@@ -1,0 +1,27 @@
+{
+  Map<RecordKey,RecordJsoImpl> recordsMap=getRecordsMap(writeOperation);
+  if (recordsMap.size() == 0) {
+    return "";
+  }
+  StringBuffer requestData=new StringBuffer("\"" + writeOperation.name() + "\":[");
+  boolean first=true;
+  for (  Map.Entry<RecordKey,RecordJsoImpl> entry : recordsMap.entrySet()) {
+    RecordJsoImpl impl=entry.getValue();
+    if (first) {
+      first=false;
+    }
+ else {
+      requestData.append(",");
+    }
+    requestData.append("{\"" + entry.getValue().getSchema().getToken() + "\":");
+    if (writeOperation != WriteOperation.DELETE) {
+      requestData.append(impl.toJson());
+    }
+ else {
+      requestData.append(impl.toJsonIdVersion());
+    }
+    requestData.append("}");
+  }
+  requestData.append("]");
+  return requestData.toString();
+}
