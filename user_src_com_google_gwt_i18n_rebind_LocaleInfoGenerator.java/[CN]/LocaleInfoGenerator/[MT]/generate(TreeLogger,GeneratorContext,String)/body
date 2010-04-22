@@ -28,8 +28,12 @@
     writer.println("@Override");
     writer.println("public String[] getAvailableLocaleNames() {");
     writer.println("  return new String[] {");
+    boolean hasAnyRtl=false;
     for (    GwtLocaleImpl possibleLocale : allLocales) {
       writer.println("    \"" + possibleLocale.toString().replaceAll("\"","\\\"") + "\",");
+      if (RTL_LOCALES.contains(possibleLocale.getCanonicalForm().getLanguage())) {
+        hasAnyRtl=true;
+      }
     }
     writer.println("  };");
     writer.println("}");
@@ -39,6 +43,11 @@
     writer.println("  this.@" + qualName + "::ensureNativeDisplayNames()();");
     writer.println("  return this.@" + qualName + "::nativeDisplayNames[localeName];");
     writer.println("}-*/;");
+    writer.println();
+    writer.println("@Override");
+    writer.println("public boolean hasAnyRTL() {");
+    writer.println("  return " + hasAnyRtl + ";");
+    writer.println("}");
     writer.println();
     writer.println("private native void ensureNativeDisplayNames() /*-{");
     writer.println("  if (this.@" + qualName + "::nativeDisplayNames != null) {");
