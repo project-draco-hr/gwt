@@ -1,43 +1,8 @@
 {
-  super.onBrowserEvent(event);
-  int eventType=DOM.eventGetType(event);
-switch (eventType) {
-case Event.ONMOUSEUP:
-case Event.ONCHANGE:
-    Element currentTarget=event.getCurrentEventTarget().cast();
-  if (currentTarget == getElement()) {
-    Element target=event.getEventTarget().cast();
-    String id=target.getId();
-    boolean inCell=target.getClassName().equals("gwt-sstree-cell");
-    while (id == null || !id.startsWith("gwt-sstree")) {
-      target=target.getParentElement();
-      if (target == null) {
-        return;
-      }
-      id=target.getId();
-      inCell|=target.getClassName().equals("gwt-sstree-cell");
-    }
-    if (id.startsWith("gwt-sstree-")) {
-      id=id.substring(11);
-      String[] path=id.split("-");
-      TreeNodeView<?> nodeView=getRootTreeNodeView();
-      for (      String s : path) {
-        nodeView=nodeView.getChildTreeNodeView(Integer.parseInt(s));
-      }
-      if (inCell) {
-        nodeView.fireEventToCell(event);
-        if (getSelectionModel() != null) {
-          String type=event.getType();
-          if ("mouseup".equals(type)) {
-            getSelectionModel().setSelected(nodeView.getValue(),true);
-          }
-        }
-      }
- else {
-        nodeView.setState(!nodeView.getState());
-      }
-    }
-  }
-break;
+switch (DOM.eventGetType(event)) {
+case Event.ONSCROLL:
+    adjustScrollLock();
+  break;
 }
+super.onBrowserEvent(event);
 }

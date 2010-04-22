@@ -1,0 +1,39 @@
+{
+  int oldSize=size;
+  int len=values.size();
+  int end=start + len;
+  if (end > oldSize) {
+    size=end;
+    sizeChanged();
+  }
+  while (data.size() < start) {
+    data.add(null);
+  }
+  for (int i=start; i < end; i++) {
+    T value=values.get(i - start);
+    if (i < data.size()) {
+      data.set(i,value);
+    }
+ else {
+      data.add(value);
+      if (selectionModel != null && selectionModel.isSelected(value)) {
+        selectedKeys.add(getKey(value));
+      }
+    }
+  }
+  StringBuilder sb=new StringBuilder();
+  emitHtml(sb,values,start,cell,selectionModel);
+  if (oldSize == 0 || (start == 0 && len >= oldSize)) {
+    childContainer.setInnerHTML(sb.toString());
+  }
+ else {
+    makeElements();
+    tmpElem.setInnerHTML(sb.toString());
+    Element toReplace=childContainer.getChild(start).cast();
+    for (int i=start; i < end; i++) {
+      Element nextSibling=toReplace.getNextSiblingElement();
+      childContainer.replaceChild(tmpElem.getChild(0),toReplace);
+      toReplace=nextSibling;
+    }
+  }
+}

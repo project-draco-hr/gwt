@@ -1,0 +1,49 @@
+{
+  if (value == null) {
+    return new TreeViewModel.DefaultNodeInfo<String>(topLevelListViewAdapter,TextCell.getInstance(),selectionModel,null);
+  }
+ else   if ("Favorites".equals(value)) {
+    return new TreeViewModel.DefaultNodeInfo<StockQuote>(stockQuoteListViewAdapter,STOCK_QUOTE_CELL,selectionModel,null);
+  }
+ else   if ("History".equals(value)) {
+    String ticker=lastStockQuote.getTicker();
+    ListViewAdapter<Transaction> adapter=transactionListViewAdaptersByTicker.get(ticker);
+    if (adapter == null) {
+      adapter=new ListViewAdapter<Transaction>();
+      transactionListViewAdaptersByTicker.put(ticker,adapter);
+    }
+    return new TreeViewModel.DefaultNodeInfo<Transaction>(adapter,TRANSACTION_CELL,selectionModel,null);
+  }
+ else   if ("Actions".equals(value)) {
+    ListViewAdapter<String> adapter=new ListViewAdapter<String>();
+    List<String> list=adapter.getList();
+    list.add("Buy");
+    list.add("Sell");
+    return new TreeViewModel.DefaultNodeInfo<String>(adapter,ButtonCell.getInstance(),selectionModel,new ValueUpdater<String,Void>(){
+      public void update(      String value,      Void viewData){
+        if ("Buy".equals(value)) {
+          updater.buy(lastStockQuote);
+        }
+ else {
+          updater.sell(lastStockQuote);
+        }
+      }
+    }
+);
+  }
+ else   if (value instanceof String) {
+    lastSector=(String)value;
+    SectorListViewAdapter adapter=new SectorListViewAdapter(lastSector);
+    sectorListViewAdapters.put(lastSector,adapter);
+    return new TreeViewModel.DefaultNodeInfo<StockQuote>(adapter,STOCK_QUOTE_CELL,selectionModel,null);
+  }
+ else   if (value instanceof StockQuote) {
+    lastStockQuote=(StockQuote)value;
+    ListViewAdapter<String> adapter=new ListViewAdapter<String>();
+    List<String> list=adapter.getList();
+    list.add("Actions");
+    list.add("History");
+    return new TreeViewModel.DefaultNodeInfo<String>(adapter,TextCell.getInstance(),selectionModel,null);
+  }
+  throw new IllegalArgumentException(value.toString());
+}

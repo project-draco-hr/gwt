@@ -1,23 +1,30 @@
 {
   super.onBrowserEvent(event);
   Element target=event.getEventTarget().cast();
-  TreeNodeView<?> rootNode=getRootTreeNodeView();
   ArrayList<Element> chain=new ArrayList<Element>();
-  ArrayList<String> ids=new ArrayList<String>();
-  collectElementChain(chain,ids,getElement(),target);
-  TreeNodeView<?> nodeView=findItemByChain(chain,0,rootNode);
+  collectElementChain(chain,getElement(),target);
+  StandardTreeNodeView<?> nodeView=findItemByChain(chain,0,rootNode);
   if (nodeView != null && nodeView != rootNode) {
-    if (nodeView.getImageElement().isOrHasChild(target)) {
-      if ("click".equals(event.getType())) {
-        nodeView.setState(!nodeView.getState());
+    if ("click".equals(event.getType())) {
+      Element showFewerElem=nodeView.getShowFewerElement();
+      Element showMoreElem=nodeView.getShowMoreElement();
+      if (nodeView.getImageElement().isOrHasChild(target)) {
+        nodeView.setOpen(!nodeView.isOpen());
+        return;
+      }
+ else       if (showFewerElem != null && showFewerElem.isOrHasChild(target)) {
+        nodeView.showFewer();
+        return;
+      }
+ else       if (showMoreElem != null && showMoreElem.isOrHasChild(target)) {
+        nodeView.showMore();
+        return;
       }
     }
- else     if (nodeView.getCellParent().isOrHasChild(target)) {
-      nodeView.fireEventToCell(event);
-      if (getSelectionModel() != null) {
-        if ("click".equals(event.getType())) {
-          getSelectionModel().setSelected(nodeView.getValue(),true);
-        }
+    if (nodeView.getCellParent().isOrHasChild(target)) {
+      boolean consumesEvent=nodeView.fireEventToCell(event);
+      if (!consumesEvent && "click".equals(event.getType())) {
+        nodeView.select();
       }
     }
   }

@@ -1,0 +1,37 @@
+{
+  if (selectionHandler != null) {
+    selectionHandler.removeHandler();
+    selectionHandler=null;
+  }
+  this.selectionModel=selectionModel;
+  if (selectionModel != null) {
+    selectionHandler=selectionModel.addSelectionChangeHandler(new SelectionChangeHandler(){
+      public void onSelectionChange(      SelectionChangeEvent event){
+        boolean dependsOnSelection=cell.dependsOnSelection();
+        boolean refreshRequired=false;
+        Element cellElem=childContainer.getFirstChildElement();
+        for (        T value : data) {
+          boolean selected=selectionModel.isSelected(value);
+          Object key=getKey(value);
+          if (selected != selectedKeys.contains(key)) {
+            refreshRequired=true;
+            if (selected) {
+              selectedKeys.add(key);
+            }
+ else {
+              selectedKeys.remove(key);
+            }
+            if (!dependsOnSelection) {
+              setSelected(cellElem,selected);
+            }
+          }
+          cellElem=cellElem.getNextSiblingElement();
+        }
+        if (refreshRequired && dependsOnSelection) {
+          setData(data,0);
+        }
+      }
+    }
+);
+  }
+}

@@ -1,27 +1,32 @@
 {
+  super.onBrowserEvent(event);
   Element target=event.getEventTarget().cast();
-  if (target.getParentElement() == showMoreElem) {
-    this.maxSize+=increment;
-    sizeChanged();
-    if (delegate != null) {
-      delegate.onRangeChanged(this);
+  int type=event.getTypeInt();
+  if (type == Event.ONCLICK) {
+    Element showFewerElem=impl.getShowFewerElem();
+    Element showMoreElem=impl.getShowMoreElem();
+    if (showFewerElem != null && showFewerElem.isOrHasChild(target)) {
+      impl.showFewer();
+      return;
+    }
+ else     if (showMoreElem != null && showMoreElem.isOrHasChild(target)) {
+      impl.showMore();
+      return;
     }
   }
- else   if (target.getParentElement() == showFewerElem) {
-    this.maxSize=Math.max(initialMaxSize,maxSize - increment);
-    sizeChanged();
-    if (delegate != null) {
-      delegate.onRangeChanged(this);
-    }
+  String idxString="";
+  while ((target != null) && ((idxString=target.getAttribute("__idx")).length() == 0)) {
+    target=target.getParentElement();
   }
- else {
-    String idxString="";
-    while ((target != null) && ((idxString=target.getAttribute("__idx")).length() == 0)) {
-      target=target.getParentElement();
-    }
-    if (idxString.length() > 0) {
-      int idx=Integer.parseInt(idxString);
-      cell.onBrowserEvent(target,data.get(idx),null,event,valueUpdater);
+  if (idxString.length() > 0) {
+    int idx=Integer.parseInt(idxString);
+    T value=impl.getValue(idx);
+    cell.onBrowserEvent(target,value,null,event,valueUpdater);
+    if (!cell.consumesEvents() && type == Event.ONMOUSEDOWN) {
+      SelectionModel<? super T> selectionModel=impl.getSelectionModel();
+      if (selectionModel != null) {
+        selectionModel.setSelected(value,true);
+      }
     }
   }
 }
