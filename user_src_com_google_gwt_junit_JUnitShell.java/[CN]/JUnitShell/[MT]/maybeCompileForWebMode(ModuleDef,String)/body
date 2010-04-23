@@ -1,0 +1,25 @@
+{
+  for (  String path : module.getServletPaths()) {
+    String servletClass=module.findServletForPath(path);
+    path='/' + module.getName() + path;
+    if (!servletClass.equals(loadedServletsByPath.get(path))) {
+      try {
+        Class<?> clazz=wac.loadClass(servletClass);
+        wac.addServlet(clazz,path);
+        loadedServletsByPath.put(path,servletClass);
+      }
+ catch (      ClassNotFoundException e) {
+        getTopLogger().log(TreeLogger.WARN,"Failed to load servlet class '" + servletClass + "' declared in '"+ module.getName()+ "'",e);
+      }
+    }
+  }
+  if (developmentMode) {
+    if (module.getLinker("std") != null) {
+      module.addLinker("std");
+    }
+    super.link(getTopLogger(),module);
+  }
+ else {
+    compileForWebMode(module,userAgents);
+  }
+}
