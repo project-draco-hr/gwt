@@ -1,0 +1,25 @@
+{
+  sourceOracle.addOrReplace(new MockJavaResource("test.EntryPoint"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      for (      String snippetImport : snippetImports) {
+        code.append("import " + snippetImport + ";\n");
+      }
+      code.append("public class EntryPoint {\n");
+      for (      String snippetClassDecl : snippetClassDecls) {
+        code.append(snippetClassDecl + ";\n");
+      }
+      code.append("  public static " + returnType + " onModuleLoad("+ params+ ") {\n");
+      code.append(codeSnippet);
+      code.append("  }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  addBuiltinClasses(sourceOracle);
+  CompilationState state=CompilationStateBuilder.buildFrom(logger,sourceOracle.getResources());
+  JProgram program=JavaAstConstructor.construct(logger,state,"test.EntryPoint","com.google.gwt.lang.Exceptions");
+  return program;
+}
