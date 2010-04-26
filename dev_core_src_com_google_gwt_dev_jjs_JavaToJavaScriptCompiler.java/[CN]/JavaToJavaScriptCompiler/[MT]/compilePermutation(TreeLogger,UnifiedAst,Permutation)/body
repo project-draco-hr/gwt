@@ -37,7 +37,7 @@
     JsNormalizer.exec(jsProgram);
     JsSymbolResolver.exec(jsProgram);
     EvalFunctionsAtTopScope.exec(jsProgram,map);
-    if (options.isAggressivelyOptimize()) {
+    if (!options.isDraftCompile()) {
       boolean didChange;
       do {
         if (Thread.interrupted()) {
@@ -52,7 +52,7 @@
     }
     JsStackEmulator.exec(jsProgram,propertyOracles);
     SyntheticArtifact dependencies=null;
-    if (options.isAggressivelyOptimize() && options.isRunAsyncEnabled()) {
+    if (options.isRunAsyncEnabled()) {
       ByteArrayOutputStream baos=new ByteArrayOutputStream();
       CodeSplitter.exec(logger,jprogram,jsProgram,map,chooseDependencyRecorder(options.isSoycEnabled(),baos));
       if (baos.size() == 0 && options.isSoycEnabled()) {
@@ -67,14 +67,16 @@ switch (options.getOutput()) {
 case OBFUSCATED:
       obfuscateMap=JsStringInterner.exec(jprogram,jsProgram);
     JsObfuscateNamer.exec(jsProgram);
-  if (JsStackEmulator.getStackMode(propertyOracles) == JsStackEmulator.StackMode.STRIP) {
-    boolean changed=false;
-    for (int i=0; i < jsProgram.getFragmentCount(); i++) {
-      JsBlock fragment=jsProgram.getFragmentBlock(i);
-      changed=JsDuplicateFunctionRemover.exec(jsProgram,fragment) || changed;
-    }
-    if (changed) {
-      JsUnusedFunctionRemover.exec(jsProgram);
+  if (options.isAggressivelyOptimize()) {
+    if (JsStackEmulator.getStackMode(propertyOracles) == JsStackEmulator.StackMode.STRIP) {
+      boolean changed=false;
+      for (int i=0; i < jsProgram.getFragmentCount(); i++) {
+        JsBlock fragment=jsProgram.getFragmentBlock(i);
+        changed=JsDuplicateFunctionRemover.exec(jsProgram,fragment) || changed;
+      }
+      if (changed) {
+        JsUnusedFunctionRemover.exec(jsProgram);
+      }
     }
   }
 break;
