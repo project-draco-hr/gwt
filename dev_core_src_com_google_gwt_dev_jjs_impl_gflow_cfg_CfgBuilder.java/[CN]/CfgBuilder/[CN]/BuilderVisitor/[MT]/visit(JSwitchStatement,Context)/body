@@ -10,10 +10,12 @@
   Exit gotoExit=Exit.createNormal(gotoNode,null);
   int defaultPos=-1;
   List<Exit> breakExits=new ArrayList<Exit>();
+  List<Exit> fallThroughExits=new ArrayList<Exit>();
   List<JStatement> statements=x.getBody().getStatements();
   for (  JStatement s : statements) {
     if (s instanceof JCaseStatement) {
       if (((JCaseStatement)s).getExpr() != null) {
+        fallThroughExits.addAll(removeExits(Exit.Reason.NORMAL));
         if (gotoExit != null) {
           addExit(gotoExit);
           gotoExit=null;
@@ -31,6 +33,12 @@
       List<Exit> thenExits=removeExits(Exit.Reason.CASE_THEN);
       for (      Exit e : thenExits) {
         addNormalExit(e.getNode(),e.role);
+      }
+      if (!fallThroughExits.isEmpty()) {
+        for (        Exit e : fallThroughExits) {
+          addExit(e);
+        }
+        fallThroughExits.clear();
       }
     }
     accept(s);
