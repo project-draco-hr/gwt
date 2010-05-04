@@ -1,18 +1,21 @@
 {
-  if (other == null || other.values.isEmpty()) {
+  if (other == null) {
     return this;
   }
-  if (values.isEmpty()) {
-    return other;
+  if (other == TOP || this == TOP || isEmpty() || other.isEmpty()) {
+    return TOP;
   }
-  ConstantsAssumption result=new ConstantsAssumption(this);
+  ConstantsAssumption result=new ConstantsAssumption();
   for (  JVariable var : other.values.keySet()) {
     if (values.containsKey(var)) {
-      result.values.put(var,join(values.get(var),other.values.get(var)));
+      JValueLiteral value=join(values.get(var),other.values.get(var));
+      if (value != null) {
+        result.values.put(var,new LiteralWrapper(value));
+      }
     }
- else {
-      result.values.put(var,other.values.get(var));
-    }
+  }
+  if (result.isEmpty()) {
+    return TOP;
   }
   return result;
 }
