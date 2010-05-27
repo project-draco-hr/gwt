@@ -1,17 +1,26 @@
 {
   for (  String packageName : globalInformation.getPackageToClasses().keySet()) {
-    TreeMap<Float,String> sortedClasses=new TreeMap<Float,String>(Collections.reverseOrder());
-    float sumSize=0f;
+    TreeMap<Integer,Set<String>> sortedClasses=new TreeMap<Integer,Set<String>>(Collections.reverseOrder());
+    int sumSize=0;
     for (    String className : globalInformation.getPackageToClasses().get(packageName)) {
-      float curSize=0f;
+      int curSize=0;
       if (!breakdown.classToSize.containsKey(className)) {
       }
  else {
         curSize=breakdown.classToSize.get(className);
       }
       if (curSize != 0f) {
+        if (sortedClasses.containsKey(curSize)) {
+          Set<String> existingSet=sortedClasses.get(curSize);
+          existingSet.add(className);
+          sortedClasses.put(curSize,existingSet);
+        }
+ else {
+          Set<String> newSet=new TreeSet<String>();
+          newSet.add(className);
+          sortedClasses.put(curSize,newSet);
+        }
         sumSize+=curSize;
-        sortedClasses.put(curSize,className);
       }
     }
     PrintWriter outFile=new PrintWriter(getOutFile(classesInPackageFileName(breakdown,packageName,getPermutationId())));
@@ -23,26 +32,28 @@
     outFile.println("</colgroup>");
     outFile.println("<thead>");
     outFile.println("<th>Package</th>");
-    outFile.println("<th>Size <span class=\"soyc-th-units\">Bytes (% All Code)</span></th>");
+    outFile.println("<th>Size <span class=\"soyc-th-units\">(Bytes)</span></th>");
     outFile.println("</thead>");
-    for (    Float size : sortedClasses.keySet()) {
-      String className=sortedClasses.get(size);
-      String drillDownFileName=depLinker.dependencyLinkForClass(className);
-      float perc=(size / sumSize) * 100;
-      outFile.println("<tr>");
-      if (drillDownFileName == null) {
-        outFile.println("<td>" + className + "</td>");
-      }
+    for (    Integer size : sortedClasses.keySet()) {
+      Set<String> classNames=sortedClasses.get(size);
+      for (      String className : classNames) {
+        String drillDownFileName=depLinker.dependencyLinkForClass(className);
+        float perc=((float)size / (float)sumSize) * 100;
+        outFile.println("<tr>");
+        if (drillDownFileName == null) {
+          outFile.println("<td>" + className + "</td>");
+        }
  else {
-        outFile.println("<td><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ className+ "</a></td>");
+          outFile.println("<td><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ className+ "</a></td>");
+        }
+        outFile.println("<td>");
+        outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
+        outFile.println("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
+        outFile.println("</div>");
+        outFile.println(size + " (" + formatNumber(perc)+ "%)");
+        outFile.println("</td>");
+        outFile.println("</tr>");
       }
-      outFile.println("<td>");
-      outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
-      outFile.println("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
-      outFile.println("</div>");
-      outFile.println(size + " (" + formatNumber(perc)+ "%)");
-      outFile.println("</td>");
-      outFile.println("</tr>");
     }
     outFile.println("</table>");
     addStandardHtmlEnding(outFile);

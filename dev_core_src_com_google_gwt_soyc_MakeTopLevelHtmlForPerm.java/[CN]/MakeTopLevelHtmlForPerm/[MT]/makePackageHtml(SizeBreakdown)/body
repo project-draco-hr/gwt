@@ -1,11 +1,21 @@
 {
   String outFileName=breakdown.getId() + "-" + getPermutationId()+ "-"+ "packageBreakdown.html";
   Map<String,Integer> packageToPartialSize=breakdown.packageToSize;
-  TreeMap<Integer,String> sortedPackages=new TreeMap<Integer,String>(Collections.reverseOrder());
+  TreeMap<Integer,Set<String>> sortedPackages=new TreeMap<Integer,Set<String>>(Collections.reverseOrder());
   float sumSize=0f;
   for (  String packageName : packageToPartialSize.keySet()) {
-    sortedPackages.put(packageToPartialSize.get(packageName),packageName);
-    sumSize+=packageToPartialSize.get(packageName);
+    Integer curSize=packageToPartialSize.get(packageName);
+    if (sortedPackages.containsKey(curSize)) {
+      Set<String> existingSet=sortedPackages.get(curSize);
+      existingSet.add(packageName);
+      sortedPackages.put(curSize,existingSet);
+    }
+ else {
+      Set<String> newSet=new TreeSet<String>();
+      newSet.add(packageName);
+      sortedPackages.put(curSize,newSet);
+    }
+    sumSize+=curSize;
   }
   final PrintWriter outFile=new PrintWriter(getOutFile(outFileName));
   addSmallHtmlProlog(outFile,"Package breakdown");
@@ -18,21 +28,23 @@
   outFile.println("</colgroup>");
   outFile.println("<thead>");
   outFile.println("<th>Package</th>");
-  outFile.println("<th>Size <span class=\"soyc-th-units\">Bytes (% All Code)</span></th>");
+  outFile.println("<th>Size <span class=\"soyc-th-units\">(Bytes)</span></th>");
   outFile.println("</thead>");
   for (  int size : sortedPackages.keySet()) {
-    String packageName=sortedPackages.get(size);
-    String drillDownFileName=classesInPackageFileName(breakdown,packageName,getPermutationId());
-    float perc=(size / sumSize) * 100;
-    outFile.println("<tr>");
-    outFile.println("<td><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ packageName+ "</a></td>");
-    outFile.println("<td>");
-    outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
-    outFile.println("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
-    outFile.println("</div>");
-    outFile.println(size + " (" + formatNumber(perc)+ "%)");
-    outFile.println("</td>");
-    outFile.println("</tr>");
+    Set<String> packageNames=sortedPackages.get(size);
+    for (    String packageName : packageNames) {
+      String drillDownFileName=classesInPackageFileName(breakdown,packageName,getPermutationId());
+      float perc=((float)size / (float)sumSize) * 100;
+      outFile.println("<tr>");
+      outFile.println("<td><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ packageName+ "</a></td>");
+      outFile.println("<td>");
+      outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
+      outFile.println("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
+      outFile.println("</div>");
+      outFile.println(size + " (" + formatNumber(perc)+ "%)");
+      outFile.println("</td>");
+      outFile.println("</tr>");
+    }
   }
   outFile.println("</table>");
   addStandardHtmlEnding(outFile);

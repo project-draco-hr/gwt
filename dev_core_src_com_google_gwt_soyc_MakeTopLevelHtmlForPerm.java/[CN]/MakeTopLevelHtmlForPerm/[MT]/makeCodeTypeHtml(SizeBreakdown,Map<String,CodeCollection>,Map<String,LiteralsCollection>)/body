@@ -1,12 +1,21 @@
 {
   String outFileName=breakdown.getId() + "-" + getPermutationId()+ "-codeTypeBreakdown.html";
-  float sumSize=0f;
-  TreeMap<Float,String> sortedCodeTypes=new TreeMap<Float,String>(Collections.reverseOrder());
+  int sumSize=0;
+  TreeMap<Integer,Set<String>> sortedCodeTypes=new TreeMap<Integer,Set<String>>(Collections.reverseOrder());
   for (  String codeType : nameToCodeColl.keySet()) {
-    float curSize=nameToCodeColl.get(codeType).getCumPartialSize(breakdown);
+    int curSize=nameToCodeColl.get(codeType).getCumSize(breakdown);
     sumSize+=curSize;
-    if (curSize != 0f) {
-      sortedCodeTypes.put(curSize,codeType);
+    if (curSize != 0) {
+      if (sortedCodeTypes.containsKey(curSize)) {
+        Set<String> existingSet=sortedCodeTypes.get(curSize);
+        existingSet.add(codeType);
+        sortedCodeTypes.put(curSize,existingSet);
+      }
+ else {
+        Set<String> newSet=new TreeSet<String>();
+        newSet.add(codeType);
+        sortedCodeTypes.put(curSize,newSet);
+      }
     }
   }
   final PrintWriter outFile=new PrintWriter(getOutFile(outFileName));
@@ -20,34 +29,30 @@
   outFile.println("</colgroup>");
   outFile.println("<thead>");
   outFile.println("<th>Type</th>");
-  outFile.println("<th>Size</th>");
+  outFile.println("<th>Size <span class=\"soyc-th-units\">(Bytes)</span></th>");
   outFile.println("</thead>");
-  for (  Float size : sortedCodeTypes.keySet()) {
-    String codeType=sortedCodeTypes.get(size);
-    String drillDownFileName=breakdown.getId() + "_" + codeType+ "-"+ getPermutationId()+ "Classes.html";
-    float perc=(size / sumSize) * 100;
-    outFile.println("<tr>");
-    outFile.println("<td><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ codeType+ "</a></td>");
-    outFile.println("<td>");
-    outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
-    outFile.println("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
-    outFile.println("</div>");
-    outFile.println(size + " (" + formatNumber(perc)+ "%)");
-    outFile.println("</td>");
-    outFile.println("</tr>");
+  for (  Integer size : sortedCodeTypes.keySet()) {
+    Set<String> codeTypes=sortedCodeTypes.get(size);
+    for (    String codeType : codeTypes) {
+      String drillDownFileName=breakdown.getId() + "_" + codeType+ "-"+ getPermutationId()+ "Classes.html";
+      float perc=((float)size / (float)sumSize) * 100;
+      outFile.println("<tr>");
+      outFile.println("<td><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ codeType+ "</a></td>");
+      outFile.println("<td>");
+      outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
+      outFile.println("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
+      outFile.println("</div>");
+      outFile.println(size + " (" + formatNumber(perc)+ "%)");
+      outFile.println("</td>");
+      outFile.println("</tr>");
+    }
   }
   outFile.println("</table>");
-  TreeMap<Float,String> sortedLitTypes=new TreeMap<Float,String>(Collections.reverseOrder());
-  float curSize=nameToLitColl.get("string").size;
-  sumSize+=curSize;
-  if (curSize != 0f) {
-    sortedLitTypes.put(curSize,"string");
-  }
-  for (  Float size : sortedLitTypes.keySet()) {
-    String literal=sortedLitTypes.get(size);
-    String drillDownFileName=breakdown.getId() + "_" + literal+ "-"+ getPermutationId()+ "Lits.html";
-    outFile.println("<p class=\"soyc-breakdown-strings\"><a href=\"" + drillDownFileName + "\" target=\"_top\">Strings</a> occupy "+ size+ " bytes</p>");
-  }
+  int stringSize=nameToLitColl.get("string").size;
+  String drillDownFileName=breakdown.getId() + "_string-" + getPermutationId()+ "Lits.html";
+  outFile.println("<p class=\"soyc-breakdown-strings\">" + stringSize + " bytes occupied by <a href=\""+ drillDownFileName+ "\" target=\"_top\">Strings</a></p>");
+  int unaccountedForSize=breakdown.sizeAllCode - sumSize - stringSize;
+  outFile.println("<p class=\"soyc-breakdown-strings\">" + unaccountedForSize + " bytes of the JavaScript output cannot be attributed to any package or code type.</p>");
   addStandardHtmlEnding(outFile);
   outFile.close();
   return outFileName;

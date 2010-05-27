@@ -3,15 +3,24 @@
   for (  String codeType : nameToCodeColl.keySet()) {
     String outFileName=breakdown.getId() + "_" + codeType+ "-"+ getPermutationId()+ "Classes.html";
     float sumSize=0f;
-    TreeMap<Float,String> sortedClasses=new TreeMap<Float,String>(Collections.reverseOrder());
+    TreeMap<Integer,Set<String>> sortedClasses=new TreeMap<Integer,Set<String>>(Collections.reverseOrder());
     for (    String className : nameToCodeColl.get(codeType).classes) {
       if (breakdown.classToSize.containsKey(className)) {
-        float curSize=0f;
+        int curSize=0;
         if (breakdown.classToSize.containsKey(className)) {
           curSize=breakdown.classToSize.get(className);
         }
-        if (curSize != 0f) {
-          sortedClasses.put(curSize,className);
+        if (curSize != 0) {
+          if (sortedClasses.containsKey(curSize)) {
+            Set<String> existingSet=sortedClasses.get(curSize);
+            existingSet.add(className);
+            sortedClasses.put(curSize,existingSet);
+          }
+ else {
+            Set<String> newSet=new TreeSet<String>();
+            newSet.add(className);
+            sortedClasses.put(curSize,newSet);
+          }
           sumSize+=curSize;
         }
       }
@@ -25,20 +34,22 @@
     outFile.println("</colgroup>");
     outFile.println("<thead>");
     outFile.println("<th>Code type</th>");
-    outFile.println("<th>Size <span class=\"soyc-th-units\">Bytes (% All Code)</span></th>");
+    outFile.println("<th>Size <span class=\"soyc-th-units\">(Bytes)</span></th>");
     outFile.println("</thead>");
-    for (    Float size : sortedClasses.keySet()) {
-      String className=sortedClasses.get(size);
-      float perc=(size / sumSize) * 100;
-      outFile.println("<tr>");
-      outFile.println("<td>" + className + "</a></td>");
-      outFile.println("<td>");
-      outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
-      outFile.println("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
-      outFile.println("</div>");
-      outFile.println(size + " (" + formatNumber(perc)+ "%)");
-      outFile.println("</td>");
-      outFile.println("</tr>");
+    for (    Integer size : sortedClasses.keySet()) {
+      Set<String> classNames=sortedClasses.get(size);
+      for (      String className : classNames) {
+        float perc=((float)size / (float)sumSize) * 100;
+        outFile.println("<tr>");
+        outFile.println("<td>" + className + "</a></td>");
+        outFile.println("<td>");
+        outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
+        outFile.println("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
+        outFile.println("</div>");
+        outFile.println(size + " (" + formatNumber(perc)+ "%)");
+        outFile.println("</td>");
+        outFile.println("</tr>");
+      }
     }
     addStandardHtmlEnding(outFile);
     outFile.close();
