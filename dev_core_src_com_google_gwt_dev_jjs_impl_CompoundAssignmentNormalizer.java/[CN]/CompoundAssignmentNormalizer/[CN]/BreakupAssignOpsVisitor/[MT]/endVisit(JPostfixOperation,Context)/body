@@ -6,12 +6,11 @@
   if (!shouldBreakUp(x)) {
     return;
   }
-  enterTempUsageScope();
   JMultiExpression multi=new JMultiExpression(x.getSourceInfo());
   ReplaceSideEffectsInLvalue replacer=new ReplaceSideEffectsInLvalue(multi);
   JExpression newArg=replacer.accept(x.getArg());
   JExpression expressionReturn=expressionToReturn(newArg);
-  JLocal tempLocal=getTempLocal(expressionReturn.getType());
+  JLocal tempLocal=createTempLocal(x.getSourceInfo(),expressionReturn.getType());
   JLocalRef tempRef=new JLocalRef(x.getSourceInfo(),tempLocal);
   JBinaryOperation asg=new JBinaryOperation(x.getSourceInfo(),x.getType(),JBinaryOperator.ASG,tempRef,expressionReturn);
   multi.exprs.add(asg);
@@ -20,5 +19,4 @@
   tempRef=new JLocalRef(x.getSourceInfo(),tempLocal);
   multi.exprs.add(tempRef);
   ctx.replaceMe(multi);
-  exitTempUsageScope();
 }
