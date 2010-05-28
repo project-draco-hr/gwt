@@ -1,0 +1,26 @@
+{
+  Activity nextActivity=mapper.getActivity(event.getNewPlace());
+  if (currentActivity != null) {
+    display.setWidget(null);
+    currentActivity.onStop();
+  }
+  if (startingNext) {
+    currentActivity.onCancel();
+    currentActivity=null;
+    startingNext=false;
+  }
+  if (nextActivity == null) {
+    display.setWidget(null);
+    currentActivity=null;
+    return;
+  }
+  currentActivity=nextActivity;
+  startingNext=true;
+  currentActivity.start(new Callback(){
+    public void onStarted(    Widget widget){
+      startingNext=false;
+      display.setWidget(widget);
+    }
+  }
+);
+}

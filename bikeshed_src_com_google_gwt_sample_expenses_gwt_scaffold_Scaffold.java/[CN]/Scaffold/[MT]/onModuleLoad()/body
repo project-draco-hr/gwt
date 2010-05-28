@@ -2,17 +2,18 @@
   final HandlerManager eventBus=new HandlerManager(null);
   final ExpensesRequestFactory requestFactory=GWT.create(ExpensesRequestFactory.class);
   requestFactory.init(eventBus);
-  final PlaceController<ExpensesPlace> placeController=new PlaceController<ExpensesPlace>(eventBus);
-  final ExpensesPlaces places=new ExpensesPlaces(placeController);
-  final ExpensesKeyNameRenderer entityNamer=new ExpensesKeyNameRenderer();
-  final ListPlaceRenderer listPlaceNamer=new ListPlaceRenderer();
+  final PlaceController<ScaffoldPlace> placeController=new PlaceController<ScaffoldPlace>(eventBus);
   final ScaffoldShell shell=new ScaffoldShell();
-  PlacePicker<ExpensesListPlace> placePicker=new PlacePicker<ExpensesListPlace>(shell.getPlacesBox(),placeController,listPlaceNamer);
-  List<ExpensesListPlace> topPlaces=getTopPlaces();
-  placePicker.setPlaces(topPlaces);
-  eventBus.addHandler(PlaceChanged.TYPE,new ScaffoldListRequester(shell.getBody(),new ScaffoldListViewBuilder(places,requestFactory,listPlaceNamer)));
-  final HTML detailsView=new HTML();
-  eventBus.addHandler(PlaceChanged.TYPE,new ScaffoldDetailsRequester(entityNamer,shell.getBody(),detailsView,new ScaffoldDetailsViewBuilder()));
+  PlacePicker<ListScaffoldPlace> placePicker=new PlacePicker<ListScaffoldPlace>(shell.getPlacesBox(),placeController,new ScaffoldListPlaceRenderer());
+  placePicker.setPlaces(getTopPlaces());
+  final ActivityMapper<ScaffoldPlace> mapper=new ScaffoldActivities(requestFactory,placeController);
+  final ActivityManager<ScaffoldPlace> activityManager=new ActivityManager<ScaffoldPlace>(mapper,eventBus);
+  activityManager.setDisplay(new ActivityManager.View(){
+    public void setWidget(    Widget widget){
+      shell.getBody().setWidget(widget);
+    }
+  }
+);
   Element loading=Document.get().getElementById("loading");
   loading.getParentElement().removeChild(loading);
   RootLayoutPanel.get().add(shell);
