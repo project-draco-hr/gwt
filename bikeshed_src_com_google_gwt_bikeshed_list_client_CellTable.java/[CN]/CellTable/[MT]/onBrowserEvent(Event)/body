@@ -1,0 +1,49 @@
+{
+  super.onBrowserEvent(event);
+  EventTarget eventTarget=event.getEventTarget();
+  TableCellElement cell=null;
+  if (eventTarget != null && Element.is(eventTarget)) {
+    cell=findNearestParentCell(Element.as(eventTarget));
+  }
+  if (cell == null) {
+    return;
+  }
+  TableRowElement tr=TableRowElement.as(cell.getParentElement());
+  TableSectionElement section=TableSectionElement.as(tr.getParentElement());
+  int col=cell.getCellIndex();
+  if (section == thead) {
+    Header<?> header=headers.get(col);
+    if (header != null) {
+      header.onBrowserEvent(cell,event);
+    }
+  }
+ else   if (section == tfoot) {
+    Header<?> footer=footers.get(col);
+    if (footer != null) {
+      footer.onBrowserEvent(cell,event);
+    }
+  }
+ else   if (section == tbody) {
+    int row=tr.getSectionRowIndex();
+    if (event.getType().equals("mouseover")) {
+      if (hoveringRow != null) {
+        hoveringRow.removeClassName(style.hoveredRow());
+      }
+      hoveringRow=tr;
+      tr.addClassName(style.hoveredRow());
+    }
+ else     if (event.getType().equals("mouseout")) {
+      hoveringRow=null;
+      tr.removeClassName(style.hoveredRow());
+    }
+    T value=impl.getData().get(row);
+    Column<T,?> column=columns.get(col);
+    column.onBrowserEvent(cell,impl.getPageStart() + row,value,event,providesKey);
+    if (isSelectionEnabled && event.getTypeInt() == Event.ONMOUSEDOWN) {
+      SelectionModel<? super T> selectionModel=impl.getSelectionModel();
+      if (selectionModel != null) {
+        selectionModel.setSelected(value,true);
+      }
+    }
+  }
+}

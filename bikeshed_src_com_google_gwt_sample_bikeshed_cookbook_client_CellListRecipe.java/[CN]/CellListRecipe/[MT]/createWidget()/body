@@ -1,0 +1,38 @@
+{
+  ListViewAdapter<String> adapter=new ListViewAdapter<String>();
+  final List<String> list=adapter.getList();
+  for (int i=0; i < 40; i++) {
+    list.add("" + ((i + 10) * 1000));
+  }
+  final CellList<String> cellList=new CellList<String>(new TextCell());
+  cellList.setPageSize(10);
+  final SelectionModel<String> selectionModel=new SingleSelectionModel<String>();
+  cellList.setSelectionModel(selectionModel);
+  adapter.addView(cellList);
+  new Timer(){
+    int index=0;
+    @Override public void run(){
+      if (cellList.isAttached()) {
+        incrementValue(index);
+        incrementValue(index + 15);
+        index=(index + 1) % 10;
+      }
+      schedule(100);
+    }
+    private void incrementValue(    int i){
+      String oldValue=list.get(i);
+      int number=Integer.parseInt(oldValue);
+      String newValue="" + (number + 1);
+      if (selectionModel.isSelected(oldValue)) {
+        selectionModel.setSelected(newValue,true);
+      }
+      list.set(i,newValue);
+    }
+  }
+.schedule(100);
+  SimplePager<String> pager=new SimplePager<String>(cellList);
+  FlowPanel fp=new FlowPanel();
+  fp.add(cellList);
+  fp.add(pager);
+  return fp;
+}

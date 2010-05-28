@@ -1,0 +1,26 @@
+{
+  final HandlerManager eventBus=new HandlerManager(null);
+  final ExpensesRequestFactory requestFactory=GWT.create(ExpensesRequestFactory.class);
+  requestFactory.init(eventBus);
+  final PlaceController<ScaffoldPlace> placeController=new PlaceController<ScaffoldPlace>(eventBus);
+  final ScaffoldShell shell=new ScaffoldShell();
+  PlacePicker<ListScaffoldPlace> placePicker=new PlacePicker<ListScaffoldPlace>(shell.getPlacesBox(),placeController,new ScaffoldListPlaceRenderer());
+  placePicker.setPlaces(getTopPlaces());
+  final ActivityManager<ScaffoldPlace> masterActivityManager=new ActivityManager<ScaffoldPlace>(new ScaffoldMasterActivities(new ListActivitiesMapper(eventBus,requestFactory,placeController)),eventBus);
+  masterActivityManager.setDisplay(new Activity.Display(){
+    public void showActivityWidget(    IsWidget widget){
+      shell.getMasterPanel().setWidget(widget == null ? null : widget.asWidget());
+    }
+  }
+);
+  final ActivityManager<ScaffoldPlace> detailsActivityManager=new ActivityManager<ScaffoldPlace>(new ScaffoldDetailsActivities(requestFactory,placeController),eventBus);
+  detailsActivityManager.setDisplay(new Activity.Display(){
+    public void showActivityWidget(    IsWidget widget){
+      shell.getDetailsPanel().setWidget(widget == null ? null : widget.asWidget());
+    }
+  }
+);
+  Element loading=Document.get().getElementById("loading");
+  loading.getParentElement().removeChild(loading);
+  RootLayoutPanel.get().add(shell);
+}

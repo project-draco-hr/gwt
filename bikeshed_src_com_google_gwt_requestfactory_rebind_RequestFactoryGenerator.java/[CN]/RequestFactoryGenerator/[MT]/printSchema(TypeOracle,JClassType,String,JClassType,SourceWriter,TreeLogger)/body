@@ -1,0 +1,55 @@
+{
+  sw.println(String.format("public static class MySchema extends RecordSchema<%s> {",recordImplTypeName));
+  sw.indent();
+  sw.println("private final Set<Property<?>> allProperties;");
+  sw.println("{");
+  sw.indent();
+  sw.println("Set<Property<?>> set = new HashSet<Property<?>>();");
+  sw.println("set.addAll(super.allProperties());");
+  JClassType propertyType;
+  try {
+    propertyType=typeOracle.getType(Property.class.getName());
+  }
+ catch (  NotFoundException e) {
+    throw new RuntimeException(e);
+  }
+  for (  JField field : publicRecordType.getFields()) {
+    if (propertyType.getErasedType() == field.getType().getErasedType()) {
+      sw.println(String.format("set.add(%s);",field.getName()));
+    }
+  }
+  sw.println("allProperties = Collections.unmodifiableSet(set);");
+  sw.outdent();
+  sw.println("}");
+  sw.println();
+  sw.println("public Set<Property<?>> allProperties() {");
+  sw.indent();
+  sw.println("return allProperties;");
+  sw.outdent();
+  sw.println("}");
+  sw.println();
+  sw.println("@Override");
+  sw.println(String.format("public %s create(RecordJsoImpl jso) {",recordImplTypeName));
+  sw.indent();
+  sw.println(String.format("return new %s(jso);",recordImplTypeName));
+  sw.outdent();
+  sw.println("}");
+  sw.println();
+  sw.println("@Override");
+  sw.println(String.format("public %s createChangeEvent(Record record, WriteOperation writeOperation) {",eventType.getName()));
+  sw.indent();
+  sw.println(String.format("return new %s((%s) record, writeOperation);",eventType.getName(),publicRecordType.getName()));
+  sw.outdent();
+  sw.println("}");
+  sw.println();
+  sw.println("public String getToken() {");
+  sw.indent();
+  String fieldName="TOKEN";
+  validateTokenField(publicRecordType,fieldName,typeOracle,logger);
+  sw.println("return " + publicRecordType.getName() + "."+ fieldName+ "; // special field");
+  sw.outdent();
+  sw.println("}");
+  sw.outdent();
+  sw.println("}");
+  return propertyType;
+}

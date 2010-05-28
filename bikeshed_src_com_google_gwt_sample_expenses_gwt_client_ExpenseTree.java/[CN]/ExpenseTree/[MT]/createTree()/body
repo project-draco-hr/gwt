@@ -1,0 +1,33 @@
+{
+  selectionModel.addSelectionChangeHandler(new SelectionChangeHandler(){
+    public void onSelectionChange(    SelectionChangeEvent event){
+      Object selected=selectionModel.getSelectedObject();
+      if (selected == null) {
+        lastEmployee=null;
+        lastDepartment=null;
+      }
+ else       if (selected instanceof EmployeeRecord) {
+        lastEmployee=(EmployeeRecord)selected;
+      }
+ else       if (selected instanceof String) {
+        lastEmployee=null;
+        lastDepartment=(String)selected;
+      }
+      if (listener != null) {
+        listener.onSelection(lastDepartment,lastEmployee);
+      }
+    }
+  }
+);
+  selectionModel.setKeyProvider(new ProvidesKey<Object>(){
+    public Object getKey(    Object item){
+      if (item instanceof EmployeeRecord) {
+        return Expenses.EMPLOYEE_RECORD_KEY_PROVIDER.getKey((EmployeeRecord)item);
+      }
+      return item;
+    }
+  }
+);
+  tree=new CellTree(new ExpensesTreeViewModel(),null);
+  tree.setAnimationEnabled(true);
+}

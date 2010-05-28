@@ -2,7 +2,7 @@
   ListViewAdapter<Message> adapter=new ListViewAdapter<Message>();
   messages=adapter.getList();
   addMessages(10);
-  table=new PagingTableListView<Message>(10);
+  table=new CellTable<Message>(10);
   table.setSelectionModel(selectionModel);
   adapter.addView(table);
   SelectionColumn<Message> selectedColumn=new SelectionColumn<Message>(selectionModel);
@@ -15,8 +15,8 @@
     }
   }
 ;
-  selectedHeader.setUpdater(new ValueUpdater<Boolean,Void>(){
-    public void update(    Boolean value,    Void viewData){
+  selectedHeader.setUpdater(new ValueUpdater<Boolean>(){
+    public void update(    Boolean value){
       if (value == true) {
         selectionModel.setType("ALL");
       }
@@ -27,7 +27,7 @@
   }
 );
   table.addColumn(selectedColumn,selectedHeader);
-  addColumn(table,"ID",TextCell.getInstance(),new GetValue<Message,String>(){
+  addColumn(table,"ID",new TextCell(),new GetValue<Message,String>(){
     public String getValue(    Message object){
       return "" + object.id;
     }
@@ -39,14 +39,14 @@
     }
   }
 );
-  Column<Message,Date,Void> dateColumn=addColumn(table,"Date",new DatePickerCell<Void>(),new GetValue<Message,Date>(){
+  Column<Message,Date> dateColumn=addColumn(table,"Date",new DatePickerCell(),new GetValue<Message,Date>(){
     public Date getValue(    Message object){
       return object.date;
     }
   }
 ,dateComparator);
-  dateColumn.setFieldUpdater(new FieldUpdater<Message,Date,Void>(){
-    public void update(    int index,    Message object,    Date value,    Void viewData){
+  dateColumn.setFieldUpdater(new FieldUpdater<Message,Date>(){
+    public void update(    int index,    Message object,    Date value){
       Window.alert("Changed date from " + object.date + " to "+ value);
       object.date=value;
       table.refresh();
@@ -65,14 +65,14 @@
     }
   }
 );
-  SimpleColumn<Message,String> toggleColumn=new SimpleColumn<Message,String>(ButtonCell.getInstance()){
+  Column<Message,String> toggleColumn=new Column<Message,String>(new ButtonCell()){
     @Override public String getValue(    Message object){
       return object.isRead ? "Mark Unread" : "Mark Read";
     }
   }
 ;
-  toggleColumn.setFieldUpdater(new FieldUpdater<Message,String,Void>(){
-    public void update(    int index,    Message object,    String value,    Void viewData){
+  toggleColumn.setFieldUpdater(new FieldUpdater<Message,String>(){
+    public void update(    int index,    Message object,    String value){
       object.isRead=!object.isRead;
       messages.set(index,object);
     }

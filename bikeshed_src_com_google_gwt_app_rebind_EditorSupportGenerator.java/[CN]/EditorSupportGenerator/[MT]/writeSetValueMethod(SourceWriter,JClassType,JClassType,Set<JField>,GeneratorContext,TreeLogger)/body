@@ -1,0 +1,46 @@
+{
+  JClassType hasTextType=generatorContext.getTypeOracle().findType(HasText.class.getName());
+  JClassType takesValueType=generatorContext.getTypeOracle().findType(HasValue.class.getName());
+  JClassType stringType=generatorContext.getTypeOracle().findType("java.lang.String");
+  sw.indent();
+  sw.println("public void setValue(" + viewType.getName() + " view, "+ recordType.getName()+ " record) {");
+  sw.indent();
+  for (  JField uiField : uiPropertyFields) {
+    JClassType classType=uiField.getType().isClassOrInterface();
+    if (classType == null) {
+      continue;
+    }
+    String propertyFunctionName=getPropertyFunctionName(uiField.getName(),logger);
+    JMethod propertyFunction=getPropertyFunction(recordType,propertyFunctionName);
+    if (propertyFunction == null) {
+      logger.log(TreeLogger.WARN,"Not generating setValue/setText call for field " + uiField);
+      continue;
+    }
+    JType paramTypes[]=new JType[1];
+    paramTypes[0]=propertyFunction.getReturnType();
+    JMethod setValueMethod=classType.findMethod("setValue",paramTypes);
+    String suffix="";
+    String functionName="";
+    if (setValueMethod != null) {
+      functionName="setValue";
+    }
+ else {
+      if (classType.isAssignableTo(takesValueType)) {
+        functionName="setValue";
+      }
+ else {
+        if (classType.isAssignableTo(hasTextType)) {
+          functionName="setText";
+        }
+ else {
+          functionName="setValue";
+        }
+      }
+      suffix=getSuffix(propertyFunction,stringType);
+    }
+    sw.println("view." + uiField.getName() + "."+ functionName+ "(record."+ propertyFunctionName+ "()"+ suffix+ ");");
+  }
+  sw.outdent();
+  sw.println("}");
+  sw.outdent();
+}

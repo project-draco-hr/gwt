@@ -1,0 +1,23 @@
+{
+  manager.setDisplay(realDisplay);
+  PlaceChangeRequestedEvent<MyPlace> event=new PlaceChangeRequestedEvent<MyPlace>(place1);
+  eventBus.fireEvent(event);
+  assertFalse(event.isRejected());
+  assertNull(realDisplay.widget);
+  assertFalse(activity1.stopped);
+  assertFalse(activity1.canceled);
+  eventBus.fireEvent(new PlaceChangeEvent<Place>(place1));
+  assertEquals(activity1.view,realDisplay.widget);
+  assertFalse(activity1.stopped);
+  assertFalse(activity1.canceled);
+  event=new PlaceChangeRequestedEvent<MyPlace>(place2);
+  eventBus.fireEvent(event);
+  assertFalse(event.isRejected());
+  assertEquals(activity1.view,realDisplay.widget);
+  assertFalse(activity1.stopped);
+  assertFalse(activity1.canceled);
+  eventBus.fireEvent(new PlaceChangeEvent<Place>(place2));
+  assertEquals(activity2.view,realDisplay.widget);
+  assertTrue(activity1.stopped);
+  assertFalse(activity1.canceled);
+}

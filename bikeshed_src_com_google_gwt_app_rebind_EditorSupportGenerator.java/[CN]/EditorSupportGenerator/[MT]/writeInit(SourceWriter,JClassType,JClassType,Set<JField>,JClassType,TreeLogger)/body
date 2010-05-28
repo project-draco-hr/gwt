@@ -1,0 +1,30 @@
+{
+  sw.indent();
+  sw.println("public void init(final " + viewType.getName() + " view) {");
+  sw.indent();
+  for (  JField uiField : uiPropertyFields) {
+    if (!generateChangeHandlers((JClassType)uiField.getType(),takesValueType)) {
+      continue;
+    }
+    sw.println("view." + uiField.getName() + ".addValueChangeHandler(new ValueChangeHandler<String>() {");
+    sw.indent();
+    sw.println("public void onValueChange(ValueChangeEvent<String> event) {");
+    sw.indent();
+    JField recordField=recordType.getField(uiField.getName());
+    if (recordField == null) {
+      logger.log(TreeLogger.DEBUG,"Unable to find field name " + uiField.getName() + " in "+ recordType.getQualifiedSourceName());
+      continue;
+    }
+    sw.println("view.getDeltaValueStore().set(" + recordType.getName() + "."+ recordField.getName()+ ", view.getValue(),");
+    sw.indent();
+    sw.println("event.getValue());");
+    sw.outdent();
+    sw.outdent();
+    sw.println("}");
+    sw.outdent();
+    sw.println("});");
+  }
+  sw.outdent();
+  sw.println("}");
+  sw.outdent();
+}

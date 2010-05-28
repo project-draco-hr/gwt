@@ -1,0 +1,61 @@
+{
+  CellTable<ExpenseRecord> view=new CellTable<ExpenseRecord>(15);
+  dateColumn=addColumn(view,"Date",new DateCell(),dateGetter);
+  lastComparator=dateColumn.getComparator(false);
+  addColumn(view,"Description",new GetValue<ExpenseRecord,String>(){
+    public String getValue(    ExpenseRecord object){
+      return object.getDescription();
+    }
+  }
+);
+  addColumn(view,"Category",new GetValue<ExpenseRecord,String>(){
+    public String getValue(    ExpenseRecord object){
+      return object.getCategory();
+    }
+  }
+);
+  addColumn(view,"Amount",new CurrencyCell(),new GetValue<ExpenseRecord,Integer>(){
+    public Integer getValue(    ExpenseRecord object){
+      return (int)(object.getAmount().doubleValue() * 100);
+    }
+  }
+);
+  final DenialPopup denialPopup=new DenialPopup();
+  denialPopup.addCloseHandler(new CloseHandler<PopupPanel>(){
+    public void onClose(    CloseEvent<PopupPanel> event){
+      String reasonDenied=denialPopup.getReasonDenied();
+      ExpenseRecord record=denialPopup.getExpenseRecord();
+      if (reasonDenied == null || reasonDenied.length() == 0) {
+        table.redraw();
+      }
+ else {
+        updateExpenseRecord(record,"Denied",reasonDenied);
+      }
+    }
+  }
+);
+  List<String> options=new ArrayList<String>();
+  options.add("");
+  options.add("Approved");
+  options.add("Denied");
+  SortableColumn<ExpenseRecord,String> approvalColumn=addColumn(view,"Approval Status",new ApprovalCell(options),new GetValue<ExpenseRecord,String>(){
+    public String getValue(    ExpenseRecord object){
+      return object.getApproval();
+    }
+  }
+);
+  approvalColumn.setFieldUpdater(new FieldUpdater<ExpenseRecord,String>(){
+    public void update(    int index,    final ExpenseRecord object,    String value){
+      if ("Denied".equals(value)) {
+        denialPopup.setExpenseRecord(object);
+        denialPopup.setReasonDenied(object.getReasonDenied());
+        denialPopup.popup();
+      }
+ else {
+        updateExpenseRecord(object,value,"");
+      }
+    }
+  }
+);
+  return view;
+}

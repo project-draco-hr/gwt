@@ -1,0 +1,33 @@
+{
+  table=new CellTable<ReportRecord>(50);
+  final SingleSelectionModel<ReportRecord> selectionModel=new SingleSelectionModel<ReportRecord>();
+  table.setSelectionModel(selectionModel);
+  table.setSelectionEnabled(true);
+  selectionModel.addSelectionChangeHandler(new SelectionChangeHandler(){
+    public void onSelectionChange(    SelectionChangeEvent event){
+      Object selected=selectionModel.getSelectedObject();
+      if (selected != null && listener != null) {
+        listener.onReportSelected((ReportRecord)selected);
+      }
+    }
+  }
+);
+  addColumn("Purpose",new HighlightCell(),new GetValue<ReportRecord,String>(){
+    public String getValue(    ReportRecord object){
+      return object.getPurpose();
+    }
+  }
+,ReportRecord.purpose);
+  addColumn("Notes",new HighlightCell(),new GetValue<ReportRecord,String>(){
+    public String getValue(    ReportRecord object){
+      return object.getNotes();
+    }
+  }
+,ReportRecord.notes);
+  addColumn("Created",new DateCell(),new GetValue<ReportRecord,Date>(){
+    public Date getValue(    ReportRecord object){
+      return object.getCreated();
+    }
+  }
+,ReportRecord.created);
+}

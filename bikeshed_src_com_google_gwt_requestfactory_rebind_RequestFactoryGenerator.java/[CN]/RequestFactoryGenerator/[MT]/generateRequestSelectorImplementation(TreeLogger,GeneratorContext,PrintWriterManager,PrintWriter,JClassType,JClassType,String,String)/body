@@ -1,15 +1,11 @@
 {
   logger=logger.branch(TreeLogger.DEBUG,String.format("Generating implementation of %s",interfaceType.getName()));
   ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(packageName,implName);
-  f.addImport(ClientRequestObject.class.getName());
-  f.addImport(AbstractListJsonRequestObject.class.getName());
+  f.addImport(ClientRequestHelper.class.getName());
   f.addImport(RequestDataManager.class.getName());
-  JClassType returnType=getReturnType(logger,interfaceType);
-  String returnImplTypeName=ensureRecordType(logger,generatorContext,printWriters,generatorContext.getTypeOracle(),returnType.getPackage().getName(),returnType);
   f.addImplementedInterface(interfaceType.getName());
   SourceWriter sw=f.createSourceWriter(generatorContext,out);
   sw.println();
-  printRequestImplClass(sw,returnType,returnImplTypeName);
   sw.println("private final " + mainType.getName() + "Impl factory;");
   sw.println();
   sw.println("public " + implName + "("+ mainType.getName()+ "Impl factory) {");
@@ -19,18 +15,42 @@
   sw.println("}");
   sw.println();
   for (  JMethod method : interfaceType.getMethods()) {
+    JClassType returnType=method.getReturnType().isParameterized().getTypeArgs()[0];
+    ensureRecordType(logger,generatorContext,printWriters,returnType.getPackage().getName(),returnType);
     ServerOperation annotation=method.getAnnotation(ServerOperation.class);
     if (annotation == null) {
       logger.log(TreeLogger.ERROR,"no annotation on the service method " + method);
       throw new UnableToCompleteException();
     }
+    JClassType requestType=method.getReturnType().isClassOrInterface();
+    String requestClassName=null;
+    TypeOracle typeOracle=generatorContext.getTypeOracle();
+    if (isRecordListRequest(typeOracle,requestType)) {
+      requestClassName=asInnerImplClass("ListRequestImpl",returnType);
+    }
+ else     if (isRecordRequest(typeOracle,requestType)) {
+      requestClassName=asInnerImplClass("ObjectRequestImpl",returnType);
+    }
+ else     if (isLongRequest(typeOracle,requestType)) {
+      requestClassName=AbstractLongRequest.class.getName();
+    }
+ else     if (isIntegerRequest(typeOracle,requestType)) {
+      requestClassName=AbstractIntegerRequest.class.getName();
+    }
+ else     if (isDoubleRequest(typeOracle,requestType)) {
+      requestClassName=AbstractDoubleRequest.class.getName();
+    }
+ else {
+      logger.log(TreeLogger.ERROR,"Return type " + requestType + " is not yet supported");
+      throw new UnableToCompleteException();
+    }
     sw.println(getMethodDeclaration(method) + " {");
     sw.indent();
-    sw.println("return new RequestImpl() {");
+    sw.println("return new " + requestClassName + "(factory) {");
     sw.indent();
     sw.println("public String getRequestData() {");
     sw.indent();
-    sw.println("return " + ClientRequestObject.class.getSimpleName() + ".getRequestString("+ RequestDataManager.class.getSimpleName()+ ".getRequestMap(\""+ annotation.value()+ "\", "+ getParametersAsString(method)+ ", null));");
+    sw.println("return " + ClientRequestHelper.class.getSimpleName() + ".getRequestString("+ RequestDataManager.class.getSimpleName()+ ".getRequestMap(\""+ annotation.value()+ "\", "+ getParametersAsString(method)+ ", null));");
     sw.outdent();
     sw.println("}");
     sw.outdent();

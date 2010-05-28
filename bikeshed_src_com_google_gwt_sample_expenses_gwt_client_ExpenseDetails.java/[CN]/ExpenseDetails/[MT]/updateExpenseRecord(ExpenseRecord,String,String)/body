@@ -1,0 +1,24 @@
+{
+  if (APPROVED.equals(approval) && !APPROVED.equals(record.getApproval())) {
+    double amount=record.getAmount();
+    if (amount + totalApproved > MAX_COST) {
+      showExpenseError(record,"The total approved amount for an Expense Report cannot exceed $" + MAX_COST);
+      table.redraw();
+      return;
+    }
+  }
+  DeltaValueStore deltas=expensesRequestFactory.getValueStore().spawnDeltaView();
+  deltas.set(ExpenseRecord.approval,record,approval);
+  deltas.set(ExpenseRecord.reasonDenied,record,reasonDenied);
+  expensesRequestFactory.syncRequest(deltas).to(new Receiver<Set<SyncResult>>(){
+    public void onSuccess(    Set<SyncResult> response){
+      for (      SyncResult result : response) {
+        if (result.hasViolations()) {
+          result.getViolations();
+        }
+      }
+      requestExpenses();
+    }
+  }
+).fire();
+}

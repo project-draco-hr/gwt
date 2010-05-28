@@ -1,0 +1,34 @@
+{
+  if (deltas.isChanged()) {
+    view.setEnabled(false);
+    final DeltaValueStore toCommit=deltas;
+    deltas=null;
+    Receiver<Set<SyncResult>> receiver=new Receiver<Set<SyncResult>>(){
+      public void onSuccess(      Set<SyncResult> response){
+        if (dead) {
+          return;
+        }
+        boolean hasViolations=false;
+        for (        SyncResult syncResult : response) {
+          if (syncResult.getRecord().getId().equals(id)) {
+            if (syncResult.hasViolations()) {
+              hasViolations=true;
+              view.showErrors(syncResult.getViolations());
+            }
+          }
+        }
+        if (!hasViolations) {
+          exit();
+        }
+ else {
+          deltas=toCommit;
+          deltas.clearUsed();
+          view.setEnabled(true);
+          deltas.clearUsed();
+        }
+      }
+    }
+;
+    requests.syncRequest(toCommit).to(receiver).fire();
+  }
+}

@@ -1,0 +1,22 @@
+{
+  TypeOracle typeOracle=generatorContext.getTypeOracle();
+  JClassType interfaceType=typeOracle.findType(interfaceName);
+  if (interfaceType == null) {
+    logger.log(TreeLogger.ERROR,"Could not find requested typeName: " + interfaceName);
+    throw new UnableToCompleteException();
+  }
+  if (interfaceType.isInterface() == null) {
+    logger.log(TreeLogger.ERROR,interfaceType.getQualifiedSourceName() + " is not an interface.",null);
+    throw new UnableToCompleteException();
+  }
+  SuperInterfaceType superinterfaceType=new SuperInterfaceType(interfaceType,logger);
+  String implName=getImplName(superinterfaceType);
+  String packageName=interfaceType.getPackage().getName();
+  PrintWriterManager printWriters=new PrintWriterManager(generatorContext,logger,packageName);
+  PrintWriter out=printWriters.tryToMakePrintWriterFor(implName);
+  if (out != null) {
+    generateOnce(logger,generatorContext,out,interfaceType,packageName,implName,superinterfaceType);
+    printWriters.commit();
+  }
+  return packageName + "." + implName;
+}

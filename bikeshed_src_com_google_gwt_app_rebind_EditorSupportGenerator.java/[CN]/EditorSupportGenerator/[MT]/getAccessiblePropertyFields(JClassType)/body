@@ -1,0 +1,32 @@
+{
+  boolean isInterface=false;
+  if (classType.isInterface() != null) {
+    isInterface=true;
+  }
+  Map<String,JField> fieldsByName=new HashMap<String,JField>();
+  LinkedList<JClassType> classesToBeProcessed=new LinkedList<JClassType>();
+  classesToBeProcessed.add(classType);
+  JClassType tempClassType=null;
+  while (classesToBeProcessed.peek() != null) {
+    tempClassType=classesToBeProcessed.remove();
+    JField declaredFields[]=tempClassType.getFields();
+    for (    JField field : declaredFields) {
+      if (field.isPrivate() || !(field.getType().getQualifiedSourceName().equals(Property.class.getName()))) {
+        continue;
+      }
+      JField existing=fieldsByName.put(field.getName(),field);
+      if (existing != null) {
+        if (existing.getEnclosingType().isAssignableTo(field.getEnclosingType())) {
+          fieldsByName.put(field.getName(),existing);
+        }
+      }
+    }
+    if (isInterface) {
+      classesToBeProcessed.addAll(Arrays.asList(tempClassType.getImplementedInterfaces()));
+    }
+ else {
+      classesToBeProcessed.add(tempClassType.getSuperclass());
+    }
+  }
+  return fieldsByName.keySet();
+}

@@ -1,33 +1,33 @@
 {
   final ListViewAdapter<String> adapter=new ListViewAdapter<String>();
-  final PagingTableListView<String> table=new PagingTableListView<String>(10);
+  final CellTable<String> table=new CellTable<String>(10);
   adapter.addView(table);
   for (int i=0; i < 25; ++i) {
     adapter.getList().add("" + i);
   }
   EditTextColumn column=new EditTextColumn();
-  Header<String> header=new Header<String>(TextCell.getInstance()){
+  Header<String> header=new Header<String>(new TextCell()){
     @Override public String getValue(){
       return "<b>item</b>";
     }
   }
 ;
   table.addColumn(column,header);
-  column.setFieldUpdater(new FieldUpdater<String,String,String>(){
-    public void update(    int index,    String object,    String value,    String viewData){
+  column.setFieldUpdater(new FieldUpdater<String,String>(){
+    public void update(    int index,    String object,    String value){
       adapter.getList().set(index,value);
     }
   }
 );
-  FlowPanel plusMinusPanel=new FlowPanel();
-  Button addBtn=new Button("+",new ClickHandler(){
+  SimplePager<String> pager=new SimplePager<String>(table);
+  Button addBtn=new Button("Add Data Row",new ClickHandler(){
     public void onClick(    ClickEvent event){
       List<String> list=adapter.getList();
       list.add("" + list.size());
     }
   }
 );
-  Button removeBtn=new Button("-",new ClickHandler(){
+  Button removeBtn=new Button("Remove Data Row",new ClickHandler(){
     public void onClick(    ClickEvent event){
       int size=adapter.getList().size();
       if (size > 0) {
@@ -36,26 +36,10 @@
     }
   }
 );
-  plusMinusPanel.add(addBtn);
-  plusMinusPanel.add(removeBtn);
-  FlowPanel nextPrevPanel=new FlowPanel();
-  Button prevBtn=new Button("<",new ClickHandler(){
-    public void onClick(    ClickEvent event){
-      table.setPageStart(table.getPageStart() - table.getPageSize());
-    }
-  }
-);
-  Button nextBtn=new Button(">",new ClickHandler(){
-    public void onClick(    ClickEvent event){
-      table.setPageStart(table.getPageStart() + table.getPageSize());
-    }
-  }
-);
-  nextPrevPanel.add(prevBtn);
-  nextPrevPanel.add(nextBtn);
   FlowPanel fp=new FlowPanel();
   fp.add(table);
-  fp.add(nextPrevPanel);
-  fp.add(plusMinusPanel);
+  fp.add(pager);
+  fp.add(addBtn);
+  fp.add(removeBtn);
   return fp;
 }

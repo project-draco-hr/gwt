@@ -7,7 +7,7 @@
     PrintWriter writer=response.getWriter();
     JSONObject topLevelJsonObject=new JSONObject(getContent(request));
     String operationName=topLevelJsonObject.getString(RequestDataManager.OPERATION_TOKEN);
-    if (operationName.equals(RequestFactory.UPDATE_STRING)) {
+    if (operationName.equals(RequestFactory.SYNC)) {
       sync(topLevelJsonObject.getString(RequestDataManager.CONTENT_TOKEN),writer);
     }
  else {
@@ -18,12 +18,21 @@
         throw new IllegalArgumentException("the " + domainMethod.getName() + " is not static");
       }
       Object args[]=RequestDataManager.getObjectsFromParameterMap(getParameterMap(topLevelJsonObject),domainMethod.getParameterTypes());
-      Object resultList=domainMethod.invoke(null,args);
-      if (!(resultList instanceof List<?>)) {
-        throw new IllegalArgumentException("return value not a list " + resultList);
+      Object result=domainMethod.invoke(null,args);
+      if ((result instanceof List<?>) != operation.isReturnTypeList()) {
+        throw new IllegalArgumentException(String.format("Type mismatch, expected %s%s, but %s returns %s",operation.isReturnTypeList() ? "list of " : "",operation.getReturnType(),domainMethod,domainMethod.getReturnType()));
       }
-      JSONArray jsonArray=getJsonArray((List<?>)resultList,operation.getReturnType());
-      writer.print(jsonArray.toString());
+      if (result instanceof List<?>) {
+        JSONArray jsonArray=getJsonArray((List<?>)result,(Class<? extends Record>)operation.getReturnType());
+        writer.print(jsonArray.toString());
+      }
+ else       if (result instanceof Number) {
+        writer.print(result.toString());
+      }
+ else {
+        JSONObject jsonObject=getJsonObject(result,(Class<? extends Record>)operation.getReturnType());
+        writer.print("(" + jsonObject.toString() + ")");
+      }
     }
     writer.flush();
   }

@@ -1,26 +1,23 @@
 {
   Activity nextActivity=mapper.getActivity(event.getNewPlace());
-  if (currentActivity != null) {
-    display.setWidget(null);
-    currentActivity.onStop();
+  if (currentActivity == nextActivity) {
+    return;
   }
   if (startingNext) {
     currentActivity.onCancel();
     currentActivity=null;
     startingNext=false;
   }
+ else   if (currentActivity != null) {
+    display.showActivityWidget(null);
+    currentActivity.onStop();
+  }
   if (nextActivity == null) {
-    display.setWidget(null);
+    display.showActivityWidget(null);
     currentActivity=null;
     return;
   }
   currentActivity=nextActivity;
   startingNext=true;
-  currentActivity.start(new Callback(){
-    public void onStarted(    Widget widget){
-      startingNext=false;
-      display.setWidget(widget);
-    }
-  }
-);
+  currentActivity.start(new ProtectedDisplay(currentActivity));
 }

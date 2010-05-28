@@ -1,0 +1,33 @@
+{
+  boolean isInterface=false;
+  if (classType.isInterface() != null) {
+    isInterface=true;
+  }
+  Map<String,JMethod> methodsBySignature=new HashMap<String,JMethod>();
+  LinkedList<JClassType> classesToBeProcessed=new LinkedList<JClassType>();
+  classesToBeProcessed.add(classType);
+  JClassType tempClassType=null;
+  while (classesToBeProcessed.peek() != null) {
+    tempClassType=classesToBeProcessed.remove();
+    JMethod declaredMethods[]=tempClassType.getMethods();
+    for (    JMethod method : declaredMethods) {
+      if (method.isPrivate()) {
+        continue;
+      }
+      String signature=method.getJsniSignature();
+      JMethod existing=methodsBySignature.put(signature,method);
+      if (existing != null) {
+        if (existing.getEnclosingType().isAssignableTo(method.getEnclosingType())) {
+          methodsBySignature.put(signature,existing);
+        }
+      }
+    }
+    if (isInterface) {
+      classesToBeProcessed.addAll(Arrays.asList(tempClassType.getImplementedInterfaces()));
+    }
+ else {
+      classesToBeProcessed.add(tempClassType.getSuperclass());
+    }
+  }
+  return methodsBySignature.values();
+}

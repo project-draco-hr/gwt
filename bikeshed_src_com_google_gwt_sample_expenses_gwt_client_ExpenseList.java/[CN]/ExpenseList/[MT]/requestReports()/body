@@ -1,0 +1,28 @@
+{
+  if (requestFactory == null) {
+    return;
+  }
+  String startsWith=searchBox.getText();
+  if (searchBox.getDefaultText().equals(startsWith)) {
+    startsWith="";
+  }
+  Range range=table.getRange();
+  Long employeeId=employee == null ? -1 : new Long(employee.getId());
+  if (startsWith.length() > 0) {
+    for (    SortableHeader header : allHeaders) {
+      header.setSorted(false);
+      header.setReverseSort(false);
+    }
+    table.refreshHeaders();
+  }
+  if (isCountStale) {
+    isCountStale=false;
+    requestFactory.reportRequest().countReportsBySearch(employeeId,startsWith).to(new Receiver<Long>(){
+      public void onSuccess(      Long response){
+        reports.updateDataSize(response.intValue(),true);
+      }
+    }
+).fire();
+  }
+  requestFactory.reportRequest().findReportEntriesBySearch(employeeId,startsWith,orderBy,range.getStart(),range.getLength()).forProperties(reportColumns).to(this).fire();
+}

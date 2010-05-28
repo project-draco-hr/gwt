@@ -1,0 +1,32 @@
+{
+  if (this.open == open) {
+    return;
+  }
+  this.animate=true;
+  this.open=open;
+  if (open) {
+    if (!nodeInfoLoaded) {
+      nodeInfoLoaded=true;
+      nodeInfo=tree.getTreeViewModel().getNodeInfo(value);
+    }
+    if (nodeInfo != null) {
+      ensureChildContainer();
+      showOrHide(showMoreElem,false);
+      showOrHide(emptyMessageElem,false);
+      if (!isRootNode()) {
+        setStyleName(getCellParent(),tree.getStyle().openItem(),true);
+      }
+      ensureAnimationFrame().getStyle().setProperty("display","");
+      updateImage(true);
+      onOpen(nodeInfo);
+    }
+  }
+ else {
+    if (!isRootNode()) {
+      setStyleName(getCellParent(),tree.getStyle().openItem(),false);
+    }
+    cleanup();
+    tree.maybeAnimateTreeNode(this);
+    updateImage(false);
+  }
+}
