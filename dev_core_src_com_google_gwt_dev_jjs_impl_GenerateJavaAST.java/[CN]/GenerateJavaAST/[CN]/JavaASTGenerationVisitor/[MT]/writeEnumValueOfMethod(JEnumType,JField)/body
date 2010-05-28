@@ -1,9 +1,26 @@
 {
-  SourceInfo sourceInfo=mapField.getSourceInfo().makeChild(JavaASTGenerationVisitor.class,"enum accessor method");
-  JFieldRef mapRef=new JFieldRef(sourceInfo,null,mapField,type);
-  JVariableRef nameRef=createVariableRef(sourceInfo,currentMethod.getParams().get(0));
-  JMethod delegateTo=program.getIndexedMethod("Enum.valueOf");
-  JMethodCall call=new JMethodCall(sourceInfo,null,delegateTo);
-  call.addArgs(mapRef,nameRef);
-  currentMethodBody.getBlock().addStmt(new JReturnStatement(sourceInfo,call));
+  JField mapField;
+{
+    SourceInfo sourceInfo=type.getSourceInfo().makeChild(JavaASTGenerationVisitor.class,"Enum$Map");
+    JClassType mapClass=program.createClass(sourceInfo,type.getName() + "$Map",false,true);
+    mapField=program.createField(sourceInfo,"$MAP",mapClass,program.getJavaScriptObject(),true,Disposition.FINAL);
+    JMethodCall call=new JMethodCall(sourceInfo,null,program.getIndexedMethod("Enum.createValueOfMap"));
+    call.addArg(new JFieldRef(sourceInfo,null,valuesField,type));
+    JFieldRef mapRef=new JFieldRef(sourceInfo,null,mapField,type);
+    JDeclarationStatement declStmt=new JDeclarationStatement(sourceInfo,mapRef,call);
+    JMethod clinit=program.createMethod(sourceInfo,"$clinit",mapClass,program.getTypeVoid(),false,true,true,true,false);
+    clinit.freezeParamTypes();
+    JBlock clinitBlock=((JMethodBody)clinit.getBody()).getBlock();
+    clinitBlock.addStmt(declStmt);
+    mapField.setInitializer(declStmt);
+  }
+{
+    SourceInfo sourceInfo=currentMethodBody.getSourceInfo();
+    JFieldRef mapRef=new JFieldRef(sourceInfo,null,mapField,type);
+    JVariableRef nameRef=createVariableRef(sourceInfo,currentMethod.getParams().get(0));
+    JMethod delegateTo=program.getIndexedMethod("Enum.valueOf");
+    JMethodCall call=new JMethodCall(sourceInfo,null,delegateTo);
+    call.addArgs(mapRef,nameRef);
+    currentMethodBody.getBlock().addStmt(new JReturnStatement(sourceInfo,call));
+  }
 }

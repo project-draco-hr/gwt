@@ -1,5 +1,5 @@
 {
-  JField mapField=createEnumValueMap(type);
+  JField valuesField=null;
   for (  JMethod method : type.getMethods()) {
     currentMethod=method;
     if ("values".equals(method.getName())) {
@@ -7,9 +7,14 @@
         continue;
       }
       currentMethodBody=(JMethodBody)method.getBody();
-      writeEnumValuesMethod(type);
+      valuesField=writeEnumValuesMethod(type);
     }
- else     if ("valueOf".equals(method.getName())) {
+    currentMethodBody=null;
+    currentMethod=null;
+  }
+  for (  JMethod method : type.getMethods()) {
+    currentMethod=method;
+    if ("valueOf".equals(method.getName())) {
       if (method.getParams().size() != 1) {
         continue;
       }
@@ -17,7 +22,7 @@
         continue;
       }
       currentMethodBody=(JMethodBody)method.getBody();
-      writeEnumValueOfMethod(type,mapField);
+      writeEnumValueOfMethod(type,valuesField);
     }
     currentMethodBody=null;
     currentMethod=null;
