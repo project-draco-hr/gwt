@@ -1,25 +1,2 @@
 {
-  JField valuesField;
-{
-    SourceInfo sourceInfo=type.getSourceInfo().makeChild(JavaASTGenerationVisitor.class,"$VALUES");
-    JArrayType enumArrayType=program.getTypeArray(type,1);
-    valuesField=program.createField(sourceInfo,"$VALUES",type,enumArrayType,true,Disposition.FINAL);
-    List<JExpression> initializers=new ArrayList<JExpression>();
-    for (    JEnumField field : type.getEnumList()) {
-      JFieldRef fieldRef=new JFieldRef(sourceInfo,null,field,type);
-      initializers.add(fieldRef);
-    }
-    JNewArray newExpr=JNewArray.createInitializers(program,sourceInfo,enumArrayType,initializers);
-    JFieldRef valuesRef=new JFieldRef(sourceInfo,null,valuesField,type);
-    JDeclarationStatement declStmt=new JDeclarationStatement(sourceInfo,valuesRef,newExpr);
-    JBlock clinitBlock=((JMethodBody)type.getMethods().get(0).getBody()).getBlock();
-    clinitBlock.addStmt(declStmt);
-    valuesField.setInitializer(declStmt);
-  }
-{
-    SourceInfo sourceInfo=currentMethod.getSourceInfo();
-    JFieldRef valuesRef=new JFieldRef(sourceInfo,null,valuesField,type);
-    currentMethodBody.getBlock().addStmt(new JReturnStatement(sourceInfo,valuesRef));
-  }
-  return valuesField;
 }
