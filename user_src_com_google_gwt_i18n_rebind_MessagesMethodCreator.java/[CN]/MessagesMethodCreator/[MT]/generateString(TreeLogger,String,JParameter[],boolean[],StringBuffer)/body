@@ -1,0 +1,39 @@
+{
+  StringGenerator buf=new StringGenerator(outputBuf);
+  try {
+    for (    TemplateChunk chunk : MessageFormatParser.parse(template)) {
+      if (chunk.isLiteral()) {
+        buf.appendStringLiteral(chunk.getString());
+      }
+ else       if (chunk instanceof ArgumentChunk) {
+        ArgumentChunk argChunk=(ArgumentChunk)chunk;
+        int argNumber=argChunk.getArgumentNumber();
+        if (argNumber >= params.length) {
+          throw error(logger,"Argument " + argNumber + " beyond range of arguments: "+ template);
+        }
+        seenFlag[argNumber]=true;
+        String arg="arg" + argNumber;
+        String format=argChunk.getFormat();
+        if (format != null) {
+          String subformat=argChunk.getSubFormat();
+          ValueFormatter formatter=formatters.get(format);
+          if (formatter != null) {
+            String err=formatter.format(buf,subformat,arg,params[argNumber].getType());
+            if (err != null) {
+              throw error(logger,err);
+            }
+            continue;
+          }
+        }
+        buf.appendExpression(arg,"java.lang.String".equals(params[argNumber].getType().getQualifiedSourceName()));
+      }
+ else {
+        throw error(logger,"Unexpected result from parsing template " + template);
+      }
+    }
+  }
+ catch (  ParseException e) {
+    throw error(logger,e);
+  }
+  buf.completeString();
+}
