@@ -1,0 +1,23 @@
+{
+  final Range range=listView.getRange();
+  final Receiver<List<R>> callback=new Receiver<List<R>>(){
+    public void onSuccess(    List<R> values){
+      if (view == null) {
+        return;
+      }
+      recordToRow.clear();
+      idToRecord.clear();
+      for (int i=0, row=range.getStart(); i < values.size(); i++, row++) {
+        R record=values.get(i);
+        recordToRow.put(record.getId(),row);
+        idToRecord.put(record.getId(),record);
+      }
+      getView().asPagingListView().setData(range.getStart(),range.getLength(),values);
+      if (display != null) {
+        display.showActivityWidget(getView());
+      }
+    }
+  }
+;
+  createRangeRequest(range).forProperties(getView().getProperties()).to(callback).fire();
+}

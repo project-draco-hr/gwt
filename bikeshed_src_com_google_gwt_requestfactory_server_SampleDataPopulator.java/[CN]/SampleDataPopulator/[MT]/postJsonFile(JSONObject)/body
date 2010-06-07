@@ -1,0 +1,16 @@
+{
+  PostMethod post=new PostMethod(url);
+  JSONObject request=new JSONObject();
+  request.put(RequestDataManager.OPERATION_TOKEN,RequestFactory.SYNC);
+  request.put(RequestDataManager.CONTENT_TOKEN,contentData);
+  post.setRequestBody(request.toString());
+  HttpClient client=new HttpClient();
+  int status=client.executeMethod(post);
+  JSONObject response=new JSONObject(post.getResponseBodyAsString());
+  JSONArray records=response.getJSONArray(WriteOperation.CREATE.name());
+  if (status == HttpStatus.SC_OK) {
+    System.out.println("SUCCESS: Put " + records.length() + " records in the datastore!");
+    return;
+  }
+  System.err.println("POST failed: Status line " + post.getStatusLine() + ", please check your URL");
+}

@@ -1,0 +1,26 @@
+{
+  super.onBrowserEvent(event);
+  Element target=event.getEventTarget().cast();
+  ArrayList<Element> chain=new ArrayList<Element>();
+  collectElementChain(chain,getElement(),target);
+  CellTreeNodeView<?> nodeView=findItemByChain(chain,0,rootNode);
+  if (nodeView != null && nodeView != rootNode) {
+    if ("click".equals(event.getType())) {
+      Element showMoreElem=nodeView.getShowMoreElement();
+      if (nodeView.getImageElement().isOrHasChild(target)) {
+        nodeView.setOpen(!nodeView.isOpen());
+        return;
+      }
+ else       if (showMoreElem != null && showMoreElem.isOrHasChild(target)) {
+        nodeView.showMore();
+        return;
+      }
+    }
+    if (nodeView.getCellParent().isOrHasChild(target)) {
+      boolean consumesEvent=nodeView.fireEventToCell(event);
+      if (!consumesEvent && "click".equals(event.getType())) {
+        nodeView.select();
+      }
+    }
+  }
+}

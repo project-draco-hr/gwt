@@ -1,11 +1,15 @@
 {
   ExpenseRecord newRecord=event.getRecord();
-  String id=newRecord.getId();
+  Object newKey=items.getKey(newRecord);
   int index=0;
   List<ExpenseRecord> list=items.getList();
   for (  ExpenseRecord r : list) {
-    if (r.getId().equals(id)) {
+    if (items.getKey(r).equals(newKey)) {
       list.set(index,newRecord);
+      ApprovalViewData avd=(ApprovalViewData)approvalColumn.getViewData(newKey);
+      if (avd != null && avd.getPendingApproval().equals(newRecord.getApproval())) {
+        syncCommit(newRecord,null);
+      }
     }
     index++;
   }

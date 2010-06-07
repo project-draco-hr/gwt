@@ -6,11 +6,12 @@
   }
  catch (  UnableToCompleteException e) {
     assertNotNull(logger.died);
+    assertTrue("Expect line number",logger.died.contains("Unknown:1"));
   }
   init("<doc><elm><child>Hi.</child></elm></doc>");
   assertEquals("Hi.",elm.consumeSingleChildElement().consumeUnescapedInnerText());
   logger.died=null;
-  init("<doc><elm id='elm'><child>Hi.</child><child>Ho.</child></elm></doc>");
+  init("<doc>\n\n<elm id='elm'><child>Hi.</child><child>Ho.</child></elm></doc>");
   assertNull(logger.died);
   try {
     elm.consumeSingleChildElement();
@@ -18,5 +19,6 @@
   }
  catch (  UnableToCompleteException e) {
     assertNotNull(logger.died);
+    assertTrue("Expect line number",logger.died.contains("Unknown:3"));
   }
 }

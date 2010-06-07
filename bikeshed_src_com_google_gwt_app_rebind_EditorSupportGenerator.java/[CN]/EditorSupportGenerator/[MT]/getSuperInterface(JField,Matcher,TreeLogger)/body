@@ -1,0 +1,25 @@
+{
+  JClassType classType=uiField.getType().isClass();
+  if (classType == null) {
+    logger.log(TreeLogger.ERROR,"The uiField " + uiField.getName() + " is not a class type");
+    throw new UnableToCompleteException();
+  }
+  LinkedList<JClassType> classesToBeProcessed=new LinkedList<JClassType>();
+  classesToBeProcessed.add(classType);
+  JClassType tempClassType=null;
+  while (classesToBeProcessed.peek() != null) {
+    tempClassType=classesToBeProcessed.remove();
+    if (matcher.matches(tempClassType)) {
+      return tempClassType;
+    }
+    JClassType superclassType=tempClassType.getSuperclass();
+    if (superclassType != null) {
+      classesToBeProcessed.add(tempClassType.getSuperclass());
+    }
+    JClassType interfaces[]=tempClassType.getImplementedInterfaces();
+    if (interfaces != null && interfaces.length > 0) {
+      classesToBeProcessed.addAll(Arrays.asList(tempClassType.getImplementedInterfaces()));
+    }
+  }
+  return null;
+}

@@ -1,28 +1,44 @@
 {
-  boolean isApproved=APPROVED.equals(value);
-  boolean isDenied=DENIED.equals(value);
-  sb.append("<select style='background-color:white;border:1px solid #707172;width:10em;'");
-  if (isApproved) {
-    sb.append(approvedClass);
+  boolean isRejected=false;
+  boolean isDisabled=false;
+  String pendingValue=null;
+  String renderValue=value;
+  if (viewData != null) {
+    ApprovalViewData avd=(ApprovalViewData)viewData;
+    if (!avd.getPendingApproval().equals(value)) {
+      isRejected=avd.isRejected();
+      pendingValue=avd.getPendingApproval();
+      if (!isRejected) {
+        renderValue=pendingValue;
+        isDisabled=true;
+      }
+    }
   }
- else   if (isDenied) {
-    sb.append(deniedClass);
-  }
- else {
-    sb.append(blankClass);
+  boolean isApproved=approvedText.equals(renderValue);
+  boolean isDenied=deniedText.equals(renderValue);
+  sb.append("<select style='background-color:white;");
+  sb.append("border:1px solid #707172;width:10em;margin-right:10px;'");
+  if (isDisabled) {
+    sb.append(" disabled='true'");
   }
   sb.append(">");
   sb.append("<option></option>");
   sb.append("<option");
-  sb.append(approvedClass);
   if (isApproved) {
     sb.append(" selected='selected'");
   }
-  sb.append(">").append(APPROVED).append("</option>");
+  sb.append(">").append(approvedText).append("</option>");
   sb.append("<option");
-  sb.append(deniedClass);
   if (isDenied) {
     sb.append(" selected='selected'");
   }
-  sb.append(">").append(DENIED).append("</option>");
+  sb.append(">").append(deniedText).append("</option>");
+  sb.append("</select>");
+  if (isRejected) {
+    sb.append(errorIconHtml);
+    sb.append("<a style='padding-left:3px;color:red;' href='javascript:;'>Error!</a>");
+  }
+ else   if (pendingValue != null) {
+    sb.append(pendingIconHtml);
+  }
 }

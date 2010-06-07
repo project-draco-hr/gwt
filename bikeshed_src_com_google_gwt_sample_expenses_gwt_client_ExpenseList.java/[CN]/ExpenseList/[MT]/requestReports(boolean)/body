@@ -1,0 +1,66 @@
+{
+  refreshTimer.cancel();
+  if (requestFactory == null) {
+    return;
+  }
+  if (!isPolling) {
+    knownReportKeys=null;
+  }
+  String startsWith=startsWithSearch;
+  if (startsWith == null || searchBox.getDefaultText().equals(startsWith)) {
+    startsWith="";
+  }
+  Range range=table.getRange();
+  Long employeeId=employee == null ? -1 : new Long(employee.getId());
+  String dept=department == null ? "" : department;
+  if (startsWith.length() > 0) {
+    for (    SortableHeader header : allHeaders) {
+      header.setSorted(false);
+      header.setReverseSort(false);
+    }
+    table.refreshHeaders();
+  }
+  if (isCountStale) {
+    isCountStale=false;
+    if (!isPolling) {
+      pager.startLoading();
+    }
+    lastDataSizeReceiver=new Receiver<Long>(){
+      public void onSuccess(      Long response){
+        if (this == lastDataSizeReceiver) {
+          int count=response.intValue();
+          reports.updateDataSize(count,count != 1000);
+        }
+      }
+    }
+;
+    requestFactory.reportRequest().countReportsBySearch(employeeId,dept,startsWith).to(lastDataSizeReceiver).fire();
+  }
+  lastDataReceiver=new Receiver<List<ReportRecord>>(){
+    public void onSuccess(    List<ReportRecord> newValues){
+      if (this == lastDataReceiver) {
+        int size=newValues.size();
+        if (size < table.getPageSize()) {
+          reports.updateDataSize(table.getPageStart() + size,true);
+        }
+        if (size > 0) {
+          reports.updateViewData(table.getPageStart(),size,newValues);
+        }
+        boolean isInitialData=knownReportKeys == null;
+        if (knownReportKeys == null) {
+          knownReportKeys=new HashSet<Object>();
+        }
+        for (        ReportRecord value : newValues) {
+          Object key=reports.getKey(value);
+          if (!isInitialData && !knownReportKeys.contains(key)) {
+            (new PhaseAnimation.CellTablePhaseAnimation<ReportRecord>(table,value,reports)).run();
+          }
+          knownReportKeys.add(key);
+        }
+      }
+      refreshTimer.schedule(REFRESH_INTERVAL);
+    }
+  }
+;
+  requestFactory.reportRequest().findReportEntriesBySearch(employeeId,dept,startsWith,orderBy,range.getStart(),range.getLength()).forProperties(reportColumns).to(lastDataReceiver).fire();
+}

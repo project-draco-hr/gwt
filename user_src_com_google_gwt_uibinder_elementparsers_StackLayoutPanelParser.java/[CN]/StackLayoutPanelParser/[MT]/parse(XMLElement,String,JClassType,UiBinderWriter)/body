@@ -4,14 +4,14 @@
   writer.setFieldInitializerAsConstructor(fieldName,writer.getOracle().findType(StackLayoutPanel.class.getName()),unit);
   for (  XMLElement stackElem : panelElem.consumeChildElements()) {
     if (!isElementType(panelElem,stackElem,STACK)) {
-      writer.die("In %s, only <%s:%s> children are allowed.",panelElem,panelElem.getPrefix(),STACK);
+      writer.die(stackElem,"Only <%s:%s> children are allowed.",panelElem.getPrefix(),STACK);
     }
     Children children=findChildren(stackElem,writer);
     if (children.body == null) {
-      writer.die("In %s, %s must have a child widget",panelElem,stackElem);
+      writer.die(stackElem,"Must have a child widget");
     }
     if (!writer.isWidgetElement(children.body)) {
-      writer.die("In %s, %s must be a widget",stackElem,children.body);
+      writer.die(children.body,"Must be a widget");
     }
     String childFieldName=writer.parseElementToField(children.body);
     if (children.header != null) {
@@ -24,13 +24,13 @@
       XMLElement headerElement=children.customHeader.consumeSingleChildElement();
       String size=children.customHeader.consumeRequiredDoubleAttribute("size");
       if (!writer.isWidgetElement(headerElement)) {
-        writer.die("In %s of %s, %s is not a widget",children.customHeader,stackElem,headerElement);
+        writer.die(headerElement,"Is not a widget");
       }
       String headerField=writer.parseElementToField(headerElement);
       writer.addStatement("%s.add(%s, %s, %s);",fieldName,childFieldName,headerField,size);
     }
  else {
-      writer.die("In %1$s, %2$s requires either a <%3$s:%4$s> or <%3$s:%5$s>",panelElem,stackElem,stackElem.getPrefix(),HEADER,CUSTOM);
+      writer.die(stackElem,"Requires either a <%1$s:%2$s> or <%1$s:%3$s>",stackElem.getPrefix(),HEADER,CUSTOM);
     }
   }
 }

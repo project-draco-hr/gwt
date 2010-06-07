@@ -1,0 +1,40 @@
+{
+  fetchedRequests++;
+  System.out.println("fetching " + this);
+  URL url=new URL(urlString);
+  HttpURLConnection connection=(HttpURLConnection)url.openConnection();
+  connection.setDoOutput(true);
+  connection.setRequestMethod("POST");
+  JSONObject jsonObject=new JSONObject();
+  try {
+    jsonObject.put("operation",operation);
+    int count=0;
+    for (    String param : parameters) {
+      jsonObject.put("param" + count,param);
+      count++;
+    }
+  }
+ catch (  JSONException ex) {
+    System.err.println("AppCacheWarmer ERROR: caught a JSON exception trying to construct a " + this + " request, quitting");
+    throw ex;
+  }
+  OutputStreamWriter writer=new OutputStreamWriter(connection.getOutputStream());
+  writer.write(jsonObject.toString());
+  writer.close();
+  if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+    BufferedReader reader=new BufferedReader(new InputStreamReader(connection.getInputStream()));
+    String responseString="";
+    String line=null;
+    while ((line=reader.readLine()) != null) {
+      responseString=responseString + line;
+    }
+    reader.close();
+    try {
+      Thread.currentThread().sleep(SLEEP_INTERVAL);
+    }
+ catch (    InterruptedException e) {
+    }
+    return responseString;
+  }
+  throw new IOException("AppCacheWarmer ERROR: returned " + connection.getResponseCode() + " from "+ this+ " request");
+}

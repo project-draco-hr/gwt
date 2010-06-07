@@ -1,0 +1,21 @@
+{
+  final com.google.gwt.user.client.Element parent=Document.get().createDivElement().cast();
+  parent.setInnerHTML(getExpectedInnerHtml());
+  Document.get().getBody().appendChild(parent);
+  List<HasCell<String,?>> cells=createHasCells(3);
+  final CompositeCell<String> cell=new CompositeCell<String>(cells);
+  MockCell<String> innerCell=(MockCell<String>)cells.get(1).getCell();
+  EventListener listener=new EventListener(){
+    public void onBrowserEvent(    Event event){
+      cell.onBrowserEvent(parent,"test",null,event,null);
+    }
+  }
+;
+  DOM.sinkEvents(parent,Event.ONCLICK);
+  DOM.setEventListener(parent,listener);
+  NativeEvent event=Document.get().createClickEvent(0,0,0,0,0,false,false,false,false);
+  Element.as(parent.getChild(1)).dispatchEvent(event);
+  innerCell.assertLastEventValue("test-1");
+  DOM.setEventListener(parent,null);
+  Document.get().getBody().removeChild(parent);
+}

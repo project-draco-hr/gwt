@@ -1,12 +1,14 @@
 {
+  this.listener=listener;
   this.requestFactory=requestFactory;
-  expenseAdapter=new ListViewAdapter<ExpenseRecord>();
-  expenseList=new CellList<ExpenseRecord>(new AbstractCell<ExpenseRecord>(){
-    @Override public void render(    ExpenseRecord value,    Object viewData,    StringBuilder sb){
-      sb.append("<div onclick='' class='item'>" + value.getDescription() + " "+ ExpensesMobile.formatCurrency(value.getAmount().intValue())+ "</div>");
+  expenseAdapter=new AsyncListViewAdapter<ExpenseRecord>(){
+    @Override protected void onRangeChanged(    ListView<ExpenseRecord> view){
+      requestExpenses();
     }
   }
-);
+;
+  expenseAdapter.setKeyProvider(Expenses.EXPENSE_RECORD_KEY_PROVIDER);
+  expenseList=new CellList<ExpenseRecord>(new ExpenseCell());
   expenseSelection=new SingleSelectionModel<ExpenseRecord>();
   expenseList.setSelectionModel(expenseSelection);
   expenseSelection.addSelectionChangeHandler(new SelectionModel.SelectionChangeHandler(){

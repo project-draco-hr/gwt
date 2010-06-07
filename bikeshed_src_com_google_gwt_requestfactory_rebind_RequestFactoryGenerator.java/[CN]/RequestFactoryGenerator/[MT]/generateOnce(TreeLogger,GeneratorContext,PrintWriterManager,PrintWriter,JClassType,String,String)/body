@@ -1,6 +1,7 @@
 {
   logger=logger.branch(TreeLogger.DEBUG,String.format("Generating implementation of %s",interfaceType.getName()));
   ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(packageName,implName);
+  f.addImport(HandlerManager.class.getName());
   f.addImport(RequestFactoryJsonImpl.class.getName());
   f.addImport(interfaceType.getQualifiedSourceName());
   f.addImplementedInterface(interfaceType.getName());
@@ -30,6 +31,13 @@
     sw.println("}");
     sw.println();
   }
+  JClassType recordToTypeInterface=generatorContext.getTypeOracle().findType(RecordToTypeMap.class.getName());
+  String recordToTypeMapName=recordToTypeInterface.getName() + "Impl";
+  sw.println("public void init(HandlerManager handlerManager) {");
+  sw.indent();
+  sw.println("super.init(handlerManager, new " + recordToTypeMapName + "());");
+  sw.outdent();
+  sw.println("}");
   sw.outdent();
   sw.println("}");
   for (  JClassType nestedInterface : requestSelectors) {
@@ -38,6 +46,10 @@
     if (pw != null) {
       generateRequestSelectorImplementation(logger,generatorContext,printWriters,pw,nestedInterface,interfaceType,packageName,nestedImplName);
     }
+  }
+  PrintWriter pw=printWriters.makePrintWriterFor(recordToTypeMapName);
+  if (pw != null) {
+    generateRecordToTypeMap(logger,generatorContext,pw,recordToTypeInterface,packageName,recordToTypeMapName);
   }
   printWriters.commit();
 }

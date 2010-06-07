@@ -3,8 +3,13 @@
   if (item != null) {
     if (fireCommand && item.getCommand() != null) {
       closeAllParents();
-      Command cmd=item.getCommand();
-      DeferredCommand.addCommand(cmd);
+      final Command cmd=item.getCommand();
+      Scheduler.get().scheduleFinally(new Scheduler.ScheduledCommand(){
+        public void execute(){
+          cmd.execute();
+        }
+      }
+);
       if (shownChildMenu != null) {
         shownChildMenu.onHide(focus);
         popup.hide();

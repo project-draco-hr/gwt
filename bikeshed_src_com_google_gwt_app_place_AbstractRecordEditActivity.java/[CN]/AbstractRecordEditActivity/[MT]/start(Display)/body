@@ -1,0 +1,21 @@
+{
+  this.display=display;
+  view.setDelegate(this);
+  view.setDeltaValueStore(deltas);
+  view.setCreating(creating);
+  if (creating) {
+    R tempRecord=(R)deltas.create(getRecordToken());
+    futureId=tempRecord.getId();
+    doStart(display,tempRecord);
+  }
+ else {
+    fireFindRequest(Value.of(id),new Receiver<R>(){
+      public void onSuccess(      R record){
+        if (AbstractRecordEditActivity.this.display != null) {
+          doStart(AbstractRecordEditActivity.this.display,record);
+        }
+      }
+    }
+);
+  }
+}

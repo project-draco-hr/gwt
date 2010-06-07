@@ -1,4 +1,5 @@
 {
+  final ExpensesTreeViewModel model=new ExpensesTreeViewModel();
   selectionModel.addSelectionChangeHandler(new SelectionChangeHandler(){
     public void onSelectionChange(    SelectionChangeEvent event){
       Object selected=selectionModel.getSelectedObject();
@@ -11,7 +12,12 @@
       }
  else       if (selected instanceof String) {
         lastEmployee=null;
-        lastDepartment=(String)selected;
+        if (model.isAllDepartment(selected)) {
+          lastDepartment=null;
+        }
+ else {
+          lastDepartment=(String)selected;
+        }
       }
       if (listener != null) {
         listener.onSelection(lastDepartment,lastEmployee);
@@ -28,6 +34,7 @@
     }
   }
 );
-  tree=new CellTree(new ExpensesTreeViewModel(),null);
+  CellTree.Resources resources=GWT.create(CellTree.CleanResources.class);
+  tree=new CellTree(model,null,resources);
   tree.setAnimationEnabled(true);
 }

@@ -1,5 +1,4 @@
 {
-  initDb();
   ensureConfig();
   RequestDefinition operation=null;
   try {
@@ -18,7 +17,7 @@
         throw new IllegalArgumentException("the " + domainMethod.getName() + " is not static");
       }
       Object args[]=RequestDataManager.getObjectsFromParameterMap(getParameterMap(topLevelJsonObject),domainMethod.getParameterTypes());
-      Object result=domainMethod.invoke(null,args);
+      Object result=invokeStaticDomainMethod(domainMethod,args);
       if ((result instanceof List<?>) != operation.isReturnTypeList()) {
         throw new IllegalArgumentException(String.format("Type mismatch, expected %s%s, but %s returns %s",operation.isReturnTypeList() ? "list of " : "",operation.getReturnType(),domainMethod,domainMethod.getReturnType()));
       }

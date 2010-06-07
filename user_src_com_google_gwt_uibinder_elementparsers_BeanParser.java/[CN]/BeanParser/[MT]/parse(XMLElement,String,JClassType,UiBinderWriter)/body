@@ -19,7 +19,7 @@
     JType paramType=unfilledRequiredParams.get(key);
     if (paramType != null) {
       if (!isString(writer,paramType)) {
-        writer.die("In %s, cannot apply message attribute to non-string " + "constructor argument %s %s.",elem,paramType.getSimpleSourceName(),key);
+        writer.die(elem,"In %s, cannot apply message attribute to non-string " + "constructor argument %s.",paramType.getSimpleSourceName(),key);
       }
       requiredValues.put(key,value);
       unfilledRequiredParams.remove(key);
@@ -28,7 +28,7 @@
       JMethod setter=ownerFieldClass.getSetter(key);
       JParameter[] params=setter == null ? null : setter.getParameters();
       if (setter == null || !(params.length == 1) || !isString(writer,params[0].getType())) {
-        writer.die("In %s, no method found to apply message attribute %s",elem,key);
+        writer.die(elem,"No method found to apply message attribute %s",key);
       }
  else {
         setterValues.put(key,value);
@@ -42,13 +42,13 @@
     }
     String propertyName=attribute.getLocalName();
     if (setterValues.keySet().contains(propertyName) || requiredValues.containsKey(propertyName)) {
-      writer.die("In %s, duplicate attribute name: %s",elem,propertyName);
+      writer.die(elem,"Duplicate attribute name: %s",propertyName);
     }
     if (unfilledRequiredParams.keySet().contains(propertyName)) {
       JType paramType=unfilledRequiredParams.get(propertyName);
       String value=elem.consumeAttributeWithDefault(attribute.getName(),null,paramType);
       if (value == null) {
-        writer.die("In %s, unable to parse %s as constructor argument " + "of type %s",elem,attribute,paramType.getSimpleSourceName());
+        writer.die(elem,"Unable to parse %s as constructor argument " + "of type %s",attribute,paramType.getSimpleSourceName());
       }
       requiredValues.put(propertyName,value);
       unfilledRequiredParams.remove(propertyName);
@@ -56,12 +56,12 @@
  else {
       JMethod setter=ownerFieldClass.getSetter(propertyName);
       if (setter == null) {
-        writer.die("In %s, class %s has no appropriate set%s() method",elem,elem.getLocalName(),initialCap(propertyName));
+        writer.die(elem,"Class %s has no appropriate set%s() method",elem.getLocalName(),initialCap(propertyName));
       }
       String n=attribute.getName();
       String value=elem.consumeAttributeWithDefault(n,null,getParamTypes(setter));
       if (value == null) {
-        writer.die("In %s, unable to parse %s.",elem,attribute);
+        writer.die(elem,"Unable to parse %s.",attribute);
       }
       setterValues.put(propertyName,value);
     }
@@ -71,7 +71,7 @@
     for (    String name : unfilledRequiredParams.keySet()) {
       b.append(" ").append(name);
     }
-    writer.die(b.toString());
+    writer.die(elem,b.toString());
   }
   if (creator != null) {
     String[] args=makeArgsList(requiredValues,creator);

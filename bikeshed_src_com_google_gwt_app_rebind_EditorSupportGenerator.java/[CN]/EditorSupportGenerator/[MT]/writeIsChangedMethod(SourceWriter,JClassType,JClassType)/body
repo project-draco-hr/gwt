@@ -1,0 +1,19 @@
+{
+  sw.indent();
+  sw.println("public boolean isChanged(" + viewType.getName() + " view) {");
+  sw.indent();
+  for (  Entry<JField,JClassType> uiFieldEntry : uiPropertyFields.entrySet()) {
+    JField property=recordType.getField(uiFieldEntry.getKey().getName());
+    if (property != null) {
+      String getter="getValue";
+      if (uiFieldEntry.getValue() == hasTextType) {
+        getter="getText";
+      }
+      sw.println(String.format("view.getDeltaValueStore().set(%s.%s, view.getValue(), view.%s.%s());",recordType.getName(),property.getName(),uiFieldEntry.getKey().getName(),getter));
+    }
+  }
+  sw.println("return view.getDeltaValueStore().isChanged();");
+  sw.outdent();
+  sw.println("}");
+  sw.outdent();
+}

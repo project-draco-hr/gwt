@@ -1,0 +1,30 @@
+{
+  this.listener=listener;
+  this.requestFactory=requestFactory;
+  this.employeeId=new Long(employeeId);
+  reportAdapter=new AsyncListViewAdapter<ReportRecord>(){
+    @Override protected void onRangeChanged(    ListView<ReportRecord> view){
+      requestReports();
+    }
+  }
+;
+  reportAdapter.setKeyProvider(Expenses.REPORT_RECORD_KEY_PROVIDER);
+  reportList=new CellList<ReportRecord>(new AbstractCell<ReportRecord>(){
+    @Override public void render(    ReportRecord value,    Object viewData,    StringBuilder sb){
+      sb.append("<div class='item'>" + value.getPurpose() + "</div>");
+    }
+  }
+);
+  reportSelection=new SingleSelectionModel<ReportRecord>();
+  reportSelection.setKeyProvider(Expenses.REPORT_RECORD_KEY_PROVIDER);
+  reportSelection.addSelectionChangeHandler(new SelectionModel.SelectionChangeHandler(){
+    public void onSelectionChange(    SelectionChangeEvent event){
+      listener.onReportSelected(reportSelection.getSelectedObject());
+    }
+  }
+);
+  reportList.setSelectionModel(reportSelection);
+  reportAdapter.addView(reportList);
+  initWidget(reportList);
+  onRefresh(false);
+}

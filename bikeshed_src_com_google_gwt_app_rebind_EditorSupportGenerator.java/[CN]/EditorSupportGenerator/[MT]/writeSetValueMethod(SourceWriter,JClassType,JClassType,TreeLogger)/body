@@ -1,0 +1,25 @@
+{
+  sw.indent();
+  sw.println("public void setValue(" + viewType.getName() + " view, "+ recordType.getName()+ " record) {");
+  sw.indent();
+  for (  Entry<JField,JClassType> uiFieldEntry : uiPropertyFields.entrySet()) {
+    String propertyFunctionName=getPropertyFunctionName(uiFieldEntry.getKey().getName(),logger);
+    JMethod propertyFunction=getPropertyFunction(recordType,propertyFunctionName);
+    if (propertyFunction == null) {
+      logger.log(TreeLogger.WARN,"Not generating setValue/setText for field " + uiFieldEntry.getKey().getName());
+      continue;
+    }
+    String functionName="setValue";
+    if (hasTextType == uiFieldEntry.getValue()) {
+      functionName="setText";
+    }
+    String suffix="";
+    if ("setText".equals(functionName)) {
+      suffix=getSuffix(propertyFunction);
+    }
+    sw.println("view." + uiFieldEntry.getKey().getName() + "."+ functionName+ "(record."+ propertyFunctionName+ "()"+ suffix+ ");");
+  }
+  sw.outdent();
+  sw.println("}");
+  sw.outdent();
+}

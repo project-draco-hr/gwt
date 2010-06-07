@@ -1,7 +1,18 @@
 {
+  long employeeId=1;
+  try {
+    String value=Window.Location.getParameter(EMPLOYEE_ID_PARAM);
+    if (value != null && value.length() > 0) {
+      employeeId=Long.parseLong(value);
+    }
+  }
+ catch (  NumberFormatException e) {
+    RootPanel.get().add(new Label("employeeId is invalid"));
+    return;
+  }
   final HandlerManager eventBus=new HandlerManager(null);
   final ExpensesRequestFactory requestFactory=GWT.create(ExpensesRequestFactory.class);
   requestFactory.init(eventBus);
-  final ExpensesMobileShell shell=new ExpensesMobileShell(requestFactory);
-  RootLayoutPanel.get().add(shell);
+  final ExpensesMobileShell shell=new ExpensesMobileShell(eventBus,requestFactory,employeeId);
+  RootPanel.get().add(shell);
 }

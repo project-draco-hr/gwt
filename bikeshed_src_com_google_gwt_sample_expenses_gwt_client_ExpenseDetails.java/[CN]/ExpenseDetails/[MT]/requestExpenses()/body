@@ -1,3 +1,30 @@
 {
-  expensesRequestFactory.expenseRequest().findExpensesByReport(report.getRef(Record.id)).forProperties(getExpenseColumns()).to(this).fire();
+  refreshTimer.cancel();
+  lastReceiver=new Receiver<List<ExpenseRecord>>(){
+    public void onSuccess(    List<ExpenseRecord> newValues){
+      if (this == lastReceiver) {
+        List<ExpenseRecord> list=new ArrayList<ExpenseRecord>(newValues);
+        sortExpenses(list,lastComparator);
+        items.setList(list);
+        refreshCost();
+        boolean isInitialData=knownExpenseKeys == null;
+        if (knownExpenseKeys == null) {
+          knownExpenseKeys=new HashMap<Object,ExpenseRecord>();
+        }
+        for (        ExpenseRecord value : newValues) {
+          Object key=items.getKey(value);
+          if (!isInitialData) {
+            ExpenseRecord existing=knownExpenseKeys.get(key);
+            if (existing == null || !value.getAmount().equals(existing.getAmount()) || !value.getDescription().equals(existing.getDescription()) || !value.getCategory().equals(existing.getCategory())) {
+              (new PhaseAnimation.CellTablePhaseAnimation<ExpenseRecord>(table,value,items)).run();
+            }
+          }
+          knownExpenseKeys.put(key,value);
+        }
+      }
+      refreshTimer.schedule(REFRESH_INTERVAL);
+    }
+  }
+;
+  expensesRequestFactory.expenseRequest().findExpensesByReport(report.getRef(Record.id)).forProperties(getExpenseColumns()).to(lastReceiver).fire();
 }

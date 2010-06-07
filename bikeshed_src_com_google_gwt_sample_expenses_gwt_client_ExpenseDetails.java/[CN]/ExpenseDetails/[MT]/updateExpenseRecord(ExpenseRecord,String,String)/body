@@ -1,9 +1,8 @@
 {
-  if (APPROVED.equals(approval) && !APPROVED.equals(record.getApproval())) {
+  if (Expenses.Approval.APPROVED.is(approval) && !Expenses.Approval.APPROVED.is(record.getApproval())) {
     double amount=record.getAmount();
     if (amount + totalApproved > MAX_COST) {
-      showExpenseError(record,"The total approved amount for an Expense Report cannot exceed $" + MAX_COST);
-      table.redraw();
+      syncCommit(record,"The total approved amount for an expense report cannot exceed $" + MAX_COST + ".");
       return;
     }
   }
@@ -12,12 +11,10 @@
   deltas.set(ExpenseRecord.reasonDenied,record,reasonDenied);
   expensesRequestFactory.syncRequest(deltas).to(new Receiver<Set<SyncResult>>(){
     public void onSuccess(    Set<SyncResult> response){
-      for (      SyncResult result : response) {
-        if (result.hasViolations()) {
-          result.getViolations();
-        }
+      String errorMessage=getErrorMessageFromSync(response);
+      if (errorMessage.length() > 0) {
+        syncCommit(record,errorMessage.length() > 0 ? errorMessage : null);
       }
-      requestExpenses();
     }
   }
 ).fire();

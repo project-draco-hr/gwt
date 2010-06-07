@@ -1,0 +1,20 @@
+{
+  final String pendingNotes=notesBox.getText();
+  if (pendingNotes.equals(report.getNotes())) {
+    setNotesEditState(false,false,pendingNotes);
+    return;
+  }
+  setNotesEditState(false,true,pendingNotes);
+  DeltaValueStore deltas=expensesRequestFactory.getValueStore().spawnDeltaView();
+  deltas.set(ReportRecord.notes,report,pendingNotes);
+  expensesRequestFactory.syncRequest(deltas).to(new Receiver<Set<SyncResult>>(){
+    public void onSuccess(    Set<SyncResult> response){
+      String errorMessage=getErrorMessageFromSync(response);
+      if (errorMessage.length() > 0) {
+        showErrorPopup(errorMessage);
+        setNotesEditState(false,false,report.getNotes());
+      }
+    }
+  }
+).fire();
+}

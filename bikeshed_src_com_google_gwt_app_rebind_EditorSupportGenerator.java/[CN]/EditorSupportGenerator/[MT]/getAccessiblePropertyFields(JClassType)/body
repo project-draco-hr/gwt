@@ -11,7 +11,12 @@
     tempClassType=classesToBeProcessed.remove();
     JField declaredFields[]=tempClassType.getFields();
     for (    JField field : declaredFields) {
-      if (field.isPrivate() || !(field.getType().getQualifiedSourceName().equals(Property.class.getName()))) {
+      JClassType fieldType=field.getType().isClass();
+      JParameterizedType parameterizedType=null;
+      if (fieldType != null) {
+        parameterizedType=fieldType.isParameterized();
+      }
+      if (field.isPrivate() || parameterizedType == null || !(parameterizedType.getBaseType().getQualifiedSourceName().equals(Property.class.getName()))) {
         continue;
       }
       JField existing=fieldsByName.put(field.getName(),field);
@@ -28,5 +33,5 @@
       classesToBeProcessed.add(tempClassType.getSuperclass());
     }
   }
-  return fieldsByName.keySet();
+  return fieldsByName;
 }

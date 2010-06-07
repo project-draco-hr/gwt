@@ -1,6 +1,14 @@
 {
   if (place instanceof ListScaffoldPlace) {
-    last=listActivities.getActivity((ListScaffoldPlace)place);
+    ListScaffoldPlace listPlace=(ListScaffoldPlace)place;
+    last=listActivities.getActivity(listPlace);
+    lastType=listPlace.getType();
+  }
+  if (last != null && place instanceof ScaffoldRecordPlace) {
+    Class<? extends Record> thisType=place.acceptFilter(new ScaffoldPlaceToRecordType());
+    if (lastType.equals(thisType)) {
+      last.select(((ScaffoldRecordPlace)place).getId());
+    }
   }
   return last;
 }

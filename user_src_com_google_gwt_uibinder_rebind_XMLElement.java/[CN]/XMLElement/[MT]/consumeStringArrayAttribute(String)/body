@@ -2,7 +2,13 @@
   AttributeParser parser=attributeParsers.get(getStringType());
   String[] strings=consumeRawArrayAttribute(name);
   for (int i=0; i < strings.length; i++) {
-    strings[i]=parser.parse(strings[i]);
+    try {
+      strings[i]=parser.parse(strings[i]);
+    }
+ catch (    UnableToCompleteException e) {
+      logger.die(this,"Cannot parse attribute " + name);
+      throw e;
+    }
   }
   return strings;
 }

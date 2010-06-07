@@ -1,17 +1,17 @@
 {
   int begin=0;
   int offset=0;
-  int last=val.length() - 1;
+  int last=val.length();
   String scaleString=null;
   StringBuilder unscaledBuffer;
   unscaledBuffer=new StringBuilder(val.length());
-  if ((offset <= last) && (val.charAt(offset) == '+')) {
+  if ((offset < last) && (val.charAt(offset) == '+')) {
     offset++;
     begin++;
   }
   int counter=0;
   boolean wasNonZero=false;
-  for (; (offset <= last) && (val.charAt(offset) != '.') && (val.charAt(offset) != 'e')&& (val.charAt(offset) != 'E'); offset++) {
+  for (; (offset < last) && (val.charAt(offset) != '.') && (val.charAt(offset) != 'e')&& (val.charAt(offset) != 'E'); offset++) {
     if (!wasNonZero) {
       if (val.charAt(offset) == '0') {
         counter++;
@@ -22,10 +22,10 @@
     }
   }
   unscaledBuffer.append(val,begin,offset);
-  if ((offset <= last) && (val.charAt(offset) == '.')) {
+  if ((offset < last) && (val.charAt(offset) == '.')) {
     offset++;
     begin=offset;
-    for (; (offset <= last) && (val.charAt(offset) != 'e') && (val.charAt(offset) != 'E'); offset++) {
+    for (; (offset < last) && (val.charAt(offset) != 'e') && (val.charAt(offset) != 'E'); offset++) {
       if (!wasNonZero) {
         if (val.charAt(offset) == '0') {
           counter++;
@@ -41,16 +41,16 @@
  else {
     scale=0;
   }
-  if ((offset <= last) && ((val.charAt(offset) == 'e') || (val.charAt(offset) == 'E'))) {
+  if ((offset < last) && ((val.charAt(offset) == 'e') || (val.charAt(offset) == 'E'))) {
     offset++;
     begin=offset;
-    if ((offset <= last) && (val.charAt(offset) == '+')) {
+    if ((offset < last) && (val.charAt(offset) == '+')) {
       offset++;
-      if ((offset <= last) && (val.charAt(offset) != '-')) {
+      if ((offset < last) && (val.charAt(offset) != '-')) {
         begin++;
       }
     }
-    scaleString=val.substring(begin,last + 1);
+    scaleString=val.substring(begin,last);
     scale=scale - Integer.parseInt(scaleString);
     if (scale != (int)scale) {
       throw new NumberFormatException("Scale out of range.");

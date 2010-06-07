@@ -2,10 +2,26 @@
   String type=event.getType();
   if ("change".equals(type)) {
     SelectElement select=parent.getFirstChild().cast();
-    select.setClassName(Styles.common().blankOption());
-    int index=select.getSelectedIndex();
-    viewData=select.getOptions().getItem(index).getValue();
     select.setDisabled(true);
+    if (viewData == null) {
+      Element tmpElem=Document.get().createDivElement();
+      tmpElem.setInnerHTML(pendingIconHtml);
+      parent.appendChild(tmpElem.getFirstChildElement());
+    }
+    int index=select.getSelectedIndex();
+    String pendingValue=select.getOptions().getItem(index).getValue();
+    viewData=new ApprovalViewData(pendingValue);
+  }
+ else   if ("click".equals(type) && viewData != null && parent.getChildCount() >= 3) {
+    Element img=parent.getChild(1).cast();
+    Element anchor=img.getNextSiblingElement();
+    if (anchor.isOrHasChild(Element.as(event.getEventTarget().cast()))) {
+      ApprovalViewData avd=(ApprovalViewData)viewData;
+      showErrorPopup(avd.getRejectionText());
+      viewData=null;
+      parent.removeChild(anchor);
+      parent.removeChild(img);
+    }
   }
   super.onBrowserEvent(parent,value,viewData,event,valueUpdater);
   return viewData;
