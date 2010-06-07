@@ -1,17 +1,32 @@
 {
   if (Double.isNaN(value)) {
-    return ZERO;
+    return Const.ZERO;
   }
   if (value < -TWO_PWR_63_DBL) {
-    return MIN_VALUE;
+    return Const.MIN_VALUE;
   }
   if (value >= TWO_PWR_63_DBL) {
-    return MAX_VALUE;
+    return Const.MAX_VALUE;
   }
-  if (value > 0) {
-    return create(Math.floor(value),0.0);
+  boolean negative=false;
+  if (value < 0) {
+    negative=true;
+    value=-value;
   }
- else {
-    return create(Math.ceil(value),0.0);
+  int a2=0;
+  if (value >= TWO_PWR_44_DBL) {
+    a2=(int)(value / TWO_PWR_44_DBL);
+    value-=a2 * TWO_PWR_44_DBL;
   }
+  int a1=0;
+  if (value >= TWO_PWR_22_DBL) {
+    a1=(int)(value / TWO_PWR_22_DBL);
+    value-=a1 * TWO_PWR_22_DBL;
+  }
+  int a0=(int)value;
+  LongEmul result=create(a0,a1,a2);
+  if (negative) {
+    negate(result);
+  }
+  return result;
 }

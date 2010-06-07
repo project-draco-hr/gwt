@@ -1,0 +1,25 @@
+{
+  n&=63;
+  int res0, res1, res2;
+  int a2=getH(a);
+  boolean negative=(a2 & SIGN_BIT_VALUE) != 0;
+  if (negative) {
+    a2|=~MASK_2;
+  }
+  if (n < BITS) {
+    res2=a2 >> n;
+    res1=(getM(a) >> n) | (a2 << (BITS - n));
+    res0=(getL(a) >> n) | (getM(a) << (BITS - n));
+  }
+ else   if (n < BITS01) {
+    res2=negative ? MASK_2 : 0;
+    res1=a2 >> (n - BITS);
+    res0=(getM(a) >> (n - BITS)) | (a2 << (BITS01 - n));
+  }
+ else {
+    res2=negative ? MASK_2 : 0;
+    res1=negative ? MASK : 0;
+    res0=a2 >> (n - BITS01);
+  }
+  return create(res0 & MASK,res1 & MASK,res2 & MASK_2);
+}
