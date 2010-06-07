@@ -13,11 +13,22 @@
   sinkEvents(Event.ONMOUSEDOWN | Event.ONCLICK | Event.KEYEVENTS);
   DOM.sinkEvents(focusable,Event.FOCUSEVENTS);
   root=new TreeItem(){
-    @Override public void addItem(    TreeItem item){
+    @Override public void insertItem(    int beforeIndex,    TreeItem item) throws IndexOutOfBoundsException {
+      int childCount=getChildCount();
+      if (beforeIndex < 0 || beforeIndex > childCount) {
+        throw new IndexOutOfBoundsException();
+      }
       if ((item.getParentItem() != null) || (item.getTree() != null)) {
         item.remove();
       }
-      DOM.appendChild(Tree.this.getElement(),item.getElement());
+      Element treeElem=Tree.this.getElement();
+      if (beforeIndex == childCount) {
+        treeElem.appendChild(item.getElement());
+      }
+ else {
+        Element beforeElem=getChild(beforeIndex).getElement();
+        treeElem.insertBefore(item.getElement(),beforeElem);
+      }
       item.setTree(this.getTree());
       item.setParentItem(null);
       getChildren().add(item);
