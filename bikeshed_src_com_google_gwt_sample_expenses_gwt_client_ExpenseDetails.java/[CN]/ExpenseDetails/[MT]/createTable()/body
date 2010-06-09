@@ -14,26 +14,42 @@
     }
   }
 );
-  createdColumn=addColumn(view,"Created",new DateCell(DateTimeFormat.getFormat("MMM dd yyyy")),createdGetter);
-  lastComparator=createdColumn.getComparator(false);
-  addColumn(view,"Description",new GetValue<ExpenseRecord,String>(){
+  GetValue<ExpenseRecord,Date> createdGetter=new GetValue<ExpenseRecord,Date>(){
+    public Date getValue(    ExpenseRecord object){
+      return object.getCreated();
+    }
+  }
+;
+  defaultComparator=createColumnComparator(createdGetter,false);
+  Comparator<ExpenseRecord> createdDesc=createColumnComparator(createdGetter,true);
+  addColumn(view,"Created",new DateCell(DateTimeFormat.getFormat("MMM dd yyyy")),createdGetter,defaultComparator,createdDesc);
+  lastComparator=defaultComparator;
+  addColumn(view,"Description",new TextCell(),new GetValue<ExpenseRecord,String>(){
     public String getValue(    ExpenseRecord object){
       return object.getDescription();
     }
   }
 );
-  addColumn(view,"Category",new GetValue<ExpenseRecord,String>(){
+  addColumn(view,"Category",new TextCell(),new GetValue<ExpenseRecord,String>(){
     public String getValue(    ExpenseRecord object){
       return object.getCategory();
     }
   }
 );
-  addColumn(view,"Amount",new CurrencyCell(),new GetValue<ExpenseRecord,Integer>(){
-    public Integer getValue(    ExpenseRecord object){
-      return (int)(object.getAmount().doubleValue() * 100);
+  final GetValue<ExpenseRecord,Double> amountGetter=new GetValue<ExpenseRecord,Double>(){
+    public Double getValue(    ExpenseRecord object){
+      return object.getAmount();
     }
   }
-);
+;
+  Comparator<ExpenseRecord> amountAsc=createColumnComparator(amountGetter,false);
+  Comparator<ExpenseRecord> amountDesc=createColumnComparator(amountGetter,true);
+  addColumn(view,"Amount",new NumberCell(NumberFormat.getCurrencyFormat()),new GetValue<ExpenseRecord,Number>(){
+    public Number getValue(    ExpenseRecord object){
+      return amountGetter.getValue(object);
+    }
+  }
+,amountAsc,amountDesc);
   final DenialPopup denialPopup=new DenialPopup();
   denialPopup.addCloseHandler(new CloseHandler<PopupPanel>(){
     public void onClose(    CloseEvent<PopupPanel> event){

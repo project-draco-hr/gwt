@@ -1,27 +1,3 @@
 {
-  final SortableColumn<ExpenseRecord,C> column=new SortableColumn<ExpenseRecord,C>(cell){
-    @Override public C getValue(    ExpenseRecord object){
-      return getter.getValue(object);
-    }
-  }
-;
-  final SortableHeader header=new SortableHeader(text);
-  allHeaders.add(header);
-  header.setUpdater(new ValueUpdater<String>(){
-    public void update(    String value){
-      header.setSorted(true);
-      header.toggleReverseSort();
-      for (      SortableHeader otherHeader : allHeaders) {
-        if (otherHeader != header) {
-          otherHeader.setSorted(false);
-          otherHeader.setReverseSort(true);
-        }
-      }
-      sortExpenses(items.getList(),column.getComparator(header.getReverseSort()));
-      table.refreshHeaders();
-    }
-  }
-);
-  table.addColumn(column,header);
-  return column;
+  return addColumn(table,text,cell,getter,createColumnComparator(getter,false),createColumnComparator(getter,true));
 }
