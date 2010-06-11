@@ -1,17 +1,31 @@
 {
-  Future<Response> responseFuture=serverRequestExecutor.submit(new Callable<Response>(){
-    public Response call() throws Exception {
-      Message.Builder messageBuilder=Message.newBuilder();
-      int messageId=nextMessageId.getAndIncrement();
-      messageBuilder.setMessageId(messageId);
-      messageBuilder.setMessageType(Message.MessageType.REQUEST);
-      messageBuilder.setRequest(requestMessage);
-      Message message=messageBuilder.build();
-      PendingRequest pendingRequest=new PendingRequest(message);
-      sendQueue.put(pendingRequest);
-      return pendingRequest.waitForResponse();
+  Message.Builder messageBuilder=Message.newBuilder();
+  int messageId=nextMessageId.getAndIncrement();
+  messageBuilder.setMessageId(messageId);
+  messageBuilder.setMessageType(Message.MessageType.REQUEST);
+  messageBuilder.setRequest(requestMessage);
+  Message message=messageBuilder.build();
+class FutureTaskExtension extends FutureTask<Response> {
+    private FutureTaskExtension(){
+      super(DUMMY_CALLABLE);
+    }
+    public void set(    Response v){
+      super.set(v);
+    }
+    public void setException(    Throwable t){
+      super.setException(t);
+    }
+  }
+  final FutureTaskExtension future=new FutureTaskExtension();
+  PendingRequest pendingRequest=new PendingRequest(message,new Callback<Response>(){
+    public void onDone(    Response result){
+      future.set(result);
+    }
+    public void onError(    Throwable t){
+      future.setException(t);
     }
   }
 );
-  return responseFuture;
+  sendQueue.add(pendingRequest);
+  return future;
 }
