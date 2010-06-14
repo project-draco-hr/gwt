@@ -2,12 +2,12 @@
   if (JavaScriptHost.class.getName().equals(className)) {
     return javaScriptHostBytes;
   }
-  if (classRewriter != null && classRewriter.isJsoIntf(className)) {
-    byte[] newBytes=classRewriter.writeJsoIntf(className);
+ else   if (className.endsWith(HostedModeClassRewriter.SINGLE_JSO_IMPL_ADJUNCT_SUFFIX)) {
+    byte[] bytes=classRewriter.writeSingleJsoImplAdjunct(className);
     if (CLASS_DUMP) {
-      classDump(className,newBytes);
+      classDump(className,bytes);
     }
-    return newBytes;
+    return bytes;
   }
   String lookupClassName=canonicalizeClassName(className);
   CompiledClass compiledClass=compilationState.getClassFileMap().get(lookupClassName);
@@ -42,7 +42,7 @@
     if (unit != null) {
       anonymousClassMap=unit.getAnonymousClassMap();
     }
-    byte[] newBytes=classRewriter.rewrite(typeOracle,className,classBytes,anonymousClassMap);
+    byte[] newBytes=classRewriter.rewrite(className,classBytes,anonymousClassMap);
     if (CLASS_DUMP) {
       if (!Arrays.equals(classBytes,newBytes)) {
         classDump(className,newBytes);

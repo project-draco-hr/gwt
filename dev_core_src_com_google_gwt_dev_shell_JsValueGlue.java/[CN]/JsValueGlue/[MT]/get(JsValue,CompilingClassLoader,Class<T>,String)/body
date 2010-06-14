@@ -56,7 +56,11 @@
     return type.cast(value.getString());
   }
   if (value.isJavaScriptObject()) {
-    return type.cast(createJavaScriptObject(value,cl));
+    Object jso=createJavaScriptObject(value,cl);
+    if (type != Object.class) {
+      jso=SingleJsoImplSupport.cast(jso,type);
+    }
+    return type.cast(jso);
   }
   throw new IllegalArgumentException(msgPrefix + ": JS value of type " + value.getTypeString()+ ", expected "+ TypeInfo.getSourceRepresentation(type));
 }

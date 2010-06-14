@@ -1,0 +1,22 @@
+{
+  if (EXTRA_DEBUG_DATA && !debugData.isEmpty()) {
+    Attribute attr=new Attribute("com.google.gwt.RewriteJsoCasts"){
+      @Override protected Label[] getLabels(){
+        return debugData.keySet().toArray(new Label[debugData.size()]);
+      }
+      @Override protected ByteVector write(      ClassWriter cw,      byte[] code,      int len,      int maxStack,      int maxLocals){
+        StringBuilder sb=new StringBuilder();
+        for (        Map.Entry<Label,String> entry : debugData.entrySet()) {
+          String line="Offset " + entry.getKey().getOffset() + " : "+ entry.getValue()+ "\n";
+          sb.append(line);
+        }
+        ByteVector toReturn=new ByteVector();
+        toReturn.putUTF8(sb.toString());
+        return toReturn;
+      }
+    }
+;
+    super.visitAttribute(attr);
+  }
+  super.visitEnd();
+}

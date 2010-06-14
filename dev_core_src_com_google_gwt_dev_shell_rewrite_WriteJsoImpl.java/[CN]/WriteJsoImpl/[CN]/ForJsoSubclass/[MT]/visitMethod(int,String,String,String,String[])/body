@@ -1,0 +1,24 @@
+{
+  boolean isCtor=isCtor(name);
+  if (isCtor) {
+    MethodVisitor mv=super.visitMethod(Opcodes.ACC_PROTECTED | Opcodes.ACC_SYNTHETIC,name,"(L" + JAVASCRIPTOBJECT_DESC + ";)V",null,null);
+    if (mv == null) {
+      return null;
+    }
+    Label start=new Label();
+    Label end=new Label();
+    mv.visitCode();
+    mv.visitLabel(start);
+    mv.visitVarInsn(Opcodes.ALOAD,0);
+    mv.visitVarInsn(Opcodes.ALOAD,1);
+    mv.visitMethodInsn(Opcodes.INVOKESPECIAL,superName,"<init>","(L" + JAVASCRIPTOBJECT_DESC + ";)V");
+    mv.visitInsn(Opcodes.RETURN);
+    mv.visitMaxs(2,2);
+    mv.visitLabel(end);
+    mv.visitLocalVariable("this","L" + typeName + ";",null,start,end,0);
+    mv.visitLocalVariable("jso","L" + JAVASCRIPTOBJECT_DESC + ";",null,start,end,1);
+    mv.visitEnd();
+    return null;
+  }
+  return super.visitMethod(access,name,desc,signature,exceptions);
+}

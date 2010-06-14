@@ -1,0 +1,31 @@
+{
+  Type parsed=Type.getObjectType(type);
+switch (opcode) {
+case Opcodes.CHECKCAST:
+    if (rewriterOracle.couldContainJso(type)) {
+      if (generateCast(type)) {
+        return;
+      }
+    }
+ else     if (parsed.getSort() == Type.ARRAY) {
+      Type t=upcastJsoType(parsed);
+      if (t != null) {
+        type=t.getInternalName();
+      }
+    }
+  break;
+case Opcodes.INSTANCEOF:
+{
+  if (rewriterOracle.isInterface(parsed.getInternalName()) && rewriterOracle.couldContainJso(parsed.getInternalName())) {
+    super.visitMethodInsn(Opcodes.INVOKESTATIC,type + SINGLE_JSO_IMPL_ADJUNCT_SUFFIX,SINGLE_JSO_IMPL_INSTANCEOF_METHOD,"(Ljava/lang/Object;)Z");
+    return;
+  }
+  Type t=upcastJsoType(parsed);
+  if (t != null) {
+    type=t.getInternalName();
+  }
+  break;
+}
+}
+super.visitTypeInsn(opcode,type);
+}
