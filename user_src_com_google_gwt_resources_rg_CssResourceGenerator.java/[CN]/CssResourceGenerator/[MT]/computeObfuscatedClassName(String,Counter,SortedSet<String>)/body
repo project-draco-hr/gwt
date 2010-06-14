@@ -1,0 +1,12 @@
+{
+  String obfuscatedClassName=classPrefix + makeIdent(classCounter.next());
+  String conflict=stringStartsWithAny(obfuscatedClassName,reservedPrefixes);
+  while (conflict != null) {
+    Adler32 hash=new Adler32();
+    hash.update(Util.getBytes(conflict));
+    String newPrefix=makeIdent(hash.getValue()).substring(0,conflict.length()) + RESERVED_IDENT_CHAR;
+    obfuscatedClassName=newPrefix + obfuscatedClassName.substring(conflict.length());
+    conflict=stringStartsWithAny(obfuscatedClassName,reservedPrefixes);
+  }
+  return obfuscatedClassName;
+}

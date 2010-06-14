@@ -10,7 +10,14 @@
     for (    JClassType type : cssResourceSubtypes) {
       checksum.update(Util.getBytes(type.getQualifiedSourceName()));
     }
-    classPrefix="G" + Long.toString(checksum.getValue(),Character.MAX_RADIX);
+    final int seed=Math.abs((int)checksum.getValue());
+    classPrefix="G" + computeObfuscatedClassName("",new Counter(){
+      @Override int next(){
+        return seed;
+      }
+    }
+,reservedPrefixes);
+    reservedPrefixes.clear();
   }
   return classPrefix;
 }
