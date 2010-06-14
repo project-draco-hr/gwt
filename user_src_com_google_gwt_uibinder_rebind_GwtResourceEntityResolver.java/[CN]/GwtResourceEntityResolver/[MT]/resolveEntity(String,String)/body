@@ -1,15 +1,19 @@
 {
   String matchingPrefix=findMatchingPrefix(systemId);
-  if (matchingPrefix == null) {
-    return null;
+  Resource resource=null;
+  Map<String,Resource> map=resourceOracle.getResourceMap();
+  if (matchingPrefix != null) {
+    resource=map.get(RESOURCES + systemId.substring(matchingPrefix.length()));
   }
-  String name=RESOURCES + systemId.substring(matchingPrefix.length());
-  InputStream resourceStream=resourceLoader.fetch(name);
-  if (resourceStream == null) {
-    return null;
+  if (resource == null) {
+    resource=map.get(pathBase + systemId);
   }
-  InputSource inputSource=new InputSource(resourceStream);
-  inputSource.setPublicId(publicId);
-  inputSource.setSystemId(systemId);
-  return inputSource;
+  if (resource != null) {
+    String content=Util.readStreamAsString(resource.openContents());
+    InputSource inputSource=new InputSource(new StringReader(content));
+    inputSource.setPublicId(publicId);
+    inputSource.setSystemId(resource.getPath());
+    return inputSource;
+  }
+  return null;
 }
