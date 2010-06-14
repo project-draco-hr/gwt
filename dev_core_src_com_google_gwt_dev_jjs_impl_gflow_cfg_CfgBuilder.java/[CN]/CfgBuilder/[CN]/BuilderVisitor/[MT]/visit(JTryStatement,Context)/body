@@ -1,22 +1,19 @@
 {
   pushNode(new CfgTryNode(parent,x));
   accept(x.getTryBlock());
-  List<Exit> tryBlockExits=currentExits;
-  currentExits=new ArrayList<Exit>();
+  List<Exit> tryBlockExits=removeCurrentExits();
   List<Integer> catchBlockPos=new ArrayList<Integer>();
   List<List<Exit>> catchExits=new ArrayList<List<Exit>>();
   for (  JBlock b : x.getCatchBlocks()) {
     catchBlockPos.add(nodes.size());
     accept(b);
-    catchExits.add(currentExits);
-    currentExits=new ArrayList<Exit>();
+    catchExits.add(removeCurrentExits());
   }
   int finallyPos=nodes.size();
   if (x.getFinallyBlock() != null) {
     accept(x.getFinallyBlock());
   }
-  List<Exit> finallyExits=currentExits;
-  currentExits=new ArrayList<Exit>();
+  List<Exit> finallyExits=removeCurrentExits();
   if (x.getFinallyBlock() == null) {
     addExits(removeNormalExits(tryBlockExits));
     nextExit:     for (    Exit e : tryBlockExits) {

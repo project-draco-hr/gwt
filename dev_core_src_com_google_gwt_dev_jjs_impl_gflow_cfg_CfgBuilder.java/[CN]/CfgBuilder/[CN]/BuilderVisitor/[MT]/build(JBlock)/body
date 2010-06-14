@@ -4,20 +4,25 @@
   accept(codeBlock);
   graph.addIn(nodes.get(0),methodIn);
   addNode(endNode);
-  for (  Exit exit : currentExits) {
-switch (exit.reason) {
+  for (  Exit.Reason reason : Exit.Reason.values()) {
+switch (reason) {
 case CONTINUE:
 case BREAK:
 case CASE_ELSE:
 case CASE_THEN:
-      throw new IllegalArgumentException("Unhandled exit: " + exit.reason);
+      if (!currentExitsByReason.get(reason).isEmpty()) {
+        throw new IllegalArgumentException("Unhandled exit: " + reason);
+      }
+    break;
 case NORMAL:
 case RETURN:
 case THROW:
 {
+    for (    Exit exit : currentExitsByReason.get(reason)) {
       addEdge(exit,endNode);
-      break;
     }
+    break;
+  }
 }
 }
 return graph;
