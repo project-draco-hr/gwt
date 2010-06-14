@@ -1,0 +1,146 @@
+{
+  System.out.println("Generating locale " + locale);
+  boolean addOverrides=true;
+  PrintWriter out=null;
+  try {
+    if (locale.isDefault()) {
+      String packageName="com.google.gwt.i18n.client";
+      String className="DefaultDateTimeFormatInfo";
+      out=createClassSource(packageName,className);
+      out.println("/**");
+      out.println(" * Default implementation of DateTimeFormatInfo interface, using values from");
+      out.println(" * the CLDR root locale.");
+      out.println(" * <p>");
+      out.println(" * Users who need to create their own DateTimeFormatInfo implementation are");
+      out.println(" * encouraged to extend this class so their implementation won't break when");
+      out.println(" * new methods are added.");
+      out.println(" */");
+      out.println("public class DefaultDateTimeFormatInfo implements DateTimeFormatInfo {");
+      addOverrides=false;
+    }
+ else {
+      String suffix;
+      if (parent.isDefault()) {
+        suffix="";
+      }
+ else {
+        suffix="_" + parent.getAsString();
+      }
+      String packageName="com.google.gwt.i18n.client.impl.cldr";
+      String className="DateTimeFormatInfoImpl_" + locale.getAsString();
+      out=createClassSource(packageName,className);
+      out.println("/**");
+      out.println(" * Implementation of DateTimeFormatInfo for locale \"" + locale + "\".");
+      out.println(" */");
+      out.println("public class " + className + " extends DateTimeFormatInfoImpl"+ suffix+ " {");
+    }
+    Set<String> keySet=values.keySet();
+    String[] keys=keySet.toArray(new String[keySet.size()]);
+    Arrays.sort(keys,new Comparator<String>(){
+      public int compare(      String a,      String b){
+        String mappedA=a;
+        String mappedB=b;
+        FieldMapping field=fieldMap.get(a);
+        if (field != null) {
+          mappedA=field.methodName;
+        }
+        field=fieldMap.get(b);
+        if (field != null) {
+          mappedB=field.methodName;
+        }
+        return mappedA.compareTo(mappedB);
+      }
+    }
+);
+    for (    String key : keys) {
+      String[] value=values.get(key);
+      FieldMapping mapping=fieldMap.get(key);
+      Class<?> type=value.length > 1 ? String[].class : String.class;
+      String related=null;
+      String name=key;
+      if (mapping != null) {
+        name=mapping.methodName;
+        type=mapping.type;
+        related=mapping.related;
+      }
+      String[] relatedValue=values.get(related);
+      String relayMethod=null;
+      if (Arrays.equals(value,relatedValue)) {
+        relayMethod=fieldMap.get(related).methodName;
+      }
+      out.println();
+      if (addOverrides) {
+        out.println("  @Override");
+      }
+      out.println("  public " + type.getSimpleName() + " "+ name+ "() {");
+      out.print("    return ");
+      if (relayMethod != null) {
+        out.println(relayMethod + "();");
+      }
+ else {
+        if (type.isArray()) {
+          out.println("new " + type.getSimpleName() + " { ");
+          out.print("        ");
+        }
+        boolean first=true;
+        for (        String oneValue : value) {
+          if (!first) {
+            out.println(",");
+            out.print("        ");
+          }
+          if (type == int.class || type == int[].class) {
+            out.print(Integer.valueOf(oneValue) - 1);
+          }
+ else {
+            out.print("\"" + quote(oneValue) + "\"");
+          }
+          first=false;
+        }
+        if (type.isArray()) {
+          out.println();
+          out.println("    };");
+        }
+ else {
+          out.println(";");
+        }
+      }
+      out.println("  }");
+    }
+    if (locale.isDefault()) {
+      out.println();
+      out.println("  public String dateFormat() {");
+      out.println("    return dateFormatMedium();");
+      out.println("  }");
+      out.println();
+      out.println("  public String dateTime(String timePattern, String datePattern) {");
+      out.println("    return datePattern + \" \" + timePattern;");
+      out.println("  }");
+      out.println();
+      out.println("  public String dateTimeFull(String timePattern, String datePattern) {");
+      out.println("    return dateTime(timePattern, datePattern);");
+      out.println("  }");
+      out.println();
+      out.println("  public String dateTimeLong(String timePattern, String datePattern) {");
+      out.println("    return dateTime(timePattern, datePattern);");
+      out.println("  }");
+      out.println();
+      out.println("  public String dateTimeMedium(String timePattern, String datePattern) {");
+      out.println("    return dateTime(timePattern, datePattern);");
+      out.println("  }");
+      out.println();
+      out.println("  public String dateTimeShort(String timePattern, String datePattern) {");
+      out.println("    return dateTime(timePattern, datePattern);");
+      out.println("  }");
+      out.println();
+      out.println("  public String timeFormat() {");
+      out.println("    return timeFormatMedium();");
+      out.println("  }");
+    }
+    out.println("}");
+  }
+  finally {
+    if (out != null) {
+      out.close();
+    }
+  }
+}
