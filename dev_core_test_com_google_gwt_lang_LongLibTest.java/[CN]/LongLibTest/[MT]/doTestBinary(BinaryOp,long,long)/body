@@ -1,0 +1,39 @@
+{
+  boolean refException=false;
+  long ref=-1;
+  try {
+    ref=op.ref(longVal0,longVal1);
+  }
+ catch (  ArithmeticException e) {
+    refException=true;
+  }
+  boolean testException=false;
+  long result=-2;
+  try {
+    LongEmul llongVal0=fromLong(longVal0);
+    LongEmul llongVal1=fromLong(longVal1);
+    LongEmul save_llongVal0=copy(llongVal0);
+    LongEmul save_llongVal1=copy(llongVal1);
+    result=toLong(op.test(llongVal0,llongVal1));
+    if (!LongLib.eq(llongVal0,save_llongVal0)) {
+      System.out.println("Test altered first argument");
+    }
+    if (!LongLib.eq(llongVal1,save_llongVal1)) {
+      System.out.println("Test altered second argument");
+    }
+  }
+ catch (  ArithmeticException e) {
+    testException=true;
+  }
+  if (testException && refException) {
+    return;
+  }
+  if (testException != refException) {
+    fail(op.getName() + ": longVal0 = " + longVal0+ ", longVal1 = "+ longVal1+ ", testException = "+ testException+ ", refException = "+ refException);
+    return;
+  }
+  if (ref != result) {
+    fail(op.getName() + ": longVal0 = " + longVal0+ ", longVal1 = "+ longVal1);
+    toLong(op.test(fromLong(longVal0),fromLong(longVal1)));
+  }
+}

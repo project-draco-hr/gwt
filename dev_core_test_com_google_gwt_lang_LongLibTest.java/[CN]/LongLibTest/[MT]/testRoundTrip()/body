@@ -1,0 +1,65 @@
+{
+  System.out.println("ROUND_TRIP");
+  for (int i=0; i < TEST_VALUES.length + RANDOM_TESTS; i++) {
+    long longVal0=(i < TEST_VALUES.length) ? TEST_VALUES[i] : rand.nextLong();
+    LongEmul longVal1=fromLong(longVal0);
+    long l2=toLong(longVal1);
+    if (longVal0 != l2) {
+      fail("longVal0 = " + longVal0 + ", l2 = "+ l2);
+    }
+    if (!toHex(longVal0).equals(toHex(longVal1))) {
+      fail("toHex(longVal0) = " + toHex(longVal0) + ", toHex(longVal1) = "+ toHex(longVal1));
+    }
+    if (!toHex(longVal0).equals(toHex(l2))) {
+      fail("toHex(longVal0) = " + toHex(longVal0) + ", toHex(l2) = "+ toHex(l2));
+    }
+    if (!LongLib.toString(longVal1).equals(Long.toString(longVal0))) {
+      fail("toString(longVal0) = " + Long.toString(longVal0) + ", toString(longVal1) = "+ LongLib.toString(longVal1));
+    }
+  }
+  for (int i=0; i < TEST_VALUES.length + RANDOM_TESTS; i++) {
+    double d0=(i < TEST_VALUES.length) ? TEST_VALUES[i] : (rand.nextDouble() - 0.5) * 3.0 * Long.MAX_VALUE;
+    long longVal0=(long)d0;
+    LongEmul longVal1=LongLib.fromDouble(d0);
+    long l2=toLong(longVal1);
+    if (longVal0 != l2) {
+      fail("d0 = " + d0 + ", longVal0 = "+ longVal0+ ", l2 = "+ l2);
+    }
+  }
+  for (int i=0; i < TEST_VALUES.length + RANDOM_TESTS; i++) {
+    long longVal0=i < TEST_VALUES.length ? TEST_VALUES[i] : rand.nextLong();
+    double d0=longVal0;
+    longVal0=(long)d0;
+    LongEmul longVal1=fromLong(longVal0);
+    double d1=LongLib.toDouble(longVal1);
+    LongEmul l2=LongLib.fromDouble(d1);
+    long l3=toLong(l2);
+    if (longVal0 != l3) {
+      fail("longVal0 = " + longVal0 + ", d1 = "+ d1+ ", l3 = "+ l3);
+    }
+  }
+  for (int i=0; i < TEST_VALUES.length + RANDOM_TESTS; i++) {
+    int i0=i < TEST_VALUES.length ? (int)TEST_VALUES[i] : rand.nextInt();
+    long longVal0=i0;
+    LongEmul longVal1=LongLib.fromInt(i0);
+    long l2=toLong(longVal1);
+    if (longVal0 != l2) {
+      fail("i0 = " + i0 + ", longVal0 = "+ longVal0+ ", l2 = "+ l2);
+    }
+  }
+  if (toLong(LongLib.fromDouble(Double.NaN)) != 0) {
+    fail("fromDouble(Nan) != 0");
+  }
+  if (toLong(LongLib.fromDouble(Double.NEGATIVE_INFINITY)) != Long.MIN_VALUE) {
+    fail("fromDouble(-Inf) != MIN_VALUE");
+  }
+  if (toLong(LongLib.fromDouble(Double.POSITIVE_INFINITY)) != Long.MAX_VALUE) {
+    fail("fromDouble(+Inf) != MAX_VALUE");
+  }
+  if (LongLib.toDouble(fromLong(Long.MIN_VALUE)) != -9223372036854775808.0) {
+    fail("toDouble(Long.MIN_VALUE) != -9223372036854775808.0");
+  }
+  if (LongLib.toDouble(fromLong(Long.MAX_VALUE)) != 9223372036854775807.0) {
+    fail("toDouble(Long.MAX_VALUE) != 9223372036854775807.0");
+  }
+}
