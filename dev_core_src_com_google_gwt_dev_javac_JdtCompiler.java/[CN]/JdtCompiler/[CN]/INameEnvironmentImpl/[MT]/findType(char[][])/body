@@ -8,6 +8,14 @@
   if (isPackage(binaryName)) {
     return null;
   }
+  if (additionalTypeProviderDelegate != null) {
+    GeneratedUnit unit=additionalTypeProviderDelegate.doFindAdditionalType(binaryName);
+    if (unit != null) {
+      CompilationUnitBuilder b=CompilationUnitBuilder.create(unit);
+      Adapter a=new Adapter(b);
+      return new NameEnvironmentAnswer(a,null);
+    }
+  }
   try {
     URL resource=getClassLoader().getResource(binaryName + ".class");
     if (resource != null) {
