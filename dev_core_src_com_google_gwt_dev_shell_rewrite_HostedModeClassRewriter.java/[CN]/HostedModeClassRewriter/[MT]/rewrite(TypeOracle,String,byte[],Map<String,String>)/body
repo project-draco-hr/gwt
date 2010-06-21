@@ -1,0 +1,17 @@
+{
+  String desc=toDescriptor(className);
+  assert(!jsoIntfDescs.contains(desc));
+  ClassWriter writer=new ClassWriter(0);
+  ClassVisitor v=writer;
+  v=new RewriteSingleJsoImplDispatches(v,typeOracle,jsoData);
+  v=new RewriteRefsToJsoClasses(v,jsoIntfDescs,mapper);
+  if (jsoImplDescs.contains(desc)) {
+    v=WriteJsoImpl.create(v,desc,jsoIntfDescs,mapper,jsoData);
+  }
+  v=new RewriteJsniMethods(v,anonymousClassMap);
+  if (Double.parseDouble(System.getProperty("java.class.version")) < Opcodes.V1_6) {
+    v=new ForceClassVersion15(v);
+  }
+  new ClassReader(classBytes).accept(v,0);
+  return writer.toByteArray();
+}

@@ -8,7 +8,25 @@
   ensureJavaScriptHostBytes(logger);
   JClassType jsoType=typeOracle.findType(JsValueGlue.JSO_CLASS);
   if (jsoType != null) {
-    classRewriter=new HostedModeClassRewriter(typeOracle);
+    Set<JClassType> jsoTypes=new HashSet<JClassType>();
+    JClassType[] jsoSubtypes=jsoType.getSubtypes();
+    Collections.addAll(jsoTypes,jsoSubtypes);
+    jsoTypes.add(jsoType);
+    Set<String> jsoTypeNames=new HashSet<String>();
+    Map<String,List<String>> jsoSuperTypes=new HashMap<String,List<String>>();
+    for (    JClassType type : jsoTypes) {
+      List<String> types=new ArrayList<String>();
+      types.add(getBinaryName(type.getSuperclass()));
+      for (      JClassType impl : type.getImplementedInterfaces()) {
+        types.add(getBinaryName(impl));
+      }
+      String binaryName=getBinaryName(type);
+      jsoTypeNames.add(binaryName);
+      jsoSuperTypes.put(binaryName,types);
+    }
+    SingleJsoImplData singleJsoImplData=new MySingleJsoImplData();
+    MyInstanceMethodOracle mapper=new MyInstanceMethodOracle(jsoTypes,typeOracle.getJavaLangObject(),singleJsoImplData);
+    classRewriter=new HostedModeClassRewriter(jsoTypeNames,jsoSuperTypes,singleJsoImplData,mapper);
   }
  else {
     classRewriter=null;

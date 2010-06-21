@@ -1,13 +1,17 @@
 {
   Throwable caught;
   try {
-    Class<?> jsoType=Class.forName(JSO_CLASS,true,classLoader);
     Object jso=classLoader.getCachedJso(value.getJavaScriptObjectPointer());
-    if (jso == null) {
-      Constructor<?> ctor=jsoType.getDeclaredConstructor(Object.class);
-      jso=ctor.newInstance(value);
-      classLoader.putCachedJso(value.getJavaScriptObjectPointer(),jso);
+    if (jso != null) {
+      return jso;
     }
+    Class<?> jsoType=Class.forName(JSO_IMPL_CLASS,true,classLoader);
+    Constructor<?> ctor=jsoType.getDeclaredConstructor();
+    ctor.setAccessible(true);
+    jso=ctor.newInstance();
+    Field referenceField=jsoType.getField(HOSTED_MODE_REFERENCE);
+    referenceField.set(jso,value);
+    classLoader.putCachedJso(value.getJavaScriptObjectPointer(),jso);
     return jso;
   }
  catch (  InstantiationException e) {
@@ -29,6 +33,9 @@ catch (  InvocationTargetException e) {
     caught=e;
   }
 catch (  ClassNotFoundException e) {
+    caught=e;
+  }
+catch (  NoSuchFieldException e) {
     caught=e;
   }
   throw new RuntimeException("Error creating JavaScript object",caught);
