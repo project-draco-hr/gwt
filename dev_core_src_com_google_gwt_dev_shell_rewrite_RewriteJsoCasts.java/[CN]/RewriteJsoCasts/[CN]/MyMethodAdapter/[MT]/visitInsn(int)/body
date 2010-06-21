@@ -1,0 +1,17 @@
+{
+  if (opcode == Opcodes.ARETURN && returnNeedsCanonical) {
+    generateCast(returnType.getInternalName());
+  }
+ else   if (opcode == Opcodes.AASTORE) {
+    Object topType=stack.get(stack.size() - 1);
+    if (topType instanceof String) {
+      String objectType=(String)topType;
+      String arrayType=(String)stack.get(stack.size() - 3);
+      Type t=Type.getObjectType(arrayType);
+      if (t.getDimensions() == 1 && rewriterOracle.jsoAssignmentRequiresCanonicalization(objectType)) {
+        generateCast(objectType);
+      }
+    }
+  }
+  super.visitInsn(opcode);
+}

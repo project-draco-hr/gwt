@@ -1,0 +1,39 @@
+{
+  Exception ex;
+  try {
+    Class singleJsoImplType=intfType.getClassLoader().loadClass("com.google.gwt.core.client.SingleJsoImpl");
+    Object annotation=intfType.getAnnotation(singleJsoImplType);
+    if (annotation != null) {
+      Method m=singleJsoImplType.getMethod("value");
+      Class<?> value=(Class<?>)m.invoke(annotation);
+      return value;
+    }
+    singleJsoImplType=intfType.getClassLoader().loadClass("com.google.gwt.core.client.SingleJsoImplName");
+    annotation=intfType.getAnnotation(singleJsoImplType);
+    if (annotation != null) {
+      Method m=singleJsoImplType.getMethod("value");
+      String name=(String)m.invoke(annotation);
+      return Class.forName(name,true,intfType.getClassLoader());
+    }
+    return null;
+  }
+ catch (  ClassNotFoundException e) {
+    ex=e;
+  }
+catch (  IllegalArgumentException e) {
+    ex=e;
+  }
+catch (  IllegalAccessException e) {
+    ex=e;
+  }
+catch (  InvocationTargetException e) {
+    ex=e;
+  }
+catch (  SecurityException e) {
+    ex=e;
+  }
+catch (  NoSuchMethodException e) {
+    ex=e;
+  }
+  throw new RuntimeException("Unable to determine SingleJsoImpl type",ex);
+}

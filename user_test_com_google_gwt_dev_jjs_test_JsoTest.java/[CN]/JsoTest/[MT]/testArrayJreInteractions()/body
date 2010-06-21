@@ -1,0 +1,33 @@
+{
+  JavaScriptObject obj=makeJSO();
+  Foo[] foo=new Foo[1];
+  foo[0]=(Foo)obj;
+  Bar[] bar=new Bar[1];
+  bar[0]=(Bar)obj;
+  assertSame(foo[0],bar[0]);
+  List<Foo> fooList=Arrays.asList(foo);
+  List<Bar> barList=Arrays.asList(bar);
+  assertSame(fooList.get(0),barList.get(0));
+  assertSame(fooList.iterator().next(),barList.iterator().next());
+  @SuppressWarnings("unchecked") List fooRawList=Arrays.asList(foo);
+  @SuppressWarnings("unchecked") List barRawList=Arrays.asList(bar);
+  assertSame(fooRawList.get(0),barRawList.get(0));
+  assertSame(fooRawList.iterator().next(),barRawList.iterator().next());
+  Object[] objectArray=fooList.toArray(new Object[0]);
+  assertSame(foo[0],objectArray[0]);
+  JavaScriptObject[] jsArray=fooList.toArray(new JavaScriptObject[0]);
+  assertSame(foo[0],jsArray[0]);
+  Foo[] fooArray=fooList.toArray(new Foo[0]);
+  assertSame(foo[0],fooArray[0]);
+  acceptsFooArray(fooArray,1);
+  Bar[] bar2=new Bar[1];
+  System.arraycopy(foo,0,bar2,0,1);
+  assertSame(foo[0],bar[0]);
+  try {
+    String[] bad=new String[1];
+    System.arraycopy(foo,0,bad,0,1);
+    fail("Should have thrown ArrayStoreException");
+  }
+ catch (  ArrayStoreException expected) {
+  }
+}
