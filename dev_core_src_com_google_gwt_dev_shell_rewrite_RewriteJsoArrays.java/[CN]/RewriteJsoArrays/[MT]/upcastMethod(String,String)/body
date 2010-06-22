@@ -1,0 +1,20 @@
+{
+  boolean didChange=false;
+  StringBuilder newName=new StringBuilder(name);
+  StringBuilder newDesc=new StringBuilder("(");
+  for (  Type arg : Type.getArgumentTypes(desc)) {
+    if (appendTypeMaybeUpcast(newDesc,arg)) {
+      didChange=true;
+      newName.append("_").append(InternalName.toIdentifier(arg.getElementType().getInternalName())).append("_").append(arg.getDimensions());
+    }
+  }
+  newDesc.append(")");
+  Type returnType=Type.getReturnType(desc);
+  if (appendTypeMaybeUpcast(newDesc,returnType)) {
+    didChange=true;
+  }
+  if (!didChange) {
+    return null;
+  }
+  return new Method(newName.toString(),newDesc.toString());
+}

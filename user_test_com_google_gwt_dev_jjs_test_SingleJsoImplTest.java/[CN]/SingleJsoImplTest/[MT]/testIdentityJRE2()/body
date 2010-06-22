@@ -1,0 +1,55 @@
+{
+  final JavaScriptObject jso=JavaScriptObject.createObject();
+  IdentityHashMap<Object,Boolean> map=new IdentityHashMap<Object,Boolean>();
+  map.putAll(new AbstractMap<JsoAdder,Boolean>(){
+    @Override public Set<Entry<JsoAdder,Boolean>> entrySet(){
+      Entry<JsoAdder,Boolean> entry=new Entry<JsoAdder,Boolean>(){
+        public JsoAdder getKey(){
+          return (JsoAdder)jso;
+        }
+        public Boolean getValue(){
+          return true;
+        }
+        public Boolean setValue(        Boolean value){
+          throw new RuntimeException("unimplemented");
+        }
+      }
+;
+      return Collections.singleton(entry);
+    }
+  }
+);
+  assertEquals(1,map.size());
+  assertNotNull(map.get(jso));
+  assertTrue(map.get(jso));
+  assertTrue(map.get((Adder)jso));
+  assertTrue(map.get(asAdder((Adder)jso)));
+  assertTrue(map.get((JsoAdder)jso));
+  assertTrue(map.get((JsoSimple)jso));
+  map.putAll(new AbstractMap<Adder,Boolean>(){
+    @Override public Set<Entry<Adder,Boolean>> entrySet(){
+      Entry<Adder,Boolean> entry=new Entry<Adder,Boolean>(){
+        public Adder getKey(){
+          return (Adder)jso;
+        }
+        public Boolean getValue(){
+          return false;
+        }
+        public Boolean setValue(        Boolean value){
+          throw new RuntimeException("unimplemented");
+        }
+      }
+;
+      return Collections.singleton(entry);
+    }
+  }
+);
+  assertEquals(1,map.size());
+  assertNotNull(map.get(jso));
+  assertFalse(map.get(jso));
+  assertNull(map.get(JavaScriptObject.createObject()));
+  map.put(JavaScriptObject.createObject(),true);
+  assertFalse(map.remove(jso));
+  assertEquals(1,map.size());
+  assertTrue(map.values().iterator().next());
+}

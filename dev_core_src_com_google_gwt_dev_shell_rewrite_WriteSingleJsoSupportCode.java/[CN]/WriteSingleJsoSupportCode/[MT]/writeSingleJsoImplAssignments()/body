@@ -1,0 +1,45 @@
+{
+  MethodVisitor mv=super.visitMethod(Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC,SINGLE_JSO_IMPL_ASSIGNMENT_METHOD,"()V",null,null);
+  if (mv == null) {
+    return;
+  }
+  int stack=0;
+  mv.visitCode();
+  mv.visitFrame(Opcodes.F_NEW,0,EMPTY_OBJECT_ARRAY,0,EMPTY_OBJECT_ARRAY);
+  for (  String intf : interfaces) {
+    mv.visitFieldInsn(Opcodes.GETSTATIC,intf + SINGLE_JSO_IMPL_ADJUNCT_SUFFIX,SINGLE_JSO_IMPL_FIELD,"Ljava/lang/Class;");
+    if (oracle.isTagInterface(intf)) {
+      Label noActionNeeded=new Label();
+      mv.visitJumpInsn(Opcodes.IFNONNULL,noActionNeeded);
+      mv.visitLdcInsn(Type.getObjectType(className));
+      mv.visitFieldInsn(Opcodes.PUTSTATIC,intf + SINGLE_JSO_IMPL_ADJUNCT_SUFFIX,SINGLE_JSO_IMPL_FIELD,"Ljava/lang/Class;");
+      mv.visitLabel(noActionNeeded);
+      mv.visitFrame(Opcodes.F_NEW,0,EMPTY_OBJECT_ARRAY,0,EMPTY_OBJECT_ARRAY);
+      stack=Math.max(stack,1);
+    }
+ else {
+      Label noPreviousClass=new Label();
+      Label noActionNeeded=new Label();
+      mv.visitJumpInsn(Opcodes.IFNULL,noPreviousClass);
+      mv.visitFieldInsn(Opcodes.GETSTATIC,intf + SINGLE_JSO_IMPL_ADJUNCT_SUFFIX,SINGLE_JSO_IMPL_FIELD,"Ljava/lang/Class;");
+      mv.visitLdcInsn(Type.getObjectType(className));
+      mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,"java/lang/Class","isAssignableFrom","(Ljava/lang/Class;)Z");
+      mv.visitJumpInsn(Opcodes.IFNE,noActionNeeded);
+      mv.visitTypeInsn(Opcodes.NEW,"java/lang/RuntimeException");
+      mv.visitInsn(Opcodes.DUP);
+      mv.visitLdcInsn("Multiple JavaScriptObject subclasses implement an " + "interface declared on this type");
+      mv.visitMethodInsn(Opcodes.INVOKESPECIAL,"java/lang/RuntimeException","<init>","(Ljava/lang/String;)V");
+      mv.visitInsn(Opcodes.ATHROW);
+      mv.visitLabel(noPreviousClass);
+      mv.visitFrame(Opcodes.F_NEW,0,EMPTY_OBJECT_ARRAY,0,EMPTY_OBJECT_ARRAY);
+      mv.visitLdcInsn(Type.getObjectType(className));
+      mv.visitFieldInsn(Opcodes.PUTSTATIC,intf + SINGLE_JSO_IMPL_ADJUNCT_SUFFIX,SINGLE_JSO_IMPL_FIELD,"Ljava/lang/Class;");
+      mv.visitLabel(noActionNeeded);
+      mv.visitFrame(Opcodes.F_NEW,0,EMPTY_OBJECT_ARRAY,0,EMPTY_OBJECT_ARRAY);
+      stack=Math.max(stack,3);
+    }
+  }
+  mv.visitInsn(Opcodes.RETURN);
+  mv.visitMaxs(stack,0);
+  mv.visitEnd();
+}

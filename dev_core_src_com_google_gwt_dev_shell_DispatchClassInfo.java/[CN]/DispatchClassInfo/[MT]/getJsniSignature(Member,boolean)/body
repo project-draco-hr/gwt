@@ -1,6 +1,21 @@
 {
   String name;
   Class<?>[] paramTypes;
+  if (member instanceof AccessibleObject) {
+    AccessibleObject accessibleObject=(AccessibleObject)member;
+    OriginalJsniSignature signature=accessibleObject.getAnnotation(OriginalJsniSignature.class);
+    if (signature != null) {
+      StringBuilder sb=new StringBuilder();
+      sb.append(signature.name());
+      if (wildcardParamList) {
+        sb.append("(*)");
+      }
+ else {
+        sb.append(signature.paramList());
+      }
+      return sb.toString();
+    }
+  }
   if (member instanceof Field) {
     return member.getName();
   }
@@ -18,7 +33,7 @@
  else {
     throw new RuntimeException("Unexpected member type " + member.getClass().getName());
   }
-  StringBuffer sb=new StringBuffer();
+  StringBuilder sb=new StringBuilder();
   sb.append(name);
   sb.append("(");
   if (wildcardParamList) {

@@ -1,0 +1,21 @@
+{
+  if (interfaces != null && "<clinit>".equals(name)) {
+    hasClinit=true;
+    MethodVisitor mv=super.visitMethod(access,name,desc,signature,exceptions);
+    if (mv == null) {
+      return null;
+    }
+    return new MethodAdapter(mv){
+      /** 
+ * Write the call to the assignment method as the first code in the
+ * static initializer.
+ */
+      @Override public void visitCode(){
+        super.visitCode();
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,className,SINGLE_JSO_IMPL_ASSIGNMENT_METHOD,"()V");
+      }
+    }
+;
+  }
+  return super.visitMethod(access,name,desc,signature,exceptions);
+}
