@@ -1,0 +1,18 @@
+{
+  Class<?> domainReturnType=getReturnTypeFromParameter(domainMethod,domainMethod.getGenericReturnType());
+  Class<?> requestReturnType=getReturnTypeFromParameter(requestMethod,requestMethod.getGenericReturnType());
+  if (Record.class.isAssignableFrom(requestReturnType)) {
+    DataTransferObject annotation=requestReturnType.getAnnotation(DataTransferObject.class);
+    if (annotation != null) {
+      Class<?> dtoClass=annotation.value();
+      if (!dtoClass.equals(domainReturnType)) {
+        throw new IllegalArgumentException("Type mismatch between " + domainMethod + " return type, and "+ requestReturnType+ "'s DataTransferObject annotation "+ dtoClass);
+      }
+    }
+ else {
+      throw new IllegalArgumentException("Missing DataTransferObject " + "annotation on record type " + requestReturnType);
+    }
+    return requestReturnType;
+  }
+  return requestReturnType;
+}

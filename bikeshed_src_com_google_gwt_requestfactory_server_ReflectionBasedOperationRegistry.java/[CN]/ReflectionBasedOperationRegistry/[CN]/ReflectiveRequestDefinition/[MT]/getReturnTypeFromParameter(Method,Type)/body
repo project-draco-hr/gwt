@@ -1,0 +1,20 @@
+{
+  if (type instanceof ParameterizedType) {
+    ParameterizedType pType=(ParameterizedType)type;
+    Class<?> rawType=(Class<?>)pType.getRawType();
+    if (List.class.isAssignableFrom(rawType) || RequestFactory.RequestObject.class.isAssignableFrom(rawType)) {
+      Class<?> rType=getTypeArgument(pType);
+      if (rType != null) {
+        if (List.class.isAssignableFrom(rType)) {
+          return getReturnTypeFromParameter(method,rType);
+        }
+        return rType;
+      }
+      throw new IllegalArgumentException("Bad or missing type arguments for " + "List return type on method " + method);
+    }
+  }
+ else {
+    return (Class<?>)type;
+  }
+  return null;
+}

@@ -1,0 +1,23 @@
+{
+  String decodedOperationName=securityProvider.mapOperation(operationName);
+  String parts[]=decodedOperationName.split(SCOPE_SEPARATOR);
+  final String reqClassName=parts[0];
+  final String domainMethodName=parts[1];
+  try {
+    Class<?> requestClass=Class.forName(reqClassName,false,this.getClass().getClassLoader());
+    securityProvider.checkClass(requestClass);
+    Service domainClassAnnotation=requestClass.getAnnotation(Service.class);
+    if (domainClassAnnotation != null) {
+      Class<?> domainClass=domainClassAnnotation.value();
+      Method requestMethod=findMethod(requestClass,domainMethodName);
+      Method domainMethod=findMethod(domainClass,domainMethodName);
+      if (requestMethod != null && domainMethod != null) {
+        return new ReflectiveRequestDefinition(requestClass,requestMethod,domainClass,domainMethod);
+      }
+    }
+    return null;
+  }
+ catch (  ClassNotFoundException e) {
+    throw new SecurityException("Access to non-existent class " + reqClassName);
+  }
+}

@@ -17,11 +17,7 @@
   for (  JMethod method : interfaceType.getMethods()) {
     JClassType returnType=method.getReturnType().isParameterized().getTypeArgs()[0];
     ensureRecordType(logger,generatorContext,returnType.getPackage().getName(),returnType);
-    ServerOperation annotation=method.getAnnotation(ServerOperation.class);
-    if (annotation == null) {
-      logger.log(TreeLogger.ERROR,"no annotation on the service method " + method);
-      throw new UnableToCompleteException();
-    }
+    String operationName=interfaceType.getQualifiedSourceName() + ReflectionBasedOperationRegistry.SCOPE_SEPARATOR + method.getName();
     JClassType requestType=method.getReturnType().isClassOrInterface();
     String requestClassName=null;
     TypeOracle typeOracle=generatorContext.getTypeOracle();
@@ -50,7 +46,7 @@
     sw.indent();
     sw.println("public String getRequestData() {");
     sw.indent();
-    sw.println("return " + ClientRequestHelper.class.getSimpleName() + ".getRequestString("+ RequestDataManager.class.getSimpleName()+ ".getRequestMap(\""+ annotation.value()+ "\", "+ getParametersAsString(method)+ ", null));");
+    sw.println("return " + ClientRequestHelper.class.getSimpleName() + ".getRequestString("+ RequestDataManager.class.getSimpleName()+ ".getRequestMap(\""+ operationName+ "\", "+ getParametersAsString(method)+ ", null));");
     sw.outdent();
     sw.println("}");
     sw.outdent();
