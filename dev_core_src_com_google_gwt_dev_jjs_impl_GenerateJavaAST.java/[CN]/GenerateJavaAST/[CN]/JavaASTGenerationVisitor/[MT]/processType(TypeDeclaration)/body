@@ -56,7 +56,7 @@
         }
       }
     }
-    if (currentClass instanceof JClassType && currentClass != program.getTypeJavaLangObject() && currentClass != program.getIndexedType("Array")) {
+    if (currentClass instanceof JClassType && currentClass != program.getTypeJavaLangObject()) {
       JMethod method=currentClass.getMethods().get(2);
       assert("getClass".equals(method.getName()));
       if (program.isJavaScriptObject(currentClass) && currentClass != program.getJavaScriptObject()) {
@@ -64,7 +64,13 @@
       }
  else {
         tryFindUpRefs(method);
-        implementMethod(method,program.getLiteralClass(currentClass));
+        if (currentClass == program.getIndexedType("Array")) {
+          SourceInfo info=method.getSourceInfo();
+          implementMethod(method,new JFieldRef(info,new JThisRef(info,program.getNonNullType(currentClass)),program.getIndexedField("Array.arrayClass"),currentClass));
+        }
+ else {
+          implementMethod(method,program.getLiteralClass(currentClass));
+        }
       }
     }
     if (currentClass == program.getIndexedType("GWT")) {
