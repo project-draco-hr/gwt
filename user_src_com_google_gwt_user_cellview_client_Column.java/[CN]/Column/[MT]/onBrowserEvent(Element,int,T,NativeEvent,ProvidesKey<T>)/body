@@ -1,12 +1,12 @@
 {
   Object key=getKey(object,providesKey);
   Object viewData=getViewData(key);
-  delayedValueUpdater.reset();
-  Object newViewData=cell.onBrowserEvent(elem,getValue(object),viewData,event,fieldUpdater == null ? null : delayedValueUpdater);
+  DelayedValueUpdater valueUpdater=(fieldUpdater == null) ? null : new DelayedValueUpdater(index,object);
+  Object newViewData=cell.onBrowserEvent(elem,getValue(object),viewData,event,valueUpdater);
   if (newViewData != viewData) {
     setViewData(key,newViewData);
   }
-  if (delayedValueUpdater.hasNewValue()) {
-    fieldUpdater.update(index,object,delayedValueUpdater.getNewValue());
+  if (valueUpdater != null) {
+    valueUpdater.flush();
   }
 }
