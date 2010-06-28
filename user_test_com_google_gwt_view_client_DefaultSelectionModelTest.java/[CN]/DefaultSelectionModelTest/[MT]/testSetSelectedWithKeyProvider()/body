@@ -1,0 +1,45 @@
+{
+  Map<Object,Boolean> exceptions=new HashMap<Object,Boolean>();
+  DefaultSelectionModel<String> model=createSelectionModel();
+  ProvidesKey<String> keyProvider=new ProvidesKey<String>(){
+    public Object getKey(    String item){
+      return item.toUpperCase();
+    }
+  }
+;
+  model.setKeyProvider(keyProvider);
+  assertFalse(model.isSelected("test"));
+  assertTrue(model.isSelected("selected0"));
+  assertFalse(model.isSelected("SELECTED0"));
+  assertTrue(model.isSelected("selected1"));
+  assertEquals(0,model.getExceptions(exceptions).size());
+  model.setSelected("selected0",true);
+  assertFalse(model.isSelected("test"));
+  assertTrue(model.isSelected("selected0"));
+  assertFalse(model.isSelected("SELECTED0"));
+  assertTrue(model.isSelected("selected1"));
+  assertEquals(0,model.getExceptions(exceptions).size());
+  model.setSelected("selected0",false);
+  assertFalse(model.isSelected("test"));
+  assertFalse(model.isSelected("selected0"));
+  assertFalse(model.isSelected("SELECTED0"));
+  assertTrue(model.isSelected("selected1"));
+  assertEquals(1,model.getExceptions(exceptions).size());
+  assertFalse(exceptions.get("SELECTED0"));
+  model.setSelected("selected0",true);
+  assertFalse(model.isSelected("test"));
+  assertTrue(model.isSelected("selected0"));
+  assertTrue(model.isSelected("selected1"));
+  assertEquals(0,model.getExceptions(exceptions).size());
+  model.setSelected("test",true);
+  assertTrue(model.isSelected("test"));
+  assertTrue(model.isSelected("selected0"));
+  assertTrue(model.isSelected("selected1"));
+  assertEquals(1,model.getExceptions(exceptions).size());
+  assertTrue(exceptions.get("TEST"));
+  model.setSelected("test",false);
+  assertFalse(model.isSelected("test"));
+  assertTrue(model.isSelected("selected0"));
+  assertTrue(model.isSelected("selected1"));
+  assertEquals(0,model.getExceptions(exceptions).size());
+}

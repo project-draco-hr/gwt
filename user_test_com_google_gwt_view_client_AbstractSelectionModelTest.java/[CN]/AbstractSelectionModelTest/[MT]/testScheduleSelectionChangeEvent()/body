@@ -1,0 +1,26 @@
+{
+  AbstractSelectionModel<String> model=createSelectionModel();
+  final MockSelectionChangeHandler handler=new MockSelectionChangeHandler(){
+    @Override public void onSelectionChange(    SelectionChangeEvent event){
+      assertEventFired(false);
+      super.onSelectionChange(event);
+    }
+  }
+;
+  model.addSelectionChangeHandler(handler);
+  delayTestFinish(2000);
+  model.scheduleSelectionChangeEvent();
+  model.scheduleSelectionChangeEvent();
+  model.scheduleSelectionChangeEvent();
+  model.scheduleSelectionChangeEvent();
+  model.scheduleSelectionChangeEvent();
+  model.scheduleSelectionChangeEvent();
+  handler.assertEventFired(false);
+  new Timer(){
+    @Override public void run(){
+      handler.assertEventFired(true);
+      finishTest();
+    }
+  }
+.schedule(1000);
+}
