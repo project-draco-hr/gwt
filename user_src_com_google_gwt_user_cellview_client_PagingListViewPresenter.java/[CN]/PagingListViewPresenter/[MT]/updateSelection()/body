@@ -1,0 +1,30 @@
+{
+  view.onUpdateSelection();
+  boolean dependsOnSelection=view.dependsOnSelection();
+  boolean refreshRequired=false;
+  ElementIterator children=view.getChildIterator();
+  int row=pageStart;
+  for (  T value : data) {
+    if (!children.hasNext()) {
+      break;
+    }
+    children.next();
+    boolean selected=selectionModel == null ? false : selectionModel.isSelected(value);
+    if (selected != selectedRows.contains(row)) {
+      refreshRequired=true;
+      if (selected) {
+        selectedRows.add(row);
+      }
+ else {
+        selectedRows.remove(row);
+      }
+      if (!dependsOnSelection) {
+        children.setSelected(selected);
+      }
+    }
+    row++;
+  }
+  if (refreshRequired && dependsOnSelection) {
+    redraw();
+  }
+}

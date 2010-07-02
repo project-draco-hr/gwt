@@ -1,0 +1,35 @@
+{
+  int len=values.size();
+  int end=start + len;
+  int childCount=nodeView.getChildCount();
+  ProvidesKey<C> providesKey=nodeInfo.getProvidesKey();
+  Element childElem=nodeView.ensureChildContainer().getFirstChildElement();
+  for (int i=start; i < end; i++) {
+    C childValue=values.get(i - start);
+    CellTreeNodeView<C> child=nodeView.createTreeNodeView(nodeInfo,childElem,childValue,null);
+    CellTreeNodeView<?> savedChild=savedViews.remove(providesKey.getKey(childValue));
+    if (savedChild != null) {
+      child.animationFrame=savedChild.animationFrame;
+      child.contentContainer=savedChild.contentContainer;
+      child.childContainer=savedChild.childContainer;
+      child.children=savedChild.children;
+      child.emptyMessageElem=savedChild.emptyMessageElem;
+      child.nodeInfo=savedChild.nodeInfo;
+      child.nodeInfoLoaded=savedChild.nodeInfoLoaded;
+      child.open=savedChild.open;
+      child.showMoreElem=savedChild.showMoreElem;
+      savedChild.listView.setNodeView(child);
+      child.getElement().appendChild(savedChild.ensureAnimationFrame());
+    }
+    if (childCount > i) {
+      if (savedChild == null) {
+        nodeView.children.get(i).cleanup();
+      }
+      nodeView.children.set(i,child);
+    }
+ else {
+      nodeView.children.add(child);
+    }
+    childElem=childElem.getNextSiblingElement();
+  }
+}

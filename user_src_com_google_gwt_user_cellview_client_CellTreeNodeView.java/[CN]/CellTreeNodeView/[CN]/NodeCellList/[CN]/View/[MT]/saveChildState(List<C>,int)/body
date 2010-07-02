@@ -1,0 +1,26 @@
+{
+  if (nodeView.children == null) {
+    nodeView.children=new ArrayList<CellTreeNodeView<?>>();
+  }
+  int len=values.size();
+  int end=start + len;
+  int childCount=nodeView.getChildCount();
+  Map<Object,CellTreeNodeView<?>> openNodes=new HashMap<Object,CellTreeNodeView<?>>();
+  for (int i=start; i < end && i < childCount; i++) {
+    CellTreeNodeView<?> child=nodeView.getChildNode(i);
+    if (child.isOpen()) {
+      openNodes.put(child.getValueKey(),child);
+    }
+  }
+  ProvidesKey<C> providesKey=nodeInfo.getProvidesKey();
+  Map<Object,CellTreeNodeView<?>> savedViews=new HashMap<Object,CellTreeNodeView<?>>();
+  for (  C childValue : values) {
+    Object key=providesKey.getKey(childValue);
+    CellTreeNodeView<?> savedView=openNodes.remove(key);
+    if (savedView != null) {
+      savedView.ensureAnimationFrame().removeFromParent();
+      savedViews.put(key,savedView);
+    }
+  }
+  return savedViews;
+}

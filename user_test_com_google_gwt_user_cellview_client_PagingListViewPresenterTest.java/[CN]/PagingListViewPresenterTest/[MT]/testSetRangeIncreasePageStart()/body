@@ -1,0 +1,22 @@
+{
+  PagingListView<String> listView=new MockPagingListView<String>();
+  MockView<String> view=new MockView<String>();
+  PagingListViewPresenter<String> presenter=new PagingListViewPresenter<String>(listView,view,10);
+  presenter.setRange(0,20);
+  assertEquals(new Range(0,20),presenter.getRange());
+  presenter.setData(0,10,createData(0,10));
+  assertEquals(10,presenter.getData().size());
+  assertEquals("test 0",presenter.getData().get(0));
+  view.assertReplaceAllChildrenCalled(true);
+  view.assertReplaceChildrenCalled(false);
+  view.assertLastHtml("start=0,size=10");
+  view.assertLoadingState(LoadingState.PARTIALLY_LOADED);
+  presenter.setRange(2,20);
+  assertEquals(new Range(2,20),presenter.getRange());
+  assertEquals(8,presenter.getData().size());
+  assertEquals("test 2",presenter.getData().get(0));
+  view.assertReplaceAllChildrenCalled(true);
+  view.assertReplaceChildrenCalled(false);
+  view.assertLastHtml("start=2,size=8");
+  view.assertLoadingState(LoadingState.PARTIALLY_LOADED);
+}

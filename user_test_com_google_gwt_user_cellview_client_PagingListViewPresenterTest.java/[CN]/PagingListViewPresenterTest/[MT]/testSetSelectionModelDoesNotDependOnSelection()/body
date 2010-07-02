@@ -1,0 +1,31 @@
+{
+  PagingListView<String> listView=new MockPagingListView<String>();
+  MockView<String> view=new MockView<String>();
+  PagingListViewPresenter<String> presenter=new PagingListViewPresenter<String>(listView,view,10);
+  assertNull(presenter.getSelectionModel());
+  presenter.setRange(0,10);
+  presenter.setData(0,10,createData(0,10));
+  view.assertReplaceAllChildrenCalled(true);
+  view.assertReplaceChildrenCalled(false);
+  view.assertLastHtml("start=0,size=10");
+  SelectionModel<String> model=new MockSelectionModel<String>();
+  model.setSelected("test 0",true);
+  presenter.setSelectionModel(model);
+  view.assertReplaceAllChildrenCalled(false);
+  view.assertReplaceChildrenCalled(false);
+  view.assertLastHtml(null);
+  view.assertOnUpdateSelectionFired(true);
+  view.assertSelectedRows(0);
+  model.setSelected("test 2",true);
+  view.assertReplaceAllChildrenCalled(false);
+  view.assertReplaceChildrenCalled(false);
+  view.assertLastHtml(null);
+  view.assertOnUpdateSelectionFired(true);
+  view.assertSelectedRows(0,2);
+  presenter.setSelectionModel(null);
+  view.assertReplaceAllChildrenCalled(false);
+  view.assertReplaceChildrenCalled(false);
+  view.assertLastHtml(null);
+  view.assertOnUpdateSelectionFired(true);
+  view.assertSelectedRows();
+}

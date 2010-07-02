@@ -21,86 +21,8 @@
     td.setAlign("center");
     td.setInnerHTML("<div class='" + style.loading() + "'></div>");
   }
-  this.impl=new CellListImpl<T>(this,pageSize,tbody){
-    @Override public void setData(    List<T> values,    int start){
-      createHeadersAndFooters();
-      super.setData(values,start);
-    }
-    @Override protected Element convertToElements(    String html){
-      return TABLE_IMPL.convertToSectionElement("tbody",html);
-    }
-    @Override protected boolean dependsOnSelection(){
-      for (      Column<T,?> column : columns) {
-        if (column.dependsOnSelection()) {
-          return true;
-        }
-      }
-      return false;
-    }
-    @Override protected void emitHtml(    StringBuilder sb,    List<T> values,    int start,    SelectionModel<? super T> selectionModel){
-      setLoadingIconVisible(false);
-      String firstColumnStyle=style.firstColumn();
-      String lastColumnStyle=style.lastColumn();
-      int columnCount=columns.size();
-      int length=values.size();
-      int end=start + length;
-      for (int i=start; i < end; i++) {
-        T value=values.get(i - start);
-        boolean isSelected=(selectionModel == null || value == null) ? false : selectionModel.isSelected(value);
-        sb.append("<tr onclick='' __idx='").append(i).append("'");
-        sb.append(" class='");
-        sb.append(i % 2 == 0 ? style.evenRow() : style.oddRow());
-        if (isSelected) {
-          sb.append(" ").append(style.selectedRow());
-        }
-        sb.append("'>");
-        int curColumn=0;
-        for (        Column<T,?> column : columns) {
-          sb.append("<td class='").append(style.cell());
-          if (curColumn == 0) {
-            sb.append(" ").append(firstColumnStyle);
-          }
-          if (curColumn == columnCount - 1) {
-            sb.append(" ").append(lastColumnStyle);
-          }
-          sb.append("'>");
-          int bufferLength=sb.length();
-          if (value != null) {
-            column.render(value,providesKey,sb);
-          }
-          if (bufferLength == sb.length()) {
-            sb.append("&nbsp");
-          }
-          sb.append("</td>");
-          curColumn++;
-        }
-        sb.append("</tr>");
-      }
-    }
-    @Override protected Element renderChildContents(    String html){
-      return (tbody=TABLE_IMPL.renderSectionContents(tbody,html));
-    }
-    @Override protected void setSelected(    Element elem,    boolean selected){
-      setStyleName(elem,style.selectedRow(),selected);
-    }
-    @Override protected void updateSelection(){
-      for (      Header<?> header : headers) {
-        if (header != null && header.dependsOnSelection()) {
-          createHeaders(false);
-          break;
-        }
-      }
-      for (      Header<?> footer : footers) {
-        if (footer != null && footer.dependsOnSelection()) {
-          createHeaders(true);
-          break;
-        }
-      }
-      super.updateSelection();
-    }
-  }
-;
+  view=new View(tbody);
+  this.presenter=new PagingListViewPresenter<T>(this,view,pageSize);
   setPageSize(pageSize);
   sinkEvents(Event.ONCLICK | Event.MOUSEEVENTS | Event.KEYEVENTS| Event.ONCHANGE| Event.FOCUSEVENTS);
-  setLoadingIconVisible(true);
 }
