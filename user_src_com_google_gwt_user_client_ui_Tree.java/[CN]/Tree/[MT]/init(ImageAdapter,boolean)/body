@@ -12,45 +12,7 @@
   DOM.appendChild(getElement(),focusable);
   sinkEvents(Event.ONMOUSEDOWN | Event.ONCLICK | Event.KEYEVENTS);
   DOM.sinkEvents(focusable,Event.FOCUSEVENTS);
-  root=new TreeItem(){
-    @Override public void insertItem(    int beforeIndex,    TreeItem item) throws IndexOutOfBoundsException {
-      int childCount=getChildCount();
-      if (beforeIndex < 0 || beforeIndex > childCount) {
-        throw new IndexOutOfBoundsException();
-      }
-      if ((item.getParentItem() != null) || (item.getTree() != null)) {
-        item.remove();
-      }
-      Element treeElem=Tree.this.getElement();
-      if (beforeIndex == childCount) {
-        treeElem.appendChild(item.getElement());
-      }
- else {
-        Element beforeElem=getChild(beforeIndex).getElement();
-        treeElem.insertBefore(item.getElement(),beforeElem);
-      }
-      item.setTree(this.getTree());
-      item.setParentItem(null);
-      getChildren().add(item);
-      if (LocaleInfo.getCurrentLocale().isRTL()) {
-        DOM.setIntStyleAttribute(item.getElement(),"marginRight",0);
-      }
- else {
-        DOM.setIntStyleAttribute(item.getElement(),"marginLeft",0);
-      }
-    }
-    @Override public void removeItem(    TreeItem item){
-      if (!getChildren().contains(item)) {
-        return;
-      }
-      item.setTree(null);
-      item.setParentItem(null);
-      getChildren().remove(item);
-      DOM.removeChild(Tree.this.getElement(),item.getElement());
-    }
-  }
-;
-  root.initChildren();
+  root=new TreeItem(true);
   root.setTree(this);
   setStyleName("gwt-Tree");
   Accessibility.setRole(getElement(),Accessibility.ROLE_TREE);

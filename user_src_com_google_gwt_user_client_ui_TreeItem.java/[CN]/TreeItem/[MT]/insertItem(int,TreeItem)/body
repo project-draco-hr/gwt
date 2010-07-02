@@ -1,7 +1,5 @@
 {
-  if ((item.getParentItem() != null) || (item.getTree() != null)) {
-    item.remove();
-  }
+  maybeRemoveItemFromParent(item);
   int childCount=getChildCount();
   if (beforeIndex < 0 || beforeIndex > childCount) {
     throw new IndexOutOfBoundsException();
@@ -9,23 +7,25 @@
   if (children == null) {
     initChildren();
   }
+  double margin=isRoot ? 0.0 : CHILD_MARGIN;
   if (LocaleInfo.getCurrentLocale().isRTL()) {
-    item.getElement().getStyle().setMarginRight(16.0,Unit.PX);
+    item.getElement().getStyle().setMarginRight(margin,Unit.PX);
   }
  else {
-    item.getElement().getStyle().setMarginLeft(16.0,Unit.PX);
+    item.getElement().getStyle().setMarginLeft(margin,Unit.PX);
   }
+  Element childContainer=isRoot ? tree.getElement() : childSpanElem;
   if (beforeIndex == childCount) {
-    childSpanElem.appendChild(item.getElement());
+    childContainer.appendChild(item.getElement());
   }
  else {
     Element beforeElem=getChild(beforeIndex).getElement();
-    childSpanElem.insertBefore(item.getElement(),beforeElem);
+    childContainer.insertBefore(item.getElement(),beforeElem);
   }
-  item.setParentItem(this);
-  children.add(item);
+  item.setParentItem(isRoot ? null : this);
+  children.add(beforeIndex,item);
   item.setTree(tree);
-  if (children.size() == 1) {
+  if (!isRoot && children.size() == 1) {
     updateState(false,false);
   }
 }
