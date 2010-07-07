@@ -1,0 +1,39 @@
+{
+  StringBuilder sb=new StringBuilder();
+  for (int i=start; i < start + len; i++) {
+    if (i < 0x20) {
+      continue;
+    }
+    if (i >= 0xD800 && i <= 0xDFFF) {
+      continue;
+    }
+    char c=(char)i;
+    if (c == '\"' || c == '\\') {
+      continue;
+    }
+    sb.append(c);
+  }
+  String chars=sb.toString();
+  if (chars.length() == 0) {
+    return;
+  }
+  String key="na" + chars + "me";
+  String value="miles" + chars + "davis";
+  String jsonString="{ \"" + key + "\": \""+ value+ "\"}";
+  try {
+    JSONValue parsed=parseStrictVsLenient(jsonString);
+    JSONObject result=parsed.isObject();
+    assertNotNull("start = " + start + ", len = "+ len,result);
+    Set<String> keys=result.keySet();
+    assertTrue("start = " + start + ", len = "+ len,keys.contains(key));
+    JSONValue nameValue=result.get(key);
+    assertNotNull("start = " + start + ", len = "+ len,nameValue);
+    JSONString nameJsonString=nameValue.isString();
+    assertNotNull("start = " + start + ", len = "+ len,nameJsonString);
+    String nameString=nameJsonString.stringValue();
+    assertEquals("start = " + start + ", len = "+ len,value,nameString);
+  }
+ catch (  JSONException e) {
+    fail("start = " + start + ", len = "+ len+ ", e = "+ e.getMessage());
+  }
+}
