@@ -13,20 +13,21 @@
     JExpression implicitOuter=program.getExprThisRef(info,(JClassType)currentClass);
     qualList.add(implicitOuter);
   }
-  addCallArgs(x.arguments,newInstance,b);
   ReferenceBinding targetBinding=b.declaringClass;
   if (targetBinding.isNestedType() && !targetBinding.isStatic()) {
     NestedTypeBinding nestedBinding=(NestedTypeBinding)erasure(targetBinding);
     if (nestedBinding.enclosingInstances != null) {
-      for (int i=0; i < nestedBinding.enclosingInstances.length; ++i) {
-        SyntheticArgumentBinding arg=nestedBinding.enclosingInstances[i];
+      for (      SyntheticArgumentBinding arg : nestedBinding.enclosingInstances) {
         JClassType syntheticThisType=(JClassType)typeMap.get(arg.type);
         newInstance.addArg(createThisRef(syntheticThisType,qualList));
       }
     }
+  }
+  addCallArgs(x.arguments,newInstance,b);
+  if (targetBinding.isNestedType() && !targetBinding.isStatic()) {
+    NestedTypeBinding nestedBinding=(NestedTypeBinding)erasure(targetBinding);
     if (nestedBinding.outerLocalVariables != null) {
-      for (int i=0; i < nestedBinding.outerLocalVariables.length; ++i) {
-        SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
+      for (      SyntheticArgumentBinding arg : nestedBinding.outerLocalVariables) {
         JVariable variable=(JVariable)typeMap.get(arg.actualOuterLocalVariable);
         newInstance.addArg(createVariableRef(info,variable,arg.actualOuterLocalVariable));
       }

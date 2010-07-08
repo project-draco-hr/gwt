@@ -17,11 +17,10 @@
     if (!hasExplicitThis) {
       ReferenceBinding declaringClass=x.binding.declaringClass;
       if (declaringClass instanceof NestedTypeBinding) {
-        Iterator<JParameter> paramIt=getSyntheticsIterator();
+        Iterator<JParameter> paramIt=currentMethod.getParams().iterator();
         NestedTypeBinding nestedBinding=(NestedTypeBinding)declaringClass;
         if (nestedBinding.enclosingInstances != null) {
-          for (int i=0; i < nestedBinding.enclosingInstances.length; ++i) {
-            SyntheticArgumentBinding arg=nestedBinding.enclosingInstances[i];
+          for (          SyntheticArgumentBinding arg : nestedBinding.enclosingInstances) {
             JParameter param=paramIt.next();
             if (arg.matchingField != null) {
               JField field=(JField)typeMap.get(arg);
@@ -29,9 +28,9 @@
             }
           }
         }
+        paramIt=getSyntheticLocalsIterator();
         if (nestedBinding.outerLocalVariables != null) {
-          for (int i=0; i < nestedBinding.outerLocalVariables.length; ++i) {
-            SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
+          for (          SyntheticArgumentBinding arg : nestedBinding.outerLocalVariables) {
             JParameter param=paramIt.next();
             JField field=(JField)typeMap.get(arg);
             block.addStmt(JProgram.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));

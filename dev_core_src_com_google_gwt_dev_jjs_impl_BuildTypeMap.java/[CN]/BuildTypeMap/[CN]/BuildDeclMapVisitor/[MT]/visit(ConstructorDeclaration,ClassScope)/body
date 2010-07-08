@@ -8,14 +8,10 @@
       JProgram.createParameter(info,"enum$name",program.getTypeJavaLangString(),true,false,newCtor);
       JProgram.createParameter(info,"enum$ordinal",program.getTypePrimitiveInt(),true,false,newCtor);
     }
-    mapParameters(newCtor,ctorDecl);
-    addThrownExceptions(ctorDecl.binding,newCtor);
-    info.addCorrelation(program.getCorrelator().by(newCtor));
-    int syntheticParamCount=0;
     ReferenceBinding declaringClass=b.declaringClass;
+    Set<String> alreadyNamedVariables=new HashSet<String>();
     if (declaringClass.isNestedType() && !declaringClass.isStatic()) {
       NestedTypeBinding nestedBinding=(NestedTypeBinding)declaringClass;
-      Set<String> alreadyNamedVariables=new HashSet<String>();
       if (nestedBinding.enclosingInstances != null) {
         for (int i=0; i < nestedBinding.enclosingInstances.length; ++i) {
           SyntheticArgumentBinding arg=nestedBinding.enclosingInstances[i];
@@ -24,10 +20,15 @@
             argName+="_" + i;
           }
           createParameter(arg,argName,newCtor);
-          ++syntheticParamCount;
           alreadyNamedVariables.add(argName);
         }
       }
+    }
+    mapParameters(newCtor,ctorDecl);
+    addThrownExceptions(ctorDecl.binding,newCtor);
+    info.addCorrelation(program.getCorrelator().by(newCtor));
+    if (declaringClass.isNestedType() && !declaringClass.isStatic()) {
+      NestedTypeBinding nestedBinding=(NestedTypeBinding)declaringClass;
       if (nestedBinding.outerLocalVariables != null) {
         for (int i=0; i < nestedBinding.outerLocalVariables.length; ++i) {
           SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
@@ -36,16 +37,13 @@
             argName+="_" + i;
           }
           createParameter(arg,argName,newCtor);
-          ++syntheticParamCount;
           alreadyNamedVariables.add(argName);
         }
       }
     }
     typeMap.put(b,newCtor);
     if (!enclosingType.isAbstract()) {
-      ReferenceBinding enclosingBinding=ctorDecl.binding.declaringClass.enclosingType();
-      JReferenceType outerType=enclosingBinding == null ? null : (JReferenceType)typeMap.get(enclosingBinding);
-      createSyntheticConstructor(newCtor,ctorDecl.binding.declaringClass.isStatic(),outerType);
+      createSyntheticConstructor(newCtor);
     }
     return true;
   }

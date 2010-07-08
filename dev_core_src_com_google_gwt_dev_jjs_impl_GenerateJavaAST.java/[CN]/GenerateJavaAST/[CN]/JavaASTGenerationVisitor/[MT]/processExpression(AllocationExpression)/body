@@ -36,20 +36,21 @@
   if (x.enumConstant != null) {
     call.addArgs(program.getLiteralString(info,x.enumConstant.name),program.getLiteralInt(x.enumConstant.binding.original().id));
   }
-  addCallArgs(x.arguments,call,b);
   ReferenceBinding targetBinding=b.declaringClass;
   if (targetBinding.isNestedType() && !targetBinding.isStatic()) {
     NestedTypeBinding nestedBinding=(NestedTypeBinding)erasure(targetBinding);
     if (nestedBinding.enclosingInstances != null) {
-      for (int i=0; i < nestedBinding.enclosingInstances.length; ++i) {
-        SyntheticArgumentBinding arg=nestedBinding.enclosingInstances[i];
+      for (      SyntheticArgumentBinding arg : nestedBinding.enclosingInstances) {
         JClassType syntheticThisType=(JClassType)typeMap.get(arg.type);
         call.addArg(createThisRef(info,syntheticThisType));
       }
     }
+  }
+  addCallArgs(x.arguments,call,b);
+  if (targetBinding.isNestedType() && !targetBinding.isStatic()) {
+    NestedTypeBinding nestedBinding=(NestedTypeBinding)erasure(targetBinding);
     if (nestedBinding.outerLocalVariables != null) {
-      for (int i=0; i < nestedBinding.outerLocalVariables.length; ++i) {
-        SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
+      for (      SyntheticArgumentBinding arg : nestedBinding.outerLocalVariables) {
         JVariable variable=(JVariable)typeMap.get(arg.actualOuterLocalVariable);
         call.addArg(createVariableRef(info,variable,arg.actualOuterLocalVariable));
       }
