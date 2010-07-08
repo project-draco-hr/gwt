@@ -1,0 +1,38 @@
+{
+  if (targetType instanceof JClassType) {
+    JClassType targetClass=(JClassType)targetType;
+    if (targetClass.getSuperClass() != null) {
+      findMostDerivedMembers(matchesBySig,targetClass.getSuperClass(),memberName,false);
+    }
+  }
+  for (  JDeclaredType intf : targetType.getImplements()) {
+    findMostDerivedMembers(matchesBySig,intf,memberName,false);
+  }
+  for (  JMethod method : targetType.getMethods()) {
+    if (method instanceof JConstructor && JsniRef.NEW.equals(memberName)) {
+      if (!addConstructorsAndPrivates) {
+        continue;
+      }
+      StringBuilder sb=new StringBuilder();
+      sb.append(JsniRef.NEW);
+      sb.append("(");
+      for (      JParameter param : method.getParams()) {
+        sb.append(param.getType().getJsniSignatureName());
+      }
+      sb.append(")");
+      String fullSig=sb.toString();
+      String wildcardSig=JsniRef.NEW + "(" + JsniRef.WILDCARD_PARAM_LIST+ ")";
+      addMember(matchesBySig,method,fullSig,fullSig);
+      addMember(matchesBySig,method,wildcardSig,fullSig);
+    }
+ else     if (method.getName().equals(memberName)) {
+      if (!addConstructorsAndPrivates && method.isPrivate()) {
+        continue;
+      }
+      String fullSig=JProgram.getJsniSig(method,false);
+      String wildcardSig=method.getName() + "(" + JsniRef.WILDCARD_PARAM_LIST+ ")";
+      addMember(matchesBySig,method,fullSig,fullSig);
+      addMember(matchesBySig,method,wildcardSig,fullSig);
+    }
+  }
+}
