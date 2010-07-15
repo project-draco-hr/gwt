@@ -1,0 +1,18 @@
+{
+  Beans.setDesignTime(true);
+  XMLElement element;
+{
+    Document doc=docHelper.documentFor("<root><first/></root>",null);
+    DesignTimeUtils.rememberPathForElements(doc);
+    Element first=getChildElement(doc.getDocumentElement(),"first");
+    element=createXMLElement(first);
+  }
+  List<String> statements;
+{
+    WriterStatements writer=new WriterStatements();
+    DesignTimeUtils.handleUIObject(writer,element,"myField");
+    statements=writer.statements;
+  }
+  assertEquals(1,statements.size());
+  assertEquals("if (dtObjectHandler != null) dtObjectHandler.handle(\"0/0\", myField);",statements.get(0));
+}
