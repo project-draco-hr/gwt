@@ -1,5 +1,5 @@
 {
-  ListViewAdapter<Address> adapter=new ListViewAdapter<Address>();
+  final ListViewAdapter<Address> adapter=new ListViewAdapter<Address>();
   final List<Address> list=adapter.getList();
   for (int i=10; i < 50; i++) {
     if (zipInvalid(30000 + i)) {
@@ -8,7 +8,14 @@
     String zip="300" + i;
     list.add(new Address("GA",zip));
   }
+  final ProvidesKey<Address> keyProvider=new ProvidesKey<Address>(){
+    public Object getKey(    Address item){
+      return item.key;
+    }
+  }
+;
   CellTable<Address> table=new CellTable<Address>(10);
+  table.setKeyProvider(keyProvider);
   adapter.addView(table);
   TextColumn<Address> stateColumn=new TextColumn<Address>(){
     @Override public String getValue(    Address object){
@@ -16,7 +23,8 @@
     }
   }
 ;
-  final Column<Address,String> zipColumn=new Column<Address,String>(new ValidatableInputCell()){
+  final ValidatableInputCell zipCell=new ValidatableInputCell();
+  Column<Address,String> zipColumn=new Column<Address,String>(zipCell){
     @Override public String getValue(    Address object){
       return object.zip;
     }
@@ -35,13 +43,14 @@
           }
           boolean zipInvalid=ValidationRecipe.zipInvalid(zip);
           final Address newAddress=new Address(address);
-          newAddress.zip=value;
           newAddress.zipInvalid=zipInvalid;
           if (zipInvalid) {
-            ValidatableInputCell.invalidate(zipColumn,newAddress,newAddress.zip);
+            ValidatableField<String> vf=zipCell.getViewData(keyProvider.getKey(address));
+            vf.setInvalid(true);
+            adapter.refresh();
           }
  else {
-            ValidatableInputCell.validate(zipColumn,newAddress);
+            newAddress.zip=value;
           }
           list.set(index,newAddress);
         }

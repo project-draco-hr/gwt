@@ -1,5 +1,6 @@
 {
   String type=event.getType();
+  ApprovalViewData viewData=getViewData(key);
   if ("change".equals(type)) {
     SelectElement select=parent.getFirstChild().cast();
     select.setDisabled(true);
@@ -11,18 +12,19 @@
     int index=select.getSelectedIndex();
     String pendingValue=select.getOptions().getItem(index).getValue();
     viewData=new ApprovalViewData(pendingValue);
+    setViewData(key,viewData);
+    if (valueUpdater != null) {
+      valueUpdater.update(pendingValue);
+    }
   }
  else   if ("click".equals(type) && viewData != null && parent.getChildCount() >= 3) {
     Element img=parent.getChild(1).cast();
     Element anchor=img.getNextSiblingElement();
     if (anchor.isOrHasChild(Element.as(event.getEventTarget().cast()))) {
-      ApprovalViewData avd=(ApprovalViewData)viewData;
-      showErrorPopup(avd.getRejectionText());
-      viewData=null;
+      showErrorPopup(viewData.getRejectionText());
+      clearViewData(key);
       parent.removeChild(anchor);
       parent.removeChild(img);
     }
   }
-  super.onBrowserEvent(parent,value,viewData,event,valueUpdater);
-  return viewData;
 }

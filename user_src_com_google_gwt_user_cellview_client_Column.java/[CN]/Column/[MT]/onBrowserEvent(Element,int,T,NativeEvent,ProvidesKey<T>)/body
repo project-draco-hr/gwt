@@ -1,12 +1,10 @@
 {
   Object key=getKey(object,providesKey);
-  Object viewData=getViewData(key);
-  DelayedValueUpdater valueUpdater=(fieldUpdater == null) ? null : new DelayedValueUpdater(index,object);
-  Object newViewData=cell.onBrowserEvent(elem,getValue(object),viewData,event,valueUpdater);
-  if (newViewData != viewData) {
-    setViewData(key,newViewData);
+  ValueUpdater<C> valueUpdater=(fieldUpdater == null) ? null : new ValueUpdater<C>(){
+    public void update(    C value){
+      fieldUpdater.update(index,object,value);
+    }
   }
-  if (valueUpdater != null) {
-    valueUpdater.flush();
-  }
+;
+  cell.onBrowserEvent(elem,getValue(object),key,event,valueUpdater);
 }
