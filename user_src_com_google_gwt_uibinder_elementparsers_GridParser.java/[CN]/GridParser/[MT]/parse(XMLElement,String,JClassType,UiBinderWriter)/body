@@ -1,0 +1,16 @@
+{
+  Vector<Vector<CellContent>> matrix=new Vector<Vector<CellContent>>();
+  parseRows(elem,fieldName,writer,matrix);
+  Size size=getMatrixSize(matrix);
+  writer.setFieldInitializerAsConstructor(fieldName,writer.getOracle().findType(Grid.class.getName()),Integer.toString(size.getRows()),Integer.toString(size.getColumns()));
+  for (  Vector<CellContent> row : matrix) {
+    for (    CellContent column : row) {
+      if (column.getTagName().equals(CELL_TAG)) {
+        writer.addStatement("%s.setHTML(%s, %s, \"%s\");",fieldName,Integer.toString(matrix.indexOf(row)),Integer.toString(row.indexOf(column)),column.getConent());
+      }
+      if (column.getTagName().equals(CUSTOMCELL_TAG)) {
+        writer.addStatement("%s.setWidget(%s, %s, %s);",fieldName,Integer.toString(matrix.indexOf(row)),Integer.toString(row.indexOf(column)),column.getConent());
+      }
+    }
+  }
+}

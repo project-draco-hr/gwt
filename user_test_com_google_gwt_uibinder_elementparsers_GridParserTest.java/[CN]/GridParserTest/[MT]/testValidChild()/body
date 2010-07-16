@@ -1,0 +1,30 @@
+{
+  StringBuffer b=new StringBuffer();
+  b.append("<g:Grid>");
+  b.append("  <g:row>");
+  b.append("    <g:cell>");
+  b.append("      <div>foo HTML element</div>");
+  b.append("    </g:cell>");
+  b.append("    <g:cell>");
+  b.append("      <div>bar HTML element</div>");
+  b.append("    </g:cell>");
+  b.append("  </g:row>");
+  b.append("  <g:row>");
+  b.append("    <g:customCell>");
+  b.append("      <g:Label/>");
+  b.append("    </g:customCell>");
+  b.append("    <g:customCell>");
+  b.append("      <g:Label/>");
+  b.append("    </g:customCell>");
+  b.append("  </g:row>");
+  b.append("</g:Grid>");
+  String[] expected={"fieldName.setHTML(0, 0, \"<div>foo HTML element</div>\");","fieldName.setHTML(0, 1, \"<div>bar HTML element</div>\");","fieldName.setWidget(1, 0, <g:Label>);","fieldName.setWidget(1, 1, <g:Label>);"};
+  FieldWriter w=tester.parse(b.toString());
+  assertEquals("new " + PARSED_TYPE + "(2, 2)",w.getInitializer());
+  Iterator<String> i=tester.writer.statements.iterator();
+  for (  String e : expected) {
+    assertEquals(e,i.next());
+  }
+  assertFalse(i.hasNext());
+  assertNull(tester.logger.died);
+}
