@@ -4,7 +4,7 @@
   JSwitchStatement oldSwitchStatement=switchStatement;
   List<Exit> oldCaseElseExits=removeExits(Exit.Reason.CASE_ELSE);
   List<Exit> oldCaseThenExits=removeExits(Exit.Reason.CASE_THEN);
-  List<Exit> oldBreakExits=removeExits(Exit.Reason.BREAK);
+  List<Exit> oldBreakExits=removeUnlabeledBreaks();
   switchStatement=x;
   CfgSwitchGotoNode gotoNode=addNode(new CfgSwitchGotoNode(parent,x));
   Exit gotoExit=Exit.createNormal(gotoNode,null);
@@ -42,7 +42,7 @@
       }
     }
     accept(s);
-    breakExits.addAll(removeExits(Exit.Reason.BREAK));
+    breakExits.addAll(removeUnlabeledBreaks());
   }
   if (gotoExit != null) {
     if (defaultPos >= 0) {
