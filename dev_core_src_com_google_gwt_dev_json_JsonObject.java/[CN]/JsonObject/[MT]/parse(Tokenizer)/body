@@ -1,0 +1,34 @@
+{
+  final JsonObject object=new JsonObject();
+  int c=tokenizer.next();
+  if (c != '{') {
+    throw new JsonException("Payload does not begin with {");
+  }
+  while (true) {
+    c=tokenizer.nextNonWhitespace();
+switch (c) {
+case '}':
+      return object;
+case '"':
+    tokenizer.back(c);
+  final String key=tokenizer.nextString();
+if (tokenizer.nextNonWhitespace() != ':') {
+  throw new JsonException("Invalid object: expecting \":\"");
+}
+object.put(key,tokenizer.nextValue());
+switch (tokenizer.nextNonWhitespace()) {
+case ',':
+break;
+case '}':
+return object;
+default :
+throw new JsonException("Invalid object: expecting } or ,");
+}
+break;
+case ',':
+break;
+default :
+throw new JsonException("Invalid object: ");
+}
+}
+}

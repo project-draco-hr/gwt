@@ -1,0 +1,24 @@
+{
+  final JsonValue a=tokenizerFor("null").nextValue();
+  assertEquals(JsonValue.NULL,a);
+  final JsonValue b=tokenizerFor("true").nextValue();
+  assertTrue(b.asBoolean().getBoolean());
+  final JsonValue c=tokenizerFor("false").nextValue();
+  assertFalse(c.asBoolean().getBoolean());
+  final JsonValue d=tokenizerFor("\"kellegous\u8738\"").nextValue();
+  assertEquals("kellegous\u8738",d.asString().getString());
+  final JsonValue e=tokenizerFor("0.2").nextValue();
+  assertEquals(0.2,e.asNumber().getDecimal(),0.001);
+  final JsonValue f=tokenizerFor("420").nextValue();
+  assertEquals(420,f.asNumber().getInteger());
+  final JsonValue g=tokenizerFor("6.23e-20").nextValue();
+  assertEquals(6.23e-20,g.asNumber().getDecimal(),1e-20);
+  boolean didThrow=false;
+  try {
+    tokenizerFor("naked").nextValue();
+  }
+ catch (  JsonException x) {
+    didThrow=true;
+  }
+  assertTrue(didThrow);
+}

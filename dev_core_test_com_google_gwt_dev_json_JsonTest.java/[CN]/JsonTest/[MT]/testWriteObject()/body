@@ -1,0 +1,19 @@
+{
+  final JsonObject a=new JsonObject();
+  a.put("a",3);
+  a.put("b",120.456);
+  a.put("c","json\n\r\f\t\b\u8730");
+  a.put("d",new JsonObject());
+  a.put("e",new JsonArray());
+  a.put("f",true);
+  a.put("g",false);
+  final String json=toJsonString(a);
+  final JsonObject b=JsonObject.parse(new StringReader(json));
+  assertEquals(3,b.get("a").asNumber().getInteger());
+  assertEquals(120.456,b.get("b").asNumber().getDecimal(),0.0001);
+  assertEquals("json\n\r\f\t\b\u8730",b.get("c").asString().getString());
+  assertTrue(b.get("d").asObject().isEmpty());
+  assertEquals(0,b.get("e").asArray().getLength());
+  assertTrue(b.get("f").asBoolean().getBoolean());
+  assertFalse(b.get("g").asBoolean().getBoolean());
+}

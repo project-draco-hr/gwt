@@ -1,0 +1,15 @@
+{
+  final JsonValue a=tokenizerFor("{}").nextValue();
+  assertTrue(a.asObject().isEmpty());
+  final JsonValue b=tokenizerFor("{\"a\" : 1}").nextValue();
+  assertEquals(1,b.asObject().get("a").asNumber().getInteger());
+  final JsonValue c=tokenizerFor("{\"a b\":12.3e10,\"b a\":\"\u8387\",\n\"c\" :   null,\"d\":true,\"e\" : false, \"f\":{\n}}").nextValue();
+  final JsonObject co=c.asObject();
+  assertNotNull(co);
+  assertEquals(12.3e10,co.get("a b").asNumber().getDecimal(),0.001);
+  assertEquals("\u8387",co.get("b a").asString().getString());
+  assertEquals(JsonValue.NULL,co.get("c"));
+  assertTrue(co.get("d").asBoolean().getBoolean());
+  assertFalse(co.get("e").asBoolean().getBoolean());
+  assertTrue(co.get("f").asObject().isEmpty());
+}

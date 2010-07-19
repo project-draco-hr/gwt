@@ -1,0 +1,19 @@
+{
+  final JsonArray a=new JsonArray();
+  a.add(true);
+  a.add("foo");
+  a.add(230);
+  a.add(1.0);
+  a.add(JsonArray.create());
+  a.add(JsonObject.create());
+  final String json=toJsonString(a);
+  assertEquals("[true,\"foo\",230,1.0,[],{}]",json);
+  final JsonArray b=JsonArray.parse(new StringReader(json));
+  assertEquals(6,b.getLength());
+  assertTrue(b.get(0).asBoolean().getBoolean());
+  assertEquals("foo",b.get(1).asString().getString());
+  assertEquals(230,b.get(2).asNumber().getInteger());
+  assertEquals(1.0,b.get(3).asNumber().getDecimal(),0.001);
+  assertEquals(0,b.get(4).asArray().getLength());
+  assertTrue(b.get(5).asObject().isEmpty());
+}
