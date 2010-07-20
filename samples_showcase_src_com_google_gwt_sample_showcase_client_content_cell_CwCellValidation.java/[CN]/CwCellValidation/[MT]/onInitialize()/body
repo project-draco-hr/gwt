@@ -1,0 +1,39 @@
+{
+  final CellTable<ContactInfo> table=new CellTable<ContactInfo>(10);
+  table.setKeyProvider(ContactInfo.KEY_PROVIDER);
+  table.addColumn(new Column<ContactInfo,String>(new TextCell()){
+    @Override public String getValue(    ContactInfo object){
+      return object.getFullName();
+    }
+  }
+,constants.cwCellValidationColumnName());
+  final ValidatableInputCell addressCell=new ValidatableInputCell(constants.cwCellValidationError());
+  Column<ContactInfo,String> addressColumn=new Column<ContactInfo,String>(addressCell){
+    @Override public String getValue(    ContactInfo object){
+      return object.getAddress();
+    }
+  }
+;
+  table.addColumn(addressColumn,constants.cwCellValidationColumnAddress());
+  addressColumn.setFieldUpdater(new FieldUpdater<ContactInfo,String>(){
+    public void update(    int index,    final ContactInfo object,    final String value){
+      new Timer(){
+        @Override public void run(){
+          if (isAddressValid(value)) {
+            object.setAddress(value);
+            ContactDatabase.get().refreshViews();
+          }
+ else {
+            ValidationData viewData=addressCell.getViewData(ContactInfo.KEY_PROVIDER.getKey(object));
+            viewData.setInvalid(true);
+            table.redraw();
+          }
+        }
+      }
+.schedule(1000);
+    }
+  }
+);
+  ContactDatabase.get().addView(table);
+  return table;
+}

@@ -1,0 +1,32 @@
+{
+  if (value == null) {
+    return new DefaultNodeInfo<Category>(categoryAdapter,new CategoryCell(images.contactsGroup()));
+  }
+ else   if (value instanceof Category) {
+    Category category=(Category)value;
+    List<ContactInfo> contacts=ContactDatabase.get().queryContactsByCategory(category);
+    Map<Character,LetterCount> counts=new TreeMap<Character,LetterCount>();
+    for (    ContactInfo contact : contacts) {
+      Character first=contact.getFirstName().charAt(0);
+      LetterCount count=counts.get(first);
+      if (count == null) {
+        count=new LetterCount(category,first);
+        counts.put(first,count);
+      }
+ else {
+        count.increment();
+      }
+    }
+    List<LetterCount> orderedCounts=new ArrayList<LetterCount>(counts.values());
+    return new DefaultNodeInfo<LetterCount>(new ListViewAdapter<LetterCount>(orderedCounts),new LetterCountCell());
+  }
+ else   if (value instanceof LetterCount) {
+    LetterCount count=(LetterCount)value;
+    List<ContactInfo> contacts=ContactDatabase.get().queryContactsByCategoryAndFirstName(count.category,count.firstLetter + "");
+    ListViewAdapter<ContactInfo> adapter=new ListViewAdapter<ContactInfo>(contacts);
+    adapter.setKeyProvider(ContactInfo.KEY_PROVIDER);
+    return new DefaultNodeInfo<ContactInfo>(adapter,contactCell,selectionModel,null);
+  }
+  String type=value.getClass().getName();
+  throw new IllegalArgumentException("Unsupported object type: " + type);
+}

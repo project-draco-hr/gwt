@@ -1,0 +1,63 @@
+{
+  this.selectionModel=selectionModel;
+  if (images == null) {
+    images=GWT.create(Images.class);
+  }
+  categoryAdapter=new ListViewAdapter<Category>();
+  List<Category> categoryList=categoryAdapter.getList();
+  for (  Category category : ContactDatabase.get().queryCategories()) {
+    categoryList.add(category);
+  }
+  List<HasCell<ContactInfo,?>> hasCells=new ArrayList<HasCell<ContactInfo,?>>();
+  hasCells.add(new HasCell<ContactInfo,Boolean>(){
+    public Cell<Boolean> getCell(){
+      return new CheckboxCell(){
+        @Override public boolean dependsOnSelection(){
+          return true;
+        }
+      }
+;
+    }
+    public FieldUpdater<ContactInfo,Boolean> getFieldUpdater(){
+      return new FieldUpdater<ContactInfo,Boolean>(){
+        public void update(        int index,        ContactInfo object,        Boolean value){
+          selectionModel.setSelected(object,value);
+        }
+      }
+;
+    }
+    public Boolean getValue(    ContactInfo object){
+      return selectionModel.isSelected(object);
+    }
+  }
+);
+  hasCells.add(new HasCell<ContactInfo,ContactInfo>(){
+    public Cell<ContactInfo> getCell(){
+      return new ContactCell(images.contact());
+    }
+    public FieldUpdater<ContactInfo,ContactInfo> getFieldUpdater(){
+      return null;
+    }
+    public ContactInfo getValue(    ContactInfo object){
+      return object;
+    }
+  }
+);
+  contactCell=new CompositeCell<ContactInfo>(hasCells){
+    @Override public void render(    ContactInfo value,    Object key,    StringBuilder sb){
+      sb.append("<table><tbody><tr>");
+      super.render(value,key,sb);
+      sb.append("</tr></tbody></table>");
+    }
+    @Override protected Element getContainerElement(    Element parent){
+      return parent.getFirstChildElement().getFirstChildElement().getFirstChildElement();
+    }
+    @Override protected <X>void render(    ContactInfo value,    Object key,    StringBuilder sb,    HasCell<ContactInfo,X> hasCell){
+      Cell<X> cell=hasCell.getCell();
+      sb.append("<td>");
+      cell.render(hasCell.getValue(value),key,sb);
+      sb.append("</td>");
+    }
+  }
+;
+}

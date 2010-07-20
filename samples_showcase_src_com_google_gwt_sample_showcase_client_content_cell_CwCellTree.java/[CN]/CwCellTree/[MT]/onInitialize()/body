@@ -1,0 +1,28 @@
+{
+  final MultiSelectionModel<ContactInfo> selectionModel=new MultiSelectionModel<ContactInfo>();
+  selectionModel.setKeyProvider(ContactDatabase.ContactInfo.KEY_PROVIDER);
+  selectionModel.addSelectionChangeHandler(new SelectionModel.SelectionChangeHandler(){
+    public void onSelectionChange(    SelectionChangeEvent event){
+      StringBuilder sb=new StringBuilder();
+      boolean first=true;
+      List<ContactInfo> selected=new ArrayList<ContactInfo>(selectionModel.getSelectedSet());
+      Collections.sort(selected);
+      for (      ContactInfo value : selected) {
+        if (first) {
+          first=false;
+        }
+ else {
+          sb.append(", ");
+        }
+        sb.append(value.getFullName());
+      }
+      selectedLabel.setText(sb.toString());
+    }
+  }
+);
+  cellTree=new CellTree(new ContactTreeViewModel(selectionModel),null);
+  cellTree.setAnimationEnabled(true);
+  Binder uiBinder=GWT.create(Binder.class);
+  Widget widget=uiBinder.createAndBindUi(this);
+  return widget;
+}

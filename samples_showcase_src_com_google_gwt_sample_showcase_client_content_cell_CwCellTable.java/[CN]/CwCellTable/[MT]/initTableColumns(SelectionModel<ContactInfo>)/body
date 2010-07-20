@@ -1,0 +1,73 @@
+{
+  Column<ContactInfo,Boolean> checkColumn=new Column<ContactInfo,Boolean>(new CheckboxCell()){
+    @Override public Boolean getValue(    ContactInfo object){
+      return selectionModel.isSelected(object);
+    }
+  }
+;
+  checkColumn.setFieldUpdater(new FieldUpdater<ContactInfo,Boolean>(){
+    public void update(    int index,    ContactInfo object,    Boolean value){
+      selectionModel.setSelected(object,value);
+    }
+  }
+);
+  cellTable.addColumn(checkColumn,"<br>");
+  Column<ContactInfo,String> firstNameColumn=new Column<ContactInfo,String>(new EditTextCell()){
+    @Override public String getValue(    ContactInfo object){
+      return object.getFirstName();
+    }
+  }
+;
+  cellTable.addColumn(firstNameColumn,constants.cwCellTableColumnFirstName());
+  firstNameColumn.setFieldUpdater(new FieldUpdater<ContactInfo,String>(){
+    public void update(    int index,    ContactInfo object,    String value){
+      object.setFirstName(value);
+      ContactDatabase.get().refreshViews();
+    }
+  }
+);
+  Column<ContactInfo,String> lastNameColumn=new Column<ContactInfo,String>(new EditTextCell()){
+    @Override public String getValue(    ContactInfo object){
+      return object.getLastName();
+    }
+  }
+;
+  cellTable.addColumn(lastNameColumn,constants.cwCellTableColumnLastName());
+  lastNameColumn.setFieldUpdater(new FieldUpdater<ContactInfo,String>(){
+    public void update(    int index,    ContactInfo object,    String value){
+      object.setLastName(value);
+      ContactDatabase.get().refreshViews();
+    }
+  }
+);
+  final Category[] categories=ContactDatabase.get().queryCategories();
+  List<String> categoryNames=new ArrayList<String>();
+  for (  Category category : categories) {
+    categoryNames.add(category.getDisplayName());
+  }
+  SelectionCell categoryCell=new SelectionCell(categoryNames);
+  Column<ContactInfo,String> categoryColumn=new Column<ContactInfo,String>(categoryCell){
+    @Override public String getValue(    ContactInfo object){
+      return object.getCategory().getDisplayName();
+    }
+  }
+;
+  cellTable.addColumn(categoryColumn,constants.cwCellTableColumnCategory());
+  categoryColumn.setFieldUpdater(new FieldUpdater<ContactInfo,String>(){
+    public void update(    int index,    ContactInfo object,    String value){
+      for (      Category category : categories) {
+        if (category.getDisplayName().equals(value)) {
+          object.setCategory(category);
+        }
+      }
+      ContactDatabase.get().refreshViews();
+    }
+  }
+);
+  cellTable.addColumn(new Column<ContactInfo,String>(new TextCell()){
+    @Override public String getValue(    ContactInfo object){
+      return object.getAddress();
+    }
+  }
+,constants.cwCellTableColumnAddress());
+}

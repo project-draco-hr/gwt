@@ -1,0 +1,160 @@
+{
+  Images images=GWT.create(Images.class);
+  editableCells=new ArrayList<AbstractEditableCell<?,?>>();
+  cellTable=new CellTable<ContactInfo>(6);
+  cellTable.setKeyProvider(ContactInfo.KEY_PROVIDER);
+  ContactDatabase.get().addView(cellTable);
+  final Category[] categories=ContactDatabase.get().queryCategories();
+  addColumn(new CheckboxCell(),"Checkbox",new GetValue<Boolean>(){
+    public Boolean getValue(    ContactInfo contact){
+      return contact.getCategory() == categories[0];
+    }
+  }
+,new FieldUpdater<ContactInfo,Boolean>(){
+    public void update(    int index,    ContactInfo object,    Boolean value){
+      if (value) {
+        pendingChanges.add(new CategoryChange(object,categories[0]));
+      }
+ else {
+        pendingChanges.add(new CategoryChange(object,categories[categories.length - 1]));
+      }
+    }
+  }
+);
+  addColumn(new TextCell(),"Text",new GetValue<String>(){
+    public String getValue(    ContactInfo contact){
+      return contact.getFullName();
+    }
+  }
+,null);
+  addColumn(new EditTextCell(),"EditText",new GetValue<String>(){
+    public String getValue(    ContactInfo contact){
+      return contact.getFirstName();
+    }
+  }
+,new FieldUpdater<ContactInfo,String>(){
+    public void update(    int index,    ContactInfo object,    String value){
+      pendingChanges.add(new FirstNameChange(object,value));
+    }
+  }
+);
+  addColumn(new TextInputCell(),"TextInput",new GetValue<String>(){
+    public String getValue(    ContactInfo contact){
+      return contact.getLastName();
+    }
+  }
+,new FieldUpdater<ContactInfo,String>(){
+    public void update(    int index,    ContactInfo object,    String value){
+      pendingChanges.add(new LastNameChange(object,value));
+    }
+  }
+);
+  addColumn(new ClickableTextCell(),"ClickableText",new GetValue<String>(){
+    public String getValue(    ContactInfo contact){
+      return "Click " + contact.getFirstName();
+    }
+  }
+,new FieldUpdater<ContactInfo,String>(){
+    public void update(    int index,    ContactInfo object,    String value){
+      Window.alert("You clicked " + object.getFullName());
+    }
+  }
+);
+  addColumn(new ActionCell<ContactInfo>("Click Me",new ActionCell.Delegate<ContactInfo>(){
+    public void execute(    ContactInfo contact){
+      Window.alert("You clicked " + contact.getFullName());
+    }
+  }
+),"Action",new GetValue<ContactInfo>(){
+    public ContactInfo getValue(    ContactInfo contact){
+      return contact;
+    }
+  }
+,null);
+  addColumn(new ButtonCell(),"Button",new GetValue<String>(){
+    public String getValue(    ContactInfo contact){
+      return "Click " + contact.getFirstName();
+    }
+  }
+,new FieldUpdater<ContactInfo,String>(){
+    public void update(    int index,    ContactInfo object,    String value){
+      Window.alert("You clicked " + object.getFullName());
+    }
+  }
+);
+  DateTimeFormat dateFormat=DateTimeFormat.getFormat(PredefinedFormat.DATE_MEDIUM);
+  addColumn(new DateCell(dateFormat),"Date",new GetValue<Date>(){
+    public Date getValue(    ContactInfo contact){
+      return contact.getBirthday();
+    }
+  }
+,null);
+  addColumn(new DatePickerCell(dateFormat),"DatePicker",new GetValue<Date>(){
+    public Date getValue(    ContactInfo contact){
+      return contact.getBirthday();
+    }
+  }
+,new FieldUpdater<ContactInfo,Date>(){
+    public void update(    int index,    ContactInfo object,    Date value){
+      pendingChanges.add(new BirthdayChange(object,value));
+    }
+  }
+);
+  addColumn(new NumberCell(),"Number",new GetValue<Number>(){
+    @SuppressWarnings("deprecation") public Number getValue(    ContactInfo contact){
+      Date today=new Date();
+      Date birthday=contact.getBirthday();
+      int age=today.getYear() - birthday.getYear();
+      if (today.getMonth() > birthday.getMonth() || (today.getMonth() == birthday.getMonth() && today.getDate() > birthday.getDate())) {
+        age--;
+      }
+      return age;
+    }
+  }
+,null);
+  addColumn(new IconCellDecorator<String>(images.contactsGroup(),new TextCell()),"Icon",new GetValue<String>(){
+    public String getValue(    ContactInfo contact){
+      return contact.getCategory().getDisplayName();
+    }
+  }
+,null);
+  List<String> options=new ArrayList<String>();
+  for (  Category category : categories) {
+    options.add(category.getDisplayName());
+  }
+  addColumn(new SelectionCell(options),"Selection",new GetValue<String>(){
+    public String getValue(    ContactInfo contact){
+      return contact.getCategory().getDisplayName();
+    }
+  }
+,new FieldUpdater<ContactInfo,String>(){
+    public void update(    int index,    ContactInfo object,    String value){
+      for (      Category category : categories) {
+        if (category.getDisplayName().equals(value)) {
+          pendingChanges.add(new CategoryChange(object,category));
+          break;
+        }
+      }
+    }
+  }
+);
+  Binder uiBinder=GWT.create(Binder.class);
+  Widget widget=uiBinder.createAndBindUi(this);
+  redrawButton.addClickHandler(new ClickHandler(){
+    public void onClick(    ClickEvent event){
+      cellTable.redraw();
+    }
+  }
+);
+  commitButton.addClickHandler(new ClickHandler(){
+    public void onClick(    ClickEvent event){
+      for (      PendingChange<?> pendingChange : pendingChanges) {
+        pendingChange.commit();
+      }
+      pendingChanges.clear();
+      ContactDatabase.get().refreshViews();
+    }
+  }
+);
+  return widget;
+}
