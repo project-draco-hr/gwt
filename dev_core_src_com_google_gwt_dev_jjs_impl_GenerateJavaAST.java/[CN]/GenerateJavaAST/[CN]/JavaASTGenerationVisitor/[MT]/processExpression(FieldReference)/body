@@ -1,21 +1,21 @@
 {
   FieldBinding fieldBinding=x.binding;
-  JField field;
-  if (fieldBinding.declaringClass == null) {
-    field=program.getIndexedField("Array.length");
-    if (!field.getName().equals(String.valueOf(fieldBinding.name))) {
-      throw new InternalCompilerException("Error matching fieldBinding.");
-    }
-  }
- else {
-    field=(JField)typeMap.get(fieldBinding);
-  }
   SourceInfo info=makeSourceInfo(x);
   JExpression instance=dispProcessExpression(x.receiver);
-  JExpression fieldRef=new JFieldRef(info,instance,field,currentClass);
+  JExpression expr;
+  if (fieldBinding.declaringClass == null) {
+    if (!ARRAY_LENGTH_FIELD.equals(String.valueOf(fieldBinding.name))) {
+      throw new InternalCompilerException("Expected [array].length.");
+    }
+    expr=new JArrayLength(info,instance);
+  }
+ else {
+    JField field=(JField)typeMap.get(fieldBinding);
+    expr=new JFieldRef(info,instance,field,currentClass);
+  }
   if (x.genericCast != null) {
     JType castType=(JType)typeMap.get(x.genericCast);
-    return maybeCast(castType,fieldRef);
+    return maybeCast(castType,expr);
   }
-  return fieldRef;
+  return expr;
 }

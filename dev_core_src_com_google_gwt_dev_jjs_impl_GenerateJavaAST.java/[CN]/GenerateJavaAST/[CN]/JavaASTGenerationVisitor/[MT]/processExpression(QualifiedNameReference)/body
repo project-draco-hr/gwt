@@ -14,17 +14,16 @@
   if (x.otherBindings != null) {
     for (int i=0; i < x.otherBindings.length; ++i) {
       FieldBinding fieldBinding=x.otherBindings[i];
-      JField field;
       if (fieldBinding.declaringClass == null) {
-        field=program.getIndexedField("Array.length");
-        if (!field.getName().equals(String.valueOf(fieldBinding.name))) {
-          throw new InternalCompilerException("Error matching fieldBinding.");
+        if (!ARRAY_LENGTH_FIELD.equals(String.valueOf(fieldBinding.name))) {
+          throw new InternalCompilerException("Expected [array].length.");
         }
+        curRef=new JArrayLength(info,curRef);
       }
  else {
-        field=(JField)typeMap.get(fieldBinding);
+        JField field=(JField)typeMap.get(fieldBinding);
+        curRef=new JFieldRef(info,curRef,field,currentClass);
       }
-      curRef=new JFieldRef(info,curRef,field,currentClass);
       if (x.otherGenericCasts != null && x.otherGenericCasts[i] != null) {
         JType castType=(JType)typeMap.get(x.otherGenericCasts[i]);
         curRef=maybeCast(castType,curRef);
