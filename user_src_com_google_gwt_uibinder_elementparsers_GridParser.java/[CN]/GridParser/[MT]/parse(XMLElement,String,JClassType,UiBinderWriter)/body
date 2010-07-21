@@ -1,0 +1,18 @@
+{
+  List<List<CellContent>> matrix=new ArrayList<List<CellContent>>();
+  parseRows(elem,fieldName,writer,matrix);
+  Size size=getMatrixSize(matrix);
+  if (size.getRows() > 0 || size.getColumns() > 0) {
+    writer.addStatement("%s.resize(%s, %s);",fieldName,Integer.toString(size.getRows()),Integer.toString(size.getColumns()));
+    for (    List<CellContent> row : matrix) {
+      for (      CellContent column : row) {
+        if (column.getTagName().equals(CELL_TAG)) {
+          writer.addStatement("%s.setHTML(%s, %s, \"%s\");",fieldName,Integer.toString(matrix.indexOf(row)),Integer.toString(row.indexOf(column)),column.getConent());
+        }
+        if (column.getTagName().equals(CUSTOMCELL_TAG)) {
+          writer.addStatement("%s.setWidget(%s, %s, %s);",fieldName,Integer.toString(matrix.indexOf(row)),Integer.toString(row.indexOf(column)),column.getConent());
+        }
+      }
+    }
+  }
+}
