@@ -1,0 +1,31 @@
+{
+  try {
+    boolean shuttingDown=false;
+    while (!threadEventQueue.isEmpty() || !shuttingDown) {
+      Event event=threadEventQueue.take();
+      if (event == shutDownSentinel) {
+        shuttingDown=true;
+      }
+ else       if (event == flushSentinel) {
+        writer.flush();
+        flushLatch.countDown();
+      }
+ else {
+        JsonObject json=event.toJson();
+        json.write(writer);
+        writer.write('\n');
+      }
+    }
+    writer.write("</div></body></html>\n");
+    writer.close();
+  }
+ catch (  InterruptedException ignored) {
+  }
+catch (  IOException e) {
+    System.err.println("Unable to write to gwt.speedtracerlog '" + (fileName == null ? "" : fileName) + "'");
+    e.printStackTrace();
+  }
+ finally {
+    shutDownLatch.countDown();
+  }
+}

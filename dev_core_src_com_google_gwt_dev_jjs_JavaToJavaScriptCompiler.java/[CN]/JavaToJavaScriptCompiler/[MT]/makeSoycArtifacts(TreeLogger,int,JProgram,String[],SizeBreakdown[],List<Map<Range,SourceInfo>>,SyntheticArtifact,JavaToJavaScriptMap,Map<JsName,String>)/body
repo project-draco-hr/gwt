@@ -1,27 +1,27 @@
 {
   List<SyntheticArtifact> soycArtifacts=new ArrayList<SyntheticArtifact>();
   ByteArrayOutputStream baos=new ByteArrayOutputStream();
-  PerfLogger.start("Recording compile report output");
-  PerfLogger.start("Record split points");
+  SpeedTracerLogger.get().start(CompilerEventType.MAKE_SOYC_ARTIFACTS);
+  SpeedTracerLogger.get().start(CompilerEventType.MAKE_SOYC_ARTIFACTS,"phase","recordSplitPoints");
   SplitPointRecorder.recordSplitPoints(jprogram,baos,logger);
   SyntheticArtifact splitPoints=new SyntheticArtifact(SoycReportLinker.class,"splitPoints" + permutationId + ".xml.gz",baos.toByteArray());
   soycArtifacts.add(splitPoints);
-  PerfLogger.end();
+  SpeedTracerLogger.get().end(CompilerEventType.MAKE_SOYC_ARTIFACTS);
   SyntheticArtifact sizeMaps=null;
   if (sizeBreakdowns != null) {
-    PerfLogger.start("Record size map");
+    SpeedTracerLogger.get().start(CompilerEventType.MAKE_SOYC_ARTIFACTS,"phase","recordSizeMap");
     baos.reset();
     SizeMapRecorder.recordMap(logger,baos,sizeBreakdowns,jjsmap,obfuscateMap);
     sizeMaps=new SyntheticArtifact(SoycReportLinker.class,"stories" + permutationId + ".xml.gz",baos.toByteArray());
     soycArtifacts.add(sizeMaps);
-    PerfLogger.end();
+    SpeedTracerLogger.get().end(CompilerEventType.MAKE_SOYC_ARTIFACTS);
   }
   if (sourceInfoMaps != null) {
-    PerfLogger.start("Record detailed stories");
+    SpeedTracerLogger.get().start(CompilerEventType.MAKE_SOYC_ARTIFACTS,"phase","recordStories");
     baos.reset();
     StoryRecorder.recordStories(logger,baos,sourceInfoMaps,js);
     soycArtifacts.add(new SyntheticArtifact(SoycReportLinker.class,"detailedStories" + permutationId + ".xml.gz",baos.toByteArray()));
-    PerfLogger.end();
+    SpeedTracerLogger.get().end(CompilerEventType.MAKE_SOYC_ARTIFACTS);
   }
   if (dependencies != null) {
     soycArtifacts.add(dependencies);
@@ -29,9 +29,8 @@
   for (  SyntheticArtifact soycArtifact : soycArtifacts) {
     soycArtifact.setPrivate(true);
   }
-  PerfLogger.end();
   if (sizeBreakdowns != null) {
-    PerfLogger.start("Generating compile report");
+    SpeedTracerLogger.get().start(CompilerEventType.MAKE_SOYC_ARTIFACTS,"phase","generateCompileReport");
     ArtifactsOutputDirectory outDir=new ArtifactsOutputDirectory();
     SoycDashboard dashboard=new SoycDashboard(outDir);
     dashboard.startNewPermutation(Integer.toString(permutationId));
@@ -52,7 +51,8 @@ catch (    SAXException e) {
     }
     dashboard.generateForOnePermutation();
     soycArtifacts.addAll(outDir.getArtifacts());
-    PerfLogger.end();
+    SpeedTracerLogger.get().end(CompilerEventType.MAKE_SOYC_ARTIFACTS);
   }
+  SpeedTracerLogger.get().end(CompilerEventType.MAKE_SOYC_ARTIFACTS);
   return soycArtifacts;
 }

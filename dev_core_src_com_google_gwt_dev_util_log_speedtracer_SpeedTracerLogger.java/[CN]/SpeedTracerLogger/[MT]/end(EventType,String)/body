@@ -1,0 +1,34 @@
+{
+  if (eventsToWrite == null) {
+    return;
+  }
+  if (data.length % 2 == 1) {
+    throw new IllegalArgumentException("Unmatched data argument");
+  }
+  long endTimeNanos=normalizedTimeNanos();
+  Stack<Event> threadPendingEvents=pendingEvents.get();
+  if (threadPendingEvents.isEmpty()) {
+    throw new IllegalStateException("Tried to end an event that never started!");
+  }
+  Event currentEvent=threadPendingEvents.pop();
+  assert(endTimeNanos >= currentEvent.startTimeNanos);
+  currentEvent.durationNanos=endTimeNanos - currentEvent.startTimeNanos;
+  List<Event> missedEvents=Lists.create();
+  while (currentEvent.type != type && !threadPendingEvents.isEmpty()) {
+    missedEvents=Lists.add(missedEvents,currentEvent);
+    currentEvent=threadPendingEvents.pop();
+    currentEvent.durationNanos=endTimeNanos - currentEvent.startTimeNanos;
+  }
+  currentEvent.addData(data);
+  if (threadPendingEvents.isEmpty()) {
+    eventsToWrite.add(currentEvent);
+  }
+  if (missedEvents.size() > 0) {
+    StringBuilder sb=new StringBuilder();
+    sb.append("SpeedTracerLogger missing end() calls for the following events: ");
+    for (    Event event : missedEvents) {
+      sb.append(event.type.getName());
+    }
+    throw new IllegalStateException(sb.toString());
+  }
+}

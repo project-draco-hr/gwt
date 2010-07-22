@@ -1,10 +1,9 @@
 {
   jprogram.beginOptimizations();
-  PerfCounter.start("JavaToJavaScriptCompiler.optimize");
-  PerfLogger.start("optimize");
+  SpeedTracerLogger.get().start(CompilerEventType.OPTIMIZE);
   do {
     if (Thread.interrupted()) {
-      PerfLogger.end();
+      SpeedTracerLogger.get().end(CompilerEventType.OPTIMIZE);
       throw new InterruptedException();
     }
     maybeDumpAST(jprogram);
@@ -13,6 +12,5 @@
   if (options.isAggressivelyOptimize()) {
     DataflowOptimizer.exec(jprogram);
   }
-  PerfCounter.end("JavaToJavaScriptCompiler.optimize");
-  PerfLogger.end();
+  SpeedTracerLogger.get().end(CompilerEventType.OPTIMIZE);
 }

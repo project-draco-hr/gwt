@@ -1,0 +1,11 @@
+{
+  Writer writer=new StringWriter();
+  SpeedTracerLogger.init(writer);
+  SpeedTracerLogger.get().start(dummyOne,"extraStart","valueStart");
+  SpeedTracerLogger.get().end(dummyOne,"extraEnd","valueEnd");
+  SpeedTracerLogger.get().flush();
+  Reader jsonReader=extractJsonFromWriter(writer);
+  JsonObject parsedObject=JsonObject.parse(jsonReader);
+  assertEquals("valueStart",parsedObject.get("data").asObject().get("extraStart").asString().getString());
+  assertEquals("valueEnd",parsedObject.get("data").asObject().get("extraEnd").asString().getString());
+}
