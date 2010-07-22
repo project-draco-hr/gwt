@@ -1,0 +1,49 @@
+{
+  int total=0, initialTotal=0, iClinit=-1;
+  int[] toSkip=null;
+  if (iMethods != null) {
+    total=initialTotal=iMethods.length;
+    boolean keepBridgeMethods=sourceLevel < ClassFileConstants.JDK1_5 && this.environment.globalOptions.complianceLevel >= ClassFileConstants.JDK1_5;
+    for (int i=total; --i >= 0; ) {
+      IBinaryMethod method=iMethods[i];
+      if ((method.getModifiers() & ClassFileConstants.AccSynthetic) != 0) {
+        if (keepBridgeMethods && (method.getModifiers() & ClassFileConstants.AccBridge) != 0)         continue;
+        if (toSkip == null)         toSkip=new int[iMethods.length];
+        toSkip[i]=-1;
+        total--;
+      }
+ else       if (iClinit == -1) {
+        char[] methodName=method.getSelector();
+        if (methodName.length == 8 && methodName[0] == '<') {
+          iClinit=i;
+          total--;
+        }
+      }
+    }
+  }
+  if (total == 0) {
+    this.methods=Binding.NO_METHODS;
+    return;
+  }
+  boolean isViewedAsDeprecated=isViewedAsDeprecated();
+  boolean hasRestrictedAccess=hasRestrictedAccess();
+  this.methods=new MethodBinding[total];
+  if (total == initialTotal) {
+    for (int i=0; i < initialTotal; i++) {
+      MethodBinding method=createMethod(iMethods[i],sourceLevel,missingTypeNames);
+      if (isViewedAsDeprecated && !method.isDeprecated())       method.modifiers|=ExtraCompilerModifiers.AccDeprecatedImplicitly;
+      if (hasRestrictedAccess)       method.modifiers|=ExtraCompilerModifiers.AccRestrictedAccess;
+      this.methods[i]=method;
+    }
+  }
+ else {
+    for (int i=0, index=0; i < initialTotal; i++) {
+      if (iClinit != i && (toSkip == null || toSkip[i] != -1)) {
+        MethodBinding method=createMethod(iMethods[i],sourceLevel,missingTypeNames);
+        if (isViewedAsDeprecated && !method.isDeprecated())         method.modifiers|=ExtraCompilerModifiers.AccDeprecatedImplicitly;
+        if (hasRestrictedAccess)         method.modifiers|=ExtraCompilerModifiers.AccRestrictedAccess;
+        this.methods[index++]=method;
+      }
+    }
+  }
+}
