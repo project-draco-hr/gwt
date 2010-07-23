@@ -1,0 +1,26 @@
+{
+  init("<doc>\n\n<elm plus='123' minus='-123'" + " fnord='fnord' ref='{foo.bar.baz}'/></doc>");
+  assertEquals("123",elm.consumeRequiredIntAttribute("plus"));
+  assertEquals("-123",elm.consumeRequiredIntAttribute("minus"));
+  assertEquals("(int)foo.bar().baz()",elm.consumeRequiredIntAttribute("ref"));
+  assertNull(logger.died);
+  try {
+    elm.consumeRequiredDoubleAttribute("fnord");
+    fail("Should throw UnableToCompleteException on misparse");
+  }
+ catch (  UnableToCompleteException c) {
+    assertNotNull(logger.died);
+    assertTrue("Expect attribute",logger.died.contains("Cannot parse attribute \"fnord\""));
+    assertTrue("Expect line number",logger.died.contains("Unknown:3"));
+  }
+  logger.died=null;
+  try {
+    elm.consumeRequiredDoubleAttribute("empty");
+    fail("Should throw UnableToCompleteException on no such attribute");
+  }
+ catch (  UnableToCompleteException c) {
+    assertNotNull(logger.died);
+    assertTrue("Expect attribute",logger.died.contains("Missing required attribute \"empty\""));
+    assertTrue("Expect line number",logger.died.contains("Unknown:3"));
+  }
+}

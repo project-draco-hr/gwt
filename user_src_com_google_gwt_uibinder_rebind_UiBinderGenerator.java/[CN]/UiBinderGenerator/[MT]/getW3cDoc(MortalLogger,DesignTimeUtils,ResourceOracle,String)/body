@@ -1,0 +1,18 @@
+{
+  Resource resource=resourceOracle.getResourceMap().get(templatePath);
+  if (null == resource) {
+    logger.die("Unable to find resource: " + templatePath);
+  }
+  Document doc=null;
+  try {
+    String content=designTime.getTemplateContent(templatePath);
+    if (content == null) {
+      content=Util.readStreamAsString(resource.openContents());
+    }
+    doc=new W3cDomHelper(logger.getTreeLogger(),resourceOracle).documentFor(content,resource.getPath());
+  }
+ catch (  SAXParseException e) {
+    logger.die("Error parsing XML (line " + e.getLineNumber() + "): "+ e.getMessage(),e);
+  }
+  return doc;
+}

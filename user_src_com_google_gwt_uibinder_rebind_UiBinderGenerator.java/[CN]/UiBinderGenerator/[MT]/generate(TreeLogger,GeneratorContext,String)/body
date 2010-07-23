@@ -8,13 +8,20 @@
  catch (  NotFoundException e) {
     throw new RuntimeException(e);
   }
+  DesignTimeUtils designTime;
+  if (Beans.isDesignTime()) {
+    designTime=new DesignTimeUtilsImpl();
+  }
+ else {
+    designTime=DesignTimeUtilsStub.EMPTY;
+  }
   String implName=interfaceType.getName().replace('.','_') + "Impl";
-  implName=DesignTimeUtils.getImplName(implName);
+  implName=designTime.getImplName(implName);
   String packageName=interfaceType.getPackage().getName();
   PrintWriterManager writers=new PrintWriterManager(genCtx,logger,packageName);
   PrintWriter printWriter=writers.tryToMakePrintWriterFor(implName);
   if (printWriter != null) {
-    generateOnce(interfaceType,implName,printWriter,logger,oracle,resourceOracle,writers);
+    generateOnce(interfaceType,implName,printWriter,logger,oracle,resourceOracle,writers,designTime);
   }
   return packageName + "." + implName;
 }
