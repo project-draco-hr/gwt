@@ -1,0 +1,56 @@
+{
+  logger=logger.branch(TreeLogger.DEBUG,String.format("Generating implementation of %s",interfaceType.getName()));
+  ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(packageName,implName);
+  f.addImport(HandlerManager.class.getName());
+  f.addImport(RequestFactoryJsonImpl.class.getName());
+  f.addImport(interfaceType.getQualifiedSourceName());
+  f.addImplementedInterface(interfaceType.getName());
+  f.setSuperclass(RequestFactoryJsonImpl.class.getSimpleName());
+  SourceWriter sw=f.createSourceWriter(generatorContext,out);
+  sw.println();
+  Set<JMethod> requestSelectors=new LinkedHashSet<JMethod>();
+  for (  JMethod method : interfaceType.getOverridableMethods()) {
+    if (method.getEnclosingType().equals(requestFactoryType)) {
+      continue;
+    }
+    JType returnType=method.getReturnType();
+    if (null == returnType) {
+      logger.log(TreeLogger.ERROR,String.format("Illegal return type for %s. Methods of %s must return interfaces, found void",method.getName(),interfaceType.getName()));
+      throw new UnableToCompleteException();
+    }
+    JClassType asInterface=returnType.isInterface();
+    if (null == asInterface) {
+      logger.log(TreeLogger.ERROR,String.format("Illegal return type for %s. Methods of %s must return interfaces",method.getName(),interfaceType.getName()));
+      throw new UnableToCompleteException();
+    }
+    requestSelectors.add(method);
+  }
+  JClassType recordToTypeInterface=generatorContext.getTypeOracle().findType(RecordToTypeMap.class.getName());
+  String recordToTypeMapName=recordToTypeInterface.getName() + "Impl";
+  sw.println("public void init(HandlerManager handlerManager) {");
+  sw.indent();
+  sw.println("super.init(handlerManager, new " + recordToTypeMapName + "());");
+  sw.outdent();
+  sw.println("}");
+  for (  JMethod requestSelector : requestSelectors) {
+    String returnTypeName=requestSelector.getReturnType().getQualifiedSourceName();
+    String nestedImplName=requestSelector.getName().replace('.','_') + "Impl";
+    sw.println("public " + returnTypeName + " "+ requestSelector.getName()+ "() {");
+    sw.indent();
+    sw.println("return new " + nestedImplName + "(this);");
+    sw.outdent();
+    sw.println("}");
+    sw.println();
+    PrintWriter pw=generatorContext.tryCreate(logger,packageName,nestedImplName);
+    if (pw != null) {
+      generateRequestSelectorImplementation(logger,generatorContext,pw,requestSelector,interfaceType,packageName,nestedImplName);
+    }
+  }
+  sw.outdent();
+  sw.println("}");
+  PrintWriter pw=generatorContext.tryCreate(logger,packageName,recordToTypeMapName);
+  if (pw != null) {
+    generateRecordToTypeMap(logger,generatorContext,pw,recordToTypeInterface,packageName,recordToTypeMapName);
+  }
+  generatorContext.commit(logger,out);
+}

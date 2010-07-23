@@ -1,0 +1,18 @@
+{
+  if (startRow == lastStartRow) {
+    if (maxRows == lastMaxRows) {
+      pushResults(acceptor,startRow,lastPeople);
+      return;
+    }
+  }
+  requests.schoolCalendarRequest().getPeople(startRow,maxRows).to(new Receiver<List<PersonProxy>>(){
+    public void onSuccess(    List<PersonProxy> response){
+      lastStartRow=startRow;
+      lastMaxRows=maxRows;
+      lastPeople=response.toArray(new PersonProxy[response.size()]);
+      PersonProxy[] result=response.toArray(new PersonProxy[response.size()]);
+      pushResults(acceptor,startRow,result);
+    }
+  }
+).fire();
+}
