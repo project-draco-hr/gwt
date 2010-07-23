@@ -2,38 +2,45 @@
   ensureConfig();
   RequestDefinition operation=null;
   try {
-    response.setStatus(HttpServletResponse.SC_OK);
-    PrintWriter writer=response.getWriter();
-    JSONObject topLevelJsonObject=new JSONObject(getContent(request));
-    String operationName=topLevelJsonObject.getString(RequestDataManager.OPERATION_TOKEN);
-    if (operationName.equals(RequestFactory.SYNC)) {
-      sync(topLevelJsonObject.getString(RequestDataManager.CONTENT_TOKEN),writer);
+    if (!userInfo.isUserLoggedIn()) {
+      response.setHeader("login",userInfo.getLoginUrl());
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
     }
  else {
-      operation=getOperation(operationName);
-      Class<?> domainClass=Class.forName(operation.getDomainClassName());
-      Method domainMethod=domainClass.getMethod(operation.getDomainMethodName(),operation.getParameterTypes());
-      if (!Modifier.isStatic(domainMethod.getModifiers())) {
-        throw new IllegalArgumentException("the " + domainMethod.getName() + " is not static");
-      }
-      Object args[]=RequestDataManager.getObjectsFromParameterMap(getParameterMap(topLevelJsonObject),domainMethod.getParameterTypes());
-      Object result=invokeStaticDomainMethod(domainMethod,args);
-      if ((result instanceof List<?>) != operation.isReturnTypeList()) {
-        throw new IllegalArgumentException(String.format("Type mismatch, expected %s%s, but %s returns %s",operation.isReturnTypeList() ? "list of " : "",operation.getReturnType(),domainMethod,domainMethod.getReturnType()));
-      }
-      if (result instanceof List<?>) {
-        JSONArray jsonArray=getJsonArray((List<?>)result,(Class<? extends Record>)operation.getReturnType());
-        writer.print(jsonArray.toString());
-      }
- else       if (result instanceof Number) {
-        writer.print(result.toString());
+      response.setHeader("userId",String.format("%d",userInfo.getId()));
+      response.setStatus(HttpServletResponse.SC_OK);
+      PrintWriter writer=response.getWriter();
+      JSONObject topLevelJsonObject=new JSONObject(getContent(request));
+      String operationName=topLevelJsonObject.getString(RequestDataManager.OPERATION_TOKEN);
+      if (operationName.equals(RequestFactory.SYNC)) {
+        sync(topLevelJsonObject.getString(RequestDataManager.CONTENT_TOKEN),writer);
       }
  else {
-        JSONObject jsonObject=getJsonObject(result,(Class<? extends Record>)operation.getReturnType());
-        writer.print("(" + jsonObject.toString() + ")");
+        operation=getOperation(operationName);
+        Class<?> domainClass=Class.forName(operation.getDomainClassName());
+        Method domainMethod=domainClass.getMethod(operation.getDomainMethodName(),operation.getParameterTypes());
+        if (!Modifier.isStatic(domainMethod.getModifiers())) {
+          throw new IllegalArgumentException("the " + domainMethod.getName() + " is not static");
+        }
+        Object args[]=RequestDataManager.getObjectsFromParameterMap(getParameterMap(topLevelJsonObject),domainMethod.getParameterTypes());
+        Object result=invokeStaticDomainMethod(domainMethod,args);
+        if ((result instanceof List<?>) != operation.isReturnTypeList()) {
+          throw new IllegalArgumentException(String.format("Type mismatch, expected %s%s, but %s returns %s",operation.isReturnTypeList() ? "list of " : "",operation.getReturnType(),domainMethod,domainMethod.getReturnType()));
+        }
+        if (result instanceof List<?>) {
+          JSONArray jsonArray=getJsonArray((List<?>)result,(Class<? extends Record>)operation.getReturnType());
+          writer.print(jsonArray.toString());
+        }
+ else         if (result instanceof Number) {
+          writer.print(result.toString());
+        }
+ else {
+          JSONObject jsonObject=getJsonObject(result,(Class<? extends Record>)operation.getReturnType());
+          writer.print("(" + jsonObject.toString() + ")");
+        }
       }
+      writer.flush();
     }
-    writer.flush();
   }
  catch (  ClassNotFoundException e) {
     throw new IllegalArgumentException(e);

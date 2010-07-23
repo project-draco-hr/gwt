@@ -23,10 +23,11 @@
     requestSelectors.add(asInterface);
   }
   for (  JClassType requestSelector : requestSelectors) {
+    String qualifiedSourceName=requestSelector.getQualifiedSourceName();
     String simpleSourceName=requestSelector.getSimpleSourceName();
-    sw.println("public " + simpleSourceName + " "+ getMethodName(simpleSourceName)+ "() {");
+    sw.println("public " + qualifiedSourceName + " "+ getMethodName(simpleSourceName)+ "() {");
     sw.indent();
-    sw.println("return new " + simpleSourceName + "Impl(this);");
+    sw.println("return new " + qualifiedSourceName + "Impl(this);");
     sw.outdent();
     sw.println("}");
     sw.println();
@@ -42,9 +43,10 @@
   sw.println("}");
   for (  JClassType nestedInterface : requestSelectors) {
     String nestedImplName=nestedInterface.getName() + "Impl";
-    PrintWriter pw=generatorContext.tryCreate(logger,packageName,nestedImplName);
+    String nestedImplPackage=nestedInterface.getPackage().getName();
+    PrintWriter pw=generatorContext.tryCreate(logger,nestedImplPackage,nestedImplName);
     if (pw != null) {
-      generateRequestSelectorImplementation(logger,generatorContext,pw,nestedInterface,interfaceType,packageName,nestedImplName);
+      generateRequestSelectorImplementation(logger,generatorContext,pw,nestedInterface,interfaceType,nestedImplPackage,nestedImplName);
     }
   }
   PrintWriter pw=generatorContext.tryCreate(logger,packageName,recordToTypeMapName);
