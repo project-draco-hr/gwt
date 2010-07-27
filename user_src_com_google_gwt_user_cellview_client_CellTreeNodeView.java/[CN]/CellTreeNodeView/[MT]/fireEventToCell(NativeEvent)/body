@@ -1,10 +1,16 @@
 {
   if (parentNodeInfo != null) {
-    Element cellParent=getCellParent();
     Cell<T> parentCell=parentNodeInfo.getCell();
+    String eventType=event.getType();
+    SelectionModel<? super T> selectionModel=parentNodeInfo.getSelectionModel();
+    if (selectionModel != null && "click".equals(eventType) && !parentCell.handlesSelection()) {
+      selectionModel.setSelected(value,true);
+    }
+    Element cellParent=getCellParent();
     Object key=getValueKey();
-    parentCell.onBrowserEvent(cellParent,value,key,event,parentNodeInfo.getValueUpdater());
-    return parentCell.consumesEvents();
+    Set<String> consumedEvents=parentCell.getConsumedEvents();
+    if (consumedEvents != null && consumedEvents.contains(eventType)) {
+      parentCell.onBrowserEvent(cellParent,value,key,event,parentNodeInfo.getValueUpdater());
+    }
   }
-  return false;
 }

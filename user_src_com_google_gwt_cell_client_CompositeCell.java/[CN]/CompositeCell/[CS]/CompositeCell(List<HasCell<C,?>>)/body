@@ -1,3 +1,23 @@
 {
   this.hasCells=new ArrayList<HasCell<C,?>>(hasCells);
+  Set<String> theConsumedEvents=null;
+  for (  HasCell<C,?> hasCell : hasCells) {
+    Cell<?> cell=hasCell.getCell();
+    Set<String> events=cell.getConsumedEvents();
+    if (events != null) {
+      if (theConsumedEvents == null) {
+        theConsumedEvents=new HashSet<String>();
+      }
+      theConsumedEvents.addAll(events);
+    }
+    if (cell.dependsOnSelection()) {
+      dependsOnSelection=true;
+    }
+    if (cell.handlesSelection()) {
+      handlesSelection=true;
+    }
+  }
+  if (theConsumedEvents != null) {
+    this.consumedEvents=Collections.unmodifiableSet(theConsumedEvents);
+  }
 }

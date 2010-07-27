@@ -9,7 +9,17 @@
   outerDiv.appendChild(childContainer);
   outerDiv.appendChild(emptyMessageElem);
   setElement(outerDiv);
-  sinkEvents(Event.ONCLICK | Event.ONCHANGE | Event.MOUSEEVENTS);
+  int eventsToSink=Event.ONCLICK;
+  Set<String> consumedEvents=cell.getConsumedEvents();
+  if (consumedEvents != null) {
+    for (    String typeName : consumedEvents) {
+      int typeInt=Event.getTypeInt(typeName);
+      if (typeInt > 0) {
+        eventsToSink|=typeInt;
+      }
+    }
+  }
+  sinkEvents(eventsToSink);
   view=new View(childContainer);
   presenter=new PagingListViewPresenter<T>(this,view,DEFAULT_PAGE_SIZE);
 }
