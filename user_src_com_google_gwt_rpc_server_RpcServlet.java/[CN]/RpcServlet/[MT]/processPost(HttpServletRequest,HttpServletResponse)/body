@@ -6,11 +6,12 @@
   }
   response.setContentType("application/json");
   response.setCharacterEncoding("UTF-8");
+  boolean canCompress=RPCServletUtils.acceptsGzipEncoding(request) && shouldCompressResponse(request,response);
   OutputStream out;
   if (DUMP_PAYLOAD) {
     out=new ByteArrayOutputStream();
   }
- else   if (RPCServletUtils.acceptsGzipEncoding(request) && shouldCompressResponse(request,response)) {
+ else   if (canCompress) {
     RPCServletUtils.setGzipEncodingHeader(response);
     out=new GZIPOutputStream(response.getOutputStream());
   }
@@ -22,5 +23,8 @@
     byte[] bytes=((ByteArrayOutputStream)out).toByteArray();
     System.out.println(new String(bytes,"UTF-8"));
     response.getOutputStream().write(bytes);
+  }
+ else   if (canCompress) {
+    ((GZIPOutputStream)out).finish();
   }
 }
