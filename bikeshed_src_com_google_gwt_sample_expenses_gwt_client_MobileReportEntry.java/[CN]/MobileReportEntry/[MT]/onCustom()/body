@@ -1,11 +1,12 @@
 {
+  DeltaValueStore deltas=requestObject.getDeltaValueStore();
   deltas.set(ReportRecord.purpose,report,purposeText.getText());
   deltas.set(ReportRecord.notes,report,notesText.getText());
   deltas.set(ReportRecord.department,report,departmentList.getValue(departmentList.getSelectedIndex()));
   Date date=new Date(dateYear.getSelectedIndex() + 100,dateMonth.getSelectedIndex(),dateDay.getSelectedIndex() + 1);
   deltas.set(ExpenseRecord.created,report,date);
-  requestFactory.syncRequest(deltas).to(new Receiver<Set<SyncResult>>(){
-    public void onSuccess(    Set<SyncResult> response){
+  requestObject.fire(new Receiver<Void>(){
+    public void onSuccess(    Void ignore,    Set<SyncResult> response){
       String errorMessage="";
       for (      SyncResult result : response) {
         if (result.hasViolations()) {
@@ -23,5 +24,5 @@
       }
     }
   }
-).fire();
+);
 }

@@ -5,10 +5,11 @@
     return;
   }
   setNotesEditState(false,true,pendingNotes);
-  DeltaValueStore deltas=expensesRequestFactory.getValueStore().spawnDeltaView();
+  RequestObject<Void> editRequest=expensesRequestFactory.reportRequest().persist();
+  DeltaValueStore deltas=editRequest.getDeltaValueStore();
   deltas.set(ReportRecord.notes,report,pendingNotes);
-  expensesRequestFactory.syncRequest(deltas).to(new Receiver<Set<SyncResult>>(){
-    public void onSuccess(    Set<SyncResult> response){
+  editRequest.fire(new Receiver<Void>(){
+    public void onSuccess(    Void ignore,    Set<SyncResult> response){
       String errorMessage=getErrorMessageFromSync(response);
       if (errorMessage.length() > 0) {
         showErrorPopup(errorMessage);
@@ -16,5 +17,5 @@
       }
     }
   }
-).fire();
+);
 }

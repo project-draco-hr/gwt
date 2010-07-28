@@ -4,6 +4,7 @@
   f.addImport(HandlerManager.class.getName());
   f.addImport(RequestFactoryJsonImpl.class.getName());
   f.addImport(interfaceType.getQualifiedSourceName());
+  f.addImport(RecordToTypeMap.class.getName());
   f.addImplementedInterface(interfaceType.getName());
   f.setSuperclass(RequestFactoryJsonImpl.class.getSimpleName());
   SourceWriter sw=f.createSourceWriter(generatorContext,out);
@@ -37,6 +38,12 @@
   sw.println("public void init(HandlerManager handlerManager) {");
   sw.indent();
   sw.println("super.init(handlerManager, new " + recordToTypeMapName + "());");
+  sw.outdent();
+  sw.println("}");
+  sw.println();
+  sw.println("public " + Record.class.getName() + " create(Class token) {");
+  sw.indent();
+  sw.println("return create(token, new " + recordToTypeMapName + "());");
   sw.outdent();
   sw.println("}");
   for (  JMethod requestSelector : requestSelectors) {

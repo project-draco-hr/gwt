@@ -26,7 +26,7 @@
       pager.startLoading();
     }
     lastDataSizeReceiver=new Receiver<Long>(){
-      public void onSuccess(      Long response){
+      public void onSuccess(      Long response,      Set<SyncResult> syncResults){
         if (this == lastDataSizeReceiver) {
           int count=response.intValue();
           reports.updateDataSize(count,count != 1000);
@@ -34,10 +34,10 @@
       }
     }
 ;
-    requestFactory.reportRequest().countReportsBySearch(employeeId,dept,startsWith).to(lastDataSizeReceiver).fire();
+    requestFactory.reportRequest().countReportsBySearch(employeeId,dept,startsWith).fire(lastDataSizeReceiver);
   }
   lastDataReceiver=new Receiver<List<ReportRecord>>(){
-    public void onSuccess(    List<ReportRecord> newValues){
+    public void onSuccess(    List<ReportRecord> newValues,    Set<SyncResult> syncResults){
       if (this == lastDataReceiver) {
         int size=newValues.size();
         if (size < table.getPageSize()) {
@@ -62,5 +62,5 @@
     }
   }
 ;
-  requestFactory.reportRequest().findReportEntriesBySearch(employeeId,dept,startsWith,orderBy,range.getStart(),range.getLength()).forProperties(reportColumns).to(lastDataReceiver).fire();
+  requestFactory.reportRequest().findReportEntriesBySearch(employeeId,dept,startsWith,orderBy,range.getStart(),range.getLength()).forProperties(reportColumns).fire(lastDataReceiver);
 }

@@ -2,15 +2,16 @@
   if (!view.confirm("Really delete this record? You cannot undo this change.")) {
     return;
   }
-  DeltaValueStore deltas=requests.getValueStore().spawnDeltaView();
+  RequestObject<Void> deleteRequest=requests.reportRequest().remove();
+  DeltaValueStore deltas=deleteRequest.getDeltaValueStore();
   deltas.delete(view.getValue());
-  requests.syncRequest(deltas).to(new Receiver<Set<SyncResult>>(){
-    public void onSuccess(    Set<SyncResult> response){
+  deleteRequest.fire(new Receiver<Void>(){
+    public void onSuccess(    Void ignore,    Set<SyncResult> response){
       if (display == null) {
         return;
       }
       display.showActivityWidget(null);
     }
   }
-).fire();
+);
 }

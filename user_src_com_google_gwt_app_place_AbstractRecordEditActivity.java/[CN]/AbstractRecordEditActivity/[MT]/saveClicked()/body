@@ -1,44 +1,45 @@
 {
-  if (deltas.isChanged()) {
-    view.setEnabled(false);
-    final DeltaValueStore toCommit=deltas;
-    deltas=null;
-    Receiver<Set<SyncResult>> receiver=new Receiver<Set<SyncResult>>(){
-      public void onSuccess(      Set<SyncResult> response){
-        if (display == null) {
-          return;
-        }
-        boolean hasViolations=false;
-        for (        SyncResult syncResult : response) {
-          Record syncRecord=syncResult.getRecord();
-          if (creating) {
-            if (futureId == null || !futureId.equals(syncResult.getFutureId())) {
-              continue;
-            }
-            id=syncRecord.getId();
+  DeltaValueStore deltas=requestObject.getDeltaValueStore();
+  if (!deltas.isChanged()) {
+    return;
+  }
+  view.setEnabled(false);
+  final RequestFactory.RequestObject<Void> toCommit=requestObject;
+  requestObject=null;
+  Receiver<Void> receiver=new Receiver<Void>(){
+    public void onSuccess(    Void ignore,    Set<SyncResult> response){
+      if (display == null) {
+        return;
+      }
+      boolean hasViolations=false;
+      for (      SyncResult syncResult : response) {
+        Record syncRecord=syncResult.getRecord();
+        if (creating) {
+          if (futureId == null || !futureId.equals(syncResult.getFutureId())) {
+            continue;
           }
- else {
-            if (!syncRecord.getId().equals(id)) {
-              continue;
-            }
-          }
-          if (syncResult.hasViolations()) {
-            hasViolations=true;
-            view.showErrors(syncResult.getViolations());
-          }
-        }
-        if (!hasViolations) {
-          exit();
+          id=syncRecord.getId();
         }
  else {
-          deltas=toCommit;
-          deltas.clearUsed();
-          view.setEnabled(true);
-          deltas.clearUsed();
+          if (!syncRecord.getId().equals(id)) {
+            continue;
+          }
+        }
+        if (syncResult.hasViolations()) {
+          hasViolations=true;
+          view.showErrors(syncResult.getViolations());
         }
       }
+      if (!hasViolations) {
+        exit();
+      }
+ else {
+        requestObject=toCommit;
+        requestObject.getDeltaValueStore().clearUsed();
+        view.setEnabled(true);
+      }
     }
-;
-    requests.syncRequest(toCommit).to(receiver).fire();
   }
+;
+  toCommit.fire(receiver);
 }
