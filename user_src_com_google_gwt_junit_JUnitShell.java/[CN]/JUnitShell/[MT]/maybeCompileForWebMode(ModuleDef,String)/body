@@ -3,12 +3,13 @@
     String servletClass=module.findServletForPath(path);
     path='/' + module.getName() + path;
     if (!servletClass.equals(loadedServletsByPath.get(path))) {
-      ServletHolder holder=wac.addServlet(servletClass,path);
-      if (holder.isAvailable()) {
+      try {
+        Class<?> clazz=wac.loadClass(servletClass);
+        wac.addServlet(clazz,path);
         loadedServletsByPath.put(path,servletClass);
       }
- else {
-        getTopLogger().log(TreeLogger.WARN,"Failed to load servlet class '" + servletClass + "' declared in '"+ module.getName()+ "'");
+ catch (      ClassNotFoundException e) {
+        getTopLogger().log(TreeLogger.WARN,"Failed to load servlet class '" + servletClass + "' declared in '"+ module.getName()+ "'",e);
       }
     }
   }
