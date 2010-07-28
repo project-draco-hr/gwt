@@ -1,0 +1,59 @@
+{
+  JDeclaredType type=(JDeclaredType)getType(binding);
+  try {
+    if (type instanceof JClassType && type != program.getTypeJavaLangObject()) {
+      JMethod getClassMethod=program.createMethod(type.getSourceInfo().makeChild(BuildDeclMapVisitor.class,"Synthetic getClass()"),"getClass",type,program.getTypeJavaLangClass(),false,false,false,false,false);
+      assert(type.getMethods().get(2) == getClassMethod);
+      getClassMethod.freezeParamTypes();
+      getClassMethod.setSynthetic();
+    }
+    if (binding.isNestedType() && !binding.isStatic() && !(binding instanceof BinaryTypeBinding)) {
+      assert(type instanceof JClassType);
+      NestedTypeBinding nestedBinding=(NestedTypeBinding)binding;
+      if (nestedBinding.enclosingInstances != null) {
+        for (int i=0; i < nestedBinding.enclosingInstances.length; ++i) {
+          SyntheticArgumentBinding arg=nestedBinding.enclosingInstances[i];
+          if (arg.matchingField != null) {
+            createField(arg,type);
+          }
+        }
+      }
+      if (nestedBinding.outerLocalVariables != null) {
+        for (int i=0; i < nestedBinding.outerLocalVariables.length; ++i) {
+          SyntheticArgumentBinding arg=nestedBinding.outerLocalVariables[i];
+          createField(arg,type);
+        }
+      }
+    }
+    ReferenceBinding superClassBinding=binding.superclass();
+    if (superClassBinding != null) {
+      assert(binding.superclass().isClass() || binding.superclass().isEnum());
+      JClassType superClass=(JClassType)getType(superClassBinding);
+      type.setSuperClass(superClass);
+    }
+    ReferenceBinding[] superInterfaces=binding.superInterfaces();
+    for (    ReferenceBinding superInterfaceBinding : superInterfaces) {
+      assert(superInterfaceBinding.isInterface());
+      JInterfaceType superInterface=(JInterfaceType)getType(superInterfaceBinding);
+      type.addImplements(superInterface);
+    }
+    ReferenceBinding enclosingBinding=binding.enclosingType();
+    if (enclosingBinding != null) {
+      type.setEnclosingType((JDeclaredType)getType(enclosingBinding));
+    }
+    if (type instanceof JEnumType) {
+      processEnumType(binding,(JEnumType)type);
+    }
+    return true;
+  }
+ catch (  VirtualMachineError e) {
+    throw e;
+  }
+catch (  InternalCompilerException ice) {
+    ice.addNode(type);
+    throw ice;
+  }
+catch (  Throwable e) {
+    throw new InternalCompilerException(type,"Error building type map",e);
+  }
+}

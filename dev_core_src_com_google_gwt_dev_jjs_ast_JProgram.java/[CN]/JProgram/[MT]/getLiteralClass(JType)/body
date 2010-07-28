@@ -5,13 +5,16 @@
       throw new InternalCompilerException("New class literals cannot be created once optimizations have started; type '" + type + "'");
     }
     SourceInfo info=typeSpecialClassLiteralHolder.getSourceInfo();
-    JExpression alloc=JClassLiteral.computeClassObjectAllocation(this,info,type);
+    boolean isObjectExternal=getTypeJavaLangObject().isExternal();
+    JExpression alloc=isObjectExternal ? null : JClassLiteral.computeClassObjectAllocation(this,info,type);
     JField field=new JField(info,type.getJavahSignatureName() + "_classLit",typeSpecialClassLiteralHolder,getTypeJavaLangClass(),true,Disposition.FINAL);
     typeSpecialClassLiteralHolder.addField(field);
-    JFieldRef fieldRef=new JFieldRef(info,null,field,typeSpecialClassLiteralHolder);
-    JDeclarationStatement decl=new JDeclarationStatement(info,fieldRef,alloc);
-    JMethodBody clinitBody=(JMethodBody)typeSpecialClassLiteralHolder.getMethods().get(0).getBody();
-    clinitBody.getBlock().addStmt(decl);
+    if (alloc != null) {
+      JFieldRef fieldRef=new JFieldRef(info,null,field,typeSpecialClassLiteralHolder);
+      JDeclarationStatement decl=new JDeclarationStatement(info,fieldRef,alloc);
+      JMethodBody clinitBody=(JMethodBody)typeSpecialClassLiteralHolder.getMethods().get(0).getBody();
+      clinitBody.getBlock().addStmt(decl);
+    }
     SourceInfo literalInfo=createSourceInfoSynthetic(JProgram.class,"class literal for " + type.getName());
     literalInfo.addCorrelation(correlator.by(Literal.CLASS));
     classLiteral=new JClassLiteral(literalInfo,type,field);

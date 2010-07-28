@@ -12,19 +12,21 @@
     currentMethodBody=null;
     currentMethod=null;
   }
-  for (  JMethod method : type.getMethods()) {
-    currentMethod=method;
-    if ("valueOf".equals(method.getName())) {
-      if (method.getParams().size() != 1) {
-        continue;
+  if (isScript(program)) {
+    for (    JMethod method : type.getMethods()) {
+      currentMethod=method;
+      if ("valueOf".equals(method.getName())) {
+        if (method.getParams().size() != 1) {
+          continue;
+        }
+        if (method.getParams().get(0).getType() != program.getTypeJavaLangString()) {
+          continue;
+        }
+        currentMethodBody=(JMethodBody)method.getBody();
+        writeEnumValueOfMethod(type,valuesField);
       }
-      if (method.getParams().get(0).getType() != program.getTypeJavaLangString()) {
-        continue;
-      }
-      currentMethodBody=(JMethodBody)method.getBody();
-      writeEnumValueOfMethod(type,valuesField);
+      currentMethodBody=null;
+      currentMethod=null;
     }
-    currentMethodBody=null;
-    currentMethod=null;
   }
 }

@@ -1,10 +1,11 @@
 {
   try {
     MethodBinding b=methodDeclaration.binding;
-    JDeclaredType enclosingType=(JDeclaredType)typeMap.get(scope.enclosingSourceType());
+    JDeclaredType enclosingType=(JDeclaredType)getType(scope.enclosingSourceType());
     SourceInfo info=makeSourceInfo(methodDeclaration,enclosingType);
     JMethod newMethod=processMethodBinding(b,enclosingType,info);
-    mapParameters(newMethod,methodDeclaration);
+    SourceInfo methodInfo=makeSourceInfo(methodDeclaration,newMethod);
+    mapParameters(newMethod,methodDeclaration,methodInfo);
     info.addCorrelation(program.getCorrelator().by(newMethod));
     if (newMethod.isNative()) {
       processNativeMethod(methodDeclaration,info,enclosingType,newMethod);

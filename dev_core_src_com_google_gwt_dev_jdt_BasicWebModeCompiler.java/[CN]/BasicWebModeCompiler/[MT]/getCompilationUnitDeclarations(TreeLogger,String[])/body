@@ -6,6 +6,9 @@
   List<ICompilationUnit> icus=new ArrayList<ICompilationUnit>(seedTypeNames.length + intfTypes.size());
   for (  String seedTypeName : seedTypeNames) {
     CompilationUnit unit=getUnitForType(logger,classMapBySource,seedTypeName);
+    if (unit == null) {
+      continue;
+    }
     if (alreadyAdded.add(unit)) {
       icus.add(new CompilationUnitAdapter(unit));
     }
@@ -21,7 +24,7 @@
       logger.log(TreeLogger.SPAM,"Forced compilation of unit '" + unit.getDisplayLocation() + "' becasue it contains a SingleJsoImpl type");
     }
   }
-  CompilationUnitDeclaration[] cuds=compile(logger,icus.toArray(new ICompilationUnit[icus.size()]));
+  CompilationResults units=compile(logger,icus.toArray(new ICompilationUnit[icus.size()]));
   Memory.maybeDumpMemory("WebModeCompiler");
-  return cuds;
+  return units;
 }

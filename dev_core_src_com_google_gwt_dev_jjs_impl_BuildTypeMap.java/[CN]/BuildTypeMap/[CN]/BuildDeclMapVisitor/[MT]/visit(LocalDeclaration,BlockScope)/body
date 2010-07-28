@@ -1,8 +1,11 @@
 {
   try {
     LocalVariableBinding b=localDeclaration.binding;
-    JType localType=(JType)typeMap.get(localDeclaration.type.resolvedType);
+    JType localType=getType(localDeclaration.type.resolvedType);
     JMethodBody enclosingBody=findEnclosingMethod(scope);
+    if (enclosingBody == null) {
+      return true;
+    }
     SourceInfo info=makeSourceInfo(localDeclaration,enclosingBody.getMethod());
     JLocal newLocal=JProgram.createLocal(info,String.valueOf(localDeclaration.name),localType,b.isFinal(),enclosingBody);
     typeMap.put(b,newLocal);

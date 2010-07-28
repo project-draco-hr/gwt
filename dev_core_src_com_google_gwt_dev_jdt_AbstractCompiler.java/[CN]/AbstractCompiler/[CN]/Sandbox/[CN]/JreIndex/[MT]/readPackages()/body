@@ -1,0 +1,22 @@
+{
+  HashSet<String> pkgs=new HashSet<String>();
+  String klass="java/lang/Object.class";
+  URL url=ClassLoader.getSystemClassLoader().getResource(klass);
+  try {
+    JarURLConnection connection=(JarURLConnection)url.openConnection();
+    JarFile f=connection.getJarFile();
+    Enumeration<JarEntry> entries=f.entries();
+    while (entries.hasMoreElements()) {
+      JarEntry e=entries.nextElement();
+      String name=e.getName();
+      if (name.endsWith(".class")) {
+        String pkg=Shared.getPackageNameFromBinary(name);
+        addPackageRecursively(pkgs,pkg);
+      }
+    }
+    return pkgs;
+  }
+ catch (  IOException e) {
+    throw new InternalCompilerException("Unable to find JRE",e);
+  }
+}
