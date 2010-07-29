@@ -17,9 +17,28 @@
       }
     }
   }
+  boolean didChange=internalMap.size() != newInternalMap.size();
+  for (  Map.Entry<String,ResourceData> entry : newInternalMap.entrySet()) {
+    String resourcePath=entry.getKey();
+    ResourceData newData=entry.getValue();
+    ResourceData oldData=internalMap.get(resourcePath);
+    if (shouldUseNewResource(logger,oldData,newData)) {
+      didChange=true;
+    }
+ else {
+      if (oldData.resource != newData.resource) {
+        newInternalMap.put(resourcePath,oldData);
+      }
+    }
+  }
+  if (!didChange) {
+    SpeedTracerLogger.end(CompilerEventType.RESOURCE_ORACLE);
+    return;
+  }
+  internalMap=newInternalMap;
   Map<String,Resource> externalMap=new HashMap<String,Resource>();
   Set<Resource> externalSet=new HashSet<Resource>();
-  for (  Entry<String,ResourceData> entry : newInternalMap.entrySet()) {
+  for (  Entry<String,ResourceData> entry : internalMap.entrySet()) {
     String path=entry.getKey();
     ResourceData data=entry.getValue();
     externalMap.put(path,data.resource);
