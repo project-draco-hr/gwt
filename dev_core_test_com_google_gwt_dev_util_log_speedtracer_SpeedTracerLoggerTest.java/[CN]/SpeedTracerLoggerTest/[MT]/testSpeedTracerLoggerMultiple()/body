@@ -1,0 +1,18 @@
+{
+  Writer writer=new StringWriter();
+  SpeedTracerLogger logger=new SpeedTracerLogger(writer);
+  logger.startImpl(dummyOne);
+  logger.endImpl(dummyOne);
+  logger.startImpl(dummyTwo);
+  logger.endImpl(dummyTwo);
+  logger.startImpl(dummyThree);
+  logger.endImpl(dummyThree);
+  logger.flush();
+  Reader jsonReader=extractJsonFromWriter(writer);
+  JsonObject dummyOneObject=JsonObject.parse(jsonReader).asObject();
+  JsonObject dummyTwoObject=JsonObject.parse(jsonReader).asObject();
+  JsonObject dummyThreeObject=JsonObject.parse(jsonReader).asObject();
+  assertTrue(compareJsonToEvent(dummyOneObject,dummyOne));
+  assertTrue(compareJsonToEvent(dummyTwoObject,dummyTwo));
+  assertTrue(compareJsonToEvent(dummyThreeObject,dummyThree));
+}

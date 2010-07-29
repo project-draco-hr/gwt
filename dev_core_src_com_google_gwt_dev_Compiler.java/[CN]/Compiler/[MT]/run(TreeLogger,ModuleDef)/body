@@ -1,5 +1,5 @@
 {
-  SpeedTracerLogger.get().start(CompilerEventType.COMPILE);
+  SpeedTracerLogger.start(CompilerEventType.COMPILE);
   boolean tempWorkDir=false;
   try {
     if (options.getWorkDir() == null) {
@@ -20,21 +20,21 @@
         long compileStart=System.currentTimeMillis();
         TreeLogger branch=logger.branch(TreeLogger.INFO,"Compiling module " + moduleName);
         options.setOptimizePrecompile(true);
-        SpeedTracerLogger.get().start(CompilerEventType.PRECOMPILE);
+        SpeedTracerLogger.start(CompilerEventType.PRECOMPILE);
         Precompilation precompilation=Precompile.precompile(branch,options,module,options.getGenDir(),options.getDumpSignatureFile());
-        SpeedTracerLogger.get().end(CompilerEventType.PRECOMPILE);
+        SpeedTracerLogger.end(CompilerEventType.PRECOMPILE);
         if (precompilation == null) {
           return false;
         }
-        SpeedTracerLogger.get().start(CompilerEventType.COMPILE_PERMUTATIONS);
+        SpeedTracerLogger.start(CompilerEventType.COMPILE_PERMUTATIONS);
         Permutation[] allPerms=precompilation.getPermutations();
         List<FileBackedObject<PermutationResult>> resultFiles=CompilePerms.makeResultFiles(options.getCompilerWorkDir(moduleName),allPerms);
         CompilePerms.compile(branch,precompilation,allPerms,options.getLocalWorkers(),resultFiles);
-        SpeedTracerLogger.get().end(CompilerEventType.COMPILE_PERMUTATIONS);
+        SpeedTracerLogger.end(CompilerEventType.COMPILE_PERMUTATIONS);
         ArtifactSet generatedArtifacts=precompilation.getGeneratedArtifacts();
         JJSOptions precompileOptions=precompilation.getUnifiedAst().getOptions();
         precompilation=null;
-        SpeedTracerLogger.get().start(CompilerEventType.LINK);
+        SpeedTracerLogger.start(CompilerEventType.LINK);
         File absPath=new File(options.getWarDir(),module.getName());
         absPath=absPath.getAbsoluteFile();
         String logMessage="Linking into " + absPath;
@@ -44,7 +44,7 @@
           logMessage+="; Writing extras to " + absExtrasPath;
         }
         Link.link(logger.branch(TreeLogger.TRACE,logMessage),module,generatedArtifacts,allPerms,resultFiles,options.getWarDir(),options.getExtraDir(),precompileOptions);
-        SpeedTracerLogger.get().end(CompilerEventType.LINK);
+        SpeedTracerLogger.end(CompilerEventType.LINK);
         long compileDone=System.currentTimeMillis();
         long delta=compileDone - compileStart;
         branch.log(TreeLogger.INFO,"Compilation succeeded -- " + String.format("%.3f",delta / 1000d) + "s");
@@ -56,7 +56,7 @@
     return false;
   }
  finally {
-    SpeedTracerLogger.get().end(CompilerEventType.COMPILE);
+    SpeedTracerLogger.end(CompilerEventType.COMPILE);
     if (tempWorkDir) {
       Util.recursiveDelete(options.getWorkDir(),false);
     }
