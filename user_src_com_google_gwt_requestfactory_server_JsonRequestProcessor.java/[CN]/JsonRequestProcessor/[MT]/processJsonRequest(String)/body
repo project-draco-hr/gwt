@@ -1,0 +1,32 @@
+{
+  RequestDefinition operation;
+  JSONObject topLevelJsonObject=new JSONObject(jsonRequestString);
+  String operationName=topLevelJsonObject.getString(JsonRequestDataUtil.OPERATION_TOKEN);
+  if (operationName.equals(RequestFactory.SYNC)) {
+    return sync(topLevelJsonObject.getString(JsonRequestDataUtil.CONTENT_TOKEN));
+  }
+ else {
+    operation=getOperation(operationName);
+    Class<?> domainClass=Class.forName(operation.getDomainClassName());
+    Method domainMethod=domainClass.getMethod(operation.getDomainMethodName(),operation.getParameterTypes());
+    if (!Modifier.isStatic(domainMethod.getModifiers())) {
+      throw new IllegalArgumentException("the " + domainMethod.getName() + " is not static");
+    }
+    Object args[]=getObjectsFromParameterMap(getParameterMap(topLevelJsonObject),domainMethod.getParameterTypes());
+    Object result=invokeStaticDomainMethod(domainMethod,args);
+    if ((result instanceof List<?>) != operation.isReturnTypeList()) {
+      throw new IllegalArgumentException(String.format("Type mismatch, expected %s%s, but %s returns %s",operation.isReturnTypeList() ? "list of " : "",operation.getReturnType(),domainMethod,domainMethod.getReturnType()));
+    }
+    if (result instanceof List<?>) {
+      JSONArray jsonArray=getJsonArray((List<?>)result,(Class<? extends Record>)operation.getReturnType());
+      return jsonArray;
+    }
+ else     if (result instanceof Number && !(result instanceof BigDecimal || result instanceof BigInteger)) {
+      return result;
+    }
+ else {
+      JSONObject jsonObject=getJsonObject(result,(Class<? extends Record>)operation.getReturnType());
+      return jsonObject;
+    }
+  }
+}

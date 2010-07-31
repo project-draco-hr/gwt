@@ -1,0 +1,62 @@
+{
+  if (String.class == parameterType) {
+    return parameterValue;
+  }
+  if (Integer.class == parameterType || int.class == parameterType) {
+    return new Integer(parameterValue);
+  }
+  if (Byte.class == parameterType || byte.class == parameterType) {
+    return new Byte(parameterValue);
+  }
+  if (Short.class == parameterType || short.class == parameterType) {
+    return new Short(parameterValue);
+  }
+  if (Float.class == parameterType || float.class == parameterType) {
+    return new Float(parameterValue);
+  }
+  if (Double.class == parameterType || double.class == parameterType) {
+    return new Double(parameterValue);
+  }
+  if (Long.class == parameterType || long.class == parameterType) {
+    return new Long(parameterValue);
+  }
+  if (Character.class == parameterType || char.class == parameterType) {
+    return parameterValue.charAt(0);
+  }
+  if (BigInteger.class == parameterType) {
+    return new BigInteger(parameterValue);
+  }
+  if (BigDecimal.class == parameterType) {
+    return new BigDecimal(parameterValue);
+  }
+  if (parameterType.isEnum()) {
+    try {
+      int ordinal=Integer.parseInt(parameterValue);
+      Method valuesMethod=parameterType.getDeclaredMethod("values",new Class[0]);
+      Logger.getLogger(this.getClass().getName()).severe("Type is " + parameterType + " valuesMethod "+ valuesMethod);
+      valuesMethod.setAccessible(true);
+      if (valuesMethod != null) {
+        Enum[] values=(Enum[])valuesMethod.invoke(null);
+        for (        Enum e : values) {
+          if (ordinal == e.ordinal()) {
+            return e;
+          }
+        }
+      }
+      throw new IllegalArgumentException("Can't decode enum " + parameterType + " no matching ordinal "+ ordinal);
+    }
+ catch (    NoSuchMethodException e) {
+      throw new IllegalArgumentException("Can't decode enum " + parameterType);
+    }
+catch (    InvocationTargetException e) {
+      throw new IllegalArgumentException("Can't decode enum " + parameterType);
+    }
+catch (    IllegalAccessException e) {
+      throw new IllegalArgumentException("Can't decode enum " + parameterType);
+    }
+  }
+  if (Date.class == parameterType) {
+    return new Date(Long.parseLong(parameterValue));
+  }
+  throw new IllegalArgumentException("Unknown parameter type: " + parameterType);
+}

@@ -3,7 +3,7 @@
   logger=logger.branch(TreeLogger.DEBUG,String.format("Generating implementation of %s",selectorInterface.getName()));
   ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(packageName,implName);
   f.addImport(ClientRequestHelper.class.getName());
-  f.addImport(RequestDataManager.class.getName());
+  f.addImport(JsonRequestDataUtil.class.getName());
   f.addImport(mainType.getQualifiedSourceName() + "Impl");
   f.addImplementedInterface(selectorInterface.getQualifiedSourceName());
   SourceWriter sw=f.createSourceWriter(generatorContext,out);
@@ -23,6 +23,7 @@
     JClassType requestType=method.getReturnType().isClassOrInterface();
     String requestClassName=null;
     TypeOracle typeOracle=generatorContext.getTypeOracle();
+    String enumArgument="";
     if (isRecordListRequest(typeOracle,requestType)) {
       requestClassName=asInnerImplClass("ListRequestImpl",returnType);
     }
@@ -38,6 +39,31 @@
  else     if (isDoubleRequest(typeOracle,requestType)) {
       requestClassName=AbstractDoubleRequest.class.getName();
     }
+ else     if (isByteRequest(typeOracle,requestType)) {
+      requestClassName=AbstractByteRequest.class.getName();
+    }
+ else     if (isShortRequest(typeOracle,requestType)) {
+      requestClassName=AbstractShortRequest.class.getName();
+    }
+ else     if (isFloatRequest(typeOracle,requestType)) {
+      requestClassName=AbstractFloatRequest.class.getName();
+    }
+ else     if (isCharacterRequest(typeOracle,requestType)) {
+      requestClassName=AbstractCharacterRequest.class.getName();
+    }
+ else     if (isDateRequest(typeOracle,requestType)) {
+      requestClassName=AbstractDateRequest.class.getName();
+    }
+ else     if (isBigDecimalRequest(typeOracle,requestType)) {
+      requestClassName=AbstractBigDecimalRequest.class.getName();
+    }
+ else     if (isBigIntegerRequest(typeOracle,requestType)) {
+      requestClassName=AbstractBigIntegerRequest.class.getName();
+    }
+ else     if (isEnumRequest(typeOracle,requestType)) {
+      requestClassName=AbstractEnumRequest.class.getName();
+      enumArgument=", " + requestType.isParameterized().getTypeArgs()[0] + ".values()";
+    }
  else     if (isVoidRequest(typeOracle,requestType)) {
       requestClassName=AbstractVoidRequest.class.getName();
     }
@@ -47,11 +73,11 @@
     }
     sw.println(getMethodDeclaration(method) + " {");
     sw.indent();
-    sw.println("return new " + requestClassName + "(factory) {");
+    sw.println("return new " + requestClassName + "(factory"+ enumArgument+ ") {");
     sw.indent();
     sw.println("public String getRequestData() {");
     sw.indent();
-    sw.println("return " + ClientRequestHelper.class.getSimpleName() + ".getRequestString("+ RequestDataManager.class.getSimpleName()+ ".getRequestMap(\""+ operationName+ "\", "+ getParametersAsString(method)+ ", null));");
+    sw.println("return " + ClientRequestHelper.class.getSimpleName() + ".getRequestString("+ JsonRequestDataUtil.class.getSimpleName()+ ".getRequestMap(\""+ operationName+ "\", "+ getParametersAsString(method)+ ", null));");
     sw.outdent();
     sw.println("}");
     sw.outdent();
