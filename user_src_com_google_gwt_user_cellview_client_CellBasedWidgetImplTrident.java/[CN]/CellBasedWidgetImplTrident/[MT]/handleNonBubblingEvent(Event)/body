@@ -1,0 +1,39 @@
+{
+  EventTarget eventTarget=event.getEventTarget();
+  if (!Element.is(eventTarget)) {
+    return;
+  }
+  final com.google.gwt.user.client.Element target=eventTarget.cast();
+  com.google.gwt.user.client.Element curElem=target;
+  EventListener listener=DOM.getEventListener(curElem);
+  while (curElem != null && listener == null) {
+    curElem=curElem.getParentElement().cast();
+    listener=(curElem == null) ? null : DOM.getEventListener(curElem);
+  }
+  if (!(listener instanceof Widget)) {
+    return;
+  }
+  Widget widget=(Widget)listener;
+  if (target == widget.getElement()) {
+    return;
+  }
+  String type=event.getType();
+  if ("focusin".equals(type)) {
+    String tagName=target.getTagName().toLowerCase();
+    if (inputTypes.contains(tagName)) {
+      focusedInput=target;
+      focusedInputValue=getInputValue(target);
+      focusedInputChangesOnBlurOnly=!"select".equals(tagName);
+    }
+    dispatchCellEvent(widget,target,Event.ONFOCUS,null);
+  }
+ else   if ("focusout".equals(type)) {
+    maybeFireChangeEvent(widget);
+    focusedInput=null;
+    Event blurEvent=Document.get().createFocusEvent().cast();
+    dispatchCellEvent(widget,target,Event.ONBLUR,null);
+  }
+ else   if ("load".equals(type) || "error".equals(type)) {
+    dispatchEvent(event,widget.getElement(),listener);
+  }
+}

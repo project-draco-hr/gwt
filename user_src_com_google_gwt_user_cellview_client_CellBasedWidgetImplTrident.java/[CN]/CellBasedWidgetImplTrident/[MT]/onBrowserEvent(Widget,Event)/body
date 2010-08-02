@@ -1,0 +1,23 @@
+{
+  String type=event.getType().toLowerCase();
+  if ("focus".equals(type) || "blur".equals(type) || "change".equals(type)) {
+    EventTarget eventTarget=event.getEventTarget();
+    if (Element.is(eventTarget)) {
+      com.google.gwt.user.client.Element target=eventTarget.cast();
+      if (target != widget.getElement()) {
+        DOM.setEventListener(target,null);
+      }
+    }
+  }
+  if (focusedInput != null && "change".equals(type)) {
+    focusedInputValue=getInputValue(focusedInput);
+  }
+  if (focusedInput != null && !focusedInputChangesOnBlurOnly && changeEventTriggers.contains(type)) {
+    Scheduler.get().scheduleDeferred(new ScheduledCommand(){
+      public void execute(){
+        maybeFireChangeEvent(widget);
+      }
+    }
+);
+  }
+}

@@ -1,0 +1,28 @@
+{
+  if ("change".equals(typeName) || "focus".equals(typeName) || "blur".equals(typeName)) {
+    if (dispatchFocusEvent == null) {
+      initFocusEventSystem();
+    }
+    int eventsToSink=-1;
+    Element elem=widget.getElement();
+    String attr="__gwtCellBasedWidgetImplDispatchingFocus";
+    if (!"true".equals(elem.getAttribute(attr))) {
+      elem.setAttribute(attr,"true");
+      sinkFocusEvents(elem);
+      for (      String trigger : changeEventTriggers) {
+        eventsToSink|=Event.getTypeInt(trigger);
+      }
+    }
+    return eventsToSink;
+  }
+ else   if ("load".equals(typeName) || "error".equals(typeName)) {
+    if (!loadEventsInitialized) {
+      loadEventsInitialized=true;
+      initLoadEvents(GWT.getModuleName());
+    }
+    return -1;
+  }
+ else {
+    return super.sinkEvent(widget,typeName);
+  }
+}
