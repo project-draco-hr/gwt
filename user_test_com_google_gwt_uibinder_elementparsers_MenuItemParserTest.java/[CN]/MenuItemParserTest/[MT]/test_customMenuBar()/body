@@ -1,0 +1,21 @@
+{
+  MockJavaResource barSubclass=new MockJavaResource("com.google.gwt.user.client.ui.MyMenuBar"){
+    @Override protected CharSequence getContent(){
+      String superName=MenuBar.class.getCanonicalName();
+      StringBuffer code=new StringBuffer();
+      code.append("package com.google.gwt.user.client.ui;\n");
+      code.append("public class MyMenuBar extends " + superName + " {\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+;
+  tester=new ElementParserTester(PARSED_TYPE,parser,barSubclass);
+  StringBuffer b=new StringBuffer();
+  b.append("<g:MenuItem>");
+  b.append("  <g:MyMenuBar id='1'/>");
+  b.append("</g:MenuItem>");
+  FieldWriter w=tester.parse(b.toString());
+  assertEquals(STD_ITEM,w.getInitializer());
+  assertStatements("fieldName.setSubMenu(<g:MyMenuBar id='1'>);");
+}

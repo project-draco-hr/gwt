@@ -1,17 +1,24 @@
 {
-  if (elem.hasAttribute("vertical")) {
-    String vertical=elem.consumeBooleanAttribute("vertical");
-    writer.setFieldInitializerAsConstructor(fieldName,writer.getOracle().findType(MenuBar.class.getName()),vertical);
-  }
-  for (  XMLElement child : elem.consumeChildElements()) {
-{
-      String ns=child.getNamespaceUri();
-      String tagName=child.getLocalName();
-      if (!elem.getNamespaceUri().equals(ns) || !tagName.equals(TAG_MENUITEM)) {
-        writer.die(child,"Only <%s:%s> are valid children",elem.getPrefix(),TAG_MENUITEM);
-      }
+  if (MenuBar.class.getName().equals(type.getQualifiedSourceName())) {
+    if (elem.hasAttribute("vertical")) {
+      String vertical=elem.consumeBooleanAttribute("vertical");
+      writer.setFieldInitializerAsConstructor(fieldName,writer.getOracle().findType(MenuBar.class.getName()),vertical);
     }
-    String itemFieldName=writer.parseElementToField(child);
-    writer.addStatement("%1$s.addItem(%2$s);",fieldName,itemFieldName);
+  }
+  JClassType itemType=writer.getOracle().findType(MenuItem.class.getName());
+  JClassType separatorType=writer.getOracle().findType(MenuItemSeparator.class.getName());
+  for (  XMLElement child : elem.consumeChildElements()) {
+    JClassType childType=writer.findFieldType(child);
+    if (itemType.isAssignableFrom(childType)) {
+      String childFieldName=writer.parseElementToField(child);
+      writer.addStatement("%1$s.addItem(%2$s);",fieldName,childFieldName);
+      continue;
+    }
+    if (separatorType.isAssignableFrom(childType)) {
+      String childFieldName=writer.parseElementToField(child);
+      writer.addStatement("%1$s.addSeparator(%2$s);",fieldName,childFieldName);
+      continue;
+    }
+    writer.die(child,BAD_CHILD);
   }
 }
