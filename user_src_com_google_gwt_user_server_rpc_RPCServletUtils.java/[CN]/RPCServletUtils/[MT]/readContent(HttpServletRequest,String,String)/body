@@ -1,7 +1,9 @@
 {
-  if (checkHeaders) {
-    checkContentType(request);
-    checkCharacterEncoding(request);
+  if (expectedContentType != null) {
+    checkContentTypeIgnoreCase(request,expectedContentType);
+  }
+  if (expectedCharSet != null) {
+    checkCharacterEncodingIgnoreCase(request,expectedCharSet);
   }
   InputStream in=request.getInputStream();
   byte[] buffer=new byte[BUFFER_SIZE];
@@ -14,7 +16,8 @@
       }
       out.write(buffer,0,byteCount);
     }
-    return out.toString(CHARSET_UTF8);
+    String contentCharSet=expectedCharSet != null ? expectedCharSet : CHARSET_UTF8;
+    return out.toString(contentCharSet);
   }
   finally {
     if (in != null) {

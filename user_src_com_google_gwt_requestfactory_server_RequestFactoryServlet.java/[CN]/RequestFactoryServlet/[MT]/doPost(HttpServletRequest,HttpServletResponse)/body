@@ -1,6 +1,6 @@
 {
   ensureConfig();
-  String jsonRequestString=getContent(request);
+  String jsonRequestString=RPCServletUtils.readContent(request,JSON_CONTENT_TYPE,JSON_CHARSET);
   response.setStatus(HttpServletResponse.SC_OK);
   PrintWriter writer=response.getWriter();
   try {
@@ -14,6 +14,7 @@
       response.setStatus(HttpServletResponse.SC_OK);
       JsonRequestProcessor requestProcessor=new JsonRequestProcessor();
       requestProcessor.setOperationRegistry(new ReflectionBasedOperationRegistry(new DefaultSecurityProvider()));
+      response.setHeader("Content-Type",RequestFactory.JSON_CONTENT_TYPE_UTF8);
       writer.print(requestProcessor.decodeAndInvokeRequest(jsonRequestString));
       writer.flush();
     }
