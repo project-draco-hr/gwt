@@ -1,8 +1,14 @@
 {
   this.space=readySpace;
-  ModuleSpacePropertyOracle propOracle=new ModuleSpacePropertyOracle(module.getProperties(),module.getActiveLinkerNames(),readySpace);
-  Rules rules=module.getRules();
-  StandardGeneratorContext genCtx=new StandardGeneratorContext(compilationState,module,genDir,new ArtifactSet());
-  rebindOracle=new StandardRebindOracle(propOracle,rules,genCtx);
-  classLoader=new CompilingClassLoader(logger,compilationState,readySpace);
+  SpeedTracerLogger.start(DevModeEventType.MODULE_SPACE_HOST_READY);
+  try {
+    ModuleSpacePropertyOracle propOracle=new ModuleSpacePropertyOracle(module.getProperties(),module.getActiveLinkerNames(),readySpace);
+    Rules rules=module.getRules();
+    StandardGeneratorContext genCtx=new StandardGeneratorContext(compilationState,module,genDir,new ArtifactSet());
+    rebindOracle=new StandardRebindOracle(propOracle,rules,genCtx);
+    classLoader=new CompilingClassLoader(logger,compilationState,readySpace);
+  }
+  finally {
+    SpeedTracerLogger.end(DevModeEventType.MODULE_SPACE_HOST_READY);
+  }
 }

@@ -1,5 +1,6 @@
 {
   TreeLogger branch=host.getLogger().branch(TreeLogger.SPAM,"Invoke native method " + name,null);
+  SpeedTracerLogger.start(DevModeEventType.JAVA_TO_JS_CALL);
   CompilingClassLoader isolatedClassLoader=getIsolatedClassLoader();
   JsValueOOPHM jsthis=new JsValueOOPHM();
   Class<?> jthisType=(jthis == null) ? Object.class : jthis.getClass();
@@ -16,10 +17,13 @@
   try {
     channel.invokeJavascript(isolatedClassLoader,jsthis,name,argv,returnVal);
     branch.log(TreeLogger.SPAM,"  returned " + returnVal);
+    return returnVal;
   }
  catch (  Throwable t) {
     branch.log(TreeLogger.SPAM,"exception thrown",t);
     throw t;
   }
-  return returnVal;
+ finally {
+    SpeedTracerLogger.end(DevModeEventType.JAVA_TO_JS_CALL);
+  }
 }

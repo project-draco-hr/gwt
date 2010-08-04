@@ -1,14 +1,20 @@
 {
-  genCtx.setPropertyOracle(propOracle);
-  String result=tryRebind(logger,typeName);
-  if (artifactAcceptor != null) {
-    ArtifactSet newlyGeneratedArtifacts=genCtx.finish(logger);
-    if (!newlyGeneratedArtifacts.isEmpty()) {
-      artifactAcceptor.accept(logger,newlyGeneratedArtifacts);
+  SpeedTracerLogger.start(DevModeEventType.REBIND);
+  try {
+    genCtx.setPropertyOracle(propOracle);
+    String result=tryRebind(logger,typeName);
+    if (artifactAcceptor != null) {
+      ArtifactSet newlyGeneratedArtifacts=genCtx.finish(logger);
+      if (!newlyGeneratedArtifacts.isEmpty()) {
+        artifactAcceptor.accept(logger,newlyGeneratedArtifacts);
+      }
     }
+    if (result == null) {
+      result=typeName;
+    }
+    return result;
   }
-  if (result == null) {
-    result=typeName;
+  finally {
+    SpeedTracerLogger.end(DevModeEventType.REBIND);
   }
-  return result;
 }

@@ -1,31 +1,37 @@
 {
-  Map<String,CompilationUnit> resultUnits=new HashMap<String,CompilationUnit>();
-  for (  Resource resource : resources) {
-    String location=resource.getLocation();
-    ResourceTag tag=resourceContentCache.get(location);
-    if (tag != null && tag.getLastModified() == resource.getLastModified()) {
-      ContentId contentId=tag.getContentId();
-      CompilationUnit existingUnit=unitCache.get(contentId);
-      if (existingUnit != null && existingUnit.isCompiled()) {
-        resultUnits.put(existingUnit.getTypeName(),existingUnit);
+  SpeedTracerLogger.start(DevModeEventType.COMPILATION_STATE_BUILDER_PROCESS);
+  try {
+    Map<String,CompilationUnit> resultUnits=new HashMap<String,CompilationUnit>();
+    for (    Resource resource : resources) {
+      String location=resource.getLocation();
+      ResourceTag tag=resourceContentCache.get(location);
+      if (tag != null && tag.getLastModified() == resource.getLastModified()) {
+        ContentId contentId=tag.getContentId();
+        CompilationUnit existingUnit=unitCache.get(contentId);
+        if (existingUnit != null && existingUnit.isCompiled()) {
+          resultUnits.put(existingUnit.getTypeName(),existingUnit);
+        }
       }
     }
-  }
-  CompilationUnitInvalidator.retainValidUnits(TreeLogger.NULL,resultUnits.values());
-  CompileMoreLater compileMoreLater=new CompileMoreLater(compilerDelegate);
-  List<CompilationUnitBuilder> builders=new ArrayList<CompilationUnitBuilder>();
-  for (  Resource resource : resources) {
-    String typeName=Shared.toTypeName(resource.getPath());
-    CompilationUnit validUnit=resultUnits.get(typeName);
-    if (validUnit != null) {
-      compileMoreLater.addValidUnit(validUnit);
-      CompilationUnitInvalidator.reportErrors(logger,validUnit);
-    }
+    CompilationUnitInvalidator.retainValidUnits(TreeLogger.NULL,resultUnits.values());
+    CompileMoreLater compileMoreLater=new CompileMoreLater(compilerDelegate);
+    List<CompilationUnitBuilder> builders=new ArrayList<CompilationUnitBuilder>();
+    for (    Resource resource : resources) {
+      String typeName=Shared.toTypeName(resource.getPath());
+      CompilationUnit validUnit=resultUnits.get(typeName);
+      if (validUnit != null) {
+        compileMoreLater.addValidUnit(validUnit);
+        CompilationUnitInvalidator.reportErrors(logger,validUnit);
+      }
  else {
-      builders.add(new ResourceCompilationUnitBuilder(typeName,resource));
+        builders.add(new ResourceCompilationUnitBuilder(typeName,resource));
+      }
     }
+    compileMoreLater.compile(logger,builders,resultUnits);
+    invalidateUnitsWithInvalidRefs(logger,resultUnits,Collections.<ContentId>emptySet());
+    return new CompilationState(logger,resultUnits.values(),compileMoreLater);
   }
-  compileMoreLater.compile(logger,builders,resultUnits);
-  invalidateUnitsWithInvalidRefs(logger,resultUnits,Collections.<ContentId>emptySet());
-  return new CompilationState(logger,resultUnits.values(),compileMoreLater);
+  finally {
+    SpeedTracerLogger.end(DevModeEventType.COMPILATION_STATE_BUILDER_PROCESS);
+  }
 }

@@ -2,9 +2,11 @@
   if (started) {
     throw new IllegalStateException("Startup code has already been run");
   }
+  SpeedTracerLogger.start(DevModeEventType.STARTUP);
   ui=createUI();
   started=true;
   if (!doStartup()) {
+    SpeedTracerLogger.end(DevModeEventType.STARTUP);
     getTopLogger().log(TreeLogger.ERROR,"shell failed in doStartup method");
     return false;
   }
@@ -25,8 +27,10 @@
   }
   setStartupUrls(getTopLogger());
   if (!doSlowStartup()) {
+    SpeedTracerLogger.end(DevModeEventType.STARTUP);
     getTopLogger().log(TreeLogger.ERROR,"shell failed in doSlowStartup method");
     return false;
   }
+  SpeedTracerLogger.end(DevModeEventType.STARTUP);
   return true;
 }

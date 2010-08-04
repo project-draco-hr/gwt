@@ -16,9 +16,10 @@
     servletValidator=ServletValidator.create(getTopLogger(),webXml);
   }
   TreeLogger branch=getTopLogger().branch(TreeLogger.TRACE,"Loading modules");
-  for (  String moduleName : options.getModuleNames()) {
-    TreeLogger moduleBranch=branch.branch(TreeLogger.TRACE,moduleName);
-    try {
+  SpeedTracerLogger.start(DevModeEventType.SLOW_STARTUP);
+  try {
+    for (    String moduleName : options.getModuleNames()) {
+      TreeLogger moduleBranch=branch.branch(TreeLogger.TRACE,moduleName);
       ModuleDef module=loadModule(moduleBranch,moduleName,false);
       startupModules.put(module.getName(),module);
       if (!options.isNoServer()) {
@@ -27,9 +28,12 @@
       TreeLogger loadLogger=moduleBranch.branch(TreeLogger.DEBUG,"Bootstrap link for command-line module '" + moduleName + "'");
       link(loadLogger,module);
     }
- catch (    UnableToCompleteException e) {
-      return false;
-    }
+  }
+ catch (  UnableToCompleteException e) {
+    return false;
+  }
+ finally {
+    SpeedTracerLogger.end(DevModeEventType.SLOW_STARTUP);
   }
   return true;
 }

@@ -1,4 +1,5 @@
 {
+  SpeedTracerLogger.start(DevModeEventType.MODULE_SPACE_LOAD);
   host.onModuleReady(this);
   try {
     createStaticDispatcher(logger);
@@ -41,7 +42,13 @@
           }
           onModuleLoad.setAccessible(true);
           invokeNativeVoid("fireOnModuleLoadStart",null,new Class[]{String.class},new Object[]{entryPointTypeName});
-          onModuleLoad.invoke(module);
+          SpeedTracerLogger.start(DevModeEventType.ON_MODULE_LOAD);
+          try {
+            onModuleLoad.invoke(module);
+          }
+  finally {
+            SpeedTracerLogger.end(DevModeEventType.ON_MODULE_LOAD);
+          }
         }
       }
   finally {
@@ -68,5 +75,8 @@
     }
     logger.log(TreeLogger.ERROR,unableToLoadMessage,caught);
     throw new UnableToCompleteException();
+  }
+ finally {
+    SpeedTracerLogger.end(DevModeEventType.MODULE_SPACE_LOAD);
   }
 }

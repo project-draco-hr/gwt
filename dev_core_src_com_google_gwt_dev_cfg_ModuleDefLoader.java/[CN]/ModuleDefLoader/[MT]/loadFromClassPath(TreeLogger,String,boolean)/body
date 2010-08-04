@@ -1,12 +1,18 @@
 {
-  String physicalName=moduleEffectiveNameToPhysicalName.get(moduleName);
-  if (physicalName != null) {
-    moduleName=physicalName;
+  SpeedTracerLogger.start(CompilerEventType.MODULE_DEF,"phase","loadFromClassPath","moduleName",moduleName);
+  try {
+    String physicalName=moduleEffectiveNameToPhysicalName.get(moduleName);
+    if (physicalName != null) {
+      moduleName=physicalName;
+    }
+    ModuleDef moduleDef=tryGetLoadedModule(logger,moduleName,refresh);
+    if (moduleDef != null) {
+      return moduleDef;
+    }
+    ModuleDefLoader loader=new ModuleDefLoader();
+    return loader.doLoadModule(logger,moduleName);
   }
-  ModuleDef moduleDef=tryGetLoadedModule(logger,moduleName,refresh);
-  if (moduleDef != null) {
-    return moduleDef;
+  finally {
+    SpeedTracerLogger.end(CompilerEventType.MODULE_DEF);
   }
-  ModuleDefLoader loader=new ModuleDefLoader();
-  return loader.doLoadModule(logger,moduleName);
 }
