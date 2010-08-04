@@ -1,6 +1,10 @@
 {
-  if (!closed && isLoggable(record)) {
-    records.add(record);
-    flush();
+  if (closed || !isLoggable(record)) {
+    return;
   }
+  if (record.getLoggerName().contains(ignoredLoggerSubstring)) {
+    return;
+  }
+  Receiver<Long> loggingReceiver=new LoggingReceiver();
+  requestFactory.loggingRequest().logMessage(record.getLevel().toString(),record.getLoggerName(),record.getMessage()).fire(loggingReceiver);
 }
