@@ -1,8 +1,10 @@
 {
-  DeltaValueStoreJsonImpl deltaValueStore=new DeltaValueStoreJsonImpl(valueStore,valueStore.map);
-  Record created=deltaValueStore.create(SimpleFooRecord.class);
+  Record created=requestFactory.create(SimpleFooRecord.class);
   assertNotNull(created.getId());
   assertNotNull(created.getVersion());
+  DeltaValueStoreJsonImpl deltaValueStore=new DeltaValueStoreJsonImpl(valueStore,requestFactory);
+  assertFalse(deltaValueStore.isChanged());
+  deltaValueStore.set(SimpleFooRecord.userName,created,"harry");
   assertTrue(deltaValueStore.isChanged());
   testAndGetChangeRecord(deltaValueStore.toJson(),WriteOperation.CREATE);
 }
