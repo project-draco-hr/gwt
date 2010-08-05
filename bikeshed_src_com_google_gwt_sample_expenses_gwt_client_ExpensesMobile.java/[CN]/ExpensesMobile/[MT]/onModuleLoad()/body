@@ -15,4 +15,13 @@
   requestFactory.init(eventBus);
   final ExpensesMobileShell shell=new ExpensesMobileShell(eventBus,requestFactory,employeeId);
   RootPanel.get().add(shell);
+  eventBus.addHandler(RequestEvent.TYPE,new AuthenticationFailureHandler());
+  final LoginWidget login=shell.getLoginWidget();
+  Receiver<UserInformationRecord> receiver=new Receiver<UserInformationRecord>(){
+    public void onSuccess(    UserInformationRecord userInformationRecord,    Set<SyncResult> syncResults){
+      login.setUserInformation(userInformationRecord);
+    }
+  }
+;
+  requestFactory.userInformationRequest().getCurrentUserInformation(Location.getHref()).fire(receiver);
 }

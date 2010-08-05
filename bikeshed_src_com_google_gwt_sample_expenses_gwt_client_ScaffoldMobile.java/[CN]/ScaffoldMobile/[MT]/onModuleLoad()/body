@@ -4,6 +4,15 @@
   requestFactory.init(eventBus);
   final PlaceController<ScaffoldPlace> placeController=new PlaceController<ScaffoldPlace>(eventBus);
   final ScaffoldMobileShell shell=new ScaffoldMobileShell();
+  eventBus.addHandler(RequestEvent.TYPE,new AuthenticationFailureHandler());
+  final LoginWidget login=shell.getLoginWidget();
+  Receiver<UserInformationRecord> receiver=new Receiver<UserInformationRecord>(){
+    public void onSuccess(    UserInformationRecord userInformationRecord,    Set<SyncResult> syncResults){
+      login.setUserInformation(userInformationRecord);
+    }
+  }
+;
+  requestFactory.userInformationRequest().getCurrentUserInformation(Location.getHref()).fire(receiver);
   PlacePicker<ListScaffoldPlace> placePicker=new PlacePicker<ListScaffoldPlace>(shell.getPlacesBox(),placeController,new ScaffoldListPlaceRenderer());
   placePicker.setPlaces(getTopPlaces());
   final ActivityMapper<ScaffoldPlace> mapper=new ScaffoldMobileActivities(new ListActivitiesMapper(eventBus,requestFactory,placeController),requestFactory,placeController);
