@@ -4,14 +4,16 @@
   List<Thread> threads=new ArrayList<Thread>(workers.size());
   try {
     for (    PermutationWorker worker : workers) {
-      Thread thread=new Thread(new WorkerThread(worker));
+      Thread thread=new Thread(new WorkerThread(worker),worker.getName());
       threads.add(thread);
       thread.start();
     }
     int workToDo=work.size();
     int aliveWorkers=workers.size();
     waitForWorkers:     while (workToDo > 0 && aliveWorkers > 0) {
+      SpeedTracerLogger.start(CompilerEventType.BLOCKED);
       Result take=resultsQueue.take();
+      SpeedTracerLogger.end(CompilerEventType.BLOCKED);
 switch (take) {
 case SUCCESS:
         --workToDo;
