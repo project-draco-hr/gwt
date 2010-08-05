@@ -1,11 +1,13 @@
 {
   String type=event.getType();
-  if ("keydown".equals(type)) {
+  boolean keyUp="keyup".equals(type);
+  boolean keyDown="keydown".equals(type);
+  if (keyUp || keyDown) {
     int keyCode=event.getKeyCode();
-    if (keyCode == KeyCodes.KEY_ENTER) {
+    if (keyUp && keyCode == KeyCodes.KEY_ENTER) {
       commit(parent,viewData,valueUpdater);
     }
- else     if (keyCode == KeyCodes.KEY_ESCAPE) {
+ else     if (keyUp && keyCode == KeyCodes.KEY_ESCAPE) {
       String originalText=viewData.getOriginal();
       if (viewData.isEditingAgain()) {
         viewData.setText(originalText);
@@ -16,9 +18,9 @@
       }
       cancel(parent,originalText);
     }
-  }
- else   if ("keyup".equals(type)) {
-    updateViewData(parent,viewData,true);
+ else {
+      updateViewData(parent,viewData,true);
+    }
   }
  else   if ("blur".equals(type)) {
     EventTarget eventTarget=event.getEventTarget();

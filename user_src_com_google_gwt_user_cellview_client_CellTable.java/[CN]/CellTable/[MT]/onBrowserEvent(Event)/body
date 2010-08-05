@@ -1,15 +1,26 @@
 {
   CellBasedWidgetImpl.get().onBrowserEvent(this,event);
   super.onBrowserEvent(event);
-  EventTarget eventTarget=event.getEventTarget();
-  TableCellElement cell=null;
-  if (eventTarget != null && Element.is(eventTarget)) {
-    cell=findNearestParentCell(Element.as(eventTarget));
-  }
-  if (cell == null) {
+  String eventType=event.getType();
+  boolean keyUp="keyup".equals(eventType);
+  boolean keyDown="keydown".equals(eventType);
+  if (keyDown && !cellIsEditing) {
     return;
   }
-  Element trElem=cell.getParentElement();
+  if (keyUp && !cellIsEditing) {
+    if (handleKey(event)) {
+      return;
+    }
+  }
+  EventTarget eventTarget=event.getEventTarget();
+  TableCellElement tableCell=null;
+  if (eventTarget != null && Element.is(eventTarget)) {
+    tableCell=findNearestParentCell(Element.as(eventTarget));
+  }
+  if (tableCell == null) {
+    return;
+  }
+  Element trElem=tableCell.getParentElement();
   if (trElem == null) {
     return;
   }
@@ -19,18 +30,17 @@
     return;
   }
   TableSectionElement section=TableSectionElement.as(sectionElem);
-  String eventType=event.getType();
-  int col=cell.getCellIndex();
+  int col=tableCell.getCellIndex();
   if (section == thead) {
     Header<?> header=headers.get(col);
     if (header != null && cellConsumesEventType(header.getCell(),eventType)) {
-      header.onBrowserEvent(cell,event);
+      header.onBrowserEvent(tableCell,event);
     }
   }
  else   if (section == tfoot) {
     Header<?> footer=footers.get(col);
     if (footer != null && cellConsumesEventType(footer.getCell(),eventType)) {
-      footer.onBrowserEvent(cell,event);
+      footer.onBrowserEvent(tableCell,event);
     }
   }
  else   if (section == tbody) {
@@ -48,12 +58,9 @@
     }
     T value=presenter.getData().get(row);
     SelectionModel<? super T> selectionModel=presenter.getSelectionModel();
-    Column<T,?> column=columns.get(col);
     if (selectionModel != null && "click".equals(eventType) && !handlesSelection) {
       selectionModel.setSelected(value,true);
     }
-    if (cellConsumesEventType(column.getCell(),eventType)) {
-      column.onBrowserEvent(cell,getPageStart() + row,value,event,providesKey);
-    }
+    fireEventToCell(event,eventType,tableCell,value,col,row);
   }
 }
