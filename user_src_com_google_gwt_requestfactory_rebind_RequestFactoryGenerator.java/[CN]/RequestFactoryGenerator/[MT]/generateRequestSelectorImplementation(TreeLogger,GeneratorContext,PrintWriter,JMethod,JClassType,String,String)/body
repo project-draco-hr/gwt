@@ -2,8 +2,7 @@
   JClassType selectorInterface=selectorMethod.getReturnType().isInterface();
   logger=logger.branch(TreeLogger.DEBUG,String.format("Generating implementation of %s",selectorInterface.getName()));
   ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(packageName,implName);
-  f.addImport(ClientRequestHelper.class.getName());
-  f.addImport(JsonRequestDataUtil.class.getName());
+  f.addImport(RequestData.class.getName());
   f.addImport(mainType.getQualifiedSourceName() + "Impl");
   f.addImplementedInterface(selectorInterface.getQualifiedSourceName());
   SourceWriter sw=f.createSourceWriter(generatorContext,out);
@@ -78,9 +77,10 @@
     sw.indent();
     sw.println("return new " + requestClassName + "(factory"+ enumArgument+ ") {");
     sw.indent();
-    sw.println("public String getRequestData() {");
+    String requestDataName=RequestData.class.getSimpleName();
+    sw.println("public " + requestDataName + " getRequestData() {");
     sw.indent();
-    sw.println("return " + ClientRequestHelper.class.getSimpleName() + ".getRequestString("+ JsonRequestDataUtil.class.getSimpleName()+ ".getRequestMap(\""+ operationName+ "\", "+ getParametersAsString(method)+ ", null));");
+    sw.println("return new " + requestDataName + "(\""+ operationName+ "\", "+ getParametersAsString(method,typeOracle)+ ");");
     sw.outdent();
     sw.println("}");
     sw.outdent();
