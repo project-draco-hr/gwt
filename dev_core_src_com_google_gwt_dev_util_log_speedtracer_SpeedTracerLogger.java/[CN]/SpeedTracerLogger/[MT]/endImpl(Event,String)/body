@@ -13,13 +13,13 @@
   Event currentEvent=threadPendingEvents.pop();
   assert(endTimeNanos >= currentEvent.startTimeNanos);
   currentEvent.durationNanos=endTimeNanos - currentEvent.startTimeNanos;
-  while (currentEvent.type != type && !threadPendingEvents.isEmpty()) {
-    currentEvent.addData("Missed","This event was closed without an explicit call to SpeedTracerLogger.end()");
+  while (currentEvent != event && !threadPendingEvents.isEmpty()) {
+    currentEvent.addData("Missed","This event was closed without an explicit call to Event.end()");
     currentEvent=threadPendingEvents.pop();
     assert(endTimeNanos >= currentEvent.startTimeNanos);
     currentEvent.durationNanos=endTimeNanos - currentEvent.startTimeNanos;
   }
-  if (threadPendingEvents.isEmpty() && currentEvent.type != type) {
+  if (threadPendingEvents.isEmpty() && currentEvent != event) {
     currentEvent.addData("Missed","Fell off the end of the threadPending events");
   }
   currentEvent.addData(data);

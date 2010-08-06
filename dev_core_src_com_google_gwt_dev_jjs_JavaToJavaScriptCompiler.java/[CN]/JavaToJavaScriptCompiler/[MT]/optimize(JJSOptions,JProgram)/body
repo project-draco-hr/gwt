@@ -1,9 +1,9 @@
 {
-  SpeedTracerLogger.start(CompilerEventType.OPTIMIZE);
+  Event optimizeEvent=SpeedTracerLogger.start(CompilerEventType.OPTIMIZE);
   jprogram.beginOptimizations();
   do {
     if (Thread.interrupted()) {
-      SpeedTracerLogger.end(CompilerEventType.OPTIMIZE);
+      optimizeEvent.end();
       throw new InterruptedException();
     }
     maybeDumpAST(jprogram);
@@ -12,5 +12,5 @@
   if (options.isAggressivelyOptimize()) {
     DataflowOptimizer.exec(jprogram);
   }
-  SpeedTracerLogger.end(CompilerEventType.OPTIMIZE);
+  optimizeEvent.end();
 }

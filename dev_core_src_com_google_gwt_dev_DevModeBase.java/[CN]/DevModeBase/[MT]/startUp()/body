@@ -2,35 +2,38 @@
   if (started) {
     throw new IllegalStateException("Startup code has already been run");
   }
-  SpeedTracerLogger.start(DevModeEventType.STARTUP);
-  ui=createUI();
-  started=true;
-  if (!doStartup()) {
-    SpeedTracerLogger.end(DevModeEventType.STARTUP);
-    getTopLogger().log(TreeLogger.ERROR,"shell failed in doStartup method");
-    return false;
-  }
-  if (!options.isNoServer()) {
-    int resultPort=doStartUpServer();
-    if (resultPort < 0) {
-      getTopLogger().log(TreeLogger.ERROR,"shell failed in doStartupServer method");
+  Event startupEvent=SpeedTracerLogger.start(DevModeEventType.STARTUP);
+  try {
+    boolean result=false;
+    ui=createUI();
+    started=true;
+    if (!doStartup()) {
+      getTopLogger().log(TreeLogger.ERROR,"shell failed in doStartup method");
       return false;
     }
-    options.setPort(resultPort);
-    getTopLogger().log(TreeLogger.TRACE,"Started web server on port " + resultPort);
+    if (!options.isNoServer()) {
+      int resultPort=doStartUpServer();
+      if (resultPort < 0) {
+        getTopLogger().log(TreeLogger.ERROR,"shell failed in doStartupServer method");
+        return false;
+      }
+      options.setPort(resultPort);
+      getTopLogger().log(TreeLogger.TRACE,"Started web server on port " + resultPort);
+    }
+    if (options.getStartupURLs().isEmpty()) {
+      inferStartupUrls();
+    }
+    if (options.getStartupURLs().isEmpty()) {
+      warnAboutNoStartupUrls();
+    }
+    setStartupUrls(getTopLogger());
+    if (!doSlowStartup()) {
+      getTopLogger().log(TreeLogger.ERROR,"shell failed in doSlowStartup method");
+      return false;
+    }
+    return true;
   }
-  if (options.getStartupURLs().isEmpty()) {
-    inferStartupUrls();
+  finally {
+    startupEvent.end();
   }
-  if (options.getStartupURLs().isEmpty()) {
-    warnAboutNoStartupUrls();
-  }
-  setStartupUrls(getTopLogger());
-  if (!doSlowStartup()) {
-    SpeedTracerLogger.end(DevModeEventType.STARTUP);
-    getTopLogger().log(TreeLogger.ERROR,"shell failed in doSlowStartup method");
-    return false;
-  }
-  SpeedTracerLogger.end(DevModeEventType.STARTUP);
-  return true;
 }
