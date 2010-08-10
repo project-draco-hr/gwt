@@ -24,30 +24,44 @@
       try {
         for (int i=0; i < entryPoints.length; i++) {
           entryPointTypeName=entryPoints[i];
-          Class<?> clazz=loadClassFromSourceName(entryPointTypeName);
           Method onModuleLoad=null;
+          Object module;
           try {
-            onModuleLoad=clazz.getMethod("onModuleLoad");
-            if (!Modifier.isStatic(onModuleLoad.getModifiers())) {
-              onModuleLoad=null;
+            Class<?> clazz=loadClassFromSourceName(entryPointTypeName);
+            onModuleLoad=null;
+            try {
+              onModuleLoad=clazz.getMethod("onModuleLoad");
+              if (!Modifier.isStatic(onModuleLoad.getModifiers())) {
+                onModuleLoad=null;
+              }
+            }
+ catch (            NoSuchMethodException e) {
+            }
+            module=null;
+            if (onModuleLoad == null) {
+              module=rebindAndCreate(entryPointTypeName);
+              onModuleLoad=module.getClass().getMethod("onModuleLoad");
+              entryPointTypeName=module.getClass().getName().replace('$','.');
             }
           }
- catch (          NoSuchMethodException e) {
+ catch (          Throwable e) {
+            displayErrorGlassPanel("EntryPoint initialization exception",entryPointTypeName,e);
+            throw e;
           }
-          Object module=null;
-          if (onModuleLoad == null) {
-            module=rebindAndCreate(entryPointTypeName);
-            onModuleLoad=module.getClass().getMethod("onModuleLoad");
-            entryPointTypeName=module.getClass().getName().replace('$','.');
-          }
-          onModuleLoad.setAccessible(true);
-          invokeNativeVoid("fireOnModuleLoadStart",null,new Class[]{String.class},new Object[]{entryPointTypeName});
-          Event onModuleLoadEvent=SpeedTracerLogger.start(DevModeEventType.ON_MODULE_LOAD);
           try {
-            onModuleLoad.invoke(module);
-          }
+            onModuleLoad.setAccessible(true);
+            invokeNativeVoid("fireOnModuleLoadStart",null,new Class[]{String.class},new Object[]{entryPointTypeName});
+            Event onModuleLoadEvent=SpeedTracerLogger.start(DevModeEventType.ON_MODULE_LOAD);
+            try {
+              onModuleLoad.invoke(module);
+            }
   finally {
-            onModuleLoadEvent.end();
+              onModuleLoadEvent.end();
+            }
+          }
+ catch (          Throwable e) {
+            displayErrorGlassPanel("onModuleLoad() threw an exception",entryPointTypeName,e);
+            throw e;
           }
         }
       }
