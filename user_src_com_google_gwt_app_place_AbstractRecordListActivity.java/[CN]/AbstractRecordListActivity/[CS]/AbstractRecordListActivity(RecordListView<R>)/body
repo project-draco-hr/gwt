@@ -1,7 +1,13 @@
 {
   this.view=view;
   view.setDelegate(this);
-  view.asPagingListView().setDelegate(this);
+  final HasData<R> hasData=view.asHasData();
+  rangeChangeHandler=hasData.addRangeChangeHandler(new RangeChangeEvent.Handler(){
+    public void onRangeChange(    RangeChangeEvent event){
+      AbstractRecordListActivity.this.onRangeChanged(hasData);
+    }
+  }
+);
   selectionModel=new SingleSelectionModel<R>(){
     @Override public void setSelected(    R newSelection,    boolean selected){
       R wasSelected=this.getSelectedObject();
@@ -12,5 +18,5 @@
     }
   }
 ;
-  view.asPagingListView().setSelectionModel(selectionModel);
+  hasData.setSelectionModel(selectionModel);
 }

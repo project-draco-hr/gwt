@@ -1,0 +1,20 @@
+{
+  if (view == null) {
+    throw new IllegalArgumentException("view cannot be null");
+  }
+ else   if (views.contains(view)) {
+    throw new IllegalStateException("The specified view has already been added to this adapter.");
+  }
+  views.add(view);
+  HandlerRegistration handler=view.addRangeChangeHandler(new RangeChangeEvent.Handler(){
+    public void onRangeChange(    RangeChangeEvent event){
+      AbstractListViewAdapter.this.onRangeChanged(view);
+    }
+  }
+);
+  rangeChangeHandlers.put(view,handler);
+  if (lastDataSize >= 0) {
+    view.setRowCount(lastDataSize,lastDataSizeExact);
+  }
+  onRangeChanged(view);
+}

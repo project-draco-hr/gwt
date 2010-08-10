@@ -1,0 +1,27 @@
+{
+  HasData<String> listView=new MockHasData<String>();
+  MockView<String> view=new MockView<String>();
+  HasDataPresenter<String> presenter=new HasDataPresenter<String>(listView,view,10);
+  MockRowCountChangeHandler handler=new MockRowCountChangeHandler();
+  HandlerRegistration reg=listView.addRowCountChangeHandler(handler);
+  assertEquals(-1,handler.getLastRowCount());
+  handler.reset();
+  presenter.setRowCount(100,true);
+  assertEquals(100,handler.getLastRowCount());
+  assertTrue(handler.isLastRowCountExact());
+  handler.reset();
+  presenter.setRowCount(100,true);
+  assertEquals(-1,handler.getLastRowCount());
+  handler.reset();
+  presenter.setRowCount(110,false);
+  assertEquals(110,handler.getLastRowCount());
+  assertFalse(handler.isLastRowCountExact());
+  handler.reset();
+  presenter.setRowCount(110,true);
+  assertEquals(110,handler.getLastRowCount());
+  assertTrue(handler.isLastRowCountExact());
+  handler.reset();
+  reg.removeHandler();
+  presenter.setRowCount(200,true);
+  assertEquals(-1,handler.getLastRowCount());
+}

@@ -1,0 +1,24 @@
+{
+  HasData<String> listView=new MockHasData<String>();
+  MockView<String> view=new MockView<String>();
+  HasDataPresenter<String> presenter=new HasDataPresenter<String>(listView,view,10);
+  presenter.setVisibleRange(new Range(10,30));
+  assertEquals(new Range(10,30),presenter.getVisibleRange());
+  presenter.setRowValues(10,createData(0,10));
+  assertEquals(10,presenter.getRowValues().size());
+  assertEquals("test 0",presenter.getRowValues().get(0));
+  view.assertReplaceAllChildrenCalled(true);
+  view.assertReplaceChildrenCalled(false);
+  view.assertLastHtml("start=10,size=10");
+  view.assertLoadingState(LoadingState.PARTIALLY_LOADED);
+  presenter.setVisibleRange(new Range(8,30));
+  assertEquals(new Range(8,30),presenter.getVisibleRange());
+  assertEquals(12,presenter.getRowValues().size());
+  assertEquals(null,presenter.getRowValues().get(0));
+  assertEquals(null,presenter.getRowValues().get(1));
+  assertEquals("test 0",presenter.getRowValues().get(2));
+  view.assertReplaceAllChildrenCalled(true);
+  view.assertReplaceChildrenCalled(false);
+  view.assertLastHtml("start=8,size=12");
+  view.assertLoadingState(LoadingState.PARTIALLY_LOADED);
+}

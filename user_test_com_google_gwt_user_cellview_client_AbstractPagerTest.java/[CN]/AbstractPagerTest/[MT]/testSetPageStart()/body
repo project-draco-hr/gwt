@@ -1,12 +1,15 @@
 {
-  AbstractPager<Void> pager=createPager();
-  PagingListView<Void> view=pager.getPagingListView();
-  view.setRange(10,20);
-  view.setDataSize(105,true);
+  AbstractPager pager=createPager();
+  assertNull(pager.getView());
   pager.setPageStart(0);
-  assertEquals(new Range(0,20),view.getRange());
+  HasRows view=new MockHasData<String>();
+  pager.setView(view);
+  view.setVisibleRange(10,20);
+  view.setRowCount(105,true);
+  pager.setPageStart(0);
+  assertEquals(new Range(0,20),view.getVisibleRange());
   pager.setPageStart(45);
-  assertEquals(new Range(45,20),view.getRange());
+  assertEquals(new Range(45,20),view.getVisibleRange());
   pager.setPageStart(100);
-  assertEquals(new Range(85,20),view.getRange());
+  assertEquals(new Range(85,20),view.getVisibleRange());
 }
