@@ -6,14 +6,10 @@
     currentMethod=ctor;
     currentMethodBody=ctor.getBody();
     currentMethodScope=x.scope;
-    JMethodCall superOrThisCall=null;
-    ExplicitConstructorCall ctorCall=x.constructorCall;
-    if (ctorCall != null) {
-      superOrThisCall=(JMethodCall)dispatch("processExpression",ctorCall);
-    }
-    boolean hasExplicitThis=(ctorCall != null) && !ctorCall.isSuperAccess();
+    boolean hasExplicitThis=(x.constructorCall != null) && !x.constructorCall.isSuperAccess();
     JClassType enclosingType=ctor.getEnclosingType();
     JBlock block=currentMethodBody.getBlock();
+    currentOuterThisRefParams=Maps.create();
     if (!hasExplicitThis) {
       ReferenceBinding declaringClass=x.binding.declaringClass;
       if (declaringClass instanceof NestedTypeBinding) {
@@ -25,6 +21,7 @@
             if (arg.matchingField != null) {
               JField field=(JField)typeMap.get(arg);
               block.addStmt(JProgram.createAssignmentStmt(info,createVariableRef(info,field),createVariableRef(info,param)));
+              currentOuterThisRefParams=Maps.put(currentOuterThisRefParams,field,param);
             }
           }
         }
@@ -38,14 +35,14 @@
         }
       }
     }
-    if (enclosingType.isEnumOrSubclass() != null) {
-      assert(superOrThisCall != null);
-      JVariableRef enumNameRef=createVariableRef(superOrThisCall.getSourceInfo(),ctor.getParams().get(0));
-      superOrThisCall.addArg(0,enumNameRef);
-      JVariableRef enumOrdinalRef=createVariableRef(superOrThisCall.getSourceInfo(),ctor.getParams().get(1));
-      superOrThisCall.addArg(1,enumOrdinalRef);
-    }
-    if (superOrThisCall != null) {
+    if (x.constructorCall != null) {
+      JMethodCall superOrThisCall=(JMethodCall)dispatch("processExpression",x.constructorCall);
+      if (enclosingType.isEnumOrSubclass() != null) {
+        JVariableRef enumNameRef=createVariableRef(superOrThisCall.getSourceInfo(),ctor.getParams().get(0));
+        superOrThisCall.addArg(0,enumNameRef);
+        JVariableRef enumOrdinalRef=createVariableRef(superOrThisCall.getSourceInfo(),ctor.getParams().get(1));
+        superOrThisCall.addArg(1,enumOrdinalRef);
+      }
       superOrThisCall.setStaticDispatchOnly();
       block.addStmt(superOrThisCall.makeStatement());
     }
@@ -56,6 +53,7 @@
       block.addStmt(initCall.makeStatement());
     }
     block.addStmts(processStatements(x.statements));
+    currentOuterThisRefParams=null;
     currentMethodScope=null;
     currentMethod=null;
   }
