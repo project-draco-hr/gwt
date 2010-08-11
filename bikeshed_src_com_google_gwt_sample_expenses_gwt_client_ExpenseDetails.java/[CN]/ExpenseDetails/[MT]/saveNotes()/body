@@ -6,8 +6,8 @@
   }
   setNotesEditState(false,true,pendingNotes);
   RequestObject<Void> editRequest=expensesRequestFactory.reportRequest().persist(report);
-  DeltaValueStore deltas=editRequest.getDeltaValueStore();
-  deltas.set(ReportRecord.notes,report,pendingNotes);
+  ReportRecord editableReport=editRequest.edit(report);
+  editableReport.setNotes(pendingNotes);
   editRequest.fire(new Receiver<Void>(){
     public void onSuccess(    Void ignore,    Set<SyncResult> response){
       String errorMessage=getErrorMessageFromSync(response);

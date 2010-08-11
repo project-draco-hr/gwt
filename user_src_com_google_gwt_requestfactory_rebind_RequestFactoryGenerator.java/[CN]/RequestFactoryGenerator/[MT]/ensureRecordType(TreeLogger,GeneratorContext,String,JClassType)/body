@@ -63,6 +63,24 @@
         sw.println("}");
       }
     }
+    for (    JField field : publicRecordType.getFields()) {
+      JType fieldType=field.getType();
+      if (propertyType.getErasedType() == fieldType.getErasedType()) {
+        JParameterizedType parameterized=fieldType.isParameterized();
+        if (parameterized == null) {
+          logger.log(TreeLogger.ERROR,fieldType + " must have its param type set.");
+          throw new UnableToCompleteException();
+        }
+        JClassType returnType=parameterized.getTypeArgs()[0];
+        sw.println();
+        String varName=field.getName();
+        sw.println(String.format("public void set%s(%s %s) {",capitalize(field.getName()),returnType.getQualifiedSourceName(),varName));
+        sw.indent();
+        sw.println(String.format("set(this.%s, this, %s);",field.getName(),varName));
+        sw.outdent();
+        sw.println("}");
+      }
+    }
     sw.outdent();
     sw.println("}");
     generatorContext.commit(logger,pw);

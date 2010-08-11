@@ -6,10 +6,10 @@
       return;
     }
   }
-  RequestObject<Void> editRequest=expensesRequestFactory.expenseRequest().persist();
-  DeltaValueStore deltas=editRequest.getDeltaValueStore();
-  deltas.set(ExpenseRecord.approval,record,approval);
-  deltas.set(ExpenseRecord.reasonDenied,record,reasonDenied);
+  RequestObject<Void> editRequest=expensesRequestFactory.expenseRequest().persist(record);
+  ExpenseRecord editableRecord=editRequest.edit(record);
+  editableRecord.setApproval(approval);
+  editableRecord.setReasonDenied(reasonDenied);
   editRequest.fire(new Receiver<Void>(){
     public void onSuccess(    Void ignore,    Set<SyncResult> response){
       String errorMessage=getErrorMessageFromSync(response);
