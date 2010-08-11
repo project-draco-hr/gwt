@@ -1,5 +1,6 @@
 {
   Event typeOracleMediatorEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_MEDIATOR);
+  Event visitClassFileEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_MEDIATOR,"phase","Visit Class Files");
   classMap=new HashMap<String,CollectClassData>();
   for (  CompilationUnit unit : units) {
     if (!unit.isCompiled()) {
@@ -13,6 +14,8 @@
       }
     }
   }
+  visitClassFileEvent.end();
+  Event identityEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_MEDIATOR,"phase","Establish Identity");
   classMapType=new HashMap<JRealClassType,CollectClassData>();
   allMethodArgs=new MethodArgNamesLookup();
   Set<JRealClassType> unresolvedTypes=new HashSet<JRealClassType>();
@@ -35,6 +38,8 @@
       }
     }
   }
+  identityEvent.end();
+  Event resolveEnclosingEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_MEDIATOR,"phase","Resolve Enclosing Classes");
   TreeLogger branch=logger.branch(TreeLogger.SPAM,"Resolving enclosing classes");
   for (Iterator<JRealClassType> it=unresolvedTypes.iterator(); it.hasNext(); ) {
     JRealClassType type=it.next();
@@ -42,12 +47,17 @@
       it.remove();
     }
   }
+  resolveEnclosingEvent.end();
+  Event resolveUnresolvedEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_MEDIATOR,"phase","Resolve Unresolved Types");
   for (  JRealClassType type : unresolvedTypes) {
     branch=logger.branch(TreeLogger.SPAM,"Resolving " + type.getQualifiedSourceName());
     if (!resolveClass(branch,type)) {
     }
   }
+  resolveUnresolvedEvent.end();
+  Event finishEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_MEDIATOR,"phase","Finish");
   typeOracle.finish();
+  finishEvent.end();
   allMethodArgs=null;
   classMap=null;
   classMapType=null;
