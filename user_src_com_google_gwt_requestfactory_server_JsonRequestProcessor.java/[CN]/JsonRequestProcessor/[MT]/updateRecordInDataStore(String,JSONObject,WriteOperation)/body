@@ -6,7 +6,7 @@
     validateKeys(recordObject,propertiesInRecord.keySet());
     updatePropertyTypes(propertiesInRecord,entity);
     Object entityInstance=getEntityInstance(writeOperation,entity,recordObject.get("id"),propertiesInRecord.get("id"));
-    Set<ConstraintViolation<Object>> violations=null;
+    Set<ConstraintViolation<Object>> violations=Collections.emptySet();
     if (writeOperation == WriteOperation.DELETE) {
       entity.getMethod("remove").invoke(entityInstance);
     }
@@ -26,9 +26,17 @@
           entity.getMethod(getMethodNameFromPropertyName(key,"set"),propertyType).invoke(entityInstance,propertyValue);
         }
       }
-      ValidatorFactory validatorFactory=Validation.buildDefaultValidatorFactory();
-      Validator validator=validatorFactory.getValidator();
-      violations=validator.validate(entityInstance);
+      Validator validator=null;
+      try {
+        ValidatorFactory validatorFactory=Validation.buildDefaultValidatorFactory();
+        validator=validatorFactory.getValidator();
+      }
+ catch (      Exception e) {
+        log.info(String.format("Ingnoring exception caught initializing bean validation framework. " + "It is probably unconfigured or misconfigured. [%s] %s ",e.getClass().getName(),e.getLocalizedMessage()));
+      }
+      if (validator != null) {
+        violations=validator.validate(entityInstance);
+      }
       if (violations.isEmpty()) {
         entity.getMethod("persist").invoke(entityInstance);
       }
@@ -36,6 +44,7 @@
     return getReturnRecord(writeOperation,entityInstance,recordObject,violations);
   }
  catch (  Exception ex) {
+    log.severe(String.format("Caught exception [%s] %s",ex.getClass().getName(),ex.getLocalizedMessage()));
     return getReturnRecordForException(writeOperation,recordObject,ex);
   }
 }
