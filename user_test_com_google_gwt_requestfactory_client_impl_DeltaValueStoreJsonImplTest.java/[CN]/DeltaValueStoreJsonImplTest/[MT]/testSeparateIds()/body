@@ -1,0 +1,22 @@
+{
+  RecordImpl createRecord=(RecordImpl)requestFactory.create(SimpleFooRecord.class);
+  assertTrue(createRecord.isFuture());
+  Long futureId=createRecord.getId();
+  RecordImpl mockRecord=new RecordImpl(RecordJsoImpl.create(futureId,1,SimpleFooRecordImpl.SCHEMA),RequestFactoryJsonImpl.NOT_FUTURE);
+  valueStore.setRecord(mockRecord.asJso());
+  DeltaValueStoreJsonImpl deltaValueStore=new DeltaValueStoreJsonImpl(valueStore,requestFactory);
+  deltaValueStore.set(SimpleFooRecord.userName,createRecord,"harry");
+  deltaValueStore.set(SimpleFooRecord.userName,mockRecord,"bovik");
+  assertTrue(deltaValueStore.isChanged());
+  String jsonString=deltaValueStore.toJsonWithoutChecks();
+  JSONObject jsonObject=(JSONObject)JSONParser.parse(jsonString);
+  assertFalse(jsonObject.containsKey(WriteOperation.DELETE.name()));
+  assertTrue(jsonObject.containsKey(WriteOperation.CREATE.name()));
+  assertTrue(jsonObject.containsKey(WriteOperation.UPDATE.name()));
+  JSONArray createOperationArray=jsonObject.get(WriteOperation.CREATE.name()).isArray();
+  assertEquals(1,createOperationArray.size());
+  assertEquals("harry",createOperationArray.get(0).isObject().get(SimpleFooRecord.class.getName()).isObject().get(SimpleFooRecord.userName.getName()).isString().stringValue());
+  JSONArray updateOperationArray=jsonObject.get(WriteOperation.UPDATE.name()).isArray();
+  assertEquals(1,updateOperationArray.size());
+  assertEquals("bovik",updateOperationArray.get(0).isObject().get(SimpleFooRecord.class.getName()).isObject().get(SimpleFooRecord.userName.getName()).isString().stringValue());
+}
