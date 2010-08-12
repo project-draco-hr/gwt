@@ -14,23 +14,23 @@
   boolean hasReturnType=true;
   if ("<init>".equals(name)) {
     name=type.getSimpleSourceName();
-    method=new JConstructor(type,name,declaredAnnotations,typeParams);
+    method=newConstructor(type,name,declaredAnnotations,typeParams);
     hasReturnType=false;
   }
  else {
     if (type.isAnnotation() != null) {
-      method=new JAnnotationMethod(type,name,typeParams,declaredAnnotations);
+      method=newAnnotationMethod(type,name,declaredAnnotations,typeParams,null);
     }
  else {
-      method=new JMethod(type,name,declaredAnnotations,typeParams);
+      method=newMethod(type,name,declaredAnnotations,typeParams);
     }
   }
-  method.addModifierBits(mapBits(ASM_TO_SHARED_MODIFIERS,methodData.getAccess()));
+  addModifierBits(method,mapBits(ASM_TO_SHARED_MODIFIERS,methodData.getAccess()));
   if (type.isInterface() != null) {
-    method.addModifierBits(Shared.MOD_PUBLIC | Shared.MOD_ABSTRACT);
+    addModifierBits(method,Shared.MOD_PUBLIC | Shared.MOD_ABSTRACT);
   }
   if ((methodData.getAccess() & Opcodes.ACC_VARARGS) != 0) {
-    method.setVarArgs();
+    setVarArgs(method);
   }
   String signature=methodData.getSignature();
   if (signature != null) {
@@ -48,7 +48,7 @@
       if (returnJType == null) {
         return false;
       }
-      ((JMethod)method).setReturnType(returnJType);
+      setReturnType(method,returnJType);
     }
     if (!resolveParameters(logger,method,methodData)) {
       return false;

@@ -1,6 +1,7 @@
 {
-  oracle=TypeOracleTestingUtils.buildStandardTypeOracleWith(failTreeLogger);
-  createUnresolvedClass(Object.class,null);
+  mediator=TypeOracleTestingUtils.buildStandardMediatorWith(failTreeLogger);
+  resolver=new MockResolver(mediator.getResolver());
+  oracle=mediator.getTypeOracle();
   createUnresolvedClass(String.class,null);
   testHandler=createUnresolvedClass(TestHandler.class,null);
   testHandler1=createUnresolvedClass(TestHandler1.class,null);
@@ -11,10 +12,9 @@
   testOuter0dispatch=createUnresolvedMethod(testOuter0,TestOuter0.class,"dispatch",TestHandler.class);
   testOuter1dispatch=createUnresolvedMethod(testOuter1,TestOuter1.class,"dispatch",TestHandler.class);
   testOuter2dispatch=createUnresolvedMethod(testOuter2,TestOuter2.class,"dispatch",TestHandler.class);
-  binaryMapper=new LinkedHashMap<String,JRealClassType>();
   for (  JClassType type : oracle.getTypes()) {
     if (type instanceof JRealClassType) {
-      binaryMapper.put(type.getQualifiedBinaryName().replace('.','/'),(JRealClassType)type);
+      mediator.getBinaryMapper().put(type.getQualifiedBinaryName().replace('.','/'),(JRealClassType)type);
     }
   }
 }

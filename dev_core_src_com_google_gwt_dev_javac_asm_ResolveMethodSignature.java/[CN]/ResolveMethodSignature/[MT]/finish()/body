@@ -3,7 +3,7 @@
   finishBound();
   if (hasReturnType) {
     failed|=(returnType[0] == null);
-    ((JMethod)method).setReturnType(returnType[0]);
+    resolver.setReturnType(method,returnType[0]);
   }
   List<CollectAnnotationData>[] argAnnotations=methodData.getArgAnnotations();
   if (argTypes.length != params.size()) {
@@ -26,14 +26,14 @@
     }
     Map<Class<? extends Annotation>,Annotation> declaredAnnotations=new HashMap<Class<? extends Annotation>,Annotation>();
     resolver.resolveAnnotations(logger,argAnnotations[i],declaredAnnotations);
-    new JParameter(method,argType,names[i],declaredAnnotations,namesAreReal);
+    resolver.newParameter(method,argType,names[i],declaredAnnotations,namesAreReal);
   }
   for (  JType[] exc : exceptions) {
     if (exc[0] == null) {
       failed=true;
       continue;
     }
-    method.addThrows(exc[0]);
+    resolver.addThrows(method,exc[0]);
   }
   return !failed;
 }

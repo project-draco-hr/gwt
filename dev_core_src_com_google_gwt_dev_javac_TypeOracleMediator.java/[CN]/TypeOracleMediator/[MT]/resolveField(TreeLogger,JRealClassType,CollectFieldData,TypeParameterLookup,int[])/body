@@ -5,12 +5,13 @@
   JField jfield;
   if ((field.getAccess() & Opcodes.ACC_ENUM) != 0) {
     assert(type.isEnum() != null);
-    jfield=new JEnumConstant(type,name,declaredAnnotations,nextEnumOrdinal[0]++);
+    jfield=newEnumConstant(type,name,declaredAnnotations,nextEnumOrdinal[0]++);
   }
  else {
-    jfield=new JField(type,name,declaredAnnotations);
+    JField newField=newField(type,name,declaredAnnotations);
+    jfield=newField;
   }
-  jfield.addModifierBits(mapBits(ASM_TO_SHARED_MODIFIERS,field.getAccess()));
+  addModifierBits(jfield,mapBits(ASM_TO_SHARED_MODIFIERS,field.getAccess()));
   String signature=field.getSignature();
   JType fieldType;
   if (signature != null) {
@@ -25,6 +26,6 @@
   if (fieldType == null) {
     return false;
   }
-  jfield.setType(fieldType);
+  setFieldType(jfield,fieldType);
   return true;
 }
