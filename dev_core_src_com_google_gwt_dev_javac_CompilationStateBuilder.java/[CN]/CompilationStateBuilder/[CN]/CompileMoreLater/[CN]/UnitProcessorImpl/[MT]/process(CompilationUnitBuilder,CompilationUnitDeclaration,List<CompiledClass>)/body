@@ -19,19 +19,17 @@
   CompilationUnitInvalidator.reportErrors(logger,cud,builder.getSource());
   Set<ContentId> dependencies=compiler.computeDependencies(cud,jsniDeps);
   CompilationUnit unit=builder.build(compiledClasses,dependencies,jsniMethods.values(),methodArgs,cud.compilationResult().getProblems());
-  if (!unit.isError()) {
-    addValidUnit(unit);
-    ContentId contentId=builder.getContentId();
-    unitCache.put(contentId,unit);
-    if (builder instanceof ResourceCompilationUnitBuilder) {
-      ResourceCompilationUnitBuilder rcub=(ResourceCompilationUnitBuilder)builder;
-      ResourceTag resourceTag=new ResourceTag(rcub.getLastModifed(),contentId);
-      resourceContentCache.put(builder.getLocation(),resourceTag);
-      keepAliveLatestVersion.put(resourceTag,unit);
-    }
- else     if (builder instanceof GeneratedCompilationUnitBuilder) {
-      keepAliveRecentlyGenerated.put(unit.getTypeName(),unit);
-    }
+  addValidUnit(unit);
+  ContentId contentId=builder.getContentId();
+  unitCache.put(contentId,unit);
+  if (builder instanceof ResourceCompilationUnitBuilder) {
+    ResourceCompilationUnitBuilder rcub=(ResourceCompilationUnitBuilder)builder;
+    ResourceTag resourceTag=new ResourceTag(rcub.getLastModifed(),contentId);
+    resourceContentCache.put(builder.getLocation(),resourceTag);
+    keepAliveLatestVersion.put(resourceTag,unit);
+  }
+ else   if (builder instanceof GeneratedCompilationUnitBuilder) {
+    keepAliveRecentlyGenerated.put(unit.getTypeName(),unit);
   }
   resultUnits.put(unit.getTypeName(),unit);
 }
