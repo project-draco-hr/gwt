@@ -3,6 +3,10 @@
     setString(property.getName(),(String)value);
     return;
   }
+  if (value instanceof Character) {
+    setString(property.getName(),String.valueOf(value));
+    return;
+  }
   if (value instanceof Long || value instanceof BigDecimal || value instanceof BigInteger) {
     setString(property.getName(),String.valueOf(value));
     return;
@@ -23,6 +27,12 @@
   if (value instanceof Enum) {
     setInt(property.getName(),((Enum)value).ordinal());
     return;
+  }
+  if (value instanceof Boolean) {
+    setBoolean(property.getName(),((Boolean)value).booleanValue());
+  }
+  if (value instanceof Record) {
+    setString(property.getName(),getRequestFactory().getSchema(value.getClass().getName()).getToken().getName() + "-" + String.valueOf(((Record)value).getId()));
   }
   throw new UnsupportedOperationException("Can't yet set properties of type " + value.getClass().getName());
 }

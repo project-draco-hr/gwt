@@ -21,7 +21,23 @@
   }
   sw.println("throw new IllegalArgumentException(\"Unknown token \" + token + ");
   sw.indent();
-  sw.println("\", does not match any of the TOKEN vairables of a Record\");");
+  sw.println("\", does not match any of the TOKEN variables of a Record\");");
+  sw.outdent();
+  sw.outdent();
+  sw.println("}");
+  sw.println("public RecordSchema<? extends Record> getType(String token) {");
+  sw.indent();
+  for (  JClassType publicRecordType : generatedRecordTypes) {
+    String qualifiedSourceName=publicRecordType.getQualifiedSourceName();
+    sw.println("if (token.equals(\"" + qualifiedSourceName + "\")) {");
+    sw.indent();
+    sw.println("return " + qualifiedSourceName + "Impl.SCHEMA;");
+    sw.outdent();
+    sw.println("}");
+  }
+  sw.println("throw new IllegalArgumentException(\"Unknown token \" + token + ");
+  sw.indent();
+  sw.println("\", does not match any of the TOKEN variables of a Record\");");
   sw.outdent();
   sw.outdent();
   sw.println("}");

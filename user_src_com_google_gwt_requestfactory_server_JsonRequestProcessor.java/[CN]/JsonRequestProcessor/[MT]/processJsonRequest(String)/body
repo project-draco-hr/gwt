@@ -2,6 +2,8 @@
   RequestDefinition operation;
   JSONObject topLevelJsonObject=new JSONObject(jsonRequestString);
   String operationName=topLevelJsonObject.getString(RequestData.OPERATION_TOKEN);
+  String propertyRefsString=topLevelJsonObject.has(RequestData.PROPERTY_REF_TOKEN) ? topLevelJsonObject.getString(RequestData.PROPERTY_REF_TOKEN) : "";
+  propertyRefs=RequestProperty.parse(propertyRefsString);
   if (operationName.equals(RequestFactory.SYNC)) {
     return sync(topLevelJsonObject.getString(RequestData.CONTENT_TOKEN));
   }
@@ -18,14 +20,20 @@
       throw new IllegalArgumentException(String.format("Type mismatch, expected %s%s, but %s returns %s",operation.isReturnTypeList() ? "list of " : "",operation.getReturnType(),domainMethod,domainMethod.getReturnType()));
     }
     if (result instanceof List<?>) {
-      return toJsonArray(operation,result);
+      JSONObject envelop=new JSONObject();
+      envelop.put("result",toJsonArray(operation,result));
+      envelop.put("related",encodeRelatedObjectsToJson());
+      return envelop;
     }
  else     if (result instanceof Number && !(result instanceof BigDecimal || result instanceof BigInteger)) {
       return result;
     }
  else {
+      JSONObject envelop=new JSONObject();
       JSONObject jsonObject=toJsonObject(operation,result);
-      return jsonObject;
+      envelop.put("result",jsonObject);
+      envelop.put("related",encodeRelatedObjectsToJson());
+      return envelop;
     }
   }
 }

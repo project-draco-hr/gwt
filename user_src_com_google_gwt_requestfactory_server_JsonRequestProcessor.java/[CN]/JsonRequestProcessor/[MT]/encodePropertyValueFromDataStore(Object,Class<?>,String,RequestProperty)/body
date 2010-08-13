@@ -1,0 +1,13 @@
+{
+  String methodName=getMethodNameFromPropertyName(propertyName,"get");
+  Method method=entityElement.getClass().getMethod(methodName);
+  Object returnValue=method.invoke(entityElement);
+  if (returnValue != null && Record.class.isAssignableFrom(propertyType)) {
+    Method idMethod=entityElement.getClass().getMethod("getId");
+    Long id=(Long)idMethod.invoke(entityElement);
+    String keyRef=operationRegistry.getSecurityProvider().encodeClassType(propertyType) + "-" + id;
+    addRelatedObject(keyRef,returnValue,(Class<? extends Record>)propertyType,propertyContext.getProperty(propertyName));
+    return keyRef;
+  }
+  return encodePropertyValue(returnValue);
+}

@@ -5,6 +5,8 @@
   f.addImport(RequestFactoryJsonImpl.class.getName());
   f.addImport(interfaceType.getQualifiedSourceName());
   f.addImport(RecordToTypeMap.class.getName());
+  f.addImport(Record.class.getName());
+  f.addImport(RecordSchema.class.getName());
   f.addImplementedInterface(interfaceType.getName());
   f.setSuperclass(RequestFactoryJsonImpl.class.getSimpleName());
   SourceWriter sw=f.createSourceWriter(generatorContext,out);
@@ -38,6 +40,11 @@
   sw.println("public " + Record.class.getName() + " create(Class token) {");
   sw.indent();
   sw.println("return create(token, new " + recordToTypeMapName + "());");
+  sw.outdent();
+  sw.println("}");
+  sw.println("public RecordSchema<? extends Record> getSchema(String schemaToken) {");
+  sw.indent();
+  sw.println("return new " + recordToTypeMapName + "().getType(schemaToken);");
   sw.outdent();
   sw.println("}");
   for (  JMethod requestSelector : requestSelectors) {

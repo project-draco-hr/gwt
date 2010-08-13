@@ -61,5 +61,30 @@ catch (    IllegalAccessException e) {
   if (Date.class == parameterType) {
     return new Date(Long.parseLong(parameterValue));
   }
+  if (Record.class.isAssignableFrom(parameterType)) {
+    Service service=parameterType.getAnnotation(Service.class);
+    if (service != null) {
+      Class<?> sClass=service.value();
+      String schemaAndId[]=parameterValue.toString().split("-",2);
+      String findMeth=null;
+      try {
+        findMeth=getMethodNameFromPropertyName(sClass.getSimpleName(),"find");
+        Method meth=sClass.getMethod(findMeth,Long.class);
+        return meth.invoke(null,Long.valueOf(schemaAndId[1]));
+      }
+ catch (      NoSuchMethodException e) {
+        e.printStackTrace();
+        throw new IllegalArgumentException(sClass + " no method named " + findMeth);
+      }
+catch (      InvocationTargetException e) {
+        e.printStackTrace();
+        throw new IllegalArgumentException(sClass + " can't invoke method named " + findMeth);
+      }
+catch (      IllegalAccessException e) {
+        e.printStackTrace();
+        throw new IllegalArgumentException(sClass + " can't access method named " + findMeth);
+      }
+    }
+  }
   throw new IllegalArgumentException("Unknown parameter type: " + parameterType);
 }

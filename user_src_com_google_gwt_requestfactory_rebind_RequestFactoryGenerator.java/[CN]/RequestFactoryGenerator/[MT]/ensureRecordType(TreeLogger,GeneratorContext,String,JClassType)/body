@@ -8,6 +8,7 @@
   }
   String recordImplTypeName=publicRecordType.getName() + "Impl";
   PrintWriter pw=generatorContext.tryCreate(logger,packageName,recordImplTypeName);
+  Set<JClassType> transitiveDeps=new LinkedHashSet<JClassType>();
   if (pw != null) {
     logger=logger.branch(TreeLogger.DEBUG,"Generating " + publicRecordType.getName());
     ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(packageName,recordImplTypeName);
@@ -29,6 +30,8 @@
     f.addImport(Collections.class.getName());
     f.addImport(HashSet.class.getName());
     f.addImport(Set.class.getName());
+    f.addImport(Map.class.getName());
+    f.addImport(HashMap.class.getName());
     f.setSuperclass(RecordImpl.class.getSimpleName());
     f.addImplementedInterface(publicRecordType.getName());
     SourceWriter sw=f.createSourceWriter(generatorContext,pw);
@@ -36,8 +39,8 @@
     JClassType propertyType=printSchema(typeOracle,publicRecordType,recordImplTypeName,eventType,sw);
     sw.println();
     String simpleImplName=publicRecordType.getSimpleSourceName() + "Impl";
-    printRequestImplClass(sw,publicRecordType,simpleImplName,true);
-    printRequestImplClass(sw,publicRecordType,simpleImplName,false);
+    printRequestImplClass(sw,publicRecordType,simpleImplName,true,typeOracle);
+    printRequestImplClass(sw,publicRecordType,simpleImplName,false,typeOracle);
     sw.println();
     sw.println(String.format("public static final RecordSchema<%s> SCHEMA = new MySchema();",recordImplTypeName));
     sw.println();
@@ -46,6 +49,7 @@
     sw.println("super(jso, isFuture);");
     sw.outdent();
     sw.println("}");
+    JClassType recordBaseType=typeOracle.findType(Record.class.getName());
     for (    JField field : publicRecordType.getFields()) {
       JType fieldType=field.getType();
       if (propertyType.getErasedType() == fieldType.getErasedType()) {
@@ -61,6 +65,9 @@
         sw.println(String.format("return get(%s);",field.getName()));
         sw.outdent();
         sw.println("}");
+        if (isRecordType(typeOracle,returnType)) {
+          transitiveDeps.add(returnType);
+        }
       }
     }
     for (    JField field : publicRecordType.getFields()) {
@@ -86,4 +93,7 @@
     generatorContext.commit(logger,pw);
   }
   generatedRecordTypes.add(publicRecordType);
+  for (  JClassType type : transitiveDeps) {
+    ensureRecordType(logger,generatorContext,type.getPackage().getName(),type);
+  }
 }

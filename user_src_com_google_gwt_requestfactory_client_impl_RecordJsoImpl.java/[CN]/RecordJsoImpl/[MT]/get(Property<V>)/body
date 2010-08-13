@@ -6,6 +6,9 @@
     if (Boolean.class.equals(property.getType())) {
       return (V)Boolean.valueOf(getBoolean(property.getName()));
     }
+    if (Character.class.equals(property.getType())) {
+      return (V)Character.valueOf(String.valueOf(get(property.getName())).charAt(0));
+    }
     if (Byte.class.equals(property.getType())) {
       return (V)Byte.valueOf((byte)getInt(property.getName()));
     }
@@ -59,5 +62,15 @@
       }
     }
   }
-  return (V)get(property.getName());
+  if (String.class == property.getType()) {
+    return (V)get(property.getName());
+  }
+  String relatedId=(String)get(property.getName());
+  if (relatedId == null) {
+    return null;
+  }
+ else {
+    String schemaAndId[]=relatedId.split("-");
+    return (V)getValueStore().getRecordBySchemaAndId(getRequestFactory().getSchema(schemaAndId[0]),Long.valueOf(schemaAndId[1]));
+  }
 }
