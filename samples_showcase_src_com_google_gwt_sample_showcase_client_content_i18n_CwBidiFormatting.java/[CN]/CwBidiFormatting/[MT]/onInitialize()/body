@@ -1,0 +1,53 @@
+{
+  blogMessages=GWT.create(BlogMessages.class);
+  FlexTable layout=new FlexTable();
+  FlexCellFormatter formatter=layout.getFlexCellFormatter();
+  layout.setCellSpacing(5);
+  Anchor link=new Anchor("BlogMessages");
+  link.addClickHandler(new ClickHandler(){
+    public void onClick(    ClickEvent event){
+      selectTab(2);
+    }
+  }
+);
+  HorizontalPanel linkPanel=new HorizontalPanel();
+  linkPanel.setSpacing(3);
+  linkPanel.add(new HTML(constants.cwBidiFormattingLinkText()));
+  linkPanel.add(link);
+  layout.setWidget(0,0,linkPanel);
+  formatter.setColSpan(0,0,2);
+  String template=blogMessages.userComment("{0}","{1}","{2}");
+  layout.setHTML(1,0,constants.cwBidiFormattingTemplateLabel());
+  layout.setHTML(1,1,template);
+  arg0Box=new TextBox();
+  arg0Box.setText(LocaleInfo.getCurrentLocale().isRTL() ? "Tom Bombadil" : "???????? ????????");
+  layout.setHTML(2,0,constants.cwBidiFormattingArg0Label());
+  layout.setWidget(2,1,arg0Box);
+  arg1Box=new TextBox();
+  arg1Box.setText("16");
+  layout.setHTML(3,0,constants.cwBidiFormattingArg1Label());
+  layout.setWidget(3,1,arg1Box);
+  arg2Box=new TextBox();
+  arg2Box.setText(LocaleInfo.getCurrentLocale().isRTL() ? "How deep is your love?" : "?????? ?????? ???? ?????????");
+  layout.setHTML(4,0,constants.cwBidiFormattingArg2Label());
+  layout.setWidget(4,1,arg2Box);
+  message=new HTML();
+  layout.setHTML(5,0,constants.cwBidiFormattingNonbidiFormattedLabel());
+  layout.setWidget(5,1,message);
+  formatter.setVerticalAlignment(5,0,HasVerticalAlignment.ALIGN_TOP);
+  bidiFormattedMessage=new HTML();
+  layout.setHTML(6,0,constants.cwBidiFormattingBidiFormattedLabel());
+  layout.setWidget(6,1,bidiFormattedMessage);
+  formatter.setVerticalAlignment(6,0,HasVerticalAlignment.ALIGN_TOP);
+  KeyUpHandler keyUpHandler=new KeyUpHandler(){
+    public void onKeyUp(    KeyUpEvent event){
+      updateMessages();
+    }
+  }
+;
+  arg0Box.addKeyUpHandler(keyUpHandler);
+  arg1Box.addKeyUpHandler(keyUpHandler);
+  arg2Box.addKeyUpHandler(keyUpHandler);
+  updateMessages();
+  return layout;
+}
