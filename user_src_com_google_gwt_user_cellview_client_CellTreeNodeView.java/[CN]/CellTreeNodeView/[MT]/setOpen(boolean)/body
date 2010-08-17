@@ -9,10 +9,14 @@
       nodeInfoLoaded=true;
       nodeInfo=tree.getTreeViewModel().getNodeInfo(value);
       if (nodeInfo != null) {
+        Set<String> eventsToSink=new HashSet<String>();
+        eventsToSink.add("focus");
+        eventsToSink.add("blur");
         Set<String> consumedEvents=nodeInfo.getCell().getConsumedEvents();
         if (consumedEvents != null) {
-          CellBasedWidgetImpl.get().sinkEvents(tree,consumedEvents);
+          eventsToSink.addAll(consumedEvents);
         }
+        CellBasedWidgetImpl.get().sinkEvents(tree,eventsToSink);
       }
     }
     if (nodeInfo != null) {
@@ -33,5 +37,6 @@
     cleanup();
     tree.maybeAnimateTreeNode(this);
     updateImage(false);
+    keyboardExit();
   }
 }

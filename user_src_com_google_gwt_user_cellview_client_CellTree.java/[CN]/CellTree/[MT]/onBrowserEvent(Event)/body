@@ -1,6 +1,25 @@
 {
   CellBasedWidgetImpl.get().onBrowserEvent(this,event);
   super.onBrowserEvent(event);
+  String eventType=event.getType();
+  if ("blur".equals(eventType)) {
+    keyboardSelectedNode.keyboardBlur();
+    return;
+  }
+  if ("focus".equals(eventType)) {
+    keyboardSelectedNode.keyboardFocus();
+    return;
+  }
+  boolean keyUp="keyup".equals(eventType);
+  boolean keyDown="keydown".equals(eventType);
+  if (keyDown && !cellIsEditing) {
+    return;
+  }
+  if (keyUp && !cellIsEditing) {
+    if (handleKey(event)) {
+      return;
+    }
+  }
   Element target=event.getEventTarget().cast();
   ArrayList<Element> chain=new ArrayList<Element>();
   collectElementChain(chain,getElement(),target);
@@ -16,8 +35,11 @@
         nodeView.showMore();
         return;
       }
+      keyboardSelectedNode.keyboardExit();
+      keyboardSelectedNode=nodeView.getParentNode();
+      keyboardSelectedNode.keyboardEnter(target,true);
     }
-    if (nodeView.getCellParent().isOrHasChild(target)) {
+    if (nodeView.getCellParent().isOrHasChild(target) || (eventType.startsWith("key") && nodeView.getCellParent().getParentElement() == target)) {
       nodeView.fireEventToCell(event);
     }
   }

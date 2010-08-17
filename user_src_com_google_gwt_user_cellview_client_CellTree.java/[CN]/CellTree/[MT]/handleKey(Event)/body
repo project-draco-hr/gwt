@@ -1,0 +1,63 @@
+{
+  int keyCode=event.getKeyCode();
+  CellTreeNodeView<?> child=null;
+  int keyboardSelectedIndex=keyboardSelectedNode.getKeyboardSelectedIndex();
+  if (keyboardSelectedIndex != -1 && keyboardSelectedNode.getChildCount() > keyboardSelectedIndex) {
+    child=keyboardSelectedNode.getChildNode(keyboardSelectedIndex);
+  }
+  CellTreeNodeView<?> parent=keyboardSelectedNode.getParentNode();
+switch (keyCode) {
+case KeyCodes.KEY_UP:
+    if (keyboardSelectedNode.getKeyboardSelectedIndex() == 0) {
+      if (!keyboardSelectedNode.isRootNode()) {
+        if (parent != null) {
+          keyboardSelectedNode.keyboardExit();
+          parent.keyboardEnter(parent.indexOf(keyboardSelectedNode),true);
+          keyboardSelectedNode=parent;
+        }
+      }
+    }
+ else {
+      keyboardSelectedNode.keyboardUp();
+      int index=keyboardSelectedNode.getKeyboardSelectedIndex();
+      while ((child=keyboardSelectedNode.getChildNode(index)).isOpen()) {
+        keyboardSelectedNode.keyboardExit();
+        index=child.getChildCount() - 1;
+        child.keyboardEnter(index,true);
+        keyboardSelectedNode=child;
+      }
+    }
+  return true;
+case KeyCodes.KEY_DOWN:
+if (child != null && child.isOpen()) {
+  keyboardSelectedNode.keyboardExit();
+  child.keyboardEnter(0,true);
+  keyboardSelectedNode=child;
+}
+ else if (!keyboardSelectedNode.keyboardDown()) {
+  if (parent != null) {
+    keyboardSelectedNode.keyboardExit();
+    parent.keyboardEnter(parent.indexOf(keyboardSelectedNode),true);
+    while (!parent.keyboardDown()) {
+      CellTreeNodeView<?> newParent=parent.getParentNode();
+      if (newParent != null) {
+        parent.keyboardExit();
+        newParent.keyboardEnter(newParent.indexOf(parent) + 1,true);
+        parent=newParent;
+      }
+    }
+    keyboardSelectedNode=parent;
+  }
+}
+return true;
+case KeyCodes.KEY_LEFT:
+case KeyCodes.KEY_RIGHT:
+case KeyCodes.KEY_ENTER:
+if (child != null && !child.isLeaf()) {
+child.setOpen(!child.isOpen());
+return true;
+}
+break;
+}
+return false;
+}
