@@ -1,0 +1,20 @@
+{
+  if (display == null) {
+    throw new IllegalArgumentException("display cannot be null");
+  }
+ else   if (displays.contains(display)) {
+    throw new IllegalStateException("The specified display has already been added to this adapter.");
+  }
+  displays.add(display);
+  HandlerRegistration handler=display.addRangeChangeHandler(new RangeChangeEvent.Handler(){
+    public void onRangeChange(    RangeChangeEvent event){
+      AbstractDataProvider.this.onRangeChanged(display);
+    }
+  }
+);
+  rangeChangeHandlers.put(display,handler);
+  if (lastRowCount >= 0) {
+    display.setRowCount(lastRowCount,lastRowCountExact);
+  }
+  onRangeChanged(display);
+}

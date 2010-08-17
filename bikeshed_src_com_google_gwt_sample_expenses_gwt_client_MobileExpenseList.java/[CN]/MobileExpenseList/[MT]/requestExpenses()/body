@@ -7,18 +7,18 @@
     public void onSuccess(    List<ExpenseRecord> newValues,    Set<SyncResult> syncResults){
       if (this == lastReceiver) {
         int size=newValues.size();
-        expenseAdapter.updateDataSize(size,true);
-        expenseAdapter.updateViewData(0,size,newValues);
+        expenseDataProvider.updateRowCount(size,true);
+        expenseDataProvider.updateRowData(0,newValues);
         boolean isInitialData=knownDeniedKeys == null;
         if (knownDeniedKeys == null) {
           knownDeniedKeys=new HashSet<Object>();
         }
         for (        ExpenseRecord value : newValues) {
-          Object key=expenseAdapter.getKey(value);
+          Object key=expenseDataProvider.getKey(value);
           String approval=value.getApproval();
           if (Expenses.Approval.DENIED.getText().equals(approval)) {
             if (!isInitialData && !knownDeniedKeys.contains(key)) {
-              (new PhaseAnimation.CellListPhaseAnimation<ExpenseRecord>(expenseList,value,expenseAdapter)).run();
+              (new PhaseAnimation.CellListPhaseAnimation<ExpenseRecord>(expenseList,value,expenseDataProvider)).run();
             }
             knownDeniedKeys.add(key);
           }

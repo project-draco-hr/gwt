@@ -1,0 +1,24 @@
+{
+  ListDataProvider<String> provider=createListDataProvider(10);
+  List<String> list=provider.getList();
+  MockHasData<String> display=new MockHasData<String>();
+  display.setVisibleRange(0,25);
+  provider.addDataDisplay(display);
+  provider.flush();
+  display.clearLastRowDataAndRange();
+  List<String> toAdd=createData(10,3);
+  list.addAll(toAdd);
+  assertEquals("test 10",list.get(10));
+  assertEquals("test 11",list.get(11));
+  assertEquals("test 12",list.get(12));
+  provider.flush();
+  assertEquals(toAdd,display.getLastRowData());
+  assertEquals(new Range(10,3),display.getLastRowDataRange());
+  List<String> toInsert=createData(20,3);
+  list.addAll(2,toInsert);
+  assertEquals("test 20",list.get(2));
+  assertEquals("test 21",list.get(3));
+  assertEquals("test 22",list.get(4));
+  provider.flush();
+  assertEquals(new Range(2,14),display.getLastRowDataRange());
+}

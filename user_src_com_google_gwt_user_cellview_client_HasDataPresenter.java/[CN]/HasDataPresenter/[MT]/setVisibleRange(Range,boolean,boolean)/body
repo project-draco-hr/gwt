@@ -1,0 +1,48 @@
+{
+  final int start=range.getStart();
+  final int length=range.getLength();
+  final boolean pageStartChanged=(pageStart != start);
+  if (pageStartChanged) {
+    if (!clearData) {
+      if (start > pageStart) {
+        int increase=start - pageStart;
+        if (rowData.size() > increase) {
+          for (int i=0; i < increase; i++) {
+            rowData.remove(0);
+          }
+        }
+ else {
+          rowData.clear();
+        }
+      }
+ else {
+        int decrease=pageStart - start;
+        if ((rowData.size() > 0) && (decrease < pageSize)) {
+          for (int i=0; i < decrease; i++) {
+            rowData.add(0,null);
+          }
+        }
+ else {
+          rowData.clear();
+        }
+      }
+    }
+    pageStart=start;
+    pageStartChangedSinceRender=true;
+  }
+  final boolean pageSizeChanged=(pageSize != length);
+  if (pageSizeChanged) {
+    pageSize=length;
+  }
+  if (clearData) {
+    rowData.clear();
+    selectedRows.clear();
+  }
+  updateLoadingState();
+  if (pageStartChanged || clearData || updateCachedData()) {
+    redraw();
+  }
+  if (pageStartChanged || pageSizeChanged || forceRangeChangeEvent) {
+    RangeChangeEvent.fire(display,getVisibleRange());
+  }
+}
