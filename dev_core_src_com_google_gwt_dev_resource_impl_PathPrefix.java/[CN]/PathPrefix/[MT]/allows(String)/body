@@ -2,11 +2,20 @@
   if (!path.startsWith(prefix)) {
     return false;
   }
-  if (filter == null) {
+  if (filters.size() == 0 && exclusions.size() == 0) {
     return true;
   }
   if (shouldReroot) {
     path=getRerootedPath(path);
   }
-  return filter.allows(path);
+  createExcludeFilter();
+  if (exclusionScanner != null && exclusionScanner.match(path)) {
+    return false;
+  }
+  for (  ResourceFilter filter : filters) {
+    if (filter == null || filter.allows(path)) {
+      return true;
+    }
+  }
+  return false;
 }
