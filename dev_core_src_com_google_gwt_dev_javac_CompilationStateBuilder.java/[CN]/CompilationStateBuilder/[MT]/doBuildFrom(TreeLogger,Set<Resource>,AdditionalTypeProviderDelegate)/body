@@ -1,34 +1,27 @@
 {
   Event compilationStateBuilderProcess=SpeedTracerLogger.start(DevModeEventType.COMPILATION_STATE_BUILDER_PROCESS);
   try {
-    Map<String,CompilationUnit> resultUnits=new HashMap<String,CompilationUnit>();
+    List<CompilationUnitBuilder> builders=new ArrayList<CompilationUnitBuilder>();
+    Map<CompilationUnitBuilder,CompilationUnit> cachedUnits=new IdentityHashMap<CompilationUnitBuilder,CompilationUnit>();
+    CompileMoreLater compileMoreLater=new CompileMoreLater(compilerDelegate);
     for (    Resource resource : resources) {
+      String typeName=Shared.toTypeName(resource.getPath());
+      ResourceCompilationUnitBuilder builder=new ResourceCompilationUnitBuilder(typeName,resource);
       String location=resource.getLocation();
       ResourceTag tag=resourceContentCache.get(location);
       if (tag != null && tag.getLastModified() == resource.getLastModified()) {
         ContentId contentId=tag.getContentId();
         CompilationUnit existingUnit=unitCache.get(contentId);
-        if (existingUnit != null && !existingUnit.isError()) {
-          resultUnits.put(existingUnit.getTypeName(),existingUnit);
+        if (existingUnit != null) {
+          cachedUnits.put(builder,existingUnit);
+          compileMoreLater.addValidUnit(existingUnit);
+          continue;
         }
       }
+      builders.add(builder);
     }
-    CompilationUnitInvalidator.retainValidUnits(TreeLogger.NULL,resultUnits.values());
-    CompileMoreLater compileMoreLater=new CompileMoreLater(compilerDelegate);
-    List<CompilationUnitBuilder> builders=new ArrayList<CompilationUnitBuilder>();
-    for (    Resource resource : resources) {
-      String typeName=Shared.toTypeName(resource.getPath());
-      CompilationUnit validUnit=resultUnits.get(typeName);
-      if (validUnit != null) {
-        compileMoreLater.addValidUnit(validUnit);
-        CompilationUnitInvalidator.reportErrors(logger,validUnit);
-      }
- else {
-        builders.add(new ResourceCompilationUnitBuilder(typeName,resource));
-      }
-    }
-    compileMoreLater.compile(logger,builders,resultUnits);
-    return new CompilationState(logger,resultUnits.values(),compileMoreLater);
+    Collection<CompilationUnit> resultUnits=compileMoreLater.compile(logger,builders,cachedUnits);
+    return new CompilationState(logger,resultUnits,compileMoreLater);
   }
   finally {
     compilationStateBuilderProcess.end();
