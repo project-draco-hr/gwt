@@ -1,0 +1,23 @@
+{
+  manager.setDisplay(realDisplay);
+  assertEquals(0,eventBus.getHandlerCount(Event.TYPE));
+  activity1=new SyncActivity(null){
+    @Override public void start(    Display panel,    EventBus eventBus){
+      super.start(panel,eventBus);
+      bus.addHandler(Event.TYPE,new Handler());
+    }
+    @Override public void onStop(){
+      super.onStop();
+      bus.addHandler(Event.TYPE,new Handler());
+    }
+  }
+;
+  PlaceChangeEvent event=new PlaceChangeEvent(place1);
+  eventBus.fireEvent(event);
+  assertEquals(1,eventBus.getHandlerCount(Event.TYPE));
+  event=new PlaceChangeEvent(place2);
+  eventBus.fireEvent(event);
+  assertEquals(0,eventBus.getHandlerCount(Event.TYPE));
+  assertEquals(1,eventBus.getHandlerCount(PlaceChangeEvent.TYPE));
+  assertEquals(1,eventBus.getHandlerCount(PlaceChangeRequesteEvent.TYPE));
+}

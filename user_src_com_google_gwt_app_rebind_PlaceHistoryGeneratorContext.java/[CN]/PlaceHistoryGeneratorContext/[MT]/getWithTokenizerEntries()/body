@@ -1,0 +1,15 @@
+{
+  WithTokenizers annotation=interfaceType.getAnnotation(WithTokenizers.class);
+  if (annotation == null) {
+    return Collections.emptySet();
+  }
+  LinkedHashSet<JClassType> rtn=new LinkedHashSet<JClassType>();
+  for (  Class<? extends PlaceTokenizer<?>> tokenizerClass : annotation.value()) {
+    JClassType tokenizerType=generatorContext.getTypeOracle().findType(tokenizerClass.getCanonicalName());
+    if (tokenizerType == null) {
+      logger.log(TreeLogger.ERROR,String.format("Error processing @%s, cannot find type %s",WithTokenizers.class.getSimpleName(),tokenizerClass.getCanonicalName()));
+    }
+    rtn.add(tokenizerType);
+  }
+  return rtn;
+}

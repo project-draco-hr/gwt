@@ -1,0 +1,38 @@
+{
+  activity1=new SyncActivity(null){
+    @Override public void start(    Display panel,    EventBus eventBus){
+      super.start(panel,eventBus);
+      bus.addHandler(Event.TYPE,new Handler());
+    }
+    @Override public void onStop(){
+      super.onStop();
+      bus.addHandler(Event.TYPE,new Handler());
+      throw new UnsupportedOperationException("Auto-generated method stub");
+    }
+  }
+;
+  activity2=new SyncActivity(null){
+    @Override public void start(    Display panel,    EventBus eventBus){
+      super.start(panel,eventBus);
+      throw new UnsupportedOperationException("Auto-generated method stub");
+    }
+  }
+;
+  manager.setDisplay(realDisplay);
+  try {
+    PlaceChangeEvent event=new PlaceChangeEvent(place1);
+    eventBus.fireEvent(event);
+    assertEquals(1,eventBus.getHandlerCount(Event.TYPE));
+    event=new PlaceChangeEvent(place2);
+    eventBus.fireEvent(event);
+    fail("Expected exception");
+  }
+ catch (  UmbrellaException e) {
+    assertEquals(1,e.getCauses().size());
+    UmbrellaException nested=(UmbrellaException)e.getCause();
+    assertEquals(2,nested.getCauses().size());
+  }
+  assertTrue(activity1.stopped);
+  assertNotNull(activity2.display);
+  assertEquals(0,eventBus.getHandlerCount(Event.TYPE));
+}

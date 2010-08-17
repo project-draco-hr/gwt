@@ -1,0 +1,36 @@
+{
+  if (factoryType == null) {
+    return Collections.emptyMap();
+  }
+  if (tokenizerGetters == null) {
+    tokenizerGetters=new LinkedHashMap<String,JMethod>();
+    JMethod[] overridableMethods=factoryType.getOverridableMethods();
+    JMethod[] methods=factoryType.getMethods();
+    LinkedHashSet<JMethod> allMethods=new LinkedHashSet<JMethod>();
+    allMethods.addAll(Arrays.asList(overridableMethods));
+    for (    JMethod method : methods) {
+      if (method.isPublic()) {
+        allMethods.add(method);
+      }
+    }
+    for (    JMethod method : allMethods) {
+      if (method.getParameters().length > 0) {
+        continue;
+      }
+      JClassType returnType=method.getReturnType().isClassOrInterface();
+      if (returnType == null) {
+        continue;
+      }
+      if (!placeTokenizerType.isAssignableFrom(returnType)) {
+        continue;
+      }
+      String prefix=getPrefixForTokenizerGetter(method);
+      if (tokenizerGetters.containsKey(prefix)) {
+        logger.log(TreeLogger.ERROR,String.format("Found duplicate place prefix \"%s\" in factory type %s, " + "used by both %s and %s",prefix,factoryType.getQualifiedSourceName(),tokenizerGetters.get(prefix).getName(),method.getName()));
+        throw new UnableToCompleteException();
+      }
+      tokenizerGetters.put(prefix,method);
+    }
+  }
+  return tokenizerGetters;
+}

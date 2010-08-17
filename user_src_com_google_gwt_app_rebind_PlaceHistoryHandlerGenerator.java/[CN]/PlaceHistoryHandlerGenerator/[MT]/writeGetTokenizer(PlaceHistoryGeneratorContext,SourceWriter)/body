@@ -1,0 +1,21 @@
+{
+  sw.println("protected PlaceTokenizer<?> getTokenizer(String prefix) {");
+  sw.indent();
+  for (  String prefix : context.getPrefixes()) {
+    JMethod getter=context.getTokenizerGetter(prefix);
+    sw.println("if (\"" + prefix + "\".equals(prefix)) {");
+    sw.indent();
+    if (getter != null) {
+      sw.println("return factory." + getter.getName() + "();");
+    }
+ else {
+      sw.println(String.format("return GWT.create(%s.class);",context.getTokenizerType(prefix).getName()));
+    }
+    sw.outdent();
+    sw.println("}");
+  }
+  sw.println("return null;");
+  sw.outdent();
+  sw.println("}");
+  sw.outdent();
+}

@@ -1,10 +1,19 @@
 {
   if (activate) {
-    eventBus.addHandler(PlaceChangeEvent.TYPE,this);
-    eventBus.addHandler(PlaceChangeRequestedEvent.TYPE,this);
+    final HandlerRegistration placeReg=eventBus.addHandler(PlaceChangeEvent.TYPE,this);
+    final HandlerRegistration placeRequestReg=eventBus.addHandler(PlaceChangeRequesteEvent.TYPE,this);
+    this.handlerRegistration=new HandlerRegistration(){
+      public void removeHandler(){
+        placeReg.removeHandler();
+        placeRequestReg.removeHandler();
+      }
+    }
+;
   }
  else {
-    eventBus.removeHandler(PlaceChangeEvent.TYPE,this);
-    eventBus.removeHandler(PlaceChangeRequestedEvent.TYPE,this);
+    if (handlerRegistration != null) {
+      handlerRegistration.removeHandler();
+      handlerRegistration=null;
+    }
   }
 }

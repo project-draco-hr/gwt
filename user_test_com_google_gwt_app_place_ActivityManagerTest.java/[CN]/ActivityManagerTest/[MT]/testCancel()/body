@@ -1,8 +1,8 @@
 {
   final AsyncActivity asyncActivity1=new AsyncActivity(new MyView());
   final AsyncActivity ayncActivity2=new AsyncActivity(new MyView());
-  ActivityMapper<MyPlace> map=new ActivityMapper<MyPlace>(){
-    public Activity getActivity(    MyPlace place){
+  ActivityMapper map=new ActivityMapper(){
+    public Activity getActivity(    Place place){
       if (place.equals(place1)) {
         return asyncActivity1;
       }
@@ -13,27 +13,27 @@
     }
   }
 ;
-  manager=new ActivityManager<MyPlace>(map,eventBus);
+  manager=new ActivityManager(map,eventBus);
   manager.setDisplay(realDisplay);
-  PlaceChangeRequestedEvent<MyPlace> event=new PlaceChangeRequestedEvent<MyPlace>(place1);
+  PlaceChangeRequesteEvent event=new PlaceChangeRequesteEvent(place1);
   eventBus.fireEvent(event);
   assertNull(event.getWarning());
   assertNull(realDisplay.widget);
   assertFalse(asyncActivity1.stopped);
   assertFalse(asyncActivity1.canceled);
   assertNull(asyncActivity1.display);
-  eventBus.fireEvent(new PlaceChangeEvent<Place>(place1));
+  eventBus.fireEvent(new PlaceChangeEvent(place1));
   assertNull(realDisplay.widget);
   assertFalse(asyncActivity1.stopped);
   assertFalse(asyncActivity1.canceled);
   assertNotNull(asyncActivity1.display);
-  event=new PlaceChangeRequestedEvent<MyPlace>(place2);
+  event=new PlaceChangeRequesteEvent(place2);
   eventBus.fireEvent(event);
   assertNull(event.getWarning());
   assertNull(realDisplay.widget);
   assertFalse(asyncActivity1.stopped);
   assertFalse(asyncActivity1.canceled);
-  eventBus.fireEvent(new PlaceChangeEvent<Place>(place2));
+  eventBus.fireEvent(new PlaceChangeEvent(place2));
   assertNull(realDisplay.widget);
   assertTrue(asyncActivity1.canceled);
   assertFalse(asyncActivity1.stopped);
