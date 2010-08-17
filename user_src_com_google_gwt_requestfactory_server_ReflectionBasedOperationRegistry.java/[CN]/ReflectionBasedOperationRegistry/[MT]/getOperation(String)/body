@@ -11,8 +11,12 @@
       Class<?> domainClass=domainClassAnnotation.value();
       Method requestMethod=findMethod(requestClass,domainMethodName);
       Method domainMethod=findMethod(domainClass,domainMethodName);
+      boolean isInstance=(requestMethod.getAnnotation(Instance.class) != null);
       if (requestMethod != null && domainMethod != null) {
-        return new ReflectiveRequestDefinition(requestClass,requestMethod,domainClass,domainMethod);
+        if (isInstance == Modifier.isStatic(domainMethod.getModifiers())) {
+          throw new IllegalArgumentException("domain method " + domainMethod + " and interface method "+ requestMethod+ " don't match wrt instance/static");
+        }
+        return new ReflectiveRequestDefinition(requestClass,requestMethod,domainClass,domainMethod,isInstance);
       }
     }
     return null;

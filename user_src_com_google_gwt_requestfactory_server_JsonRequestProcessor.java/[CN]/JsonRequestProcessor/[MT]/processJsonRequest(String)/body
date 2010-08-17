@@ -4,36 +4,32 @@
   String operationName=topLevelJsonObject.getString(RequestData.OPERATION_TOKEN);
   String propertyRefsString=topLevelJsonObject.has(RequestData.PROPERTY_REF_TOKEN) ? topLevelJsonObject.getString(RequestData.PROPERTY_REF_TOKEN) : "";
   propertyRefs=RequestProperty.parse(propertyRefsString);
-  if (operationName.equals(RequestFactory.SYNC)) {
-    return sync(topLevelJsonObject.getString(RequestData.CONTENT_TOKEN));
+  operation=getOperation(operationName);
+  Class<?> domainClass=Class.forName(operation.getDomainClassName());
+  Method domainMethod=domainClass.getMethod(operation.getDomainMethodName(),operation.getParameterTypes());
+  if (Modifier.isStatic(domainMethod.getModifiers()) == operation.isInstance()) {
+    throw new IllegalArgumentException("the " + domainMethod.getName() + " should "+ (operation.isInstance() ? "not " : "")+ "be static");
+  }
+  entityDataMap=topLevelJsonObject.has(RequestData.CONTENT_TOKEN) ? decodeDVS(topLevelJsonObject.getString(RequestData.CONTENT_TOKEN)) : new HashMap<EntityKey,EntityData>();
+  Object args[][]=getObjectsFromParameterMap(operation.isInstance(),getParameterMap(topLevelJsonObject),domainMethod.getParameterTypes());
+  Object result=invokeDomainMethod(args[0][0],domainMethod,args[1]);
+  if ((result instanceof List<?>) != operation.isReturnTypeList()) {
+    throw new IllegalArgumentException(String.format("Type mismatch, expected %s%s, but %s returns %s",operation.isReturnTypeList() ? "list of " : "",operation.getReturnType(),domainMethod,domainMethod.getReturnType()));
+  }
+  if (result instanceof List<?>) {
+    JSONObject envelop=new JSONObject();
+    envelop.put("result",toJsonArray(operation,result));
+    envelop.put("related",encodeRelatedObjectsToJson());
+    return envelop;
+  }
+ else   if (result instanceof Number && !(result instanceof BigDecimal || result instanceof BigInteger)) {
+    return result;
   }
  else {
-    operation=getOperation(operationName);
-    Class<?> domainClass=Class.forName(operation.getDomainClassName());
-    Method domainMethod=domainClass.getMethod(operation.getDomainMethodName(),operation.getParameterTypes());
-    if (!Modifier.isStatic(domainMethod.getModifiers())) {
-      throw new IllegalArgumentException("the " + domainMethod.getName() + " is not static");
-    }
-    Object args[]=getObjectsFromParameterMap(getParameterMap(topLevelJsonObject),domainMethod.getParameterTypes());
-    Object result=invokeStaticDomainMethod(domainMethod,args);
-    if ((result instanceof List<?>) != operation.isReturnTypeList()) {
-      throw new IllegalArgumentException(String.format("Type mismatch, expected %s%s, but %s returns %s",operation.isReturnTypeList() ? "list of " : "",operation.getReturnType(),domainMethod,domainMethod.getReturnType()));
-    }
-    if (result instanceof List<?>) {
-      JSONObject envelop=new JSONObject();
-      envelop.put("result",toJsonArray(operation,result));
-      envelop.put("related",encodeRelatedObjectsToJson());
-      return envelop;
-    }
- else     if (result instanceof Number && !(result instanceof BigDecimal || result instanceof BigInteger)) {
-      return result;
-    }
- else {
-      JSONObject envelop=new JSONObject();
-      JSONObject jsonObject=toJsonObject(operation,result);
-      envelop.put("result",jsonObject);
-      envelop.put("related",encodeRelatedObjectsToJson());
-      return envelop;
-    }
+    JSONObject envelop=new JSONObject();
+    JSONObject jsonObject=toJsonObject(operation,result);
+    envelop.put("result",jsonObject);
+    envelop.put("related",encodeRelatedObjectsToJson());
+    return envelop;
   }
 }

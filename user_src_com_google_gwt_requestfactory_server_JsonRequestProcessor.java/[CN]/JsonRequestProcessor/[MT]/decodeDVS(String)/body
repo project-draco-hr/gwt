@@ -1,0 +1,31 @@
+{
+  Map<EntityKey,EntityData> returnMap=new HashMap<EntityKey,EntityData>();
+  try {
+    JSONObject jsonObject=new JSONObject(content);
+    for (    WriteOperation writeOperation : WriteOperation.values()) {
+      if (!jsonObject.has(writeOperation.name())) {
+        continue;
+      }
+      JSONArray reportArray=new JSONArray(jsonObject.getString(writeOperation.name()));
+      int length=reportArray.length();
+      if (length == 0) {
+        throw new IllegalArgumentException("No json array for " + writeOperation.name() + " should have been sent");
+      }
+      for (int i=0; i < length; i++) {
+        JSONObject recordWithSchema=reportArray.getJSONObject(i);
+        Iterator<?> iterator=recordWithSchema.keys();
+        String recordToken=(String)iterator.next();
+        if (iterator.hasNext()) {
+          throw new IllegalArgumentException("There cannot be more than one record token");
+        }
+        JSONObject recordObject=recordWithSchema.getJSONObject(recordToken);
+        EntityData entityData=getEntityDataForRecord(recordToken,recordObject,writeOperation);
+        returnMap.put(entityData.entityKey,entityData);
+      }
+    }
+    return returnMap;
+  }
+ catch (  JSONException e) {
+    throw new IllegalArgumentException("sync failed: ",e);
+  }
+}
