@@ -1,10 +1,12 @@
 {
   JMethodCall call=new JMethodCall(x.getSourceInfo(),null,initDim,arrayType);
   JLiteral classLit=x.getClassLiteral();
-  JLiteral typeIdLit=program.getLiteralInt(program.getTypeId(arrayType));
+  int typeId=program.getTypeId(arrayType);
+  JLiteral typeIdLit=program.getLiteralInt(typeId);
+  JsonObject castableTypeMap=program.getCastableTypeMap(typeId);
   JLiteral queryIdLit=program.getLiteralInt(tryGetQueryId(arrayType));
   JExpression dim=x.dims.get(0);
   JType elementType=arrayType.getElementType();
-  call.addArgs(classLit,typeIdLit,queryIdLit,dim,getSeedTypeLiteralFor(elementType));
+  call.addArgs(classLit,typeIdLit,castableTypeMap,queryIdLit,dim,getSeedTypeLiteralFor(elementType));
   ctx.replaceMe(call);
 }

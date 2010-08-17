@@ -2,12 +2,14 @@
   SourceInfo sourceInfo=x.getSourceInfo().makeChild(ArrayVisitor.class,"Array initializer");
   JMethodCall call=new JMethodCall(sourceInfo,null,initValues,arrayType);
   JLiteral classLit=x.getClassLiteral();
-  JLiteral typeIdLit=program.getLiteralInt(program.getTypeId(arrayType));
+  int typeId=program.getTypeId(arrayType);
+  JLiteral typeIdLit=program.getLiteralInt(typeId);
+  JsonObject castableTypeMap=program.getCastableTypeMap(typeId);
   JLiteral queryIdLit=program.getLiteralInt(tryGetQueryId(arrayType));
   JsonArray initList=new JsonArray(sourceInfo,program.getJavaScriptObject());
   for (int i=0; i < x.initializers.size(); ++i) {
     initList.exprs.add(x.initializers.get(i));
   }
-  call.addArgs(classLit,typeIdLit,queryIdLit,initList);
+  call.addArgs(classLit,typeIdLit,castableTypeMap,queryIdLit,initList);
   ctx.replaceMe(call);
 }

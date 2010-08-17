@@ -3,6 +3,7 @@
   JMethodCall call=new JMethodCall(sourceInfo,null,initDims,arrayType);
   JsonArray classLitList=new JsonArray(sourceInfo,program.getJavaScriptObject());
   JsonArray typeIdList=new JsonArray(sourceInfo,program.getJavaScriptObject());
+  JsonArray castableTypeMapList=new JsonArray(sourceInfo,program.getJavaScriptObject());
   JsonArray queryIdList=new JsonArray(sourceInfo,program.getJavaScriptObject());
   JsonArray dimList=new JsonArray(sourceInfo,program.getJavaScriptObject());
   JType cur=arrayType;
@@ -10,13 +11,16 @@
     JArrayType curArrayType=(JArrayType)cur;
     JLiteral classLit=x.getClassLiterals().get(i);
     classLitList.exprs.add(classLit);
-    JLiteral typeIdLit=program.getLiteralInt(program.getTypeId(curArrayType));
+    int typeId=program.getTypeId(curArrayType);
+    JLiteral typeIdLit=program.getLiteralInt(typeId);
     typeIdList.exprs.add(typeIdLit);
+    JsonObject castableTypeMap=program.getCastableTypeMap(typeId);
+    castableTypeMapList.exprs.add(castableTypeMap);
     JLiteral queryIdLit=program.getLiteralInt(tryGetQueryId(curArrayType));
     queryIdList.exprs.add(queryIdLit);
     dimList.exprs.add(x.dims.get(i));
     cur=curArrayType.getElementType();
   }
-  call.addArgs(classLitList,typeIdList,queryIdList,dimList,program.getLiteralInt(dims),getSeedTypeLiteralFor(cur));
+  call.addArgs(classLitList,typeIdList,castableTypeMapList,queryIdList,dimList,program.getLiteralInt(dims),getSeedTypeLiteralFor(cur));
   ctx.replaceMe(call);
 }
