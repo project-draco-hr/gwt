@@ -2,18 +2,13 @@
   Map<String,CompilationUnit> unitMap=state.getCompilationUnitMap();
   for (  MockJavaResource file : files) {
     String typeName=file.getTypeName();
-    Dependencies dependencies=unitMap.get(typeName).getDependencies();
-    Set<CompiledClass> classDeps=new HashSet<CompiledClass>();
-    classDeps.addAll(dependencies.qualified.values());
-    classDeps.addAll(dependencies.simple.values());
-    classDeps.remove(null);
-    Set<String> actualTypeNames=new HashSet<String>();
-    for (    CompiledClass cc : classDeps) {
-      actualTypeNames.add(cc.getUnit().getTypeName());
-    }
-    actualTypeNames.remove("java.lang.Object");
-    actualTypeNames.remove(typeName);
+    Set<ContentId> dependencies=unitMap.get(typeName).getDependencies();
     Set<String> expectedTypeNames=EXPECTED_DEPENDENCIES.get(typeName);
-    assertEquals(expectedTypeNames,actualTypeNames);
+    assertEquals(expectedTypeNames.size(),dependencies.size());
+    for (    String expectedTypeName : expectedTypeNames) {
+      CompilationUnit expectedUnit=unitMap.get(expectedTypeName);
+      assertNotNull(expectedUnit);
+      assertTrue(dependencies.contains(expectedUnit.getContentId()));
+    }
   }
 }

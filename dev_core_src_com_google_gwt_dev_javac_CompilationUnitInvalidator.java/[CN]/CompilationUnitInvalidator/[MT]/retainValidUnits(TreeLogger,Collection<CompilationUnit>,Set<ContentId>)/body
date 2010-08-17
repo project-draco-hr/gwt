@@ -1,0 +1,32 @@
+{
+  logger=logger.branch(TreeLogger.TRACE,"Removing invalidated units");
+  Set<CompilationUnit> currentlyValidUnits=new HashSet<CompilationUnit>();
+  Set<ContentId> currentlyValidRefs=new HashSet<ContentId>(knownValidRefs);
+  for (  CompilationUnit unit : units) {
+    if (!unit.isError()) {
+      currentlyValidUnits.add(unit);
+      currentlyValidRefs.add(unit.getContentId());
+    }
+  }
+  boolean changed;
+  do {
+    changed=false;
+    for (Iterator<CompilationUnit> it=currentlyValidUnits.iterator(); it.hasNext(); ) {
+      CompilationUnit unitToCheck=it.next();
+      TreeLogger branch=null;
+      for (      ContentId ref : unitToCheck.getDependencies()) {
+        if (!currentlyValidRefs.contains(ref)) {
+          if (branch == null) {
+            branch=logger.branch(TreeLogger.DEBUG,"Compilation unit '" + unitToCheck + "' is removed due to invalid reference(s):");
+            it.remove();
+            currentlyValidRefs.remove(unitToCheck.getContentId());
+            changed=true;
+          }
+          branch.log(TreeLogger.DEBUG,ref.get());
+        }
+      }
+    }
+  }
+ while (changed);
+  units.retainAll(currentlyValidUnits);
+}
