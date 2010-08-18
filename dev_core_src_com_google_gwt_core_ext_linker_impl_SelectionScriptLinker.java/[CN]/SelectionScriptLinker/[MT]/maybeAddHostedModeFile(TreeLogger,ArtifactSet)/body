@@ -1,16 +1,16 @@
 {
-  ArtifactSet toReturn=super.link(logger,context,artifacts,onePerm);
-  if (onePerm) {
-    return toReturn;
+  String hostedFilename=getHostedFilename();
+  if ("".equals(hostedFilename)) {
+    return;
   }
   try {
-    URL resource=HostedModeLinker.class.getResource("hosted.html");
+    URL resource=SelectionScriptLinker.class.getResource(hostedFilename);
     if (resource == null) {
-      logger.log(TreeLogger.ERROR,"Unable to find support resource 'hosted.html'");
+      logger.log(TreeLogger.ERROR,"Unable to find support resource: " + hostedFilename);
       throw new UnableToCompleteException();
     }
     final URLConnection connection=resource.openConnection();
-    EmittedArtifact hostedHtml=new EmittedArtifact(IFrameLinker.class,"hosted.html"){
+    EmittedArtifact hostedFile=new EmittedArtifact(SelectionScriptLinker.class,hostedFilename){
       @Override public InputStream getContents(      TreeLogger logger) throws UnableToCompleteException {
         try {
           return connection.getInputStream();
@@ -25,11 +25,10 @@
       }
     }
 ;
-    toReturn.add(hostedHtml);
+    artifacts.add(hostedFile);
   }
  catch (  IOException e) {
     logger.log(TreeLogger.ERROR,"Unable to copy support resource",e);
     throw new UnableToCompleteException();
   }
-  return toReturn;
 }
