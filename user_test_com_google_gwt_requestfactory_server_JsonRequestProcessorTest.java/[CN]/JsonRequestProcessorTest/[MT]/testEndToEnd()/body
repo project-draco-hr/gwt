@@ -1,16 +1,7 @@
 {
   com.google.gwt.valuestore.server.SimpleFoo.reset();
   try {
-    JSONObject results=(JSONObject)requestProcessor.processJsonRequest("{ \"" + RequestData.OPERATION_TOKEN + "\": \""+ com.google.gwt.valuestore.shared.SimpleFooRequest.class.getName()+ ReflectionBasedOperationRegistry.SCOPE_SEPARATOR+ "findSimpleFooById\", "+ "\""+ RequestData.PARAM_TOKEN+ "0\": \"999\" }");
-    JSONObject foo=results.getJSONObject("result");
-    assertEquals(foo.getInt("id"),999);
-    assertEquals(foo.getInt("intId"),42);
-    assertEquals(foo.getString("userName"),"GWT");
-    assertEquals(foo.getLong("longField"),8L);
-    assertEquals(foo.getInt("enumField"),0);
-    assertEquals(foo.getInt("version"),1);
-    assertEquals(foo.getBoolean("boolField"),true);
-    assertTrue(foo.has("created"));
+    JSONObject foo=fetchVerifyAndGetInitialObject();
     foo.put("intId",45);
     foo.put("userName","JSC");
     foo.put("longField","" + 9L);
@@ -18,19 +9,13 @@
     foo.put("boolField",false);
     Date now=new Date();
     foo.put("created","" + now.getTime());
-    JSONObject recordWithSchema=new JSONObject();
-    recordWithSchema.put(SimpleFooRecord.class.getName(),foo);
-    JSONArray arr=new JSONArray();
-    arr.put(recordWithSchema);
-    JSONObject operation=new JSONObject();
-    operation.put(WriteOperation.UPDATE.toString(),arr);
-    JSONObject sync=new JSONObject();
-    sync.put(RequestData.OPERATION_TOKEN,"com.google.gwt.valuestore.shared.SimpleFooRequest::persist");
-    sync.put(RequestData.CONTENT_TOKEN,operation.toString());
-    sync.put(RequestData.PARAM_TOKEN + "0",foo.getInt("id") + "-NO" + "-"+ SimpleFooRecord.class.getName());
-    JSONObject result=(JSONObject)requestProcessor.processJsonRequest(sync.toString());
+    JSONObject result=getResultFromServer(foo);
     SimpleFoo fooResult=SimpleFoo.getSingleton();
-    assertFalse(result.getJSONObject("sideEffects").getJSONArray("UPDATE").getJSONObject(0).has("violations"));
+    JSONArray updateArray=result.getJSONObject("sideEffects").getJSONArray("UPDATE");
+    assertEquals(1,updateArray.length());
+    assertEquals(1,updateArray.getJSONObject(0).length());
+    assertTrue(updateArray.getJSONObject(0).has("id"));
+    assertFalse(updateArray.getJSONObject(0).has("violations"));
     assertEquals((int)45,(int)fooResult.getIntId());
     assertEquals("JSC",fooResult.getUserName());
     assertEquals(now,fooResult.getCreated());

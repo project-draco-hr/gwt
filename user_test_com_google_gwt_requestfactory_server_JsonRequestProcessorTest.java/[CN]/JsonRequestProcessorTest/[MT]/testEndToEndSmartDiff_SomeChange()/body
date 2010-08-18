@@ -1,0 +1,23 @@
+{
+  com.google.gwt.valuestore.server.SimpleFoo.reset();
+  try {
+    JSONObject foo=fetchVerifyAndGetInitialObject();
+    SimpleFoo fooResult=SimpleFoo.getSingleton();
+    fooResult.setUserName("JSC");
+    fooResult.setIntId(45);
+    foo.put("userName","JSC");
+    foo.put("intId",45);
+    Date now=new Date();
+    foo.put("created","" + now.getTime());
+    JSONObject result=getResultFromServer(foo);
+    assertTrue(result.getJSONObject("sideEffects").has("UPDATE"));
+    fooResult=SimpleFoo.getSingleton();
+    assertEquals((int)45,(int)fooResult.getIntId());
+    assertEquals("JSC",fooResult.getUserName());
+    assertEquals(now,fooResult.getCreated());
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    fail(e.toString());
+  }
+}
