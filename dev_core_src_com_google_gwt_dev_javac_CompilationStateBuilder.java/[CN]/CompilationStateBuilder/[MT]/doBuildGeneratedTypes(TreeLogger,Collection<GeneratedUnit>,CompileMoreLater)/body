@@ -10,7 +10,6 @@
   CompilationUnitInvalidator.retainValidUnits(TreeLogger.NULL,resultUnits.values(),compileMoreLater.getValidDependencies());
   for (  CompilationUnit validUnit : resultUnits.values()) {
     compileMoreLater.addValidUnit(validUnit);
-    CompilationUnitInvalidator.reportErrors(logger,validUnit);
   }
   List<CompilationUnitBuilder> builders=new ArrayList<CompilationUnitBuilder>();
   for (  GeneratedUnit generatedUnit : generatedUnits) {
@@ -18,6 +17,12 @@
       builders.add(new GeneratedCompilationUnitBuilder(generatedUnit));
     }
   }
-  compileMoreLater.compile(logger,builders,resultUnits);
-  return resultUnits.values();
+  compileMoreLater.compile(builders,resultUnits);
+  ArrayList<CompilationUnit> result=new ArrayList<CompilationUnit>(resultUnits.values());
+  Collections.sort(result,CompilationUnit.COMPARATOR);
+  TreeLogger branch=logger.branch(TreeLogger.DEBUG,"Validating newly compiled units");
+  for (  CompilationUnit unit : result) {
+    CompilationUnitInvalidator.reportErrors(branch,unit);
+  }
+  return result;
 }

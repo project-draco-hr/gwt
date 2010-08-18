@@ -21,14 +21,19 @@
       CompilationUnit validUnit=resultUnits.get(typeName);
       if (validUnit != null) {
         compileMoreLater.addValidUnit(validUnit);
-        CompilationUnitInvalidator.reportErrors(logger,validUnit);
       }
  else {
         builders.add(new ResourceCompilationUnitBuilder(typeName,resource));
       }
     }
-    compileMoreLater.compile(logger,builders,resultUnits);
-    return new CompilationState(logger,resultUnits.values(),compileMoreLater);
+    compileMoreLater.compile(builders,resultUnits);
+    ArrayList<CompilationUnit> result=new ArrayList<CompilationUnit>(resultUnits.values());
+    Collections.sort(result,CompilationUnit.COMPARATOR);
+    TreeLogger branch=logger.branch(TreeLogger.DEBUG,"Validating newly compiled units");
+    for (    CompilationUnit unit : result) {
+      CompilationUnitInvalidator.reportErrors(branch,unit);
+    }
+    return new CompilationState(logger,result,compileMoreLater);
   }
   finally {
     compilationStateBuilderProcess.end();
