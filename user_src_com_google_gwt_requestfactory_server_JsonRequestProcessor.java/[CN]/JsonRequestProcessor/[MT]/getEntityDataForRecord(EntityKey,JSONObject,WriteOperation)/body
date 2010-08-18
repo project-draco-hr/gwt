@@ -1,9 +1,7 @@
 {
-  Class<? extends Record> record=getRecordFromClassToken(recordToken);
-  EntityKey entityKey=new EntityKey(recordObject.getLong("id"),(writeOperation == WriteOperation.CREATE),record);
   try {
-    Class<?> entity=getEntityFromRecordAnnotation(record);
-    Map<String,Class<?>> propertiesInRecord=getPropertiesFromRecord(record);
+    Class<?> entity=getEntityFromRecordAnnotation(entityKey.record);
+    Map<String,Class<?>> propertiesInRecord=getPropertiesFromRecord(entityKey.record);
     validateKeys(recordObject,propertiesInRecord.keySet());
     updatePropertyTypes(propertiesInRecord,entity);
     Object entityInstance=getEntityInstance(writeOperation,entity,recordObject.get("id"),propertiesInRecord.get("id"));
@@ -34,7 +32,7 @@
     if (validator != null) {
       violations=validator.validate(entityInstance);
     }
-    return new EntityData(entityKey,entityInstance,getViolationsAsJson(violations),writeOperation,entity);
+    return new EntityData(entityInstance,(violations.isEmpty() ? null : getViolationsAsJson(violations)),writeOperation);
   }
  catch (  Exception ex) {
     log.severe(String.format("Caught exception [%s] %s",ex.getClass().getName(),ex.getLocalizedMessage()));

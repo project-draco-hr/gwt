@@ -29,6 +29,14 @@
     sync.put(RequestData.CONTENT_TOKEN,operation.toString());
     sync.put(RequestData.PARAM_TOKEN + "0",foo.getInt("id") + "-NO" + "-"+ SimpleFooRecord.class.getName());
     JSONObject result=(JSONObject)requestProcessor.processJsonRequest(sync.toString());
+    SimpleFoo fooResult=SimpleFoo.getSingleton();
+    assertFalse(result.getJSONObject("sideEffects").getJSONArray("UPDATE").getJSONObject(0).has("violations"));
+    assertEquals((int)45,(int)fooResult.getIntId());
+    assertEquals("JSC",fooResult.getUserName());
+    assertEquals(now,fooResult.getCreated());
+    assertEquals(9L,(long)fooResult.getLongField());
+    assertEquals(com.google.gwt.valuestore.shared.SimpleEnum.BAR,fooResult.getEnumField());
+    assertEquals(false,(boolean)fooResult.getBoolField());
   }
  catch (  Exception e) {
     e.printStackTrace();

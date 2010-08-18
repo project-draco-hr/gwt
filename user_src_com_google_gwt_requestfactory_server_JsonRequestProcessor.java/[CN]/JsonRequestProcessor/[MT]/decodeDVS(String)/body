@@ -1,5 +1,4 @@
 {
-  Map<EntityKey,EntityData> returnMap=new HashMap<EntityKey,EntityData>();
   try {
     JSONObject jsonObject=new JSONObject(content);
     for (    WriteOperation writeOperation : WriteOperation.values()) {
@@ -19,11 +18,12 @@
           throw new IllegalArgumentException("There cannot be more than one record token");
         }
         JSONObject recordObject=recordWithSchema.getJSONObject(recordToken);
-        EntityData entityData=getEntityDataForRecord(recordToken,recordObject,writeOperation);
-        returnMap.put(entityData.entityKey,entityData);
+        Class<? extends Record> record=getRecordFromClassToken(recordToken);
+        EntityKey entityKey=new EntityKey(recordObject.getLong("id"),(writeOperation == WriteOperation.CREATE),record);
+        involvedKeys.add(entityKey);
+        dvsDataMap.put(entityKey,new DvsData(recordObject,writeOperation));
       }
     }
-    return returnMap;
   }
  catch (  JSONException e) {
     throw new IllegalArgumentException("sync failed: ",e);
