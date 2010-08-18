@@ -1,10 +1,12 @@
 {
   Memory.initialize();
   SpeedTracerLogger.init();
+  Event precompileEvent=SpeedTracerLogger.start(CompilerEventType.PRECOMPILE);
   if (System.getProperty("gwt.jjs.dumpAst") != null) {
     System.out.println("Will dump AST to: " + System.getProperty("gwt.jjs.dumpAst"));
   }
   final PrecompileOptions options=new PrecompileOptionsImpl();
+  boolean success=false;
   if (new ArgProcessor(options).processArgs(args)) {
     CompileTask task=new CompileTask(){
       public boolean run(      TreeLogger logger) throws UnableToCompleteException {
@@ -21,8 +23,9 @@
     }
 ;
     if (CompileTaskRunner.runWithAppropriateLogger(options,task)) {
-      System.exit(0);
+      success=true;
     }
   }
-  System.exit(1);
+  precompileEvent.end();
+  System.exit(success ? 0 : 1);
 }
