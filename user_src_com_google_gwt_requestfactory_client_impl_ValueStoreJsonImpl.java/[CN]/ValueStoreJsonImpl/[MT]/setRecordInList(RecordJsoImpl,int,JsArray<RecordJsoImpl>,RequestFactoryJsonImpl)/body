@@ -1,19 +1,19 @@
 {
-  RecordKey recordKey=new RecordKey(newRecord,RequestFactoryJsonImpl.NOT_FUTURE);
-  newRecord.setValueStore(this);
-  newRecord.setRequestFactory(requestFactory);
+  RecordKey recordKey=new RecordKey(newJsoRecord,RequestFactoryJsonImpl.NOT_FUTURE);
+  newJsoRecord.setValueStore(this);
+  newJsoRecord.setRequestFactory(requestFactory);
   RecordJsoImpl oldRecord=records.get(recordKey);
   if (oldRecord == null) {
-    records.put(recordKey,newRecord);
+    records.put(recordKey,newJsoRecord);
   }
  else {
-    boolean changed=oldRecord.merge(newRecord);
-    newRecord=oldRecord.cast();
+    boolean changed=oldRecord.merge(newJsoRecord);
+    newJsoRecord=oldRecord.cast();
     if (array != null) {
-      array.set(i,newRecord);
+      array.set(i,newJsoRecord);
     }
     if (changed) {
-      eventBus.fireEvent(newRecord.getSchema().createChangeEvent(newRecord,WriteOperation.UPDATE));
+      requestFactory.postChangeEvent(newJsoRecord,WriteOperation.UPDATE);
     }
   }
 }
