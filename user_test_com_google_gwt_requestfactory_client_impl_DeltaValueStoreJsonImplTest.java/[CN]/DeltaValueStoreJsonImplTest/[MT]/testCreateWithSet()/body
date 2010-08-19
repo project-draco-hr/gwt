@@ -3,6 +3,8 @@
   assertNotNull(created.getId());
   assertNotNull(created.getVersion());
   DeltaValueStoreJsonImpl deltaValueStore=new DeltaValueStoreJsonImpl(valueStore,requestFactory);
-  String json=deltaValueStore.toJson();
-  testAndGetChangeRecord(json,WriteOperation.CREATE);
+  assertFalse(deltaValueStore.isChanged());
+  deltaValueStore.set(SimpleFooRecord.userName,created,"harry");
+  assertTrue(deltaValueStore.isChanged());
+  testAndGetChangeRecord(deltaValueStore.toJson(),WriteOperation.CREATE);
 }
