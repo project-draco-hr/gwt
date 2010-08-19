@@ -5,8 +5,7 @@
     public ReferenceBinding resolveType(    String typeName){
       ReferenceBinding resolveType=compiler.resolveType(typeName);
       if (resolveType != null) {
-        String fileName=String.valueOf(resolveType.getFileName());
-        jsniDeps.add(fileName);
+        jsniDeps.add(String.valueOf(resolveType.qualifiedSourceName()));
       }
       return resolveType;
     }
@@ -16,7 +15,23 @@
   ArtificialRescueChecker.check(cud,builder.isGenerated());
   BinaryTypeReferenceRestrictionsChecker.check(cud);
   MethodArgNamesLookup methodArgs=MethodParamCollector.collect(cud);
-  Set<ContentId> dependencies=compiler.computeDependencies(cud,jsniDeps);
+  String packageName=Shared.getPackageName(builder.getTypeName());
+  List<String> unresolvedQualified=new ArrayList<String>();
+  List<String> unresolvedSimple=new ArrayList<String>();
+  for (  char[] simpleRef : cud.compilationResult().simpleNameReferences) {
+    unresolvedSimple.add(canonical(String.valueOf(simpleRef)));
+  }
+  for (  char[][] qualifiedRef : cud.compilationResult().qualifiedReferences) {
+    unresolvedQualified.add(canonical(CharOperation.toString(qualifiedRef)));
+  }
+  for (  String jsniDep : jsniDeps) {
+    unresolvedQualified.add(canonical(jsniDep));
+  }
+  ArrayList<String> apiRefs=compiler.collectApiRefs(cud);
+  for (int i=0; i < apiRefs.size(); ++i) {
+    apiRefs.set(i,canonical(apiRefs.get(i)));
+  }
+  Dependencies dependencies=new Dependencies(packageName,unresolvedQualified,unresolvedSimple,apiRefs);
   CompilationUnit unit=builder.build(compiledClasses,dependencies,jsniMethods.values(),methodArgs,cud.compilationResult().getProblems());
   addValidUnit(unit);
   ContentId contentId=builder.getContentId();
@@ -30,5 +45,5 @@
  else   if (builder instanceof GeneratedCompilationUnitBuilder) {
     keepAliveRecentlyGenerated.put(unit.getTypeName(),unit);
   }
-  resultUnits.put(unit.getTypeName(),unit);
+  newlyBuiltUnits.add(unit);
 }
