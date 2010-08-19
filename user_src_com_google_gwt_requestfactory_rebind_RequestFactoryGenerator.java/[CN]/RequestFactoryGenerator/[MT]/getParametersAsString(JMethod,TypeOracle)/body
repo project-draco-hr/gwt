@@ -4,13 +4,21 @@
     if (sb.length() > 0) {
       sb.append(", ");
     }
+    JClassType classType=parameter.getType().isClassOrInterface();
+    JType paramType=parameter.getType();
+    boolean isRef="com.google.gwt.valuestore.shared.PropertyReference".equals(paramType.getQualifiedBinaryName());
+    JParameterizedType params=paramType.isParameterized();
+    if (params != null) {
+      classType=params.getTypeArgs()[0];
+    }
+    if (classType != null && classType.isAssignableTo(typeOracle.findType(Record.class.getName()))) {
+      sb.append("((" + classType.getQualifiedBinaryName() + "Impl"+ ")");
+    }
     sb.append(parameter.getName());
-    if ("com.google.gwt.valuestore.shared.PropertyReference".equals(parameter.getType().getQualifiedBinaryName())) {
+    if (isRef) {
       sb.append(".get()");
     }
-    JClassType classType=parameter.getType().isClassOrInterface();
     if (classType != null && classType.isAssignableTo(typeOracle.findType(Record.class.getName()))) {
-      sb.insert(0,"((" + classType.getQualifiedBinaryName() + "Impl"+ ")");
       sb.append(").getUniqueId()");
     }
   }
