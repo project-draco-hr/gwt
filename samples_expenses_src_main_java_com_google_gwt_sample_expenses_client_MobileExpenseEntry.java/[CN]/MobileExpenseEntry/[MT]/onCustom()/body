@@ -1,0 +1,30 @@
+{
+  ExpenseRecord editableExpense=requestObject.edit(expense);
+  editableExpense.setDescription(nameText.getText());
+  editableExpense.setCategory(categoryText.getText());
+  String amountText=priceText.getText();
+  double amount=Double.parseDouble(amountText);
+  editableExpense.setAmount(amount);
+  Date date=new Date(dateYear.getSelectedIndex() + 100,dateMonth.getSelectedIndex(),dateDay.getSelectedIndex() + 1);
+  editableExpense.setCreated(date);
+  requestObject.fire(new Receiver<Void>(){
+    public void onSuccess(    Void ignore,    Set<SyncResult> response){
+      String errorMessage="";
+      for (      SyncResult result : response) {
+        if (result.hasViolations()) {
+          Map<String,String> violations=result.getViolations();
+          for (          String message : violations.values()) {
+            errorMessage+=message + " ";
+          }
+        }
+      }
+      if (errorMessage.length() > 0) {
+        errorText.setInnerText(errorMessage);
+      }
+ else {
+        listener.onExpenseUpdated();
+      }
+    }
+  }
+);
+}

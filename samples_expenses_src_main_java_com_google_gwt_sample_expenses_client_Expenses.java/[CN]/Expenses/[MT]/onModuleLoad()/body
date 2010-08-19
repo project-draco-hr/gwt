@@ -1,0 +1,42 @@
+{
+  final HandlerManager eventBus=new HandlerManager(null);
+  requestFactory=GWT.create(ExpensesRequestFactory.class);
+  requestFactory.init(eventBus);
+  RootLayoutPanel root=RootLayoutPanel.get();
+  shell=new ExpensesShell();
+  final ExpenseTree expenseTree=shell.getExpenseTree();
+  final ExpenseList expenseList=shell.getExpenseList();
+  final ExpenseDetails expenseDetails=shell.getExpenseDetails();
+  root.add(shell);
+  eventBus.addHandler(RequestEvent.TYPE,new AuthenticationFailureHandler());
+  final LoginWidget login=shell.getLoginWidget();
+  Receiver<UserInformationRecord> receiver=new Receiver<UserInformationRecord>(){
+    public void onSuccess(    UserInformationRecord userInformationRecord,    Set<SyncResult> syncResults){
+      login.setUserInformation(userInformationRecord);
+    }
+  }
+;
+  requestFactory.userInformationRequest().getCurrentUserInformation(Location.getHref()).fire(receiver);
+  expenseTree.setListener(new ExpenseTree.Listener(){
+    public void onSelection(    String department,    EmployeeRecord employee){
+      lastDepartment=department;
+      lastEmployee=employee;
+      expenseList.setEmployee(department,employee);
+      shell.showExpenseDetails(false);
+    }
+  }
+);
+  expenseTree.setRequestFactory(requestFactory);
+  expenseList.setListener(new ExpenseList.Listener(){
+    public void onReportSelected(    ReportRecord report){
+      expenseDetails.setExpensesRequestFactory(requestFactory);
+      expenseDetails.setReportRecord(report,lastDepartment,lastEmployee);
+      shell.showExpenseDetails(true);
+    }
+  }
+);
+  expenseList.setRequestFactory(requestFactory);
+  eventBus.addHandler(ReportRecordChanged.TYPE,expenseList);
+  eventBus.addHandler(ExpenseRecordChanged.TYPE,expenseDetails);
+  eventBus.addHandler(ReportRecordChanged.TYPE,expenseDetails);
+}

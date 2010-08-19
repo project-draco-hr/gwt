@@ -1,0 +1,28 @@
+{
+  ReportRecord editableReport=requestObject.edit(report);
+  editableReport.setPurpose(purposeText.getText());
+  editableReport.setNotes(notesText.getText());
+  editableReport.setDepartment(departmentList.getValue(departmentList.getSelectedIndex()));
+  Date date=new Date(dateYear.getSelectedIndex() + 100,dateMonth.getSelectedIndex(),dateDay.getSelectedIndex() + 1);
+  editableReport.setCreated(date);
+  requestObject.fire(new Receiver<Void>(){
+    public void onSuccess(    Void ignore,    Set<SyncResult> response){
+      String errorMessage="";
+      for (      SyncResult result : response) {
+        if (result.hasViolations()) {
+          Map<String,String> violations=result.getViolations();
+          for (          String message : violations.values()) {
+            errorMessage+=message + " ";
+          }
+        }
+      }
+      if (errorMessage.length() > 0) {
+        errorText.setInnerText(errorMessage);
+      }
+ else {
+        listener.onReportUpdated();
+      }
+    }
+  }
+);
+}

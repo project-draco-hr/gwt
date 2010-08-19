@@ -1,0 +1,22 @@
+{
+  this.listener=listener;
+  this.requestFactory=requestFactory;
+  expenseAdapter=new AsyncListViewAdapter<ExpenseRecord>(){
+    @Override protected void onRangeChanged(    HasData<ExpenseRecord> view){
+      requestExpenses();
+    }
+  }
+;
+  expenseAdapter.setKeyProvider(Expenses.EXPENSE_RECORD_KEY_PROVIDER);
+  expenseList=new CellList<ExpenseRecord>(new ExpenseCell());
+  expenseSelection=new NoSelectionModel<ExpenseRecord>();
+  expenseList.setSelectionModel(expenseSelection);
+  expenseSelection.addSelectionChangeHandler(new SelectionChangeEvent.Handler(){
+    public void onSelectionChange(    SelectionChangeEvent event){
+      listener.onExpenseSelected(expenseSelection.getLastSelectedObject());
+    }
+  }
+);
+  expenseAdapter.addView(expenseList);
+  initWidget(expenseList);
+}
