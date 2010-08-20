@@ -1,6 +1,6 @@
 {
   Class<?> parameterType=null;
-  if (genericParameterType instanceof Class) {
+  if (genericParameterType instanceof Class<?>) {
     parameterType=(Class<?>)genericParameterType;
   }
   if (genericParameterType instanceof ParameterizedType) {
@@ -75,24 +75,26 @@ catch (    IllegalAccessException e) {
     DataTransferObject service=parameterType.getAnnotation(DataTransferObject.class);
     if (service != null) {
       Class<?> sClass=service.value();
-      String schemaAndId[]=parameterValue.toString().split("-",3);
-      String findMeth=null;
+      EntityKey entityKey=getEntityKey(parameterValue.toString());
+      DvsData dvsData=dvsDataMap.get(entityKey);
       try {
-        findMeth=getMethodNameFromPropertyName(sClass.getSimpleName(),"find");
-        Method meth=sClass.getMethod(findMeth,Long.class);
-        return meth.invoke(null,Long.valueOf(schemaAndId[0]));
+        if (dvsData != null) {
+          EntityData entityData=getEntityDataForRecord(entityKey,dvsData.jsonObject,dvsData.writeOperation);
+          return entityData.entityInstance;
+        }
+ else {
+          Method findMeth=sClass.getMethod(getMethodNameFromPropertyName(sClass.getSimpleName(),"find"),Long.class);
+          return findMeth.invoke(null,entityKey.id);
+        }
       }
  catch (      NoSuchMethodException e) {
-        e.printStackTrace();
-        throw new IllegalArgumentException(sClass + " no method named " + findMeth);
+        throw new IllegalArgumentException("No such method " + getMethodNameFromPropertyName(sClass.getSimpleName(),"find"),e);
       }
 catch (      InvocationTargetException e) {
-        e.printStackTrace();
-        throw new IllegalArgumentException(sClass + " can't invoke method named " + findMeth);
+        throw new IllegalArgumentException("Can't invoke method",e);
       }
 catch (      IllegalAccessException e) {
-        e.printStackTrace();
-        throw new IllegalArgumentException(sClass + " can't access method named " + findMeth);
+        throw new IllegalArgumentException("Can't invoke method",e);
       }
     }
   }

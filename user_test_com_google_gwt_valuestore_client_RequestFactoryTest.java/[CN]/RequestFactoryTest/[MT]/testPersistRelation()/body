@@ -1,0 +1,34 @@
+{
+  final SimpleRequestFactory req=GWT.create(SimpleRequestFactory.class);
+  HandlerManager hm=new HandlerManager(null);
+  req.init(hm);
+  delayTestFinish(500000);
+  SimpleFooRecord rayFoo=req.create(SimpleFooRecord.class);
+  final RequestObject<SimpleFooRecord> persistRay=req.simpleFooRequest().persistAndReturnSelf(rayFoo);
+  rayFoo=persistRay.edit(rayFoo);
+  rayFoo.setUserName("Ray");
+  persistRay.fire(new Receiver<SimpleFooRecord>(){
+    public void onSuccess(    final SimpleFooRecord persistedRay,    Set<SyncResult> ignored){
+      SimpleBarRecord amitBar=req.create(SimpleBarRecord.class);
+      final RequestObject<SimpleBarRecord> persistAmit=req.simpleBarRequest().persistAndReturnSelf(amitBar);
+      amitBar=persistAmit.edit(amitBar);
+      amitBar.setUserName("Amit");
+      persistAmit.fire(new Receiver<SimpleBarRecord>(){
+        public void onSuccess(        SimpleBarRecord persistedAmit,        Set<SyncResult> ignored){
+          final RequestObject<SimpleFooRecord> persistRelationship=req.simpleFooRequest().persistAndReturnSelf(persistedRay).with("barField");
+          SimpleFooRecord newRec=persistRelationship.edit(persistedRay);
+          newRec.setBarField(persistedAmit);
+          persistRelationship.fire(new Receiver<SimpleFooRecord>(){
+            public void onSuccess(            SimpleFooRecord relatedRay,            Set<SyncResult> ignored){
+              assertEquals("Amit",relatedRay.getBarField().getUserName());
+              finishTest();
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}

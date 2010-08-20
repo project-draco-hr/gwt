@@ -2,6 +2,7 @@
   try {
     Class<?> entity=getEntityFromRecordAnnotation(entityKey.record);
     Map<String,Class<?>> propertiesInRecord=getPropertiesFromRecord(entityKey.record);
+    Map<String,Class<?>> propertiesToDTO=new HashMap<String,Class<?>>(propertiesInRecord);
     validateKeys(recordObject,propertiesInRecord.keySet());
     updatePropertyTypes(propertiesInRecord,entity);
     Object entityInstance=getEntityInstance(writeOperation,entity,recordObject.get("id"),propertiesInRecord.get("id"));
@@ -17,7 +18,7 @@
         }
       }
  else {
-        Object propertyValue=getPropertyValueFromRequest(recordObject,key,propertyType);
+        Object propertyValue=getPropertyValueFromRequest(recordObject,key,propertiesToDTO.get(key));
         entity.getMethod(getMethodNameFromPropertyName(key,"set"),propertyType).invoke(entityInstance,propertyValue);
       }
     }
@@ -36,6 +37,6 @@
   }
  catch (  Exception ex) {
     log.severe(String.format("Caught exception [%s] %s",ex.getClass().getName(),ex.getLocalizedMessage()));
-    return getEntityDataForException(entityKey,ex);
+    return getEntityDataForException(ex);
   }
 }
