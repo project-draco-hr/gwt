@@ -9,19 +9,18 @@
   f.addImplementedInterface(interfaceType.getName());
   SourceWriter sw=f.createSourceWriter(generatorContext,out);
   sw.println();
-  sw.println("public RecordSchema<? extends Record> getType(Class token) {");
+  sw.println("public <R extends Record> RecordSchema<R> getType(Class<R> recordClass) {");
   sw.indent();
   for (  JClassType publicRecordType : generatedRecordTypes) {
     String qualifiedSourceName=publicRecordType.getQualifiedSourceName();
-    sw.println("if (token == " + qualifiedSourceName + ".class) {");
+    sw.println("if (recordClass == " + qualifiedSourceName + ".class) {");
     sw.indent();
-    sw.println("return " + qualifiedSourceName + "Impl.SCHEMA;");
+    sw.println("return (RecordSchema<R>) " + qualifiedSourceName + "Impl.SCHEMA;");
     sw.outdent();
     sw.println("}");
   }
-  sw.println("throw new IllegalArgumentException(\"Unknown token \" + token + ");
+  sw.println("throw new IllegalArgumentException(\"Unknown recordClass \" + recordClass);");
   sw.indent();
-  sw.println("\", does not match any of the TOKEN variables of a Record\");");
   sw.outdent();
   sw.outdent();
   sw.println("}");
@@ -37,6 +36,21 @@
     sw.println("}");
   }
   sw.println("throw new IllegalArgumentException(\"Unknown string token: \" + token);");
+  sw.outdent();
+  sw.println("}");
+  sw.println("public String getClassToken(Class<?> recordClass) {");
+  sw.indent();
+  for (  JClassType publicRecordType : generatedRecordTypes) {
+    String qualifiedSourceName=publicRecordType.getQualifiedSourceName();
+    sw.println("if (recordClass == " + qualifiedSourceName + ".class) {");
+    sw.indent();
+    sw.println("return \"" + qualifiedSourceName + "\";");
+    sw.outdent();
+    sw.println("}");
+  }
+  sw.println("throw new IllegalArgumentException(\"Unknown recordClass \" + recordClass);");
+  sw.indent();
+  sw.outdent();
   sw.outdent();
   sw.println("}");
   sw.outdent();
