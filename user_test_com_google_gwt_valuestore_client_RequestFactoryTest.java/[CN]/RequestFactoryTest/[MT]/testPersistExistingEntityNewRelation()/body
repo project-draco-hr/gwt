@@ -1,0 +1,31 @@
+{
+  final SimpleRequestFactory req=GWT.create(SimpleRequestFactory.class);
+  HandlerManager hm=new HandlerManager(null);
+  req.init(hm);
+  delayTestFinish(5000);
+  SimpleBarRecord newBar=(SimpleBarRecord)req.create(SimpleBarRecord.class);
+  final RequestObject<Void> barReq=req.simpleBarRequest().persist(newBar);
+  newBar=barReq.edit(newBar);
+  newBar.setUserName("Amit");
+  final SimpleBarRecord finalNewBar=newBar;
+  req.simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooRecord>(){
+    public void onSuccess(    SimpleFooRecord response,    Set<SyncResult> syncResults){
+      RequestObject<Void> fooReq=req.simpleFooRequest().persist(response);
+      response=fooReq.edit(response);
+      response.setBarField(finalNewBar);
+      fooReq.fire(new Receiver<Void>(){
+        public void onSuccess(        Void response,        Set<SyncResult> syncResults){
+          req.simpleFooRequest().findSimpleFooById(999L).with("barField.userName").fire(new Receiver<SimpleFooRecord>(){
+            public void onSuccess(            SimpleFooRecord finalFooRecord,            Set<SyncResult> syncResults){
+              assertEquals("FOO",finalFooRecord.getBarField().getUserName());
+              finishTest();
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}

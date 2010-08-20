@@ -1,0 +1,29 @@
+{
+  final SimpleRequestFactory req=GWT.create(SimpleRequestFactory.class);
+  HandlerManager hm=new HandlerManager(null);
+  req.init(hm);
+  delayTestFinish(5000);
+  SimpleFooRecord newFoo=(SimpleFooRecord)req.create(SimpleFooRecord.class);
+  final RequestObject<Void> fooReq=req.simpleFooRequest().persist(newFoo);
+  newFoo=fooReq.edit(newFoo);
+  newFoo.setUserName("Ray");
+  final SimpleFooRecord finalFoo=newFoo;
+  req.simpleBarRequest().findSimpleBarById(999L).fire(new Receiver<SimpleBarRecord>(){
+    public void onSuccess(    SimpleBarRecord response,    Set<SyncResult> syncResults){
+      finalFoo.setBarField(response);
+      fooReq.fire(new Receiver<Void>(){
+        public void onSuccess(        Void response,        Set<SyncResult> syncResults){
+          req.simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooRecord>(){
+            public void onSuccess(            SimpleFooRecord finalFooRecord,            Set<SyncResult> syncResults){
+              assertEquals("GWT",finalFooRecord.getUserName());
+              finishTest();
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}

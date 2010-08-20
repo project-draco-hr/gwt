@@ -1,0 +1,40 @@
+{
+  final SimpleRequestFactory req=GWT.create(SimpleRequestFactory.class);
+  HandlerManager hm=new HandlerManager(null);
+  req.init(hm);
+  delayTestFinish(5000);
+  SimpleFooRecord newFoo=(SimpleFooRecord)req.create(SimpleFooRecord.class);
+  SimpleBarRecord newBar=(SimpleBarRecord)req.create(SimpleBarRecord.class);
+  final RequestObject<SimpleFooRecord> fooReq=req.simpleFooRequest().persistAndReturnSelf(newFoo);
+  newFoo=fooReq.edit(newFoo);
+  newFoo.setUserName("Ray");
+  final RequestObject<SimpleBarRecord> barReq=req.simpleBarRequest().persistAndReturnSelf(newBar);
+  newBar=barReq.edit(newBar);
+  newBar.setUserName("Amit");
+  fooReq.fire(new Receiver<SimpleFooRecord>(){
+    public void onSuccess(    final SimpleFooRecord persistedFoo,    Set<SyncResult> syncResult){
+      barReq.fire(new Receiver<SimpleBarRecord>(){
+        public void onSuccess(        final SimpleBarRecord persistedBar,        Set<SyncResult> syncResults){
+          assertEquals("Ray",persistedFoo.getUserName());
+          final RequestObject<Void> fooReq2=req.simpleFooRequest().persist(persistedFoo);
+          SimpleFooRecord editablePersistedFoo=fooReq2.edit(persistedFoo);
+          editablePersistedFoo.setBarField(persistedBar);
+          fooReq2.fire(new Receiver<Void>(){
+            public void onSuccess(            Void response,            Set<SyncResult> syncResults){
+              req.simpleFooRequest().findSimpleFooById(999L).with("barField.userName").fire(new Receiver<SimpleFooRecord>(){
+                public void onSuccess(                SimpleFooRecord finalFooRecord,                Set<SyncResult> syncResults){
+                  assertEquals("Amit",finalFooRecord.getBarField().getUserName());
+                  finishTest();
+                }
+              }
+);
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}

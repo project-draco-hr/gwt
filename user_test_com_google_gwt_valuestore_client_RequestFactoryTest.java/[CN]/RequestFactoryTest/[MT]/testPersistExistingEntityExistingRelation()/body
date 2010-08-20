@@ -1,0 +1,25 @@
+{
+  final SimpleRequestFactory req=GWT.create(SimpleRequestFactory.class);
+  HandlerManager hm=new HandlerManager(null);
+  req.init(hm);
+  delayTestFinish(5000);
+  req.simpleBarRequest().findSimpleBarById(999L).fire(new Receiver<SimpleBarRecord>(){
+    public void onSuccess(    final SimpleBarRecord barRecord,    Set<SyncResult> syncResults){
+      req.simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooRecord>(){
+        public void onSuccess(        SimpleFooRecord fooRecord,        Set<SyncResult> syncResults){
+          RequestObject<Void> updReq=req.simpleFooRequest().persist(fooRecord);
+          fooRecord=updReq.edit(fooRecord);
+          fooRecord.setBarField(barRecord);
+          updReq.fire(new Receiver<Void>(){
+            public void onSuccess(            Void response,            Set<SyncResult> syncResults){
+              finishTest();
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}
