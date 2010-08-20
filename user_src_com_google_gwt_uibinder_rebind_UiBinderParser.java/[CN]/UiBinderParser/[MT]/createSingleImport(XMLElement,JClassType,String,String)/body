@@ -1,0 +1,19 @@
+{
+  JField field=enclosingType.findField(constantName);
+  if (field == null) {
+    writer.die(elem,"Unable to locate a field named %s in %s",constantName,enclosingType.getQualifiedSourceName());
+  }
+ else   if (!field.isStatic()) {
+    writer.die(elem,"Field %s in type %s is not static",constantName,enclosingType.getQualifiedSourceName());
+  }
+  JType importType=field.getType();
+  JClassType fieldType;
+  if (importType instanceof JPrimitiveType) {
+    fieldType=oracle.findType(((JPrimitiveType)importType).getQualifiedBoxedSourceName());
+  }
+ else {
+    fieldType=(JClassType)importType;
+  }
+  FieldWriter fieldWriter=fieldManager.registerField(fieldType,constantName);
+  fieldWriter.setInitializer(rawFieldName);
+}

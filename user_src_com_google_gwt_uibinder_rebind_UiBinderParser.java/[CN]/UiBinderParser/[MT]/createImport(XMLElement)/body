@@ -1,0 +1,35 @@
+{
+  String rawFieldName=elem.consumeRequiredRawAttribute(FIELD_ATTRIBUTE);
+  if (elem.getAttributeCount() > 0) {
+    writer.die(elem,"Should only find attribute \"%s\"",FIELD_ATTRIBUTE);
+  }
+  int idx=rawFieldName.lastIndexOf('.');
+  if (idx < 1) {
+    writer.die(elem,"Attribute %s does not look like a static import " + "reference",FIELD_ATTRIBUTE);
+  }
+  String enclosingName=rawFieldName.substring(0,idx);
+  String constantName=rawFieldName.substring(idx + 1);
+  JClassType enclosingType=oracle.findType(enclosingName);
+  if (enclosingType == null) {
+    writer.die(elem,"Unable to locate type %s",enclosingName);
+  }
+  if ("*".equals(constantName)) {
+    for (    JField field : enclosingType.getFields()) {
+      if (!field.isStatic()) {
+        continue;
+      }
+ else       if (field.isPublic()) {
+      }
+ else       if (field.isProtected() || field.isPrivate()) {
+        continue;
+      }
+ else       if (!enclosingType.getPackage().equals(writer.getOwnerClass().getOwnerType().getPackage())) {
+        continue;
+      }
+      createSingleImport(elem,enclosingType,enclosingName + "." + field.getName(),field.getName());
+    }
+  }
+ else {
+    createSingleImport(elem,enclosingType,rawFieldName,constantName);
+  }
+}
