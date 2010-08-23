@@ -12,7 +12,31 @@
   sw.println("};");
   sw.outdent();
   sw.println("}");
-  sw.println("public native ResourcePrototype " + "getResource(String name) /*-{");
+  sw.println("private static HashMap<String, ResourcePrototype> resourceMap;");
+  sw.println("public ResourcePrototype getResource(String name) {");
+  sw.indent();
+  sw.println("if (GWT.isScript()) {");
+  sw.indent();
+  sw.println("return getResourceNative(name);");
+  sw.outdent();
+  sw.println("} else {");
+  sw.indent();
+  sw.println("if (resourceMap == null) {");
+  sw.indent();
+  sw.println("resourceMap = new HashMap<String, ResourcePrototype>();");
+  for (  List<JMethod> list : taskList.values()) {
+    for (    JMethod m : list) {
+      sw.println("resourceMap.put(\"" + m.getName() + "\", "+ m.getName()+ "());");
+    }
+  }
+  sw.outdent();
+  sw.println("}");
+  sw.println("return resourceMap.get(name);");
+  sw.outdent();
+  sw.println("}");
+  sw.outdent();
+  sw.println("}");
+  sw.println("private native ResourcePrototype " + "getResourceNative(String name) /*-{");
   sw.indent();
   sw.println("switch (name) {");
   sw.indent();
