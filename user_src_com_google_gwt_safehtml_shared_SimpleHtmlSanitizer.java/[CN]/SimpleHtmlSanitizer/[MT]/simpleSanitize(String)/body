@@ -1,0 +1,38 @@
+{
+  StringBuilder sanitized=new StringBuilder();
+  SplitResult splitSegment=LT_RE.split(text,-1);
+  for (int i=0, len=splitSegment.length(); i < len; i++) {
+    String segment=splitSegment.get(i);
+    if (i == 0) {
+      sanitized.append(SafeHtmlUtils.htmlEscapeAllowEntities(segment));
+      continue;
+    }
+    int tagStart=0;
+    int tagEnd=segment.indexOf('>');
+    String tag=null;
+    boolean isValidTag=false;
+    if (tagEnd > 0) {
+      if (segment.charAt(0) == '/') {
+        tagStart=1;
+      }
+      tag=segment.substring(tagStart,tagEnd);
+      if (TAG_WHITELIST.contains(tag)) {
+        isValidTag=true;
+      }
+    }
+    if (isValidTag) {
+      if (tagStart == 0) {
+        sanitized.append('<');
+      }
+ else {
+        sanitized.append("</");
+      }
+      sanitized.append(tag).append('>');
+      sanitized.append(SafeHtmlUtils.htmlEscapeAllowEntities(segment.substring(tagEnd + 1)));
+    }
+ else {
+      sanitized.append("&lt;").append(SafeHtmlUtils.htmlEscapeAllowEntities(segment));
+    }
+  }
+  return sanitized.toString();
+}

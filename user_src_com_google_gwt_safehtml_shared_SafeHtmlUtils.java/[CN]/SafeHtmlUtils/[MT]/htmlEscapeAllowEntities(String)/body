@@ -1,0 +1,20 @@
+{
+  StringBuilder escaped=new StringBuilder();
+  SplitResult splitSegment=AMP_RE.split(text,-1);
+  for (int i=0, len=splitSegment.length(); i < len; i++) {
+    String segment=splitSegment.get(i);
+    if (i == 0) {
+      escaped.append(htmlEscape(segment));
+      continue;
+    }
+    int entityEnd=segment.indexOf(';');
+    if (entityEnd > 0 && segment.substring(0,entityEnd).matches(HTML_ENTITY_REGEX)) {
+      escaped.append("&").append(segment.substring(0,entityEnd + 1));
+      escaped.append(htmlEscape(segment.substring(entityEnd + 1)));
+    }
+ else {
+      escaped.append("&amp;").append(htmlEscape(segment));
+    }
+  }
+  return escaped.toString();
+}
