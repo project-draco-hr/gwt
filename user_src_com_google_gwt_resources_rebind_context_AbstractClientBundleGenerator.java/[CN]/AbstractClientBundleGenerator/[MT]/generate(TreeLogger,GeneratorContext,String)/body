@@ -24,18 +24,18 @@
     ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(packageName,generatedSimpleSourceName);
     f.addImport(GWT.class.getName());
     f.addImport(ResourcePrototype.class.getName());
-    f.addImport(HashMap.class.getName());
     f.addImplementedInterface(sourceType.getQualifiedSourceName());
     SourceWriter sw=f.createSourceWriter(generatorContext,out);
     resourceContext.setSimpleSourceName(generatedSimpleSourceName);
-    fields.addName("resourceMap");
+    JParameterizedType hashMapStringResource=getHashMapStringResource(typeOracle);
+    String resourceMapField=fields.define(hashMapStringResource,"resourceMap");
     createFieldsAndAssignments(logger,sw,generators,resourceContext,fields);
     sw.println(fields.getCode());
     sw.println("static {");
     sw.indentln("new " + resourceContext.getImplementationSimpleSourceName() + "()._init0();");
     sw.println("}");
     taskList.remove(BundleResourceGenerator.class);
-    writeMapMethods(logger,createdClassName,sw,taskList);
+    writeMapMethods(sw,taskList,hashMapStringResource,resourceMapField);
     sw.commit(logger);
   }
   finish(logger,resourceContext,generators.keySet());
