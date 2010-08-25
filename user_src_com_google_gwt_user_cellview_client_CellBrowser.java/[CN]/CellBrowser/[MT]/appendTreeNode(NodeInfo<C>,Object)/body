@@ -1,0 +1,29 @@
+{
+  final int level=treeNodes.size();
+  final CellDecorator<C> cell=new CellDecorator<C>(nodeInfo,level);
+  final AbstractHasData<C> view=createDisplay(nodeInfo,cell);
+  ScrollPanel scrollable=new ScrollPanel();
+  final Widget pager=createPager(view);
+  if (pager != null) {
+    FlowPanel flowPanel=new FlowPanel();
+    flowPanel.add(view);
+    flowPanel.add(pager);
+    scrollable.setWidget(flowPanel);
+  }
+ else {
+    scrollable.setWidget(view);
+  }
+  scrollable.setStyleName(style.column());
+  if (level == 0) {
+    scrollable.addStyleName(style.firstColumn());
+  }
+  TreeNodeImpl<C> treeNode=new TreeNodeImpl<C>(nodeInfo,value,view,cell,scrollable);
+  treeNodes.add(treeNode);
+  view.setSelectionModel(nodeInfo.getSelectionModel());
+  nodeInfo.setDataDisplay(view);
+  SplitLayoutPanel splitPanel=getSplitLayoutPanel();
+  splitPanel.insertWest(scrollable,defaultWidth,null);
+  splitPanel.setWidgetMinSize(scrollable,minWidth);
+  splitPanel.forceLayout();
+  animation.scrollToEnd();
+}

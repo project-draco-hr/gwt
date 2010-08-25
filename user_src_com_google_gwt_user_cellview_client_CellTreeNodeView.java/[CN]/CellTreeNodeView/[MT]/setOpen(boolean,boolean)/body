@@ -1,0 +1,57 @@
+{
+  if (this.open == open) {
+    return this.open;
+  }
+  if (open && isLeaf()) {
+    return false;
+  }
+  tree.cancelTreeNodeAnimation();
+  this.animate=true;
+  this.open=open;
+  if (open) {
+    if (!nodeInfoLoaded) {
+      nodeInfoLoaded=true;
+      nodeInfo=tree.getNodeInfo(value);
+      if (nodeInfo != null) {
+        Set<String> eventsToSink=new HashSet<String>();
+        eventsToSink.add("focus");
+        eventsToSink.add("blur");
+        Set<String> consumedEvents=nodeInfo.getCell().getConsumedEvents();
+        if (consumedEvents != null) {
+          eventsToSink.addAll(consumedEvents);
+        }
+        CellBasedWidgetImpl.get().sinkEvents(tree,eventsToSink);
+      }
+    }
+    if (nodeInfo != null) {
+      ensureChildContainer();
+      showOrHide(showMoreElem,false);
+      showOrHide(emptyMessageElem,false);
+      if (!isRootNode()) {
+        setStyleName(getCellParent(),tree.getStyle().openItem(),true);
+      }
+      ensureAnimationFrame().getStyle().setProperty("display","");
+      onOpen(nodeInfo);
+      if (fireEvents) {
+        OpenEvent.fire(tree,getTreeNode());
+      }
+    }
+ else {
+      this.open=false;
+    }
+  }
+ else {
+    if (!isRootNode()) {
+      setStyleName(getCellParent(),tree.getStyle().openItem(),false);
+    }
+    cleanup(false);
+    tree.maybeAnimateTreeNode(this);
+    updateImage(false);
+    keyboardExit();
+    keyboardSelectedIndex=-1;
+    if (fireEvents) {
+      CloseEvent.fire(tree,getTreeNode());
+    }
+  }
+  return this.open;
+}

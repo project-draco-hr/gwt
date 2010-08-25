@@ -1,0 +1,43 @@
+{
+  if (isLeaf(value)) {
+    return null;
+  }
+  Object newKey=cell.getValueKey(value);
+  if (open) {
+    if (newKey == null) {
+      return null;
+    }
+ else     if (newKey.equals(cell.openKey)) {
+      return treeNodes.get(cell.level + 1);
+    }
+    if (cell.openKey != null) {
+      setChildState(cell,cell.openValue,false,fireEvents);
+    }
+    NodeInfo<?> childNodeInfo=getNodeInfo(value);
+    if (childNodeInfo == null) {
+      return null;
+    }
+    cell.openValue=value;
+    cell.openKey=cell.getValueKey(value);
+    treeNodes.get(cell.level).display.redraw();
+    appendTreeNode(childNodeInfo,value);
+    if (fireEvents) {
+      OpenEvent.fire(this,treeNodes.get(cell.level + 1));
+    }
+    return treeNodes.get(cell.level + 1);
+  }
+ else {
+    if (cell.openKey == null || !cell.openKey.equals(newKey)) {
+      return null;
+    }
+    TreeNode closedNode=treeNodes.get(cell.level + 1);
+    trimToLevel(cell.level);
+    cell.openKey=null;
+    cell.openValue=null;
+    treeNodes.get(cell.level).display.redraw();
+    if (fireEvents) {
+      CloseEvent.fire(this,closedNode);
+    }
+  }
+  return null;
+}

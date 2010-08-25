@@ -1,0 +1,20 @@
+{
+  MockOpenHandler openHandler=new MockOpenHandler();
+  MockCloseHandler closeHandler=new MockCloseHandler();
+  tree.addOpenHandler(openHandler);
+  tree.addCloseHandler(closeHandler);
+  TreeNode root=tree.getRootTreeNode();
+  TreeNode b=root.setChildOpen(1,true);
+  assertEquals(b,openHandler.getLastEventAndClear().getTarget());
+  TreeNode bc=b.setChildOpen(2,true);
+  assertEquals(bc,openHandler.getLastEventAndClear().getTarget());
+  TreeNode bce=bc.setChildOpen(4,true);
+  assertEquals(bce,openHandler.getLastEventAndClear().getTarget());
+  assertNull(root.setChildOpen(1,false));
+  assertFalse(root.isChildOpen(1));
+  assertTrue(b.isDestroyed());
+  assertTrue(bc.isDestroyed());
+  assertTrue(bce.isDestroyed());
+  assertNull(openHandler.getLastEventAndClear());
+  assertEquals(b,closeHandler.getLastEventAndClear().getTarget());
+}

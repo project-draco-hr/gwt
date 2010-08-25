@@ -3,7 +3,8 @@
   int end=start + len;
   int childCount=nodeView.getChildCount();
   ProvidesKey<C> providesKey=nodeInfo.getProvidesKey();
-  Element childElem=nodeView.ensureChildContainer().getFirstChildElement();
+  Element container=nodeView.ensureChildContainer();
+  Element childElem=container.getFirstChildElement();
   for (int i=start; i < end; i++) {
     C childValue=values.get(i - start);
     CellTreeNodeView<C> child=nodeView.createTreeNodeView(nodeInfo,childElem,childValue,null);
@@ -18,13 +19,15 @@
       child.nodeInfoLoaded=savedChild.nodeInfoLoaded;
       child.open=savedChild.open;
       child.showMoreElem=savedChild.showMoreElem;
-      savedChild.listView.setNodeView(child);
+      child.treeNode=savedChild.treeNode;
+      if (child.treeNode != null) {
+        child.treeNode.nodeView=child;
+      }
+      child.listView=savedChild.listView;
+      child.listView.nodeView=child;
       child.getElement().appendChild(savedChild.ensureAnimationFrame());
     }
     if (childCount > i) {
-      if (savedChild == null) {
-        nodeView.children.get(i).cleanup();
-      }
       nodeView.children.set(i,child);
     }
  else {
