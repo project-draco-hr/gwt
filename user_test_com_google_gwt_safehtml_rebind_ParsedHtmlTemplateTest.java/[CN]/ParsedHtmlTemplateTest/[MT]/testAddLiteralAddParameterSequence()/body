@@ -1,0 +1,27 @@
+{
+  ParsedHtmlTemplate parsed=new ParsedHtmlTemplate();
+  parsed.addLiteral("<foo>");
+  parsed.addParameter(new ParameterChunk(new HtmlContext(HtmlContext.Type.TEXT),0));
+  parsed.addLiteral("</foo>");
+  List<TemplateChunk> chunks=parsed.getChunks();
+  assertEquals(3,chunks.size());
+  Iterator<TemplateChunk> it=chunks.iterator();
+  LiteralChunk litChunk;
+  ParameterChunk paramChunk;
+  litChunk=(LiteralChunk)it.next();
+  assertEquals(TemplateChunk.Kind.LITERAL,litChunk.getKind());
+  assertEquals("<foo>",litChunk.getLiteral());
+  assertEquals("L(<foo>)",litChunk.toString());
+  paramChunk=(ParameterChunk)it.next();
+  assertEquals(TemplateChunk.Kind.PARAMETER,paramChunk.getKind());
+  assertEquals(HtmlContext.Type.TEXT,paramChunk.getContext().getType());
+  assertNull(paramChunk.getContext().getTag());
+  assertNull(paramChunk.getContext().getAttribute());
+  assertEquals(0,paramChunk.getParameterIndex());
+  assertEquals("P((TEXT,null,null),0)",paramChunk.toString());
+  litChunk=(LiteralChunk)it.next();
+  assertEquals(TemplateChunk.Kind.LITERAL,litChunk.getKind());
+  assertEquals("</foo>",litChunk.getLiteral());
+  assertEquals("L(</foo>)",litChunk.toString());
+  assertEquals("[L(<foo>), P((TEXT,null,null),0), L(</foo>)]",parsed.toString());
+}

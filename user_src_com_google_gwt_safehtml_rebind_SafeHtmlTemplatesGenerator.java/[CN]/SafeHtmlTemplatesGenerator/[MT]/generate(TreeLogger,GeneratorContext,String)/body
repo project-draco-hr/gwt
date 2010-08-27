@@ -1,0 +1,24 @@
+{
+  TypeOracle oracle=genCtx.getTypeOracle();
+  JClassType interfaceType;
+  try {
+    interfaceType=oracle.getType(fqInterfaceName);
+  }
+ catch (  NotFoundException e) {
+    logger.log(TreeLogger.ERROR,"Unexpected error: " + e.getMessage(),e);
+    throw new UnableToCompleteException();
+  }
+  String implName=interfaceType.getName();
+  implName=implName.replace('.','_') + "Impl";
+  String packageName=interfaceType.getPackage().getName();
+  PrintWriter printWriter=genCtx.tryCreate(logger,packageName,implName);
+  if (printWriter != null) {
+    ClassSourceFileComposerFactory factory=new ClassSourceFileComposerFactory(packageName,implName);
+    factory.addImplementedInterface(interfaceType.getQualifiedSourceName());
+    SourceWriter sourceWriter=factory.createSourceWriter(genCtx,printWriter);
+    SafeHtmlTemplatesImplCreator implCreator=new SafeHtmlTemplatesImplCreator(sourceWriter,interfaceType);
+    implCreator.emitClass(logger,null);
+    genCtx.commit(logger,printWriter);
+  }
+  return packageName + "." + implName;
+}
