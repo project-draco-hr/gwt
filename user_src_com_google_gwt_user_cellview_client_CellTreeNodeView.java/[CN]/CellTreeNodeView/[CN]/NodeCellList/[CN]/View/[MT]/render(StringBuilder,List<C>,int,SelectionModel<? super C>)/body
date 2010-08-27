@@ -1,12 +1,12 @@
 {
   CellTree.Style style=nodeView.tree.getStyle();
-  String selectedStyle=style.selectedItem();
+  String selectedStyle=" " + style.selectedItem();
   String itemStyle=style.item();
   String itemImageValueStyle=style.itemImageValue();
   String itemValueStyle=style.itemValue();
-  String openStyle=style.openItem();
-  String topStyle=style.topItem();
-  String topImageValueStyle=style.topItemImageValue();
+  String openStyle=" " + style.openItem();
+  String topStyle=" " + style.topItem();
+  String topImageValueStyle=" " + style.topItemImageValue();
   boolean isRootNode=nodeView.isRootNode();
   String openImage=nodeView.tree.getOpenImageHtml(isRootNode);
   String closedImage=nodeView.tree.getClosedImageHtml(isRootNode);
@@ -21,30 +21,41 @@
       openNodes.add(child.getValueKey());
     }
   }
+  boolean isRtl=LocaleInfo.getCurrentLocale().isRTL();
   ProvidesKey<C> providesKey=nodeInfo.getProvidesKey();
   TreeViewModel model=nodeView.tree.getTreeViewModel();
   for (  C value : values) {
     Object key=providesKey.getKey(value);
     boolean isOpen=openNodes.contains(key);
     sb.append("<div>");
-    sb.append("<div style='padding-left:");
+    if (isRtl) {
+      sb.append("<div style='padding-right:");
+    }
+ else {
+      sb.append("<div style='padding-left:");
+    }
     sb.append(paddingLeft);
     sb.append("px;' class='").append(itemStyle);
     if (isOpen) {
-      sb.append(" ").append(openStyle);
+      sb.append(openStyle);
     }
     if (isRootNode) {
-      sb.append(" ").append(topStyle);
+      sb.append(topStyle);
     }
     if (selectionModel != null && selectionModel.isSelected(value)) {
-      sb.append(" ").append(selectedStyle);
+      sb.append(selectedStyle);
     }
     sb.append("'>");
-    sb.append("<div onclick='' style='position:relative;padding-left:");
+    if (isRtl) {
+      sb.append("<div onclick='' style='position:relative;padding-right:");
+    }
+ else {
+      sb.append("<div onclick='' style='position:relative;padding-left:");
+    }
     sb.append(imageWidth);
     sb.append("px;' class='").append(itemImageValueStyle);
     if (isRootNode) {
-      sb.append(" ").append(topImageValueStyle);
+      sb.append(topImageValueStyle);
     }
     sb.append("'>");
     if (isOpen) {
