@@ -1,0 +1,16 @@
+{
+  subscription=manager.addMarkFavoriteHandler(new MarkFavoriteEvent.Handler(){
+    public void onMarkFavorite(    MarkFavoriteEvent event){
+      FavoritesWidget.this.onMarkFavorite(event);
+    }
+  }
+);
+  for (  Long id : manager.getFavoriteIds()) {
+    factory.personRequest().findPerson(id).fire(new Receiver<PersonProxy>(){
+      public void onSuccess(      PersonProxy response,      Set<SyncResult> syncResults){
+        onMarkFavorite(new MarkFavoriteEvent(response,true));
+      }
+    }
+);
+  }
+}

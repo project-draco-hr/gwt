@@ -1,0 +1,17 @@
+{
+  if (WriteOperation.UPDATE.equals(event.getWriteOperation())) {
+    PersonProxy record=event.getRecord();
+    int displayOffset=offsetOf(record);
+    if (displayOffset != -1) {
+      requestFactory.personRequest().findPerson(record.getId()).fire(new Receiver<PersonProxy>(){
+        public void onSuccess(        PersonProxy response,        Set<SyncResult> syncResults){
+          int offset=offsetOf(response);
+          if (offset != -1) {
+            table.setRowData(table.getPageStart() + offset,Collections.singletonList(response));
+          }
+        }
+      }
+);
+    }
+  }
+}

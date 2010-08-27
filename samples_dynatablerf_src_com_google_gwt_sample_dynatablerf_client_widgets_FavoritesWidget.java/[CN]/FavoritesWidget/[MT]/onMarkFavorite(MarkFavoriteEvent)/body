@@ -1,0 +1,23 @@
+{
+  PersonProxy person=event.getPerson();
+  if (person == null) {
+    return;
+  }
+  if (event.isFavorite()) {
+    if (!map.containsKey(person.getId())) {
+      NameLabel label=new NameLabel(eventBus);
+      PersonRequestFactoryDriver delegate=new PersonRequestFactoryDriver();
+      delegate.initialize(eventBus,factory,label);
+      delegate.edit(person,null);
+      label.setStylePrimaryName(style.favorite());
+      container.add(label);
+      map.put(person.getId(),label);
+    }
+  }
+ else {
+    NameLabel toRemove=map.remove(person.getId());
+    if (toRemove != null) {
+      container.remove(toRemove);
+    }
+  }
+}
