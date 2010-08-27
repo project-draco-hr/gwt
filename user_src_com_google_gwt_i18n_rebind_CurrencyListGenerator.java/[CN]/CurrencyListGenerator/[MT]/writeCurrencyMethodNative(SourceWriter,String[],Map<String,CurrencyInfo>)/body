@@ -1,0 +1,29 @@
+{
+  boolean needHeader=true;
+  for (  String currencyCode : currencies) {
+    CurrencyInfo currencyInfo=allCurrencyData.get(currencyCode);
+    if (needHeader) {
+      needHeader=false;
+      writer.println();
+      writer.println("@Override");
+      writer.println("protected JavaScriptObject loadCurrencyMapNative() {");
+      writer.indent();
+      writer.println("return overrideMap(super.loadCurrencyMapNative(), loadMyCurrencyMapOverridesNative());");
+      writer.outdent();
+      writer.println("}");
+      writer.println();
+      writer.println("private native JavaScriptObject loadMyCurrencyMapOverridesNative() /*-{");
+      writer.indent();
+      writer.println("return {");
+      writer.indent();
+    }
+    writer.println("// " + currencyInfo.getDisplayName());
+    writer.println("\"" + quote(currencyCode) + "\": "+ currencyInfo.getJson()+ ",");
+  }
+  if (!needHeader) {
+    writer.outdent();
+    writer.println("};");
+    writer.outdent();
+    writer.println("}-*/;");
+  }
+}

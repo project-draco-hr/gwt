@@ -5,13 +5,10 @@
   if (pw != null) {
     ClassSourceFileComposerFactory factory=new ClassSourceFileComposerFactory(packageName,className);
     factory.setSuperclass(superClassName);
-    factory.addImport(CURRENCY_LIST);
     factory.addImport(CURRENCY_DATA);
+    factory.addImport(JAVASCRIPTOBJECT);
+    factory.addImport(HASHMAP);
     SourceWriter writer=factory.createSourceWriter(context,pw);
-    if (currencies.length > 0) {
-      writeCurrencyMethod(className,writer,currencies,allCurrencyData);
-      writeNamesMethod(className,writer,currencies,allCurrencyData);
-    }
     if (defCurrencyCode != null) {
       CurrencyInfo currencyInfo=allCurrencyData.get(defCurrencyCode);
       if (currencyInfo == null) {
@@ -20,9 +17,20 @@
       }
       writer.println();
       writer.println("@Override");
-      writer.println("public native CurrencyData getDefault() /*-{");
+      writer.println("protected CurrencyData getDefaultJava() {");
+      writer.println("  return " + currencyInfo.getJava() + ";");
+      writer.println("}");
+      writer.println();
+      writer.println("@Override");
+      writer.println("protected native CurrencyData getDefaultNative() /*-{");
       writer.println("  return " + currencyInfo.getJson() + ";");
       writer.println("}-*/;");
+    }
+    if (currencies.length > 0) {
+      writeCurrencyMethodJava(writer,currencies,allCurrencyData);
+      writeCurrencyMethodNative(writer,currencies,allCurrencyData);
+      writeNamesMethodJava(writer,currencies,allCurrencyData);
+      writeNamesMethodNative(writer,currencies,allCurrencyData);
     }
     writer.commit(logger);
   }

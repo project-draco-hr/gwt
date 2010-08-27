@@ -1,18 +1,22 @@
 {
   ensureCurrencyMap();
-  ArrayList<String> keys=new ArrayList<String>();
-  loadCurrencyKeys(keys,includeDeprecated);
-  final Iterator<String> it=keys.iterator();
-  return new Iterator<CurrencyData>(){
-    public boolean hasNext(){
-      return it.hasNext();
-    }
-    public CurrencyData next(){
-      return getEntry(it.next());
-    }
-    public void remove(){
-      throw new UnsupportedOperationException("Remove not supported");
+  ArrayList<CurrencyData> collection=new ArrayList<CurrencyData>();
+  if (GWT.isScript()) {
+    loadCurrencyValuesNative(dataMapNative,collection);
+  }
+ else {
+    for (    CurrencyData item : dataMapJava.values()) {
+      collection.add(item);
     }
   }
-;
+  if (!includeDeprecated) {
+    ArrayList<CurrencyData> newCollection=new ArrayList<CurrencyData>();
+    for (    CurrencyData value : collection) {
+      if (!value.isDeprecated()) {
+        newCollection.add(value);
+      }
+    }
+    collection=newCollection;
+  }
+  return Collections.unmodifiableList(collection).iterator();
 }

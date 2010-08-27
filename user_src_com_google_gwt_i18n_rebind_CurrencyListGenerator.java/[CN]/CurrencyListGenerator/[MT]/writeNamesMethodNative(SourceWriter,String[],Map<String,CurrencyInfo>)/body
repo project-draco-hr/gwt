@@ -1,0 +1,31 @@
+{
+  boolean needHeader=true;
+  for (  String currencyCode : currencies) {
+    CurrencyInfo currencyInfo=allCurrencyData.get(currencyCode);
+    String displayName=currencyInfo.getDisplayName();
+    if (displayName != null && !currencyCode.equals(displayName)) {
+      if (needHeader) {
+        needHeader=false;
+        writer.println();
+        writer.println("@Override");
+        writer.println("protected JavaScriptObject loadNamesMapNative() {");
+        writer.indent();
+        writer.println("return overrideMap(super.loadNamesMapNative(), loadMyNamesMapOverridesNative());");
+        writer.outdent();
+        writer.println("}");
+        writer.println();
+        writer.println("private native JavaScriptObject loadMyNamesMapOverridesNative() /*-{");
+        writer.indent();
+        writer.println("return {");
+        writer.indent();
+      }
+      writer.println("\"" + quote(currencyCode) + "\": \""+ quote(displayName)+ "\",");
+    }
+  }
+  if (!needHeader) {
+    writer.outdent();
+    writer.println("};");
+    writer.outdent();
+    writer.println("}-*/;");
+  }
+}

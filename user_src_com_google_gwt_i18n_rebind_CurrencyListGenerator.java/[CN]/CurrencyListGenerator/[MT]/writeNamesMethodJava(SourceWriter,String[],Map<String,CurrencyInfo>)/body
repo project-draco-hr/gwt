@@ -1,0 +1,23 @@
+{
+  boolean needHeader=true;
+  for (  String currencyCode : currencies) {
+    CurrencyInfo currencyInfo=allCurrencyData.get(currencyCode);
+    String displayName=currencyInfo.getDisplayName();
+    if (displayName != null && !currencyCode.equals(displayName)) {
+      if (needHeader) {
+        needHeader=false;
+        writer.println();
+        writer.println("@Override");
+        writer.println("protected HashMap<String, String> loadNamesMapJava() {");
+        writer.indent();
+        writer.println("HashMap<String, String> result = super.loadNamesMapJava();");
+      }
+      writer.println("result.put(\"" + quote(currencyCode) + "\", \""+ quote(displayName)+ "\");");
+    }
+  }
+  if (!needHeader) {
+    writer.println("return result;");
+    writer.outdent();
+    writer.println("}");
+  }
+}
