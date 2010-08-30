@@ -1,8 +1,11 @@
 {
   super.process(cud,i);
-  FindTypesInCud typeFinder=new FindTypesInCud();
-  cud.traverse(typeFinder,cud.scope);
-  List<CompiledClass> compiledClasses=typeFinder.getClasses();
+  ClassFile[] classFiles=cud.compilationResult().getClassFiles();
+  Map<ClassFile,CompiledClass> results=new LinkedHashMap<ClassFile,CompiledClass>();
+  for (  ClassFile classFile : classFiles) {
+    createCompiledClass(classFile,results);
+  }
+  List<CompiledClass> compiledClasses=new ArrayList<CompiledClass>(results.values());
   addBinaryTypes(compiledClasses);
   ICompilationUnit icu=cud.compilationResult().compilationUnit;
   Adapter adapter=(Adapter)icu;
