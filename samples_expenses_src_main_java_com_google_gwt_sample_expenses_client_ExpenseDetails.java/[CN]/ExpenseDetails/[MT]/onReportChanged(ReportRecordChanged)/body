@@ -1,7 +1,12 @@
 {
   ReportRecord changed=event.getRecord();
   if (report != null && report.getId().equals(changed.getId())) {
-    report=changed;
-    setNotesEditState(false,false,changed.getNotes());
+    expensesRequestFactory.reportRequest().findReport(report.getRef(ReportRecord.id)).with(ReportRecord.notes.getName()).fire(new Receiver<ReportRecord>(){
+      @Override public void onSuccess(      ReportRecord response,      Set<SyncResult> syncResults){
+        report=response;
+        setNotesEditState(false,false,response.getNotes());
+      }
+    }
+);
   }
 }
