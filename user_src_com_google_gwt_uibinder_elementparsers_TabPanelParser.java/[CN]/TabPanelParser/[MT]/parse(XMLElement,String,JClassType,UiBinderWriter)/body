@@ -1,40 +1,41 @@
 {
-  writer.warn(elem,"%1$s:%2$s is deprecated. Use the %1$s:TabLayoutPanel instead.",elem.getPrefix(),elem.getLocalName());
-  for (  XMLElement child : elem.consumeChildElements()) {
-    String ns=child.getNamespaceUri();
-    String tagName=child.getLocalName();
-    if (!ns.equals(elem.getNamespaceUri())) {
-      writer.die(elem,"Invalid TabPanel child namespace: " + ns);
+  writer.warn(panelElem,"%1$s:%2$s is deprecated. Use the %1$s:TabLayoutPanel instead.",panelElem.getPrefix(),panelElem.getLocalName());
+  for (  XMLElement tabElem : panelElem.consumeChildElements()) {
+    if (!isElementType(panelElem,tabElem,TAG_TAB)) {
+      writer.die(tabElem,"Only <%s:%s> children are allowed.",panelElem.getPrefix(),TAG_TAB);
     }
-    if (!tagName.equals(TAG_TAB)) {
-      writer.die(elem,"Invalid TabPanel child element: " + tagName);
-    }
-    String tabCaption="";
-    if (child.hasAttribute("text")) {
-      tabCaption=child.consumeRawAttribute("text");
-    }
+    String tabCaption=tabElem.consumeStringAttribute("text");
     String tabHTML=null;
     String childFieldName=null;
-    for (    XMLElement tabChild : child.consumeChildElements()) {
+    for (    XMLElement tabChild : tabElem.consumeChildElements()) {
       if (tabChild.getLocalName().equals(TAG_TABHTML)) {
+        if (tabCaption != null || tabHTML != null) {
+          writer.die(tabElem,"May have only one \"text\" attribute or <%1$s:%2$s>",tabElem.getPrefix(),TAG_TABHTML);
+        }
         HtmlInterpreter interpreter=HtmlInterpreter.newInterpreterForUiObject(writer,fieldName);
         tabHTML=tabChild.consumeInnerHtml(interpreter);
       }
  else {
         if (childFieldName != null) {
-          writer.die(elem,"%s may only have a single child widget",child);
+          writer.die(tabChild,"May only have a single child widget");
+        }
+        if (!writer.isWidgetElement(tabChild)) {
+          writer.die(tabChild,"Must be a widget");
         }
         childFieldName=writer.parseElementToField(tabChild);
       }
     }
     if (childFieldName == null) {
-      writer.die(elem,"%s must have a child widget",child);
+      writer.die(tabElem,"Must have a child widget");
     }
     if (tabHTML != null) {
       writer.addStatement("%1$s.add(%2$s, \"%3$s\", true);",fieldName,childFieldName,tabHTML);
     }
+ else     if (tabCaption != null) {
+      writer.addStatement("%1$s.add(%2$s, %3$s);",fieldName,childFieldName,tabCaption);
+    }
  else {
-      writer.addStatement("%1$s.add(%2$s, \"%3$s\");",fieldName,childFieldName,tabCaption);
+      writer.die(tabElem,"Requires either a \"text\" attribute or <%1$s:%2$s>",tabElem.getPrefix(),TAG_TABHTML);
     }
   }
 }

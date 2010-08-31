@@ -1,25 +1,25 @@
 {
   Children children=findChildren(panelElem,writer);
-  if (null != children.body) {
+  if (children.body != null) {
     if (!writer.isWidgetElement(children.body)) {
       writer.die(children.body,"Must be a widget");
     }
     String bodyField=writer.parseElementToField(children.body);
-    writer.addInitStatement("%s.add(%s);",panelField,bodyField);
+    writer.addStatement("%s.add(%s);",panelField,bodyField);
   }
-  if (null != children.customHeader) {
+  if (children.customHeader != null) {
     XMLElement headerElement=children.customHeader.consumeSingleChildElement();
     if (!writer.isWidgetElement(headerElement)) {
       writer.die(headerElement,"Must be a widget");
     }
     String headerField=writer.parseElementToField(headerElement);
-    writer.addInitStatement("%s.setHeader(%s);",panelField,headerField);
+    writer.addStatement("%s.setHeader(%s);",panelField,headerField);
   }
-  if (null != children.header) {
+  if (children.header != null) {
     String openImage=children.header.consumeImageResourceAttribute(OPEN_IMAGE);
     String closedImage=children.header.consumeImageResourceAttribute(CLOSED_IMAGE);
     String headerText=children.header.consumeInnerTextEscapedAsHtmlStringLiteral(new TextInterpreter(writer));
-    if ((openImage == null) ^ (closedImage == null)) {
+    if (openImage == null ^ closedImage == null) {
       writer.die(children.header,"Both %s and %s must be specified, or neither",OPEN_IMAGE,CLOSED_IMAGE);
     }
     String panelTypeName=type.getQualifiedSourceName();

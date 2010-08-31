@@ -2,32 +2,29 @@
   final Children children=new Children();
   elem.consumeChildElements(new XMLElement.Interpreter<Boolean>(){
     public Boolean interpretElement(    XMLElement child) throws UnableToCompleteException {
-      if (hasAttribute(child,HEADER)) {
+      if (hasTag(child,HEADER)) {
         assertFirstHeader();
         children.header=child;
         return true;
       }
-      if (hasAttribute(child,CUSTOM)) {
+      if (hasTag(child,CUSTOM)) {
         assertFirstHeader();
         children.customHeader=child;
         return true;
       }
-      if (null != children.body) {
+      if (children.body != null) {
         writer.die(elem,"May have only one body element");
       }
       children.body=child;
       return true;
     }
     void assertFirstHeader() throws UnableToCompleteException {
-      if ((null != children.header) && (null != children.customHeader)) {
-        writer.die(elem,"May have only one %2$s:header " + "or %2$s:customHeader",elem.getPrefix());
+      if (children.header != null || children.customHeader != null) {
+        writer.die(elem,"May have only one <%1$s:header> " + "or <%1$s:customHeader>",elem.getPrefix());
       }
     }
-    private boolean hasAttribute(    XMLElement child,    final String attribute){
-      return rightNamespace(child) && child.getLocalName().equals(attribute);
-    }
-    private boolean rightNamespace(    XMLElement child){
-      return child.getNamespaceUri().equals(elem.getNamespaceUri());
+    private boolean hasTag(    XMLElement child,    String tag){
+      return elem.getNamespaceUri().equals(child.getNamespaceUri()) && tag.equals(child.getLocalName());
     }
   }
 );
