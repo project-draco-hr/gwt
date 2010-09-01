@@ -9,6 +9,17 @@
     throw new UnableToCompleteException();
   }
   CssStylesheet sheet=GenerateCssAst.exec(logger,resources);
+  CssDebugInfo debugInfo=makeDebugInfo(logger,context);
+  if (debugInfo.isEnabled()) {
+    debugInfo.setMethodName(method.getName());
+    debugInfo.setOwnerType(context.getClientBundleType().getQualifiedBinaryName());
+    String[] sources=new String[resources.length];
+    for (int i=0, j=resources.length; i < j; i++) {
+      sources[i]=resources[i].toExternalForm();
+    }
+    debugInfo.setSource(sources);
+    sheet.setDebugInfo(debugInfo);
+  }
   stylesheetMap.put(method,sheet);
   (new RequirementsCollector(logger,requirements)).accept(sheet);
 }
