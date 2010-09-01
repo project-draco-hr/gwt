@@ -1,0 +1,39 @@
+{
+  List<EditorData> flatData=new ArrayList<EditorData>();
+  List<EditorData> toReturn=new ArrayList<EditorData>();
+  for (  JClassType type : editorType.getFlattenedSupertypeHierarchy()) {
+    for (    JField field : type.getFields()) {
+      if (field.isPrivate() || field.isStatic()) {
+        continue;
+      }
+      JClassType fieldClassType=field.getType().isClassOrInterface();
+      if (fieldClassType != null && editorIntf.isAssignableFrom(fieldClassType)) {
+        EditorData data=createEditorData(EditorAccess.via(field));
+        flatData.add(data);
+        toReturn.add(data);
+        if (!data.isLeafValueEditor()) {
+          descendIntoSubEditor(toReturn,data);
+        }
+      }
+    }
+    for (    JMethod method : type.getMethods()) {
+      if (method.isPrivate() || method.isStatic()) {
+        continue;
+      }
+      JClassType methodReturnType=method.getReturnType().isClassOrInterface();
+      if (methodReturnType != null && editorIntf.isAssignableFrom(methodReturnType) && method.getParameters().length == 0) {
+        EditorData data=createEditorData(EditorAccess.via(method));
+        flatData.add(data);
+        toReturn.add(data);
+        if (!data.isLeafValueEditor()) {
+          descendIntoSubEditor(toReturn,data);
+        }
+      }
+    }
+    type=type.getSuperclass();
+  }
+  if (!typeData.containsKey(editorType)) {
+    typeData.put(editorType,flatData);
+  }
+  return toReturn.toArray(new EditorData[toReturn.size()]);
+}

@@ -1,0 +1,15 @@
+{
+  EditorModel superModel=parentModel;
+  while (superModel != null) {
+    if (superModel.editorType.isAssignableFrom(data.getEditorType()) || data.getEditorType().isAssignableFrom(superModel.editorType)) {
+      poison(cycleErrorMessage(data.getEditorType(),superModel.getPath(),data.getPath()));
+      return;
+    }
+    superModel=superModel.parentModel;
+  }
+  if (!data.isLeafValueEditor()) {
+    EditorModel subModel=new EditorModel(this,data.getEditorType(),data,calculateEditedType(data.getEditorType()));
+    accumulator.addAll(Arrays.asList(subModel.getEditorData()));
+    poisoned|=subModel.poisoned;
+  }
+}

@@ -1,11 +1,11 @@
 {
-  topLevelDelegate=new PersonRequestFactoryDriver();
-  topLevelDelegate.initialize(null,requestFactory,personEditor);
-  RecordRequest<PersonProxy> existingRequest=requestFactory.personRequest().findPerson(person.getId());
-  existingRequest.with(topLevelDelegate.getPaths());
-  existingRequest.fire(new Receiver<PersonProxy>(){
+  RecordRequest<PersonProxy> fetchRequest=requestFactory.personRequest().findPerson(person.getId());
+  editorDriver=GWT.create(Driver.class);
+  editorDriver.initialize(null,requestFactory,personEditor);
+  fetchRequest.with(editorDriver.getPaths());
+  fetchRequest.fire(new Receiver<PersonProxy>(){
     public void onSuccess(    PersonProxy person,    Set<SyncResult> syncResults){
-      topLevelDelegate.edit(person,requestFactory.personRequest().persist(person));
+      editorDriver.edit(person,requestFactory.personRequest().persist(person));
       personEditor.focus();
     }
   }

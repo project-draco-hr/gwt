@@ -1,0 +1,208 @@
+{
+  MockJavaResource[] javaFiles={new MockJavaResource("t.AddressProxy"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + Record.class.getName() + ";\n");
+      code.append("interface AddressProxy extends Record {\n");
+      code.append("String getCity();\n");
+      code.append("void setCity(String city);\n");
+      code.append("String getStreet();\n");
+      code.append("void setStreet(String street);\n");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.AddressEditor"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + Editor.class.getName() + ";\n");
+      code.append("import " + StringEditor.class.getName() + ";\n");
+      code.append("class AddressEditor implements Editor<AddressProxy> {\n");
+      code.append("public StringEditor city;\n");
+      code.append("public StringEditor street;\n");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.CompositeProxy"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + Record.class.getName() + ";\n");
+      code.append("interface CompositeProxy extends Record {\n");
+      code.append("AddressProxy getAddress();\n");
+      code.append("PersonProxy getPerson();\n");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.CompositeEditor"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + Editor.class.getName() + ";\n");
+      code.append("class CompositeEditor implements Editor<CompositeProxy> {\n");
+      code.append("AddressEditor address;\n");
+      code.append("PersonEditor person(){return null;}\n");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.CompositeEditorDriver"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + RequestFactoryEditorDriver.class.getName() + ";\n");
+      code.append("interface CompositeEditorDriver extends RequestFactoryEditorDriver<CompositeProxy, CompositeEditor> {\n");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.CyclicEditorDriver"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + Editor.class.getName() + ";\n");
+      code.append("import " + Record.class.getName() + ";\n");
+      code.append("import " + RequestFactoryEditorDriver.class.getName() + ";\n");
+      code.append("interface CyclicEditorDriver extends" + " RequestFactoryEditorDriver<CyclicEditorDriver.AProxy," + " CyclicEditorDriver.AEditor> {\n");
+      code.append("  interface AProxy extends Record { BProxy getB(); }");
+      code.append("  interface BProxy extends Record { AProxy getA(); }");
+      code.append("  interface AEditor extends Editor<AProxy> {");
+      code.append("    BEditor bEditor();");
+      code.append("  }");
+      code.append("  interface BEditor extends Editor<BProxy> {");
+      code.append("    AEditor aEditor();");
+      code.append("  }");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.DottedPathEditorDriver"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + Editor.class.getName() + ";\n");
+      code.append("import " + Record.class.getName() + ";\n");
+      code.append("import " + RequestFactoryEditorDriver.class.getName() + ";\n");
+      code.append("import " + StringEditor.class.getName() + ";\n");
+      code.append("interface DottedPathEditorDriver extends" + " RequestFactoryEditorDriver<PersonProxy," + " DottedPathEditorDriver.PersonEditor> {\n");
+      code.append("  interface PersonEditor extends Editor<PersonProxy> {");
+      code.append("  StringEditor nameEditor();");
+      code.append("  @Editor.Path(\"address.street\")");
+      code.append("  StringEditor streetEditor();");
+      code.append("  }");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.MissingGetterEditorDriver"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + Editor.class.getName() + ";\n");
+      code.append("import " + Record.class.getName() + ";\n");
+      code.append("import " + RequestFactoryEditorDriver.class.getName() + ";\n");
+      code.append("import " + StringEditor.class.getName() + ";\n");
+      code.append("interface MissingGetterEditorDriver extends" + " RequestFactoryEditorDriver<MissingGetterEditorDriver.AProxy," + " MissingGetterEditorDriver.AEditor> {\n");
+      code.append("  interface AProxy extends Record {}");
+      code.append("  interface AEditor extends Editor<AProxy> {");
+      code.append("    StringEditor missingEditor();");
+      code.append("    StringEditor yetAgain();");
+      code.append("  }");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.PersonProxy"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + Record.class.getName() + ";\n");
+      code.append("interface PersonProxy extends Record {\n");
+      code.append("AddressProxy getAddress();\n");
+      code.append("String getName();\n");
+      code.append("void setName(String name);\n");
+      code.append("String getReadonly();\n");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.PersonEditor"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + Editor.class.getName() + ";\n");
+      code.append("import " + StringEditor.class.getName() + ";\n");
+      code.append("class PersonEditor implements Editor<PersonProxy> {\n");
+      code.append("public StringEditor name;\n");
+      code.append("StringEditor readonly;\n");
+      code.append("public static StringEditor ignoredStatic;\n");
+      code.append("private StringEditor ignoredPrivate;\n");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.PersonEditorUsingMethods"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + Editor.class.getName() + ";\n");
+      code.append("import " + StringEditor.class.getName() + ";\n");
+      code.append("abstract class PersonEditorUsingMethods implements Editor<PersonProxy> {\n");
+      code.append("public abstract StringEditor nameEditor();\n");
+      code.append("protected abstract StringEditor readonlyEditor();\n");
+      code.append("public static StringEditor ignoredStatic() {return null;}\n");
+      code.append("private StringEditor ignoredPrivate() {return null;}\n");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.PersonEditorDriver"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + RequestFactoryEditorDriver.class.getName() + ";\n");
+      code.append("interface PersonEditorDriver extends" + " RequestFactoryEditorDriver<PersonProxy, PersonEditor> {\n");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.PersonEditorDriverUsingMethods"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + RequestFactoryEditorDriver.class.getName() + ";\n");
+      code.append("interface PersonEditorDriverUsingMethods extends" + " RequestFactoryEditorDriver<PersonProxy, PersonEditorUsingMethods> {\n");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.PersonRequestFactory"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + RequestFactory.class.getName() + ";\n");
+      code.append("interface PersonRequestFactory extends RequestFactory {\n");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.TooManyInterfacesEditorDriver"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + RequestFactoryEditorDriver.class.getName() + ";\n");
+      code.append("interface TooManyInterfacesEditorDriver extends" + " RequestFactoryEditorDriver<CompositeProxy, CompositeEditor>," + " java.io.Serializable {\n");
+      code.append("}");
+      return code;
+    }
+  }
+};
+  Set<Resource> toReturn=new HashSet<Resource>(Arrays.asList(javaFiles));
+  toReturn.addAll(Arrays.asList(new Resource[]{new RealJavaResource(Editor.class),new EmptyMockJavaResource(EventBus.class),new RealJavaResource(HasText.class),new RealJavaResource(LeafValueEditor.class),new EmptyMockJavaResource(Property.class),new EmptyMockJavaResource(Record.class),new EmptyMockJavaResource(RequestFactory.class),new RealJavaResource(RequestFactoryEditorDriver.class),new EmptyMockJavaResource(RequestObject.class),new RealJavaResource(StringEditor.class),new RealJavaResource(TakesValue.class),new EmptyMockJavaResource(ValueAwareEditor.class)}));
+  toReturn.addAll(Arrays.asList(JavaResourceBase.getStandardResources()));
+  return toReturn;
+}

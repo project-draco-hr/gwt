@@ -1,0 +1,34 @@
+{
+  StringBuilder interstitialGetters=new StringBuilder();
+  String[] parts=path.split(Pattern.quote("."));
+  String setterName=null;
+  JClassType lookingAt=proxyType;
+  part:   for (int i=0, j=parts.length; i < j; i++) {
+    String getterName=camelCase("get",parts[i]);
+    for (    JClassType search : lookingAt.getFlattenedSupertypeHierarchy()) {
+      if (i == j - 1 && setterName == null) {
+        for (        JMethod maybeSetter : search.getOverloads(camelCase("set",parts[i]))) {
+          if (maybeSetter.getReturnType().equals(JPrimitiveType.VOID) && maybeSetter.getParameters().length == 1 && maybeSetter.getParameters()[0].getType().isClassOrInterface() != null && maybeSetter.getParameters()[0].getType().isClassOrInterface().isAssignableFrom(propertyType)) {
+            setterName=maybeSetter.getName();
+            break;
+          }
+        }
+      }
+      JMethod getter=search.findMethod(getterName,new JType[0]);
+      if (getter != null) {
+        JType returnType=getter.getReturnType();
+        lookingAt=returnType.isClassOrInterface();
+        if (lookingAt == null) {
+          poison(foundPrimitiveMessage(returnType,interstitialGetters.toString(),path));
+          return new String[]{null,null,null};
+        }
+        interstitialGetters.append(".").append(getterName).append("()");
+        continue part;
+      }
+    }
+    poison(noGetterMessage(path,proxyType));
+    return new String[]{null,null,null};
+  }
+  int idx=interstitialGetters.lastIndexOf(".");
+  return new String[]{idx == 0 ? "" : interstitialGetters.substring(0,idx),interstitialGetters.substring(idx + 1,interstitialGetters.length() - 2),setterName};
+}
