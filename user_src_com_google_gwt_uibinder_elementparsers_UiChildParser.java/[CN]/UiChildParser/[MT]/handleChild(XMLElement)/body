@@ -1,0 +1,20 @@
+{
+  String tag=child.getLocalName();
+  Pair<JMethod,Integer> methodPair=uiChildMethods.get(tag);
+  JMethod method=methodPair.left;
+  int limit=methodPair.right;
+  Iterator<XMLElement> children=child.consumeChildElements().iterator();
+  if (!children.hasNext()) {
+    return;
+  }
+  XMLElement toAdd=children.next();
+  if (!writer.isWidgetElement(toAdd)) {
+    writer.die(child,"Expecting only widgets in %s",child);
+  }
+  if (children.hasNext()) {
+    writer.die(toAdd,"Can only have one element per @UiChild parser tag.");
+  }
+  checkLimit(limit,tag,toAdd);
+  String[] parameters=makeArgsList(child,method,toAdd);
+  writer.addStatement("%1$s.%2$s(%3$s);",fieldName,method.getName(),UiBinderWriter.asCommaSeparatedList(parameters));
+}

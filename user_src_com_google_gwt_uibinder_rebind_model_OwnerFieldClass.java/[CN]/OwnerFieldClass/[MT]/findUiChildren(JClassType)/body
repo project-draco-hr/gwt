@@ -1,0 +1,23 @@
+{
+  JMethod[] methods=ownerType.getMethods();
+  while (ownerType != null) {
+    for (    JMethod method : methods) {
+      UiChild annotation=method.getAnnotation(UiChild.class);
+      if (annotation != null) {
+        String tag=annotation.tagname();
+        int limit=annotation.limit();
+        if (tag.equals("")) {
+          String name=method.getName();
+          if (name.startsWith("add")) {
+            tag=name.substring(3).toLowerCase();
+          }
+ else {
+            logger.die(method.getName() + " must either specify a UiChild tagname or begin " + "with \"add\".");
+          }
+        }
+        uiChildren.put(tag,Pair.create(method,limit));
+      }
+    }
+    ownerType=ownerType.getSuperclass();
+  }
+}
