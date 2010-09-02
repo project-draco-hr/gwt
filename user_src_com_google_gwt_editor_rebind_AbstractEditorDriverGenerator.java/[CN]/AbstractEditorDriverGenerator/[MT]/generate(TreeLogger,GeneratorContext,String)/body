@@ -1,0 +1,25 @@
+{
+  this.context=context;
+  this.logger=logger;
+  TypeOracle oracle=context.getTypeOracle();
+  JClassType toGenerate=oracle.findType(typeName).isInterface();
+  if (toGenerate == null) {
+    logger.log(TreeLogger.ERROR,typeName + " is not an interface type");
+    throw new UnableToCompleteException();
+  }
+  String packageName=toGenerate.getPackage().getName();
+  String simpleSourceName=toGenerate.getName().replace('.','_') + "Impl";
+  PrintWriter pw=context.tryCreate(logger,packageName,simpleSourceName);
+  if (pw == null) {
+    return packageName + "." + simpleSourceName;
+  }
+  model=new EditorModel(logger,toGenerate,oracle.findType(getDriverInterfaceType().getName()));
+  ClassSourceFileComposerFactory factory=new ClassSourceFileComposerFactory(packageName,simpleSourceName);
+  factory.setSuperclass(Name.getSourceNameForClass(getDriverSuperclassType()) + "<" + model.getProxyType().getQualifiedSourceName()+ ", "+ model.getEditorType().getQualifiedSourceName()+ ">");
+  factory.addImplementedInterface(typeName);
+  SourceWriter sw=factory.createSourceWriter(context,pw);
+  writeCreateDelegate(sw);
+  writeAdditionalContent(logger,context,model,sw);
+  sw.commit(logger);
+  return factory.getCreatedClassName();
+}

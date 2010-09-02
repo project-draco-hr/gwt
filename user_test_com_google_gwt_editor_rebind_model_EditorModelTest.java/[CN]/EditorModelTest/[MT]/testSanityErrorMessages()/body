@@ -1,0 +1,27 @@
+{
+  UnitTestTreeLogger.Builder builder=new UnitTestTreeLogger.Builder();
+  builder.setLowestLogLevel(TreeLogger.ERROR);
+  builder.expectError(EditorModel.unexpectedInputTypeMessage(rfedType,types.getJavaLangObject()),null);
+  builder.expectError(EditorModel.mustExtendMessage(rfedType),null);
+  builder.expectError(EditorModel.tooManyInterfacesMessage(types.findType("t.TooManyInterfacesEditorDriver")),null);
+  UnitTestTreeLogger testLogger=builder.createLogger();
+  try {
+    new EditorModel(testLogger,types.getJavaLangObject(),rfedType);
+    fail("Should have thrown exception");
+  }
+ catch (  UnableToCompleteException expected) {
+  }
+  try {
+    new EditorModel(testLogger,rfedType,rfedType);
+    fail("Should have thrown exception");
+  }
+ catch (  UnableToCompleteException expected) {
+  }
+  try {
+    new EditorModel(testLogger,types.findType("t.TooManyInterfacesEditorDriver"),rfedType);
+    fail("Should have thrown exception");
+  }
+ catch (  UnableToCompleteException expected) {
+  }
+  testLogger.assertCorrectLogEntries();
+}

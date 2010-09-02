@@ -1,0 +1,14 @@
+{
+  UnitTestTreeLogger.Builder builder=new UnitTestTreeLogger.Builder();
+  builder.setLowestLogLevel(TreeLogger.ERROR);
+  builder.expectError(EditorModel.cycleErrorMessage(types.findType("t.CyclicEditorDriver.AEditor"),"<Root Object>","b.a"),null);
+  builder.expectError(EditorModel.poisonedMessage(),null);
+  UnitTestTreeLogger testLogger=builder.createLogger();
+  try {
+    new EditorModel(testLogger,types.findType("t.CyclicEditorDriver"),rfedType);
+    fail("Should have complained about cycle");
+  }
+ catch (  UnableToCompleteException expected) {
+  }
+  testLogger.assertCorrectLogEntries();
+}
