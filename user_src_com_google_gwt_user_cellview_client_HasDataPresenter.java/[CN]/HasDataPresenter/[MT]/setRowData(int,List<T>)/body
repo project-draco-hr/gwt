@@ -37,12 +37,12 @@
   boundedStart-=cacheOffset;
   List<T> boundedValues=rowData.subList(boundedStart - pageStart,boundedEnd - pageStart);
   int boundedSize=boundedValues.size();
-  StringBuilder sb=new StringBuilder();
+  SafeHtmlBuilder sb=new SafeHtmlBuilder();
   view.render(sb,boundedValues,boundedStart,selectionModel);
   updateLoadingState();
   int childCount=view.getChildCount();
   if (boundedStart == pageStart && (boundedSize >= childCount || boundedSize >= getCurrentPageSize() || rowData.size() < childCount)) {
-    String newContents=sb.toString();
+    SafeHtml newContents=sb.toSafeHtml();
     if (!newContents.equals(lastContents)) {
       lastContents=newContents;
       view.replaceAllChildren(boundedValues,newContents);
@@ -50,7 +50,7 @@
   }
  else {
     lastContents=null;
-    view.replaceChildren(boundedValues,boundedStart - pageStart,sb.toString());
+    view.replaceChildren(boundedValues,boundedStart - pageStart,sb.toSafeHtml());
   }
   view.resetFocus();
   pageStartChangedSinceRender=false;

@@ -1,0 +1,35 @@
+{
+  super("click");
+  if (format == null) {
+    throw new IllegalArgumentException("format == null");
+  }
+  if (renderer == null) {
+    throw new IllegalArgumentException("renderer == null");
+  }
+  this.format=format;
+  this.renderer=renderer;
+  this.datePicker=new DatePicker();
+  this.panel=new PopupPanel(true,true){
+    @Override protected void onPreviewNativeEvent(    NativePreviewEvent event){
+      if (Event.ONKEYUP == event.getTypeInt()) {
+        if (event.getNativeEvent().getKeyCode() == ESCAPE) {
+          panel.hide();
+        }
+      }
+    }
+  }
+;
+  panel.add(datePicker);
+  datePicker.addValueChangeHandler(new ValueChangeHandler<Date>(){
+    public void onValueChange(    ValueChangeEvent<Date> event){
+      panel.hide();
+      Date date=event.getValue();
+      setViewData(lastKey,date);
+      setValue(lastParent,lastValue,lastKey);
+      if (valueUpdater != null) {
+        valueUpdater.update(date);
+      }
+    }
+  }
+);
+}

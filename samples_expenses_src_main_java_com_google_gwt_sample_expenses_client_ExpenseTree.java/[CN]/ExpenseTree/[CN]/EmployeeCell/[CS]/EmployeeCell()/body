@@ -5,18 +5,20 @@
     @Override public boolean dependsOnSelection(){
       return true;
     }
-    @Override public void render(    EmployeeRecord value,    Object viewData,    StringBuilder sb){
+    @Override public void render(    EmployeeRecord value,    Object viewData,    SafeHtmlBuilder sb){
       if (value != null) {
-        sb.append(value.getDisplayName()).append("<br>");
-        sb.append("<span class='").append(usernameStyle);
+        StringBuilder classesBuilder=new StringBuilder(usernameStyle);
         if (lastEmployee != null && lastEmployee.getId().equals(value.getId())) {
-          sb.append(" ").append(usernameStyleSelected);
+          classesBuilder.append(" ").append(usernameStyleSelected);
         }
-        sb.append("'>");
-        sb.append(value.getUserName());
-        sb.append("</span>");
+        sb.appendEscaped(value.getDisplayName());
+        sb.appendHtmlConstant("<br>");
+        sb.append(template.span(classesBuilder.toString(),value.getUserName()));
       }
     }
   }
 );
+  if (template == null) {
+    template=GWT.create(Template.class);
+  }
 }

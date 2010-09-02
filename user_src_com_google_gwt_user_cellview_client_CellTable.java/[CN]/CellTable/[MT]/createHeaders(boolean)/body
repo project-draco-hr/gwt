@@ -3,29 +3,29 @@
   TableSectionElement section=isFooter ? tfoot : thead;
   String className=isFooter ? style.footer() : style.header();
   boolean hasHeader=false;
-  StringBuilder sb=new StringBuilder();
-  sb.append("<tr>");
+  SafeHtmlBuilder sb=new SafeHtmlBuilder();
+  sb.appendHtmlConstant("<tr>");
   int columnCount=columns.size();
   int curColumn=0;
   for (  Header<?> header : theHeaders) {
-    sb.append("<th class='").append(className);
+    StringBuilder classesBuilder=new StringBuilder(className);
     if (curColumn == 0) {
-      sb.append(" ");
-      sb.append(isFooter ? style.firstColumnFooter() : style.firstColumnHeader());
+      classesBuilder.append(" ");
+      classesBuilder.append(isFooter ? style.firstColumnFooter() : style.firstColumnHeader());
     }
     if (curColumn == columnCount - 1) {
-      sb.append(" ");
-      sb.append(isFooter ? style.lastColumnFooter() : style.lastColumnHeader());
+      classesBuilder.append(" ");
+      classesBuilder.append(isFooter ? style.lastColumnFooter() : style.lastColumnHeader());
     }
-    sb.append("'>");
+    SafeHtmlBuilder headerBuilder=new SafeHtmlBuilder();
     if (header != null) {
       hasHeader=true;
-      header.render(sb);
+      header.render(headerBuilder);
     }
-    sb.append("</th>");
+    sb.append(template.th(classesBuilder.toString(),headerBuilder.toSafeHtml()));
     curColumn++;
   }
-  sb.append("</tr>");
-  TABLE_IMPL.replaceAllRows(this,section,sb.toString());
+  sb.appendHtmlConstant("</tr>");
+  TABLE_IMPL.replaceAllRows(this,section,sb.toSafeHtml());
   setVisible(section,hasHeader);
 }

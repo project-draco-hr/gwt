@@ -1,0 +1,39 @@
+{
+  createHeadersAndFooters();
+  ProvidesKey<T> keyProvider=getKeyProvider();
+  String evenRowStyle=style.evenRow();
+  String oddRowStyle=style.oddRow();
+  String cellStyle=style.cell();
+  String firstColumnStyle=" " + style.firstColumn();
+  String lastColumnStyle=" " + style.lastColumn();
+  String selectedRowStyle=" " + style.selectedRow();
+  int columnCount=columns.size();
+  int length=values.size();
+  int end=start + length;
+  for (int i=start; i < end; i++) {
+    T value=values.get(i - start);
+    boolean isSelected=(selectionModel == null || value == null) ? false : selectionModel.isSelected(value);
+    String trClasses=i % 2 == 0 ? evenRowStyle : oddRowStyle;
+    if (isSelected) {
+      trClasses+=selectedRowStyle;
+    }
+    SafeHtmlBuilder trBuilder=new SafeHtmlBuilder();
+    int curColumn=0;
+    for (    Column<T,?> column : columns) {
+      String tdClasses=cellStyle;
+      if (curColumn == 0) {
+        tdClasses+=firstColumnStyle;
+      }
+      if (curColumn == columnCount - 1) {
+        tdClasses+=lastColumnStyle;
+      }
+      SafeHtmlBuilder cellBuilder=new SafeHtmlBuilder();
+      if (value != null) {
+        column.render(value,keyProvider,cellBuilder);
+      }
+      trBuilder.append(template.td(tdClasses,cellBuilder.toSafeHtml()));
+      curColumn++;
+    }
+    sb.append(template.tr(trClasses,trBuilder.toSafeHtml()));
+  }
+}

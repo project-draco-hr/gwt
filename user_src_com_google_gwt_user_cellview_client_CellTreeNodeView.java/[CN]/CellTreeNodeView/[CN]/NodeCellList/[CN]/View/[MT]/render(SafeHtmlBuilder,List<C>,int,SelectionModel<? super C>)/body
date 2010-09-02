@@ -1,0 +1,60 @@
+{
+  CellTree.Style style=nodeView.tree.getStyle();
+  String itemValueStyle=style.itemValue();
+  String selectedStyle=" " + style.selectedItem();
+  String itemStyle=style.item();
+  String itemImageValueStyle=" " + style.itemImageValue();
+  String openStyle=" " + style.openItem();
+  String topStyle=" " + style.topItem();
+  String topImageValueStyle=" " + style.topItemImageValue();
+  boolean isRootNode=nodeView.isRootNode();
+  SafeHtml openImage=nodeView.tree.getOpenImageHtml(isRootNode);
+  SafeHtml closedImage=nodeView.tree.getClosedImageHtml(isRootNode);
+  int imageWidth=nodeView.tree.getImageWidth();
+  String paddingDirection=LocaleInfo.getCurrentLocale().isRTL() ? "right" : "left";
+  int paddingAmount=imageWidth * nodeView.depth;
+  Set<Object> openNodes=new HashSet<Object>();
+  int childCount=nodeView.getChildCount();
+  int end=start + values.size();
+  for (int i=start; i < end && i < childCount; i++) {
+    CellTreeNodeView<?> child=nodeView.getChildNode(i);
+    if (child.isOpen()) {
+      openNodes.add(child.getValueKey());
+    }
+  }
+  ProvidesKey<C> providesKey=nodeInfo.getProvidesKey();
+  TreeViewModel model=nodeView.tree.getTreeViewModel();
+  for (  C value : values) {
+    Object key=providesKey.getKey(value);
+    boolean isOpen=openNodes.contains(key);
+    StringBuilder outerClasses=new StringBuilder(itemStyle);
+    if (isOpen) {
+      outerClasses.append(openStyle);
+    }
+    if (isRootNode) {
+      outerClasses.append(topStyle);
+    }
+    if (selectionModel != null && selectionModel.isSelected(value)) {
+      outerClasses.append(selectedStyle);
+    }
+    StringBuilder innerClasses=new StringBuilder(itemStyle);
+    innerClasses.append(itemImageValueStyle);
+    if (isRootNode) {
+      innerClasses.append(topImageValueStyle);
+    }
+    SafeHtml image;
+    if (isOpen) {
+      image=openImage;
+    }
+ else     if (model.isLeaf(value)) {
+      image=LEAF_IMAGE;
+    }
+ else {
+      image=closedImage;
+    }
+    SafeHtmlBuilder cellBuilder=new SafeHtmlBuilder();
+    cell.render(value,null,cellBuilder);
+    SafeHtml innerDiv=template.innerDiv(paddingDirection,imageWidth,innerClasses.toString(),image,itemValueStyle,cellBuilder.toSafeHtml());
+    sb.append(template.outerDiv(paddingDirection,paddingAmount,outerClasses.toString(),innerDiv));
+  }
+}
