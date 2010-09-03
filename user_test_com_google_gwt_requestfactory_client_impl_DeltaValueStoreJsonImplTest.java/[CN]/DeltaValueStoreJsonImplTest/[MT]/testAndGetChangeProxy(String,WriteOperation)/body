@@ -1,0 +1,20 @@
+{
+  JSONObject jsonObject=(JSONObject)JSONParser.parseLenient(jsonString);
+  for (  WriteOperation writeOperation : WriteOperation.values()) {
+    if (writeOperation != currentWriteOperation) {
+      assertFalse(jsonObject.containsKey(writeOperation.name()));
+    }
+ else {
+      assertTrue(jsonObject.containsKey(writeOperation.name()));
+    }
+  }
+  JSONArray writeOperationArray=jsonObject.get(currentWriteOperation.name()).isArray();
+  assertEquals(1,writeOperationArray.size());
+  JSONObject proxyWithName=writeOperationArray.get(0).isObject();
+  assertEquals(1,proxyWithName.size());
+  assertTrue(proxyWithName.containsKey(SIMPLE_FOO_CLASS_NAME));
+  JSONObject proxy=proxyWithName.get(SIMPLE_FOO_CLASS_NAME).isObject();
+  assertTrue(proxy.containsKey("id"));
+  assertTrue(proxy.containsKey("version"));
+  return proxy;
+}

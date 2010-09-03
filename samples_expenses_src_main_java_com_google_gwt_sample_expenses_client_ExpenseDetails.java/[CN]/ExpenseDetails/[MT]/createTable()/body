@@ -1,6 +1,6 @@
 {
   CellTable.Resources resources=GWT.create(TableResources.class);
-  CellTable<ExpenseRecord> view=new CellTable<ExpenseRecord>(100,resources);
+  CellTable<ExpenseProxy> view=new CellTable<ExpenseProxy>(100,resources);
   Styles.Common common=Styles.common();
   view.addColumnStyleName(0,common.spacerColumn());
   view.addColumnStyleName(1,common.expenseDetailsDateColumn());
@@ -8,39 +8,39 @@
   view.addColumnStyleName(4,common.expenseDetailsAmountColumn());
   view.addColumnStyleName(5,common.expenseDetailsApprovalColumn());
   view.addColumnStyleName(6,common.spacerColumn());
-  view.addColumn(new SpacerColumn<ExpenseRecord>());
-  GetValue<ExpenseRecord,Date> createdGetter=new GetValue<ExpenseRecord,Date>(){
-    public Date getValue(    ExpenseRecord object){
+  view.addColumn(new SpacerColumn<ExpenseProxy>());
+  GetValue<ExpenseProxy,Date> createdGetter=new GetValue<ExpenseProxy,Date>(){
+    public Date getValue(    ExpenseProxy object){
       return object.getCreated();
     }
   }
 ;
   defaultComparator=createColumnComparator(createdGetter,false);
-  Comparator<ExpenseRecord> createdDesc=createColumnComparator(createdGetter,true);
+  Comparator<ExpenseProxy> createdDesc=createColumnComparator(createdGetter,true);
   addColumn(view,"Created",new DateCell(DateTimeFormat.getFormat("MMM dd yyyy")),createdGetter,defaultComparator,createdDesc);
   lastComparator=defaultComparator;
-  addColumn(view,"Description",new TextCell(),new GetValue<ExpenseRecord,String>(){
-    public String getValue(    ExpenseRecord object){
+  addColumn(view,"Description",new TextCell(),new GetValue<ExpenseProxy,String>(){
+    public String getValue(    ExpenseProxy object){
       return object.getDescription();
     }
   }
 );
-  addColumn(view,"Category",new TextCell(),new GetValue<ExpenseRecord,String>(){
-    public String getValue(    ExpenseRecord object){
+  addColumn(view,"Category",new TextCell(),new GetValue<ExpenseProxy,String>(){
+    public String getValue(    ExpenseProxy object){
       return object.getCategory();
     }
   }
 );
-  final GetValue<ExpenseRecord,Double> amountGetter=new GetValue<ExpenseRecord,Double>(){
-    public Double getValue(    ExpenseRecord object){
+  final GetValue<ExpenseProxy,Double> amountGetter=new GetValue<ExpenseProxy,Double>(){
+    public Double getValue(    ExpenseProxy object){
       return object.getAmount();
     }
   }
 ;
-  Comparator<ExpenseRecord> amountAsc=createColumnComparator(amountGetter,false);
-  Comparator<ExpenseRecord> amountDesc=createColumnComparator(amountGetter,true);
-  addColumn(view,"Amount",new NumberCell(NumberFormat.getCurrencyFormat()),new GetValue<ExpenseRecord,Number>(){
-    public Number getValue(    ExpenseRecord object){
+  Comparator<ExpenseProxy> amountAsc=createColumnComparator(amountGetter,false);
+  Comparator<ExpenseProxy> amountDesc=createColumnComparator(amountGetter,true);
+  addColumn(view,"Amount",new NumberCell(NumberFormat.getCurrencyFormat()),new GetValue<ExpenseProxy,Number>(){
+    public Number getValue(    ExpenseProxy object){
       return amountGetter.getValue(object);
     }
   }
@@ -49,7 +49,7 @@
   denialPopup.addCloseHandler(new CloseHandler<PopupPanel>(){
     public void onClose(    CloseEvent<PopupPanel> event){
       String reasonDenied=denialPopup.getReasonDenied();
-      ExpenseRecord record=denialPopup.getExpenseRecord();
+      ExpenseProxy record=denialPopup.getExpenseRecord();
       if (reasonDenied == null || reasonDenied.length() == 0) {
         syncCommit(record,null);
       }
@@ -60,14 +60,14 @@
   }
 );
   approvalCell=new ApprovalCell();
-  Column<ExpenseRecord,String> approvalColumn=addColumn(view,"Approval Status",approvalCell,new GetValue<ExpenseRecord,String>(){
-    public String getValue(    ExpenseRecord object){
+  Column<ExpenseProxy,String> approvalColumn=addColumn(view,"Approval Status",approvalCell,new GetValue<ExpenseProxy,String>(){
+    public String getValue(    ExpenseProxy object){
       return object.getApproval();
     }
   }
 );
-  approvalColumn.setFieldUpdater(new FieldUpdater<ExpenseRecord,String>(){
-    public void update(    int index,    final ExpenseRecord object,    String value){
+  approvalColumn.setFieldUpdater(new FieldUpdater<ExpenseProxy,String>(){
+    public void update(    int index,    final ExpenseProxy object,    String value){
       if ("Denied".equals(value)) {
         denialPopup.setExpenseRecord(object);
         denialPopup.setReasonDenied(object.getReasonDenied());
@@ -79,6 +79,6 @@
     }
   }
 );
-  view.addColumn(new SpacerColumn<ExpenseRecord>());
+  view.addColumn(new SpacerColumn<ExpenseProxy>());
   return view;
 }

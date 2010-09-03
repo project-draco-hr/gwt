@@ -4,8 +4,8 @@
   final SimpleFooDriver driver=GWT.create(SimpleFooDriver.class);
   driver.initialize(eventBus,factory,editor);
   assertEquals(Arrays.asList("barField.userName","barField"),Arrays.asList(driver.getPaths()));
-  factory.simpleFooRequest().findSimpleFooById(0L).with(driver.getPaths()).fire(new Receiver<SimpleFooRecord>(){
-    public void onSuccess(    SimpleFooRecord response,    Set<SyncResult> syncResults){
+  factory.simpleFooRequest().findSimpleFooById(0L).with(driver.getPaths()).fire(new Receiver<SimpleFooProxy>(){
+    public void onSuccess(    SimpleFooProxy response,    Set<SyncResult> syncResults){
       driver.edit(response,factory.simpleFooRequest().persistAndReturnSelf(response).with(driver.getPaths()));
       assertEquals("GWT",editor.userName.getValue());
       assertEquals("FOO",editor.barEditor().userName.getValue());
@@ -13,8 +13,8 @@
       editor.userName.setValue("EditorFooTest");
       editor.barEditor().userName.setValue("ignored");
       editor.barName.setValue("EditorBarTest");
-      driver.<SimpleFooRecord>flush().fire(new Receiver<SimpleFooRecord>(){
-        public void onSuccess(        SimpleFooRecord response,        Set<SyncResult> syncResults){
+      driver.<SimpleFooProxy>flush().fire(new Receiver<SimpleFooProxy>(){
+        public void onSuccess(        SimpleFooProxy response,        Set<SyncResult> syncResults){
           assertEquals("EditorFooTest",response.getUserName());
           assertEquals("EditorBarTest",response.getBarField().getUserName());
           finishTest();

@@ -4,9 +4,9 @@
   f.addImport(HandlerManager.class.getName());
   f.addImport(RequestFactoryJsonImpl.class.getName());
   f.addImport(interfaceType.getQualifiedSourceName());
-  f.addImport(RecordToTypeMap.class.getName());
-  f.addImport(Record.class.getName());
-  f.addImport(RecordSchema.class.getName());
+  f.addImport(ProxyToTypeMap.class.getName());
+  f.addImport(EntityProxy.class.getName());
+  f.addImport(ProxySchema.class.getName());
   f.addImplementedInterface(interfaceType.getName());
   f.setSuperclass(RequestFactoryJsonImpl.class.getSimpleName());
   SourceWriter sw=f.createSourceWriter(generatorContext,out);
@@ -35,41 +35,41 @@
  catch (  NotFoundException e) {
     e.printStackTrace();
   }
-  JClassType recordToTypeInterface=generatorContext.getTypeOracle().findType(RecordToTypeMap.class.getName());
-  String recordToTypeMapName=recordToTypeInterface.getName() + "Impl";
-  sw.println("public " + Record.class.getName() + " create(Class token) {");
+  JClassType proxyToTypeInterface=generatorContext.getTypeOracle().findType(ProxyToTypeMap.class.getName());
+  String proxyToTypeMapName=proxyToTypeInterface.getName() + "Impl";
+  sw.println("public " + EntityProxy.class.getName() + " create(Class token) {");
   sw.indent();
-  sw.println("return create(token, new " + recordToTypeMapName + "());");
+  sw.println("return create(token, new " + proxyToTypeMapName + "());");
   sw.outdent();
   sw.println("}");
   sw.println();
-  sw.println("public Class<? extends " + Record.class.getName() + "> getClass(String token) {");
+  sw.println("public Class<? extends " + EntityProxy.class.getName() + "> getClass(String token) {");
   sw.indent();
-  sw.println("return getClass(token, new " + recordToTypeMapName + "());");
+  sw.println("return getClass(token, new " + proxyToTypeMapName + "());");
   sw.outdent();
   sw.println("}");
   sw.println();
-  sw.println("public " + Record.class.getName() + " getProxy(String token) {");
+  sw.println("public " + EntityProxy.class.getName() + " getProxy(String token) {");
   sw.indent();
-  sw.println("return getProxy(token, new " + recordToTypeMapName + "());");
+  sw.println("return getProxy(token, new " + proxyToTypeMapName + "());");
   sw.outdent();
   sw.println("}");
   sw.println();
-  sw.println("public String getToken(Record record) {");
+  sw.println("public String getToken(EntityProxy proxy) {");
   sw.indent();
-  sw.println("return getToken(record, new " + recordToTypeMapName + "());");
+  sw.println("return getToken(proxy, new " + proxyToTypeMapName + "());");
   sw.outdent();
   sw.println("}");
   sw.println();
   sw.println("public String getToken(Class clazz) {");
   sw.indent();
-  sw.println("return new " + recordToTypeMapName + "().getClassToken(clazz);");
+  sw.println("return new " + proxyToTypeMapName + "().getClassToken(clazz);");
   sw.outdent();
   sw.println("}");
   sw.println();
-  sw.println("public RecordSchema<? extends Record> getSchema(String schemaToken) {");
+  sw.println("public ProxySchema<? extends EntityProxy> getSchema(String schemaToken) {");
   sw.indent();
-  sw.println("return new " + recordToTypeMapName + "().getType(schemaToken);");
+  sw.println("return new " + proxyToTypeMapName + "().getType(schemaToken);");
   sw.outdent();
   sw.println("}");
   for (  JMethod requestSelector : requestSelectors) {
@@ -89,9 +89,9 @@
   }
   sw.outdent();
   sw.println("}");
-  PrintWriter pw=generatorContext.tryCreate(logger,packageName,recordToTypeMapName);
+  PrintWriter pw=generatorContext.tryCreate(logger,packageName,proxyToTypeMapName);
   if (pw != null) {
-    generateRecordToTypeMap(logger,generatorContext,pw,recordToTypeInterface,packageName,recordToTypeMapName);
+    generateProxyToTypeMap(logger,generatorContext,pw,proxyToTypeInterface,packageName,proxyToTypeMapName);
   }
   generatorContext.commit(logger,out);
 }

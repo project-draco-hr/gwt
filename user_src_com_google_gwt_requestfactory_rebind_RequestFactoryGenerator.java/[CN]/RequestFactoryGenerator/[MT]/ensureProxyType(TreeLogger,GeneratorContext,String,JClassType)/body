@@ -1,0 +1,98 @@
+{
+  TypeOracle typeOracle=generatorContext.getTypeOracle();
+  if (!publicProxyType.isAssignableTo(typeOracle.findType(EntityProxy.class.getName()))) {
+    return;
+  }
+  if (generatedProxyTypes.contains(publicProxyType)) {
+    return;
+  }
+  String proxyImplTypeName=publicProxyType.getName() + "Impl";
+  PrintWriter pw=generatorContext.tryCreate(logger,packageName,proxyImplTypeName);
+  Set<JClassType> transitiveDeps=new LinkedHashSet<JClassType>();
+  if (pw != null) {
+    logger=logger.branch(TreeLogger.DEBUG,"Generating " + publicProxyType.getName());
+    ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(packageName,proxyImplTypeName);
+    String eventTypeName=publicProxyType.getName() + "Changed";
+    JClassType eventType=typeOracle.findType(packageName,eventTypeName);
+    if (eventType == null) {
+      logger.log(TreeLogger.ERROR,String.format("Cannot find %s implementation %s.%s",EntityProxyChangedEvent.class.getName(),packageName,eventTypeName));
+      throw new UnableToCompleteException();
+    }
+    f.addImport(AbstractJsonListRequest.class.getName());
+    f.addImport(AbstractJsonObjectRequest.class.getName());
+    f.addImport(RequestFactoryJsonImpl.class.getName());
+    f.addImport(Property.class.getName());
+    f.addImport(EntityProxy.class.getName());
+    f.addImport(ProxyImpl.class.getName());
+    f.addImport(ProxyJsoImpl.class.getName());
+    f.addImport(ProxySchema.class.getName());
+    f.addImport(WriteOperation.class.getName().replace("$","."));
+    f.addImport(Collections.class.getName());
+    f.addImport(HashSet.class.getName());
+    f.addImport(Set.class.getName());
+    f.addImport(Map.class.getName());
+    f.addImport(HashMap.class.getName());
+    f.setSuperclass(ProxyImpl.class.getSimpleName());
+    f.addImplementedInterface(publicProxyType.getName());
+    SourceWriter sw=f.createSourceWriter(generatorContext,pw);
+    sw.println();
+    JClassType propertyType=printSchema(typeOracle,publicProxyType,proxyImplTypeName,eventType,sw);
+    sw.println();
+    String simpleImplName=publicProxyType.getSimpleSourceName() + "Impl";
+    printRequestImplClass(sw,publicProxyType,simpleImplName,true);
+    printRequestImplClass(sw,publicProxyType,simpleImplName,false);
+    sw.println();
+    sw.println(String.format("public static final ProxySchema<%s> SCHEMA = new MySchema();",proxyImplTypeName));
+    sw.println();
+    sw.println(String.format("private %s(ProxyJsoImpl jso, boolean isFuture) {",proxyImplTypeName));
+    sw.indent();
+    sw.println("super(jso, isFuture);");
+    sw.outdent();
+    sw.println("}");
+    for (    JField field : publicProxyType.getFields()) {
+      JType fieldType=field.getType();
+      if (propertyType.getErasedType() == fieldType.getErasedType()) {
+        JParameterizedType parameterized=fieldType.isParameterized();
+        if (parameterized == null) {
+          logger.log(TreeLogger.ERROR,fieldType + " must have its param type set.");
+          throw new UnableToCompleteException();
+        }
+        JClassType returnType=parameterized.getTypeArgs()[0];
+        sw.println();
+        sw.println(String.format("public %s get%s() {",returnType.getQualifiedSourceName(),capitalize(field.getName())));
+        sw.indent();
+        sw.println(String.format("return get(%s);",field.getName()));
+        sw.outdent();
+        sw.println("}");
+        if (isProxyType(typeOracle,returnType)) {
+          transitiveDeps.add(returnType);
+        }
+      }
+    }
+    for (    JField field : publicProxyType.getFields()) {
+      JType fieldType=field.getType();
+      if (propertyType.getErasedType() == fieldType.getErasedType()) {
+        JParameterizedType parameterized=fieldType.isParameterized();
+        if (parameterized == null) {
+          logger.log(TreeLogger.ERROR,fieldType + " must have its param type set.");
+          throw new UnableToCompleteException();
+        }
+        JClassType returnType=parameterized.getTypeArgs()[0];
+        sw.println();
+        String varName=field.getName();
+        sw.println(String.format("public void set%s(%s %s) {",capitalize(field.getName()),returnType.getQualifiedSourceName(),varName));
+        sw.indent();
+        sw.println(String.format("set(this.%s, this, %s);",field.getName(),varName));
+        sw.outdent();
+        sw.println("}");
+      }
+    }
+    sw.outdent();
+    sw.println("}");
+    generatorContext.commit(logger,pw);
+  }
+  generatedProxyTypes.add(publicProxyType);
+  for (  JClassType type : transitiveDeps) {
+    ensureProxyType(logger,generatorContext,type.getPackage().getName(),type);
+  }
+}

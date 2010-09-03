@@ -16,15 +16,15 @@
   root.add(shell);
   eventBus.addHandler(RequestEvent.TYPE,new AuthenticationFailureHandler());
   final LoginWidget login=shell.getLoginWidget();
-  Receiver<UserInformationRecord> receiver=new Receiver<UserInformationRecord>(){
-    public void onSuccess(    UserInformationRecord userInformationRecord,    Set<SyncResult> syncResults){
+  Receiver<UserInformationProxy> receiver=new Receiver<UserInformationProxy>(){
+    public void onSuccess(    UserInformationProxy userInformationRecord,    Set<SyncResult> syncResults){
       login.setUserInformation(userInformationRecord);
     }
   }
 ;
   requestFactory.userInformationRequest().getCurrentUserInformation(Location.getHref()).fire(receiver);
   expenseTree.setListener(new ExpenseTree.Listener(){
-    public void onSelection(    String department,    EmployeeRecord employee){
+    public void onSelection(    String department,    EmployeeProxy employee){
       lastDepartment=department;
       lastEmployee=employee;
       expenseList.setEmployee(department,employee);
@@ -34,7 +34,7 @@
 );
   expenseTree.setRequestFactory(requestFactory);
   expenseList.setListener(new ExpenseList.Listener(){
-    public void onReportSelected(    ReportRecord report){
+    public void onReportSelected(    ReportProxy report){
       expenseDetails.setExpensesRequestFactory(requestFactory);
       expenseDetails.setReportRecord(report,lastDepartment,lastEmployee);
       shell.showExpenseDetails(true);
@@ -42,7 +42,7 @@
   }
 );
   expenseList.setRequestFactory(requestFactory);
-  eventBus.addHandler(ReportRecordChanged.TYPE,expenseList);
-  eventBus.addHandler(ExpenseRecordChanged.TYPE,expenseDetails);
-  eventBus.addHandler(ReportRecordChanged.TYPE,expenseDetails);
+  eventBus.addHandler(ReportProxyChanged.TYPE,expenseList);
+  eventBus.addHandler(ExpenseProxyChanged.TYPE,expenseDetails);
+  eventBus.addHandler(ReportProxyChanged.TYPE,expenseDetails);
 }

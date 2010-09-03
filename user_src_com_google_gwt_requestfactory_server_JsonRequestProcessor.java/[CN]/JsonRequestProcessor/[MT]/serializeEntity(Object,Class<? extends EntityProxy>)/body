@@ -1,0 +1,23 @@
+{
+  if (entityInstance == null) {
+    return null;
+  }
+  JSONObject jsonObject=new JSONObject();
+  for (  Property<?> p : allProperties(recordClass)) {
+    String propertyName=p.getName();
+    String methodName=getMethodNameFromPropertyName(propertyName,"get");
+    Method method=entityInstance.getClass().getMethod(methodName);
+    Object returnValue=method.invoke(entityInstance);
+    Object propertyValue;
+    if (returnValue != null && EntityProxy.class.isAssignableFrom(p.getType())) {
+      Method idMethod=returnValue.getClass().getMethod("getId");
+      Long id=(Long)idMethod.invoke(returnValue);
+      propertyValue=id + "-NO-" + operationRegistry.getSecurityProvider().encodeClassType(p.getType());
+    }
+ else {
+      propertyValue=encodePropertyValue(returnValue);
+    }
+    jsonObject.put(propertyName,propertyValue);
+  }
+  return jsonObject;
+}

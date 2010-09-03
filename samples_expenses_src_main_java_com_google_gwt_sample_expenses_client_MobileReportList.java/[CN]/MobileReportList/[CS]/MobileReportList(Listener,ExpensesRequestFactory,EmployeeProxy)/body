@@ -1,0 +1,32 @@
+{
+  this.listener=listener;
+  this.requestFactory=requestFactory;
+  this.employee=employee;
+  reportDataProvider=new AsyncDataProvider<ReportProxy>(){
+    @Override protected void onRangeChanged(    HasData<ReportProxy> view){
+      requestReports();
+    }
+  }
+;
+  reportDataProvider.setKeyProvider(Expenses.REPORT_RECORD_KEY_PROVIDER);
+  reportList=new CellList<ReportProxy>(new AbstractCell<ReportProxy>(){
+    @Override public void render(    ReportProxy value,    Object viewData,    SafeHtmlBuilder sb){
+      sb.appendHtmlConstant("<div class='item'>");
+      sb.appendEscaped(value.getPurpose());
+      sb.appendHtmlConstant("</div>");
+    }
+  }
+);
+  reportSelection=new NoSelectionModel<ReportProxy>();
+  reportSelection.setKeyProvider(Expenses.REPORT_RECORD_KEY_PROVIDER);
+  reportSelection.addSelectionChangeHandler(new SelectionChangeEvent.Handler(){
+    public void onSelectionChange(    SelectionChangeEvent event){
+      listener.onReportSelected(reportSelection.getLastSelectedObject());
+    }
+  }
+);
+  reportList.setSelectionModel(reportSelection);
+  reportDataProvider.addDataDisplay(reportList);
+  initWidget(reportList);
+  onRefresh(false);
+}

@@ -36,8 +36,8 @@
 ;
     requestFactory.reportRequest().countReportsBySearch(employeeId,dept,startsWith).fire(lastDataSizeReceiver);
   }
-  lastDataReceiver=new Receiver<List<ReportRecord>>(){
-    public void onSuccess(    List<ReportRecord> newValues,    Set<SyncResult> syncResults){
+  lastDataReceiver=new Receiver<List<ReportProxy>>(){
+    public void onSuccess(    List<ReportProxy> newValues,    Set<SyncResult> syncResults){
       if (this == lastDataReceiver) {
         int size=newValues.size();
         if (size < table.getPageSize()) {
@@ -50,10 +50,10 @@
         if (knownReportKeys == null) {
           knownReportKeys=new HashSet<Object>();
         }
-        for (        ReportRecord value : newValues) {
+        for (        ReportProxy value : newValues) {
           Object key=reports.getKey(value);
           if (!isInitialData && !knownReportKeys.contains(key)) {
-            (new PhaseAnimation.CellTablePhaseAnimation<ReportRecord>(table,value,reports)).run();
+            (new PhaseAnimation.CellTablePhaseAnimation<ReportProxy>(table,value,reports)).run();
           }
           knownReportKeys.add(key);
         }

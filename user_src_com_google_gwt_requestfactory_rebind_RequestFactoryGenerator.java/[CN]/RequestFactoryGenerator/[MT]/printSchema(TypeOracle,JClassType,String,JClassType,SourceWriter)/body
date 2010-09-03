@@ -1,5 +1,5 @@
 {
-  sw.println(String.format("public static class MySchema extends RecordSchema<%s> {",recordImplTypeName));
+  sw.println(String.format("public static class MySchema extends ProxySchema<%s> {",proxyImplTypeName));
   sw.indent();
   sw.println("private final Set<Property<?>> allProperties;");
   sw.println("{");
@@ -13,7 +13,7 @@
  catch (  NotFoundException e) {
     throw new RuntimeException(e);
   }
-  for (  JField field : publicRecordType.getFields()) {
+  for (  JField field : publicProxyType.getFields()) {
     if (propertyType.getErasedType() == field.getType().getErasedType()) {
       sw.println(String.format("set.add(%s);",field.getName()));
     }
@@ -30,27 +30,27 @@
   sw.println();
   sw.println("public MySchema() {");
   sw.indent();
-  sw.println("super(\"" + publicRecordType.getQualifiedSourceName() + "\");");
+  sw.println("super(\"" + publicProxyType.getQualifiedSourceName() + "\");");
   sw.outdent();
   sw.println("}");
   sw.println();
   sw.println("@Override");
-  sw.println(String.format("public %s create(RecordJsoImpl jso, boolean isFuture) {",recordImplTypeName));
+  sw.println(String.format("public %s create(ProxyJsoImpl jso, boolean isFuture) {",proxyImplTypeName));
   sw.indent();
-  sw.println(String.format("return new %s(jso, isFuture);",recordImplTypeName));
+  sw.println(String.format("return new %s(jso, isFuture);",proxyImplTypeName));
   sw.outdent();
   sw.println("}");
   sw.println();
   sw.println("@Override");
-  sw.println(String.format("public %s createChangeEvent(Record record, WriteOperation writeOperation) {",eventType.getName()));
+  sw.println(String.format("public %s createChangeEvent(EntityProxy proxy, WriteOperation writeOperation) {",eventType.getName()));
   sw.indent();
-  sw.println(String.format("return new %s((%s) record, writeOperation);",eventType.getName(),publicRecordType.getName()));
+  sw.println(String.format("return new %s((%s) proxy, writeOperation);",eventType.getName(),publicProxyType.getName()));
   sw.outdent();
   sw.println("}");
   sw.println();
   sw.println("public Class getProxyClass() {");
   sw.indent();
-  sw.println("return " + publicRecordType.getQualifiedSourceName() + ".class;"+ " // special field");
+  sw.println("return " + publicProxyType.getQualifiedSourceName() + ".class;"+ " // special field");
   sw.outdent();
   sw.println("}");
   sw.outdent();

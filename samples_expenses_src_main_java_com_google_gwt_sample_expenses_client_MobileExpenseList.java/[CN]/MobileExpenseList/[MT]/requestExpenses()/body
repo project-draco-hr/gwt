@@ -3,8 +3,8 @@
   if (requestFactory == null || report == null) {
     return;
   }
-  lastReceiver=new Receiver<List<ExpenseRecord>>(){
-    public void onSuccess(    List<ExpenseRecord> newValues,    Set<SyncResult> syncResults){
+  lastReceiver=new Receiver<List<ExpenseProxy>>(){
+    public void onSuccess(    List<ExpenseProxy> newValues,    Set<SyncResult> syncResults){
       if (this == lastReceiver) {
         int size=newValues.size();
         expenseDataProvider.updateRowCount(size,true);
@@ -13,12 +13,12 @@
         if (knownDeniedKeys == null) {
           knownDeniedKeys=new HashSet<Object>();
         }
-        for (        ExpenseRecord value : newValues) {
+        for (        ExpenseProxy value : newValues) {
           Object key=expenseDataProvider.getKey(value);
           String approval=value.getApproval();
           if (Expenses.Approval.DENIED.getText().equals(approval)) {
             if (!isInitialData && !knownDeniedKeys.contains(key)) {
-              (new PhaseAnimation.CellListPhaseAnimation<ExpenseRecord>(expenseList,value,expenseDataProvider)).run();
+              (new PhaseAnimation.CellListPhaseAnimation<ExpenseProxy>(expenseList,value,expenseDataProvider)).run();
             }
             knownDeniedKeys.add(key);
           }
@@ -31,5 +31,5 @@
     }
   }
 ;
-  requestFactory.expenseRequest().findExpensesByReport(report.getRef(ReportRecord.id)).with(getExpenseColumns()).fire(lastReceiver);
+  requestFactory.expenseRequest().findExpensesByReport(report.getRef(ReportProxy.id)).with(getExpenseColumns()).fire(lastReceiver);
 }
