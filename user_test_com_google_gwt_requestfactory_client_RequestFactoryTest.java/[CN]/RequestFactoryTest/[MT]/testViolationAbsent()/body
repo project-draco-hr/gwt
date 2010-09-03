@@ -1,0 +1,19 @@
+{
+  final SimpleRequestFactory req=GWT.create(SimpleRequestFactory.class);
+  HandlerManager hm=new HandlerManager(null);
+  req.init(hm);
+  delayTestFinish(5000);
+  SimpleFooProxy newFoo=(SimpleFooProxy)req.create(SimpleFooProxy.class);
+  final RequestObject<Void> fooReq=req.simpleFooRequest().persist(newFoo);
+  newFoo=fooReq.edit(newFoo);
+  newFoo.setUserName("Amit");
+  fooReq.fire(new Receiver<Void>(){
+    public void onSuccess(    Void ignore,    Set<SyncResult> syncResults){
+      assertEquals(1,syncResults.size());
+      SyncResult syncResult=syncResults.iterator().next();
+      assertFalse(syncResult.hasViolations());
+      finishTest();
+    }
+  }
+);
+}
