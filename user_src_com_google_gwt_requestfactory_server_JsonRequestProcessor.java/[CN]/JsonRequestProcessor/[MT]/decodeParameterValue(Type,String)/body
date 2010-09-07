@@ -43,29 +43,18 @@
     return new BigDecimal(parameterValue);
   }
   if (parameterType.isEnum()) {
-    try {
-      int ordinal=Integer.parseInt(parameterValue);
-      Method valuesMethod=parameterType.getDeclaredMethod("values",new Class[0]);
-      if (valuesMethod != null) {
-        valuesMethod.setAccessible(true);
-        Enum<?>[] values=(Enum<?>[])valuesMethod.invoke(null);
-        for (        Enum<?> e : values) {
-          if (ordinal == e.ordinal()) {
-            return e;
-          }
+    int ordinal=Integer.parseInt(parameterValue);
+    Method valuesMethod=parameterType.getDeclaredMethod("values",new Class[0]);
+    if (valuesMethod != null) {
+      valuesMethod.setAccessible(true);
+      Enum<?>[] values=(Enum<?>[])valuesMethod.invoke(null);
+      for (      Enum<?> e : values) {
+        if (ordinal == e.ordinal()) {
+          return e;
         }
       }
-      throw new IllegalArgumentException("Can't decode enum " + parameterType + " no matching ordinal "+ ordinal);
     }
- catch (    NoSuchMethodException e) {
-      throw new IllegalArgumentException("Can't decode enum " + parameterType);
-    }
-catch (    InvocationTargetException e) {
-      throw new IllegalArgumentException("Can't decode enum " + parameterType);
-    }
-catch (    IllegalAccessException e) {
-      throw new IllegalArgumentException("Can't decode enum " + parameterType);
-    }
+    throw new IllegalArgumentException("Can't decode enum " + parameterType + " no matching ordinal "+ ordinal);
   }
   if (Date.class == parameterType) {
     return new Date(Long.parseLong(parameterValue));
@@ -76,24 +65,13 @@ catch (    IllegalAccessException e) {
       Class<?> sClass=service.value();
       EntityKey entityKey=getEntityKey(parameterValue.toString());
       DvsData dvsData=dvsDataMap.get(entityKey);
-      try {
-        if (dvsData != null) {
-          EntityData entityData=getEntityDataForRecord(entityKey,dvsData.jsonObject,dvsData.writeOperation);
-          return entityData.entityInstance;
-        }
+      if (dvsData != null) {
+        EntityData entityData=getEntityDataForRecord(entityKey,dvsData.jsonObject,dvsData.writeOperation);
+        return entityData.entityInstance;
+      }
  else {
-          Method findMeth=sClass.getMethod(getMethodNameFromPropertyName(sClass.getSimpleName(),"find"),Long.class);
-          return findMeth.invoke(null,entityKey.id);
-        }
-      }
- catch (      NoSuchMethodException e) {
-        throw new IllegalArgumentException("No such method " + getMethodNameFromPropertyName(sClass.getSimpleName(),"find"),e);
-      }
-catch (      InvocationTargetException e) {
-        throw new IllegalArgumentException("Can't invoke method",e);
-      }
-catch (      IllegalAccessException e) {
-        throw new IllegalArgumentException("Can't invoke method",e);
+        Method findMeth=sClass.getMethod(getMethodNameFromPropertyName(sClass.getSimpleName(),"find"),Long.class);
+        return findMeth.invoke(null,entityKey.id);
       }
     }
   }
