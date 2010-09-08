@@ -1,0 +1,22 @@
+{
+  JClassType validatorType=context.getTypeOracle().findType(typeName);
+  TypeOracle typeOracle=context.getTypeOracle();
+  assert(typeOracle != null);
+  JClassType validator=typeOracle.findType(typeName);
+  if (validator == null) {
+    logger.log(TreeLogger.ERROR,"Unable to find metadata for type '" + typeName + "'",null);
+    throw new UnableToCompleteException();
+  }
+  GwtValidation gwtValidation=validatorType.findAnnotationInTypeHierarchy(GwtValidation.class);
+  if (gwtValidation == null) {
+    logger.log(TreeLogger.ERROR,typeName + "Must be anntotated with " + GwtValidation.class.getCanonicalName(),null);
+    throw new UnableToCompleteException();
+  }
+  if (gwtValidation.value().length == 0) {
+    logger.log(TreeLogger.ERROR,"The @" + GwtValidation.class.getSimpleName() + "  of "+ typeName+ "must specify at least one bean type to validate.",null);
+    throw new UnableToCompleteException();
+  }
+  TreeLogger validatorLogger=logger.branch(TreeLogger.DEBUG,"Generating Validator for  '" + validator.getQualifiedSourceName() + "'",null);
+  ValidatorCreator creator=new ValidatorCreator(validatorType,gwtValidation,validatorLogger,context);
+  return creator.create();
+}

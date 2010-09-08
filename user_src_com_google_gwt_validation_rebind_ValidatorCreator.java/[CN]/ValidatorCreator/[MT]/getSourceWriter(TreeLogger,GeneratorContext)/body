@@ -1,0 +1,17 @@
+{
+  JPackage serviceIntfPkg=validatorType.getPackage();
+  String packageName=serviceIntfPkg == null ? "" : serviceIntfPkg.getName();
+  String simpleName=getSimpleName();
+  PrintWriter printWriter=ctx.tryCreate(logger,packageName,simpleName);
+  if (printWriter == null) {
+    return null;
+  }
+  ClassSourceFileComposerFactory composerFactory=new ClassSourceFileComposerFactory(packageName,simpleName);
+  String[] imports=new String[]{GWT.class.getCanonicalName(),GwtBeanDescriptor.class.getCanonicalName(),GwtSpecificValidator.class.getCanonicalName(),GwtValidationContext.class.getCanonicalName(),Set.class.getCanonicalName(),ConstraintViolation.class.getCanonicalName(),BeanDescriptor.class.getCanonicalName()};
+  for (  String imp : imports) {
+    composerFactory.addImport(imp);
+  }
+  composerFactory.setSuperclass(AbstractGwtValidator.class.getCanonicalName());
+  SourceWriter sourceWriter=composerFactory.createSourceWriter(ctx,printWriter);
+  return sourceWriter;
+}

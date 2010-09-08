@@ -1,0 +1,19 @@
+{
+  JClassType validatorType=context.getTypeOracle().findType(typeName);
+  TypeOracle typeOracle=context.getTypeOracle();
+  assert(typeOracle != null);
+  JClassType validator=typeOracle.findType(typeName);
+  if (validator == null) {
+    logger.log(TreeLogger.ERROR,"Unable to find metadata for type '" + typeName + "'",null);
+    throw new UnableToCompleteException();
+  }
+  JClassType gwtSpecificInterface=getGwtSpecificValidator(logger,validator);
+  JClassType beanType=getBeanType(logger,validator,gwtSpecificInterface);
+  BeanHelper beanHelper=ValidatorCreator.getBeanHelper(beanType);
+  if (beanHelper == null) {
+    logger.log(TreeLogger.ERROR,"Unable to find BeanHelper for " + beanType + " "+ GwtSpecificValidator.class.getSimpleName()+ " should only be referenced from a class created by "+ ValidatorGenerator.class.getCanonicalName(),null);
+    throw new UnableToCompleteException();
+  }
+  AbstractCreator creator=new GwtSpecificValidatorCreator(validatorType,beanType,beanHelper,logger,context);
+  return creator.create();
+}

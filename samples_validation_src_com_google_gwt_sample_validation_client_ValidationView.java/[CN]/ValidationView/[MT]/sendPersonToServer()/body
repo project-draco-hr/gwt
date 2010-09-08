@@ -1,6 +1,19 @@
 {
   errorLabel.setText("");
   person.setName(nameField.getText());
+  Validator validator=GWT.create(SampleValidator.class);
+  Set<ConstraintViolation<Person>> violations=validator.validate(person);
+  if (!violations.isEmpty()) {
+    StringBuffer errorMessage=new StringBuffer();
+    for (    ConstraintViolation<Person> constraintViolation : violations) {
+      if (errorMessage.length() == 0) {
+        errorMessage.append('\n');
+      }
+      errorMessage.append(constraintViolation.getMessage());
+    }
+    errorLabel.setText(errorMessage.toString());
+    return;
+  }
   sendButton.setEnabled(false);
   textToServer.setText(person.getName());
   serverResponse.setText("");
