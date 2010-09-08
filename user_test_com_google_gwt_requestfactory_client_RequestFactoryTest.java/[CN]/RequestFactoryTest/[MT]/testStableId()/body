@@ -1,0 +1,37 @@
+{
+  delayTestFinish(5000);
+  final SimpleFooProxy foo=(SimpleFooProxy)req.create(SimpleFooProxy.class);
+  final Object futureId=foo.getId();
+  assertTrue(((ProxyImpl)foo).isFuture());
+  RequestObject<SimpleFooProxy> fooReq=req.simpleFooRequest().persistAndReturnSelf(foo);
+  final SimpleFooProxy newFoo=fooReq.edit(foo);
+  assertEquals(futureId,foo.getId());
+  assertTrue(((ProxyImpl)foo).isFuture());
+  assertEquals(futureId,newFoo.getId());
+  assertTrue(((ProxyImpl)newFoo).isFuture());
+  newFoo.setUserName("GWT basic user");
+  fooReq.fire(new Receiver<SimpleFooProxy>(){
+    public void onSuccess(    final SimpleFooProxy returned,    Set<SyncResult> syncResults){
+      assertEquals(futureId,foo.getId());
+      assertTrue(((ProxyImpl)foo).isFuture());
+      assertEquals(futureId,newFoo.getId());
+      assertTrue(((ProxyImpl)newFoo).isFuture());
+      assertFalse(((ProxyImpl)returned).isFuture());
+      checkStableIdEquals(foo,returned);
+      checkStableIdEquals(newFoo,returned);
+      RequestObject<SimpleFooProxy> editRequest=req.simpleFooRequest().persistAndReturnSelf(returned);
+      final SimpleFooProxy editableFoo=editRequest.edit(returned);
+      editableFoo.setUserName("GWT power user");
+      editRequest.fire(new Receiver<SimpleFooProxy>(){
+        public void onSuccess(        SimpleFooProxy returnedAfterEdit,        Set<SyncResult> syncResults){
+          assertNotSame(returnedAfterEdit,editableFoo);
+          assertEquals(returnedAfterEdit.getStableId(),returned.getStableId());
+          assertEquals(returnedAfterEdit.getId(),returned.getId());
+          finishTest();
+        }
+      }
+);
+    }
+  }
+);
+}

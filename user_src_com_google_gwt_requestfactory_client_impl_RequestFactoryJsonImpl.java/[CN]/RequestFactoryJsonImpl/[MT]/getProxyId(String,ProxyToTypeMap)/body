@@ -1,0 +1,19 @@
+{
+  String[] bits=token.split(EntityProxyIdImpl.SEPARATOR);
+  if (bits.length != 2) {
+    return null;
+  }
+  ProxySchema<? extends EntityProxy> schema=recordToTypeMap.getType(bits[1]);
+  if (schema == null) {
+    return null;
+  }
+  Long id=null;
+  try {
+    id=Long.valueOf(bits[0]);
+  }
+ catch (  NumberFormatException e) {
+    return null;
+  }
+  Object futureId=datastoreToFutureMap.get(id,schema);
+  return new EntityProxyIdImpl(id,schema,false,futureId);
+}
