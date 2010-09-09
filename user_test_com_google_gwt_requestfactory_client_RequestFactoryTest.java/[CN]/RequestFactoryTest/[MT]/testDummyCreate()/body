@@ -1,11 +1,16 @@
 {
   delayTestFinish(5000);
   final SimpleFooProxy foo=(SimpleFooProxy)req.create(SimpleFooProxy.class);
+  Object futureId=foo.getId();
+  assertEquals(futureId,foo.getId());
+  assertTrue(((ProxyImpl)foo).isFuture());
   RequestObject<SimpleFooProxy> fooReq=req.simpleFooRequest().persistAndReturnSelf(foo);
   fooReq.fire(new Receiver<SimpleFooProxy>(){
     public void onSuccess(    final SimpleFooProxy returned,    Set<SyncResult> syncResults){
-      assertNotSame(foo.getStableId(),returned.getStableId());
-      assertEquals(foo.getStableId(),returned.getStableId());
+      Object futureId=foo.getId();
+      assertEquals(futureId,foo.getId());
+      assertTrue(((ProxyImpl)foo).isFuture());
+      checkStableIdEquals(foo,returned);
       finishTest();
     }
   }
