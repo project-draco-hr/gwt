@@ -1,0 +1,20 @@
+{
+  try {
+    SelectionProperty localeProp=propertyOracle.getSelectionProperty(logger,PROP_LOCALE);
+    ConfigurationProperty runtimeLocaleProp=propertyOracle.getConfigurationProperty(PROP_RUNTIME_LOCALES);
+    LocaleInfoContext localeInfoCtx=getLocaleInfoCtx(context);
+    LocaleUtils localeUtils=localeInfoCtx.getLocaleUtils(localeProp,runtimeLocaleProp);
+    if (localeUtils == null) {
+      localeUtils=createInstance(localeProp,runtimeLocaleProp);
+      localeInfoCtx.putLocaleUtils(localeProp,runtimeLocaleProp,localeUtils);
+    }
+    return localeUtils;
+  }
+ catch (  BadPropertyValueException e) {
+    logger.log(TreeLogger.WARN,"Unable to get locale properties, using defaults",e);
+    GwtLocale defaultLocale=factory.fromString("default");
+    Set<GwtLocale> allLocales=new HashSet<GwtLocale>();
+    allLocales.add(defaultLocale);
+    return new LocaleUtils(defaultLocale,allLocales,allLocales,Collections.<GwtLocale>emptySet());
+  }
+}
