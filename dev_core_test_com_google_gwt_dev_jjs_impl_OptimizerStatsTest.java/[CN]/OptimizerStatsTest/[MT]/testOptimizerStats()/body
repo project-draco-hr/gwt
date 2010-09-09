@@ -1,0 +1,34 @@
+{
+  OptimizerStats stats=new OptimizerStats("foo");
+  assertEquals("foo",stats.getName());
+  assertEquals(0,stats.getNumMods());
+  assertEquals(0,stats.getNumVisits());
+  assertFalse(stats.didChange());
+  List<OptimizerStats> children=stats.getChildren();
+  assertNotNull(children);
+  assertEquals(0,children.size());
+  stats.recordModified();
+  assertEquals(1,stats.getNumMods());
+  assertEquals(0,stats.getNumVisits());
+  assertNotNull(stats.prettyPrint());
+  assertTrue(stats.didChange());
+  stats.recordVisit();
+  assertEquals(1,stats.getNumVisits());
+  assertEquals(1,stats.getNumMods());
+  stats.recordModified(10);
+  assertEquals(11,stats.getNumMods());
+  assertEquals(1,stats.getNumVisits());
+  stats.recordVisits(5);
+  assertEquals(6,stats.getNumVisits());
+  assertEquals(11,stats.getNumMods());
+  OptimizerStats childStats=new OptimizerStats("bar");
+  childStats.recordModified(9).recordVisits(24);
+  assertEquals(9,childStats.getNumMods());
+  assertEquals(24,childStats.getNumVisits());
+  stats.add(childStats);
+  children=stats.getChildren();
+  assertNotNull(children);
+  assertEquals(1,children.size());
+  assertEquals(20,stats.getNumMods());
+  assertEquals(30,stats.getNumVisits());
+}

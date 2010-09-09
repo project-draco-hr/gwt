@@ -1,15 +1,16 @@
 {
-  boolean madeChanges=false;
+  OptimizerStats stats=new OptimizerStats(NAME);
   while (true) {
     InliningVisitor inliner=new InliningVisitor();
     inliner.accept(program);
+    stats.recordModified(inliner.getNumMods());
     if (!inliner.didChange()) {
       break;
     }
-    madeChanges=true;
     for (    JMethod method : inliner.modifiedMethods) {
-      DeadCodeElimination.exec(program,method);
+      OptimizerStats innerStats=DeadCodeElimination.exec(program,method);
+      stats.recordModified(innerStats.getNumMods());
     }
   }
-  return madeChanges;
+  return stats;
 }

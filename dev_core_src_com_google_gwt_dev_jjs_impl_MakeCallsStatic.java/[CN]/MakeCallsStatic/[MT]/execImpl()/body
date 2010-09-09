@@ -1,4 +1,5 @@
 {
+  OptimizerStats stats=new OptimizerStats(NAME);
   FindStaticDispatchSitesVisitor finder=new FindStaticDispatchSitesVisitor();
   finder.accept(program);
   CreateStaticImplsVisitor creator=new CreateStaticImplsVisitor(program);
@@ -7,6 +8,7 @@
   }
   RewriteCallSites rewriter=new RewriteCallSites();
   rewriter.accept(program);
+  stats.recordModified(rewriter.getNumMods());
   assert(rewriter.didChange() || toBeMadeStatic.isEmpty());
-  return rewriter.didChange();
+  return stats;
 }

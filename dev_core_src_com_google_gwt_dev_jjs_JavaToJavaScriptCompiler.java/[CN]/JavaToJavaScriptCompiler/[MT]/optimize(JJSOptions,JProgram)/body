@@ -1,16 +1,28 @@
 {
   Event optimizeEvent=SpeedTracerLogger.start(CompilerEventType.OPTIMIZE);
   jprogram.beginOptimizations();
-  do {
+  List<OptimizerStats> allOptimizerStats=new ArrayList<OptimizerStats>();
+  int counter=0;
+  while (true) {
+    counter++;
     if (Thread.interrupted()) {
       optimizeEvent.end();
       throw new InterruptedException();
     }
     maybeDumpAST(jprogram);
+    OptimizerStats stats=optimizeLoop("Pass " + counter,jprogram,options.isAggressivelyOptimize());
+    allOptimizerStats.add(stats);
+    if (!stats.didChange()) {
+      break;
+    }
   }
- while (optimizeLoop(jprogram,options.isAggressivelyOptimize()));
   if (options.isAggressivelyOptimize()) {
-    DataflowOptimizer.exec(jprogram);
+    allOptimizerStats.add(DataflowOptimizer.exec(jprogram));
+  }
+  if (JProgram.isTracingEnabled()) {
+    for (    OptimizerStats stats : allOptimizerStats) {
+      System.out.println(stats.prettyPrint());
+    }
   }
   optimizeEvent.end();
 }

@@ -1,7 +1,7 @@
 {
+  OptimizerStats stats=new OptimizerStats(NAME);
   AnalysisVisitor analysisVisitor=new AnalysisVisitor();
   analysisVisitor.accept(node);
-  boolean madeChanges=false;
   for (  JParameter parameter : parameterValues.keySet()) {
     if (rescuedMethods.contains(parameter.getEnclosingMethod())) {
       continue;
@@ -10,8 +10,8 @@
     if (valueLiteral != null) {
       SubstituteParameterVisitor substituteParameterVisitor=new SubstituteParameterVisitor(parameter,simplifier.cast(parameter.getType(),valueLiteral));
       substituteParameterVisitor.accept(parameter.getEnclosingMethod());
-      madeChanges|=substituteParameterVisitor.didChange();
+      stats.recordModified(substituteParameterVisitor.getNumMods());
     }
   }
-  return madeChanges;
+  return stats;
 }
