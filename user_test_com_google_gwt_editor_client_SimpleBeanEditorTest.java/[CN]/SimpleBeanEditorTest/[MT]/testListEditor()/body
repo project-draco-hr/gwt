@@ -1,0 +1,47 @@
+{
+  final SortedMap<Integer,SimpleEditor<String>> positionMap=new TreeMap<Integer,SimpleEditor<String>>();
+  @SuppressWarnings("unchecked") final SimpleEditor<String>[] disposed=new SimpleEditor[1];
+class StringSource extends EditorSource<SimpleEditor<String>> {
+    public SimpleEditor<String> create(    int index){
+      SimpleEditor<String> editor=SimpleEditor.of();
+      positionMap.put(index,editor);
+      return editor;
+    }
+    public void dispose(    SimpleEditor<String> editor){
+      disposed[0]=editor;
+      positionMap.values().remove(editor);
+    }
+    public void setIndex(    SimpleEditor<String> editor,    int index){
+      positionMap.values().remove(editor);
+      positionMap.put(index,editor);
+    }
+  }
+  ;
+  ListEditorDriver driver=GWT.create(ListEditorDriver.class);
+  ListEditor<String,SimpleEditor<String>> editor=ListEditor.of(new StringSource());
+  driver.initialize(editor);
+  List<String> rawData=new ArrayList<String>(Arrays.asList("foo","bar","baz"));
+  driver.edit(rawData);
+  List<SimpleEditor<String>> editors=editor.getEditors();
+  assertEquals(rawData.size(),editors.size());
+  assertEquals(rawData,Arrays.asList(editors.get(0).getValue(),editors.get(1).getValue(),editors.get(2).getValue()));
+  assertEquals(editors,new ArrayList<SimpleEditor<String>>(positionMap.values()));
+  List<String> mutableList=editor.getList();
+  assertEquals(rawData,mutableList);
+  mutableList.set(1,"Hello");
+  assertEquals("Hello",editors.get(1).getValue());
+  editors.get(2).setValue("World");
+  assertEquals("baz",rawData.get(2));
+  driver.flush();
+  assertEquals("World",rawData.get(2));
+  mutableList.add("quux");
+  assertEquals(4,editors.size());
+  assertEquals("quux",editors.get(3).getValue());
+  assertEquals(editors,new ArrayList<SimpleEditor<String>>(positionMap.values()));
+  SimpleEditor<String> expectedDisposed=editors.get(0);
+  mutableList.remove(0);
+  assertSame(expectedDisposed,disposed[0]);
+  assertEquals(3,editors.size());
+  assertEquals("quux",editors.get(2).getValue());
+  assertEquals(editors,new ArrayList<SimpleEditor<String>>(positionMap.values()));
+}

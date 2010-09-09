@@ -1,0 +1,95 @@
+{
+  JClassType edited=delegateData.getEditedType();
+  JClassType editor=delegateData.getEditorType();
+  String delegateSimpleName=String.format("%s_%s_%s",escapedBinaryName(BinaryName.getClassName(editor.getQualifiedBinaryName())),escapedBinaryName(edited.getQualifiedBinaryName()),BinaryName.getShortClassName(Name.getBinaryNameForClass(getEditorDelegateType())));
+  String packageName=editor.getPackage().getName();
+  PrintWriter pw=context.tryCreate(logger,packageName,delegateSimpleName);
+  if (pw != null) {
+    ClassSourceFileComposerFactory factory=new ClassSourceFileComposerFactory(packageName,delegateSimpleName);
+    factory.setSuperclass(String.format("%s<%s, %s>",Name.getSourceNameForClass(getEditorDelegateType()),edited.getParameterizedQualifiedSourceName(),editor.getParameterizedQualifiedSourceName()));
+    SourceWriter sw=factory.createSourceWriter(context,pw);
+    EditorData[] data=model.getEditorData(editor);
+    sw.println("private %s editor;",editor.getParameterizedQualifiedSourceName());
+    sw.println("protected void setEditor(%s editor) {this.editor=editor;}",editor.getParameterizedQualifiedSourceName());
+    sw.println("private %s object;",edited.getParameterizedQualifiedSourceName());
+    sw.println("public %s getObject() {return object;}",edited.getParameterizedQualifiedSourceName());
+    sw.println("protected void setObject(%s object) {this.object=object;}",edited.getParameterizedQualifiedSourceName());
+    if (delegateData.isCompositeEditor()) {
+      sw.println("protected %s<%s, %s> createComposedDelegate() {",Name.getSourceNameForClass(this.getEditorDelegateType()),delegateData.getComposedData().getEditedType().getParameterizedQualifiedSourceName(),delegateData.getComposedData().getEditorType().getParameterizedQualifiedSourceName());
+      sw.indentln("return new %s();",getEditorDelegate(delegateData.getComposedData()));
+      sw.println("}");
+    }
+    for (    EditorData d : data) {
+      if (d.isBeanEditor() || d.isValueAwareEditor()) {
+        sw.println("%s<%s, %s> %sDelegate;",Name.getSourceNameForClass(getEditorDelegateType()),d.getEditedType().getParameterizedQualifiedSourceName(),d.getEditorType().getParameterizedQualifiedSourceName(),d.getPropertyName());
+      }
+    }
+    sw.println("protected void attachSubEditors() {");
+    sw.indent();
+    for (    EditorData d : data) {
+      if (d.isBeanEditor() && !d.isLeafValueEditor() || d.isValueAwareEditor()) {
+        String subDelegateType=getEditorDelegate(d);
+        sw.println("if (editor.%s != null) {",d.getSimpleExpression());
+        sw.indent();
+        sw.println("%sDelegate = new %s();",d.getPropertyName(),subDelegateType);
+        writeDelegateInitialization(sw,d);
+        sw.outdent();
+        sw.println("}");
+      }
+    }
+    sw.outdent();
+    sw.println("}");
+    sw.println("protected void flushSubEditors() {");
+    sw.indent();
+    for (    EditorData d : data) {
+      if (d.isBeanEditor() || d.isValueAwareEditor()) {
+        sw.println("if (%1$sDelegate != null) { %1$sDelegate.flush();",d.getPropertyName());
+        if (d.getSetterName() != null) {
+          String mutableObjectExpression=mutableObjectExpression(String.format("getObject()%s",d.getBeanOwnerExpression()));
+          sw.println("%s.%s(%sDelegate.getObject());",mutableObjectExpression,d.getSetterName(),d.getPropertyName());
+        }
+        sw.println("}");
+      }
+    }
+    sw.outdent();
+    sw.println("}");
+    sw.println("protected void flushValues() {");
+    sw.indent();
+    for (    EditorData d : data) {
+      if ((d.isLeafValueEditor() && !d.isValueAwareEditor()) && d.getSetterName() != null) {
+        String mutableObjectExpression=mutableObjectExpression(String.format("getObject()%s",d.getBeanOwnerExpression()));
+        sw.println("if (editor.%1$s != null)" + " %2$s.%3$s(editor.%1$s.getValue());",d.getSimpleExpression(),mutableObjectExpression,d.getSetterName());
+      }
+    }
+    sw.outdent();
+    sw.println("}");
+    sw.println("public static void traverseEditor(%s editor," + " String prefix, %s<String> paths) {",editor.getParameterizedQualifiedSourceName(),List.class.getName());
+    sw.indent();
+    for (    EditorData d : data) {
+      if (d.isBeanEditor() || d.isDeclaredPathNested()) {
+        sw.println("if (editor.%s != null) {",d.getSimpleExpression());
+        sw.indent();
+        sw.println("String localPath = appendPath(prefix, \"%s\");",d.getDeclaredPath());
+        sw.println("paths.add(localPath);");
+        if (d.isBeanEditor()) {
+          sw.println("%s.traverseEditor(editor.%s, localPath, paths);",getEditorDelegate(d),d.getSimpleExpression());
+        }
+        sw.outdent();
+        sw.println("}");
+      }
+    }
+    sw.outdent();
+    sw.println("}");
+    sw.println("protected void pushValues() {");
+    sw.indent();
+    for (    EditorData d : data) {
+      if (d.isLeafValueEditor() && !d.isValueAwareEditor()) {
+        sw.println("if (editor.%1$s != null)" + " editor.%1$s.setValue(getObject()%2$s.%3$s());",d.getSimpleExpression(),d.getBeanOwnerExpression(),d.getGetterName());
+      }
+    }
+    sw.outdent();
+    sw.println("}");
+    sw.commit(logger);
+  }
+  return packageName + "." + delegateSimpleName;
+}

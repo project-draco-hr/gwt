@@ -1,0 +1,27 @@
+{
+  Object o0=new Object();
+  Object o1=new Object();
+  Object o2=new Object();
+  List<Object> backing=new ArrayList<Object>(Arrays.asList(o0,o1,o2));
+  FakeEditorSource<Object> source=new FakeEditorSource<Object>();
+  MockEditorChain<Object> chain=new MockEditorChain<Object>();
+  ListEditorWrapper<Object,FakeLeafValueEditor<Object>> wrapper=new ListEditorWrapper<Object,FakeLeafValueEditor<Object>>(backing,chain,source);
+  wrapper.attach();
+  assertEquals(3,wrapper.getEditors().size());
+  FakeLeafValueEditor<Object> e0=wrapper.getEditors().get(0);
+  FakeLeafValueEditor<Object> e1=wrapper.getEditors().get(1);
+  FakeLeafValueEditor<Object> e2=wrapper.getEditors().get(2);
+  assertSame(o0,e0.getValue());
+  assertSame(o1,e1.getValue());
+  assertSame(o2,e2.getValue());
+  wrapper.remove(1);
+  assertEquals(Arrays.asList(o0,o2),backing);
+  assertEquals(Arrays.asList(e0,e2),wrapper.getEditors());
+  assertFalse(chain.isAttached(e1));
+  assertEquals(FakeEditorSource.DISPOSED,source.getLastKnownPosition(e1));
+  assertEquals(1,source.getLastKnownPosition(e2));
+  wrapper.set(1,o1);
+  assertEquals(Arrays.asList(o0,o1),backing);
+  assertEquals(Arrays.asList(e0,e2),wrapper.getEditors());
+  assertSame(o1,e2.getValue());
+}

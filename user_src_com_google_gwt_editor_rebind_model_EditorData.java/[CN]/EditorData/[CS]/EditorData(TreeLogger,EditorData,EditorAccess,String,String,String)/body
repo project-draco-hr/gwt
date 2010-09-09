@@ -1,0 +1,26 @@
+{
+  this.beanOwnerExpression=beanOwnerExpression;
+  this.getterName=getterName;
+  this.setterName=setterName;
+  editorType=access.getEditorType();
+  editedType=EditorModel.calculateEditedType(logger,editorType);
+  editorExpression=(parent == null ? "" : (parent.getExpression() + ".")) + access.getExpresson();
+  simpleExpression=access.getExpresson();
+  declaredPath=access.getPath();
+  path=(parent == null ? "" : (parent.getPath() + ".")) + access.getPath();
+  TypeOracle oracle=editorType.getOracle();
+  JClassType leafType=oracle.findType(LeafValueEditor.class.getName());
+  isLeaf=leafType.isAssignableFrom(editorType);
+  isBeanEditor=isBeanEditor(oracle,editedType);
+  JClassType valueAwareType=oracle.findType(ValueAwareEditor.class.getName());
+  isValueAware=valueAwareType.isAssignableFrom(editorType);
+  JClassType composedType=oracle.findType(CompositeEditor.class.getName());
+  isCompositeEditor=composedType.isAssignableFrom(editorType);
+  if (!isCompositeEditor) {
+    composedData=null;
+  }
+ else {
+    JClassType[] data=EditorModel.calculateCompositeTypes(editorType);
+    composedData=new EditorData(logger.branch(TreeLogger.DEBUG,"Examining composite editor at " + path),this,EditorAccess.root(data[1]),"",null,null);
+  }
+}

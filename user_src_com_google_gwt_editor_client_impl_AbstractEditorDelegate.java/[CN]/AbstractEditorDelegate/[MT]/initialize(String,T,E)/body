@@ -1,0 +1,28 @@
+{
+  this.path=pathSoFar;
+  setEditor(editor);
+  setObject(object);
+  if (editor instanceof LeafValueEditor<?>) {
+    leafValueEditor=(LeafValueEditor<T>)editor;
+  }
+  if (editor instanceof ValueAwareEditor<?>) {
+    valueAwareEditor=(ValueAwareEditor<T>)editor;
+    valueAwareEditor.setDelegate(this);
+    if (editor instanceof CompositeEditor<?,?,?>) {
+      @SuppressWarnings("unchecked") CompositeEditor<T,Object,Editor<Object>> temp=(CompositeEditor<T,Object,Editor<Object>>)editor;
+      composedEditor=temp;
+      composedEditor.setEditorChain(new Chain<Object,Editor<Object>>());
+    }
+  }
+  if (leafValueEditor != null) {
+    leafValueEditor.setValue(object);
+    return;
+  }
+  if (valueAwareEditor != null) {
+    valueAwareEditor.setValue(object);
+  }
+  if (object != null) {
+    attachSubEditors();
+    pushValues();
+  }
+}
