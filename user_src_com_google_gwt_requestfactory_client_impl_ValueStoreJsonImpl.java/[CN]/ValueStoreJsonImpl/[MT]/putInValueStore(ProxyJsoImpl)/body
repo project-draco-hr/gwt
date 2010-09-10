@@ -3,15 +3,13 @@
   ProxyJsoImpl oldRecord=records.get(recordKey);
   if (oldRecord == null) {
     records.put(recordKey,newJsoRecord);
+    newJsoRecord.getRequestFactory().postChangeEvent(newJsoRecord,WriteOperation.ACQUIRE);
+    return null;
   }
- else {
-    boolean changed=oldRecord.merge(newJsoRecord);
-    newJsoRecord=oldRecord.cast();
-    if (array != null) {
-      array.set(i,newJsoRecord);
-    }
-    if (changed) {
-      newJsoRecord.getRequestFactory().postChangeEvent(newJsoRecord,WriteOperation.UPDATE);
-    }
+  if (oldRecord.hasChanged(newJsoRecord)) {
+    records.put(recordKey,newJsoRecord);
+    newJsoRecord.getRequestFactory().postChangeEvent(newJsoRecord,WriteOperation.UPDATE);
+    return null;
   }
+  return oldRecord;
 }
