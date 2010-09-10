@@ -37,6 +37,12 @@
     allTypeDeclarations=null;
     Memory.maybeDumpMemory("AstOnly");
     maybeDumpAST(jprogram);
+    if (module != null) {
+      ConfigurationProperty enumNameObfuscationProp=(ConfigurationProperty)module.getProperties().find(ENUM_NAME_OBFUSCATION_PROPERTY);
+      if (enumNameObfuscationProp != null && Boolean.parseBoolean(enumNameObfuscationProp.getValue())) {
+        EnumNameObfuscator.exec(jprogram,logger);
+      }
+    }
     ArtificialRescueRecorder.exec(jprogram);
     FixAssignmentToUnbox.exec(jprogram);
     if (options.isEnableAssertions()) {
@@ -46,7 +52,7 @@
       AssertionRemover.exec(jprogram);
     }
     ReplaceRebinds.exec(logger,jprogram,rpo);
-    if (options.isRunAsyncEnabled()) {
+    if (module != null && options.isRunAsyncEnabled()) {
       ReplaceRunAsyncs.exec(logger,jprogram);
       CodeSplitter.pickInitialLoadSequence(logger,jprogram,module.getProperties());
     }
