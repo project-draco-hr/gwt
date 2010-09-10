@@ -1,6 +1,8 @@
 {
   JClassType edited=delegateData.getEditedType();
   JClassType editor=delegateData.getEditorType();
+  Map<EditorData,String> delegateFields=new IdentityHashMap<EditorData,String>();
+  NameFactory nameFactory=new NameFactory();
   String delegateSimpleName=String.format("%s_%s_%s",escapedBinaryName(BinaryName.getClassName(editor.getQualifiedBinaryName())),escapedBinaryName(edited.getQualifiedBinaryName()),BinaryName.getShortClassName(Name.getBinaryNameForClass(getEditorDelegateType())));
   String packageName=editor.getPackage().getName();
   PrintWriter pw=context.tryCreate(logger,packageName,delegateSimpleName);
@@ -21,7 +23,9 @@
     }
     for (    EditorData d : data) {
       if (d.isBeanEditor() || d.isValueAwareEditor()) {
-        sw.println("%s<%s, %s> %sDelegate;",Name.getSourceNameForClass(getEditorDelegateType()),d.getEditedType().getParameterizedQualifiedSourceName(),d.getEditorType().getParameterizedQualifiedSourceName(),d.getPropertyName());
+        String fieldName=nameFactory.createName(d.getPropertyName() + "Delegate");
+        delegateFields.put(d,fieldName);
+        sw.println("%s<%s, %s> %s;",Name.getSourceNameForClass(getEditorDelegateType()),d.getEditedType().getParameterizedQualifiedSourceName(),d.getEditorType().getParameterizedQualifiedSourceName(),fieldName);
       }
     }
     sw.println("protected void attachSubEditors() {");
@@ -31,7 +35,7 @@
         String subDelegateType=getEditorDelegate(d);
         sw.println("if (editor.%s != null) {",d.getSimpleExpression());
         sw.indent();
-        sw.println("%sDelegate = new %s();",d.getPropertyName(),subDelegateType);
+        sw.println("%s = new %s();",delegateFields.get(d),subDelegateType);
         writeDelegateInitialization(sw,d);
         sw.outdent();
         sw.println("}");
@@ -43,10 +47,16 @@
     sw.indent();
     for (    EditorData d : data) {
       if (d.isBeanEditor() || d.isValueAwareEditor()) {
-        sw.println("if (%1$sDelegate != null) { %1$sDelegate.flush();",d.getPropertyName());
+        sw.println("if (%1$s != null) { %1$s.flush();",delegateFields.get(d));
         if (d.getSetterName() != null) {
-          String mutableObjectExpression=mutableObjectExpression(String.format("getObject()%s",d.getBeanOwnerExpression()));
-          sw.println("%s.%s(%sDelegate.getObject());",mutableObjectExpression,d.getSetterName(),d.getPropertyName());
+          String mutableObjectExpression;
+          if (d.getBeanOwnerExpression().length() > 0) {
+            mutableObjectExpression=mutableObjectExpression(String.format("getObject()%s",d.getBeanOwnerExpression()));
+          }
+ else {
+            mutableObjectExpression="getObject()";
+          }
+          sw.println("%s.%s(%s.getObject());",mutableObjectExpression,d.getSetterName(),delegateFields.get(d));
         }
         sw.println("}");
       }

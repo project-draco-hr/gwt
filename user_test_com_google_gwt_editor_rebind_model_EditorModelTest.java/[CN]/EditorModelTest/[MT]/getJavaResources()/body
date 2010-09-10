@@ -238,6 +238,56 @@
       return code;
     }
   }
+,new MockJavaResource("t.UsesIsEditorDriver"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + Editor.class.getName() + ";\n");
+      code.append("import " + IsEditor.class.getName() + ";\n");
+      code.append("import " + EntityProxy.class.getName() + ";\n");
+      code.append("import " + RequestFactoryEditorDriver.class.getName() + ";\n");
+      code.append("import " + SimpleEditor.class.getName() + ";\n");
+      code.append("interface UsesIsEditorDriver extends" + " RequestFactoryEditorDriver<UsesIsEditorDriver.AProxy," + " UsesIsEditorDriver.AEditor> {\n");
+      code.append("  interface AProxy extends EntityProxy { BProxy getB();}");
+      code.append("  interface BProxy extends EntityProxy { String getString();}");
+      code.append("  interface AEditor extends Editor<AProxy> {");
+      code.append("    BView bEditor();");
+      code.append("  }");
+      code.append("  interface BView extends IsEditor<BEditor> {");
+      code.append("    @Editor.Path(\"string\") BEditor unseen();");
+      code.append("  }");
+      code.append("  interface BEditor extends Editor<BProxy> {");
+      code.append("    SimpleEditor<String> stringEditor();");
+      code.append("  }");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.UsesIsEditorAndEditorDriver"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + Editor.class.getName() + ";\n");
+      code.append("import " + IsEditor.class.getName() + ";\n");
+      code.append("import " + EntityProxy.class.getName() + ";\n");
+      code.append("import " + RequestFactoryEditorDriver.class.getName() + ";\n");
+      code.append("import " + SimpleEditor.class.getName() + ";\n");
+      code.append("interface UsesIsEditorAndEditorDriver extends" + " RequestFactoryEditorDriver<UsesIsEditorAndEditorDriver.AProxy," + " UsesIsEditorAndEditorDriver.AEditor> {\n");
+      code.append("  interface AProxy extends EntityProxy { BProxy getB();}");
+      code.append("  interface BProxy extends EntityProxy { String getString();}");
+      code.append("  interface AEditor extends Editor<AProxy> {");
+      code.append("    BView bEditor();");
+      code.append("  }");
+      code.append("  interface BView extends IsEditor<BEditor>, Editor<BProxy> {");
+      code.append("    @Editor.Path(\"string\") SimpleEditor<String> viewEditor();");
+      code.append("  }");
+      code.append("  interface BEditor extends Editor<BProxy> {");
+      code.append("    @Editor.Path(\"string\") SimpleEditor<String> coEditor();");
+      code.append("  }");
+      code.append("}");
+      return code;
+    }
+  }
 ,new MockJavaResource("java.util.List"){
     @Override protected CharSequence getContent(){
       StringBuilder code=new StringBuilder();
@@ -249,7 +299,7 @@
   }
 };
   Set<Resource> toReturn=new HashSet<Resource>(Arrays.asList(javaFiles));
-  toReturn.addAll(Arrays.asList(new Resource[]{new RealJavaResource(CompositeEditor.class),new RealJavaResource(Editor.class),new EmptyMockJavaResource(EventBus.class),new RealJavaResource(HasText.class),new RealJavaResource(LeafValueEditor.class),new EmptyMockJavaResource(Property.class),new EmptyMockJavaResource(EntityProxy.class),new EmptyMockJavaResource(RequestFactory.class),new RealJavaResource(RequestFactoryEditorDriver.class),new EmptyMockJavaResource(RequestObject.class),new RealJavaResource(SimpleEditor.class),new RealJavaResource(TakesValue.class),new EmptyMockJavaResource(ValueAwareEditor.class)}));
+  toReturn.addAll(Arrays.asList(new Resource[]{new RealJavaResource(CompositeEditor.class),new RealJavaResource(Editor.class),new EmptyMockJavaResource(EventBus.class),new RealJavaResource(HasText.class),new RealJavaResource(IsEditor.class),new RealJavaResource(LeafValueEditor.class),new EmptyMockJavaResource(Property.class),new EmptyMockJavaResource(EntityProxy.class),new EmptyMockJavaResource(RequestFactory.class),new RealJavaResource(RequestFactoryEditorDriver.class),new EmptyMockJavaResource(RequestObject.class),new RealJavaResource(SimpleEditor.class),new RealJavaResource(TakesValue.class),new EmptyMockJavaResource(ValueAwareEditor.class)}));
   toReturn.addAll(Arrays.asList(JavaResourceBase.getStandardResources()));
   return toReturn;
 }

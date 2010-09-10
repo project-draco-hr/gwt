@@ -6,13 +6,15 @@
       if (field.isPrivate() || field.isStatic()) {
         continue;
       }
-      JClassType fieldClassType=field.getType().isClassOrInterface();
-      if (fieldClassType != null && editorIntf.isAssignableFrom(fieldClassType)) {
-        EditorData data=createEditorData(EditorAccess.via(field));
-        flatData.add(data);
-        toReturn.add(data);
-        if (!data.isLeafValueEditor()) {
-          descendIntoSubEditor(toReturn,data);
+      JType fieldClassType=field.getType();
+      if (shouldExamine(fieldClassType)) {
+        List<EditorData> data=createEditorData(EditorAccess.via(field));
+        flatData.addAll(data);
+        toReturn.addAll(data);
+        for (        EditorData d : data) {
+          if (!d.isLeafValueEditor()) {
+            descendIntoSubEditor(toReturn,d);
+          }
         }
       }
     }
@@ -20,13 +22,19 @@
       if (method.isPrivate() || method.isStatic()) {
         continue;
       }
-      JClassType methodReturnType=method.getReturnType().isClassOrInterface();
-      if (methodReturnType != null && editorIntf.isAssignableFrom(methodReturnType) && method.getParameters().length == 0) {
-        EditorData data=createEditorData(EditorAccess.via(method));
-        flatData.add(data);
-        toReturn.add(data);
-        if (!data.isLeafValueEditor()) {
-          descendIntoSubEditor(toReturn,data);
+      JType methodReturnType=method.getReturnType();
+      if (shouldExamine(methodReturnType) && method.getParameters().length == 0) {
+        EditorAccess access=EditorAccess.via(method);
+        if (access.getPath().equals("as") && isEditorIntf.isAssignableFrom(editorType)) {
+          continue;
+        }
+        List<EditorData> data=createEditorData(access);
+        flatData.addAll(data);
+        toReturn.addAll(data);
+        for (        EditorData d : data) {
+          if (!d.isLeafValueEditor()) {
+            descendIntoSubEditor(toReturn,d);
+          }
         }
       }
     }
