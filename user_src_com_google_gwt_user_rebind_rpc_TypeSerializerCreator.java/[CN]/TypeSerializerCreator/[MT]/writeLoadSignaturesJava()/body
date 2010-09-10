@@ -1,0 +1,32 @@
+{
+  srcWriter.println("private static Map<Class<?>, String> loadSignaturesJava() {");
+  srcWriter.indent();
+  srcWriter.println("Map<Class<?>, String> result = new HashMap<Class<?>, String>();");
+  for (  JType type : getSerializableTypes()) {
+    String typeString=typeStrings.get(type);
+    if (!serializationOracle.maybeInstantiated(type) && !deserializationOracle.maybeInstantiated(type)) {
+      continue;
+    }
+    String typeRef;
+    JClassType customSerializer=SerializableTypeOracleBuilder.findCustomFieldSerializer(typeOracle,type);
+    if (customSerializer != null && CustomFieldSerializerValidator.getConcreteTypeMethod(customSerializer) != null) {
+      typeRef=customSerializer.getQualifiedSourceName() + ".concreteType()";
+    }
+ else     if (type instanceof JClassType) {
+      typeRef=SerializationUtils.getStandardSerializerName((JClassType)type) + ".concreteType()";
+    }
+ else {
+      typeRef=type.getLeafType().getQualifiedSourceName();
+      while (type.isArray() != null) {
+        typeRef+="[]";
+        type=type.isArray().getComponentType();
+      }
+      typeRef+=".class";
+    }
+    srcWriter.println("result.put(" + typeRef + ", \""+ typeString+ "\");");
+  }
+  srcWriter.println("return result;");
+  srcWriter.outdent();
+  srcWriter.println("}");
+  srcWriter.println();
+}
