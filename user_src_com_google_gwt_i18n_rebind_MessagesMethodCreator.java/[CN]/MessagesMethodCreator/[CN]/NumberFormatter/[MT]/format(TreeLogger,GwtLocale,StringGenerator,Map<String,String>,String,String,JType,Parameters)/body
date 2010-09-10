@@ -1,0 +1,62 @@
+{
+  JPrimitiveType argPrimType=argType.isPrimitive();
+  if (argPrimType != null) {
+    if (argPrimType == JPrimitiveType.BOOLEAN || argPrimType == JPrimitiveType.VOID) {
+      logger.log(TreeLogger.ERROR,"Illegal argument type for number format");
+      return true;
+    }
+  }
+ else {
+    JClassType classType=argType.isClass();
+    if (classType == null) {
+      logger.log(TreeLogger.ERROR,"Unexpected argument type for number format");
+      return true;
+    }
+    TypeOracle oracle=classType.getOracle();
+    JClassType numberType=oracle.findType("java.lang.Number");
+    if (!classType.isAssignableTo(numberType)) {
+      logger.log(TreeLogger.ERROR,"Only Number subclasses may be formatted as a number");
+      return true;
+    }
+  }
+  String curCodeParam="";
+  String curCode=formatArgs.get("curcode");
+  if (curCode != null) {
+    if (curCode.startsWith("$")) {
+      int paramNum=params.getParameterIndex(curCode.substring(1));
+      if (paramNum < 0) {
+        logger.log(TreeLogger.ERROR,"Unable to resolve curcode argument " + curCode);
+        return true;
+      }
+ else       if (!"java.lang.String".equals(params.getParameter(paramNum).getType().getQualifiedSourceName())) {
+        logger.log(TreeLogger.ERROR,"Currency code parameter must be String");
+        return true;
+      }
+ else {
+        curCodeParam="arg" + paramNum;
+      }
+    }
+ else {
+      curCodeParam='"' + curCode + '"';
+    }
+  }
+  if (subformat == null) {
+    out.appendStringValuedExpression(numFormatClassName + ".getDecimalFormat().format(" + argName+ ")");
+  }
+ else   if ("integer".equals(subformat)) {
+    out.appendStringValuedExpression(numFormatClassName + ".getIntegerFormat().format(" + argName+ ")");
+  }
+ else   if ("currency".equals(subformat)) {
+    out.appendStringValuedExpression(numFormatClassName + ".getCurrencyFormat(" + curCodeParam+ ").format("+ argName+ ")");
+  }
+ else   if ("percent".equals(subformat)) {
+    out.appendStringValuedExpression(numFormatClassName + ".getPercentFormat().format(" + argName+ ")");
+  }
+ else {
+    if (curCodeParam.length() > 0) {
+      curCodeParam=", " + curCodeParam;
+    }
+    out.appendStringValuedExpression(numFormatClassName + ".getFormat(" + wrap(subformat)+ curCodeParam+ ").format("+ argName+ ")");
+  }
+  return false;
+}

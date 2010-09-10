@@ -1,10 +1,29 @@
 {
   super(locale);
-  props=new LocalizedProperties();
+  LocalizedProperties props=new LocalizedProperties();
   try {
     props.load(m,Util.DEFAULT_ENCODING);
   }
  catch (  IOException e) {
     throw new RuntimeException("Failed to load " + this.getPath(),e);
+  }
+  entries=new HashMap<String,MultipleFormEntry>();
+  for (  Object propEntryObj : props.getPropertyMap().entrySet()) {
+    Map.Entry<String,String> propEntry=(Entry<String,String>)propEntryObj;
+    String key=propEntry.getKey().trim();
+    String value=propEntry.getValue();
+    int startBracket=key.indexOf('[');
+    int endBracket=key.indexOf(']',startBracket + 1);
+    String form=null;
+    if (startBracket >= 0 && endBracket == key.length() - 1) {
+      form=key.substring(startBracket + 1,endBracket);
+      key=key.substring(0,startBracket);
+    }
+    MultipleFormEntry entry=entries.get(key);
+    if (entry == null) {
+      entry=new MultipleFormEntry(key);
+      entries.put(key,entry);
+    }
+    entry.addForm(form,value);
   }
 }

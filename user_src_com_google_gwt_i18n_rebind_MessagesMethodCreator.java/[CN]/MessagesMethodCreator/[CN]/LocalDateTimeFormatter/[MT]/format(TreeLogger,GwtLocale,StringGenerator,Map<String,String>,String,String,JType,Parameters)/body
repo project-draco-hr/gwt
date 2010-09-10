@@ -1,0 +1,57 @@
+{
+  if (!"java.util.Date".equals(argType.getQualifiedSourceName())) {
+    logger.log(TreeLogger.ERROR,"Only java.util.Date acceptable for localdatetime format");
+    return true;
+  }
+  if (subformat == null || subformat.length() == 0) {
+    logger.log(TreeLogger.ERROR,"localdatetime format requires a skeleton pattern");
+    return true;
+  }
+  String tzParam="";
+  String tzArg=formatArgs.get("tz");
+  if (tzArg != null) {
+    if (tzArg.startsWith("$")) {
+      int paramNum=params.getParameterIndex(tzArg.substring(1));
+      if (paramNum < 0) {
+        logger.log(TreeLogger.ERROR,"Unable to resolve tz argument " + tzArg);
+        return true;
+      }
+ else       if (!"com.google.gwt.i18n.client.TimeZone".equals(params.getParameter(paramNum).getType().getQualifiedSourceName())) {
+        logger.log(TreeLogger.ERROR,"tz parameter must be of type TimeZone");
+        return true;
+      }
+ else {
+        tzParam=", arg" + paramNum;
+      }
+    }
+ else {
+      tzParam=", com.google.gwt.i18n.client.TimeZone.createTimeZone(" + tzArg + ")";
+    }
+  }
+  if (subformat.startsWith(PREDEF)) {
+    PredefinedFormat predef;
+    try {
+      predef=PredefinedFormat.valueOf(subformat.substring(PREDEF.length()));
+    }
+ catch (    IllegalArgumentException e) {
+      logger.log(TreeLogger.ERROR,"Unrecognized predefined format '" + subformat + "'");
+      return true;
+    }
+    out.appendStringValuedExpression(dtFormatClassName + ".getFormat(" + PredefinedFormat.class.getName()+ "."+ predef.toString()+ ").format("+ argName+ tzParam+ ")");
+    return false;
+  }
+  DateTimePatternGenerator dtpg=new DateTimePatternGenerator(locale);
+  try {
+    String pattern=dtpg.getBestPattern(subformat);
+    if (pattern == null) {
+      logger.log(TreeLogger.ERROR,"Invalid localdatetime skeleton pattern \"" + subformat + "\"");
+      return true;
+    }
+    out.appendStringValuedExpression(dtFormatClassName + ".getFormat(" + wrap(pattern)+ ").format("+ argName+ tzParam+ ")");
+  }
+ catch (  IllegalArgumentException e) {
+    logger.log(TreeLogger.ERROR,"Unable to parse '" + subformat + ": "+ e.getMessage());
+    return true;
+  }
+  return false;
+}

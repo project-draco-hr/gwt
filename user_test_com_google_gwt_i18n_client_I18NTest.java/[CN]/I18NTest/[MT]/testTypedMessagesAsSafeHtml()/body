@@ -1,0 +1,21 @@
+{
+  TestTypedMessages m=(TestTypedMessages)GWT.create(TestTypedMessages.class);
+  String expected="int(0) float(1.5), long(0), boolean(true), Object([]," + " char(a), byte(127), short(-32768);";
+  assertEquals(expected,m.testAllTypesAsSafeHtml(0,(float)1.5,0,true,new ArrayList<String>(),'a',Byte.MAX_VALUE,Short.MIN_VALUE).asString());
+  String lotsOfInts=m.testLotsOfIntsAsSafeHtml(1,2,3,4).asString();
+  assertEquals("1, 2,3,4 ",lotsOfInts);
+  String oneFloat=m.simpleMessageTestAsSafeHtml((float)2.25).asString();
+  assertEquals("2.25",oneFloat);
+  String singleQuotes=m.testSingleQuotesAsSafeHtml("arg").asString();
+  assertEquals("'A', 'arg', ','",singleQuotes);
+  String testSomeObjectTypes=m.testSomeObjectTypesAsSafeHtml(new TestObjectToString(),new StringBuffer("hello"),new Integer("34"),null).asString();
+  assertEquals("obj(TestObjectToString), StringBuffer(hello), " + "Integer(34), null(null);",testSomeObjectTypes);
+  Object someObject=new Object(){
+    @Override public String toString(){
+      return STRING_WITH_B_TAG;
+    }
+  }
+;
+  testSomeObjectTypes=m.testSomeObjectTypesAsSafeHtml(new TestObjectToString(),new StringBuffer(STRING_WITH_B_TAG),new Integer("34"),someObject).asString();
+  assertEquals("obj(TestObjectToString), StringBuffer(" + STRING_WITH_B_TAG_ESCAPED + "), Integer(34), null("+ STRING_WITH_B_TAG_ESCAPED+ ");",testSomeObjectTypes);
+}

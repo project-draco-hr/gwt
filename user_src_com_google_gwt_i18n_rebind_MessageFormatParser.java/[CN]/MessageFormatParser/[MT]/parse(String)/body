@@ -1,5 +1,4 @@
 {
-  Matcher match=argPattern.matcher(template);
   int curPos=0;
   boolean inQuote=false;
   int templateLen=template.length();
@@ -21,20 +20,72 @@ if (inQuote) {
   curChunk=appendString(chunks,curChunk,"{");
   break;
 }
-if (match.find(curPos - 1) && match.start() == curPos - 1) {
-int argNumber=Integer.valueOf(match.group(1));
-curPos=match.end();
-String format=match.group(3);
-String subformat=match.group(5);
-if (curChunk != null) {
-  chunks.add(curChunk);
-}
-chunks.add(new ArgumentChunk(argNumber,format,subformat));
-curChunk=null;
+StringBuilder argBuf=new StringBuilder();
+boolean argQuote=false;
+while (curPos < templateLen) {
+ch=template.charAt(curPos++);
+if (ch == '\'') {
+if (curPos < templateLen && template.charAt(curPos) == '\'') {
+argBuf.append(ch);
+++curPos;
 }
  else {
+argQuote=!argQuote;
+}
+}
+ else {
+if (!argQuote && ch == '}') {
+break;
+}
+argBuf.append(ch);
+}
+}
+if (ch != '}') {
 throw new ParseException("Invalid message format - { not start of valid argument" + template,curPos);
 }
+if (curChunk != null) {
+chunks.add(curChunk);
+}
+String arg=argBuf.toString();
+int firstComma=arg.indexOf(',');
+String format=null;
+if (firstComma > 0) {
+format=arg.substring(firstComma + 1);
+arg=arg.substring(0,firstComma);
+}
+if (!Character.isDigit(arg.charAt(0))) {
+chunks.add(new StaticArgChunk(arg,format));
+}
+ else {
+int argNumber=Integer.valueOf(arg);
+Map<String,String> formatArgs=new HashMap<String,String>();
+Map<String,String> listArgs=null;
+String subFormat=null;
+if (format != null) {
+int comma=format.indexOf(',');
+if (comma >= 0) {
+subFormat=format.substring(comma + 1);
+format=format.substring(0,comma);
+}
+format=parseFormatArgs(format,formatArgs);
+if ("list".equals(format)) {
+listArgs=formatArgs;
+formatArgs=new HashMap<String,String>();
+format=subFormat;
+subFormat=null;
+if (format != null) {
+comma=format.indexOf(',');
+if (comma >= 0) {
+subFormat=format.substring(comma + 1);
+format=format.substring(0,comma);
+}
+format=parseFormatArgs(format,formatArgs);
+}
+}
+}
+chunks.add(new ArgumentChunk(argNumber,listArgs,format,formatArgs,subFormat));
+}
+curChunk=null;
 break;
 case '\n':
 curChunk=appendString(chunks,curChunk,"\\n");

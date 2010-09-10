@@ -1,0 +1,29 @@
+{
+  final StringBuffer buf=new StringBuffer();
+  final StringGenerator gen=new StringGenerator(buf,isSafeHtml);
+  try {
+    List<TemplateChunk> chunks=MessageFormatParser.parse(listPattern);
+    for (    TemplateChunk chunk : chunks) {
+      chunk.accept(new DefaultTemplateChunkVisitor(){
+        @Override public void visit(        ArgumentChunk argChunk) throws UnableToCompleteException {
+          if (argChunk.getArgumentNumber() == 0 || formatSecond) {
+            formatArg(logger,locale,gen,listArg,argChunk.getArgumentNumber() == 0 ? val0 : val1,elemType,params);
+          }
+ else {
+            gen.appendExpression(val1,isSafeHtml,false,false);
+          }
+        }
+        @Override public void visit(        StringChunk stringChunk) throws UnableToCompleteException {
+          gen.appendStringLiteral(stringChunk.getString());
+        }
+      }
+);
+    }
+  }
+ catch (  ParseException e) {
+    logger.log(TreeLogger.ERROR,"Internal error: can't parse list pattern '" + listPattern + "' for locale "+ locale,e);
+    throw new UnableToCompleteException();
+  }
+  gen.completeString();
+  return buf;
+}

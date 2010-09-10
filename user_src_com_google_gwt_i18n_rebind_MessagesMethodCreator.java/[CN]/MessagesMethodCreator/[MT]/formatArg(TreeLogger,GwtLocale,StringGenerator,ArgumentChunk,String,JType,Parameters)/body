@@ -1,0 +1,17 @@
+{
+  String format=argChunk.getFormat();
+  if (format != null) {
+    String subformat=argChunk.getSubFormat();
+    ValueFormatter formatter=formatters.get(format);
+    if (formatter != null) {
+      if (formatter.format(logger,locale,buf,argChunk.getFormatArgs(),subformat,argExpr,paramType,params)) {
+        throw new UnableToCompleteException();
+      }
+      return;
+    }
+  }
+  boolean isSafeHtmlTyped=SAFE_HTML_FQCN.equals(paramType.getQualifiedSourceName());
+  boolean isPrimitiveType=(paramType.isPrimitive() != null);
+  boolean needsConversionToString=!("java.lang.String".equals(paramType.getQualifiedSourceName()));
+  buf.appendExpression(argExpr,isSafeHtmlTyped,isPrimitiveType,needsConversionToString);
+}

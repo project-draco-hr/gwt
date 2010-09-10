@@ -1,0 +1,44 @@
+{
+  if (!"java.util.Date".equals(argType.getQualifiedSourceName())) {
+    logger.log(TreeLogger.ERROR,"Only java.util.Date acceptable for date format");
+    return true;
+  }
+  String tzParam="";
+  String tzArg=formatArgs.get("tz");
+  if (tzArg != null) {
+    if (tzArg.startsWith("$")) {
+      int paramNum=params.getParameterIndex(tzArg.substring(1));
+      if (paramNum < 0) {
+        logger.log(TreeLogger.ERROR,"Unable to resolve tz argument " + tzArg);
+        return true;
+      }
+ else       if (!"com.google.gwt.i18n.client.TimeZone".equals(params.getParameter(paramNum).getType().getQualifiedSourceName())) {
+        logger.log(TreeLogger.ERROR,"Currency code parameter must be TimeZone");
+        return true;
+      }
+ else {
+        tzParam=", arg" + paramNum;
+      }
+    }
+ else {
+      tzParam=", com.google.gwt.i18n.client.TimeZone.createTimeZone(" + tzArg + ")";
+    }
+  }
+  if (subformat == null || "medium".equals(subformat)) {
+    out.appendStringValuedExpression(dtFormatClassName + ".getMediumDateFormat()" + ".format("+ argName+ tzParam+ ")");
+  }
+ else   if ("full".equals(subformat)) {
+    out.appendStringValuedExpression(dtFormatClassName + ".getFullDateFormat().format(" + argName+ tzParam+ ")");
+  }
+ else   if ("long".equals(subformat)) {
+    out.appendStringValuedExpression(dtFormatClassName + ".getLongDateFormat().format(" + argName+ tzParam+ ")");
+  }
+ else   if ("short".equals(subformat)) {
+    out.appendStringValuedExpression(dtFormatClassName + ".getShortDateFormat()" + ".format("+ argName+ tzParam+ ")");
+  }
+ else {
+    logger.log(TreeLogger.WARN,"Use localdatetime format instead");
+    out.appendStringValuedExpression(dtFormatClassName + ".getFormat(" + wrap(subformat)+ ").format("+ argName+ tzParam+ ")");
+  }
+  return false;
+}
