@@ -1,0 +1,31 @@
+{
+  @SuppressWarnings("deprecation") final SimpleEventBus eventBus=new SimpleEventBus(true);
+  final MouseDownHandler handler0=new MouseDownHandler(){
+    public void onMouseDown(    MouseDownEvent event){
+      add(this);
+    }
+  }
+;
+  final MouseDownHandler handler1=new MouseDownHandler(){
+    public void onMouseDown(    MouseDownEvent event){
+      assertNotFired(handler0);
+      add(this);
+    }
+  }
+;
+  final MouseDownHandler handler2=new MouseDownHandler(){
+    public void onMouseDown(    MouseDownEvent event){
+      assertNotFired(handler0,handler1);
+      add(this);
+    }
+  }
+;
+  eventBus.addHandler(MouseDownEvent.getType(),handler0);
+  eventBus.addHandler(MouseDownEvent.getType(),handler1);
+  eventBus.addHandler(MouseDownEvent.getType(),handler2);
+  reset();
+  eventBus.fireEvent(new MouseDownEvent(){
+  }
+);
+  assertFired(handler0,handler1,handler2);
+}

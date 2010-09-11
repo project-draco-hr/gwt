@@ -1,0 +1,33 @@
+{
+  final HandlerManager manager=new HandlerManager("bogus source");
+  MouseDownHandler one=new MouseDownHandler(){
+    public void onMouseDown(    MouseDownEvent event){
+      manager.removeHandler(MouseDownEvent.getType(),mouse1);
+      manager.addHandler(MouseDownEvent.getType(),mouse1);
+      add(this);
+    }
+  }
+;
+  manager.addHandler(MouseDownEvent.getType(),one);
+  boolean assertsOn=getClass().desiredAssertionStatus();
+  if (assertsOn) {
+    try {
+      manager.fireEvent(new MouseDownEvent(){
+      }
+);
+      fail("Should have thrown on remove");
+    }
+ catch (    AssertionError e) {
+    }
+    return;
+  }
+  manager.fireEvent(new MouseDownEvent(){
+  }
+);
+  assertFired(one);
+  reset();
+  manager.fireEvent(new MouseDownEvent(){
+  }
+);
+  assertFired(one,mouse1);
+}

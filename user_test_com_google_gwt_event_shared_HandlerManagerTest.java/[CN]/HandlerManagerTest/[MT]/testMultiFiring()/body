@@ -1,4 +1,7 @@
 {
+  final MouseDownEvent masterEvent=new MouseDownEvent(){
+  }
+;
   HandlerManager manager=new HandlerManager("source1");
   final HandlerManager manager2=new HandlerManager("source2");
   manager.addHandler(MouseDownEvent.getType(),mouse1);
@@ -13,18 +16,19 @@
   manager2.addHandler(MouseDownEvent.getType(),new MouseDownHandler(){
     public void onMouseDown(    MouseDownEvent event){
       assertEquals("source2",event.getSource());
+      assertSame(masterEvent,event);
     }
   }
 );
   manager.addHandler(MouseDownEvent.getType(),new MouseDownHandler(){
     public void onMouseDown(    MouseDownEvent event){
       assertEquals("source1",event.getSource());
+      assertSame(masterEvent,event);
     }
   }
 );
   reset();
-  manager.fireEvent(new MouseDownEvent(){
-  }
-);
+  manager.fireEvent(masterEvent);
   assertFired(mouse1,adaptor1,mouse3);
+  assertFalse("Event should be dead",masterEvent.isLive());
 }

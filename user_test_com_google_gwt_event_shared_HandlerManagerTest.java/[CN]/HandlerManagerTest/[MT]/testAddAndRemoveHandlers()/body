@@ -1,0 +1,47 @@
+{
+  HandlerManager manager=new HandlerManager("bogus source");
+  manager.addHandler(MouseDownEvent.getType(),mouse1);
+  manager.addHandler(MouseDownEvent.getType(),mouse2);
+  manager.addHandler(MouseDownEvent.getType(),adaptor1);
+  manager.fireEvent(new MouseDownEvent(){
+  }
+);
+  assertEquals(3,manager.getHandlerCount(MouseDownEvent.getType()));
+  assertFired(mouse1,mouse2,adaptor1);
+  manager.addHandler(MouseDownEvent.getType(),mouse3);
+  assertEquals(4,manager.getHandlerCount(MouseDownEvent.getType()));
+  manager.addHandler(MouseDownEvent.getType(),mouse1);
+  manager.addHandler(MouseDownEvent.getType(),mouse2);
+  manager.addHandler(MouseDownEvent.getType(),adaptor1);
+  assertEquals(7,manager.getHandlerCount(MouseDownEvent.getType()));
+  manager.addHandler(ClickEvent.getType(),adaptor1);
+  manager.addHandler(ClickEvent.getType(),click1);
+  manager.addHandler(ClickEvent.getType(),click2);
+  assertEquals(7,manager.getHandlerCount(MouseDownEvent.getType()));
+  assertEquals(3,manager.getHandlerCount(ClickEvent.getType()));
+  reset();
+  manager.fireEvent(new MouseDownEvent(){
+  }
+);
+  assertFired(mouse1,mouse2,mouse3,adaptor1);
+  assertNotFired(click1,click2);
+  manager.removeHandler(MouseDownEvent.getType(),adaptor1);
+  manager.fireEvent(new MouseDownEvent(){
+  }
+);
+  assertFired(mouse1,mouse2,mouse3,adaptor1);
+  assertNotFired(click1,click2);
+  manager.removeHandler(MouseDownEvent.getType(),adaptor1);
+  reset();
+  manager.fireEvent(new MouseDownEvent(){
+  }
+);
+  assertFired(mouse1,mouse2,mouse3);
+  assertNotFired(adaptor1,click1,click2);
+  reset();
+  manager.fireEvent(new ClickEvent(){
+  }
+);
+  assertNotFired(mouse1,mouse2,mouse3);
+  assertFired(click1,click2,adaptor1);
+}

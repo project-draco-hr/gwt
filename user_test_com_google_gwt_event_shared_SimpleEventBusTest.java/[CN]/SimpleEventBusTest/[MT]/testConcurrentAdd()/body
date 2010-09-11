@@ -1,0 +1,30 @@
+{
+  final SimpleEventBus eventBus=new SimpleEventBus();
+  final MouseDownHandler two=new MouseDownHandler(){
+    public void onMouseDown(    MouseDownEvent event){
+      add(this);
+    }
+  }
+;
+  MouseDownHandler one=new MouseDownHandler(){
+    public void onMouseDown(    MouseDownEvent event){
+      eventBus.addHandler(MouseDownEvent.getType(),two);
+      add(this);
+    }
+  }
+;
+  eventBus.addHandler(MouseDownEvent.getType(),one);
+  eventBus.addHandler(MouseDownEvent.getType(),mouse1);
+  eventBus.addHandler(MouseDownEvent.getType(),mouse2);
+  eventBus.addHandler(MouseDownEvent.getType(),mouse3);
+  eventBus.fireEvent(new MouseDownEvent(){
+  }
+);
+  assertFired(one,mouse1,mouse2,mouse3);
+  assertNotFired(two);
+  reset();
+  eventBus.fireEvent(new MouseDownEvent(){
+  }
+);
+  assertFired(one,two,mouse1,mouse2,mouse3);
+}

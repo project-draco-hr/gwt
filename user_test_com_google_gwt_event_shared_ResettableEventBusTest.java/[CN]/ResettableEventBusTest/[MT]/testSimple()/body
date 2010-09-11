@@ -1,0 +1,27 @@
+{
+  CountingEventBus wrapped=new CountingEventBus();
+  ResettableEventBus subject=new ResettableEventBus(wrapped);
+  Type<MouseDownHandler> type=MouseDownEvent.getType();
+  assertEquals(0,wrapped.getCount(type));
+  subject.addHandler(type,mouse1);
+  subject.addHandlerToSource(type,"baker",mouse2);
+  subject.addHandler(type,mouse3);
+  assertEquals(3,wrapped.getCount(type));
+  subject.fireEvent(new MouseDownEvent(){
+  }
+);
+  assertFired(mouse1,mouse3);
+  assertNotFired(mouse2);
+  reset();
+  subject.fireEventFromSource(new MouseDownEvent(){
+  }
+,"baker");
+  assertFired(mouse1,mouse2,mouse3);
+  reset();
+  subject.removeHandlers();
+  assertEquals(0,wrapped.getCount(type));
+  subject.fireEvent(new MouseDownEvent(){
+  }
+);
+  assertNotFired(mouse1,mouse2,mouse3);
+}

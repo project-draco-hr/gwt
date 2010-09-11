@@ -1,0 +1,32 @@
+{
+  try {
+    firingDepth++;
+    if (source != null) {
+      event.setSource(source);
+    }
+    List<H> handlers=getDispatchList(event.getAssociatedType(),source);
+    Set<Throwable> causes=null;
+    ListIterator<H> it=isReverseOrder ? handlers.listIterator(handlers.size()) : handlers.listIterator();
+    while (isReverseOrder ? it.hasPrevious() : it.hasNext()) {
+      H handler=isReverseOrder ? it.previous() : it.next();
+      try {
+        event.dispatch(handler);
+      }
+ catch (      Throwable e) {
+        if (causes == null) {
+          causes=new HashSet<Throwable>();
+        }
+        causes.add(e);
+      }
+    }
+    if (causes != null) {
+      throw new UmbrellaException(causes);
+    }
+  }
+  finally {
+    firingDepth--;
+    if (firingDepth == 0) {
+      handleQueuedAddsAndRemoves();
+    }
+  }
+}

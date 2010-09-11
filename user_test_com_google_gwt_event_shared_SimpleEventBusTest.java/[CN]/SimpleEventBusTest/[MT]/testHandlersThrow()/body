@@ -1,0 +1,24 @@
+{
+  RuntimeException exception1=new RuntimeException("first exception");
+  RuntimeException exception2=new RuntimeException("second exception");
+  final SimpleEventBus eventBus=new SimpleEventBus();
+  eventBus.addHandler(MouseDownEvent.getType(),mouse1);
+  eventBus.addHandler(MouseDownEvent.getType(),new ThrowingHandler(exception1));
+  eventBus.addHandler(MouseDownEvent.getType(),mouse2);
+  eventBus.addHandler(MouseDownEvent.getType(),new ThrowingHandler(exception2));
+  eventBus.addHandler(MouseDownEvent.getType(),mouse3);
+  MouseDownEvent event=new MouseDownEvent(){
+  }
+;
+  try {
+    eventBus.fireEvent(event);
+    fail("eventBus should have thrown");
+  }
+ catch (  UmbrellaException e) {
+    Set<Throwable> causes=e.getCauses();
+    assertEquals("Exception should wrap the two thrown exceptions",2,causes.size());
+    assertTrue("First exception should be under the umbrella",causes.contains(exception1));
+    assertTrue("Second exception should be under the umbrella",causes.contains(exception2));
+  }
+  assertFired(mouse1,mouse2,mouse3);
+}

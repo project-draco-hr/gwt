@@ -12,12 +12,6 @@
   if (pw != null) {
     logger=logger.branch(TreeLogger.DEBUG,"Generating " + publicProxyType.getName());
     ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(packageName,proxyImplTypeName);
-    String eventTypeName=publicProxyType.getName() + "Changed";
-    JClassType eventType=typeOracle.findType(packageName,eventTypeName);
-    if (eventType == null) {
-      logger.log(TreeLogger.ERROR,String.format("Cannot find %s implementation %s.%s",EntityProxyChangedEvent.class.getName(),packageName,eventTypeName));
-      throw new UnableToCompleteException();
-    }
     f.addImport(AbstractJsonListRequest.class.getName());
     f.addImport(AbstractJsonObjectRequest.class.getName());
     f.addImport(RequestFactoryJsonImpl.class.getName());
@@ -34,7 +28,7 @@
     f.addImplementedInterface(publicProxyType.getName());
     SourceWriter sw=f.createSourceWriter(generatorContext,pw);
     sw.println();
-    JClassType propertyType=printSchema(typeOracle,publicProxyType,proxyImplTypeName,eventType,sw);
+    JClassType propertyType=printSchema(typeOracle,publicProxyType,proxyImplTypeName,sw);
     sw.println();
     String simpleImplName=publicProxyType.getSimpleSourceName() + "Impl";
     printRequestImplClass(sw,publicProxyType,simpleImplName,true);

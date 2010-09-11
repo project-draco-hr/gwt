@@ -5,7 +5,7 @@
     }
   }
 );
-  final HandlerManager eventBus=new HandlerManager(null);
+  final EventBus eventBus=new SimpleEventBus();
   requestFactory=GWT.create(ExpensesRequestFactory.class);
   requestFactory.init(eventBus);
   RootLayoutPanel root=RootLayoutPanel.get();
@@ -14,7 +14,7 @@
   final ExpenseList expenseList=shell.getExpenseList();
   final ExpenseDetails expenseDetails=shell.getExpenseDetails();
   root.add(shell);
-  eventBus.addHandler(RequestEvent.TYPE,new AuthenticationFailureHandler());
+  RequestEvent.register(eventBus,new AuthenticationFailureHandler());
   final LoginWidget login=shell.getLoginWidget();
   Receiver<UserInformationProxy> receiver=new Receiver<UserInformationProxy>(){
     public void onSuccess(    UserInformationProxy userInformationRecord,    Set<SyncResult> syncResults){
@@ -41,8 +41,6 @@
     }
   }
 );
-  expenseList.setRequestFactory(requestFactory);
-  eventBus.addHandler(ReportProxyChanged.TYPE,expenseList);
-  eventBus.addHandler(ExpenseProxyChanged.TYPE,expenseDetails);
-  eventBus.addHandler(ReportProxyChanged.TYPE,expenseDetails);
+  expenseList.init(requestFactory,eventBus);
+  expenseDetails.init(eventBus);
 }

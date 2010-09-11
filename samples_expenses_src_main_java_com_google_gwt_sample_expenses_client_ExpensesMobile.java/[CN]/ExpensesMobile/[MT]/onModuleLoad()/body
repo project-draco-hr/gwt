@@ -16,14 +16,14 @@
     RootPanel.get().add(new Label("employeeId is invalid"));
     return;
   }
-  final HandlerManager eventBus=new HandlerManager(null);
+  final EventBus eventBus=new SimpleEventBus();
   final ExpensesRequestFactory requestFactory=GWT.create(ExpensesRequestFactory.class);
   requestFactory.init(eventBus);
   requestFactory.employeeRequest().findEmployee(Value.of(employeeId)).fire(new Receiver<EmployeeProxy>(){
     public void onSuccess(    EmployeeProxy employee,    Set<SyncResult> syncResults){
       final ExpensesMobileShell shell=new ExpensesMobileShell(eventBus,requestFactory,employee);
       RootPanel.get().add(shell);
-      eventBus.addHandler(RequestEvent.TYPE,new AuthenticationFailureHandler());
+      RequestEvent.register(eventBus,new AuthenticationFailureHandler());
       final LoginWidget login=shell.getLoginWidget();
       Receiver<UserInformationProxy> receiver=new Receiver<UserInformationProxy>(){
         public void onSuccess(        UserInformationProxy userInformationRecord,        Set<SyncResult> syncResults){
