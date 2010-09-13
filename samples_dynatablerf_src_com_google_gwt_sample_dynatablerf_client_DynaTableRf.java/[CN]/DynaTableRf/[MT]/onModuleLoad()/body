@@ -6,8 +6,15 @@
     }
   }
 );
-  DynaTableRequestFactory requests=GWT.create(DynaTableRequestFactory.class);
+  final DynaTableRequestFactory requests=GWT.create(DynaTableRequestFactory.class);
   requests.init(eventBus);
+  RequestFactoryLogHandler.LoggingRequestProvider provider=new RequestFactoryLogHandler.LoggingRequestProvider(){
+    @Override public LoggingRequest getLoggingRequest(){
+      return requests.loggingRequest();
+    }
+  }
+;
+  Logger.getLogger("").addHandler(new RequestFactoryLogHandler(provider,Level.WARNING,"WireActivityLogger"));
   FavoritesManager manager=new FavoritesManager();
   PersonEditorWorkflow.register(eventBus,requests,manager);
   calendar=new SummaryWidget(eventBus,requests,15);
