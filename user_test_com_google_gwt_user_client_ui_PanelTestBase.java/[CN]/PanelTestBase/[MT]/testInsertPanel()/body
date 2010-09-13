@@ -1,0 +1,25 @@
+{
+  T panel=createPanel();
+  if (!(panel instanceof InsertPanel)) {
+    return;
+  }
+  assertTrue("Expect all InsertPanel to implement ForIsWidget",panel instanceof InsertPanel.ForIsWidget);
+  InsertPanel.ForIsWidget w=(InsertPanel.ForIsWidget)panel;
+  IsWidgetImpl l1=new IsWidgetImpl(new Label("l1"));
+  IsWidgetImpl l2=new IsWidgetImpl(new Label("l2"));
+  IsWidgetImpl l3=new IsWidgetImpl(new Label("l3"));
+  IsWidgetImpl l4=new IsWidgetImpl(new Label("l4"));
+  w.add(l1);
+  w.add(l2.w);
+  w.insert(l3,1);
+  w.insert(l4.w,3);
+  w.insert(l1,3);
+  w.insert(l2.w,0);
+  Widget[] expected=new Widget[]{l2.w,l3.w,l1.w,l4.w};
+  Iterator<Widget> iterator=panel.iterator();
+  for (  Widget e : expected) {
+    Widget next=iterator.next();
+    assertSame("Expected " + e + ", saw "+ next,e,next);
+  }
+  assertFalse(iterator.hasNext());
+}
