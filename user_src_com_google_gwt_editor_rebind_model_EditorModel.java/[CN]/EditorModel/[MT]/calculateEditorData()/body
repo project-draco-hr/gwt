@@ -9,13 +9,7 @@
       JType fieldClassType=field.getType();
       if (shouldExamine(fieldClassType)) {
         List<EditorData> data=createEditorData(EditorAccess.via(field));
-        flatData.addAll(data);
-        toReturn.addAll(data);
-        for (        EditorData d : data) {
-          if (!d.isLeafValueEditor()) {
-            descendIntoSubEditor(toReturn,d);
-          }
-        }
+        accumulateEditorData(data,flatData,toReturn);
       }
     }
     for (    JMethod method : type.getMethods()) {
@@ -29,16 +23,17 @@
           continue;
         }
         List<EditorData> data=createEditorData(access);
-        flatData.addAll(data);
-        toReturn.addAll(data);
-        for (        EditorData d : data) {
-          if (!d.isLeafValueEditor()) {
-            descendIntoSubEditor(toReturn,d);
-          }
-        }
+        accumulateEditorData(data,flatData,toReturn);
       }
     }
     type=type.getSuperclass();
+  }
+  if (compositeEditorIntf.isAssignableFrom(editorType)) {
+    JClassType subEditorType=calculateCompositeTypes(editorType)[1];
+    EditorAccess access=EditorAccess.root(subEditorType);
+    EditorData subEditor=new EditorData.Builder(logger).access(access).parent(editorSoFar).build();
+    List<EditorData> accumulator=new ArrayList<EditorData>();
+    descendIntoSubEditor(accumulator,subEditor);
   }
   if (!typeData.containsKey(editorType)) {
     typeData.put(editorType,flatData);

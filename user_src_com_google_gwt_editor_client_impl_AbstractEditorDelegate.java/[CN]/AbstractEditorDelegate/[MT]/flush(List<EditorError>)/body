@@ -1,0 +1,46 @@
+{
+  try {
+    if (valueAwareEditor != null) {
+      valueAwareEditor.flush();
+    }
+    if (leafValueEditor != null) {
+      setObject(leafValueEditor.getValue());
+      return;
+    }
+    if (getObject() == null) {
+      return;
+    }
+    setObject(ensureMutable(getObject()));
+    flushSubEditors(errors);
+    if (editorChain != null) {
+      editorChain.collectErrors();
+    }
+  }
+  finally {
+    if (hasEditorErrors != null) {
+      for (Iterator<EditorError> it=errorAccumulator.iterator(); it.hasNext(); ) {
+        EditorError error=it.next();
+        if (error.getAbsolutePath().startsWith(getPath())) {
+          errors.add(error);
+          it.remove();
+        }
+      }
+      int length=getPath().length();
+      int pathPrefixLength=length == 0 ? 0 : (length + 1);
+      for (      EditorError error : errors) {
+        ((SimpleError)error).setPathPrefixLength(pathPrefixLength);
+      }
+      hasEditorErrors.showErrors(Collections.unmodifiableList(errors));
+      for (      EditorError error : errors) {
+        if (!error.isConsumed()) {
+          errorAccumulator.add(error);
+        }
+      }
+      errors=new ArrayList<EditorError>();
+    }
+ else {
+      errorAccumulator.addAll(errors);
+      errors.clear();
+    }
+  }
+}

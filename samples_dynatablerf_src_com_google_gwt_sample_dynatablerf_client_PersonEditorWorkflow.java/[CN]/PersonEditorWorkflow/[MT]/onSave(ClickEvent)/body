@@ -1,7 +1,17 @@
 {
+  RequestObject<Void> request=editorDriver.<Void>flush();
+  if (editorDriver.hasErrors()) {
+    dialog.setText("Errors detected");
+    return;
+  }
   dialog.hide();
-  editorDriver.<Void>flush().fire(new Receiver<Void>(){
+  request.fire(new Receiver<Void>(){
     public void onSuccess(    Void response,    Set<SyncResult> syncResults){
+      for (      SyncResult result : syncResults) {
+        if (result.hasViolations()) {
+          System.out.println(result.getViolations());
+        }
+      }
     }
   }
 );

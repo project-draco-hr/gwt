@@ -1,0 +1,18 @@
+{
+  if (data == null) {
+    throw new IllegalStateException();
+  }
+  try {
+    data.editorExpression=(parent == null ? "" : (parent.getExpression() + ".")) + access.getExpresson();
+    data.path=(parent == null ? "" : (parent.getPath() + ".")) + access.getPath();
+    if (data.isCompositeEditor) {
+      TreeLogger compositeLogger=logger.branch(TreeLogger.DEBUG,"Examining composite editor at " + data.path);
+      JClassType subEditorType=EditorModel.calculateCompositeTypes(data.editorType)[1];
+      data.composedData=new Builder(compositeLogger).access(EditorAccess.root(subEditorType)).parent(data).build();
+    }
+    return data;
+  }
+  finally {
+    data=null;
+  }
+}

@@ -1,2 +1,18 @@
 {
+  TreeLogger subLogger=logger.branch(TreeLogger.DEBUG,"Examining " + access.toString());
+  List<EditorData> toReturn=new ArrayList<EditorData>();
+  if (access.isEditor()) {
+    EditorAccess subAccess=EditorAccess.via(access,calculateIsEditedType(subLogger,access.getEditorType()));
+    toReturn=createEditorData(subAccess);
+    if (!editorIntf.isAssignableFrom(access.getEditorType())) {
+      return toReturn;
+    }
+  }
+  JClassType expectedToEdit=calculateEditedType(subLogger,access.getEditorType());
+  EditorData.Builder builder=new EditorData.Builder(subLogger);
+  builder.access(access);
+  builder.parent(editorSoFar);
+  findBeanPropertyMethods(access.getPath(),expectedToEdit,builder);
+  toReturn.add(builder.build());
+  return toReturn;
 }

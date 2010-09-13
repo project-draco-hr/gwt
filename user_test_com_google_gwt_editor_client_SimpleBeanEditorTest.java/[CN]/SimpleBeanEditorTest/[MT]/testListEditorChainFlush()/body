@@ -1,0 +1,26 @@
+{
+  PersonWithListEditorDriver driver=GWT.create(PersonWithListEditorDriver.class);
+  PersonWithList person=new PersonWithList();
+  Address a1=new Address();
+  a1.city="a1City";
+  a1.street="a1Street";
+  Address a2=new Address();
+  a2.city="a2City";
+  a2.street="a2Street";
+  person.addresses.add(a1);
+  person.addresses.add(a2);
+  PersonWithListEditor personEditor=new PersonWithListEditor();
+  driver.initialize(personEditor);
+  try {
+    personEditor.addressesEditor.getEditors();
+    fail();
+  }
+ catch (  IllegalStateException expected) {
+  }
+  driver.edit(person);
+  AddressEditor addressEditor=personEditor.addressesEditor.getEditors().get(1);
+  assertEquals("a2City",addressEditor.city.getValue());
+  addressEditor.city.setValue("edited");
+  driver.flush();
+  assertEquals("edited",person.addresses.get(1).getCity());
+}

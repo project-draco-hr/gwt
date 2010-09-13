@@ -1,0 +1,43 @@
+{
+  StringBuilder interstitialGetters=new StringBuilder();
+  StringBuilder interstitialGuard=new StringBuilder("true");
+  String[] parts=path.split(Pattern.quote("."));
+  String setterName=null;
+  JClassType lookingAt=proxyType;
+  part:   for (int i=0, j=parts.length; i < j; i++) {
+    String getterName=camelCase("get",parts[i]);
+    for (    JClassType search : lookingAt.getFlattenedSupertypeHierarchy()) {
+      if (i == j - 1 && setterName == null) {
+        for (        JMethod maybeSetter : search.getOverloads(camelCase("set",parts[i]))) {
+          if (maybeSetter.getReturnType().equals(JPrimitiveType.VOID) && maybeSetter.getParameters().length == 1 && maybeSetter.getParameters()[0].getType().isClassOrInterface() != null && maybeSetter.getParameters()[0].getType().isClassOrInterface().isAssignableFrom(propertyType)) {
+            setterName=maybeSetter.getName();
+            break;
+          }
+        }
+      }
+      JMethod getter=search.findMethod(getterName,new JType[0]);
+      if (getter != null) {
+        JType returnType=getter.getReturnType();
+        lookingAt=returnType.isClassOrInterface();
+        if (lookingAt == null) {
+          poison(foundPrimitiveMessage(returnType,interstitialGetters.toString(),path));
+          return;
+        }
+        interstitialGetters.append(".").append(getterName).append("()");
+        interstitialGuard.append(" && %1$s").append(interstitialGetters).append(" != null");
+        builder.propertyOwnerType(search);
+        continue part;
+      }
+    }
+    poison(noGetterMessage(path,proxyType));
+    return;
+  }
+  int idx=interstitialGetters.lastIndexOf(".");
+  builder.beanOwnerExpression(idx == 0 ? "" : interstitialGetters.substring(0,idx));
+  if (parts.length > 1) {
+    interstitialGuard.delete(interstitialGuard.lastIndexOf(" &&"),interstitialGuard.length());
+    builder.beanOwnerGuard(interstitialGuard.substring(8));
+  }
+  builder.getterName(interstitialGetters.substring(idx + 1,interstitialGetters.length() - 2));
+  builder.setterName(setterName);
+}

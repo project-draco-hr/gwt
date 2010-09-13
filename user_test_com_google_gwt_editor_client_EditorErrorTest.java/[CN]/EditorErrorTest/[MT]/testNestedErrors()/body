@@ -1,0 +1,30 @@
+{
+  Address a=new Address();
+  Person p1=new Person();
+  p1.address=a;
+  Person p2=new Person();
+  p2.address=a;
+  Workgroup workgroup=new Workgroup();
+  workgroup.people.addAll(Arrays.asList(p1,p2));
+  WorkgroupNestedErrorsEditorDriver driver=GWT.create(WorkgroupNestedErrorsEditorDriver.class);
+  WorkgroupNestedErrorsEditor editor=new WorkgroupNestedErrorsEditor();
+  driver.initialize(editor);
+  driver.edit(workgroup);
+  driver.flush();
+  List<EditorError> errors=editor.errors;
+  assertNotNull(errors);
+  assertEquals(0,errors.size());
+  List<PersonEditorReceivesErrors> editors=editor.people.getEditors();
+  for (int i=0, j=editors.size(); i < j; i++) {
+    PersonEditorReceivesErrors personEditor=editors.get(i);
+    assertEquals(1,personEditor.errors.size());
+    EditorError error=personEditor.errors.get(0);
+    assertNotNull(error);
+    assertEquals("people[" + i + "].address",error.getAbsolutePath());
+    assertEquals("Hello Errors!",error.getMessage());
+    assertEquals("address",error.getPath());
+    assertNull(error.getUserData());
+    assertSame(a,error.getValue());
+    assertSame(personEditor.addressEditor,error.getEditor());
+  }
+}

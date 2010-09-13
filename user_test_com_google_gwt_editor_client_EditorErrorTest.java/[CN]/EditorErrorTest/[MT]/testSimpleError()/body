@@ -1,0 +1,22 @@
+{
+  PersonEditorReceivesErrors editor=new PersonEditorReceivesErrors();
+  editor.addressEditor=new AddressEditorWithErrors();
+  Address a=new Address();
+  Person p=new Person();
+  p.address=a;
+  PersonEditorDriver driver=GWT.create(PersonEditorDriver.class);
+  driver.initialize(editor);
+  driver.edit(p);
+  driver.flush();
+  List<EditorError> list=editor.errors;
+  assertNotNull(list);
+  assertEquals(1,list.size());
+  EditorError error=list.get(0);
+  assertNotNull(error);
+  assertEquals("address",error.getAbsolutePath());
+  assertEquals("Hello Errors!",error.getMessage());
+  assertEquals("address",error.getPath());
+  assertNull(error.getUserData());
+  assertSame(a,error.getValue());
+  assertSame(editor.addressEditor,error.getEditor());
+}
