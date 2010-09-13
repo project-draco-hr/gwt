@@ -7,7 +7,7 @@ synchronized (cacheLock) {
       cachedAliases.add(canonicalForm);
       ArrayList<GwtLocale> nextGroup=new ArrayList<GwtLocale>();
       nextGroup.add(this);
-      String defaultScript=DefaultLanguageScripts.getDefaultScript(language);
+      String defaultScript=DefaultLanguageScripts.getDefaultScript(language,region);
       if (defaultScript != null) {
         if (script == null) {
           nextGroup.add(factory.fromComponents(language,defaultScript,region,variant));
@@ -16,6 +16,7 @@ synchronized (cacheLock) {
           nextGroup.add(factory.fromComponents(language,null,region,variant));
         }
       }
+      String initialScript=script == null ? defaultScript : script;
       while (!nextGroup.isEmpty()) {
         List<GwtLocale> thisGroup=nextGroup;
         nextGroup=new ArrayList<GwtLocale>();
@@ -28,7 +29,7 @@ synchronized (cacheLock) {
             cachedAliases.add(locale);
           }
           addDeprecatedPairs(factory,locale,nextGroup);
-          addSpecialAliases(factory,locale,nextGroup);
+          addSpecialAliases(factory,locale,initialScript,nextGroup);
         }
       }
       cachedAliases=Collections.unmodifiableList(cachedAliases);

@@ -3,6 +3,10 @@ synchronized (cacheLock) {
     if (cachedSearchList == null) {
       cachedSearchList=new ArrayList<GwtLocale>();
       Set<GwtLocale> seen=new HashSet<GwtLocale>();
+      String initialScript=script;
+      if (initialScript == null) {
+        initialScript=DefaultLanguageScripts.getDefaultScript(language,region);
+      }
       List<GwtLocale> thisGroup=new ArrayList<GwtLocale>(this.getAliases());
       seen.addAll(thisGroup);
       GwtLocale defLocale=factory.getDefault();
@@ -11,7 +15,9 @@ synchronized (cacheLock) {
         cachedSearchList.addAll(thisGroup);
         List<GwtLocale> nextGroup=new ArrayList<GwtLocale>();
         for (        GwtLocale locale : thisGroup) {
-          List<GwtLocale> work=new ArrayList<GwtLocale>(locale.getAliases());
+          List<GwtLocale> aliases=locale.getAliases();
+          aliases=filterBadScripts(aliases,initialScript);
+          List<GwtLocale> work=new ArrayList<GwtLocale>(aliases);
           work.removeAll(seen);
           nextGroup.addAll(work);
           seen.addAll(work);
