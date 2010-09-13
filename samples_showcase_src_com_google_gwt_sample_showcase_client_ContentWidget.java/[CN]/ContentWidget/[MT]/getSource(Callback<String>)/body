@@ -1,0 +1,20 @@
+{
+  if (sourceCode != null) {
+    callback.onSuccess(sourceCode);
+  }
+ else {
+    RequestCallback rc=new RequestCallback(){
+      public void onError(      Request request,      Throwable exception){
+        callback.onError();
+      }
+      public void onResponseReceived(      Request request,      Response response){
+        sourceCode=response.getText();
+        callback.onSuccess(sourceCode);
+      }
+    }
+;
+    String className=this.getClass().getName();
+    className=className.substring(className.lastIndexOf(".") + 1);
+    sendSourceRequest(rc,ShowcaseConstants.DST_SOURCE_EXAMPLE + "/" + className+ ".html");
+  }
+}

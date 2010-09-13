@@ -1,0 +1,49 @@
+{
+  if (contentSourceHandler != null) {
+    contentSourceHandler.removeHandler();
+    contentSourceHandler=null;
+  }
+  this.content=content;
+  if (content == null) {
+    tabExample.setVisible(false);
+    tabStyle.setVisible(false);
+    tabSource.setVisible(false);
+    tabSourceList.setVisible(false);
+    contentPanel.setWidget(null);
+    return;
+  }
+  tabExample.setVisible(true);
+  tabStyle.setVisible(content.hasStyle());
+  tabSource.setVisible(true);
+  List<String> rawFilenames=content.getRawSourceFilenames();
+  if (rawFilenames.size() > 0) {
+    String text=tabSource.getText();
+    if (!text.endsWith(":")) {
+      tabSource.setText(text + ":");
+    }
+    tabSourceList.setVisible(true);
+    tabSourceList.clear();
+    tabSourceList.addItem("Example");
+    for (    String filename : rawFilenames) {
+      tabSourceList.addItem(filename);
+    }
+    tabSourceList.setSelectedIndex(0);
+  }
+ else {
+    String text=tabSource.getText();
+    if (text.endsWith(":")) {
+      tabSource.setText(text.substring(0,text.length() - 1));
+    }
+    tabSourceList.setVisible(false);
+  }
+  contentSourceHandler=content.addValueChangeHandler(new ValueChangeHandler<String>(){
+    public void onValueChange(    ValueChangeEvent<String> event){
+      String filename=event.getValue();
+      int index=content.getRawSourceFilenames().indexOf(filename);
+      tabSourceList.setSelectedIndex(index + 1);
+      showSourceFile();
+    }
+  }
+);
+  showExample();
+}

@@ -1,0 +1,24 @@
+{
+  String currentLocale=LocaleInfo.getCurrentLocale().getLocaleName();
+  if (currentLocale.equals("default")) {
+    currentLocale="en";
+  }
+  String[] localeNames=LocaleInfo.getAvailableLocaleNames();
+  for (  String localeName : localeNames) {
+    if (!localeName.equals("default")) {
+      String nativeName=LocaleInfo.getLocaleNativeDisplayName(localeName);
+      localeBox.addItem(nativeName,localeName);
+      if (localeName.equals(currentLocale)) {
+        localeBox.setSelectedIndex(localeBox.getItemCount() - 1);
+      }
+    }
+  }
+  localeBox.addChangeHandler(new ChangeHandler(){
+    public void onChange(    ChangeEvent event){
+      String localeName=localeBox.getValue(localeBox.getSelectedIndex());
+      UrlBuilder builder=Location.createUrlBuilder().setParameter("locale",localeName);
+      Window.Location.replace(builder.buildString());
+    }
+  }
+);
+}

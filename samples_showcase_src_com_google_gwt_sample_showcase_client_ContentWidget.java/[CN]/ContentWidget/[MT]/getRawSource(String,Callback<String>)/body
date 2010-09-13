@@ -1,0 +1,21 @@
+{
+  if (rawSource.containsKey(filename)) {
+    callback.onSuccess(rawSource.get(filename));
+  }
+ else {
+    RequestCallback rc=new RequestCallback(){
+      public void onError(      Request request,      Throwable exception){
+        callback.onError();
+      }
+      public void onResponseReceived(      Request request,      Response response){
+        String text=response.getText();
+        rawSource.put(filename,text);
+        callback.onSuccess(text);
+      }
+    }
+;
+    String className=this.getClass().getName();
+    className=className.substring(className.lastIndexOf(".") + 1);
+    sendSourceRequest(rc,ShowcaseConstants.DST_SOURCE_RAW + "/" + filename+ ".html");
+  }
+}

@@ -1,43 +1,66 @@
 {
   GWT.create(GeneratorInfo.class);
-  ShowcaseConstants constants=(ShowcaseConstants)GWT.create(ShowcaseConstants.class);
-  updateStyleSheets();
-  setupTitlePanel(constants);
-  setupMainLinks(constants);
-  setupOptionsPanel();
-  setupMainMenu(constants);
-  final ValueChangeHandler<String> historyHandler=new ValueChangeHandler<String>(){
-    public void onValueChange(    ValueChangeEvent<String> event){
-      TreeItem item=itemTokens.get(event.getValue());
-      if (item == null) {
-        item=app.getMainMenu().getItem(0).getChild(0);
+  injectThemeStyleSheet();
+  images.css().ensureInjected();
+  ShowcaseConstants constants=GWT.create(ShowcaseConstants.class);
+  final SingleSelectionModel<ContentWidget> selectionModel=new SingleSelectionModel<ContentWidget>();
+  final MainMenuTreeViewModel treeModel=new MainMenuTreeViewModel(constants,selectionModel);
+  shell=new ShowcaseShell(treeModel);
+  RootLayoutPanel.get().add(shell);
+  final List<Category> prefetched=new ArrayList<Category>();
+  final CellTree mainMenu=shell.getMainMenu();
+  mainMenu.addOpenHandler(new OpenHandler<TreeNode>(){
+    public void onOpen(    OpenEvent<TreeNode> event){
+      Object value=event.getTarget().getValue();
+      if (!(value instanceof Category)) {
+        return;
       }
-      app.getMainMenu().setSelectedItem(item,false);
-      app.getMainMenu().ensureSelectedItemVisible();
-      displayContentWidget(itemWidgets.get(item));
-    }
-  }
-;
-  History.addValueChangeHandler(historyHandler);
-  app.addSelectionHandler(new SelectionHandler<TreeItem>(){
-    public void onSelection(    SelectionEvent<TreeItem> event){
-      TreeItem item=event.getSelectedItem();
-      ContentWidget content=itemWidgets.get(item);
-      if (content != null && !content.equals(app.getContent())) {
-        String historyToken=((Hyperlink)item.getWidget()).getTargetHistoryToken();
-        History.newItem(historyToken);
+      Category category=(Category)value;
+      if (!prefetched.contains(category)) {
+        prefetched.add(category);
+        Prefetcher.prefetch(category.getSplitPoints());
       }
     }
   }
 );
+  Prefetcher.start();
+  selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler(){
+    public void onSelectionChange(    SelectionChangeEvent event){
+      ContentWidget selected=selectionModel.getSelectedObject();
+      if (selected != null) {
+        History.newItem(getContentWidgetToken(selected),true);
+      }
+    }
+  }
+);
+  final ValueChangeHandler<String> historyHandler=new ValueChangeHandler<String>(){
+    public void onValueChange(    ValueChangeEvent<String> event){
+      ContentWidget contentWidget=treeModel.getContentWidgetForToken(event.getValue());
+      if (contentWidget == null) {
+        return;
+      }
+      Category category=treeModel.getCategoryForContentWidget(contentWidget);
+      TreeNode node=mainMenu.getRootTreeNode();
+      int childCount=node.getChildCount();
+      for (int i=0; i < childCount; i++) {
+        if (node.getChildValue(i) == category) {
+          node.setChildOpen(i,true,true);
+          break;
+        }
+      }
+      selectionModel.setSelected(contentWidget,true);
+      displayContentWidget(contentWidget);
+    }
+  }
+;
+  History.addValueChangeHandler(historyHandler);
   if (History.getToken().length() > 0) {
     History.fireCurrentHistoryState();
   }
  else {
-    TreeItem firstItem=app.getMainMenu().getItem(0).getChild(0);
-    app.getMainMenu().setSelectedItem(firstItem,false);
-    app.getMainMenu().ensureSelectedItemVisible();
-    displayContentWidget(itemWidgets.get(firstItem));
+    TreeNode root=mainMenu.getRootTreeNode();
+    TreeNode category=root.setChildOpen(0,true);
+    ContentWidget content=(ContentWidget)category.getChildValue(0);
+    selectionModel.setSelected(content,true);
   }
-  Prefetcher.start();
 }

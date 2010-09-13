@@ -1,0 +1,24 @@
+{
+  if (styleDefs != null) {
+    callback.onSuccess(styleDefs);
+  }
+ else {
+    RequestCallback rc=new RequestCallback(){
+      public void onError(      Request request,      Throwable exception){
+        callback.onError();
+      }
+      public void onResponseReceived(      Request request,      Response response){
+        styleDefs=response.getText();
+        callback.onSuccess(styleDefs);
+      }
+    }
+;
+    String srcPath=ShowcaseConstants.DST_SOURCE_STYLE + "standard";
+    if (LocaleInfo.getCurrentLocale().isRTL()) {
+      srcPath+="_rtl";
+    }
+    String className=this.getClass().getName();
+    className=className.substring(className.lastIndexOf(".") + 1);
+    sendSourceRequest(rc,srcPath + "/" + className+ ".html");
+  }
+}
