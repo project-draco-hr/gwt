@@ -1,0 +1,24 @@
+{
+  JClassType[] superIntfs=classType.getImplementedInterfaces();
+  for (int i=0; i < superIntfs.length; i++) {
+    JClassType superIntf=superIntfs[i];
+    superIntf.getInheritableMethodsOnSuperinterfacesAndMaybeThisInterface(methodsBySignature);
+  }
+  if (classType.isInterface() == null) {
+    return;
+  }
+  JMethod[] declaredMethods=getMethods();
+  for (int i=0; i < declaredMethods.length; i++) {
+    JMethod method=declaredMethods[i];
+    String sig=computeInternalSignature(method);
+    JMethod existing=methodsBySignature.get(sig);
+    if (existing != null) {
+      JClassType existingType=existing.getEnclosingType();
+      JClassType thisType=method.getEnclosingType();
+      if (thisType.isAssignableFrom(existingType)) {
+        continue;
+      }
+    }
+    methodsBySignature.put(sig,method);
+  }
+}

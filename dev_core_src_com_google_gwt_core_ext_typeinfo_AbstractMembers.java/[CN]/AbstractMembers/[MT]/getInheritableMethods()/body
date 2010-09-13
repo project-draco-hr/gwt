@@ -1,0 +1,18 @@
+{
+  if (cachedInheritableMethods == null) {
+    Map<String,JMethod> methodsBySignature=new TreeMap<String,JMethod>();
+    getInheritableMethodsOnSuperinterfacesAndMaybeThisInterface(methodsBySignature);
+    if (classType.isClass() != null) {
+      getInheritableMethodsOnSuperclassesAndThisClass(methodsBySignature);
+    }
+    int size=methodsBySignature.size();
+    if (size == 0) {
+      cachedInheritableMethods=TypeOracle.NO_JMETHODS;
+    }
+ else {
+      Collection<JMethod> leafMethods=methodsBySignature.values();
+      cachedInheritableMethods=leafMethods.toArray(new JMethod[size]);
+    }
+  }
+  return cachedInheritableMethods;
+}
