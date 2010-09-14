@@ -1,0 +1,25 @@
+{
+  if (e == null) {
+    return "";
+  }
+  StringBuffer s=new StringBuffer(newline);
+  Throwable currentCause=e;
+  String causedBy="";
+  HashSet<Throwable> seenCauses=new HashSet<Throwable>();
+  while (currentCause != null && !seenCauses.contains(currentCause)) {
+    seenCauses.add(currentCause);
+    s.append(causedBy);
+    causedBy=newline + "Caused by: ";
+    s.append(currentCause.getClass().getName());
+    s.append(": " + currentCause.getMessage());
+    StackTraceElement[] stackElems=currentCause.getStackTrace();
+    if (stackElems != null) {
+      for (int i=0; i < stackElems.length; ++i) {
+        s.append(newline + indent + "at ");
+        s.append(stackElems[i].toString());
+      }
+    }
+    currentCause=currentCause.getCause();
+  }
+  return s.toString();
+}
