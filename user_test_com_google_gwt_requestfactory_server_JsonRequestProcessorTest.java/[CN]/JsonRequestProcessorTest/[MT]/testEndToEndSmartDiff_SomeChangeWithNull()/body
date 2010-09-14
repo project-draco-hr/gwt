@@ -1,0 +1,23 @@
+{
+  com.google.gwt.requestfactory.server.SimpleFoo.reset();
+  JSONObject foo=fetchVerifyAndGetInitialObject();
+  SimpleFoo fooResult=SimpleFoo.getSingleton();
+  fooResult.setUserName("JSC");
+  fooResult.setIntId(45);
+  fooResult.setNullField(null);
+  fooResult.setBarField(SimpleBar.getSingleton());
+  fooResult.setBarNullField(null);
+  foo.put("userName",JSONObject.NULL);
+  foo.put("intId",45);
+  foo.put("nullField","test");
+  foo.put("barNullField",SimpleBar.getSingleton().getId() + "-IS-" + SimpleBarProxy.class.getName());
+  foo.put("barField",JSONObject.NULL);
+  JSONObject result=getResultFromServer(foo);
+  assertTrue(result.getJSONObject("sideEffects").has("UPDATE"));
+  fooResult=SimpleFoo.getSingleton();
+  assertEquals(45,(int)fooResult.getIntId());
+  assertNull(fooResult.getUserName());
+  assertEquals("test",fooResult.getNullField());
+  assertEquals(SimpleBar.getSingleton(),fooResult.getBarNullField());
+  assertNull(fooResult.getBarField());
+}
