@@ -1,17 +1,25 @@
 {
-  Field accessOrderField;
-  try {
-    accessOrderField=LinkedHashMap.class.getDeclaredField("accessOrder");
-    accessOrderField.setAccessible(true);
-    return ((Boolean)accessOrderField.get(instance)).booleanValue();
-  }
- catch (  SecurityException e) {
-  }
-catch (  NoSuchFieldException e) {
-  }
-catch (  IllegalArgumentException e) {
-  }
-catch (  IllegalAccessException e) {
+  if (!reflectionHasFailed.get()) {
+    try {
+      Field f=accessOrderField.get();
+      if (f == null || !f.isAccessible()) {
+        f=LinkedHashMap.class.getDeclaredField("accessOrder");
+synchronized (f) {
+          f.setAccessible(true);
+        }
+        accessOrderField.set(f);
+      }
+      return ((Boolean)f.get(instance)).booleanValue();
+    }
+ catch (    SecurityException e) {
+    }
+catch (    NoSuchFieldException e) {
+    }
+catch (    IllegalArgumentException e) {
+    }
+catch (    IllegalAccessException e) {
+    }
+    reflectionHasFailed.set(true);
   }
   return getAccessOrderNoReflection(instance);
 }
