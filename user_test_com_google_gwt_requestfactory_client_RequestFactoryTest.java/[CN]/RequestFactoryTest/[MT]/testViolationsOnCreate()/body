@@ -4,16 +4,5 @@
   final RequestObject<Void> fooReq=req.simpleFooRequest().persist(newFoo);
   newFoo=fooReq.edit(newFoo);
   newFoo.setUserName("A");
-  fooReq.fire(new Receiver<Void>(){
-    public void onSuccess(    Void ignore,    Set<SyncResult> syncResults){
-      assertEquals(1,syncResults.size());
-      SyncResult syncResult=syncResults.iterator().next();
-      assertTrue("Violations expected (you might be missing some jars, " + "see the comment above this line)",syncResult.hasViolations());
-      Map<String,String> violations=syncResult.getViolations();
-      assertEquals(1,violations.size());
-      assertEquals("size must be between 3 and 30",violations.get("userName"));
-      finishTest();
-    }
-  }
-);
+  fooReq.fire(new ShouldNotSuccedReceiver<Void>(newFoo.stableId()));
 }

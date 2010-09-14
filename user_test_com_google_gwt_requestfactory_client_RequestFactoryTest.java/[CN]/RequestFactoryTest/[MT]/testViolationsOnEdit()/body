@@ -7,23 +7,10 @@
   fooReq.fire(new Receiver<SimpleFooProxy>(){
     public void onSuccess(    SimpleFooProxy returned,    Set<SyncResult> syncResults){
       assertEquals(1,syncResults.size());
-      SyncResult syncResult=syncResults.iterator().next();
-      assertFalse(syncResult.hasViolations());
       RequestObject<Void> editRequest=req.simpleFooRequest().persist(returned);
       SimpleFooProxy editableFoo=editRequest.edit(returned);
       editableFoo.setUserName("A");
-      editRequest.fire(new Receiver<Void>(){
-        public void onSuccess(        Void returned,        Set<SyncResult> syncResults){
-          assertEquals(1,syncResults.size());
-          SyncResult syncResult=syncResults.iterator().next();
-          assertTrue("Violations expected (you might be missing some jars, " + "see the comment above this line)",syncResult.hasViolations());
-          Map<String,String> violations=syncResult.getViolations();
-          assertEquals(1,violations.size());
-          assertEquals("size must be between 3 and 30",violations.get("userName"));
-          finishTest();
-        }
-      }
-);
+      editRequest.fire(new ShouldNotSuccedReceiver<Void>(returned.stableId()));
     }
   }
 );
