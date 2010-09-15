@@ -1,27 +1,35 @@
 {
-  ensureConfig();
-  String jsonRequestString=RPCServletUtils.readContent(request,JSON_CONTENT_TYPE,JSON_CHARSET);
-  response.setStatus(HttpServletResponse.SC_OK);
-  PrintWriter writer=response.getWriter();
+  perThreadRequest.set(request);
+  perThreadResponse.set(response);
   try {
-    UserInformation userInfo=UserInformation.getCurrentUserInformation(request.getHeader("pageurl"));
-    if (!userInfo.isUserLoggedIn()) {
-      response.setHeader("login",userInfo.getLoginUrl());
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-    }
+    ensureConfig();
+    String jsonRequestString=RPCServletUtils.readContent(request,JSON_CONTENT_TYPE,JSON_CHARSET);
+    response.setStatus(HttpServletResponse.SC_OK);
+    PrintWriter writer=response.getWriter();
+    try {
+      UserInformation userInfo=UserInformation.getCurrentUserInformation(request.getHeader("pageurl"));
+      if (!userInfo.isUserLoggedIn()) {
+        response.setHeader("login",userInfo.getLoginUrl());
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+      }
  else {
-      response.setHeader("userId",String.format("%d",userInfo.getId()));
-      response.setStatus(HttpServletResponse.SC_OK);
-      RequestProcessor<String> requestProcessor=new JsonRequestProcessor();
-      requestProcessor.setOperationRegistry(new ReflectionBasedOperationRegistry(new DefaultSecurityProvider()));
-      response.setHeader("Content-Type",RequestFactory.JSON_CONTENT_TYPE_UTF8);
-      writer.print(requestProcessor.decodeAndInvokeRequest(jsonRequestString));
+        response.setHeader("userId",String.format("%d",userInfo.getId()));
+        response.setStatus(HttpServletResponse.SC_OK);
+        RequestProcessor<String> requestProcessor=new JsonRequestProcessor();
+        requestProcessor.setOperationRegistry(new ReflectionBasedOperationRegistry(new DefaultSecurityProvider()));
+        response.setHeader("Content-Type",RequestFactory.JSON_CONTENT_TYPE_UTF8);
+        writer.print(requestProcessor.decodeAndInvokeRequest(jsonRequestString));
+        writer.flush();
+      }
+    }
+ catch (    RequestProcessingException e) {
+      writer.print((String)e.getResponse());
       writer.flush();
+      log.log(Level.SEVERE,"Unexpected error",e);
     }
   }
- catch (  RequestProcessingException e) {
-    writer.print((String)e.getResponse());
-    writer.flush();
-    log.log(Level.SEVERE,"Unexpected error",e);
+  finally {
+    perThreadRequest.set(null);
+    perThreadResponse.set(null);
   }
 }
