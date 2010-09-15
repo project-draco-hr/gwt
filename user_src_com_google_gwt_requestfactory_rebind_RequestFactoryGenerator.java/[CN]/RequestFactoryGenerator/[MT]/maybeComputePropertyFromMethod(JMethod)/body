@@ -1,0 +1,20 @@
+{
+  String propertyName=null;
+  JType propertyType=null;
+  String methodName=method.getName();
+  if (methodName.startsWith("get")) {
+    propertyName=Introspector.decapitalize(methodName.substring(3));
+    propertyType=method.getReturnType();
+  }
+ else   if (methodName.startsWith("set")) {
+    propertyName=Introspector.decapitalize(methodName.substring(3));
+    JParameter[] parameters=method.getParameters();
+    if (parameters.length > 0) {
+      propertyType=parameters[parameters.length - 1].getType();
+    }
+  }
+  if (propertyType != null && propertyType != JPrimitiveType.VOID) {
+    return new EntityProperty(propertyName,propertyType);
+  }
+  return null;
+}
