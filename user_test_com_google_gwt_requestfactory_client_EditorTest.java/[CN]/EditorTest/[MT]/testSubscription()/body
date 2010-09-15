@@ -1,0 +1,34 @@
+{
+  delayTestFinish(TEST_TIMEOUT);
+  final SimpleFooEditorWithDelegate editor=new SimpleFooEditorWithDelegate();
+  final SimpleFooDriver driver=GWT.create(SimpleFooDriver.class);
+  driver.initialize(eventBus,factory,editor);
+  assertEquals(Arrays.asList("barField.userName","barField"),Arrays.asList(driver.getPaths()));
+  factory.simpleFooRequest().findSimpleFooById(0L).with(driver.getPaths()).fire(new Receiver<SimpleFooProxy>(){
+    public void onSuccess(    SimpleFooProxy response,    Set<SyncResult> syncResults){
+      driver.edit(response,null);
+      assertNotNull(editor.delegate.subscribe());
+      ProxyRequest<SimpleFooProxy> request=factory.simpleFooRequest().persistAndReturnSelf(response);
+      SimpleBarProxy newBar=factory.create(SimpleBarProxy.class);
+      newBar=request.edit(newBar);
+      newBar.setUserName("newBar");
+      response=request.edit(response);
+      response.setBarField(newBar);
+      response.setUserName("updated");
+      request.fire(new Receiver<SimpleFooProxy>(){
+        public void onSuccess(        SimpleFooProxy response,        Set<SyncResult> syncResults){
+          Scheduler.get().scheduleDeferred(new ScheduledCommand(){
+            public void execute(){
+              assertEquals("updated",editor.userName.getValue());
+              assertEquals("newBar",editor.barEditor().userName.getValue());
+              finishTest();
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}
