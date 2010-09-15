@@ -1,0 +1,33 @@
+{
+  delayTestFinish(TEST_TIMEOUT);
+  final SimpleFooEditor editor=new SimpleFooEditor();
+  final SimpleFooDriver driver=GWT.create(SimpleFooDriver.class);
+  driver.initialize(eventBus,factory,editor);
+  factory.simpleFooRequest().findSimpleFooById(0L).with(driver.getPaths()).fire(new Receiver<SimpleFooProxy>(){
+    public void onSuccess(    SimpleFooProxy response,    Set<SyncResult> syncResults){
+      driver.edit(response,factory.simpleFooRequest().persistAndReturnSelf(response).with(driver.getPaths()));
+      editor.userName.setValue("");
+      driver.<SimpleFooProxy>flush().fire(new Receiver<SimpleFooProxy>(){
+        @Override public void onSuccess(        SimpleFooProxy response,        Set<SyncResult> syncResults){
+          fail("Expected errors");
+        }
+        @Override public void onViolation(        Set<Violation> errors){
+          assertEquals(1,errors.size());
+          Violation v=errors.iterator().next();
+          driver.setViolations(errors);
+          assertEquals(1,editor.errors.size());
+          EditorError error=editor.errors.get(0);
+          assertEquals("userName",error.getAbsolutePath());
+          assertSame(editor.userName,error.getEditor());
+          assertTrue(error.getMessage().length() > 0);
+          assertEquals("userName",error.getPath());
+          assertSame(v,error.getUserData());
+          assertNull(error.getValue());
+          finishTest();
+        }
+      }
+);
+    }
+  }
+);
+}

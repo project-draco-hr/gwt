@@ -35,7 +35,7 @@
         sw.println("%s %s;",Name.getSourceNameForClass(getEditorDelegateType()),fieldName);
       }
     }
-    sw.println("protected void attachSubEditors() {");
+    sw.println("protected void attachSubEditors(%s delegateMap) {",DelegateMap.class.getCanonicalName());
     sw.indent();
     for (    EditorData d : data) {
       String subDelegateType=getEditorDelegate(d);
@@ -44,9 +44,11 @@
       if (d.isDelegateRequired()) {
         sw.println("%s = new %s();",delegateFields.get(d),subDelegateType);
         writeDelegateInitialization(sw,d,delegateFields);
+        sw.println("delegateMap.put(%1$s.getObject(), %1$s);",delegateFields.get(d));
       }
  else       if (d.isLeafValueEditor()) {
         sw.println("if (%4$s) editor.%1$s.setValue(getObject()%2$s.%3$s());",d.getSimpleExpression(),d.getBeanOwnerExpression(),d.getGetterName(),d.getBeanOwnerGuard("getObject()"));
+        sw.println("simpleEditors.put(\"%s\", editor.%s);",d.getDeclaredPath(),d.getSimpleExpression());
       }
       sw.outdent();
       sw.println("}");
@@ -82,6 +84,15 @@
         sw.println("%s.flush(errorAccumulator);",delegateFields.get(d));
         sw.outdent();
         sw.println("}");
+      }
+    }
+    sw.outdent();
+    sw.println("}");
+    sw.println("protected void flushSubEditorErrors(%s errorAccumulator) {",List.class.getCanonicalName());
+    sw.indent();
+    for (    EditorData d : data) {
+      if (d.isDelegateRequired()) {
+        sw.println("if (%1$s != null) %1$s.flushErrors(errorAccumulator);",delegateFields.get(d));
       }
     }
     sw.outdent();

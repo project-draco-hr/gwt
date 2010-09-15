@@ -1,0 +1,22 @@
+{
+  checkDelegate();
+  for (  Violation error : violations) {
+    List<AbstractEditorDelegate<?,?>> delegateList=delegateMap.getRaw(error.getProxyId());
+    if (delegateList != null) {
+      for (      AbstractEditorDelegate<?,?> baseDelegate : delegateList) {
+        String basePath=baseDelegate.getPath();
+        String absolutePath=(basePath.length() > 0 ? basePath + "." : "") + error.getPath();
+        List<AbstractEditorDelegate<?,?>> leafDelegates=delegateMap.getPath(absolutePath);
+        if (leafDelegates != null) {
+          leafDelegates.get(0).recordError(error.getMessage(),null,error);
+        }
+ else {
+          baseDelegate.recordError(error.getMessage(),null,error,error.getPath());
+        }
+      }
+    }
+  }
+  errors=new ArrayList<EditorError>();
+  delegate.flushErrors(errors);
+  return !errors.isEmpty();
+}
