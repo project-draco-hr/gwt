@@ -67,10 +67,22 @@
         return entityData.entityInstance;
       }
  else {
+        involvedKeys.add(entityKey);
         Method findMeth=sClass.getMethod(getMethodNameFromPropertyName(sClass.getSimpleName(),"find"),Long.class);
         return findMeth.invoke(null,entityKey.id);
       }
     }
+  }
+  if (EntityProxyId.class.isAssignableFrom(parameterType)) {
+    EntityKey entityKey=getEntityKey(parameterValue.toString());
+    ProxyFor service=entityKey.record.getAnnotation(ProxyFor.class);
+    if (service == null) {
+      throw new IllegalArgumentException("Unknown service, unable to decode " + parameterValue);
+    }
+    involvedKeys.add(entityKey);
+    Class<?> sClass=service.value();
+    Method findMeth=sClass.getMethod(getMethodNameFromPropertyName(sClass.getSimpleName(),"find"),Long.class);
+    return findMeth.invoke(null,entityKey.id);
   }
   throw new IllegalArgumentException("Unknown parameter type: " + parameterType);
 }

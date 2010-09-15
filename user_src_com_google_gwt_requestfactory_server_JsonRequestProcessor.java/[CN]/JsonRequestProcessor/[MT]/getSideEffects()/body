@@ -1,2 +1,40 @@
 {
+  JSONObject sideEffects=new JSONObject();
+  JSONArray createArray=new JSONArray();
+  JSONArray deleteArray=new JSONArray();
+  JSONArray updateArray=new JSONArray();
+  for (  EntityKey entityKey : involvedKeys) {
+    EntityData entityData=afterDvsDataMap.get(entityKey);
+    if (entityData == null) {
+      continue;
+    }
+    if (entityKey.isFuture) {
+      JSONObject createRecord=getCreateReturnRecord(entityKey,entityData);
+      if (createRecord != null) {
+        createArray.put(createRecord);
+      }
+      continue;
+    }
+    WriteOperation writeOperation=detectDeleteOrUpdate(entityKey,entityData);
+    if (writeOperation == WriteOperation.DELETE) {
+      JSONObject deleteRecord=new JSONObject();
+      deleteRecord.put("id",getSchemaAndId(entityKey.record,entityKey.id));
+      deleteArray.put(deleteRecord);
+    }
+    if (writeOperation == WriteOperation.UPDATE) {
+      JSONObject updateRecord=new JSONObject();
+      updateRecord.put("id",getSchemaAndId(entityKey.record,entityKey.id));
+      updateArray.put(updateRecord);
+    }
+  }
+  if (createArray.length() > 0) {
+    sideEffects.put(WriteOperation.CREATE.name(),createArray);
+  }
+  if (deleteArray.length() > 0) {
+    sideEffects.put(WriteOperation.DELETE.name(),deleteArray);
+  }
+  if (updateArray.length() > 0) {
+    sideEffects.put(WriteOperation.UPDATE.name(),updateArray);
+  }
+  return sideEffects;
 }

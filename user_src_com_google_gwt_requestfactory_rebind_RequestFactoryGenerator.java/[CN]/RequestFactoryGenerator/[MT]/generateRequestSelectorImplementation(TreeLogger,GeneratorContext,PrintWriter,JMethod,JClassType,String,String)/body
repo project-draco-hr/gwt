@@ -22,12 +22,18 @@
     JClassType requestType=method.getReturnType().isClassOrInterface();
     String requestClassName=null;
     TypeOracle typeOracle=generatorContext.getTypeOracle();
-    String enumArgument="";
+    String enumOrFindArgument="";
     if (isProxyListRequest(typeOracle,requestType)) {
       requestClassName=asInnerImplClass("ListRequestImpl",returnType);
     }
  else     if (isProxyRequest(typeOracle,requestType)) {
-      requestClassName=asInnerImplClass("ObjectRequestImpl",returnType);
+      if (selectorInterface.isAssignableTo(typeOracle.findType(FindRequest.class.getName()))) {
+        enumOrFindArgument=", proxyId";
+        requestClassName=FindRequestObjectImpl.class.getName();
+      }
+ else {
+        requestClassName=asInnerImplClass("ObjectRequestImpl",returnType);
+      }
     }
  else     if (isStringRequest(typeOracle,requestType)) {
       requestClassName=AbstractStringRequest.class.getName();
@@ -67,7 +73,7 @@
     }
  else     if (isEnumRequest(typeOracle,requestType)) {
       requestClassName=AbstractEnumRequest.class.getName();
-      enumArgument=", " + requestType.isParameterized().getTypeArgs()[0] + ".values()";
+      enumOrFindArgument=", " + requestType.isParameterized().getTypeArgs()[0] + ".values()";
     }
  else     if (isVoidRequest(typeOracle,requestType)) {
       requestClassName=AbstractVoidRequest.class.getName();
@@ -78,12 +84,12 @@
     }
     sw.println(getMethodDeclaration(method) + " {");
     sw.indent();
-    sw.println("return new " + requestClassName + "(factory"+ enumArgument+ ") {");
+    sw.println("return new " + requestClassName + "(factory"+ enumOrFindArgument+ ") {");
     sw.indent();
     String requestDataName=RequestData.class.getSimpleName();
     sw.println("public " + requestDataName + " getRequestData() {");
     sw.indent();
-    sw.println("return new " + requestDataName + "(\""+ operationName+ "\", "+ getParametersAsString(method,typeOracle)+ ","+ "getPropertyRefs());");
+    sw.println("return new " + requestDataName + "(\""+ operationName+ "\", "+ getParametersAsString(method,typeOracle)+ ", "+ "getPropertyRefs());");
     sw.outdent();
     sw.println("}");
     sw.outdent();
