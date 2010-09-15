@@ -1,31 +1,28 @@
 {
-  Event optimizeEvent=SpeedTracerLogger.start(CompilerEventType.OPTIMIZE);
-  jprogram.beginOptimizations();
   List<OptimizerStats> allOptimizerStats=new ArrayList<OptimizerStats>();
   int counter=0;
   while (true) {
     counter++;
     if (Thread.interrupted()) {
-      optimizeEvent.end();
       throw new InterruptedException();
     }
-    maybeDumpAST(jprogram);
-    OptimizerStats stats=optimizeLoop("Pass " + counter,jprogram,options.isAggressivelyOptimize());
+    Event optimizeJsEvent=SpeedTracerLogger.start(CompilerEventType.OPTIMIZE_JS);
+    OptimizerStats stats=new OptimizerStats("Pass " + counter);
+    stats.add(JsStaticEval.exec(jsProgram));
+    stats.add(JsInliner.exec(jsProgram));
+    stats.add(JsUnusedFunctionRemover.exec(jsProgram));
     allOptimizerStats.add(stats);
+    optimizeJsEvent.end();
     if (!stats.didChange()) {
       break;
     }
   }
-  if (options.isAggressivelyOptimize()) {
-    allOptimizerStats.add(DataflowOptimizer.exec(jprogram));
-  }
   if (JProgram.isTracingEnabled()) {
     System.out.println("");
-    System.out.println("                Java Optimization Stats");
+    System.out.println("               JavaScript Optimization Stats");
     System.out.println("");
     for (    OptimizerStats stats : allOptimizerStats) {
       System.out.println(stats.prettyPrint());
     }
   }
-  optimizeEvent.end();
 }

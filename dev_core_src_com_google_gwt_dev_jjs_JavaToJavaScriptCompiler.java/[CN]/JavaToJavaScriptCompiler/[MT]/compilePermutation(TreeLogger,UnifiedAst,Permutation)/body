@@ -40,17 +40,7 @@
     JsSymbolResolver.exec(jsProgram);
     EvalFunctionsAtTopScope.exec(jsProgram,map);
     if (!options.isDraftCompile()) {
-      boolean didChange;
-      do {
-        if (Thread.interrupted()) {
-          throw new InterruptedException();
-        }
-        didChange=false;
-        didChange=JsStaticEval.exec(jsProgram) || didChange;
-        didChange=JsInliner.exec(jsProgram) || didChange;
-        didChange=JsUnusedFunctionRemover.exec(jsProgram) || didChange;
-      }
- while (didChange);
+      optimizeJs(jsProgram);
     }
     JsStackEmulator.exec(jsProgram,propertyOracles);
     JsCoerceIntShift.exec(jsProgram,logger,propertyOracles);
