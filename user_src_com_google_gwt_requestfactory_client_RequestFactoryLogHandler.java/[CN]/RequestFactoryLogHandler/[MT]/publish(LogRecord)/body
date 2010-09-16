@@ -5,12 +5,11 @@
   if (record.getLoggerName().contains(ignoredLoggerSubstring)) {
     return;
   }
-  SerializableLogRecord slr=new SerializableLogRecord(record);
+  SerializableLogRecord slr=new SerializableLogRecord(record,strongName);
   String json=JsonLogRecordClientUtil.serializableLogRecordAsJson(slr);
   requestProvider.getLoggingRequest().logMessage(json).fire(new Receiver<Boolean>(){
     @Override public void onSuccess(    Boolean response,    Set<SyncResult> syncResults){
       if (!response) {
-        Logger wireLogger=Logger.getLogger("WireActivityLogger");
         wireLogger.severe("Remote Logging failed to parse JSON");
       }
     }
