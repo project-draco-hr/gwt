@@ -1,0 +1,32 @@
+{
+  Event resourceOracle=SpeedTracerLogger.start(CompilerEventType.RESOURCE_ORACLE,"phase","refresh");
+  TreeLogger refreshBranch=Messages.REFRESHING_RESOURCES.branch(logger,null);
+  Map<String,ResourceData> newInternalMap=new LinkedHashMap<String,ResourceData>();
+  for (  ClassPathEntry pathRoot : classPath) {
+    TreeLogger branchForClassPathEntry=Messages.EXAMINING_PATH_ROOT.branch(refreshBranch,pathRoot.getLocation(),null);
+    Map<AbstractResource,PathPrefix> resourceToPrefixMap=pathRoot.findApplicableResources(branchForClassPathEntry,pathPrefixSet);
+    for (    Entry<AbstractResource,PathPrefix> entry : resourceToPrefixMap.entrySet()) {
+      ResourceData newCpeData=new ResourceData(entry.getKey(),entry.getValue());
+      String resourcePath=newCpeData.resource.getPath();
+      ResourceData oldCpeData=newInternalMap.get(resourcePath);
+      if (oldCpeData == null || oldCpeData.compareTo(newCpeData) < 0) {
+        newInternalMap.put(resourcePath,newCpeData);
+      }
+ else {
+        Messages.IGNORING_SHADOWED_RESOURCE.log(branchForClassPathEntry,resourcePath,null);
+      }
+    }
+  }
+  Map<String,Resource> externalMap=new HashMap<String,Resource>();
+  Set<Resource> externalSet=new HashSet<Resource>();
+  for (  Entry<String,ResourceData> entry : newInternalMap.entrySet()) {
+    String path=entry.getKey();
+    ResourceData data=entry.getValue();
+    externalMap.put(path,data.resource);
+    externalSet.add(data.resource);
+  }
+  exposedResources=Collections.unmodifiableSet(externalSet);
+  exposedResourceMap=Collections.unmodifiableMap(externalMap);
+  exposedPathNames=Collections.unmodifiableSet(externalMap.keySet());
+  resourceOracle.end();
+}
