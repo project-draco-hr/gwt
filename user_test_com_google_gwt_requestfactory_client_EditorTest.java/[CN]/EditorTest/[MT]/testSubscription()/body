@@ -17,14 +17,18 @@
       response.setUserName("updated");
       request.fire(new Receiver<SimpleFooProxy>(){
         public void onSuccess(        SimpleFooProxy response,        Set<SyncResult> syncResults){
-          Scheduler.get().scheduleDeferred(new ScheduledCommand(){
-            public void execute(){
-              assertEquals("updated",editor.userName.getValue());
-              assertEquals("newBar",editor.barEditor().userName.getValue());
-              finishTestAndReset();
+          Scheduler.get().scheduleFixedDelay(new RepeatingCommand(){
+            public boolean execute(){
+              if ("updated".equals(editor.userName.getValue())) {
+                assertEquals("updated",editor.userName.getValue());
+                assertEquals("newBar",editor.barEditor().userName.getValue());
+                finishTestAndReset();
+                return false;
+              }
+              return true;
             }
           }
-);
+,50);
         }
       }
 );
