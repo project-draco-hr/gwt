@@ -1,5 +1,13 @@
 {
-  final List<MultiWordSuggestion> suggestions=computeItemsFor(request.getQuery(),request.getLimit());
+  String query=normalizeSearch(request.getQuery());
+  int limit=request.getLimit();
+  List<String> candidates=createCandidatesFromSearch(query);
+  int numberTruncated=Math.max(0,candidates.size() - limit);
+  for (int i=candidates.size() - 1; i > limit; i--) {
+    candidates.remove(i);
+  }
+  List<MultiWordSuggestion> suggestions=convertToFormattedSuggestions(query,candidates);
   Response response=new Response(suggestions);
+  response.setMoreSuggestionsCount(numberTruncated);
   callback.onSuggestionsReady(request,response);
 }
