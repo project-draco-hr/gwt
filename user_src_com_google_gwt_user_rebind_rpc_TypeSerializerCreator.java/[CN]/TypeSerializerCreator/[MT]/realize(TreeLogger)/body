@@ -1,26 +1,16 @@
 {
-  logger=logger.branch(TreeLogger.DEBUG,"Generating TypeSerializer for service interface '" + typeSerializerClassName + "'",null);
+  logger=logger.branch(TreeLogger.DEBUG,"Generating TypeSerializer for service interface '" + getTypeSerializerClassName() + "'",null);
+  String typeSerializerName=getTypeSerializerClassName();
+  if (srcWriter == null) {
+    return typeSerializerName;
+  }
   createFieldSerializers(logger,context);
-  int index=0;
-  for (  JType type : getSerializableTypes()) {
-    String typeString;
-    if (elideTypeNames) {
-      typeString=Integer.toString(++index,Character.MAX_RADIX);
-    }
- else {
-      typeString=getTypeString(type);
-    }
-    typeStrings.put(type,typeString);
-  }
-  if (srcWriter != null) {
-    writeStaticFields();
-    writeStaticInitializer();
-    writeLoadMethodsJava();
-    writeLoadMethodsNative();
-    writeLoadSignaturesJava();
-    writeLoadSignaturesNative();
-    writeConstructor();
-    srcWriter.commit(logger);
-  }
-  return typeSerializerClassName;
+  writeStaticFields();
+  writeStaticInitializer();
+  writeCreateMethods();
+  writeRegisterSignatures();
+  writeRegisterMethods();
+  writeRaiseSerializationException();
+  srcWriter.commit(logger);
+  return typeSerializerName;
 }

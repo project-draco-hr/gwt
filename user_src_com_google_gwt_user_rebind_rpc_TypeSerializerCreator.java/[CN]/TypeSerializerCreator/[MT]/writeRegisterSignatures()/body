@@ -1,14 +1,21 @@
 {
-  srcWriter.println("private static native JsArrayString loadSignaturesNative() /*-{");
+  srcWriter.println("private static native void registerSignatures() /*-{");
   srcWriter.indent();
-  srcWriter.println("var result = [];");
+  int index=0;
   boolean shard=shardSize > 0 && getSerializableTypes().length > shardSize;
   int shardCount=0;
   if (shard) {
     srcWriter.println("(function() {");
   }
   for (  JType type : getSerializableTypes()) {
-    String typeString=typeStrings.get(type);
+    String typeString;
+    if (elideTypeNames) {
+      typeString=Integer.toString(++index,Character.MAX_RADIX);
+    }
+ else {
+      typeString=getTypeString(type);
+    }
+    typeStrings.put(type,typeString);
     if (!serializationOracle.maybeInstantiated(type) && !deserializationOracle.maybeInstantiated(type)) {
       continue;
     }
@@ -22,12 +29,17 @@
       srcWriter.println("})();");
       srcWriter.println("(function() {");
     }
-    srcWriter.println("result[@com.google.gwt.core.client.impl.Impl::getHashCode(Ljava/lang/Object;)(@" + jsniTypeRef + "::class)] = \""+ typeString+ "\";");
+    srcWriter.println("@com.google.gwt.user.client.rpc.impl.SerializerBase" + "::registerSignature(" + "Lcom/google/gwt/core/client/JsArrayString;"+ "Ljava/lang/Class;"+ "Ljava/lang/String;)(");
+    srcWriter.indent();
+    srcWriter.println("@" + typeSerializerClassName + "::signatureMap,");
+    srcWriter.println("@" + jsniTypeRef + "::class,");
+    srcWriter.println("\"" + typeString + "\");");
+    srcWriter.outdent();
+    srcWriter.println();
   }
   if (shard) {
     srcWriter.println("})();");
   }
-  srcWriter.println("return result;");
   srcWriter.outdent();
   srcWriter.println("}-*/;");
   srcWriter.println();

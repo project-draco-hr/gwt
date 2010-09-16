@@ -6,8 +6,11 @@
     createFieldSerializer(logger,ctx,parameterizedType.getRawType());
     return;
   }
-  assert(type.isClass() != null || type.isArray() != null);
   JClassType customFieldSerializer=SerializableTypeOracleBuilder.findCustomFieldSerializer(typeOracle,type);
-  FieldSerializerCreator creator=new FieldSerializerCreator(typeOracle,serializationOracle,deserializationOracle,(JClassType)type,customFieldSerializer);
+  if (customFieldSerializer != null) {
+    return;
+  }
+  assert(type.isClass() != null || type.isArray() != null);
+  FieldSerializerCreator creator=new FieldSerializerCreator(typeOracle,serializationOracle,deserializationOracle,(JClassType)type);
   creator.realize(logger,ctx);
 }
