@@ -5,18 +5,18 @@
   rayFoo=persistRay.edit(rayFoo);
   rayFoo.setUserName("Ray");
   persistRay.fire(new Receiver<SimpleFooProxy>(){
-    public void onSuccess(    final SimpleFooProxy persistedRay,    Set<SyncResult> ignored){
+    @Override public void onSuccess(    final SimpleFooProxy persistedRay,    Set<SyncResult> ignored){
       SimpleBarProxy amitBar=req.create(SimpleBarProxy.class);
       final RequestObject<SimpleBarProxy> persistAmit=req.simpleBarRequest().persistAndReturnSelf(amitBar);
       amitBar=persistAmit.edit(amitBar);
       amitBar.setUserName("Amit");
       persistAmit.fire(new Receiver<SimpleBarProxy>(){
-        public void onSuccess(        SimpleBarProxy persistedAmit,        Set<SyncResult> ignored){
+        @Override public void onSuccess(        SimpleBarProxy persistedAmit,        Set<SyncResult> ignored){
           final RequestObject<SimpleFooProxy> persistRelationship=req.simpleFooRequest().persistAndReturnSelf(persistedRay).with("barField");
           SimpleFooProxy newRec=persistRelationship.edit(persistedRay);
           newRec.setBarField(persistedAmit);
           persistRelationship.fire(new Receiver<SimpleFooProxy>(){
-            public void onSuccess(            SimpleFooProxy relatedRay,            Set<SyncResult> ignored){
+            @Override public void onSuccess(            SimpleFooProxy relatedRay,            Set<SyncResult> ignored){
               assertEquals("Amit",relatedRay.getBarField().getUserName());
               finishTestAndReset();
             }

@@ -9,17 +9,17 @@
   newBar=barReq.edit(newBar);
   newBar.setUserName("Amit");
   fooReq.fire(new Receiver<SimpleFooProxy>(){
-    public void onSuccess(    final SimpleFooProxy persistedFoo,    Set<SyncResult> syncResult){
+    @Override public void onSuccess(    final SimpleFooProxy persistedFoo,    Set<SyncResult> syncResult){
       barReq.fire(new Receiver<SimpleBarProxy>(){
-        public void onSuccess(        final SimpleBarProxy persistedBar,        Set<SyncResult> syncResults){
+        @Override public void onSuccess(        final SimpleBarProxy persistedBar,        Set<SyncResult> syncResults){
           assertEquals("Ray",persistedFoo.getUserName());
           final RequestObject<Void> fooReq2=req.simpleFooRequest().persist(persistedFoo);
           SimpleFooProxy editablePersistedFoo=fooReq2.edit(persistedFoo);
           editablePersistedFoo.setBarField(persistedBar);
           fooReq2.fire(new Receiver<Void>(){
-            public void onSuccess(            Void response,            Set<SyncResult> syncResults){
+            @Override public void onSuccess(            Void response,            Set<SyncResult> syncResults){
               req.simpleFooRequest().findSimpleFooById(999L).with("barField.userName").fire(new Receiver<SimpleFooProxy>(){
-                public void onSuccess(                SimpleFooProxy finalFooProxy,                Set<SyncResult> syncResults){
+                @Override public void onSuccess(                SimpleFooProxy finalFooProxy,                Set<SyncResult> syncResults){
                   assertEquals("Amit",finalFooProxy.getBarField().getUserName());
                   finishTestAndReset();
                 }
