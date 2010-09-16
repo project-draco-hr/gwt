@@ -1,0 +1,30 @@
+{
+  super(Document.get().createTableElement(),pageSize,keyProvider);
+  if (TABLE_IMPL == null) {
+    TABLE_IMPL=GWT.create(Impl.class);
+  }
+  if (template == null) {
+    template=GWT.create(Template.class);
+  }
+  this.style=resources.cellTableStyle();
+  this.style.ensureInjected();
+  table=getElement().cast();
+  table.setCellSpacing(0);
+  colgroup=Document.get().createColGroupElement();
+  table.appendChild(colgroup);
+  thead=table.createTHead();
+  table.appendChild(tbody=Document.get().createTBodyElement());
+  table.appendChild(tbodyLoading=Document.get().createTBodyElement());
+  tfoot=table.createTFoot();
+  setStyleName(this.style.cellTableWidget());
+{
+    TableCellElement td=Document.get().createTDElement();
+    TableRowElement tr=Document.get().createTRElement();
+    tbodyLoading.appendChild(tr);
+    tr.appendChild(td);
+    td.setAlign("center");
+    td.setInnerHTML(template.loading(style.cellTableLoading()).asString());
+    setLoadingIconVisible(false);
+  }
+  sinkEvents(Event.ONCLICK | Event.ONMOUSEOVER | Event.ONMOUSEOUT| Event.ONKEYUP| Event.ONKEYDOWN);
+}
