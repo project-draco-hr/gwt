@@ -1,0 +1,32 @@
+{
+  return new RequestCallback(){
+    public void onError(    Request request,    Throwable exception){
+      postRequestEvent(State.RECEIVED,null);
+      wireLogger.log(Level.SEVERE,SERVER_ERROR,exception);
+      receiver.onFailure(exception.getMessage());
+    }
+    public void onResponseReceived(    Request request,    Response response){
+      wireLogger.finest("Response received");
+      try {
+        if (200 == response.getStatusCode()) {
+          String text=response.getText();
+          receiver.onSuccess(text);
+        }
+ else         if (Response.SC_UNAUTHORIZED == response.getStatusCode()) {
+          String message="Need to log in";
+          wireLogger.finest(message);
+          receiver.onFailure(message);
+        }
+ else         if (response.getStatusCode() > 0) {
+          String message=SERVER_ERROR + " " + response.getStatusCode()+ " "+ response.getText();
+          wireLogger.severe(message);
+          receiver.onFailure(message);
+        }
+      }
+  finally {
+        postRequestEvent(State.RECEIVED,response);
+      }
+    }
+  }
+;
+}
