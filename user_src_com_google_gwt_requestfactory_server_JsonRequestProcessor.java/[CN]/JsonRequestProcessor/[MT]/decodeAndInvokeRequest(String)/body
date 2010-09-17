@@ -5,14 +5,12 @@
     Logger.getLogger(this.getClass().getName()).finest("Outgoing response " + response);
     return response;
   }
- catch (  Exception e) {
-    JSONObject exceptionResponse=new JSONObject();
-    try {
-      exceptionResponse.put("exception","Server error");
-    }
- catch (    JSONException jsonException) {
-      throw new IllegalStateException(jsonException);
-    }
+ catch (  InvocationTargetException e) {
+    JSONObject exceptionResponse=buildExceptionResponse(e.getCause());
+    throw new RequestProcessingException("Unexpected exception",e,exceptionResponse.toString());
+  }
+catch (  Exception e) {
+    JSONObject exceptionResponse=buildExceptionResponse(e);
     throw new RequestProcessingException("Unexpected exception",e,exceptionResponse.toString());
   }
 }

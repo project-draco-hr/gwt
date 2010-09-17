@@ -1,0 +1,22 @@
+{
+  delayTestFinish(5000);
+  SimpleFooProxy rayFoo=req.create(SimpleFooProxy.class);
+  final RequestObject<SimpleFooProxy> persistRay=req.simpleFooRequest().persistAndReturnSelf(rayFoo);
+  rayFoo=persistRay.edit(rayFoo);
+  rayFoo.setPleaseCrash(42);
+  persistRay.fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onFailure(    ServerFailure error){
+      assertEquals("test message",error.getMessage());
+      assertEquals("java.lang.UnsupportedOperationException",error.getExceptionType());
+      assertFalse(error.getStackTraceString().isEmpty());
+      finishTestAndReset();
+    }
+    @Override public void onViolation(    Set<Violation> errors){
+      fail("Failure expected but onViolation() was called");
+    }
+    public void onSuccess(    SimpleFooProxy response,    Set<SyncResult> syncResult){
+      fail("Failure expected but onSuccess() was called");
+    }
+  }
+);
+}
