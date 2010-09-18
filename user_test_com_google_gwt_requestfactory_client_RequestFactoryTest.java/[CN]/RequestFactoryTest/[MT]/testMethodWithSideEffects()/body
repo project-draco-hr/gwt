@@ -1,20 +1,15 @@
 {
   delayTestFinish(5000);
   req.simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
-    @Override public void onSuccess(    SimpleFooProxy newFoo,    Set<SyncResult> syncResults){
+    @Override public void onSuccess(    SimpleFooProxy newFoo){
       final RequestObject<Long> fooReq=req.simpleFooRequest().countSimpleFooWithUserNameSideEffect(newFoo);
       newFoo=fooReq.edit(newFoo);
       newFoo.setUserName("Ray");
       fooReq.fire(new Receiver<Long>(){
-        @Override public void onSuccess(        Long response,        Set<SyncResult> syncResults){
+        @Override public void onSuccess(        Long response){
           assertEquals(new Long(1L),response);
-          assertEquals(1,syncResults.size());
-          SyncResult syncResultArray[]=syncResults.toArray(new SyncResult[0]);
-          assertNull(syncResultArray[0].getFutureId());
-          EntityProxy proxy=syncResultArray[0].getProxy();
-          assertEquals(new Long(999L),proxy.getId());
           req.simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
-            @Override public void onSuccess(            SimpleFooProxy finalFoo,            Set<SyncResult> syncResults){
+            @Override public void onSuccess(            SimpleFooProxy finalFoo){
               assertEquals("Ray",finalFoo.getUserName());
               finishTestAndReset();
             }
@@ -26,9 +21,9 @@
       newFoo.setUserName("Barney");
       newFoo.setUserName("Ray");
       fooReq.fire(new Receiver<Long>(){
-        @Override public void onSuccess(        Long response,        Set<SyncResult> syncResults){
+        @Override public void onSuccess(        Long response){
           req.simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
-            @Override public void onSuccess(            SimpleFooProxy finalFoo,            Set<SyncResult> syncResults){
+            @Override public void onSuccess(            SimpleFooProxy finalFoo){
               assertEquals("Ray",finalFoo.getUserName());
               finishTestAndReset();
             }

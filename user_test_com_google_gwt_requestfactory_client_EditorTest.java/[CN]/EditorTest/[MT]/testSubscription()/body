@@ -5,7 +5,7 @@
   driver.initialize(eventBus,req,editor);
   assertEquals(Arrays.asList("barField.userName","barField"),Arrays.asList(driver.getPaths()));
   req.simpleFooRequest().findSimpleFooById(0L).with(driver.getPaths()).fire(new Receiver<SimpleFooProxy>(){
-    public void onSuccess(    SimpleFooProxy response,    Set<SyncResult> syncResults){
+    @Override public void onSuccess(    SimpleFooProxy response){
       driver.edit(response,null);
       assertNotNull(editor.delegate.subscribe());
       ProxyRequest<SimpleFooProxy> request=req.simpleFooRequest().persistAndReturnSelf(response);
@@ -16,7 +16,7 @@
       response.setBarField(newBar);
       response.setUserName("updated");
       request.fire(new Receiver<SimpleFooProxy>(){
-        public void onSuccess(        SimpleFooProxy response,        Set<SyncResult> syncResults){
+        @Override public void onSuccess(        SimpleFooProxy response){
           Scheduler.get().scheduleFixedDelay(new RepeatingCommand(){
             public boolean execute(){
               if ("updated".equals(editor.userName.getValue())) {
