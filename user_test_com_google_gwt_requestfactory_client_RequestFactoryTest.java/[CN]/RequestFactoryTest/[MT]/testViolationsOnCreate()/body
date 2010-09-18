@@ -1,8 +1,6 @@
 {
   delayTestFinish(5000);
   SimpleFooProxy newFoo=req.create(SimpleFooProxy.class);
-  final RequestObject<Void> fooReq=req.simpleFooRequest().persist(newFoo);
-  newFoo=fooReq.edit(newFoo);
-  newFoo.setUserName("A");
-  fooReq.fire(new ShouldNotSuccedReceiver<Void>(newFoo.stableId()));
+  final RequestObject<SimpleFooProxy> create=req.simpleFooRequest().persistAndReturnSelf(newFoo);
+  new FailFixAndRefire<SimpleFooProxy>(newFoo,create).doTest();
 }
