@@ -1,0 +1,27 @@
+{
+  this.placeController=placeController;
+  this.defaultPlace=defaultPlace;
+  final HandlerRegistration placeReg=eventBus.addHandler(PlaceChangeEvent.TYPE,new PlaceChangeEvent.Handler(){
+    public void onPlaceChange(    PlaceChangeEvent event){
+      Place newPlace=event.getNewPlace();
+      historian.newItem(tokenForPlace(newPlace),false);
+    }
+  }
+);
+  final HandlerRegistration historyReg=historian.addValueChangeHandler(new ValueChangeHandler<String>(){
+    public void onValueChange(    ValueChangeEvent<String> event){
+      String token=event.getValue();
+      handleHistoryToken(token);
+    }
+  }
+);
+  return new HandlerRegistration(){
+    public void removeHandler(){
+      PlaceHistoryHandler.this.defaultPlace=Place.NOWHERE;
+      PlaceHistoryHandler.this.placeController=null;
+      placeReg.removeHandler();
+      historyReg.removeHandler();
+    }
+  }
+;
+}

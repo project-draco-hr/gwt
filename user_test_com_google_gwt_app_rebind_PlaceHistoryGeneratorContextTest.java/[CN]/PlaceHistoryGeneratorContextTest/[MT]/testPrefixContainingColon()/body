@@ -1,0 +1,31 @@
+{
+  MockJavaResource intf=new MockJavaResource("my.MyPlaceHistoryMapper"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package my;\n");
+      code.append("import com.google.gwt.app.place.Place;\n");
+      code.append("import com.google.gwt.app.place.PlaceHistoryMapperWithFactory;\n");
+      code.append("import com.google.gwt.app.place.PlaceTokenizer;\n");
+      code.append("import com.google.gwt.app.place.Prefix;\n");
+      code.append("public interface MyPlaceHistoryMapper extends PlaceHistoryMapperWithFactory<MyPlaceHistoryMapper.Factory> {\n");
+      code.append("  interface Factory {\n");
+      code.append("    @Prefix(\"foo:bar\") PlaceTokenizer<Place> foo_bar();\n");
+      code.append("  }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+;
+  TypeOracle typeOracle=createTypeOracle(intf);
+  UnitTestTreeLogger.Builder loggerBuilder=new UnitTestTreeLogger.Builder();
+  loggerBuilder.expectError("Found place prefix \"foo:bar\" containing separator char \":\", on " + intf.getTypeName() + ".Factory#foo_bar()",null);
+  UnitTestTreeLogger logger=loggerBuilder.createLogger();
+  PlaceHistoryGeneratorContext context=createContext(logger,typeOracle,intf.getTypeName(),intf.getTypeName() + ".Factory");
+  try {
+    context.ensureInitialized();
+    fail();
+  }
+ catch (  UnableToCompleteException e) {
+  }
+  logger.assertCorrectLogEntries();
+}

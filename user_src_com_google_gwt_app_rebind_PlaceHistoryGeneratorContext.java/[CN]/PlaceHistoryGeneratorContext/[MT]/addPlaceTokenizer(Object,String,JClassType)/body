@@ -1,0 +1,17 @@
+{
+  if (prefix.contains(":")) {
+    logger.log(TreeLogger.ERROR,String.format("Found place prefix \"%s\" containing separator char \":\", on %s",prefix,getLogMessage(tokenizerClassOrGetter)));
+    throw new UnableToCompleteException();
+  }
+  if (tokenizers.containsKey(prefix)) {
+    logger.log(TreeLogger.ERROR,String.format("Found duplicate place prefix \"%s\" on %s, already seen on %s",prefix,getLogMessage(tokenizerClassOrGetter),getLogMessage(tokenizers.get(prefix))));
+    throw new UnableToCompleteException();
+  }
+  JClassType placeType=getPlaceTypeForTokenizerType(tokenizerType);
+  if (placeTypes.containsKey(placeType)) {
+    logger.log(TreeLogger.ERROR,String.format("Found duplicate tokenizer's place type \"%s\" on %s, already seen on %s",placeType.getQualifiedSourceName(),getLogMessage(tokenizerClassOrGetter),getLogMessage(tokenizers.get(placeTypes.get(placeType)))));
+    throw new UnableToCompleteException();
+  }
+  tokenizers.put(prefix,tokenizerClassOrGetter);
+  placeTypes.put(placeType,prefix);
+}

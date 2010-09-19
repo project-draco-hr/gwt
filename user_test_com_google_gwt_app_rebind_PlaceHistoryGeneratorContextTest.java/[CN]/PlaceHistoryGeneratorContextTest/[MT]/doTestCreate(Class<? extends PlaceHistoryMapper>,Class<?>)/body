@@ -1,0 +1,19 @@
+{
+  UnitTestTreeLogger logger=new UnitTestTreeLogger.Builder().createLogger();
+  TypeOracle typeOracle=createTypeOracle();
+  PlaceHistoryGeneratorContext context=PlaceHistoryGeneratorContext.create(logger,typeOracle,intf.getName());
+  assertEquals(typeOracle.getType(String.class.getName()),context.stringType);
+  assertEquals(typeOracle.getType(PlaceTokenizer.class.getName()),context.placeTokenizerType);
+  assertSame(logger,context.logger);
+  assertSame(typeOracle,context.typeOracle);
+  assertEquals(typeOracle.getType(intf.getName()),context.interfaceType);
+  if (factory == null) {
+    assertNull(context.factoryType);
+  }
+ else {
+    assertEquals(typeOracle.getType(factory.getName()),context.factoryType);
+  }
+  assertEquals(intf.getSimpleName() + "Impl",context.implName);
+  assertEquals(intf.getPackage().getName(),context.packageName);
+  logger.assertCorrectLogEntries();
+}

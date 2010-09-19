@@ -1,0 +1,26 @@
+{
+  TreeLogger logger=context.logger.branch(TreeLogger.DEBUG,String.format("Generating implementation of %s",context.interfaceType.getName()));
+  ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(context.packageName,context.implName);
+  String superClassName=String.format("%s<%s>",AbstractPlaceHistoryMapper.class.getSimpleName(),context.factoryType == null ? "Void" : context.factoryType.getName());
+  f.setSuperclass(superClassName);
+  f.addImplementedInterface(context.interfaceType.getName());
+  f.addImport(AbstractPlaceHistoryMapper.class.getName());
+  f.addImport(context.interfaceType.getQualifiedSourceName());
+  f.addImport(AbstractPlaceHistoryMapper.class.getCanonicalName());
+  if (context.factoryType != null) {
+    f.addImport(context.factoryType.getQualifiedSourceName());
+  }
+  f.addImport(Place.class.getCanonicalName());
+  f.addImport(PlaceTokenizer.class.getCanonicalName());
+  f.addImport(PrefixAndToken.class.getCanonicalName());
+  f.addImport(GWT.class.getCanonicalName());
+  SourceWriter sw=f.createSourceWriter(generatorContext,out);
+  sw.println();
+  writeGetPrefixAndToken(context,sw);
+  sw.println();
+  writeGetTokenizer(context,sw);
+  sw.println();
+  sw.outdent();
+  sw.println("}");
+  generatorContext.commit(logger,out);
+}

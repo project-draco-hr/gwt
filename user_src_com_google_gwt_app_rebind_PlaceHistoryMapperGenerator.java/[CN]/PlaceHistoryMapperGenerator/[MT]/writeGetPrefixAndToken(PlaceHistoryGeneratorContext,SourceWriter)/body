@@ -1,0 +1,24 @@
+{
+  sw.println("protected PrefixAndToken getPrefixAndToken(Place newPlace) {");
+  sw.indent();
+  for (  JClassType placeType : context.getPlaceTypes()) {
+    String placeTypeName=placeType.getQualifiedSourceName();
+    String prefix=context.getPrefix(placeType);
+    sw.println("if (newPlace instanceof " + placeTypeName + ") {");
+    sw.indent();
+    sw.println(placeTypeName + " place = (" + placeTypeName+ ") newPlace;");
+    JMethod getter=context.getTokenizerGetter(prefix);
+    if (getter != null) {
+      sw.println(String.format("return new PrefixAndToken(\"%s\", " + "factory.%s().getToken(place));",escape(prefix),getter.getName()));
+    }
+ else {
+      sw.println(String.format("PlaceTokenizer<%s> t = GWT.create(%s.class);",placeTypeName,context.getTokenizerType(prefix).getQualifiedSourceName()));
+      sw.println(String.format("return new PrefixAndToken(\"%s\", " + "t.getToken((%s) place));",escape(prefix),placeTypeName));
+    }
+    sw.outdent();
+    sw.println("}");
+  }
+  sw.println("return null;");
+  sw.outdent();
+  sw.println("}");
+}
