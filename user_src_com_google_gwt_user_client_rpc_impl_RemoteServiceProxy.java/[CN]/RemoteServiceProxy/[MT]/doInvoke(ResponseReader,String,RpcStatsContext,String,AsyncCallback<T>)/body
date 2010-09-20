@@ -1,0 +1,14 @@
+{
+  RequestBuilder rb=doPrepareRequestBuilderImpl(responseReader,methodName,statsContext,requestData,callback);
+  try {
+    return rb.send();
+  }
+ catch (  RequestException ex) {
+    InvocationException iex=new InvocationException("Unable to initiate the asynchronous service invocation -- check the network connection",ex);
+    callback.onFailure(iex);
+  }
+ finally {
+    boolean toss=statsContext.isStatsAvailable() && statsContext.stats(statsContext.bytesStat(methodName,requestData.length(),"requestSent"));
+  }
+  return null;
+}

@@ -4,7 +4,7 @@
   try {
     String encodedResponse=response.getText();
     int statusCode=response.getStatusCode();
-    boolean toss=RemoteServiceProxy.isStatsAvailable() && RemoteServiceProxy.stats(RemoteServiceProxy.bytesStat(methodName,requestId,encodedResponse.length(),"responseReceived"));
+    boolean toss=statsContext.isStatsAvailable() && statsContext.stats(statsContext.bytesStat(methodName,encodedResponse.length(),"responseReceived"));
     if (statusCode != Response.SC_OK) {
       caught=new StatusCodeException(statusCode,encodedResponse);
     }
@@ -25,7 +25,7 @@ catch (  Throwable e) {
     caught=e;
   }
  finally {
-    boolean toss=RemoteServiceProxy.isStatsAvailable() && RemoteServiceProxy.stats(RemoteServiceProxy.timeStat(methodName,requestId,"responseDeserialized"));
+    boolean toss=statsContext.isStatsAvailable() && statsContext.stats(statsContext.timeStat(methodName,"responseDeserialized"));
   }
   try {
     if (caught == null) {
@@ -36,6 +36,6 @@ catch (  Throwable e) {
     }
   }
   finally {
-    boolean toss=RemoteServiceProxy.isStatsAvailable() && RemoteServiceProxy.stats(RemoteServiceProxy.timeStat(methodName,requestId,"end"));
+    boolean toss=statsContext.isStatsAvailable() && statsContext.stats(statsContext.timeStat(methodName,"end"));
   }
 }
