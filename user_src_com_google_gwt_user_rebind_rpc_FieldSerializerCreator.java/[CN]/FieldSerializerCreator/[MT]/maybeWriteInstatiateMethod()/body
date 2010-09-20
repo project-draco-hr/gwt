@@ -2,18 +2,23 @@
   if (serializableClass.isEnum() == null && (serializableClass.isAbstract() || !serializableClass.isDefaultInstantiable())) {
     return;
   }
+  if (customFieldSerializerHasInstantiate) {
+    return;
+  }
   JArrayType isArray=serializableClass.isArray();
   JEnumType isEnum=serializableClass.isEnum();
-  boolean isNative=(isArray == null) && (isEnum == null);
-  sourceWriter.print("public static" + (isNative ? " native " : " "));
+  JClassType isClass=serializableClass.isClass();
+  boolean useViolator=false;
+  if (isEnum == null && isClass != null) {
+    useViolator=!classIsAccessible() || !ctorIsAccessible();
+  }
+  sourceWriter.print("public static" + (useViolator ? " native " : " "));
   String qualifiedSourceName=serializableClass.getQualifiedSourceName();
   sourceWriter.print(qualifiedSourceName);
-  sourceWriter.print(" instantiate(");
-  sourceWriter.print(SerializationStreamReader.class.getName());
-  sourceWriter.println(" streamReader) throws " + SerializationException.class.getName() + (isNative ? "/*-{" : "{"));
+  sourceWriter.println(" instantiate(SerializationStreamReader streamReader) throws SerializationException " + (useViolator ? "/*-{" : "{"));
   sourceWriter.indent();
   if (isArray != null) {
-    sourceWriter.println("int rank = streamReader.readInt();");
+    sourceWriter.println("int size = streamReader.readInt();");
     sourceWriter.println("return " + createArrayInstantiationExpression(isArray) + ";");
   }
  else   if (isEnum != null) {
@@ -22,10 +27,13 @@
     sourceWriter.println("assert (ordinal >= 0 && ordinal < values.length);");
     sourceWriter.println("return values[ordinal];");
   }
- else {
+ else   if (useViolator) {
     sourceWriter.println("return @" + qualifiedSourceName + "::new()();");
   }
+ else {
+    sourceWriter.println("return new " + qualifiedSourceName + "();");
+  }
   sourceWriter.outdent();
-  sourceWriter.println(isNative ? "}-*/;" : "}");
+  sourceWriter.println(useViolator ? "}-*/;" : "}");
   sourceWriter.println();
 }

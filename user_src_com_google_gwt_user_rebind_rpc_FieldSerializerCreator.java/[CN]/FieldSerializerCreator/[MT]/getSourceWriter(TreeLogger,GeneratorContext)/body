@@ -1,14 +1,13 @@
 {
-  String qualifiedSerializerName=SerializationUtils.getFieldSerializerName(typeOracle,serializableClass);
-  int packageNameEnd=qualifiedSerializerName.lastIndexOf('.');
+  int packageNameEnd=fieldSerializerName.lastIndexOf('.');
   String className;
   String packageName;
   if (packageNameEnd != -1) {
-    className=qualifiedSerializerName.substring(packageNameEnd + 1);
-    packageName=qualifiedSerializerName.substring(0,packageNameEnd);
+    className=fieldSerializerName.substring(packageNameEnd + 1);
+    packageName=fieldSerializerName.substring(0,packageNameEnd);
   }
  else {
-    className=qualifiedSerializerName;
+    className=fieldSerializerName;
     packageName="";
   }
   PrintWriter printWriter=ctx.tryCreate(logger,packageName,className);
@@ -16,6 +15,9 @@
     return null;
   }
   ClassSourceFileComposerFactory composerFactory=new ClassSourceFileComposerFactory(packageName,className);
+  composerFactory.addImport(SerializationException.class.getCanonicalName());
+  composerFactory.addImport(SerializationStreamReader.class.getCanonicalName());
+  composerFactory.addImport(SerializationStreamWriter.class.getCanonicalName());
   composerFactory.addAnnotationDeclaration("@SuppressWarnings(\"deprecation\")");
   return composerFactory.createSourceWriter(ctx,printWriter);
 }

@@ -1,0 +1,35 @@
+{
+  srcWriter.println("@SuppressWarnings(\"deprecation\")");
+  srcWriter.println("private static native JsArrayString loadSignaturesNative() /*-{");
+  srcWriter.indent();
+  srcWriter.println("var result = [];");
+  boolean shard=shardSize > 0 && getSerializableTypes().length > shardSize;
+  int shardCount=0;
+  if (shard) {
+    srcWriter.println("(function() {");
+  }
+  for (  JType type : getSerializableTypes()) {
+    String typeString=typeStrings.get(type);
+    if (!serializationOracle.maybeInstantiated(type) && !deserializationOracle.maybeInstantiated(type)) {
+      continue;
+    }
+    String jsniTypeRef;
+    jsniTypeRef=TypeOracleMediator.computeBinaryClassName(type.getLeafType());
+    while (type.isArray() != null) {
+      jsniTypeRef+="[]";
+      type=type.isArray().getComponentType();
+    }
+    if (shard && ++shardCount % shardSize == 0) {
+      srcWriter.println("})();");
+      srcWriter.println("(function() {");
+    }
+    srcWriter.println("result[@com.google.gwt.core.client.impl.Impl::getHashCode(Ljava/lang/Object;)(@" + jsniTypeRef + "::class)] = \""+ typeString+ "\";");
+  }
+  if (shard) {
+    srcWriter.println("})();");
+  }
+  srcWriter.println("return result;");
+  srcWriter.outdent();
+  srcWriter.println("}-*/;");
+  srcWriter.println();
+}
