@@ -1,12 +1,9 @@
 {
-  String methodName=getMethodNameFromPropertyName(propertyName,"get");
-  Method method=entityElement.getClass().getMethod(methodName);
-  Object returnValue=method.invoke(entityElement);
-  if (returnValue != null && EntityProxy.class.isAssignableFrom(propertyType)) {
-    Method idMethod=returnValue.getClass().getMethod("getId");
-    String id=(String)idMethod.invoke(returnValue);
-    String keyRef=operationRegistry.getSecurityProvider().encodeClassType(propertyType) + "-" + id;
-    addRelatedObject(keyRef,returnValue,castToRecordClass(propertyType),propertyContext.getProperty(propertyName));
+  Object returnValue=getRawPropertyValueFromDatastore(entityElement,propertyName,propertyContext);
+  String encodedEntityId=isEntityReference(returnValue,proxyPropertyType);
+  if (encodedEntityId != null) {
+    String keyRef=operationRegistry.getSecurityProvider().encodeClassType(proxyPropertyType) + "-" + encodedEntityId;
+    addRelatedObject(keyRef,returnValue,castToRecordClass(proxyPropertyType),propertyContext.getProperty(propertyName));
     return keyRef;
   }
   return encodePropertyValue(returnValue);

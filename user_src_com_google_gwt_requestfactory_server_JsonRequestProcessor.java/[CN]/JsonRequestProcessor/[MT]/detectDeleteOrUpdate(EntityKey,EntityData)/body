@@ -2,12 +2,11 @@
   if (entityData == null || entityData.entityInstance == null) {
     return null;
   }
-  Class<?> entityClass=getEntityFromRecordAnnotation(entityKey.record);
-  Object entityInstance=entityClass.getMethod("find" + entityClass.getSimpleName(),String.class).invoke(null,entityKey.id);
+  Object entityInstance=getEntityInstance(entityKey);
   if (entityInstance == null) {
     return WriteOperation.DELETE;
   }
-  if (hasChanged(beforeDataMap.get(entityKey).serializedEntity,serializeEntity(entityInstance,entityKey.record))) {
+  if (hasChanged(beforeDataMap.get(entityKey).serializedEntity,serializeEntity(entityInstance,entityKey))) {
     return WriteOperation.UPDATE;
   }
   return null;

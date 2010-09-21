@@ -1,13 +1,13 @@
 {
   if (WriteOperation.UPDATE.equals(event.getWriteOperation())) {
-    PersonProxy record=event.getProxy();
-    int displayOffset=offsetOf(record);
+    EntityProxyId<PersonProxy> personId=event.getProxyId();
+    int displayOffset=offsetOf(personId);
     if (displayOffset != -1) {
-      requestFactory.personRequest().findPerson(record.getId()).fire(new Receiver<PersonProxy>(){
-        @Override public void onSuccess(        PersonProxy response){
-          int offset=offsetOf(response);
+      requestFactory.find(personId).fire(new Receiver<PersonProxy>(){
+        @Override public void onSuccess(        PersonProxy person){
+          int offset=offsetOf(person.stableId());
           if (offset != -1) {
-            table.setRowData(table.getPageStart() + offset,Collections.singletonList(response));
+            table.setRowData(table.getPageStart() + offset,Collections.singletonList(person));
           }
         }
       }
