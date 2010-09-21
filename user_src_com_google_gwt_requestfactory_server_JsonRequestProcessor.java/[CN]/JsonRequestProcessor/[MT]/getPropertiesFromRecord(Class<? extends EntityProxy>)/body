@@ -1,0 +1,29 @@
+{
+  if (!EntityProxy.class.isAssignableFrom(record)) {
+    return Collections.emptyMap();
+  }
+  Map<String,Class<?>> properties=new LinkedHashMap<String,Class<?>>();
+  Method[] methods=record.getMethods();
+  for (  Method method : methods) {
+    String methodName=method.getName();
+    if (method.getDeclaringClass() == EntityProxy.class && !methodName.equals("getId") && !methodName.equals("getVersion")) {
+      continue;
+    }
+    if (methodName.startsWith("get")) {
+      String propertyName=Introspector.decapitalize(methodName.substring(3));
+      if (propertyName.length() > 0) {
+        properties.put(propertyName,method.getReturnType());
+      }
+    }
+ else     if (methodName.startsWith("set")) {
+      String propertyName=Introspector.decapitalize(methodName.substring(3));
+      if (propertyName.length() > 0) {
+        Class<?>[] parameterTypes=method.getParameterTypes();
+        if (parameterTypes.length > 0) {
+          properties.put(propertyName,parameterTypes[parameterTypes.length - 1]);
+        }
+      }
+    }
+  }
+  return properties;
+}

@@ -1,0 +1,51 @@
+{
+  Class<?> entity=getEntityFromRecordAnnotation(entityKey.record);
+  Map<String,Class<?>> propertiesInRecord=getPropertiesFromRecord(entityKey.record);
+  Map<String,Class<?>> propertiesToDTO=new HashMap<String,Class<?>>(propertiesInRecord);
+  validateKeys(recordObject,propertiesInRecord.keySet());
+  updatePropertyTypes(propertiesInRecord,entity);
+  Object entityInstance=getEntityInstance(writeOperation,entity,recordObject.get("id"),propertiesInRecord.get("id"));
+  cachedEntityLookup.put(entityKey,entityInstance);
+  Iterator<?> keys=recordObject.keys();
+  while (keys.hasNext()) {
+    String key=(String)keys.next();
+    Class<?> propertyType=propertiesInRecord.get(key);
+    Class<?> dtoType=propertiesToDTO.get(key);
+    if (writeOperation == WriteOperation.CREATE && ("id".equals(key))) {
+      String id=generateIdForCreate(key);
+      if (id != null) {
+        entity.getMethod(getMethodNameFromPropertyName(key,"set"),propertyType).invoke(entityInstance,id);
+      }
+    }
+ else {
+      Object propertyValue=null;
+      if (!recordObject.isNull(key) && EntityProxy.class.isAssignableFrom(dtoType)) {
+        EntityKey propKey=getEntityKey(recordObject.getString(key));
+        Object cacheValue=cachedEntityLookup.get(propKey);
+        if (cachedEntityLookup.containsKey(propKey)) {
+          propertyValue=cacheValue;
+        }
+ else {
+          propertyValue=getPropertyValueFromRequest(recordObject,key,propertiesToDTO.get(key));
+        }
+      }
+ else {
+        propertyValue=getPropertyValueFromRequest(recordObject,key,propertiesToDTO.get(key));
+      }
+      entity.getMethod(getMethodNameFromPropertyName(key,"set"),propertyType).invoke(entityInstance,propertyValue);
+    }
+  }
+  Set<ConstraintViolation<Object>> violations=Collections.emptySet();
+  Validator validator=null;
+  try {
+    ValidatorFactory validatorFactory=Validation.buildDefaultValidatorFactory();
+    validator=validatorFactory.getValidator();
+  }
+ catch (  Exception e) {
+    log.info(String.format("Ignoring exception caught initializing bean validation framework. " + "It is probably unconfigured or misconfigured. [%s] %s ",e.getClass().getName(),e.getLocalizedMessage()));
+  }
+  if (validator != null) {
+    violations=validator.validate(entityInstance);
+  }
+  return new EntityData(entityInstance,(violations.isEmpty() ? null : getViolationsAsJson(violations)));
+}
