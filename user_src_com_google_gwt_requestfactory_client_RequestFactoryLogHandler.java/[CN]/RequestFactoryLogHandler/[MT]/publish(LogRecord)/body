@@ -1,16 +1,13 @@
 {
-  if (closed || !isLoggable(record)) {
+  if (!isLoggable(record)) {
     return;
   }
-  if (record.getLoggerName().contains(ignoredLoggerSubstring)) {
-    return;
-  }
-  SerializableLogRecord slr=new SerializableLogRecord(record,strongName);
+  SerializableLogRecord slr=new SerializableLogRecord(record);
   String json=JsonLogRecordClientUtil.serializableLogRecordAsJson(slr);
-  requestProvider.getLoggingRequest().logMessage(json).fire(new Receiver<Boolean>(){
-    @Override public void onSuccess(    Boolean response){
-      if (!response) {
-        wireLogger.severe("Remote Logging failed to parse JSON");
+  requestProvider.getLoggingRequest().logMessage(json).fire(new Receiver<String>(){
+    @Override public void onSuccess(    String response){
+      if (!response.isEmpty()) {
+        wireLogger.severe("Remote Logging failed on server: " + response);
       }
     }
   }
