@@ -59,30 +59,26 @@
   if (EntityProxy.class.isAssignableFrom(parameterType)) {
     ProxyFor service=parameterType.getAnnotation(ProxyFor.class);
     if (service != null) {
-      Class<?> sClass=service.value();
       EntityKey entityKey=getEntityKey(parameterValue.toString());
       DvsData dvsData=dvsDataMap.get(entityKey);
       if (dvsData != null) {
-        EntityData entityData=getEntityDataForRecord(entityKey,dvsData.jsonObject,dvsData.writeOperation);
+        EntityData entityData=getEntityDataForRecordWithSettersApplied(entityKey,dvsData.jsonObject,dvsData.writeOperation);
         return entityData.entityInstance;
       }
  else {
         involvedKeys.add(entityKey);
-        Method findMeth=sClass.getMethod(getMethodNameFromPropertyName(sClass.getSimpleName(),"find"),String.class);
-        return findMeth.invoke(null,entityKey.id);
+        return getEntityInstance(entityKey);
       }
     }
   }
   if (EntityProxyId.class.isAssignableFrom(parameterType)) {
     EntityKey entityKey=getEntityKey(parameterValue.toString());
-    ProxyFor service=entityKey.record.getAnnotation(ProxyFor.class);
+    ProxyFor service=entityKey.proxyType.getAnnotation(ProxyFor.class);
     if (service == null) {
       throw new IllegalArgumentException("Unknown service, unable to decode " + parameterValue);
     }
     involvedKeys.add(entityKey);
-    Class<?> sClass=service.value();
-    Method findMeth=sClass.getMethod(getMethodNameFromPropertyName(sClass.getSimpleName(),"find"),String.class);
-    return findMeth.invoke(null,entityKey.id);
+    return getEntityInstance(entityKey);
   }
   throw new IllegalArgumentException("Unknown parameter type: " + parameterType);
 }
