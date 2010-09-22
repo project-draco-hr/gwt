@@ -1,18 +1,18 @@
 {
   delayTestFinish(5000);
   SimpleFooProxy rayFoo=req.create(SimpleFooProxy.class);
-  final RequestObject<SimpleFooProxy> persistRay=req.simpleFooRequest().persistAndReturnSelf(rayFoo);
+  final Request<SimpleFooProxy> persistRay=req.simpleFooRequest().persistAndReturnSelf(rayFoo);
   rayFoo=persistRay.edit(rayFoo);
   rayFoo.setUserName("Ray");
   persistRay.fire(new Receiver<SimpleFooProxy>(){
     @Override public void onSuccess(    final SimpleFooProxy persistedRay){
       SimpleBarProxy amitBar=req.create(SimpleBarProxy.class);
-      final RequestObject<SimpleBarProxy> persistAmit=req.simpleBarRequest().persistAndReturnSelf(amitBar);
+      final Request<SimpleBarProxy> persistAmit=req.simpleBarRequest().persistAndReturnSelf(amitBar);
       amitBar=persistAmit.edit(amitBar);
       amitBar.setUserName("Amit");
       persistAmit.fire(new Receiver<SimpleBarProxy>(){
         @Override public void onSuccess(        SimpleBarProxy persistedAmit){
-          final RequestObject<SimpleFooProxy> persistRelationship=req.simpleFooRequest().persistAndReturnSelf(persistedRay).with("barField");
+          final Request<SimpleFooProxy> persistRelationship=req.simpleFooRequest().persistAndReturnSelf(persistedRay).with("barField");
           SimpleFooProxy newRec=persistRelationship.edit(persistedRay);
           newRec.setBarField(persistedAmit);
           persistRelationship.fire(new Receiver<SimpleFooProxy>(){

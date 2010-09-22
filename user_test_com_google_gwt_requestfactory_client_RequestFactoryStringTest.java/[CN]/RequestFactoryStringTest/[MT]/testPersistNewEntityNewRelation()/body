@@ -2,10 +2,10 @@
   delayTestFinish(5000);
   SimpleFooStringProxy newFoo=req.create(SimpleFooStringProxy.class);
   SimpleBarProxy newBar=req.create(SimpleBarProxy.class);
-  final RequestObject<SimpleFooStringProxy> fooReq=req.simpleFooStringRequest().persistAndReturnSelf(newFoo);
+  final Request<SimpleFooStringProxy> fooReq=req.simpleFooStringRequest().persistAndReturnSelf(newFoo);
   newFoo=fooReq.edit(newFoo);
   newFoo.setUserName("Ray");
-  final RequestObject<SimpleBarProxy> barReq=req.simpleBarRequest().persistAndReturnSelf(newBar);
+  final Request<SimpleBarProxy> barReq=req.simpleBarRequest().persistAndReturnSelf(newBar);
   newBar=barReq.edit(newBar);
   newBar.setUserName("Amit");
   fooReq.fire(new Receiver<SimpleFooStringProxy>(){
@@ -13,7 +13,7 @@
       barReq.fire(new Receiver<SimpleBarProxy>(){
         @Override public void onSuccess(        final SimpleBarProxy persistedBar){
           assertEquals("Ray",persistedFoo.getUserName());
-          final RequestObject<Void> fooReq2=req.simpleFooStringRequest().persist(persistedFoo);
+          final Request<Void> fooReq2=req.simpleFooStringRequest().persist(persistedFoo);
           SimpleFooStringProxy editablePersistedFoo=fooReq2.edit(persistedFoo);
           editablePersistedFoo.setBarField(persistedBar);
           fooReq2.fire(new Receiver<Void>(){

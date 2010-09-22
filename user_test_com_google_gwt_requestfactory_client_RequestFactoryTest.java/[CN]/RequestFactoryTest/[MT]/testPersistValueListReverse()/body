@@ -1,15 +1,15 @@
 {
   delayTestFinish(5000);
   req.simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
-    public void onSuccess(    SimpleFooProxy fooProxy){
-      RequestObject<SimpleFooProxy> updReq=req.simpleFooRequest().persistAndReturnSelf(fooProxy);
+    @Override public void onSuccess(    SimpleFooProxy fooProxy){
+      Request<SimpleFooProxy> updReq=req.simpleFooRequest().persistAndReturnSelf(fooProxy);
       fooProxy=updReq.edit(fooProxy);
       final ArrayList<Integer> al=new ArrayList<Integer>();
       List<Integer> listField=fooProxy.getNumberListField();
       al.addAll(listField);
       Collections.reverse(listField);
       updReq.fire(new Receiver<SimpleFooProxy>(){
-        public void onSuccess(        SimpleFooProxy response){
+        @Override public void onSuccess(        SimpleFooProxy response){
           Collections.reverse(al);
           assertTrue(response.getNumberListField().equals(al));
           finishTestAndReset();

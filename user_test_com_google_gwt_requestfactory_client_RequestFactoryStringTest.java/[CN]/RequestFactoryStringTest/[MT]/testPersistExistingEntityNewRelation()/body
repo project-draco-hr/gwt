@@ -1,14 +1,14 @@
 {
   delayTestFinish(5000);
   SimpleBarProxy makeABar=req.create(SimpleBarProxy.class);
-  RequestObject<SimpleBarProxy> persistRequest=req.simpleBarRequest().persistAndReturnSelf(makeABar);
+  Request<SimpleBarProxy> persistRequest=req.simpleBarRequest().persistAndReturnSelf(makeABar);
   makeABar=persistRequest.edit(makeABar);
   makeABar.setUserName("Amit");
   persistRequest.fire(new Receiver<SimpleBarProxy>(){
     @Override public void onSuccess(    final SimpleBarProxy persistedBar){
       req.simpleFooStringRequest().findSimpleFooStringById("999x").fire(new Receiver<SimpleFooStringProxy>(){
         @Override public void onSuccess(        SimpleFooStringProxy response){
-          RequestObject<Void> fooReq=req.simpleFooStringRequest().persist(response);
+          Request<Void> fooReq=req.simpleFooStringRequest().persist(response);
           response=fooReq.edit(response);
           response.setBarField(persistedBar);
           fooReq.fire(new Receiver<Void>(){

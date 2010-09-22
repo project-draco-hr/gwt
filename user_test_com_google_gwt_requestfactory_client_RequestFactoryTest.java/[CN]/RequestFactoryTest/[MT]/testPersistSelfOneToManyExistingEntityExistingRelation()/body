@@ -1,14 +1,14 @@
 {
   delayTestFinish(5000);
   req.simpleFooRequest().findSimpleFooById(999L).with("selfOneToManyField").fire(new Receiver<SimpleFooProxy>(){
-    public void onSuccess(    SimpleFooProxy fooProxy){
-      RequestObject<SimpleFooProxy> updReq=req.simpleFooRequest().persistAndReturnSelf(fooProxy).with("selfOneToManyField");
+    @Override public void onSuccess(    SimpleFooProxy fooProxy){
+      Request<SimpleFooProxy> updReq=req.simpleFooRequest().persistAndReturnSelf(fooProxy).with("selfOneToManyField");
       fooProxy=updReq.edit(fooProxy);
       List<SimpleFooProxy> fooProxyList=fooProxy.getSelfOneToManyField();
       final int listCount=fooProxyList.size();
       fooProxyList.add(fooProxy);
       updReq.fire(new Receiver<SimpleFooProxy>(){
-        public void onSuccess(        SimpleFooProxy response){
+        @Override public void onSuccess(        SimpleFooProxy response){
           assertEquals(response.getSelfOneToManyField().size(),listCount + 1);
           assertContains(response.getSelfOneToManyField(),response);
           finishTestAndReset();
