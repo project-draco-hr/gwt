@@ -1,0 +1,25 @@
+{
+  delayTestFinish(5000);
+  final SimpleBarProxy foo=req.create(SimpleBarProxy.class);
+  final EntityProxyId<SimpleBarProxy> futureId=foo.stableId();
+  final String futureToken=req.getHistoryToken(futureId);
+  assertEquals(futureId,req.getProxyId(futureToken));
+  assertEquals(req.getClass(futureId),req.getClass(futureToken));
+  RequestObject<SimpleBarProxy> fooReq=req.simpleBarRequest().persistAndReturnSelf(foo);
+  fooReq.fire(new Receiver<SimpleBarProxy>(){
+    @Override public void onSuccess(    final SimpleBarProxy returned){
+      EntityProxyId<SimpleBarProxy> persistedId=returned.stableId();
+      String persistedToken=req.getHistoryToken(returned.stableId());
+      assertFalse(futureToken.equals(persistedToken));
+      assertEquals(persistedToken,req.getHistoryToken(futureId));
+      assertEquals(futureId,req.getProxyId(futureToken));
+      assertEquals(futureId,req.getProxyId(persistedToken));
+      assertEquals(req.getClass(futureId),req.getClass(persistedToken));
+      assertEquals(persistedId,req.getProxyId(futureToken));
+      assertEquals(persistedId,req.getProxyId(persistedToken));
+      assertEquals(req.getClass(persistedId),req.getClass(futureToken));
+      finishTestAndReset();
+    }
+  }
+);
+}

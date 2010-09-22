@@ -1,0 +1,22 @@
+{
+  EntityProxyIdImpl<?> entityProxyId=(EntityProxyIdImpl<?>)proxyId;
+  StringBuilder toReturn=new StringBuilder();
+  boolean isFuture=false;
+  Object tokenId=entityProxyId.encodedId;
+  if (entityProxyId.isFuture) {
+    Object persistedId=futureToDatastoreMap.get(entityProxyId.encodedId);
+    if (persistedId == null) {
+      isFuture=true;
+    }
+ else {
+      tokenId=persistedId;
+    }
+  }
+  toReturn=new StringBuilder();
+  toReturn.append(tokenId);
+  toReturn.append(HISTORY_TOKEN_SEPARATOR).append(entityProxyId.schema.getToken());
+  if (isFuture) {
+    toReturn.append(HISTORY_TOKEN_SEPARATOR).append(FUTURE_TOKEN);
+  }
+  return toReturn.toString();
+}
