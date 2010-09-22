@@ -2,8 +2,10 @@
   if (nodeView.tree.isAnimationEnabled()) {
     nodeView.ensureAnimationFrame().getStyle().setDisplay(Display.NONE);
   }
+  nodeView.tree.isRefreshing=true;
   Map<Object,CellTreeNodeView<?>> savedViews=saveChildState(values,0);
   AbstractHasData.replaceAllChildren(nodeView.tree,childContainer,html);
+  nodeView.tree.isRefreshing=false;
   int size=values.size();
   int childCount=nodeView.children.size();
   while (childCount > size) {
@@ -11,6 +13,9 @@
     nodeView.children.remove(childCount);
   }
   loadChildState(values,0,savedViews);
+  if (nodeView.isRootNode() && nodeView.tree.getKeyboardSelectedNode() == nodeView && values.size() > 0) {
+    nodeView.tree.keyboardSelect(nodeView.children.get(0),false);
+  }
   if (nodeView.tree.isAnimationEnabled()) {
     nodeView.tree.maybeAnimateTreeNode(nodeView);
   }

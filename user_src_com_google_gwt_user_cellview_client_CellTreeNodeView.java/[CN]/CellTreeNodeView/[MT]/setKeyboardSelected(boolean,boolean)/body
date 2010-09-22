@@ -1,0 +1,26 @@
+{
+  if (!selected || tree.isFocused || stealFocus) {
+    setKeyboardSelectedStyle(selected);
+  }
+  Element cellParent=getCellParent();
+  if (!selected) {
+    cellParent.setTabIndex(-1);
+    cellParent.removeAttribute("tabIndex");
+    cellParent.removeAttribute("accessKey");
+  }
+ else {
+    FocusImpl focusImpl=FocusImpl.getFocusImplForWidget();
+    com.google.gwt.user.client.Element cellElem=cellParent.cast();
+    focusImpl.setTabIndex(cellElem,tree.getTabIndex());
+    char accessKey=tree.getAccessKey();
+    if (accessKey != 0) {
+      focusImpl.setAccessKey(cellElem,accessKey);
+    }
+    if (stealFocus) {
+      cellElem.focus();
+    }
+  }
+  if (KeyboardSelectionPolicy.BOUND_TO_SELECTION == tree.getKeyboardSelectionPolicy()) {
+    setSelected(selected);
+  }
+}

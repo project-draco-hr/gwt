@@ -1,0 +1,70 @@
+{
+  if (KeyboardSelectionPolicy.DISABLED == keyboardSelectionPolicy) {
+    return;
+  }
+  boolean isBound=KeyboardSelectionPolicy.BOUND_TO_SELECTION == keyboardSelectionPolicy;
+  if (keyboardSelectedRow >= 0 && keyboardSelectedRow < view.getChildCount()) {
+    view.setKeyboardSelected(keyboardSelectedRow,false,false);
+    if (isBound) {
+      deselectKeyboardValue();
+    }
+  }
+  int absIndex=pageStart + index;
+  if (absIndex < 0) {
+    absIndex=0;
+  }
+ else   if (absIndex >= rowCount && rowCountIsExact) {
+    absIndex=rowCount - 1;
+  }
+  index=absIndex - pageStart;
+  if (keyboardPagingPolicy.isLimitedToRange()) {
+    index=Math.max(0,Math.min(index,pageSize - 1));
+  }
+  int newPageStart=pageStart;
+  int newPageSize=pageSize;
+  keyboardSelectedRow=0;
+  if (index >= 0 && index < pageSize) {
+    keyboardSelectedRow=index;
+    if (isBound) {
+      selectKeyboardValue(index);
+    }
+    view.setKeyboardSelected(index,true,stealFocus);
+    return;
+  }
+ else   if (KeyboardPagingPolicy.CHANGE_PAGE == keyboardPagingPolicy) {
+    while (index < 0) {
+      newPageStart-=pageSize;
+      index+=pageSize;
+    }
+    while (index >= pageSize) {
+      newPageStart+=pageSize;
+      index-=pageSize;
+    }
+  }
+ else   if (KeyboardPagingPolicy.INCREASE_RANGE == keyboardPagingPolicy) {
+    while (index < 0) {
+      newPageSize+=PAGE_INCREMENT;
+      newPageStart-=PAGE_INCREMENT;
+      index+=PAGE_INCREMENT;
+    }
+    if (newPageStart < 0) {
+      index+=newPageStart;
+      newPageSize+=newPageStart;
+      newPageStart=0;
+    }
+    while (index >= newPageSize) {
+      newPageSize+=PAGE_INCREMENT;
+    }
+    if (isRowCountExact()) {
+      newPageSize=Math.min(newPageSize,rowCount - newPageStart);
+      if (index >= rowCount) {
+        index=rowCount - 1;
+      }
+    }
+  }
+  if (newPageStart != pageStart || newPageSize != pageSize) {
+    deselectKeyboardValue();
+    keyboardSelectedRow=index;
+    setVisibleRange(new Range(newPageStart,newPageSize),false,false);
+  }
+}

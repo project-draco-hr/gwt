@@ -1,15 +1,20 @@
 {
+  super.onBrowserEvent(parent,value,key,event,valueUpdater);
+  InputElement input=getInputElement(parent);
+  Element target=event.getEventTarget().cast();
+  if (!input.isOrHasChild(target)) {
+    return;
+  }
   String eventType=event.getType();
   if ("change".equals(eventType)) {
-    InputElement input=parent.getFirstChild().cast();
-    String newValue=input.getValue();
-    setViewData(key,newValue);
-    if (valueUpdater != null) {
-      valueUpdater.update(newValue);
-    }
+    finishEditing(parent,value,key,valueUpdater);
   }
  else   if ("keyup".equals(eventType)) {
-    InputElement input=parent.getFirstChild().cast();
-    setViewData(key,input.getValue());
+    ViewData vd=getViewData(key);
+    if (vd == null) {
+      vd=new ViewData(value);
+      setViewData(key,vd);
+    }
+    vd.setCurrentValue(input.getValue());
   }
 }

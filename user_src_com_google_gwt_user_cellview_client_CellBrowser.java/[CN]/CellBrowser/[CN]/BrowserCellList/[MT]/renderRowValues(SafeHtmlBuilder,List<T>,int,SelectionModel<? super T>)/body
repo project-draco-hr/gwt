@@ -1,0 +1,52 @@
+{
+  Cell<T> cell=getCell();
+  String keyboardSelectedItem=" " + style.cellBrowserKeyboardSelectedItem();
+  String selectedItem=" " + style.cellBrowserSelectedItem();
+  String openItem=" " + style.cellBrowserOpenItem();
+  String evenItem=style.cellBrowserEvenItem();
+  String oddItem=style.cellBrowserOddItem();
+  int keyboardSelectedRow=Math.max(0,getKeyboardSelectedRow() + getPageStart());
+  int length=values.size();
+  int end=start + length;
+  for (int i=start; i < end; i++) {
+    T value=values.get(i - start);
+    Object key=getValueKey(value);
+    boolean isSelected=selectionModel == null ? false : selectionModel.isSelected(value);
+    boolean isOpen=(openKey == null) ? false : openKey.equals(key);
+    StringBuilder classesBuilder=new StringBuilder();
+    classesBuilder.append(i % 2 == 0 ? evenItem : oddItem);
+    if (isOpen) {
+      classesBuilder.append(openItem);
+    }
+    if (isSelected) {
+      classesBuilder.append(selectedItem);
+    }
+    SafeHtmlBuilder cellBuilder=new SafeHtmlBuilder();
+    cell.render(value,null,cellBuilder);
+    SafeHtml image;
+    if (isOpen) {
+      image=openImageHtml;
+    }
+ else     if (isLeaf(value)) {
+      image=LEAF_IMAGE;
+    }
+ else {
+      image=closedImageHtml;
+    }
+    if (i == keyboardSelectedRow) {
+      if (isFocused) {
+        classesBuilder.append(keyboardSelectedItem);
+      }
+      char accessKey=getAccessKey();
+      if (accessKey != 0) {
+        sb.append(template.divFocusableWithKey(i,classesBuilder.toString(),imageWidth,getTabIndex(),getAccessKey(),image,cellBuilder.toSafeHtml()));
+      }
+ else {
+        sb.append(template.divFocusable(i,classesBuilder.toString(),imageWidth,getTabIndex(),image,cellBuilder.toSafeHtml()));
+      }
+    }
+ else {
+      sb.append(template.div(i,classesBuilder.toString(),imageWidth,image,cellBuilder.toSafeHtml()));
+    }
+  }
+}

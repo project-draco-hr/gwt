@@ -1,0 +1,55 @@
+{
+  CellBasedWidgetImpl.get().onBrowserEvent(this,event);
+  if (isRefreshing) {
+    return;
+  }
+  EventTarget eventTarget=event.getEventTarget();
+  if (!Element.is(eventTarget) || !getElement().isOrHasChild(Element.as(eventTarget))) {
+    return;
+  }
+  super.onBrowserEvent(event);
+  String eventType=event.getType();
+  if ("focus".equals(eventType)) {
+    isFocused=true;
+    onFocus();
+  }
+ else   if ("blur".equals(eventType)) {
+    isFocused=false;
+    onBlur();
+  }
+ else   if ("keydown".equals(eventType) && !isKeyboardNavigationSuppressed()) {
+    isFocused=true;
+    int keyCode=event.getKeyCode();
+switch (keyCode) {
+case KeyCodes.KEY_DOWN:
+      presenter.keyboardNext();
+    event.preventDefault();
+  return;
+case KeyCodes.KEY_UP:
+presenter.keyboardPrev();
+event.preventDefault();
+return;
+case KeyCodes.KEY_PAGEDOWN:
+presenter.keyboardNextPage();
+event.preventDefault();
+return;
+case KeyCodes.KEY_PAGEUP:
+presenter.keyboardPrevPage();
+event.preventDefault();
+return;
+case KeyCodes.KEY_HOME:
+presenter.keyboardHome();
+event.preventDefault();
+return;
+case KeyCodes.KEY_END:
+presenter.keyboardEnd();
+event.preventDefault();
+return;
+case 32:
+presenter.keyboardToggleSelect();
+event.preventDefault();
+return;
+}
+}
+onBrowserEvent2(event);
+}

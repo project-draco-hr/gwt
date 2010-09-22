@@ -1,16 +1,35 @@
 {
+  String keyboardSelectedItem=" " + style.cellListKeyboardSelectedItem();
+  String selectedItem=" " + style.cellListSelectedItem();
+  String evenItem=style.cellListEvenItem();
+  String oddItem=style.cellListOddItem();
+  int keyboardSelectedRow=getKeyboardSelectedRow() + getPageStart();
   int length=values.size();
   int end=start + length;
   for (int i=start; i < end; i++) {
     T value=values.get(i - start);
     boolean isSelected=selectionModel == null ? false : selectionModel.isSelected(value);
     StringBuilder classesBuilder=new StringBuilder();
-    classesBuilder.append(i % 2 == 0 ? style.cellListEvenItem() : style.cellListOddItem());
+    classesBuilder.append(i % 2 == 0 ? evenItem : oddItem);
     if (isSelected) {
-      classesBuilder.append(" ").append(style.cellListSelectedItem());
+      classesBuilder.append(selectedItem);
     }
     SafeHtmlBuilder cellBuilder=new SafeHtmlBuilder();
     cell.render(value,null,cellBuilder);
-    sb.append(TEMPLATE.div(i,classesBuilder.toString(),cellBuilder.toSafeHtml()));
+    if (i == keyboardSelectedRow) {
+      if (isFocused) {
+        classesBuilder.append(keyboardSelectedItem);
+      }
+      char accessKey=getAccessKey();
+      if (accessKey != 0) {
+        sb.append(TEMPLATE.divFocusableWithKey(i,classesBuilder.toString(),getTabIndex(),accessKey,cellBuilder.toSafeHtml()));
+      }
+ else {
+        sb.append(TEMPLATE.divFocusable(i,classesBuilder.toString(),getTabIndex(),cellBuilder.toSafeHtml()));
+      }
+    }
+ else {
+      sb.append(TEMPLATE.div(i,classesBuilder.toString(),cellBuilder.toSafeHtml()));
+    }
   }
 }

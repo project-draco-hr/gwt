@@ -1,48 +1,59 @@
 {
   CellBasedWidgetImpl.get().onBrowserEvent(this,event);
+  if (isRefreshing) {
+    return;
+  }
   super.onBrowserEvent(event);
   String eventType=event.getType();
-  if ("blur".equals(eventType)) {
-    keyboardSelectedNode.keyboardBlur();
-    return;
-  }
   if ("focus".equals(eventType)) {
-    keyboardSelectedNode.keyboardFocus();
-    return;
+    isFocused=true;
+    onFocus();
   }
-  boolean keyUp="keyup".equals(eventType);
-  boolean keyDown="keydown".equals(eventType);
-  if (keyDown && !cellIsEditing) {
-    return;
+ else   if ("blur".equals(eventType)) {
+    isFocused=false;
+    onBlur();
   }
-  if (keyUp && !cellIsEditing) {
-    if (handleKey(event)) {
-      return;
-    }
-  }
-  Element target=event.getEventTarget().cast();
-  ArrayList<Element> chain=new ArrayList<Element>();
-  collectElementChain(chain,getElement(),target);
-  CellTreeNodeView<?> nodeView=findItemByChain(chain,0,rootNode);
-  if (nodeView != null && nodeView != rootNode) {
-    if ("click".equals(eventType)) {
-      Element showMoreElem=nodeView.getShowMoreElement();
-      if (nodeView.getImageElement().isOrHasChild(target)) {
-        nodeView.setOpen(!nodeView.isOpen(),true);
-        return;
-      }
- else       if (showMoreElem != null && showMoreElem.isOrHasChild(target)) {
-        nodeView.showMore();
-        return;
-      }
-    }
- else     if ("mouseup".equals(eventType)) {
-      keyboardSelectedNode.keyboardExit();
-      keyboardSelectedNode=nodeView.getParentNode();
-      keyboardSelectedNode.keyboardEnter(target,true);
-    }
-    if (nodeView.getCellParent().isOrHasChild(target) || (eventType.startsWith("key") && nodeView.getCellParent().getParentElement() == target)) {
-      nodeView.fireEventToCell(event);
-    }
-  }
+ else   if ("keydown".equals(eventType) && !cellIsEditing) {
+    int keyCode=event.getKeyCode();
+switch (keyCode) {
+case KeyCodes.KEY_DOWN:
+case KeyCodes.KEY_UP:
+case KeyCodes.KEY_RIGHT:
+case KeyCodes.KEY_LEFT:
+      handleKeyNavigation(keyCode);
+    event.preventDefault();
+  return;
+case 32:
+if (KeyboardSelectionPolicy.ENABLED == getKeyboardSelectionPolicy()) {
+  keyboardSelectedNode.setSelected(!keyboardSelectedNode.isSelected());
+  event.preventDefault();
+}
+return;
+}
+}
+Element target=event.getEventTarget().cast();
+ArrayList<Element> chain=new ArrayList<Element>();
+collectElementChain(chain,getElement(),target);
+boolean isMouseDown="mousedown".equals(eventType);
+CellTreeNodeView<?> nodeView=findItemByChain(chain,0,rootNode);
+if (nodeView != null && nodeView != rootNode) {
+if (isMouseDown) {
+Element showMoreElem=nodeView.getShowMoreElement();
+if (nodeView.getImageElement().isOrHasChild(target)) {
+nodeView.setOpen(!nodeView.isOpen(),true);
+return;
+}
+ else if (showMoreElem != null && showMoreElem.isOrHasChild(target)) {
+nodeView.showMore();
+return;
+}
+}
+if (nodeView.getCellParent().isOrHasChild(target)) {
+if ("focus".equals(eventType) || isMouseDown) {
+isFocused=true;
+keyboardSelect(nodeView,false);
+}
+nodeView.fireEventToCell(event);
+}
+}
 }

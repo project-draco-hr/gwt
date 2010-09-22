@@ -15,6 +15,17 @@
   for (int i=0; i < cacheOffset; i++) {
     rowData.add(null);
   }
+  Object keyboardSelectedKey=null;
+  int keyboardSelectedAbsoluteRow=pageStart + keyboardSelectedRow;
+  boolean keyboardSelectedInRange=false;
+  boolean keyboardSelectedStillExists=false;
+  if (keyboardSelectedAbsoluteRow >= boundedStart && keyboardSelectedAbsoluteRow < boundedEnd) {
+    keyboardSelectedInRange=true;
+    if (keyboardSelectedRowValue != null) {
+      keyboardSelectedKey=getRowValueKey(keyboardSelectedRowValue);
+      keyboardSelectedRow=0;
+    }
+  }
   for (int i=boundedStart; i < boundedEnd; i++) {
     T value=values.get(i - start);
     int dataIndex=i - pageStart;
@@ -32,6 +43,10 @@
         selectedRows.remove(i);
       }
     }
+    if (keyboardSelectedKey != null && value != null && keyboardSelectedKey.equals(getRowValueKey(value))) {
+      keyboardSelectedRow=i - pageStart;
+      keyboardSelectedStillExists=true;
+    }
   }
   boundedStart=pageStartChangedSinceRender ? pageStart : boundedStart;
   boundedStart-=cacheOffset;
@@ -47,11 +62,22 @@
       lastContents=newContents;
       view.replaceAllChildren(boundedValues,newContents);
     }
+    view.resetFocus();
   }
  else {
     lastContents=null;
     view.replaceChildren(boundedValues,boundedStart - pageStart,sb.toSafeHtml());
+    if (keyboardSelectedStillExists) {
+      view.resetFocus();
+    }
   }
-  view.resetFocus();
   pageStartChangedSinceRender=false;
+  if (keyboardSelectedInRange && !keyboardSelectedStillExists) {
+    if (keyboardSelectedKey != null) {
+      deselectKeyboardValue();
+    }
+    if (KeyboardSelectionPolicy.BOUND_TO_SELECTION == keyboardSelectionPolicy) {
+      selectKeyboardValue(keyboardSelectedRow);
+    }
+  }
 }

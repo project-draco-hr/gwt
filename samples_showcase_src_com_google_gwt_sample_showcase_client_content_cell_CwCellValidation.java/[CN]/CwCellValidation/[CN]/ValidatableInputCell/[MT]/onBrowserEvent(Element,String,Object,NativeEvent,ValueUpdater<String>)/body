@@ -1,6 +1,12 @@
 {
+  super.onBrowserEvent(parent,value,key,event,valueUpdater);
+  Element target=event.getEventTarget().cast();
+  if (!parent.getFirstChildElement().isOrHasChild(target)) {
+    return;
+  }
   ValidationData viewData=getViewData(key);
-  if (event.getType().equals("change")) {
+  String eventType=event.getType();
+  if ("change".equals(eventType)) {
     InputElement input=parent.getFirstChild().cast();
     input.getStyle().setColor("blue");
     if (viewData == null) {
@@ -9,6 +15,7 @@
     }
     String newValue=input.getValue();
     viewData.setValue(newValue);
+    finishEditing(parent,newValue,key,valueUpdater);
     if (valueUpdater != null) {
       valueUpdater.update(newValue);
     }

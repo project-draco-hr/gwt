@@ -1,0 +1,63 @@
+{
+  CellTreeNodeView<?> parent=keyboardSelectedNode.getParentNode();
+  int parentChildCount=(parent == null) ? 0 : parent.getChildCount();
+  int index=(parent == null) ? 0 : parent.indexOf(keyboardSelectedNode);
+  int childCount=keyboardSelectedNode.getChildCount();
+switch (keyCode) {
+case KeyCodes.KEY_DOWN:
+    if (keyboardSelectedNode.isOpen() && childCount > 0) {
+      keyboardSelect(keyboardSelectedNode.getChildNode(0),true);
+    }
+ else     if (index < parentChildCount - 1) {
+      keyboardSelect(parent.getChildNode(index + 1),true);
+    }
+ else {
+      CellTreeNodeView<?> curParent=parent;
+      CellTreeNodeView<?> nextSibling=null;
+      while (curParent != null && curParent != rootNode) {
+        CellTreeNodeView<?> grandparent=curParent.getParentNode();
+        if (grandparent == null) {
+          break;
+        }
+        int curParentIndex=grandparent.indexOf(curParent);
+        if (curParentIndex < grandparent.getChildCount() - 1) {
+          nextSibling=grandparent.getChildNode(curParentIndex + 1);
+          break;
+        }
+        curParent=grandparent;
+      }
+      if (nextSibling != null) {
+        keyboardSelect(nextSibling,true);
+      }
+    }
+  break;
+case KeyCodes.KEY_UP:
+if (index > 0) {
+  CellTreeNodeView<?> prevSibling=parent.getChildNode(index - 1);
+  if (prevSibling.isOpen() && prevSibling.getChildCount() > 0) {
+    prevSibling=prevSibling.getChildNode(prevSibling.getChildCount() - 1);
+  }
+  keyboardSelect(prevSibling,true);
+}
+ else if (parent != null && parent != rootNode) {
+  keyboardSelect(parent,true);
+}
+break;
+case KeyCodes.KEY_RIGHT:
+if (LocaleInfo.getCurrentLocale().isRTL()) {
+keyboardNavigateShallow();
+}
+ else {
+keyboardNavigateDeep();
+}
+break;
+case KeyCodes.KEY_LEFT:
+if (LocaleInfo.getCurrentLocale().isRTL()) {
+keyboardNavigateDeep();
+}
+ else {
+keyboardNavigateShallow();
+}
+break;
+}
+}

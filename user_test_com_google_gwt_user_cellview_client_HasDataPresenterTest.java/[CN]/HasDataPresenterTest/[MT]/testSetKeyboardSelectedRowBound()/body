@@ -1,0 +1,24 @@
+{
+  HasData<String> listView=new MockHasData<String>();
+  MockView<String> view=new MockView<String>();
+  HasDataPresenter<String> presenter=new HasDataPresenter<String>(listView,view,10,null);
+  presenter.setVisibleRange(new Range(0,10));
+  populatePresenter(presenter);
+  assertEquals(KeyboardSelectionPolicy.ENABLED,presenter.getKeyboardSelectionPolicy());
+  presenter.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.BOUND_TO_SELECTION);
+  presenter.setKeyboardPagingPolicy(KeyboardPagingPolicy.CHANGE_PAGE);
+  MockSelectionModel<String> model=new MockSelectionModel<String>(null);
+  presenter.setSelectionModel(model);
+  assertEquals(0,model.getSelectedSet().size());
+  presenter.setKeyboardSelectedRow(5,false);
+  assertEquals(1,model.getSelectedSet().size());
+  assertTrue(model.isSelected("test 5"));
+  presenter.setKeyboardSelectedRow(9,false);
+  assertEquals(1,model.getSelectedSet().size());
+  assertTrue(model.isSelected("test 9"));
+  presenter.setKeyboardSelectedRow(11,false);
+  assertEquals(0,model.getSelectedSet().size());
+  populatePresenter(presenter);
+  assertEquals(1,model.getSelectedSet().size());
+  assertTrue(model.isSelected("test 11"));
+}

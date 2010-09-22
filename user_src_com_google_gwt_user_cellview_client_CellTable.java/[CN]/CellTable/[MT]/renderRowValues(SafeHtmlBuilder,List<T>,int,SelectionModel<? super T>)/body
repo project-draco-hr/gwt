@@ -1,28 +1,47 @@
 {
   createHeadersAndFooters();
+  int keyboardSelectedRow=getKeyboardSelectedRow() + getPageStart();
   ProvidesKey<T> keyProvider=getKeyProvider();
   String evenRowStyle=style.cellTableEvenRow();
   String oddRowStyle=style.cellTableOddRow();
   String cellStyle=style.cellTableCell();
+  String evenCellStyle=" " + style.cellTableEvenRowCell();
+  String oddCellStyle=" " + style.cellTableOddRowCell();
   String firstColumnStyle=" " + style.cellTableFirstColumn();
   String lastColumnStyle=" " + style.cellTableLastColumn();
   String selectedRowStyle=" " + style.cellTableSelectedRow();
+  String selectedCellStyle=" " + style.cellTableSelectedRowCell();
+  String keyboardRowStyle=" " + style.cellTableKeyboardSelectedRow();
+  String keyboardRowCellStyle=" " + style.cellTableKeyboardSelectedRowCell();
+  String keyboardCellStyle=" " + style.cellTableKeyboardSelectedCell();
   int columnCount=columns.size();
   int length=values.size();
   int end=start + length;
   for (int i=start; i < end; i++) {
     T value=values.get(i - start);
     boolean isSelected=(selectionModel == null || value == null) ? false : selectionModel.isSelected(value);
-    String trClasses=i % 2 == 0 ? evenRowStyle : oddRowStyle;
+    boolean isEven=i % 2 == 0;
+    boolean isKeyboardSelected=i == keyboardSelectedRow && isFocused;
+    String trClasses=isEven ? evenRowStyle : oddRowStyle;
     if (isSelected) {
       trClasses+=selectedRowStyle;
+    }
+    if (isKeyboardSelected) {
+      trClasses+=keyboardRowStyle;
     }
     SafeHtmlBuilder trBuilder=new SafeHtmlBuilder();
     int curColumn=0;
     for (    Column<T,?> column : columns) {
       String tdClasses=cellStyle;
+      tdClasses+=isEven ? evenCellStyle : oddCellStyle;
       if (curColumn == 0) {
         tdClasses+=firstColumnStyle;
+      }
+      if (isSelected) {
+        tdClasses+=selectedCellStyle;
+      }
+      if (isKeyboardSelected) {
+        tdClasses+=keyboardRowCellStyle;
       }
       if (curColumn == columnCount - 1) {
         tdClasses+=lastColumnStyle;
@@ -31,7 +50,21 @@
       if (value != null) {
         column.render(value,keyProvider,cellBuilder);
       }
-      trBuilder.append(template.td(tdClasses,cellBuilder.toSafeHtml()));
+      if (i == keyboardSelectedRow && curColumn == keyboardSelectedColumn) {
+        if (isFocused) {
+          tdClasses+=keyboardCellStyle;
+        }
+        char accessKey=getAccessKey();
+        if (accessKey != 0) {
+          trBuilder.append(template.tdFocusableWithKey(tdClasses,getTabIndex(),accessKey,cellBuilder.toSafeHtml()));
+        }
+ else {
+          trBuilder.append(template.tdFocusable(tdClasses,getTabIndex(),cellBuilder.toSafeHtml()));
+        }
+      }
+ else {
+        trBuilder.append(template.td(tdClasses,cellBuilder.toSafeHtml()));
+      }
       curColumn++;
     }
     sb.append(template.tr(trClasses,trBuilder.toSafeHtml()));

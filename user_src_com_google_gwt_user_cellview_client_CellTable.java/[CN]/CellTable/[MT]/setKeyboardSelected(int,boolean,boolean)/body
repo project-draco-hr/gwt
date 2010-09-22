@@ -1,0 +1,21 @@
+{
+  if (KeyboardSelectionPolicy.DISABLED == getKeyboardSelectionPolicy() || !isRowWithinBounds(index) || columns.size() == 0) {
+    return;
+  }
+  TableRowElement tr=getRowElement(index);
+  TableCellElement td=tr.getCells().getItem(keyboardSelectedColumn);
+  final com.google.gwt.user.client.Element cellParent=getCellParent(td).cast();
+  if (!selected || isFocused || stealFocus) {
+    setRowStyleName(tr,style.cellTableKeyboardSelectedRow(),style.cellTableKeyboardSelectedRowCell(),selected);
+    setStyleName(td,style.cellTableKeyboardSelectedCell(),selected);
+  }
+  setFocusable(cellParent,selected);
+  if (selected && stealFocus) {
+    CellBasedWidgetImpl.get().resetFocus(new Scheduler.ScheduledCommand(){
+      public void execute(){
+        cellParent.focus();
+      }
+    }
+);
+  }
+}

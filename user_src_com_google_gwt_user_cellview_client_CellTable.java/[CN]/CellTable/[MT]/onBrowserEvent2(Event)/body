@@ -1,0 +1,72 @@
+{
+  EventTarget eventTarget=event.getEventTarget();
+  if (!Element.is(eventTarget)) {
+    return;
+  }
+  Element target=event.getEventTarget().cast();
+  String eventType=event.getType();
+  if ("keydown".equals(eventType) && !isKeyboardNavigationSuppressed() && KeyboardSelectionPolicy.DISABLED != getKeyboardSelectionPolicy()) {
+    if (handleKey(event)) {
+      return;
+    }
+  }
+  TableCellElement tableCell=findNearestParentCell(target);
+  if (tableCell == null) {
+    return;
+  }
+  Element trElem=tableCell.getParentElement();
+  if (trElem == null) {
+    return;
+  }
+  TableRowElement tr=TableRowElement.as(trElem);
+  Element sectionElem=tr.getParentElement();
+  if (sectionElem == null) {
+    return;
+  }
+  TableSectionElement section=TableSectionElement.as(sectionElem);
+  int col=tableCell.getCellIndex();
+  if (section == thead) {
+    Header<?> header=headers.get(col);
+    if (header != null && cellConsumesEventType(header.getCell(),eventType)) {
+      header.onBrowserEvent(tableCell,event);
+    }
+  }
+ else   if (section == tfoot) {
+    Header<?> footer=footers.get(col);
+    if (footer != null && cellConsumesEventType(footer.getCell(),eventType)) {
+      footer.onBrowserEvent(tableCell,event);
+    }
+  }
+ else   if (section == tbody) {
+    boolean isMouseDown="mousedown".equals(eventType);
+    int row=tr.getSectionRowIndex();
+    if ("mouseover".equals(eventType)) {
+      if (hoveringRow != null) {
+        setRowStyleName(hoveringRow,style.cellTableHoveredRow(),style.cellTableHoveredRowCell(),false);
+      }
+      hoveringRow=tr;
+      setRowStyleName(hoveringRow,style.cellTableHoveredRow(),style.cellTableHoveredRowCell(),true);
+    }
+ else     if ("mouseout".equals(eventType) && hoveringRow != null) {
+      setRowStyleName(hoveringRow,style.cellTableHoveredRow(),style.cellTableHoveredRowCell(),false);
+      hoveringRow=null;
+    }
+ else     if ("focus".equals(eventType) || isMouseDown) {
+      isFocused=true;
+      if (getPresenter().getKeyboardSelectedRow() != row || keyboardSelectedColumn != col) {
+        deselectKeyboardRow(getKeyboardSelectedRow());
+        keyboardSelectedColumn=col;
+        getPresenter().setKeyboardSelectedRow(row,false);
+      }
+    }
+    if (!isRowWithinBounds(row)) {
+      return;
+    }
+    T value=getDisplayedItem(row);
+    SelectionModel<? super T> selectionModel=getSelectionModel();
+    if (selectionModel != null && "click".equals(eventType) && !handlesSelection) {
+      selectionModel.setSelected(value,true);
+    }
+    fireEventToCell(event,eventType,tableCell,value,row,columns.get(col));
+  }
+}

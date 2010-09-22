@@ -1,0 +1,32 @@
+{
+  EventTarget eventTarget=event.getEventTarget();
+  if (!Element.is(eventTarget)) {
+    return;
+  }
+  Element target=event.getEventTarget().cast();
+  String idxString="";
+  while ((target != null) && ((idxString=target.getAttribute("__idx")).length() == 0)) {
+    target=target.getParentElement();
+  }
+  if (idxString.length() > 0) {
+    String eventType=event.getType();
+    boolean isMouseDown="mousedown".equals(eventType);
+    int idx=Integer.parseInt(idxString);
+    int indexOnPage=idx - getPageStart();
+    if (!isRowWithinBounds(indexOnPage)) {
+      return;
+    }
+    T value=getDisplayedItem(indexOnPage);
+    SelectionModel<? super T> selectionModel=getSelectionModel();
+    if (selectionModel != null && isMouseDown && !cell.handlesSelection()) {
+      selectionModel.setSelected(value,true);
+    }
+    if ("focus".equals(eventType) || isMouseDown) {
+      isFocused=true;
+      if (getPresenter().getKeyboardSelectedRow() != indexOnPage) {
+        getPresenter().setKeyboardSelectedRow(indexOnPage,false);
+      }
+    }
+    fireEventToCell(event,getCellParent(target),value);
+  }
+}

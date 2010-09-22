@@ -1,10 +1,28 @@
 {
-  Element parent=Document.get().createDivElement();
+  final com.google.gwt.user.client.Element parent=Document.get().createDivElement().cast();
   parent.setInnerHTML(startHtml);
-  MockValueUpdater valueUpdater=new MockValueUpdater();
-  AbstractEditableCell<T,V> cell=createCell();
+  Document.get().getBody().appendChild(parent);
+  Element child=parent.getFirstChildElement();
+  Element target=(child == null) ? parent : child;
+  final MockValueUpdater valueUpdater=new MockValueUpdater();
+  final AbstractEditableCell<T,V> cell=createCell();
   cell.setViewData(DEFAULT_KEY,viewData);
-  cell.onBrowserEvent(parent,value,DEFAULT_KEY,event,valueUpdater);
+  Event.setEventListener(parent,new EventListener(){
+    public void onBrowserEvent(    Event event){
+      try {
+        DOM.setEventListener(parent,null);
+        cell.onBrowserEvent(parent,value,DEFAULT_KEY,event,valueUpdater);
+        parent.removeFromParent();
+      }
+ catch (      Exception e) {
+        fail("An exception occured while handling the event: " + e.getMessage());
+      }
+    }
+  }
+);
+  Event.sinkEvents(target,Event.getTypeInt(event.getType()));
+  target.dispatchEvent(event);
+  assertNull(DOM.getEventListener(parent));
   assertEquals(expectedViewData,cell.getViewData(DEFAULT_KEY));
   valueUpdater.assertLastValue(expectedValue);
   return parent;

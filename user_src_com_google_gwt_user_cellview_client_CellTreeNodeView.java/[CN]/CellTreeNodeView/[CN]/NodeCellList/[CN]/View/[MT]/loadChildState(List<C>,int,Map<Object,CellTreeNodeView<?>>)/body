@@ -5,6 +5,7 @@
   ProvidesKey<C> keyProvider=nodeInfo.getProvidesKey();
   Element container=nodeView.ensureChildContainer();
   Element childElem=container.getFirstChildElement();
+  CellTreeNodeView<?> keyboardSelected=nodeView.tree.getKeyboardSelectedNode();
   for (int i=start; i < end; i++) {
     C childValue=values.get(i - start);
     CellTreeNodeView<C> child=nodeView.createTreeNodeView(nodeInfo,childElem,childValue,null);
@@ -24,8 +25,19 @@
         child.treeNode.nodeView=child;
       }
       child.listView=savedChild.listView;
-      child.listView.nodeView=child;
+      if (child.listView != null) {
+        child.listView.nodeView=child;
+      }
+      if (child.children != null) {
+        for (        CellTreeNodeView<?> grandchild : child.children) {
+          grandchild.parentNode=child;
+        }
+      }
+      if (keyboardSelected == savedChild) {
+        keyboardSelected=child;
+      }
       child.getElement().appendChild(savedChild.ensureAnimationFrame());
+      savedChild.isDestroyed=true;
     }
     if (childCount > i) {
       nodeView.children.set(i,child);
@@ -34,5 +46,13 @@
       nodeView.children.add(child);
     }
     childElem=childElem.getNextSiblingElement();
+  }
+  CellTreeNodeView<?> curNode=keyboardSelected;
+  while (curNode != null) {
+    if (curNode == nodeView) {
+      nodeView.tree.keyboardSelect(keyboardSelected,false);
+      break;
+    }
+    curNode=curNode.parentNode;
   }
 }
