@@ -1,0 +1,31 @@
+{
+  delayTestFinish(5000);
+  req.simpleFooStringRequest().findSimpleFooStringById("999x").fire(new Receiver<SimpleFooStringProxy>(){
+    @Override public void onSuccess(    SimpleFooStringProxy newFoo){
+      final RequestObject<Long> mutateRequest=req.simpleFooStringRequest().countSimpleFooWithUserNameSideEffect(newFoo);
+      newFoo=mutateRequest.edit(newFoo);
+      newFoo.setUserName("Ray");
+      mutateRequest.fire(new Receiver<Long>(){
+        @Override public void onSuccess(        Long response){
+          assertCannotFire(mutateRequest);
+          assertEquals(new Long(1L),response);
+          req.simpleFooStringRequest().findSimpleFooStringById("999x").fire(new Receiver<SimpleFooStringProxy>(){
+            @Override public void onSuccess(            SimpleFooStringProxy finalFoo){
+              assertEquals("Ray",finalFoo.getUserName());
+              finishTestAndReset();
+            }
+          }
+);
+        }
+      }
+);
+      try {
+        newFoo.setUserName("Barney");
+        fail();
+      }
+ catch (      IllegalStateException e) {
+      }
+    }
+  }
+);
+}

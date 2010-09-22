@@ -1,0 +1,31 @@
+{
+  delayTestFinish(5000);
+  SimpleFooStringProxy rayFoo=req.create(SimpleFooStringProxy.class);
+  final RequestObject<SimpleFooStringProxy> persistRay=req.simpleFooStringRequest().persistAndReturnSelf(rayFoo);
+  rayFoo=persistRay.edit(rayFoo);
+  rayFoo.setUserName("Ray");
+  persistRay.fire(new Receiver<SimpleFooStringProxy>(){
+    @Override public void onSuccess(    final SimpleFooStringProxy persistedRay){
+      SimpleBarProxy amitBar=req.create(SimpleBarProxy.class);
+      final RequestObject<SimpleBarProxy> persistAmit=req.simpleBarRequest().persistAndReturnSelf(amitBar);
+      amitBar=persistAmit.edit(amitBar);
+      amitBar.setUserName("Amit");
+      persistAmit.fire(new Receiver<SimpleBarProxy>(){
+        @Override public void onSuccess(        SimpleBarProxy persistedAmit){
+          final RequestObject<SimpleFooStringProxy> persistRelationship=req.simpleFooStringRequest().persistAndReturnSelf(persistedRay).with("barField");
+          SimpleFooStringProxy newRec=persistRelationship.edit(persistedRay);
+          newRec.setBarField(persistedAmit);
+          persistRelationship.fire(new Receiver<SimpleFooStringProxy>(){
+            @Override public void onSuccess(            SimpleFooStringProxy relatedRay){
+              assertEquals("Amit",relatedRay.getBarField().getUserName());
+              finishTestAndReset();
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}

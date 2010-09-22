@@ -1,0 +1,28 @@
+{
+  delayTestFinish(5000);
+  SimpleFooStringProxy newFoo=req.create(SimpleFooStringProxy.class);
+  final RequestObject<SimpleFooStringProxy> persistRequest=req.simpleFooStringRequest().persistAndReturnSelf(newFoo);
+  final SimpleFooStringProxy mutableFoo=persistRequest.edit(newFoo);
+  mutableFoo.setPleaseCrash(42);
+  persistRequest.fire(new Receiver<SimpleFooStringProxy>(){
+    @Override public void onFailure(    ServerFailure error){
+      assertEquals("Server Error: THIS EXCEPTION IS EXPECTED BY A TEST",error.getMessage());
+      assertEquals("",error.getExceptionType());
+      assertEquals("",error.getStackTraceString());
+      mutableFoo.setPleaseCrash(24);
+      persistRequest.fire(new Receiver<SimpleFooStringProxy>(){
+        @Override public void onSuccess(        SimpleFooStringProxy response){
+          finishTestAndReset();
+        }
+      }
+);
+    }
+    public void onSuccess(    SimpleFooStringProxy response){
+      fail("Failure expected but onSuccess() was called");
+    }
+    @Override public void onViolation(    Set<Violation> errors){
+      fail("Failure expected but onViolation() was called");
+    }
+  }
+);
+}
