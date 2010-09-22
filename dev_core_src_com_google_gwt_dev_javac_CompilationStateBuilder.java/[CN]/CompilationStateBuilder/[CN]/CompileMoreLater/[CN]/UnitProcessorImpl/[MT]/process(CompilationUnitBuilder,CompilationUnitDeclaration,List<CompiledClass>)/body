@@ -15,22 +15,21 @@
   ArtificialRescueChecker.check(cud,builder.isGenerated());
   BinaryTypeReferenceRestrictionsChecker.check(cud);
   MethodArgNamesLookup methodArgs=MethodParamCollector.collect(cud);
-  StringInterner interner=StringInterner.get();
-  String packageName=interner.intern(Shared.getPackageName(builder.getTypeName()));
+  String packageName=Shared.getPackageName(builder.getTypeName());
   List<String> unresolvedQualified=new ArrayList<String>();
   List<String> unresolvedSimple=new ArrayList<String>();
   for (  char[] simpleRef : cud.compilationResult().simpleNameReferences) {
-    unresolvedSimple.add(interner.intern(String.valueOf(simpleRef)));
+    unresolvedSimple.add(canonical(String.valueOf(simpleRef)));
   }
   for (  char[][] qualifiedRef : cud.compilationResult().qualifiedReferences) {
-    unresolvedQualified.add(interner.intern(CharOperation.toString(qualifiedRef)));
+    unresolvedQualified.add(canonical(CharOperation.toString(qualifiedRef)));
   }
   for (  String jsniDep : jsniDeps) {
-    unresolvedQualified.add(interner.intern(jsniDep));
+    unresolvedQualified.add(canonical(jsniDep));
   }
   ArrayList<String> apiRefs=compiler.collectApiRefs(cud);
   for (int i=0; i < apiRefs.size(); ++i) {
-    apiRefs.set(i,interner.intern(apiRefs.get(i)));
+    apiRefs.set(i,canonical(apiRefs.get(i)));
   }
   Dependencies dependencies=new Dependencies(packageName,unresolvedQualified,unresolvedSimple,apiRefs);
   CompilationUnit unit=builder.build(compiledClasses,dependencies,jsniMethods.values(),methodArgs,cud.compilationResult().getProblems());
