@@ -1,0 +1,26 @@
+{
+  Map<String,Class<?>> toReturn=new HashMap<String,Class<?>>();
+  for (  Field field : entity.getDeclaredFields()) {
+    Property<?> property=propertiesInProxy.get(field.getName());
+    if (property == null) {
+      continue;
+    }
+    Class<?> fieldType=property.getType();
+    if (property instanceof CollectionProperty) {
+      toReturn.put(field.getName(),fieldType);
+    }
+ else     if (fieldType != null) {
+      if (EntityProxy.class.isAssignableFrom(fieldType)) {
+        ProxyFor pFor=fieldType.getAnnotation(ProxyFor.class);
+        if (pFor != null) {
+          fieldType=pFor.value();
+        }
+        if (!fieldType.equals(field.getType())) {
+          fieldType=field.getType();
+        }
+      }
+      toReturn.put(field.getName(),fieldType);
+    }
+  }
+  return toReturn;
+}

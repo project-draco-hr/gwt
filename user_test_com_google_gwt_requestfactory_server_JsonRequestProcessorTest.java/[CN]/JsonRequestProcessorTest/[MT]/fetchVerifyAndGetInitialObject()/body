@@ -1,7 +1,7 @@
 {
-  JSONObject results=requestProcessor.processJsonRequest("{ \"" + RequestData.OPERATION_TOKEN + "\": \""+ com.google.gwt.requestfactory.shared.SimpleFooRequest.class.getName()+ ReflectionBasedOperationRegistry.SCOPE_SEPARATOR+ "findSimpleFooById\", "+ "\""+ RequestData.PARAM_TOKEN+ "0\": \"999\" }");
+  JSONObject results=requestProcessor.processJsonRequest("{ \"" + RequestData.OPERATION_TOKEN + "\": \""+ com.google.gwt.requestfactory.shared.SimpleFooRequest.class.getName()+ ReflectionBasedOperationRegistry.SCOPE_SEPARATOR+ "findSimpleFooById\", "+ "\""+ RequestData.PARAM_TOKEN+ "0\": \"999\", \""+ RequestData.PROPERTY_REF_TOKEN+ "\": "+ "\"oneToManyField,oneToManySetField,selfOneToManyField\""+ "}");
   JSONObject foo=results.getJSONObject("result");
-  assertEquals(foo.getInt("id"),999);
+  assertEquals(foo.getLong("id"),999L);
   assertEquals(foo.getInt("intId"),42);
   assertEquals(foo.getString("userName"),"GWT");
   assertEquals(foo.getLong("longField"),8L);
@@ -10,5 +10,19 @@
   assertEquals(foo.getBoolean("boolField"),true);
   assertNotNull(foo.getString("!id"));
   assertTrue(foo.has("created"));
+  List<Double> numList=(List<Double>)foo.get("numberListField");
+  assertEquals(2,numList.size());
+  assertEquals(42.0,numList.get(0));
+  assertEquals(99.0,numList.get(1));
+  List<String> oneToMany=(List<String>)foo.get("oneToManyField");
+  assertEquals(2,oneToMany.size());
+  assertEquals("encoded*1L-NO-com.google.gwt.requestfactory.shared.SimpleBarProxy",oneToMany.get(0));
+  assertEquals("encoded*1L-NO-com.google.gwt.requestfactory.shared.SimpleBarProxy",oneToMany.get(1));
+  List<String> selfOneToMany=(List<String>)foo.get("selfOneToManyField");
+  assertEquals(1,selfOneToMany.size());
+  assertEquals("999-NO-com.google.gwt.requestfactory.shared.SimpleFooProxy",selfOneToMany.get(0));
+  Set<String> oneToManySet=(Set<String>)foo.get("oneToManySetField");
+  assertEquals(1,oneToManySet.size());
+  assertEquals("encoded*1L-NO-com.google.gwt.requestfactory.shared.SimpleBarProxy",oneToManySet.iterator().next());
   return foo;
 }

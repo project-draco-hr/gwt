@@ -11,8 +11,25 @@
     Object returnValue=method.invoke(entityInstance);
     Object propertyValue;
     String encodedEntityId=isEntityReference(returnValue,p.getType());
-    if (encodedEntityId != null) {
+    if (returnValue == null) {
+      propertyValue=JSONObject.NULL;
+    }
+ else     if (encodedEntityId != null) {
       propertyValue=encodedEntityId + "-NO-" + operationRegistry.getSecurityProvider().encodeClassType(p.getType());
+    }
+ else     if (p instanceof CollectionProperty) {
+      JSONArray array=new JSONArray();
+      for (      Object val : ((Collection)returnValue)) {
+        String encodedIdVal=isEntityReference(val,p.getType());
+        if (encodedIdVal != null) {
+          propertyValue=encodedIdVal + "-NO-" + operationRegistry.getSecurityProvider().encodeClassType(p.getType());
+        }
+ else {
+          propertyValue=encodePropertyValue(val);
+        }
+        array.put(propertyValue);
+      }
+      propertyValue=array;
     }
  else {
       propertyValue=encodePropertyValue(returnValue);

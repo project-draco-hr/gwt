@@ -1,16 +1,15 @@
 {
   Class<?> entityType=getEntityTypeForProxyType(entityKey.proxyType);
-  Map<String,Class<?>> entityPropTypes=getPropertiesFromRecordProxyType(entityKey.proxyType);
-  Map<String,Class<?>> proxyPropTypes=new HashMap<String,Class<?>>(entityPropTypes);
-  validateKeys(recordObject,entityPropTypes.keySet());
-  updatePropertyTypes(entityPropTypes,entityType);
-  Object entityInstance=getEntityInstance(writeOperation,entityType,entityKey.decodedId(entityPropTypes.get(ENTITY_ID_PROPERTY)),entityPropTypes.get(ENTITY_ID_PROPERTY));
+  Map<String,Property<?>> propertiesInProxy=getPropertiesFromRecordProxyType(entityKey.proxyType);
+  Map<String,Class<?>> propertiesInDomain=updatePropertyTypes(propertiesInProxy,entityType);
+  validateKeys(recordObject,propertiesInDomain.keySet());
+  Object entityInstance=getEntityInstance(writeOperation,entityType,entityKey.decodedId(propertiesInProxy.get(ENTITY_ID_PROPERTY).getType()),propertiesInProxy.get(ENTITY_ID_PROPERTY).getType());
   cachedEntityLookup.put(entityKey,entityInstance);
   Iterator<?> keys=recordObject.keys();
   while (keys.hasNext()) {
     String key=(String)keys.next();
-    Class<?> propertyType=entityPropTypes.get(key);
-    Class<?> dtoType=proxyPropTypes.get(key);
+    Class<?> propertyType=propertiesInDomain.get(key);
+    Property<?> dtoProperty=propertiesInProxy.get(key);
     if (writeOperation == WriteOperation.CREATE && (ENTITY_ID_PROPERTY.equals(key))) {
       String id=generateIdForCreate(key);
       if (id != null) {
@@ -19,20 +18,30 @@
     }
  else {
       Object propertyValue=null;
-      if (!recordObject.isNull(key) && EntityProxy.class.isAssignableFrom(dtoType)) {
-        EntityKey propKey=getEntityKey(recordObject.getString(key));
-        Object cacheValue=cachedEntityLookup.get(propKey);
-        if (cachedEntityLookup.containsKey(propKey)) {
-          propertyValue=cacheValue;
-        }
+      if (recordObject.isNull(key)) {
+      }
+ else       if (dtoProperty instanceof CollectionProperty) {
+        Class<?> cType=dtoProperty.getType();
+        Class<?> leafType=((CollectionProperty)dtoProperty).getLeafType();
+        Collection<Object> col=createCollection(cType);
+        if (col != null) {
+          JSONArray array=recordObject.getJSONArray(key);
+          for (int i=0; i < array.length(); i++) {
+            if (EntityProxy.class.isAssignableFrom(leafType)) {
+              propertyValue=getPropertyValueFromRequestCached(array,propertiesInProxy,i,dtoProperty);
+            }
  else {
-          propertyValue=getPropertyValueFromRequest(recordObject,key,proxyPropTypes.get(key));
+              propertyValue=decodeParameterValue(leafType,array.getString(i));
+            }
+            col.add(propertyValue);
+          }
+          propertyValue=col;
         }
       }
  else {
-        propertyValue=getPropertyValueFromRequest(recordObject,key,proxyPropTypes.get(key));
+        propertyValue=getPropertyValueFromRequestCached(recordObject,propertiesInProxy,key,dtoProperty);
       }
-      entityType.getMethod(getMethodNameFromPropertyName(key,"set"),propertyType).invoke(entityInstance,propertyValue);
+      entityType.getMethod(getMethodNameFromPropertyName(key,"set"),propertiesInDomain.get(key)).invoke(entityInstance,propertyValue);
     }
   }
   Set<ConstraintViolation<Object>> violations=Collections.emptySet();

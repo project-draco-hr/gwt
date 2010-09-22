@@ -1,0 +1,18 @@
+{
+  Object propertyValue;
+  Class<?> leafType=dtoProperty instanceof CollectionProperty ? ((CollectionProperty)dtoProperty).getLeafType() : dtoProperty.getType();
+  if (EntityProxy.class.isAssignableFrom(leafType)) {
+    EntityKey propKey=getEntityKey(recordArray.getString(index));
+    Object cacheValue=cachedEntityLookup.get(propKey);
+    if (cachedEntityLookup.containsKey(propKey)) {
+      propertyValue=cacheValue;
+    }
+ else {
+      propertyValue=getPropertyValueFromRequest(recordArray,index,leafType);
+    }
+  }
+ else {
+    propertyValue=getPropertyValueFromRequest(recordArray,index,leafType);
+  }
+  return propertyValue;
+}

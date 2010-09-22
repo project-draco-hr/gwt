@@ -1,0 +1,25 @@
+{
+  delayTestFinish(5000);
+  req.simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
+    public void onSuccess(    SimpleFooProxy fooProxy){
+      RequestObject<SimpleFooProxy> updReq=req.simpleFooRequest().persistAndReturnSelf(fooProxy);
+      fooProxy=updReq.edit(fooProxy);
+      final ArrayList<Integer> al=new ArrayList<Integer>();
+      al.add(5);
+      al.add(8);
+      al.add(13);
+      fooProxy.setNumberListField(al);
+      updReq.fire(new Receiver<SimpleFooProxy>(){
+        public void onSuccess(        SimpleFooProxy response){
+          List<Integer> list=response.getNumberListField();
+          assertEquals(5,(int)list.get(0));
+          assertEquals(8,(int)list.get(1));
+          assertEquals(13,(int)list.get(2));
+          finishTestAndReset();
+        }
+      }
+);
+    }
+  }
+);
+}

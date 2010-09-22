@@ -3,6 +3,22 @@
   if (genericParameterType instanceof Class<?>) {
     parameterType=(Class<?>)genericParameterType;
   }
+  if (genericParameterType instanceof ParameterizedType) {
+    ParameterizedType pType=(ParameterizedType)genericParameterType;
+    if (pType.getRawType() instanceof Class) {
+      Class<?> rType=(Class<?>)pType.getRawType();
+      if (Collection.class.isAssignableFrom(rType)) {
+        Collection<Object> collection=createCollection(rType);
+        if (collection != null) {
+          JSONArray array=new JSONArray(parameterValue);
+          for (int i=0; i < array.length(); i++) {
+            collection.add(decodeParameterValue(pType.getActualTypeArguments()[0],array.getString(i)));
+          }
+          return collection;
+        }
+      }
+    }
+  }
   if (parameterValue == null) {
     return null;
   }

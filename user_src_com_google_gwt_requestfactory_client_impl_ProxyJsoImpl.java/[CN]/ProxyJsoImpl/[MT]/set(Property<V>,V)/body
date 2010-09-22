@@ -40,5 +40,26 @@
     setString(property.getName(),((ProxyImpl)value).getWireFormatId());
     return;
   }
+  if (value instanceof JsoCollection) {
+    setJso(property.getName(),((JsoCollection)value).asJso());
+    return;
+  }
+ else   if (value instanceof Collection) {
+    JavaScriptObject jso=JavaScriptObject.createArray();
+    for (    Object o : ((Collection)value)) {
+      o=encodeToJsType(o);
+      if (o instanceof String) {
+        ((JsArrayString)jso).push((String)o);
+      }
+ else       if (o instanceof Double) {
+        ((JsArrayNumber)jso).push((Double)o);
+      }
+ else       if (o instanceof Boolean) {
+        pushBoolean(jso,(Boolean)o);
+      }
+    }
+    setJso(property.getName(),jso);
+    return;
+  }
   throw new UnsupportedOperationException("Cannot set properties of type " + value.getClass().getName());
 }
