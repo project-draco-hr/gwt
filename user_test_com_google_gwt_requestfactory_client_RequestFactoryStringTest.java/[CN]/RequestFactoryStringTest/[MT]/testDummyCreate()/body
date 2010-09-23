@@ -1,5 +1,7 @@
 {
   delayTestFinish(5000);
+  final SimpleFooEventHandler<SimpleFooStringProxy> handler=new SimpleFooEventHandler<SimpleFooStringProxy>();
+  EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleFooStringProxy.class,handler);
   final SimpleFooStringProxy foo=req.create(SimpleFooStringProxy.class);
   Object futureId=foo.getId();
   assertEquals(futureId,foo.getId());
@@ -10,6 +12,9 @@
       Object futureId=foo.getId();
       assertEquals(futureId,foo.getId());
       assertTrue(((ProxyImpl)foo).isFuture());
+      assertEquals(1,handler.acquireEventCount);
+      assertEquals(1,handler.createEventCount);
+      assertEquals(2,handler.totalEventCount);
       checkStableIdEquals(foo,returned);
       finishTestAndReset();
     }
