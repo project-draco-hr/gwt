@@ -2,21 +2,21 @@
   delayTestFinish(5000);
   final SimpleFooProxy foo=req.create(SimpleFooProxy.class);
   final Object futureId=foo.getId();
-  assertTrue(((ProxyImpl)foo).isFuture());
+  assertTrue(((ProxyImpl)foo).unpersisted());
   Request<SimpleFooProxy> fooReq=req.simpleFooRequest().persistAndReturnSelf(foo);
   final SimpleFooProxy newFoo=fooReq.edit(foo);
   assertEquals(futureId,foo.getId());
-  assertTrue(((ProxyImpl)foo).isFuture());
+  assertTrue(((ProxyImpl)foo).unpersisted());
   assertEquals(futureId,newFoo.getId());
-  assertTrue(((ProxyImpl)newFoo).isFuture());
+  assertTrue(((ProxyImpl)newFoo).unpersisted());
   newFoo.setUserName("GWT basic user");
   fooReq.fire(new Receiver<SimpleFooProxy>(){
     @Override public void onSuccess(    final SimpleFooProxy returned){
       assertEquals(futureId,foo.getId());
-      assertTrue(((ProxyImpl)foo).isFuture());
+      assertTrue(((ProxyImpl)foo).unpersisted());
       assertEquals(futureId,newFoo.getId());
-      assertTrue(((ProxyImpl)newFoo).isFuture());
-      assertFalse(((ProxyImpl)returned).isFuture());
+      assertTrue(((ProxyImpl)newFoo).unpersisted());
+      assertFalse(((ProxyImpl)returned).unpersisted());
       checkStableIdEquals(foo,returned);
       checkStableIdEquals(newFoo,returned);
       Request<SimpleFooProxy> editRequest=req.simpleFooRequest().persistAndReturnSelf(returned);
