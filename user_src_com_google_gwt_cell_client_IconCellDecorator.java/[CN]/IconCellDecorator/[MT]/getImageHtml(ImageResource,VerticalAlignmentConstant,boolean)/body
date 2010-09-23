@@ -1,9 +1,20 @@
 {
+  SafeHtml image;
   if (isPlaceholder) {
-    return template.imagePlaceholder(direction,res.getWidth());
+    image=SafeHtmlUtils.fromTrustedString("<div></div>");
   }
  else {
-    String vert=valign == HasVerticalAlignment.ALIGN_MIDDLE ? "center" : valign.getVerticalAlignString();
-    return SafeHtmlUtils.fromTrustedString("<div style=\"position:absolute;" + direction + ":0px;top:0px;height:100%;width:"+ res.getWidth()+ "px;background:url('"+ res.getURL()+ "') no-repeat scroll "+ SafeHtmlUtils.htmlEscape(vert)+ " center transparent;\"></div>");
+    AbstractImagePrototype proto=AbstractImagePrototype.create(res);
+    image=SafeHtmlUtils.fromTrustedString(proto.getHTML());
+  }
+  if (HasVerticalAlignment.ALIGN_TOP == valign) {
+    return template.imageWrapperTop(direction,image);
+  }
+ else   if (HasVerticalAlignment.ALIGN_BOTTOM == valign) {
+    return template.imageWrapperBottom(direction,image);
+  }
+ else {
+    int halfHeight=1 + (int)Math.round(res.getHeight() / 2.0);
+    return template.imageWrapperMiddle(direction,halfHeight,image);
   }
 }
