@@ -5,12 +5,20 @@
   if (methodName.startsWith("get")) {
     propertyName=Introspector.decapitalize(methodName.substring(3));
     propertyType=method.getReturnType();
+    if (propertyType.isArray() != null) {
+      logger.log(TreeLogger.ERROR,"Method " + methodName + " on "+ method.getEnclosingType().getQualifiedSourceName()+ " may not return a Java array.");
+      throw new UnableToCompleteException();
+    }
   }
  else   if (methodName.startsWith("set")) {
     propertyName=Introspector.decapitalize(methodName.substring(3));
     JParameter[] parameters=method.getParameters();
     if (parameters.length > 0) {
       propertyType=parameters[parameters.length - 1].getType();
+      if (propertyType.isArray() != null) {
+        logger.log(TreeLogger.ERROR,"Method " + methodName + " on "+ method.getEnclosingType().getQualifiedSourceName()+ " may accept a Java array as a parameter.");
+        throw new UnableToCompleteException();
+      }
     }
   }
   if (propertyType != null && propertyType != JPrimitiveType.VOID) {

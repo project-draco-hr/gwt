@@ -9,6 +9,7 @@
   if (generatedProxyTypes.contains(publicProxyType)) {
     return;
   }
+  String packageName=publicProxyType.getPackage().getName();
   String proxyImplTypeName=publicProxyType.getName() + "Impl";
   PrintWriter pw=generatorContext.tryCreate(logger,packageName,proxyImplTypeName);
   Set<JClassType> transitiveDeps=new LinkedHashSet<JClassType>();
@@ -33,7 +34,7 @@
     f.addImport(Set.class.getName());
     f.setSuperclass(ProxyImpl.class.getSimpleName());
     f.addImplementedInterface(publicProxyType.getName());
-    List<EntityProperty> entityProperties=computeEntityPropertiesFromProxyType(publicProxyType);
+    List<EntityProperty> entityProperties=computeEntityPropertiesFromProxyType(publicProxyType,logger);
     for (    EntityProperty entityProperty : entityProperties) {
       JType type=entityProperty.getType();
       if (type.isPrimitive() == null) {
@@ -55,7 +56,7 @@
         sw.println(String.format("private static final Property<%1$s> %2$s = new Property<%1$s>(\"%2$s\", \"%3$s\", %1$s.class);",entityProperty.getType().getSimpleSourceName(),name,capitalize(name)));
       }
     }
-    printSchema(typeOracle,publicProxyType,proxyImplTypeName,sw);
+    printSchema(typeOracle,publicProxyType,proxyImplTypeName,sw,logger);
     sw.println();
     String simpleImplName=publicProxyType.getSimpleSourceName() + "Impl";
     printRequestImplClass(sw,publicProxyType,simpleImplName,CollectionType.LIST);
@@ -100,6 +101,6 @@
   }
   generatedProxyTypes.add(publicProxyType);
   for (  JClassType type : transitiveDeps) {
-    ensureProxyType(logger,generatorContext,type.getPackage().getName(),type);
+    ensureProxyType(logger,generatorContext,type);
   }
 }
