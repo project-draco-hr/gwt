@@ -1,7 +1,6 @@
 {
   logger=logger.branch(TreeLogger.DEBUG,String.format("Generating implementation of %s",interfaceType.getName()));
   ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(packageName,implName);
-  f.addImport(HandlerManager.class.getName());
   f.addImport(RequestFactoryJsonImpl.class.getName());
   f.addImport(interfaceType.getQualifiedSourceName());
   f.addImport(ProxyToTypeMap.class.getName());
@@ -12,7 +11,7 @@
   f.setSuperclass(RequestFactoryJsonImpl.class.getSimpleName());
   SourceWriter sw=f.createSourceWriter(generatorContext,out);
   sw.println();
-  Set<JMethod> requestSelectors=new LinkedHashSet<JMethod>();
+  Set<JMethod> requestBuilders=new LinkedHashSet<JMethod>();
   for (  JMethod method : interfaceType.getOverridableMethods()) {
     if (method.getEnclosingType().equals(requestFactoryType)) {
       continue;
@@ -27,11 +26,11 @@
       logger.log(TreeLogger.ERROR,String.format("Illegal return type for %s. Methods of %s must return interfaces",method.getName(),interfaceType.getName()));
       throw new UnableToCompleteException();
     }
-    requestSelectors.add(method);
+    requestBuilders.add(method);
   }
   JClassType t=generatorContext.getTypeOracle().findType(RequestFactoryJsonImpl.class.getName());
   try {
-    requestSelectors.add(t.getMethod("findRequest",new JType[0]));
+    requestBuilders.add(t.getMethod("findRequest",new JType[0]));
   }
  catch (  NotFoundException e) {
     e.printStackTrace();
@@ -44,19 +43,19 @@
   sw.outdent();
   sw.println("}");
   sw.println();
+  sw.println("public String getHistoryToken(Class clazz) {");
+  sw.indent();
+  sw.println("return new " + proxyToTypeMapName + "().getClassToken(clazz);");
+  sw.outdent();
+  sw.println("}");
+  sw.println();
   sw.println("public String getHistoryToken(EntityProxyId proxyId) {");
   sw.indent();
   sw.println("return getHistoryToken(proxyId, new " + proxyToTypeMapName + "());");
   sw.outdent();
   sw.println("}");
   sw.println();
-  sw.println("public String getToken(Class clazz) {");
-  sw.indent();
-  sw.println("return new " + proxyToTypeMapName + "().getClassToken(clazz);");
-  sw.outdent();
-  sw.println("}");
-  sw.println();
-  sw.println("public Class<? extends " + EntityProxy.class.getName() + "> getClass(String token) {");
+  sw.println("public Class<? extends " + EntityProxy.class.getName() + "> getProxyClass(String token) {");
   sw.indent();
   sw.println("return getClass(token, new " + proxyToTypeMapName + "());");
   sw.outdent();
@@ -73,7 +72,7 @@
   sw.println("return new " + proxyToTypeMapName + "().getType(schemaToken);");
   sw.outdent();
   sw.println("}");
-  for (  JMethod requestSelector : requestSelectors) {
+  for (  JMethod requestSelector : requestBuilders) {
     String returnTypeName=requestSelector.getReturnType().getQualifiedSourceName();
     String nestedImplName=capitalize(requestSelector.getName().replace('.','_')) + "Impl";
     String nestedImplPackage=generatorContext.getTypeOracle().findType(returnTypeName).getPackage().getName();

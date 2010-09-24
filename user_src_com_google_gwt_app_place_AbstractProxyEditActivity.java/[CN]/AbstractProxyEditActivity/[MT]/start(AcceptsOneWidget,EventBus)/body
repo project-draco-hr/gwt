@@ -1,18 +1,19 @@
 {
-  this.display=display;
+  this.display=startDisplay;
   view.setDelegate(this);
-  view.setCreating(creating);
-  if (creating) {
-    P tempRecord=requests.create(proxyType);
-    stableId=cast(tempRecord.stableId());
-    doStart(display,tempRecord);
+  view.setCreating(isCreating());
+  setWaiting(true);
+  if (isCreating()) {
+    P newRecord=requests.create(proxyClass);
+    proxyId=getProxyId(newRecord);
+    doStart(newRecord);
   }
  else {
-    ProxyRequest<P> findRequest=requests.find(stableId);
-    findRequest.with(getView().getPaths()).fire(new Receiver<P>(){
-      @Override public void onSuccess(      P record){
-        if (AbstractProxyEditActivity.this.display != null) {
-          doStart(AbstractProxyEditActivity.this.display,record);
+    ProxyRequest<P> findRequest=requests.find(getEntityProxyId());
+    findRequest.with(editorDriver.getPaths()).fire(new Receiver<P>(){
+      public void onSuccess(      P proxy){
+        if (display != null) {
+          doStart(proxy);
         }
       }
     }
