@@ -1,2 +1,21 @@
 {
+  afterDvsDataMap=new HashMap<EntityKey,EntityData>();
+  for (  EntityKey entityKey : involvedKeys) {
+    DvsData dvsData=dvsDataMap.get(entityKey);
+    if (dvsData != null) {
+      EntityData entityData=getEntityDataForRecordWithSettersApplied(entityKey,dvsData.jsonObject,dvsData.writeOperation);
+      if (entityKey.isFuture) {
+      }
+      afterDvsDataMap.put(entityKey,entityData);
+    }
+ else     if (entityKey.isFuture) {
+      throw new RuntimeException("Future object with no dvsData");
+    }
+ else {
+      SerializedEntity serializedEntity=beforeDataMap.get(entityKey);
+      if (serializedEntity.entityInstance != null) {
+        afterDvsDataMap.put(entityKey,new EntityData(serializedEntity.entityInstance,null));
+      }
+    }
+  }
 }

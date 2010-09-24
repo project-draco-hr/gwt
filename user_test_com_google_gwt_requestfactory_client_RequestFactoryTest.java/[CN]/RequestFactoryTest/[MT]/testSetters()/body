@@ -1,0 +1,22 @@
+{
+  SimpleFooProxy foo=req.create(SimpleFooProxy.class);
+  SimpleBarProxy bar=req.create(SimpleBarProxy.class);
+  assertNull(foo.getBarField());
+  try {
+    foo.setBarField(bar);
+    fail("Must require request to call setters");
+  }
+ catch (  UnsupportedOperationException expected) {
+  }
+  Request<SimpleFooProxy> r=req.simpleFooRequest().persistAndReturnSelf(foo);
+  foo=r.edit(foo);
+  foo.setBarField(bar);
+  SimpleBarProxy returnedBarField=foo.getBarField();
+  assertNotNull(returnedBarField);
+  assertEquals(bar.stableId(),returnedBarField.stableId());
+  assertEquals(returnedBarField,foo.getBarField());
+  assertNotSame(returnedBarField,foo.getBarField());
+  assertFalse(bar.equals(returnedBarField));
+  returnedBarField.setUserName("userName");
+  assertEquals("userName",returnedBarField.getUserName());
+}

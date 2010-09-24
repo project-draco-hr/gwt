@@ -1,0 +1,24 @@
+{
+  delayTestFinish(TEST_DELAY);
+  SimpleBarProxy willDelete=req.create(SimpleBarProxy.class);
+  req.simpleBarRequest().persistAndReturnSelf(willDelete).fire(new Receiver<SimpleBarProxy>(){
+    @Override public void onSuccess(    SimpleBarProxy response){
+      final EntityProxyId<SimpleBarProxy> id=response.stableId();
+      Request<Void> persist=req.simpleBarRequest().persist(response);
+      persist.edit(response).setFindFails(true);
+      persist.fire(new Receiver<Void>(){
+        @Override public void onSuccess(        Void response){
+          req.find(id).fire(new Receiver<SimpleBarProxy>(){
+            @Override public void onSuccess(            SimpleBarProxy response){
+              assertNull(response);
+              finishTestAndReset();
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}

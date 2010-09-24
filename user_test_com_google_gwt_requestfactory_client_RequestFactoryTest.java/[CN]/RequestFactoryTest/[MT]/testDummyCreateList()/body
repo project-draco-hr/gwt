@@ -1,0 +1,19 @@
+{
+  delayTestFinish(500000);
+  final SimpleBarProxy bar=req.create(SimpleBarProxy.class);
+  Object futureId=bar.getId();
+  assertEquals(futureId,bar.getId());
+  assertTrue(((ProxyImpl)bar).unpersisted());
+  Request<SimpleBarProxy> fooReq=req.simpleBarRequest().returnFirst(Collections.singletonList(bar));
+  fooReq.fire(new Receiver<SimpleBarProxy>(){
+    @Override public void onSuccess(    final SimpleBarProxy returned){
+      Object futureId=bar.getId();
+      assertEquals(futureId,bar.getId());
+      assertTrue(((ProxyImpl)bar).unpersisted());
+      assertFalse(((ProxyImpl)returned).unpersisted());
+      checkStableIdEquals(bar,returned);
+      finishTestAndReset();
+    }
+  }
+);
+}

@@ -1,10 +1,21 @@
 {
-  if (property instanceof CollectionProperty) {
-    V toReturn=(V)jso.getCollection((CollectionProperty)property);
-    if (toReturn != null) {
-      ((JsoCollection)toReturn).setDependencies(deltaValueStore,property,this);
-    }
-    return toReturn;
+  V toReturn=null;
+  if (deltaValueStore != null && deltaValueStore.isPropertySet(property,this)) {
+    toReturn=deltaValueStore.get(property,this);
   }
-  return jso.<V>get(property);
+ else {
+    if (property instanceof CollectionProperty) {
+      toReturn=(V)jso.getCollection((CollectionProperty)property);
+    }
+ else {
+      toReturn=jso.<V>get(property);
+    }
+  }
+  if (toReturn instanceof JsoCollection) {
+    ((JsoCollection)toReturn).setDependencies(property,this);
+  }
+ else   if (mutable()) {
+    toReturn=request.ensureMutable(toReturn);
+  }
+  return toReturn;
 }

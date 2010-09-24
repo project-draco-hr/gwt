@@ -3,15 +3,28 @@
   if (person == null) {
     return;
   }
-  if (event.isFavorite()) {
-    displayed.add(person);
+  EntityProxyId<PersonProxy> lookFor=person.stableId();
+  PersonProxy found=null;
+  for (  PersonProxy displayed : displayedList) {
+    if (displayed.stableId().equals(lookFor)) {
+      found=displayed;
+      break;
+    }
+  }
+  if (event.isFavorite() && found == null) {
+    displayedList.add(person);
+  }
+ else   if (!event.isFavorite() && found != null) {
+    displayedList.remove(person);
   }
  else {
-    displayed.remove(person);
+    return;
   }
-  Collections.sort(displayed,new Comparator<PersonProxy>(){
+  Collections.sort(displayedList,new Comparator<PersonProxy>(){
     public int compare(    PersonProxy o1,    PersonProxy o2){
-      return o1.getName().compareTo(o2.getName());
+      String name1=o1.getName() == null ? "" : o1.getName();
+      String name2=o2.getName() == null ? "" : o2.getName();
+      return name1.compareToIgnoreCase(name2);
     }
   }
 );

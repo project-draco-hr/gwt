@@ -1,0 +1,16 @@
+{
+  delayTestFinish(500000);
+  SimpleFooProxy newFoo=req.create(SimpleFooProxy.class);
+  final SimpleBarProxy newBar=req.create(SimpleBarProxy.class);
+  Request<SimpleFooProxy> fooReq=req.simpleFooRequest().persistAndReturnSelf(newFoo).with("barField");
+  newFoo=fooReq.edit(newFoo);
+  newFoo.setBarField(newBar);
+  fooReq.fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy response){
+      assertNotNull(response.getBarField());
+      assertEquals(newBar.stableId(),response.getBarField().stableId());
+      finishTestAndReset();
+    }
+  }
+);
+}

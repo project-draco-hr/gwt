@@ -1,6 +1,9 @@
 {
   final AbstractRequest<?,?> abstractRequest=(AbstractRequest<?,?>)requestObject;
   RequestData requestData=((AbstractRequest<?,?>)requestObject).getRequestData();
+  for (  Object proxy : requestData.getProxyParameters()) {
+    abstractRequest.deltaValueStore.retainValue(proxy);
+  }
   Map<String,String> requestMap=requestData.getRequestMap(abstractRequest.deltaValueStore.toJson());
   String payload=ClientRequestHelper.getRequestString(requestMap);
   transport.send(payload,new RequestTransport.TransportReceiver(){

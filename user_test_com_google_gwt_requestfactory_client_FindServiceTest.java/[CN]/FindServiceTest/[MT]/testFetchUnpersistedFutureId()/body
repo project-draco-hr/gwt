@@ -1,0 +1,22 @@
+{
+  String historyToken;
+{
+    SimpleRequestFactory oldFactory=GWT.create(SimpleRequestFactory.class);
+    oldFactory.initialize(new SimpleEventBus());
+    EntityProxyId<SimpleBarProxy> id=oldFactory.create(SimpleBarProxy.class).stableId();
+    historyToken=oldFactory.getHistoryToken(id);
+  }
+  EntityProxyId<SimpleBarProxy> id=req.getProxyId(historyToken);
+  assertNotNull(id);
+  ProxyRequest<SimpleBarProxy> find=req.find(id);
+  try {
+    find.fire(new Receiver<SimpleBarProxy>(){
+      @Override public void onSuccess(      SimpleBarProxy response){
+        fail("Request should never have been made");
+      }
+    }
+);
+  }
+ catch (  IllegalArgumentException expected) {
+  }
+}
