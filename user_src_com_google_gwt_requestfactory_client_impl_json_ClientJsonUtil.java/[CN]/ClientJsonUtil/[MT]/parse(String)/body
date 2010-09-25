@@ -1,0 +1,10 @@
+{
+  text=escapeControlChars(text);
+  String chktext=text.replaceAll("\\\\(?:[\"\\\\\\/bfnrt]|u[0-9a-fA-F]{4})","@");
+  chktext=chktext.replaceAll("\"[^\"\\\\\\n\\r]*\"|true|false|null|-?\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d+)?","]");
+  chktext=chktext.replaceAll("(?:^|:|,)(?:\\s*\\[)+","");
+  if (chktext.matches("^[\\],:{}\\s]*$")) {
+    return eval('(' + text + ')');
+  }
+  throw new JsonException("Unable to parse " + text + " illegal JSON format.");
+}
