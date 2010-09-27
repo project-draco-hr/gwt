@@ -4,7 +4,7 @@
   EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleFooStringProxy.class,handler);
   req.simpleFooStringRequest().findSimpleFooStringById("999x").fire(new Receiver<SimpleFooStringProxy>(){
     @Override public void onSuccess(    SimpleFooStringProxy newFoo){
-      assertEquals(1,handler.acquireEventCount);
+      assertEquals(1,handler.updateEventCount);
       assertEquals(1,handler.totalEventCount);
       final Request<Long> mutateRequest=req.simpleFooStringRequest().countSimpleFooWithUserNameSideEffect(newFoo);
       newFoo=mutateRequest.edit(newFoo);
@@ -13,14 +13,12 @@
         @Override public void onSuccess(        Long response){
           assertCannotFire(mutateRequest);
           assertEquals(new Long(1L),response);
-          assertEquals(1,handler.acquireEventCount);
-          assertEquals(1,handler.updateEventCount);
+          assertEquals(2,handler.updateEventCount);
           assertEquals(2,handler.totalEventCount);
           req.simpleFooStringRequest().findSimpleFooStringById("999x").fire(new Receiver<SimpleFooStringProxy>(){
             @Override public void onSuccess(            SimpleFooStringProxy finalFoo){
               assertEquals("Ray",finalFoo.getUserName());
-              assertEquals(1,handler.acquireEventCount);
-              assertEquals(2,handler.updateEventCount);
+              assertEquals(3,handler.updateEventCount);
               assertEquals(3,handler.totalEventCount);
               finishTestAndReset();
             }
