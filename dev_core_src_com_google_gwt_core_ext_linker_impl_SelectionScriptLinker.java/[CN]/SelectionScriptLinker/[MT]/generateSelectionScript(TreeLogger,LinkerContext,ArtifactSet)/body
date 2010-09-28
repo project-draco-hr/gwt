@@ -1,23 +1,18 @@
 {
-  StringBuffer selectionScript;
-  String processMetas;
+  StringBuffer selectionScript=getSelectionScriptStringBuffer(logger,context);
   String computeScriptBase;
+  String processMetas;
   try {
-    selectionScript=new StringBuffer(Utility.getFileFromClassPath(getSelectionScriptTemplate(logger,context)));
-    processMetas=Utility.getFileFromClassPath(PROCESS_METAS_JS);
     computeScriptBase=Utility.getFileFromClassPath(COMPUTE_SCRIPT_BASE_JS);
+    processMetas=Utility.getFileFromClassPath(PROCESS_METAS_JS);
   }
  catch (  IOException e) {
     logger.log(TreeLogger.ERROR,"Unable to read selection script template",e);
     throw new UnableToCompleteException();
   }
-  replaceAll(selectionScript,"__PROCESS_METAS__",processMetas);
   replaceAll(selectionScript,"__COMPUTE_SCRIPT_BASE__",computeScriptBase);
-  replaceAll(selectionScript,"__MODULE_FUNC__",context.getModuleFunctionName());
-  replaceAll(selectionScript,"__MODULE_NAME__",context.getModuleName());
-  replaceAll(selectionScript,"__HOSTED_FILENAME__",getHostedFilename());
-  int startPos;
-  startPos=selectionScript.indexOf("// __MODULE_STYLES_END__");
+  replaceAll(selectionScript,"__PROCESS_METAS__",processMetas);
+  int startPos=selectionScript.indexOf("// __MODULE_STYLES_END__");
   if (startPos != -1) {
     for (    StylesheetReference resource : artifacts.find(StylesheetReference.class)) {
       String text=generateStylesheetInjector(resource.getSrc());
@@ -33,70 +28,6 @@
       startPos+=text.length();
     }
   }
-  startPos=selectionScript.indexOf("// __PROPERTIES_END__");
-  if (startPos != -1) {
-    for (    SelectionProperty p : context.getProperties()) {
-      String text=generatePropertyProvider(p);
-      selectionScript.insert(startPos,text);
-      startPos+=text.length();
-    }
-  }
-  startPos=selectionScript.indexOf("// __PERMUTATIONS_END__");
-  if (startPos != -1) {
-    StringBuffer text=new StringBuffer();
-    if (propMapsByPermutation.size() == 0) {
-      text.append("alert(\"GWT module '" + context.getModuleName() + "' may need to be (re)compiled\");");
-      text.append("return;");
-    }
- else     if (propMapsByPermutation.size() == 1) {
-      text.append("strongName = '" + propMapsByPermutation.keySet().iterator().next().getStrongName() + "';");
-    }
- else {
-      Set<String> propertiesUsed=new HashSet<String>();
-      for (      PermutationId permutationId : propMapsByPermutation.keySet()) {
-        for (        Map<String,String> propertyMap : propMapsByPermutation.get(permutationId)) {
-          text.append("unflattenKeylistIntoAnswers([");
-          boolean needsComma=false;
-          for (          SelectionProperty p : context.getProperties()) {
-            if (p.tryGetValue() != null) {
-              continue;
-            }
- else             if (p.isDerived()) {
-              continue;
-            }
-            if (needsComma) {
-              text.append(",");
-            }
- else {
-              needsComma=true;
-            }
-            text.append("'" + propertyMap.get(p.getName()) + "'");
-            propertiesUsed.add(p.getName());
-          }
-          text.append("], '").append(permutationId.getStrongName()).append("'");
-          if (permutationId.getSoftPermutationId() != 0) {
-            text.append(" + ':").append(permutationId.getSoftPermutationId()).append("'");
-          }
-          text.append(");\n");
-        }
-      }
-      text.append("strongName = answers[");
-      boolean needsIndexMarkers=false;
-      for (      SelectionProperty p : context.getProperties()) {
-        if (!propertiesUsed.contains(p.getName())) {
-          continue;
-        }
-        if (needsIndexMarkers) {
-          text.append("][");
-        }
- else {
-          needsIndexMarkers=true;
-        }
-        text.append("computePropValue('" + p.getName() + "')");
-      }
-      text.append("];");
-    }
-    selectionScript.insert(startPos,text);
-  }
+  selectionScript=processSelectionScriptCommon(selectionScript,logger,context);
   return selectionScript.toString();
 }
