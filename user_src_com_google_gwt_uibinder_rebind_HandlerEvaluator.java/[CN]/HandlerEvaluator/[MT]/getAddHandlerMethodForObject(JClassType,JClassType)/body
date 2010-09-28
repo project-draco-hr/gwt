@@ -1,15 +1,26 @@
 {
   JMethod handlerMethod=null;
-  for (  JMethod method : objectType.getOverridableMethods()) {
+  JMethod alternativeHandlerMethod=null;
+  for (  JMethod method : objectType.getInheritableMethods()) {
     if (method.getReturnType() == handlerRegistrationJClass) {
       JParameter[] parameters=method.getParameters();
-      if ((parameters.length == 1) && handlerType.equals(parameters[0].getType())) {
+      if (parameters.length != 1) {
+        continue;
+      }
+      JType subjectHandler=parameters[0].getType();
+      if (handlerType.equals(subjectHandler)) {
         if (handlerMethod != null) {
           logger.die(("This handler cannot be generated. Methods '%s' and '%s' are " + "ambiguous. Which one to pick?"),method,handlerMethod);
         }
         handlerMethod=method;
       }
+      JParameterizedType ptype=handlerType.isParameterized();
+      if (ptype != null) {
+        if (subjectHandler.equals(ptype.getRawType())) {
+          alternativeHandlerMethod=method;
+        }
+      }
     }
   }
-  return handlerMethod;
+  return (handlerMethod != null) ? handlerMethod : alternativeHandlerMethod;
 }
