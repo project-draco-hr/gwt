@@ -1,0 +1,47 @@
+{
+  indices=idx.map(s,indices);
+  int[] verticalPositives=verticalPositivesReusable;
+  java.util.Arrays.fill(verticalPositives,wordMask);
+  int[] verticalNegatives=verticalNegativesReusable;
+  java.util.Arrays.fill(verticalNegatives,0);
+  int distance=m;
+  int len=s.length();
+  int maxMisses=k + len - m;
+  if (maxMisses < 0)   maxMisses=Integer.MAX_VALUE;
+  outer:   for (int j=0; j < len; j++) {
+    int[] position=positions[indices[j]];
+    int sum=0;
+    int horizontalPositiveShift=1;
+    int horizontalNegativeShift=0;
+    for (int i=0; i < count; i++) {
+      int verticalNegative=verticalNegatives[i];
+      int patternMatch=(position[i] | verticalNegative);
+      int verticalPositive=verticalPositives[i];
+      sum=(verticalPositive & patternMatch) + (verticalPositive) + (sum >>> wordSize);
+      int diagonalZero=((sum & wordMask) ^ verticalPositive) | patternMatch;
+      int horizontalPositive=(verticalNegative | ~(diagonalZero | verticalPositive));
+      int horizontalNegative=diagonalZero & verticalPositive;
+      if (i == (count - 1)) {
+        if ((horizontalNegative & lastBitPosition) != 0) {
+          distance--;
+        }
+ else         if ((horizontalPositive & lastBitPosition) != 0) {
+          distance++;
+          if ((maxMisses-=2) < 0) {
+            break outer;
+          }
+        }
+ else         if (--maxMisses < 0) {
+          break outer;
+        }
+      }
+      horizontalPositive=((horizontalPositive << 1) | horizontalPositiveShift);
+      horizontalPositiveShift=(horizontalPositive >>> wordSize);
+      horizontalNegative=((horizontalNegative << 1) | horizontalNegativeShift);
+      horizontalNegativeShift=(horizontalNegative >>> wordSize);
+      verticalPositives[i]=(horizontalNegative | ~(diagonalZero | horizontalPositive)) & wordMask;
+      verticalNegatives[i]=(diagonalZero & horizontalPositive) & wordMask;
+    }
+  }
+  return distance;
+}

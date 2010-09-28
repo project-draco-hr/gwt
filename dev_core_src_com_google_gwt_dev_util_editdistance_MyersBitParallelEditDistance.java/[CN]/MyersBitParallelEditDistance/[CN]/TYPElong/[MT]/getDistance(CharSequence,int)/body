@@ -1,0 +1,32 @@
+{
+  int len=s.length();
+  if (((len - m) > k) || ((m - len) > k))   return k + 1;
+  indices=idx.map(s,indices);
+  long verticalPositive=-1;
+  long verticalNegative=0;
+  int distance=m;
+  int maxMisses=k + len - m;
+  if (maxMisses < 0)   maxMisses=Integer.MAX_VALUE;
+  for (int j=0; j < len; j++) {
+    long diagonalZero=map[indices[j]] | verticalNegative;
+    diagonalZero|=(((diagonalZero & verticalPositive) + verticalPositive) ^ verticalPositive);
+    long horizontalPositive=verticalNegative | ~(diagonalZero | verticalPositive);
+    long horizontalNegative=diagonalZero & verticalPositive;
+    if ((horizontalNegative & lastBitPosition) != 0) {
+      distance--;
+    }
+ else     if ((horizontalPositive & lastBitPosition) != 0) {
+      distance++;
+      if ((maxMisses-=2) < 0) {
+        break;
+      }
+    }
+ else     if (--maxMisses < 0) {
+      break;
+    }
+    horizontalPositive=(horizontalPositive << 1) | 1;
+    verticalPositive=(horizontalNegative << 1) | ~(diagonalZero | horizontalPositive);
+    verticalNegative=diagonalZero & horizontalPositive;
+  }
+  return distance;
+}
