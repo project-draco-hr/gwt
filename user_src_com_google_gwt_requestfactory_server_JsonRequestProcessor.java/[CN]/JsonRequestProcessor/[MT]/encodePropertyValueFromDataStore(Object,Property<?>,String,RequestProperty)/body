@@ -1,7 +1,7 @@
 {
-  Object returnValue=getRawPropertyValueFromDatastore(entityElement,propertyName,propertyContext);
+  Object returnValue=getRawPropertyValueFromDatastore(entityElement,propertyName);
   Class<?> proxyPropertyType=property.getType();
-  Class<?> elementType=property instanceof CollectionProperty ? ((CollectionProperty)property).getLeafType() : proxyPropertyType;
+  Class<?> elementType=property instanceof CollectionProperty<?,?> ? ((CollectionProperty<?,?>)property).getLeafType() : proxyPropertyType;
   String encodedEntityId=isEntityReference(returnValue,proxyPropertyType);
   if (returnValue == null) {
     return JSONObject.NULL;
@@ -10,12 +10,12 @@
     String keyRef=encodeRelated(proxyPropertyType,propertyName,propertyContext,returnValue);
     return keyRef;
   }
- else   if (property instanceof CollectionProperty) {
-    Class<?> colType=((CollectionProperty)property).getType();
+ else   if (property instanceof CollectionProperty<?,?>) {
+    Class<?> colType=((CollectionProperty<?,?>)property).getType();
     Collection<Object> col=createCollection(colType);
     if (col != null) {
-      for (      Object o : ((Collection)returnValue)) {
-        String encodedValId=isEntityReference(o,((CollectionProperty)property).getLeafType());
+      for (      Object o : ((Collection<?>)returnValue)) {
+        String encodedValId=isEntityReference(o,((CollectionProperty<?,?>)property).getLeafType());
         if (encodedValId != null) {
           col.add(encodeRelated(elementType,propertyName,propertyContext,o));
         }
