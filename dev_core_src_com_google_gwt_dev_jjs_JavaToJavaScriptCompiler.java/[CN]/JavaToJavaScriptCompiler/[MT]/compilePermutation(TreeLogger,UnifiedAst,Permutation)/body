@@ -18,7 +18,8 @@
     JJSOptions options=unifiedAst.getOptions();
     Map<StandardSymbolData,JsName> symbolTable=new TreeMap<StandardSymbolData,JsName>(new SymbolData.ClassIdentComparator());
     ResolveRebinds.exec(jprogram,permutation.getOrderedRebindAnswers());
-    if (options.isDraftCompile()) {
+    int optimizationLevel=options.getOptimizationLevel();
+    if (optimizationLevel == OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
       draftOptimize(jprogram);
     }
  else {
@@ -39,8 +40,8 @@
     JsNormalizer.exec(jsProgram);
     JsSymbolResolver.exec(jsProgram);
     EvalFunctionsAtTopScope.exec(jsProgram,map);
-    if (!options.isDraftCompile()) {
-      optimizeJs(jsProgram);
+    if (optimizationLevel > OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
+      optimizeJs(options,jsProgram);
     }
     JsStackEmulator.exec(jsProgram,propertyOracles);
     JsCoerceIntShift.exec(jsProgram,logger,propertyOracles);

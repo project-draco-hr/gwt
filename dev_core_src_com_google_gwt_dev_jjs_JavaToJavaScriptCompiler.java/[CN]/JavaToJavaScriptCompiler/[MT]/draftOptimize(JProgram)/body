@@ -1,17 +1,9 @@
 {
-  jprogram.beginOptimizations();
   Event draftOptimizeEvent=SpeedTracerLogger.start(CompilerEventType.DRAFT_OPTIMIZE);
-  Event draftFinalizerEvent=SpeedTracerLogger.start(CompilerEventType.DRAFT_OPTIMIZE,"phase","finalizer");
+  jprogram.beginOptimizations();
   Finalizer.exec(jprogram);
-  draftFinalizerEvent.end();
-  Event draftMakeCallsStaticEvent=SpeedTracerLogger.start(CompilerEventType.DRAFT_OPTIMIZE,"phase","makeCallsStatic");
   MakeCallsStatic.exec(jprogram);
-  draftMakeCallsStaticEvent.end();
-  Event draftRecomputeEvent=SpeedTracerLogger.start(CompilerEventType.DRAFT_OPTIMIZE,"phase","recomputeAfterOptimizations");
   jprogram.typeOracle.recomputeAfterOptimizations();
-  draftRecomputeEvent.end();
-  Event draftDeadCode=SpeedTracerLogger.start(CompilerEventType.DRAFT_OPTIMIZE,"phase","deadCodeElimination");
   DeadCodeElimination.exec(jprogram);
-  draftDeadCode.end();
   draftOptimizeEvent.end();
 }
