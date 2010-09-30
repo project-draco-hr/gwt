@@ -1,0 +1,36 @@
+{
+  delayTestFinish(5000);
+  final SimpleBarProxy bar=req.create(SimpleBarProxy.class);
+  req.simpleBarRequest().persistAndReturnSelf(bar).fire(new Receiver<SimpleBarProxy>(){
+    @Override public void onSuccess(    SimpleBarProxy persistentBar){
+      SimpleFooProxy foo=req.create(SimpleFooProxy.class);
+      final Request<SimpleFooProxy> persistRequest=req.simpleFooRequest().persistAndReturnSelf(foo);
+      foo=persistRequest.edit(foo);
+      foo.setUserName("John");
+      foo.setBarField(bar);
+      persistRequest.fire(new Receiver<SimpleFooProxy>(){
+        @Override public void onSuccess(        SimpleFooProxy persistentFoo){
+          final SimpleFooEventHandler<SimpleFooProxy> fooHandler=new SimpleFooEventHandler<SimpleFooProxy>();
+          EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleFooProxy.class,fooHandler);
+          final SimpleFooEventHandler<SimpleBarProxy> barHandler=new SimpleFooEventHandler<SimpleBarProxy>();
+          EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleBarProxy.class,barHandler);
+          final Request<Void> deleteRequest=req.simpleFooRequest().deleteBar(persistentFoo);
+          SimpleFooProxy editable=deleteRequest.edit(persistentFoo);
+          editable.setBarField(bar);
+          deleteRequest.fire(new Receiver<Void>(){
+            @Override public void onSuccess(            Void response){
+              assertEquals(1,fooHandler.updateEventCount);
+              assertEquals(1,fooHandler.totalEventCount);
+              assertEquals(1,barHandler.deleteEventCount);
+              assertEquals(1,barHandler.totalEventCount);
+              finishTestAndReset();
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}

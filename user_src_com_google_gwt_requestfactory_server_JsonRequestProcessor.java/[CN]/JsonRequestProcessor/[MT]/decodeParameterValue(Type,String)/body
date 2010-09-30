@@ -1,4 +1,7 @@
 {
+  if (parameterValue == null) {
+    return null;
+  }
   Class<?> parameterType=null;
   if (genericParameterType instanceof Class<?>) {
     parameterType=(Class<?>)genericParameterType;
@@ -13,15 +16,13 @@
         if (collection != null) {
           JSONArray array=new JSONArray(parameterValue);
           for (int i=0; i < array.length(); i++) {
-            collection.add(decodeParameterValue(pType.getActualTypeArguments()[0],array.getString(i)));
+            String value=array.isNull(i) ? null : array.getString(i);
+            collection.add(decodeParameterValue(pType.getActualTypeArguments()[0],value));
           }
           return collection;
         }
       }
     }
-  }
-  if (parameterValue == null) {
-    return null;
   }
   if (String.class == parameterType) {
     return parameterValue;
