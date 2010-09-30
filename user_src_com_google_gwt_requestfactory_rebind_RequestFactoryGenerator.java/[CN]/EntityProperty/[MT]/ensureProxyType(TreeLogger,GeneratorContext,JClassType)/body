@@ -3,11 +3,18 @@
   if (publicProxyType.isParameterized() != null) {
     publicProxyType=publicProxyType.isParameterized().getTypeArgs()[0];
   }
-  if (!publicProxyType.isAssignableTo(entityProxyType)) {
+  if (!publicProxyType.isAssignableTo(entityProxyType) || publicProxyType.equals(entityProxyType)) {
     return;
   }
   if (generatedProxyTypes.contains(publicProxyType)) {
     return;
+  }
+  try {
+    validateProxyType(publicProxyType,typeOracle);
+  }
+ catch (  DiagnosticException e) {
+    logger.log(TreeLogger.ERROR,e.getMessage());
+    throw new UnableToCompleteException();
   }
   if ("P".equals(publicProxyType.getName())) {
     return;
@@ -94,7 +101,7 @@
       sw.println(String.format("set(this.%s, this, %s);",varName,varName));
       sw.outdent();
       sw.println("}");
-      if (isProxyType(returnType)) {
+      if (!returnType.equals(entityProxyType) && isProxyType(returnType)) {
         transitiveDeps.add(returnType);
       }
     }

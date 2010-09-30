@@ -1,0 +1,31 @@
+{
+  entityProxyType=decodeToBaseType(entityProxyType);
+  if (this.entityProxyType.equals(entityProxyType)) {
+    return;
+  }
+  ProxyFor proxyFor=entityProxyType.getAnnotation(ProxyFor.class);
+  String entityName=entityProxyType.getName();
+  diagnosticIf(proxyFor == null,"Proxy %s is missing @ProxyFor annotation",entityName);
+  Class<?> domainType=proxyFor.value();
+  String domainName=domainType.getName();
+  diagnosticIf(findMethods(domainType,"getId").size() == 0,"Domain classes %s missing getId() method for proxy %s",domainName,entityName);
+  for (  JMethod method : entityProxyType.getOverridableMethods()) {
+    if (!method.getName().startsWith("get") && !method.getName().startsWith("set")) {
+      continue;
+    }
+    List<Method> domainMethods=findMethods(domainType,method.getName());
+    diagnosticIf(domainMethods.size() == 0,"Method %s on %s does not exist, but present in proxy %s",method.getName(),domainName,entityName);
+    diagnosticIf(domainMethods.size() > 1,"Method %s on %s is overridden, this is currently unsupported",method.getName(),domainName);
+    Method domainMethod=domainMethods.get(0);
+    diagnosticIf(!maybeDecodeProxyTypeNameFor(method.getReturnType(),typeOracle).equals(domainMethod.getReturnType().getName()),"Return type of %s.%s doesn't match that of %s.%s",entityName,method.getName(),domainMethod.getName());
+    JType proxyReturnType=method.getReturnType();
+    diagnosticIfBannedType(proxyReturnType,entityName,method.getName());
+    JParameter[] proxyParams=method.getParameters();
+    Class<?>[] domainParams=domainMethod.getParameterTypes();
+    diagnosticIf(proxyParams.length != domainParams.length,"Parameters do not match between %s.s% and %s.%s",entityName,method.getName(),domainName,domainMethod.getName());
+    for (int i=0; i < proxyParams.length; i++) {
+      diagnosticIf(!maybeDecodeProxyTypeNameFor(proxyParams[i].getType(),typeOracle).equals(domainParams[i].getName()),"Parameters do not match between %s.s% and %s.%s",entityName,method.getName(),domainName,domainMethod.getName());
+      diagnosticIfBannedType(proxyParams[i].getType(),method.getName(),entityName);
+    }
+  }
+}

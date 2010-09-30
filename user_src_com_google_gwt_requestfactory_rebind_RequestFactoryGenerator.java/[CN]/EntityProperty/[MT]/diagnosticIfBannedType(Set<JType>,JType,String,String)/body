@@ -1,0 +1,17 @@
+{
+  diagnosticIf(origType.isArray() != null,"Method %s.%s: signature not permitted to use array type",entityName,methodName);
+  JClassType cType=decodeToBaseType(origType);
+  if (cType == null) {
+    return;
+  }
+  diagnosticIf(isSubtype(setType,cType) || isSubtype(listType,cType),"Method %s.%s: signature must use Set or List, not subtypes",entityName,methodName);
+  diagnosticIf(!allowed.contains(cType.getErasedType()) && !entityProxyType.isAssignableFrom(cType) && origType.isEnum() == null,"Method %s.%s: signature uses unsupported type %s",entityName,methodName,origType.getQualifiedBinaryName());
+  if (isSupportedCollectionType(cType)) {
+    diagnosticIf(origType.isParameterized() == null,"Method %s.%s: collections must have type parameters specified",entityName,methodName);
+    JClassType typeArg=origType.isParameterized().getTypeArgs()[0];
+    if (isSupportedCollectionType(typeArg)) {
+      diagnosticIf(true,"Method %s.%s: signature cannot use collection" + " which contain other collection",entityName,methodName);
+    }
+    diagnosticIfBannedType(typeArg,entityName,methodName);
+  }
+}
