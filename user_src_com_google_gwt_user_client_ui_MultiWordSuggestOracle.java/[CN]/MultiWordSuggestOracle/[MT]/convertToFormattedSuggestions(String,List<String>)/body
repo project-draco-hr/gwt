@@ -5,7 +5,7 @@
     int cursor=0;
     int index=0;
     String formattedSuggestion=toRealSuggestions.get(candidate);
-    StringBuffer accum=new StringBuffer();
+    SafeHtmlBuilder accum=new SafeHtmlBuilder();
     String[] searchWords=query.split(WHITESPACE_STRING);
     while (true) {
       WordBounds wordBounds=findNextWord(candidate,searchWords,index);
@@ -13,19 +13,21 @@
         break;
       }
       if (wordBounds.startIndex == 0 || WHITESPACE_CHAR == candidate.charAt(wordBounds.startIndex - 1)) {
-        String part1=escapeText(formattedSuggestion.substring(cursor,wordBounds.startIndex));
-        String part2=escapeText(formattedSuggestion.substring(wordBounds.startIndex,wordBounds.endIndex));
+        String part1=formattedSuggestion.substring(cursor,wordBounds.startIndex);
+        String part2=formattedSuggestion.substring(wordBounds.startIndex,wordBounds.endIndex);
         cursor=wordBounds.endIndex;
-        accum.append(part1).append("<strong>").append(part2).append("</strong>");
+        accum.appendEscaped(part1);
+        accum.appendHtmlConstant("<strong>");
+        accum.appendEscaped(part2);
+        accum.appendHtmlConstant("</strong>");
       }
       index=wordBounds.endIndex;
     }
     if (cursor == 0) {
       continue;
     }
-    String end=escapeText(formattedSuggestion.substring(cursor));
-    accum.append(end);
-    MultiWordSuggestion suggestion=createSuggestion(formattedSuggestion,accum.toString());
+    accum.appendEscaped(formattedSuggestion.substring(cursor));
+    MultiWordSuggestion suggestion=createSuggestion(formattedSuggestion,accum.toSafeHtml().asString());
     suggestions.add(suggestion);
   }
   return suggestions;
