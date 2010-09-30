@@ -2,23 +2,23 @@
   List<MultiWordSuggestion> suggestions=new ArrayList<MultiWordSuggestion>();
   for (int i=0; i < candidates.size(); i++) {
     String candidate=candidates.get(i);
-    int index=0;
     int cursor=0;
+    int index=0;
     String formattedSuggestion=toRealSuggestions.get(candidate);
     StringBuffer accum=new StringBuffer();
+    String[] searchWords=query.split(WHITESPACE_STRING);
     while (true) {
-      index=candidate.indexOf(query,index);
-      if (index == -1) {
+      WordBounds wordBounds=findNextWord(candidate,searchWords,index);
+      if (wordBounds == null) {
         break;
       }
-      int endIndex=index + query.length();
-      if (index == 0 || (WHITESPACE_CHAR == candidate.charAt(index - 1))) {
-        String part1=escapeText(formattedSuggestion.substring(cursor,index));
-        String part2=escapeText(formattedSuggestion.substring(index,endIndex));
-        cursor=endIndex;
+      if (wordBounds.startIndex == 0 || WHITESPACE_CHAR == candidate.charAt(wordBounds.startIndex - 1)) {
+        String part1=escapeText(formattedSuggestion.substring(cursor,wordBounds.startIndex));
+        String part2=escapeText(formattedSuggestion.substring(wordBounds.startIndex,wordBounds.endIndex));
+        cursor=wordBounds.endIndex;
         accum.append(part1).append("<strong>").append(part2).append("</strong>");
       }
-      index=endIndex;
+      index=wordBounds.endIndex;
     }
     if (cursor == 0) {
       continue;
