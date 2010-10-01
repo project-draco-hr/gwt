@@ -1,45 +1,50 @@
 {
-  if (isLeaf(value)) {
-    return null;
-  }
   Object newKey=cellList.getValueKey(value);
   if (open) {
     if (newKey == null) {
       return null;
     }
- else     if (newKey.equals(cellList.openKey)) {
-      return treeNodes.get(cellList.level + 1);
+ else     if (newKey.equals(cellList.focusedKey)) {
+      return cellList.isFocusedOpen ? treeNodes.get(cellList.level + 1) : null;
     }
-    if (cellList.openKey != null) {
-      setChildState(cellList,cellList.openValue,false,fireEvents,false);
+    if (cellList.focusedKey != null) {
+      setChildState(cellList,cellList.focusedValue,false,fireEvents,false);
     }
-    NodeInfo<?> childNodeInfo=getNodeInfo(value);
-    if (childNodeInfo == null) {
-      return null;
+    cellList.focusedValue=value;
+    cellList.focusedKey=cellList.getValueKey(value);
+    NodeInfo<?> childNodeInfo=isLeaf(value) ? null : getNodeInfo(value);
+    if (childNodeInfo != null) {
+      cellList.isFocusedOpen=true;
+      appendTreeNode(childNodeInfo,value);
     }
-    cellList.openValue=value;
-    cellList.openKey=cellList.getValueKey(value);
-    appendTreeNode(childNodeInfo,value);
+ else {
+      cellList.isFocusedOpen=false;
+    }
     if (redraw) {
       treeNodes.get(cellList.level).display.redraw();
     }
-    if (fireEvents) {
-      OpenEvent.fire(this,treeNodes.get(cellList.level + 1));
+    if (cellList.isFocusedOpen) {
+      TreeNodeImpl<?> node=treeNodes.get(cellList.level + 1);
+      if (fireEvents) {
+        OpenEvent.fire(this,node);
+      }
+      return node.isDestroyed() ? null : node;
     }
-    return treeNodes.get(cellList.level + 1);
+    return null;
   }
  else {
-    if (cellList.openKey == null || !cellList.openKey.equals(newKey)) {
+    if (cellList.focusedKey == null || !cellList.focusedKey.equals(newKey)) {
       return null;
     }
-    TreeNode closedNode=treeNodes.get(cellList.level + 1);
+    TreeNode closedNode=cellList.isFocusedOpen ? treeNodes.get(cellList.level + 1) : null;
     trimToLevel(cellList.level);
-    cellList.openKey=null;
-    cellList.openValue=null;
+    cellList.focusedKey=null;
+    cellList.focusedValue=null;
+    cellList.isFocusedOpen=false;
     if (redraw) {
       treeNodes.get(cellList.level).display.redraw();
     }
-    if (fireEvents) {
+    if (fireEvents && closedNode != null) {
       CloseEvent.fire(this,closedNode);
     }
   }
