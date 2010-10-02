@@ -1,11 +1,13 @@
 {
   delayTestFinish(5000);
-  final SimpleBarProxy bar=req.create(SimpleBarProxy.class);
-  req.simpleBarRequest().persistAndReturnSelf(bar).fire(new Receiver<SimpleBarProxy>(){
+  SimpleBarRequest context=req.simpleBarRequest();
+  final SimpleBarProxy bar=context.create(SimpleBarProxy.class);
+  context.persistAndReturnSelf().using(bar).fire(new Receiver<SimpleBarProxy>(){
     @Override public void onSuccess(    SimpleBarProxy persistentBar){
-      SimpleFooProxy foo=req.create(SimpleFooProxy.class);
-      final Request<SimpleFooProxy> persistRequest=req.simpleFooRequest().persistAndReturnSelf(foo);
-      foo=persistRequest.edit(foo);
+      SimpleFooRequest context=req.simpleFooRequest();
+      SimpleFooProxy foo=context.create(SimpleFooProxy.class);
+      final Request<SimpleFooProxy> persistRequest=context.persistAndReturnSelf().using(foo);
+      foo=context.edit(foo);
       foo.setUserName("John");
       foo.setBarField(bar);
       persistRequest.fire(new Receiver<SimpleFooProxy>(){
@@ -14,8 +16,9 @@
           EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleFooProxy.class,fooHandler);
           final SimpleFooEventHandler<SimpleBarProxy> barHandler=new SimpleFooEventHandler<SimpleBarProxy>();
           EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleBarProxy.class,barHandler);
-          final Request<Void> deleteRequest=req.simpleFooRequest().deleteBar(persistentFoo);
-          SimpleFooProxy editable=deleteRequest.edit(persistentFoo);
+          SimpleFooRequest context=req.simpleFooRequest();
+          final Request<Void> deleteRequest=context.deleteBar().using(persistentFoo);
+          SimpleFooProxy editable=context.edit(persistentFoo);
           editable.setBarField(bar);
           deleteRequest.fire(new Receiver<Void>(){
             @Override public void onSuccess(            Void response){

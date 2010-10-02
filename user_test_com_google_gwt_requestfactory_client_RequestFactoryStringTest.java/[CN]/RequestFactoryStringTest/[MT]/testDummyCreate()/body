@@ -2,16 +2,15 @@
   delayTestFinish(5000);
   final SimpleFooEventHandler<SimpleFooStringProxy> handler=new SimpleFooEventHandler<SimpleFooStringProxy>();
   EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleFooStringProxy.class,handler);
-  final SimpleFooStringProxy foo=req.create(SimpleFooStringProxy.class);
+  SimpleFooStringRequest context=req.simpleFooStringRequest();
+  final SimpleFooStringProxy foo=context.create(SimpleFooStringProxy.class);
   Object futureId=foo.getId();
   assertEquals(futureId,foo.getId());
-  assertTrue(((ProxyImpl)foo).unpersisted());
-  Request<SimpleFooStringProxy> fooReq=req.simpleFooStringRequest().persistAndReturnSelf(foo);
+  Request<SimpleFooStringProxy> fooReq=context.persistAndReturnSelf().using(foo);
   fooReq.fire(new Receiver<SimpleFooStringProxy>(){
     @Override public void onSuccess(    final SimpleFooStringProxy returned){
       Object futureId=foo.getId();
       assertEquals(futureId,foo.getId());
-      assertTrue(((ProxyImpl)foo).unpersisted());
       assertEquals(1,handler.persistEventCount);
       assertEquals(1,handler.updateEventCount);
       assertEquals(2,handler.totalEventCount);

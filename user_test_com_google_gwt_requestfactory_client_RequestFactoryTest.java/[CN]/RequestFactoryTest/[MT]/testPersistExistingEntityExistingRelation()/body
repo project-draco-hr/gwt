@@ -1,11 +1,12 @@
 {
   delayTestFinish(5000);
-  req.simpleBarRequest().findSimpleBarById("999L").fire(new Receiver<SimpleBarProxy>(){
+  simpleBarRequest().findSimpleBarById("999L").fire(new Receiver<SimpleBarProxy>(){
     @Override public void onSuccess(    final SimpleBarProxy barProxy){
-      req.simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
+      simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
         @Override public void onSuccess(        SimpleFooProxy fooProxy){
-          Request<Void> updReq=req.simpleFooRequest().persist(fooProxy);
-          fooProxy=updReq.edit(fooProxy);
+          SimpleFooRequest context=simpleFooRequest();
+          Request<Void> updReq=context.persist().using(fooProxy);
+          fooProxy=context.edit(fooProxy);
           fooProxy.setBarField(barProxy);
           updReq.fire(new Receiver<Void>(){
             @Override public void onSuccess(            Void response){

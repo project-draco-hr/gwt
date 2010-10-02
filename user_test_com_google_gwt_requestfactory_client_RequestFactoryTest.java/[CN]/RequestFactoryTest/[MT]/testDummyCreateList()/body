@@ -1,16 +1,17 @@
 {
   delayTestFinish(500000);
-  final SimpleBarProxy bar=req.create(SimpleBarProxy.class);
+  SimpleBarRequest context=simpleBarRequest();
+  final SimpleBarProxy bar=context.create(SimpleBarProxy.class);
   Object futureId=bar.getId();
   assertEquals(futureId,bar.getId());
-  assertTrue(((ProxyImpl)bar).unpersisted());
-  Request<SimpleBarProxy> fooReq=req.simpleBarRequest().returnFirst(Collections.singletonList(bar));
+  assertTrue(((SimpleEntityProxyId<?>)bar.stableId()).isEphemeral());
+  Request<SimpleBarProxy> fooReq=context.returnFirst(Collections.singletonList(bar));
   fooReq.fire(new Receiver<SimpleBarProxy>(){
     @Override public void onSuccess(    final SimpleBarProxy returned){
       Object futureId=bar.getId();
       assertEquals(futureId,bar.getId());
-      assertTrue(((ProxyImpl)bar).unpersisted());
-      assertFalse(((ProxyImpl)returned).unpersisted());
+      assertFalse(((SimpleEntityProxyId<?>)bar.stableId()).isEphemeral());
+      assertFalse(((SimpleEntityProxyId<?>)returned.stableId()).isEphemeral());
       checkStableIdEquals(bar,returned);
       finishTestAndReset();
     }

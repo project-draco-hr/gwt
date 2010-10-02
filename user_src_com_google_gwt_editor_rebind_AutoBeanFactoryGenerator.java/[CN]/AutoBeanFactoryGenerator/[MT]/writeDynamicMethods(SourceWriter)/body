@@ -1,0 +1,20 @@
+{
+  sw.println("{");
+  sw.indent();
+  for (  AutoBeanType type : model.getAllTypes()) {
+    if (type.isNoWrap()) {
+      continue;
+    }
+    sw.println("creators.put(%s.class, new Creator() {",type.getPeerType().getQualifiedSourceName());
+    if (type.isSimpleBean()) {
+      sw.indentln("public %1$s create() { return new %1$s(); }",type.getQualifiedSourceName());
+    }
+ else {
+      sw.indentln("public %1$s create() { return null; }",type.getQualifiedSourceName());
+    }
+    sw.indentln("public %1$s create(Object delegate) {" + " return new %1$s((%2$s) delegate); }",type.getQualifiedSourceName(),type.getPeerType().getQualifiedSourceName());
+    sw.println("});");
+  }
+  sw.outdent();
+  sw.println("}");
+}

@@ -1,31 +1,34 @@
 {
   delayTestFinish(5000);
-  final SimpleFooProxy foo=req.create(SimpleFooProxy.class);
+  SimpleFooRequest context=simpleFooRequest();
+  final SimpleFooProxy foo=context.create(SimpleFooProxy.class);
   final Object futureId=foo.getId();
-  assertTrue(((ProxyImpl)foo).unpersisted());
-  Request<SimpleFooProxy> fooReq=req.simpleFooRequest().persistAndReturnSelf(foo);
-  final SimpleFooProxy newFoo=fooReq.edit(foo);
+  assertTrue(((SimpleEntityProxyId<?>)foo.stableId()).isEphemeral());
+  Request<SimpleFooProxy> fooReq=context.persistAndReturnSelf().using(foo);
+  final SimpleFooProxy newFoo=context.edit(foo);
   assertEquals(futureId,foo.getId());
-  assertTrue(((ProxyImpl)foo).unpersisted());
+  assertTrue(((SimpleEntityProxyId<?>)foo.stableId()).isEphemeral());
   assertEquals(futureId,newFoo.getId());
-  assertTrue(((ProxyImpl)newFoo).unpersisted());
+  assertTrue(((SimpleEntityProxyId<?>)newFoo.stableId()).isEphemeral());
   newFoo.setUserName("GWT basic user");
   fooReq.fire(new Receiver<SimpleFooProxy>(){
     @Override public void onSuccess(    final SimpleFooProxy returned){
       assertEquals(futureId,foo.getId());
-      assertTrue(((ProxyImpl)foo).unpersisted());
+      assertFalse(((SimpleEntityProxyId<?>)foo.stableId()).isEphemeral());
       assertEquals(futureId,newFoo.getId());
-      assertTrue(((ProxyImpl)newFoo).unpersisted());
-      assertFalse(((ProxyImpl)returned).unpersisted());
+      assertFalse(((SimpleEntityProxyId<?>)newFoo.stableId()).isEphemeral());
+      assertFalse(((SimpleEntityProxyId<?>)returned.stableId()).isEphemeral());
       checkStableIdEquals(foo,returned);
       checkStableIdEquals(newFoo,returned);
-      Request<SimpleFooProxy> editRequest=req.simpleFooRequest().persistAndReturnSelf(returned);
-      final SimpleFooProxy editableFoo=editRequest.edit(returned);
+      SimpleFooRequest context=simpleFooRequest();
+      Request<SimpleFooProxy> editRequest=context.persistAndReturnSelf().using(returned);
+      final SimpleFooProxy editableFoo=context.edit(returned);
       editableFoo.setUserName("GWT power user");
       editRequest.fire(new Receiver<SimpleFooProxy>(){
         @Override public void onSuccess(        SimpleFooProxy returnedAfterEdit){
-          checkStableIdEquals(editableFoo,returnedAfterEdit);
           assertEquals(returnedAfterEdit.getId(),returned.getId());
+          assertEquals("GWT power user",returnedAfterEdit.getUserName());
+          checkStableIdEquals(editableFoo,returnedAfterEdit);
           finishTestAndReset();
         }
       }

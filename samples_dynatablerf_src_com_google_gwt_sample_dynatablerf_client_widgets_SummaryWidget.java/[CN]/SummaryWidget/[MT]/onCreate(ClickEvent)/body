@@ -1,8 +1,8 @@
 {
-  AddressProxy address=requestFactory.create(AddressProxy.class);
-  PersonProxy person=requestFactory.create(PersonProxy.class);
-  Request<Void> request=requestFactory.personRequest().persist(person);
-  person=request.edit(person);
+  PersonRequest context=requestFactory.personRequest();
+  AddressProxy address=context.create(AddressProxy.class);
+  PersonProxy person=context.edit(context.create(PersonProxy.class));
   person.setAddress(address);
-  eventBus.fireEvent(new EditPersonEvent(person,request));
+  context.persist().using(person);
+  eventBus.fireEvent(new EditPersonEvent(person,context));
 }

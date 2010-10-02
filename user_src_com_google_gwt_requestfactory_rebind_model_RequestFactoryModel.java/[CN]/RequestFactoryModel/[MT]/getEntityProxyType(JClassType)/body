@@ -1,0 +1,51 @@
+{
+  EntityProxyModel toReturn=peers.get(entityProxyType);
+  if (toReturn == null) {
+    EntityProxyModel.Builder inProgress=peerBuilders.get(entityProxyType);
+    if (inProgress != null) {
+      toReturn=inProgress.peek();
+    }
+  }
+  if (toReturn == null) {
+    EntityProxyModel.Builder builder=new EntityProxyModel.Builder();
+    peerBuilders.put(entityProxyType,builder);
+    builder.setQualifiedSourceName(entityProxyType.getQualifiedSourceName());
+    ProxyFor proxyFor=entityProxyType.getAnnotation(ProxyFor.class);
+    if (proxyFor == null) {
+      poison("The %s type does not have a @%s annotation",entityProxyType.getQualifiedSourceName(),ProxyFor.class.getSimpleName());
+    }
+ else {
+      builder.setProxyFor(proxyFor.value());
+    }
+    List<RequestMethod> requestMethods=new ArrayList<RequestMethod>();
+    for (    JMethod method : entityProxyType.getInheritableMethods()) {
+      if (method.getEnclosingType().equals(entityProxyInterface)) {
+        continue;
+      }
+      RequestMethod.Builder methodBuilder=new RequestMethod.Builder();
+      methodBuilder.setDeclarationMethod(method);
+      JType transportedType;
+      String name=method.getName();
+      if (name.startsWith("get") && method.getParameters().length == 0) {
+        transportedType=method.getReturnType();
+      }
+ else       if (name.startsWith("set") && method.getParameters().length == 1) {
+        transportedType=method.getParameters()[0].getType();
+      }
+ else       if (name.equals("stableId") && method.getParameters().length == 0) {
+        continue;
+      }
+ else {
+        poison("The method %s is neither a getter nor a setter",method.getReadableDeclaration());
+        continue;
+      }
+      validateTransportableType(methodBuilder,transportedType,false);
+      requestMethods.add(methodBuilder.build());
+    }
+    builder.setRequestMethods(requestMethods);
+    toReturn=builder.build();
+    peers.put(entityProxyType,toReturn);
+    peerBuilders.remove(entityProxyType);
+  }
+  return toReturn;
+}

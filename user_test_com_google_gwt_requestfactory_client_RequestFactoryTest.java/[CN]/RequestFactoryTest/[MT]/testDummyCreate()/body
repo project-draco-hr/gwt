@@ -2,16 +2,16 @@
   delayTestFinish(5000);
   final SimpleFooEventHandler<SimpleFooProxy> handler=new SimpleFooEventHandler<SimpleFooProxy>();
   EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleFooProxy.class,handler);
-  final SimpleFooProxy foo=req.create(SimpleFooProxy.class);
-  Object futureId=foo.getId();
-  assertEquals(futureId,foo.getId());
-  assertTrue(((ProxyImpl)foo).unpersisted());
-  Request<SimpleFooProxy> fooReq=req.simpleFooRequest().persistAndReturnSelf(foo);
+  SimpleFooRequest context=simpleFooRequest();
+  final SimpleFooProxy foo=context.create(SimpleFooProxy.class);
+  final EntityProxyId<SimpleFooProxy> futureId=foo.stableId();
+  assertTrue(((SimpleEntityProxyId<?>)futureId).isEphemeral());
+  Request<SimpleFooProxy> fooReq=context.persistAndReturnSelf().using(foo);
   fooReq.fire(new Receiver<SimpleFooProxy>(){
     @Override public void onSuccess(    final SimpleFooProxy returned){
-      Object futureId=foo.getId();
-      assertEquals(futureId,foo.getId());
-      assertTrue(((ProxyImpl)foo).unpersisted());
+      EntityProxyId<SimpleFooProxy> returnedId=returned.stableId();
+      assertEquals(futureId,returnedId);
+      assertFalse((((SimpleEntityProxyId<?>)returnedId).isEphemeral()));
       assertEquals(1,handler.persistEventCount);
       assertEquals(1,handler.updateEventCount);
       assertEquals(2,handler.totalEventCount);

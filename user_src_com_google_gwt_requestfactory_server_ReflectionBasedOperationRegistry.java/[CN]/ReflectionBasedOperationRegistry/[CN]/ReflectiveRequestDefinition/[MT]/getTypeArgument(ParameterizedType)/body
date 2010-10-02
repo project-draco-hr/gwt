@@ -1,10 +1,17 @@
 {
   Type[] params=type.getActualTypeArguments();
+  Type toExamine;
   if (params.length == 1) {
-    if (params[0] instanceof ParameterizedType) {
-      return (Class<?>)((ParameterizedType)params[0]).getActualTypeArguments()[0];
-    }
-    return (Class<Object>)params[0];
+    toExamine=params[0];
   }
-  return null;
+ else   if (InstanceRequest.class.equals(type.getRawType())) {
+    toExamine=params[1];
+  }
+ else {
+    return null;
+  }
+  if (toExamine instanceof ParameterizedType) {
+    return getTypeArgument((ParameterizedType)toExamine);
+  }
+  return (Class<Object>)toExamine;
 }

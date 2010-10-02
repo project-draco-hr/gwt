@@ -1,0 +1,34 @@
+{
+  this.logger=logger;
+  this.factoryType=factoryType;
+  this.oracle=factoryType.getOracle();
+  collectionInterface=oracle.findType(Collection.class.getCanonicalName());
+  entityProxyInterface=oracle.findType(EntityProxy.class.getCanonicalName());
+  instanceRequestInterface=oracle.findType(InstanceRequest.class.getCanonicalName());
+  listInterface=oracle.findType(List.class.getCanonicalName());
+  setInterface=oracle.findType(Set.class.getCanonicalName());
+  requestContextInterface=oracle.findType(RequestContext.class.getCanonicalName());
+  requestFactoryInterface=oracle.findType(RequestFactory.class.getCanonicalName());
+  requestInterface=oracle.findType(Request.class.getCanonicalName());
+  for (  JMethod method : factoryType.getOverridableMethods()) {
+    if (method.getEnclosingType().equals(requestFactoryInterface)) {
+      continue;
+    }
+    if (method.getParameters().length > 0) {
+      poison("Unexpected parameter on method %s",method.getName());
+      continue;
+    }
+    JClassType contextType=method.getReturnType().isInterface();
+    if (contextType == null || !requestContextInterface.isAssignableFrom(contextType)) {
+      poison("Unexpected return type %s on method %s is not" + " an interface assignable to %s",method.getReturnType().getQualifiedSourceName(),method.getName(),requestContextInterface.getSimpleSourceName());
+      continue;
+    }
+    ContextMethod.Builder builder=new ContextMethod.Builder();
+    builder.setDeclaredMethod(method);
+    buildContextMethod(builder,contextType);
+    contextMethods.add(builder.build());
+  }
+  if (poisoned) {
+    die("Unable to complete due to previous errors");
+  }
+}

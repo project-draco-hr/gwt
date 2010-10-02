@@ -1,8 +1,9 @@
 {
   delayTestFinish(5000);
-  SimpleFooStringProxy newFoo=req.create(SimpleFooStringProxy.class);
-  final Request<SimpleFooStringProxy> persistRequest=req.simpleFooStringRequest().persistAndReturnSelf(newFoo);
-  final SimpleFooStringProxy mutableFoo=persistRequest.edit(newFoo);
+  SimpleFooStringRequest context=req.simpleFooStringRequest();
+  SimpleFooStringProxy newFoo=context.create(SimpleFooStringProxy.class);
+  final Request<SimpleFooStringProxy> persistRequest=context.persistAndReturnSelf().using(newFoo);
+  final SimpleFooStringProxy mutableFoo=context.edit(newFoo);
   mutableFoo.setPleaseCrash(42);
   persistRequest.fire(new Receiver<SimpleFooStringProxy>(){
     @Override public void onFailure(    ServerFailure error){

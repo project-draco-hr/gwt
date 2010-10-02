@@ -1,0 +1,28 @@
+{
+  if (categoryTypes == null) {
+    return null;
+  }
+  for (  JClassType category : categoryTypes) {
+    for (    JMethod method : category.getOverloads("__intercept")) {
+      if (!method.isStatic() || !method.isPublic()) {
+        continue;
+      }
+      JParameter[] params=method.getParameters();
+      if (params.length != 2) {
+        continue;
+      }
+      if (!methodAcceptsAutoBeanAsFirstParam(beanType,method)) {
+        continue;
+      }
+      JClassType value=params[1].getType().isClassOrInterface();
+      if (value == null) {
+        continue;
+      }
+      if (!oracle.getJavaLangObject().isAssignableTo(value)) {
+        continue;
+      }
+      return method;
+    }
+  }
+  return null;
+}

@@ -1,20 +1,23 @@
 {
   delayTestFinish(5000);
-  SimpleFooProxy newFoo=req.create(SimpleFooProxy.class);
-  SimpleBarProxy newBar=req.create(SimpleBarProxy.class);
-  final Request<SimpleFooProxy> fooReq=req.simpleFooRequest().persistAndReturnSelf(newFoo);
-  newFoo=fooReq.edit(newFoo);
+  SimpleFooRequest context=simpleFooRequest();
+  SimpleFooProxy newFoo=context.create(SimpleFooProxy.class);
+  final Request<SimpleFooProxy> fooReq=context.persistAndReturnSelf().using(newFoo);
+  newFoo=context.edit(newFoo);
   newFoo.setUserName("Ray");
-  final Request<SimpleBarProxy> barReq=req.simpleBarRequest().persistAndReturnSelf(newBar);
-  newBar=barReq.edit(newBar);
+  SimpleBarRequest context2=simpleBarRequest();
+  SimpleBarProxy newBar=context2.create(SimpleBarProxy.class);
+  final Request<SimpleBarProxy> barReq=context2.persistAndReturnSelf().using(newBar);
+  newBar=context2.edit(newBar);
   newBar.setUserName("Amit");
   fooReq.fire(new Receiver<SimpleFooProxy>(){
     @Override public void onSuccess(    final SimpleFooProxy persistedFoo){
       barReq.fire(new Receiver<SimpleBarProxy>(){
         @Override public void onSuccess(        final SimpleBarProxy persistedBar){
           assertEquals("Ray",persistedFoo.getUserName());
-          final Request<Void> fooReq2=req.simpleFooRequest().persist(persistedFoo);
-          SimpleFooProxy editablePersistedFoo=fooReq2.edit(persistedFoo);
+          SimpleFooRequest context=simpleFooRequest();
+          final Request<Void> fooReq2=context.persist().using(persistedFoo);
+          SimpleFooProxy editablePersistedFoo=context.edit(persistedFoo);
           editablePersistedFoo.setBarField(persistedBar);
           fooReq2.fire(new Receiver<Void>(){
             @Override public void onSuccess(            Void response){

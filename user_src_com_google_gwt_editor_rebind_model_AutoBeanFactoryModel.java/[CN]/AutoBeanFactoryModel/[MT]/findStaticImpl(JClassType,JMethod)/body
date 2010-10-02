@@ -1,0 +1,34 @@
+{
+  if (categoryTypes == null) {
+    return null;
+  }
+  for (  JClassType category : categoryTypes) {
+    JParameter[] methodParams=method.getParameters();
+    int requiredArgs=methodParams.length + 1;
+    overload:     for (    JMethod overload : category.getOverloads(method.getName())) {
+      if (!overload.isStatic() || !overload.isPublic()) {
+        continue;
+      }
+      JParameter[] overloadParams=overload.getParameters();
+      if (overloadParams.length != requiredArgs) {
+        continue;
+      }
+      if (!methodAcceptsAutoBeanAsFirstParam(beanType,overload)) {
+        continue;
+      }
+      for (int i=1; i < requiredArgs; i++) {
+        JType methodType=methodParams[i - 1].getType();
+        JType overloadType=overloadParams[i].getType();
+        if (methodType.equals(overloadType)) {
+        }
+ else         if (methodType.isClassOrInterface() != null && overloadType.isClassOrInterface() != null && methodType.isClassOrInterface().isAssignableTo(overloadType.isClassOrInterface())) {
+        }
+ else {
+          continue overload;
+        }
+      }
+      return overload;
+    }
+  }
+  return null;
+}

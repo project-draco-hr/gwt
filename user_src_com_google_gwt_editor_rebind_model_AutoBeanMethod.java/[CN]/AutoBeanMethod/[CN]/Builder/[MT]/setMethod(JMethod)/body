@@ -1,0 +1,12 @@
+{
+  toReturn.method=method;
+  TypeOracle oracle=method.getEnclosingType().getOracle();
+  toReturn.isValueType=ModelUtils.isValueType(oracle,method.getReturnType());
+  if (!toReturn.isValueType) {
+    JClassType returnClass=method.getReturnType().isClassOrInterface();
+    JClassType collectionInterface=oracle.findType(Collection.class.getCanonicalName());
+    if (collectionInterface.isAssignableFrom(returnClass)) {
+      toReturn.elementType=ModelUtils.findParameterizationOf(collectionInterface,returnClass)[0];
+    }
+  }
+}

@@ -1,11 +1,12 @@
 {
   delayTestFinish(5000);
-  final SimpleBarProxy foo=req.create(SimpleBarProxy.class);
+  SimpleBarRequest context=simpleBarRequest();
+  final SimpleBarProxy foo=context.create(SimpleBarProxy.class);
   final EntityProxyId<SimpleBarProxy> futureId=foo.stableId();
   final String futureToken=req.getHistoryToken(futureId);
   assertEquals(futureId,req.getProxyId(futureToken));
   assertEquals(futureId.getProxyClass(),req.getProxyClass(futureToken));
-  Request<SimpleBarProxy> fooReq=req.simpleBarRequest().persistAndReturnSelf(foo);
+  Request<SimpleBarProxy> fooReq=context.persistAndReturnSelf().using(foo);
   fooReq.fire(new Receiver<SimpleBarProxy>(){
     @Override public void onSuccess(    final SimpleBarProxy returned){
       EntityProxyId<SimpleBarProxy> persistedId=returned.stableId();

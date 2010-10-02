@@ -1,19 +1,21 @@
 {
   delayTestFinish(5000);
-  SimpleBarProxy makeABar=req.create(SimpleBarProxy.class);
-  Request<SimpleBarProxy> persistRequest=req.simpleBarRequest().persistAndReturnSelf(makeABar);
-  makeABar=persistRequest.edit(makeABar);
+  SimpleBarRequest context=simpleBarRequest();
+  SimpleBarProxy makeABar=context.create(SimpleBarProxy.class);
+  Request<SimpleBarProxy> persistRequest=context.persistAndReturnSelf().using(makeABar);
+  makeABar=context.edit(makeABar);
   makeABar.setUserName("Amit");
   persistRequest.fire(new Receiver<SimpleBarProxy>(){
     @Override public void onSuccess(    final SimpleBarProxy persistedBar){
-      req.simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
+      simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
         @Override public void onSuccess(        SimpleFooProxy response){
-          Request<Void> fooReq=req.simpleFooRequest().persist(response);
-          response=fooReq.edit(response);
+          SimpleFooRequest context=simpleFooRequest();
+          Request<Void> fooReq=context.persist().using(response);
+          response=context.edit(response);
           response.setBarField(persistedBar);
           fooReq.fire(new Receiver<Void>(){
             @Override public void onSuccess(            Void response){
-              req.simpleFooRequest().findSimpleFooById(999L).with("barField.userName").fire(new Receiver<SimpleFooProxy>(){
+              simpleFooRequest().findSimpleFooById(999L).with("barField.userName").fire(new Receiver<SimpleFooProxy>(){
                 @Override public void onSuccess(                SimpleFooProxy finalFooProxy){
                   assertEquals("Amit",finalFooProxy.getBarField().getUserName());
                   finishTestAndReset();

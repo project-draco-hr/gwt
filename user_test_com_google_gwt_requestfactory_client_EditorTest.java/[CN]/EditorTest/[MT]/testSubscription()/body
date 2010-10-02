@@ -8,17 +8,20 @@
     @Override public void onSuccess(    SimpleFooProxy response){
       driver.edit(response,null);
       assertNotNull(editor.delegate.subscribe());
-      Request<SimpleFooProxy> request=req.simpleFooRequest().persistAndReturnSelf(response);
-      SimpleBarProxy newBar=req.create(SimpleBarProxy.class);
-      newBar=request.edit(newBar);
+      SimpleFooRequest context=req.simpleFooRequest();
+      Request<SimpleFooProxy> request=context.persistAndReturnSelf().using(response);
+      SimpleBarProxy newBar=context.create(SimpleBarProxy.class);
+      newBar=context.edit(newBar);
       newBar.setUserName("newBar");
-      response=request.edit(response);
+      response=context.edit(response);
       response.setBarField(newBar);
       response.setUserName("updated");
       request.fire(new Receiver<SimpleFooProxy>(){
         @Override public void onSuccess(        SimpleFooProxy response){
+          System.out.println("B");
           Scheduler.get().scheduleFixedDelay(new RepeatingCommand(){
             public boolean execute(){
+              System.out.println("fo");
               if ("updated".equals(editor.userName.getValue())) {
                 assertEquals("updated",editor.userName.getValue());
                 assertEquals("newBar",editor.barEditor().userName.getValue());

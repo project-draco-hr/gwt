@@ -6,8 +6,9 @@
     @Override public void onSuccess(    SimpleFooStringProxy newFoo){
       assertEquals(1,handler.updateEventCount);
       assertEquals(1,handler.totalEventCount);
-      final Request<Long> mutateRequest=req.simpleFooStringRequest().countSimpleFooWithUserNameSideEffect(newFoo);
-      newFoo=mutateRequest.edit(newFoo);
+      SimpleFooStringRequest context=req.simpleFooStringRequest();
+      final Request<Long> mutateRequest=context.countSimpleFooWithUserNameSideEffect().using(newFoo);
+      newFoo=context.edit(newFoo);
       newFoo.setUserName("Ray");
       mutateRequest.fire(new Receiver<Long>(){
         @Override public void onSuccess(        Long response){

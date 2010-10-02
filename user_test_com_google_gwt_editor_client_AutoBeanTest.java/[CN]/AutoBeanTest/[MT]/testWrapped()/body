@@ -1,0 +1,27 @@
+{
+  RealIntf real=new RealIntf();
+  AutoBean<Intf> auto=factory.intf(real);
+  Intf intf=auto.as();
+  assertNotSame(real,intf);
+  assertNull(intf.getString());
+  assertEquals(0,intf.getInt());
+  real.string="blah";
+  assertEquals("blah",intf.getString());
+  real.i=42;
+  assertEquals(42,intf.getInt());
+  intf.setString("bar");
+  assertEquals("bar",real.string);
+  intf.setInt(41);
+  assertEquals(41,real.i);
+  AutoBean<Intf> rewrapped=factory.intf(real);
+  assertSame(auto,rewrapped);
+  Intf unwrapped=auto.unwrap();
+  assertSame(real,unwrapped);
+  assertNull(AutoBeanUtils.getAutoBean(real));
+  try {
+    intf.setInt(42);
+    fail("Should have thrown exception");
+  }
+ catch (  IllegalStateException expected) {
+  }
+}

@@ -1,0 +1,39 @@
+{
+  if (jso == null) {
+    return null;
+  }
+  if (elementType != null) {
+    Collection<Object> collection=null;
+    if (List.class == type) {
+      collection=new ArrayList<Object>();
+    }
+ else     if (Set.class == type) {
+      collection=new HashSet<Object>();
+    }
+    if (ValueCodex.canDecode(elementType)) {
+      @SuppressWarnings("unchecked") JsArray<JavaScriptObject> array=(JsArray<JavaScriptObject>)jso;
+      for (int i=0, j=array.length(); i < j; i++) {
+        if (isNull(array,i)) {
+          collection.add(null);
+        }
+ else {
+          Object element=ValueCodex.convertFromString(elementType,getString(array,i));
+          collection.add(element);
+        }
+      }
+    }
+ else {
+      JsArrayString array=(JsArrayString)jso;
+      for (int i=0, j=array.length(); i < j; i++) {
+        Object element=decode(elementType,null,requestContext,array.get(i));
+        collection.add(element);
+      }
+    }
+    return collection;
+  }
+  if (requestContext.getRequestFactory().getTypeToken(type) != null) {
+    EntityProxyId<?> id=requestContext.getRequestFactory().getProxyId((String)jso);
+    return requestContext.getSeenEntityProxy((SimpleEntityProxyId<?>)id);
+  }
+  return ValueCodex.convertFromString(type,String.valueOf(jso));
+}

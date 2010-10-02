@@ -1,14 +1,15 @@
 {
-  Request=requestFactory.expenseRequest().persist(expense);
-  ExpenseProxy editableExpense=Request.edit(expense);
+  request=requestFactory.expenseRequest();
+  ExpenseProxy editableExpense=request.edit(expense);
   editableExpense.setDescription(nameText.getText());
   editableExpense.setCategory(categoryText.getText());
+  request.persist().using(editableExpense);
   String amountText=priceText.getText();
   double amount=Double.parseDouble(amountText);
   editableExpense.setAmount(amount);
   Date date=new Date(dateYear.getSelectedIndex() + 100,dateMonth.getSelectedIndex(),dateDay.getSelectedIndex() + 1);
   editableExpense.setCreated(date);
-  Request.fire(new Receiver<Void>(){
+  request.fire(new Receiver<Void>(){
     @Override public void onSuccess(    Void ignore){
     }
   }

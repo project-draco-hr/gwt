@@ -1,0 +1,85 @@
+{
+  this.logger=logger;
+  oracle=factoryType.getOracle();
+  autoBeanInterface=oracle.findType(AutoBean.class.getCanonicalName()).isGenericType();
+  autoBeanFactoryInterface=oracle.findType(AutoBeanFactory.class.getCanonicalName()).isInterface();
+  JClassType objectType=oracle.getJavaLangObject();
+  objectMethods=Arrays.asList(objectType.findMethod("equals",new JType[]{objectType}),objectType.findMethod("hashCode",EMPTY_JTYPE),objectType.findMethod("toString",EMPTY_JTYPE));
+{
+    Category categoryAnnotation=factoryType.getAnnotation(Category.class);
+    if (categoryAnnotation != null) {
+      categoryTypes=new ArrayList<JClassType>(categoryAnnotation.value().length);
+      processClassArrayAnnotation(categoryAnnotation.value(),categoryTypes);
+    }
+ else {
+      categoryTypes=null;
+    }
+    NoWrap noWrapAnnotation=factoryType.getAnnotation(NoWrap.class);
+    if (noWrapAnnotation != null) {
+      noWrapTypes=new ArrayList<JClassType>(noWrapAnnotation.value().length);
+      processClassArrayAnnotation(noWrapAnnotation.value(),noWrapTypes);
+    }
+ else {
+      noWrapTypes=null;
+    }
+  }
+  for (  JMethod method : factoryType.getOverridableMethods()) {
+    if (method.getEnclosingType().equals(autoBeanFactoryInterface)) {
+      continue;
+    }
+    JClassType returnType=method.getReturnType().isInterface();
+    if (returnType == null) {
+      poison("The return type of method %s is a primitive type",method.getName());
+      continue;
+    }
+    JClassType beanType=ModelUtils.findParameterizationOf(autoBeanInterface,returnType)[0];
+    if (beanType.isInterface() == null) {
+      poison("The %s parameterization is not an interface",beanType.getQualifiedSourceName());
+      continue;
+    }
+    JClassType toWrap;
+    if (method.getParameters().length == 0) {
+      toWrap=null;
+    }
+ else     if (method.getParameters().length == 1) {
+      toWrap=method.getParameters()[0].getType().isClassOrInterface();
+      if (!beanType.isAssignableFrom(toWrap)) {
+        poison("The %s parameterization %s is not assignable from the delegate" + " type %s",autoBeanInterface.getSimpleSourceName(),toWrap.getQualifiedSourceName());
+        continue;
+      }
+    }
+ else {
+      poison("Unexpecetd parameters in method %s",method.getName());
+      continue;
+    }
+    AutoBeanType autoBeanType=getAutoBeanType(beanType);
+    if (!autoBeanType.isSimpleBean() && toWrap == null) {
+      if (categoryTypes != null) {
+        poison("The %s parameterization is not simple and the following" + " methods did not have static implementations:",beanType.getQualifiedSourceName());
+        for (        AutoBeanMethod missing : autoBeanType.getMethods()) {
+          if (missing.getAction().equals(Action.CALL) && missing.getStaticImpl() == null) {
+            poison(missing.getMethod().getReadableDeclaration());
+          }
+        }
+      }
+ else {
+        poison("The %s parameterization is not simple, but the %s method" + " does not provide a delegate",beanType.getQualifiedSourceName(),method.getName());
+      }
+      continue;
+    }
+    AutoBeanFactoryMethod.Builder builder=new AutoBeanFactoryMethod.Builder();
+    builder.setAutoBeanType(autoBeanType);
+    builder.setMethod(method);
+    methods.add(builder.build());
+  }
+  while (!toCalculate.isEmpty()) {
+    Set<JClassType> examine=toCalculate;
+    toCalculate=new LinkedHashSet<JClassType>();
+    for (    JClassType beanType : examine) {
+      getAutoBeanType(beanType);
+    }
+  }
+  if (poisoned) {
+    die("Unable to complete due to previous errors");
+  }
+}

@@ -1,0 +1,25 @@
+{
+  if (!method.isValueType() && !method.isNoWrap()) {
+    JMethod jmethod=method.getMethod();
+    JClassType returnClass=jmethod.getReturnType().isClassOrInterface();
+    AutoBeanType peer=model.getPeer(returnClass);
+    sw.println("if (toReturn != null) {");
+    sw.indent();
+    sw.println("if (%s.this.isWrapped(toReturn)) {",type.getSimpleSourceName());
+    sw.indentln("toReturn = %s.this.getFromWrapper(toReturn);",type.getSimpleSourceName());
+    sw.println("} else {");
+    sw.indent();
+    if (peer != null) {
+      writeAutoBean(peer);
+      sw.println("toReturn = new %s(toReturn).as();",peer.getQualifiedSourceName());
+    }
+    sw.outdent();
+    sw.println("}");
+    sw.outdent();
+    sw.println("}");
+  }
+  JMethod interceptor=type.getInterceptor();
+  if (interceptor != null) {
+    sw.println("toReturn = %s.%s(%s.this, toReturn);",interceptor.getEnclosingType().getQualifiedSourceName(),interceptor.getName(),type.getSimpleSourceName());
+  }
+}

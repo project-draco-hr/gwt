@@ -1,0 +1,25 @@
+{
+  Map<String,String> requestMap=new HashMap<String,String>();
+  requestMap.put(Constants.OPERATION_TOKEN,ValueCodex.encodeForJsonPayload(operation));
+  if (parameters != null) {
+    for (int i=0; i < parameters.length; i++) {
+      Object value=parameters[i];
+      requestMap.put(Constants.PARAM_TOKEN + i,EntityCodex.encodeForJsonPayload(value));
+    }
+  }
+  if (contentData != null) {
+    requestMap.put(Constants.CONTENT_TOKEN,ValueCodex.encodeForJsonPayload(contentData));
+  }
+  if (propertyRefs != null && !propertyRefs.isEmpty()) {
+    StringBuffer props=new StringBuffer();
+    Iterator<String> propIt=propertyRefs.iterator();
+    while (propIt.hasNext()) {
+      props.append(propIt.next());
+      if (propIt.hasNext()) {
+        props.append(",");
+      }
+    }
+    requestMap.put(Constants.PROPERTY_REF_TOKEN,ValueCodex.encodeForJsonPayload(props.toString()));
+  }
+  return requestMap;
+}

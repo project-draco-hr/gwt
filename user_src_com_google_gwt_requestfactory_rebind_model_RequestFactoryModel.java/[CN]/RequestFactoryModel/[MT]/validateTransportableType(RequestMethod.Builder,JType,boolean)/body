@@ -1,0 +1,39 @@
+{
+  JClassType transportedClass=type.isClassOrInterface();
+  if (transportedClass == null) {
+    if (requireObject) {
+      poison("The type %s cannot be transported by RequestFactory as" + " a return type",type.getQualifiedSourceName());
+      return false;
+    }
+ else {
+      return true;
+    }
+  }
+  if (ModelUtils.isValueType(oracle,transportedClass)) {
+    methodBuilder.setValueType(true);
+  }
+ else   if (entityProxyInterface.isAssignableFrom(transportedClass)) {
+    methodBuilder.setEntityType(getEntityProxyType(transportedClass));
+  }
+ else   if (collectionInterface.isAssignableFrom(transportedClass)) {
+    if (listInterface.equals(transportedClass.isParameterized().getBaseType())) {
+      methodBuilder.setCollectionType(CollectionType.LIST);
+    }
+ else     if (setInterface.equals(transportedClass.isParameterized().getBaseType())) {
+      methodBuilder.setCollectionType(CollectionType.SET);
+    }
+ else {
+      poison("Requests that return collections may be declared with" + " %s or %s only",listInterface.getQualifiedSourceName(),setInterface.getQualifiedSourceName());
+      return false;
+    }
+    JClassType elementType=ModelUtils.findParameterizationOf(collectionInterface,transportedClass)[0];
+    methodBuilder.setCollectionElementType(elementType);
+    validateTransportableType(methodBuilder,elementType,requireObject);
+  }
+ else {
+    poison("Invalid Request parameterization %s",transportedClass.getQualifiedSourceName());
+    return false;
+  }
+  methodBuilder.setDataType(transportedClass);
+  return true;
+}

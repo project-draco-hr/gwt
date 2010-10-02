@@ -1,0 +1,18 @@
+{
+  for (  Class<?> clazz : classes) {
+    JClassType category=oracle.findType(clazz.getCanonicalName());
+    if (category == null) {
+      poison("Could not find @%s type %s in the TypeOracle",Category.class.getSimpleName(),clazz.getCanonicalName());
+      continue;
+    }
+ else     if (!category.isPublic()) {
+      poison("Category type %s is not public",category.getQualifiedSourceName());
+      continue;
+    }
+ else     if (!category.isStatic() && category.isMemberType()) {
+      poison("Category type %s must be static",category.getQualifiedSourceName());
+      continue;
+    }
+    accumulator.add(category);
+  }
+}

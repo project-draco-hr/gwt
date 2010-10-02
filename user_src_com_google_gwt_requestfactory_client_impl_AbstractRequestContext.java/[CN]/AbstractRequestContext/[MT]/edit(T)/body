@@ -1,0 +1,16 @@
+{
+  AutoBean<T> bean=checkStreamsNotCrossed(object);
+  checkLocked();
+  @SuppressWarnings("unchecked") T toReturn=(T)seenProxies.get(object.stableId());
+  if (toReturn != null) {
+    AutoBean<T> previouslySeen=AutoBeanUtils.getAutoBean(toReturn);
+    if (!previouslySeen.isFrozen()) {
+      return toReturn;
+    }
+  }
+  AutoBean<T> parent=bean;
+  bean=cloneBeanAndCollections(bean);
+  toReturn=makeEdited(bean);
+  bean.setTag(PARENT_OBJECT,parent);
+  return toReturn;
+}

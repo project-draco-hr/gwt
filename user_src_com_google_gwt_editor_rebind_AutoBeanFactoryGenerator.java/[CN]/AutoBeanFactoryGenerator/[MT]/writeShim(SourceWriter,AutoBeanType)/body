@@ -1,0 +1,63 @@
+{
+  sw.println("private final %1$s shim = new %1$s() {",type.getPeerType().getQualifiedSourceName());
+  sw.indent();
+  for (  AutoBeanMethod method : type.getMethods()) {
+    JMethod jmethod=method.getMethod();
+    String methodName=jmethod.getName();
+    JParameter[] parameters=jmethod.getParameters();
+    if (isObjectMethodImplementedByShim(jmethod)) {
+      continue;
+    }
+    StringBuilder arguments=new StringBuilder();
+{
+      for (      JParameter param : parameters) {
+        arguments.append(",").append(param.getName());
+      }
+      if (arguments.length() > 0) {
+        arguments=arguments.deleteCharAt(0);
+      }
+    }
+    sw.println("public %s {",getBaseMethodDeclaration(jmethod));
+    sw.indent();
+    sw.println("%s.this.checkWrapped();",type.getSimpleSourceName());
+switch (method.getAction()) {
+case GET:
+      sw.println("%s toReturn = %3$s.this.get(\"%2$s\", getWrapped().%2$s());",AutoBeanFactoryModel.ensureBaseType(jmethod.getReturnType()).getQualifiedSourceName(),methodName,type.getSimpleSourceName());
+    writeReturnWrapper(sw,type,method);
+  sw.println("return toReturn;");
+break;
+case SET:
+sw.println("%s.this.checkFrozen();",type.getSimpleSourceName());
+sw.println("%s.this.getWrapped().%s(%s);",type.getSimpleSourceName(),methodName,parameters[0].getName());
+sw.println("%s.this.set(\"%s\", %s);",type.getSimpleSourceName(),methodName,parameters[0].getName());
+break;
+case CALL:
+if (JPrimitiveType.VOID.equals(jmethod.getReturnType())) {
+sw.println("%s.this.getWrapped().%s(%s);",type.getSimpleSourceName(),methodName,arguments);
+sw.println("%s.this.call(\"%s\", null%s %s);",type.getSimpleSourceName(),methodName,arguments.length() > 0 ? "," : "",arguments);
+}
+ else {
+sw.println("%s toReturn = %s.this.getWrapped().%s(%s);",AutoBeanFactoryModel.ensureBaseType(jmethod.getReturnType()).getQualifiedSourceName(),type.getSimpleSourceName(),methodName,arguments);
+writeReturnWrapper(sw,type,method);
+sw.println("%s.this.call(\"%s\", toReturn%s %s);",type.getSimpleSourceName(),methodName,arguments.length() > 0 ? "," : "",arguments);
+sw.println("return toReturn;");
+}
+break;
+default :
+throw new RuntimeException();
+}
+sw.outdent();
+sw.println("}");
+}
+sw.println("@Override public boolean equals(Object o) {");
+sw.indentln("return this == o || getWrapped().equals(o);");
+sw.println("}");
+sw.println("@Override public int hashCode() {");
+sw.indentln("return getWrapped().hashCode();");
+sw.println("}");
+sw.println("@Override public String toString() {");
+sw.indentln("return getWrapped().toString();");
+sw.println("}");
+sw.outdent();
+sw.println("};");
+}

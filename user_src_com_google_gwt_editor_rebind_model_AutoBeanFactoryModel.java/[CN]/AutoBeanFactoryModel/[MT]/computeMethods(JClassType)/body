@@ -1,0 +1,44 @@
+{
+  List<JMethod> toExamine=new ArrayList<JMethod>();
+  toExamine.addAll(Arrays.asList(beanType.getInheritableMethods()));
+  toExamine.addAll(objectMethods);
+  List<AutoBeanMethod> toReturn=new ArrayList<AutoBeanMethod>(toExamine.size());
+  for (  JMethod method : toExamine) {
+    if (method.isPrivate()) {
+      continue;
+    }
+    AutoBeanMethod.Builder builder=new AutoBeanMethod.Builder();
+    String name=method.getName();
+    builder.setMethod(method);
+    JClassType classReturn=method.getReturnType().isInterface();
+    if (classReturn != null) {
+      if (!peers.containsKey(classReturn)) {
+        toCalculate.add(classReturn);
+      }
+      if (noWrapTypes != null) {
+        for (        JClassType noWrap : noWrapTypes) {
+          if (noWrap.isAssignableFrom(classReturn)) {
+            builder.setNoWrap(true);
+            break;
+          }
+        }
+      }
+    }
+    if (name.startsWith("get") && name.length() >= 4 && method.getParameters().length == 0) {
+      builder.setAction(Action.GET);
+    }
+ else     if (name.startsWith("set") && name.length() >= 4 && method.getParameters().length == 1) {
+      builder.setAction(Action.SET);
+    }
+ else {
+      builder.setAction(Action.CALL);
+      JMethod staticImpl=findStaticImpl(beanType,method);
+      if (staticImpl == null && objectMethods.contains(method)) {
+        continue;
+      }
+      builder.setStaticImp(staticImpl);
+    }
+    toReturn.add(builder.build());
+  }
+  return toReturn;
+}

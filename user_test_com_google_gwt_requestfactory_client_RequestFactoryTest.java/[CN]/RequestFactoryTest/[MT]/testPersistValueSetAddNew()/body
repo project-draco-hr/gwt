@@ -1,12 +1,14 @@
 {
   delayTestFinish(5000);
-  SimpleBarProxy newBar=req.create(SimpleBarProxy.class);
-  req.simpleBarRequest().persistAndReturnSelf(newBar).fire(new Receiver<SimpleBarProxy>(){
+  SimpleBarRequest context=simpleBarRequest();
+  SimpleBarProxy newBar=context.create(SimpleBarProxy.class);
+  context.persistAndReturnSelf().using(newBar).fire(new Receiver<SimpleBarProxy>(){
     @Override public void onSuccess(    final SimpleBarProxy barProxy){
-      req.simpleFooRequest().findSimpleFooById(999L).with("oneToManySetField").fire(new Receiver<SimpleFooProxy>(){
+      simpleFooRequest().findSimpleFooById(999L).with("oneToManySetField").fire(new Receiver<SimpleFooProxy>(){
         @Override public void onSuccess(        SimpleFooProxy fooProxy){
-          Request<SimpleFooProxy> updReq=req.simpleFooRequest().persistAndReturnSelf(fooProxy).with("oneToManySetField");
-          fooProxy=updReq.edit(fooProxy);
+          SimpleFooRequest context=simpleFooRequest();
+          Request<SimpleFooProxy> updReq=context.persistAndReturnSelf().using(fooProxy).with("oneToManySetField");
+          fooProxy=context.edit(fooProxy);
           Set<SimpleBarProxy> setField=fooProxy.getOneToManySetField();
           final int listCount=setField.size();
           setField.add(barProxy);

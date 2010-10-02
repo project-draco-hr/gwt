@@ -2,12 +2,13 @@
   delayTestFinish(5000);
   final SimpleFooEventHandler<SimpleFooProxy> handler=new SimpleFooEventHandler<SimpleFooProxy>();
   EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleFooProxy.class,handler);
-  req.simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
+  simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
     @Override public void onSuccess(    SimpleFooProxy newFoo){
       assertEquals(1,handler.updateEventCount);
       assertEquals(1,handler.totalEventCount);
-      final Request<Long> mutateRequest=req.simpleFooRequest().countSimpleFooWithUserNameSideEffect(newFoo);
-      newFoo=mutateRequest.edit(newFoo);
+      SimpleFooRequest context=simpleFooRequest();
+      final Request<Long> mutateRequest=context.countSimpleFooWithUserNameSideEffect().using(newFoo);
+      newFoo=context.edit(newFoo);
       newFoo.setUserName("Ray");
       mutateRequest.fire(new Receiver<Long>(){
         @Override public void onSuccess(        Long response){
@@ -15,7 +16,7 @@
           assertEquals(new Long(2L),response);
           assertEquals(2,handler.updateEventCount);
           assertEquals(2,handler.totalEventCount);
-          req.simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
+          simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
             @Override public void onSuccess(            SimpleFooProxy finalFoo){
               assertEquals("Ray",finalFoo.getUserName());
               assertEquals(3,handler.updateEventCount);

@@ -1,0 +1,30 @@
+{
+  SimpleFooRequest contextA=simpleFooRequest();
+  final SimpleFooRequest contextB=simpleFooRequest();
+  SimpleFooProxy fromA=contextA.create(SimpleFooProxy.class);
+  try {
+    contextB.edit(fromA);
+    fail();
+  }
+ catch (  IllegalArgumentException expected) {
+  }
+  try {
+    contextB.persistAndReturnSelf().using(fromA).fire(new Receiver<SimpleFooProxy>(){
+      @Override public void onSuccess(      SimpleFooProxy response){
+        fail();
+      }
+    }
+);
+    fail();
+  }
+ catch (  IllegalArgumentException expected) {
+  }
+  delayTestFinish(5000);
+  contextA.findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy response){
+      contextB.edit(response);
+      finishTestAndReset();
+    }
+  }
+);
+}

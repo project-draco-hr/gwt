@@ -1,0 +1,17 @@
+{
+  String[] parts=historyToken.split(TOKEN_SEPARATOR);
+  if (parts.length == 2) {
+    return getId(parts[TYPE_TOKEN_INDEX],parts[ID_TOKEN_INDEX]);
+  }
+  parts=historyToken.split(EPHEMERAL_SEPARATOR);
+  if (parts.length == 2) {
+    @SuppressWarnings("unchecked") SimpleEntityProxyId<P> toReturn=(SimpleEntityProxyId<P>)ephemeralIds.get(historyToken);
+    if (toReturn == null) {
+      Class<P> clazz=checkTypeToken(parts[TYPE_TOKEN_INDEX]);
+      toReturn=new SimpleEntityProxyId<P>(clazz,-1 * ephemeralIds.size());
+      ephemeralIds.put(historyToken,toReturn);
+    }
+    return toReturn;
+  }
+  throw new IllegalArgumentException(historyToken);
+}

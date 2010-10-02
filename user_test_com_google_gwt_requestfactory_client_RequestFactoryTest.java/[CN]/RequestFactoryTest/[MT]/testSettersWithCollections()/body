@@ -1,20 +1,15 @@
 {
-  SimpleFooProxy foo=req.create(SimpleFooProxy.class);
-  SimpleBarProxy bar=req.create(SimpleBarProxy.class);
+  SimpleFooRequest context=simpleFooRequest();
+  SimpleFooProxy foo=context.create(SimpleFooProxy.class);
+  SimpleBarProxy bar=context.create(SimpleBarProxy.class);
   List<SimpleBarProxy> originalList=Collections.singletonList(bar);
   assertNull(foo.getOneToManyField());
-  try {
-    foo.setOneToManyField(null);
-    fail("Must require request to call setters");
-  }
- catch (  UnsupportedOperationException expected) {
-  }
-  Request<SimpleFooProxy> r=req.simpleFooRequest().persistAndReturnSelf(foo);
-  foo=r.edit(foo);
+  foo.setOneToManyField(null);
+  assertSame(foo,context.edit(foo));
   foo.setOneToManyField(originalList);
   List<SimpleBarProxy> list=foo.getOneToManyField();
   assertNotSame(originalList,list);
-  assertFalse(originalList.equals(list));
+  assertEquals(originalList,list);
   assertEquals(1,list.size());
   assertEquals(bar.stableId(),list.get(0).stableId());
   assertEquals(list,foo.getOneToManyField());

@@ -3,19 +3,14 @@
 {
     SimpleRequestFactory oldFactory=GWT.create(SimpleRequestFactory.class);
     oldFactory.initialize(new SimpleEventBus());
-    EntityProxyId<SimpleBarProxy> id=oldFactory.create(SimpleBarProxy.class).stableId();
+    EntityProxyId<SimpleBarProxy> id=oldFactory.simpleBarRequest().create(SimpleBarProxy.class).stableId();
     historyToken=oldFactory.getHistoryToken(id);
   }
   EntityProxyId<SimpleBarProxy> id=req.getProxyId(historyToken);
   assertNotNull(id);
-  Request<SimpleBarProxy> find=req.find(id);
   try {
-    find.fire(new Receiver<SimpleBarProxy>(){
-      @Override public void onSuccess(      SimpleBarProxy response){
-        fail("Request should never have been made");
-      }
-    }
-);
+    req.find(id);
+    fail();
   }
  catch (  IllegalArgumentException expected) {
   }

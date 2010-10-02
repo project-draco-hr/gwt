@@ -1,0 +1,18 @@
+{
+  sw.println("private static final %1$s<String, Class<?>> tokensToTypes" + " = new %1$s<String, Class<?>>();",HashMap.class.getCanonicalName());
+  sw.println("private static final %1$s<Class<?>, String> typesToTokens" + " = new %1$s<Class<?>, String>();",HashMap.class.getCanonicalName());
+  sw.println("static {");
+  sw.indent();
+  for (  EntityProxyModel type : model.getAllProxyModels()) {
+    sw.println("tokensToTypes.put(\"%1$s\", %1$s.class);",type.getQualifiedSourceName());
+    sw.println("typesToTokens.put(%1$s.class, \"%1$s\");",type.getQualifiedSourceName());
+  }
+  sw.outdent();
+  sw.println("}");
+  sw.println("@Override protected Class getTypeFromToken(String typeToken) {");
+  sw.indentln("return tokensToTypes.get(typeToken);");
+  sw.println("}");
+  sw.println("@Override protected String getTypeToken(Class type) {");
+  sw.indentln("return typesToTokens.get(type);");
+  sw.println("}");
+}

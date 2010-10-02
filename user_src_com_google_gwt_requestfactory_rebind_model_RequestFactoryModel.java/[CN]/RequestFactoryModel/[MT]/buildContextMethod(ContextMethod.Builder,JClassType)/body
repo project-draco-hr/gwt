@@ -1,0 +1,21 @@
+{
+  Service serviceAnnotation=contextType.getAnnotation(Service.class);
+  if (serviceAnnotation == null) {
+    poison("RequestContext subtype %s is missing a @%s annotation",contextType.getQualifiedSourceName(),Service.class.getSimpleName());
+    return;
+  }
+  contextBuilder.setServiceClass(serviceAnnotation.value());
+  List<RequestMethod> requestMethods=new ArrayList<RequestMethod>();
+  for (  JMethod method : contextType.getInheritableMethods()) {
+    if (method.getEnclosingType().equals(requestContextInterface)) {
+      continue;
+    }
+    RequestMethod.Builder methodBuilder=new RequestMethod.Builder();
+    methodBuilder.setDeclarationMethod(method);
+    if (!validateContextMethodAndSetDataType(methodBuilder,method)) {
+      continue;
+    }
+    requestMethods.add(methodBuilder.build());
+  }
+  contextBuilder.setRequestMethods(requestMethods);
+}

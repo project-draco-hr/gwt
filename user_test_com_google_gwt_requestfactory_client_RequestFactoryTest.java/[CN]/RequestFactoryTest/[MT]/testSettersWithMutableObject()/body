@@ -1,11 +1,11 @@
 {
-  SimpleFooProxy foo=req.create(SimpleFooProxy.class);
-  Request<SimpleFooProxy> r=req.simpleFooRequest().persistAndReturnSelf(foo);
-  foo=r.edit(foo);
-  SimpleBarProxy immutableBar=req.create(SimpleBarProxy.class);
-  SimpleBarProxy mutableBar=r.edit(immutableBar);
+  SimpleFooRequest context=simpleFooRequest();
+  SimpleFooProxy foo=context.create(SimpleFooProxy.class);
+  foo=context.edit(foo);
+  SimpleBarProxy immutableBar=context.create(SimpleBarProxy.class);
+  SimpleBarProxy mutableBar=context.edit(immutableBar);
   mutableBar.setUserName("userName");
   foo.setBarField(mutableBar);
-  r.edit(immutableBar).setUserName("Reset");
+  context.edit(immutableBar).setUserName("Reset");
   assertEquals("Reset",foo.getBarField().getUserName());
 }

@@ -2,9 +2,10 @@
   delayTestFinish(5000);
   req.simpleFooStringRequest().findSimpleFooStringById("999x").fire(new Receiver<SimpleFooStringProxy>(){
     @Override public void onSuccess(    SimpleFooStringProxy response){
-      SimpleBarProxy bar=req.create(SimpleBarProxy.class);
-      Request<String> helloReq=req.simpleFooStringRequest().hello(response,bar);
-      bar=helloReq.edit(bar);
+      SimpleFooStringRequest context=req.simpleFooStringRequest();
+      SimpleBarProxy bar=context.create(SimpleBarProxy.class);
+      Request<String> helloReq=context.hello(bar).using(response);
+      bar=context.edit(bar);
       bar.setUserName("BAR");
       helloReq.fire(new Receiver<String>(){
         @Override public void onSuccess(        String response){

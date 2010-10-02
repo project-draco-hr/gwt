@@ -1,0 +1,51 @@
+{
+  sw.println("@Override protected %s createSimplePeer() {",type.getPeerType().getQualifiedSourceName());
+  sw.indent();
+  sw.println("return new %s() {",type.getPeerType().getQualifiedSourceName());
+  sw.indent();
+  for (  AutoBeanMethod method : type.getMethods()) {
+    JMethod jmethod=method.getMethod();
+    sw.println("public %s {",getBaseMethodDeclaration(jmethod));
+    sw.indent();
+switch (method.getAction()) {
+case GET:
+{
+        JPrimitiveType primitive=jmethod.getReturnType().isPrimitive();
+        if (primitive != null) {
+          sw.println("Object toReturn = values.get(\"%s\");",method.getPropertyName());
+          sw.println("if (toReturn == null) {");
+          sw.indentln("return %s;",primitive.getUninitializedFieldExpression());
+          sw.println("} else {");
+          sw.indentln("return (%s) toReturn;",primitive.getQualifiedBoxedSourceName());
+          sw.println("}");
+        }
+ else {
+          sw.println("return (%s) values.get(\"%s\");",AutoBeanFactoryModel.ensureBaseType(jmethod.getReturnType()).getQualifiedSourceName(),method.getPropertyName());
+        }
+      }
+    break;
+case SET:
+  sw.println("values.put(\"%s\", %s);",method.getPropertyName(),jmethod.getParameters()[0].getName());
+break;
+case CALL:
+JMethod staticImpl=method.getStaticImpl();
+if (!jmethod.getReturnType().equals(JPrimitiveType.VOID)) {
+sw.print("return ");
+}
+sw.print("%s.%s(%s.this",staticImpl.getEnclosingType().getQualifiedSourceName(),staticImpl.getName(),type.getSimpleSourceName());
+for (JParameter param : jmethod.getParameters()) {
+sw.print(", %s",param.getName());
+}
+sw.println(");");
+break;
+default :
+throw new RuntimeException();
+}
+sw.outdent();
+sw.println("}");
+}
+sw.outdent();
+sw.println("};");
+sw.outdent();
+sw.println("}");
+}

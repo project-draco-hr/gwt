@@ -1,19 +1,22 @@
 {
   delayTestFinish(5000);
-  SimpleFooStringProxy rayFoo=req.create(SimpleFooStringProxy.class);
-  final Request<SimpleFooStringProxy> persistRay=req.simpleFooStringRequest().persistAndReturnSelf(rayFoo);
-  rayFoo=persistRay.edit(rayFoo);
+  SimpleFooStringRequest context=req.simpleFooStringRequest();
+  SimpleFooStringProxy rayFoo=context.create(SimpleFooStringProxy.class);
+  final Request<SimpleFooStringProxy> persistRay=context.persistAndReturnSelf().using(rayFoo);
+  rayFoo=context.edit(rayFoo);
   rayFoo.setUserName("Ray");
   persistRay.fire(new Receiver<SimpleFooStringProxy>(){
     @Override public void onSuccess(    final SimpleFooStringProxy persistedRay){
-      SimpleBarProxy amitBar=req.create(SimpleBarProxy.class);
-      final Request<SimpleBarProxy> persistAmit=req.simpleBarRequest().persistAndReturnSelf(amitBar);
-      amitBar=persistAmit.edit(amitBar);
+      SimpleBarRequest context=req.simpleBarRequest();
+      SimpleBarProxy amitBar=context.create(SimpleBarProxy.class);
+      final Request<SimpleBarProxy> persistAmit=context.persistAndReturnSelf().using(amitBar);
+      amitBar=context.edit(amitBar);
       amitBar.setUserName("Amit");
       persistAmit.fire(new Receiver<SimpleBarProxy>(){
         @Override public void onSuccess(        SimpleBarProxy persistedAmit){
-          final Request<SimpleFooStringProxy> persistRelationship=req.simpleFooStringRequest().persistAndReturnSelf(persistedRay).with("barField");
-          SimpleFooStringProxy newRec=persistRelationship.edit(persistedRay);
+          SimpleFooStringRequest context=req.simpleFooStringRequest();
+          final Request<SimpleFooStringProxy> persistRelationship=context.persistAndReturnSelf().using(persistedRay).with("barField");
+          SimpleFooStringProxy newRec=context.edit(persistedRay);
           newRec.setBarField(persistedAmit);
           persistRelationship.fire(new Receiver<SimpleFooStringProxy>(){
             @Override public void onSuccess(            SimpleFooStringProxy relatedRay){
