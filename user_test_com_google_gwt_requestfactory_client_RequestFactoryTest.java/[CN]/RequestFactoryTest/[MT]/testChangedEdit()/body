@@ -1,0 +1,20 @@
+{
+  delayTestFinish(5000);
+  simpleFooRequest().findSimpleFooById(1L).fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy foo){
+      SimpleFooRequest context=simpleFooRequest();
+      foo=context.edit(foo);
+      assertFalse(context.isChanged());
+      final String newName="something else;";
+      String oldName=foo.getUserName();
+      assertFalse("Don't accidentally set the same name",newName.equals(oldName));
+      assertFalse(context.isChanged());
+      foo.setUserName(newName);
+      assertTrue(context.isChanged());
+      foo.setUserName(oldName);
+      assertFalse(context.isChanged());
+      finishTestAndReset();
+    }
+  }
+);
+}
