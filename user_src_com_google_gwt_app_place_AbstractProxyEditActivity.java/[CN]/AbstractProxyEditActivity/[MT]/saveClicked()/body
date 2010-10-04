@@ -1,2 +1,25 @@
 {
+  setWaiting(true);
+  editorDriver.flush().fire(new Receiver<Void>(){
+    @Override public void onFailure(    ServerFailure error){
+      if (editorDriver != null) {
+        setWaiting(false);
+        super.onFailure(error);
+      }
+    }
+    @Override public void onSuccess(    Void ignore){
+      if (editorDriver != null) {
+        editorDriver=null;
+        setWaiting(false);
+        exit(true);
+      }
+    }
+    @Override public void onViolation(    Set<Violation> errors){
+      if (editorDriver != null) {
+        setWaiting(false);
+        editorDriver.setViolations(errors);
+      }
+    }
+  }
+);
 }

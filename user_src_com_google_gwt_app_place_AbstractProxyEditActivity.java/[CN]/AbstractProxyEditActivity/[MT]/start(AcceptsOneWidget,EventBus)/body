@@ -1,23 +1,6 @@
 {
-  this.display=startDisplay;
+  editorDriver=view.createEditorDriver();
   view.setDelegate(this);
-  view.setCreating(isCreating());
-  setWaiting(true);
-  final RequestContext context=getPersistRequestContext();
-  if (isCreating()) {
-    P newRecord=context.create(proxyClass);
-    proxyId=getProxyId(newRecord);
-    doStart(context,newRecord);
-  }
- else {
-    Request<P> findRequest=requests.find(getEntityProxyId());
-    findRequest.with(editorDriver.getPaths()).fire(new Receiver<P>(){
-      @Override public void onSuccess(      P proxy){
-        if (display != null) {
-          doStart(context,proxy);
-        }
-      }
-    }
-);
-  }
+  editorDriver.edit(getProxy(),createSaveRequest(getProxy()));
+  display.setWidget(view);
 }

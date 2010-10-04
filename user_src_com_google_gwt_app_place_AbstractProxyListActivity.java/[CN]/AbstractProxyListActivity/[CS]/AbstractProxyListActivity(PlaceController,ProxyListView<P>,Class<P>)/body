@@ -1,0 +1,25 @@
+{
+  this.view=view;
+  this.placeController=placeController;
+  this.proxyClass=proxyType;
+  view.setDelegate(this);
+  final HasData<P> hasData=view.asHasData();
+  rangeChangeHandler=hasData.addRangeChangeHandler(new RangeChangeEvent.Handler(){
+    public void onRangeChange(    RangeChangeEvent event){
+      AbstractProxyListActivity.this.onRangeChanged(hasData);
+    }
+  }
+);
+  ProvidesKey<P> keyProvider=((AbstractHasData<P>)hasData).getKeyProvider();
+  selectionModel=new SingleSelectionModel<P>(keyProvider);
+  hasData.setSelectionModel(selectionModel);
+  selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler(){
+    public void onSelectionChange(    SelectionChangeEvent event){
+      P selectedObject=selectionModel.getSelectedObject();
+      if (selectedObject != null) {
+        showDetails(selectedObject);
+      }
+    }
+  }
+);
+}

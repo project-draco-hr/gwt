@@ -1,0 +1,29 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  SimpleFooRequest r=simpleFooRequest();
+  SimpleFooProxy f=r.create(SimpleFooProxy.class);
+  f.setUserName("user name");
+  f.setByteField((byte)100);
+  f.setShortField((short)12345);
+  f.setFloatField(1234.56f);
+  f.setDoubleField(1.2345);
+  f.setLongField(1234L);
+  f.setBoolField(false);
+  f.setOtherBoolField(true);
+  f.setCreated(new Date(397387389L));
+  r.persistAndReturnSelf().using(f).fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy f){
+      assertEquals("user name",f.getUserName());
+      assertEquals(Byte.valueOf((byte)100),f.getByteField());
+      assertEquals(Short.valueOf((short)12345),f.getShortField());
+      assertEquals(Float.valueOf(1234.56f),f.getFloatField());
+      assertEquals(Double.valueOf(1.2345),f.getDoubleField());
+      assertEquals(Long.valueOf(1234L),f.getLongField());
+      assertFalse(f.getBoolField());
+      assertTrue(f.getOtherBoolField());
+      assertEquals(new Date(397387389L),f.getCreated());
+      finishTestAndReset();
+    }
+  }
+);
+}
