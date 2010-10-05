@@ -1,0 +1,40 @@
+{
+  CellTable<Contact> table=new CellTable<Contact>();
+  table.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.ENABLED);
+  TextColumn<Contact> nameColumn=new TextColumn<Contact>(){
+    @Override public String getValue(    Contact object){
+      return object.name;
+    }
+  }
+;
+  table.addColumn(nameColumn,"Name");
+  DateCell dateCell=new DateCell();
+  Column<Contact,Date> dateColumn=new Column<Contact,Date>(dateCell){
+    @Override public Date getValue(    Contact object){
+      return object.birthday;
+    }
+  }
+;
+  table.addColumn(dateColumn,"Birthday");
+  TextColumn<Contact> addressColumn=new TextColumn<Contact>(){
+    @Override public String getValue(    Contact object){
+      return object.address;
+    }
+  }
+;
+  table.addColumn(addressColumn,"Address");
+  final SingleSelectionModel<Contact> selectionModel=new SingleSelectionModel<Contact>();
+  table.setSelectionModel(selectionModel);
+  selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler(){
+    public void onSelectionChange(    SelectionChangeEvent event){
+      Contact selected=selectionModel.getSelectedObject();
+      if (selected != null) {
+        Window.alert("You selected: " + selected.name);
+      }
+    }
+  }
+);
+  table.setRowCount(CONTACTS.size(),true);
+  table.setRowData(0,CONTACTS);
+  RootPanel.get().add(table);
+}
