@@ -1,2 +1,47 @@
 {
+  JSONObject sideEffects=new JSONObject();
+  JSONArray createArray=new JSONArray();
+  JSONArray deleteArray=new JSONArray();
+  JSONArray updateArray=new JSONArray();
+  for (  EntityKey entityKey : involvedKeys) {
+    EntityData entityData=afterDvsDataMap.get(entityKey);
+    if (entityData == null) {
+      continue;
+    }
+    if (entityKey.isFuture) {
+      JSONObject createRecord=getCreateReturnRecord(entityKey,entityData);
+      if (createRecord != null) {
+        createArray.put(createRecord);
+      }
+      continue;
+    }
+    Object entityInstanceAfterOperation=getEntityInstance(entityKey);
+    if (null == entityInstanceAfterOperation) {
+      JSONObject deleteRecord=new JSONObject();
+      deleteRecord.put(Constants.ENCODED_ID_PROPERTY,getSchemaAndId(entityKey.proxyType,entityKey.encodedId));
+      deleteArray.put(deleteRecord);
+      continue;
+    }
+    boolean clientNeedsUpdating=false;
+    DvsData dvsData=dvsDataMap.get(entityKey);
+    if (dvsData != null && dvsData.version != null) {
+      Integer serverVersion=(Integer)getRawPropertyValueFromDatastore(entityInstanceAfterOperation,Constants.ENTITY_VERSION_PROPERTY.getName());
+      if (!dvsData.version.equals(serverVersion)) {
+        clientNeedsUpdating=true;
+      }
+    }
+    if (clientNeedsUpdating || hasServerVersionChanged(entityKey,entityInstanceAfterOperation)) {
+      updateArray.put(getJsonObjectWithIdAndVersion(getSchemaAndId(entityKey.proxyType,entityKey.encodedId),entityInstanceAfterOperation,propertyRefs));
+    }
+  }
+  if (createArray.length() > 0) {
+    sideEffects.put(WriteOperation.PERSIST.name(),createArray);
+  }
+  if (deleteArray.length() > 0) {
+    sideEffects.put(WriteOperation.DELETE.name(),deleteArray);
+  }
+  if (updateArray.length() > 0) {
+    sideEffects.put(WriteOperation.UPDATE.name(),updateArray);
+  }
+  return sideEffects;
 }

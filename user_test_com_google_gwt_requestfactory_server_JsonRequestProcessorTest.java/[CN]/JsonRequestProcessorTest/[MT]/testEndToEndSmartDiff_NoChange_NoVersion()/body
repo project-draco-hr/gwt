@@ -1,0 +1,12 @@
+{
+  com.google.gwt.requestfactory.server.SimpleFoo.reset();
+  JSONObject foo=fetchVerifyAndGetInitialObject();
+  String savedVersion=createNoChangeRequestAndGetServerVersion(foo);
+  foo.remove(Constants.ENCODED_VERSION_PROPERTY);
+  JSONObject result=getResultFromServer(foo);
+  assertFalse(result.getJSONObject("sideEffects").has("UPDATE"));
+  SimpleFoo fooResult=SimpleFoo.findSimpleFooById(999L);
+  assertEquals(45,(int)fooResult.getIntId());
+  assertEquals("JSC",fooResult.getUserName());
+  assertEquals(savedVersion,requestProcessor.encodePropertyValue(fooResult.getVersion()).toString());
+}
