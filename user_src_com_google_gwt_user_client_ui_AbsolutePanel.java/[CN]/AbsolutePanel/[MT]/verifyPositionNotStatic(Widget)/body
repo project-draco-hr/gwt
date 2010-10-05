@@ -1,8 +1,16 @@
 {
-  if (!GWT.isProdMode()) {
-    if (w.getElement().getOffsetParent() != getElement()) {
-      String className=getClass().getName();
-      GWT.log("Warning: " + className + " descendants will be incorrectly "+ "positioned, i.e. not relative to their parent element, when "+ "'position:static', which is the CSS default, is in effect. One "+ "possible fix is to call "+ "'panel.getElement().getStyle().setPosition(Position.RELATIVE)'.",new IllegalStateException(className + " is missing CSS 'position:{relative,absolute,fixed}'"));
-    }
+  if (GWT.isProdMode()) {
+    return;
   }
+  if (child.getElement().getOffsetParent() == null) {
+    return;
+  }
+  if (child.getElement().getOffsetParent() == getElement()) {
+    return;
+  }
+  if ("body".equals(getElement().getNodeName().toLowerCase())) {
+    return;
+  }
+  String className=getClass().getName();
+  GWT.log("Warning: " + className + " descendants will be incorrectly "+ "positioned, i.e. not relative to their parent element, when "+ "'position:static', which is the CSS default, is in effect. One "+ "possible fix is to call "+ "'panel.getElement().getStyle().setPosition(Position.RELATIVE)'.",new IllegalStateException(className + " is missing CSS 'position:{relative,absolute,fixed}'"));
 }
