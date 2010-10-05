@@ -13,9 +13,12 @@
     ProxyFor proxyFor=entityProxyType.getAnnotation(ProxyFor.class);
     if (proxyFor == null) {
       poison("The %s type does not have a @%s annotation",entityProxyType.getQualifiedSourceName(),ProxyFor.class.getSimpleName());
+      die(poisonedMessage());
     }
  else {
-      builder.setProxyFor(proxyFor.value());
+      Class<?> domainType=proxyFor.value();
+      builder.setProxyFor(domainType);
+      validateDomainType(domainType);
     }
     List<RequestMethod> requestMethods=new ArrayList<RequestMethod>();
     for (    JMethod method : entityProxyType.getInheritableMethods()) {
@@ -40,7 +43,10 @@
         continue;
       }
       validateTransportableType(methodBuilder,transportedType,false);
-      requestMethods.add(methodBuilder.build());
+      RequestMethod requestMethod=methodBuilder.build();
+      if (validateDomainBeanMethod(requestMethod,builder)) {
+        requestMethods.add(requestMethod);
+      }
     }
     builder.setRequestMethods(requestMethods);
     toReturn=builder.build();

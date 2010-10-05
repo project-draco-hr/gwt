@@ -1,0 +1,52 @@
+{
+  Set<Resource> javaResources=getJavaResources(proxyClass);
+  javaResources.add(new MockJavaResource("t.TestRequestFactory"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + RequestFactory.class.getName() + ";\n");
+      code.append("interface TestRequestFactory extends RequestFactory {\n");
+      code.append("TestContext testContext();");
+      code.append("}");
+      return code;
+    }
+  }
+);
+  javaResources.add(new MockJavaResource("t.TestContext"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + Request.class.getName() + ";\n");
+      code.append("import " + InstanceRequest.class.getName() + ";\n");
+      code.append("import " + RequestContext.class.getName() + ";\n");
+      code.append("import " + SortedSet.class.getName() + ";\n");
+      code.append("import " + List.class.getName() + ";\n");
+      code.append("import " + Set.class.getName() + ";\n");
+      code.append("import " + Service.class.getName() + ";\n");
+      code.append("import " + TestContextImpl.class.getName() + ";\n");
+      if (serviceClass != null) {
+        code.append("@Service(" + serviceClass + ".class)");
+      }
+      code.append("interface TestContext extends RequestContext {\n");
+      code.append(clientMethodDecls);
+      code.append("}");
+      return code;
+    }
+  }
+);
+  CompilationState state=CompilationStateBuilder.buildFrom(logger,javaResources);
+  UnitTestTreeLogger.Builder builder=new UnitTestTreeLogger.Builder();
+  builder.setLowestLogLevel(TreeLogger.ERROR);
+  for (  String expectedMsg : expected) {
+    builder.expectError(expectedMsg,null);
+  }
+  builder.expectError(RequestFactoryModel.poisonedMessage(),null);
+  UnitTestTreeLogger testLogger=builder.createLogger();
+  try {
+    new RequestFactoryModel(testLogger,state.getTypeOracle().findType("t.TestRequestFactory"));
+    fail("Should have complained");
+  }
+ catch (  UnableToCompleteException e) {
+  }
+  testLogger.assertCorrectLogEntries();
+}

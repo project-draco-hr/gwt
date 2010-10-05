@@ -1,0 +1,17 @@
+{
+  List<Method> domainMethods=findMethods(serverType,clientMethod.getName());
+  if (domainMethods.size() == 0) {
+    poison("Method %s.%s has no corresponding public method on %s",clientMethod.getEnclosingType().getQualifiedBinaryName(),clientMethod.getName(),serverType.getName());
+    return null;
+  }
+  if (domainMethods.size() > 1) {
+    poison("Method %s.%s is overloaded on %s",clientMethod.getEnclosingType().getQualifiedBinaryName(),clientMethod.getName(),serverType.getName());
+    return null;
+  }
+  Method domainMethod=domainMethods.get(0);
+  if (isGetterOrSetter && isStatic(domainMethod)) {
+    poison("Method %s.%s is declared static",serverType.getName(),domainMethod.getName());
+    return null;
+  }
+  return domainMethod;
+}

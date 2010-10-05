@@ -16,10 +16,15 @@
     methodBuilder.setEntityType(getEntityProxyType(transportedClass));
   }
  else   if (collectionInterface.isAssignableFrom(transportedClass)) {
-    if (listInterface.equals(transportedClass.isParameterized().getBaseType())) {
+    JParameterizedType parameterized=transportedClass.isParameterized();
+    if (parameterized == null) {
+      poison("Requests that return collections of List or Set must be parameterized");
+      return false;
+    }
+    if (listInterface.equals(parameterized.getBaseType())) {
       methodBuilder.setCollectionType(CollectionType.LIST);
     }
- else     if (setInterface.equals(transportedClass.isParameterized().getBaseType())) {
+ else     if (setInterface.equals(parameterized.getBaseType())) {
       methodBuilder.setCollectionType(CollectionType.SET);
     }
  else {

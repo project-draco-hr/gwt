@@ -4,7 +4,8 @@
     poison("RequestContext subtype %s is missing a @%s annotation",contextType.getQualifiedSourceName(),Service.class.getSimpleName());
     return;
   }
-  contextBuilder.setServiceClass(serviceAnnotation.value());
+  Class<?> serviceClass=serviceAnnotation.value();
+  contextBuilder.setServiceClass(serviceClass);
   List<RequestMethod> requestMethods=new ArrayList<RequestMethod>();
   for (  JMethod method : contextType.getInheritableMethods()) {
     if (method.getEnclosingType().equals(requestContextInterface)) {
@@ -12,7 +13,7 @@
     }
     RequestMethod.Builder methodBuilder=new RequestMethod.Builder();
     methodBuilder.setDeclarationMethod(method);
-    if (!validateContextMethodAndSetDataType(methodBuilder,method)) {
+    if (!validateContextMethodAndSetDataType(methodBuilder,method,serviceClass)) {
       continue;
     }
     requestMethods.add(methodBuilder.build());
