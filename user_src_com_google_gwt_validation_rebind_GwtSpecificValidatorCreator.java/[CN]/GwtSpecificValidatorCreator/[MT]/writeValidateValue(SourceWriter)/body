@@ -9,6 +9,31 @@
   sw.println("Class<?>... groups) {");
   sw.outdent();
   writeNewViolations(sw);
+  for (  PropertyDescriptor property : beanHelper.getBeanDescriptor().getConstrainedProperties()) {
+    sw.print("if (propertyName.equals(\"");
+    sw.print(property.getPropertyName());
+    sw.println("\")) {");
+    sw.indent();
+    sw.print(validateMethodName(property));
+    sw.print("(context, ");
+    sw.print("violations, ");
+    sw.print("null, ");
+    sw.print("(");
+    sw.print(property.getElementClass().getCanonicalName());
+    sw.print(") value, ");
+    sw.println("groups);");
+    sw.outdent();
+    sw.print("} else ");
+  }
+  sw.println("{");
+  sw.indent();
+  sw.print("throw new ");
+  sw.print(IllegalArgumentException.class.getCanonicalName());
+  sw.print("( propertyName +\" is not a valid property of ");
+  sw.print(beanType.getQualifiedSourceName());
+  sw.println("\");");
+  sw.outdent();
+  sw.println("}");
   sw.println("return violations;");
   sw.outdent();
   sw.println("}");

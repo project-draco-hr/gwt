@@ -1,0 +1,27 @@
+{
+  sw.print("private final <T> void ");
+  sw.print(validateMethodName(p));
+  sw.println("(");
+  sw.indent();
+  sw.indent();
+  sw.println("GwtValidationContext<T> context,");
+  sw.println("Set<ConstraintViolation<T>> violations,");
+  sw.println(beanHelper.getTypeCanonicalName() + " object,");
+  sw.print(p.getElementClass().getCanonicalName());
+  sw.println(" value,");
+  sw.println("Class<?>... groups) {");
+  sw.outdent();
+  int count=0;
+  for (  ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
+    count++;
+    Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass=getValidatorForType(constraint,p.getElementClass());
+    sw.print("validate(context, violations, object, value, ");
+    sw.print("new ");
+    sw.print(validatorClass.getCanonicalName());
+    sw.print("(), ");
+    sw.print(constraintDescriptorVar(p.getPropertyName(),count));
+    sw.println(", groups);");
+  }
+  sw.outdent();
+  sw.println("}");
+}

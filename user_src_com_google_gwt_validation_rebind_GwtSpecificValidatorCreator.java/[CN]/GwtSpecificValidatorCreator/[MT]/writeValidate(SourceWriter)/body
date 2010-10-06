@@ -7,6 +7,42 @@
   sw.println("Class<?>... groups) {");
   sw.outdent();
   writeNewViolations(sw);
+  if (beanHelper.getBeanDescriptor().isBeanConstrained()) {
+    Set<PropertyDescriptor> properties=beanHelper.getBeanDescriptor().getConstrainedProperties();
+    for (    PropertyDescriptor p : properties) {
+      writeValidatePropertyCall(sw,p);
+    }
+    int count=0;
+    Class<?> clazz=null;
+    try {
+      clazz=beanHelper.getClazz();
+    }
+ catch (    ClassNotFoundException e) {
+      error(logger,e);
+    }
+    for (    ConstraintDescriptor<?> constraint : beanHelper.getBeanDescriptor().findConstraints().getConstraintDescriptors()) {
+      count++;
+      Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass=getValidatorForType(constraint,clazz);
+      sw.print("validate(context, violations, null, object, ");
+      sw.print("new ");
+      sw.print(validatorClass.getCanonicalName());
+      sw.print("(), ");
+      sw.print(constraintDescriptorVar("this",count));
+      sw.println(", groups);");
+    }
+    Class<?> superClass=clazz.getSuperclass();
+    writeValidateInterfaces(sw,clazz);
+    while (superClass != null) {
+      if (serverSideValidator.getConstraintsForClass(superClass).isBeanConstrained()) {
+        sw.print("//  GWT.create(");
+        sw.print(superClass.getCanonicalName());
+        sw.println("_GwtSpecificValidator);");
+      }
+      writeValidateInterfaces(sw,superClass);
+      superClass=superClass.getSuperclass();
+    }
+    beanType.getFields();
+  }
   sw.println("return violations;");
   sw.outdent();
   sw.println("}");

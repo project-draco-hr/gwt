@@ -1,0 +1,38 @@
+{
+  Annotation annotation=constraint.getAnnotation();
+  Class<? extends Annotation> annotationType=annotation.annotationType();
+  sw.print("new ");
+  sw.print(annotationType.getCanonicalName());
+  sw.println("(){");
+  sw.indent();
+  sw.indent();
+  sw.print("public Class<? extends Annotation> annotationType() {  return ");
+  sw.print(annotationType.getCanonicalName());
+  sw.println(".class; }");
+  for (  Method method : annotationType.getMethods()) {
+    if (method.getDeclaringClass().equals(annotation.annotationType())) {
+      sw.print("public ");
+      sw.print(method.getReturnType().getCanonicalName());
+      sw.print(" ");
+      sw.print(method.getName());
+      sw.print("() { return ");
+      try {
+        Object value=method.invoke(annotation);
+        sw.print(asLiteral(value));
+      }
+ catch (      IllegalArgumentException e) {
+        throw error(logger,e);
+      }
+catch (      IllegalAccessException e) {
+        throw error(logger,e);
+      }
+catch (      InvocationTargetException e) {
+        throw error(logger,e);
+      }
+      sw.println(";}");
+    }
+  }
+  sw.outdent();
+  sw.outdent();
+  sw.println("}");
+}

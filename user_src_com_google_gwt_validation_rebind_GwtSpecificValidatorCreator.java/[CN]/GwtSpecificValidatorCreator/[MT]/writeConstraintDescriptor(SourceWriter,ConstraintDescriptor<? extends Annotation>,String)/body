@@ -1,0 +1,58 @@
+{
+  Class<? extends Annotation> annotationType=constraint.getAnnotation().annotationType();
+  int count=0;
+  for (  ConstraintDescriptor<?> composingConstraint : constraint.getComposingConstraints()) {
+    writeConstraintDescriptor(sw,composingConstraint,constraintDescripotorVar + "_" + count++);
+  }
+  sw.print(ConstraintDescriptorImpl.class.getCanonicalName());
+  sw.print("<");
+  sw.print(annotationType.getCanonicalName());
+  sw.print(">");
+  sw.println(" " + constraintDescripotorVar + "  = ");
+  sw.indent();
+  sw.indent();
+  sw.print(ConstraintDescriptorImpl.class.getCanonicalName());
+  sw.print(".<");
+  sw.print(annotationType.getCanonicalName());
+  sw.println("> builder()");
+  sw.indent();
+  sw.indent();
+  sw.println(".setAnnotation( ");
+  sw.indent();
+  sw.indent();
+  writeNewAnnotation(sw,constraint);
+  sw.println(")");
+  sw.outdent();
+  sw.outdent();
+  sw.println(".setAttributes(attributeBuilder()");
+  sw.indent();
+  for (  Map.Entry<String,Object> entry : constraint.getAttributes().entrySet()) {
+    sw.print(".put(");
+    sw.print(asLiteral(entry.getKey()));
+    sw.print(", ");
+    sw.print(asLiteral(entry.getValue()));
+    sw.println(")");
+  }
+  sw.println(".build())");
+  sw.outdent();
+  sw.print(".setConstraintValidatorClasses(");
+  sw.print(asLiteral(asArray(constraint.getConstraintValidatorClasses(),new Class[0])));
+  sw.println(")");
+  sw.print(".setGroups(");
+  Set<Class<?>> groups=constraint.getGroups();
+  sw.print(asLiteral(asArray(groups,new Class<?>[0])));
+  sw.println(")");
+  sw.print(".setPayload(");
+  Set<Class<? extends Payload>> payload=constraint.getPayload();
+  sw.print(asLiteral(asArray(payload,new Class[0])));
+  sw.println(")");
+  sw.print(".setReportAsSingleViolation(");
+  sw.print(Boolean.valueOf(constraint.isReportAsSingleViolation()).toString());
+  sw.println(")");
+  sw.println(".build();");
+  sw.outdent();
+  sw.outdent();
+  sw.outdent();
+  sw.outdent();
+  sw.println();
+}
