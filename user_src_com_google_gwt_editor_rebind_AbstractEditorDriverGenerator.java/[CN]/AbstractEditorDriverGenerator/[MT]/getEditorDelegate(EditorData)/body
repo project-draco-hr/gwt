@@ -126,13 +126,16 @@
     sw.println("public static void traverseEditor(%s editor," + " String prefix, %s<String> paths) {",editor.getQualifiedSourceName(),List.class.getName());
     sw.indent();
     for (    EditorData d : data) {
-      if (d.isDelegateRequired() || d.isDeclaredPathNested()) {
+      if (d.isDelegateRequired() || d.isDeclaredPathNested() || d.isCompositeEditor()) {
         sw.println("if (editor.%s != null) {",d.getSimpleExpression());
         sw.indent();
         sw.println("String localPath = appendPath(prefix, \"%s\");",d.getDeclaredPath());
         sw.println("paths.add(localPath);");
         if (d.isDelegateRequired()) {
           sw.println("%s.traverseEditor(editor.%s, localPath, paths);",getEditorDelegate(d),d.getSimpleExpression());
+        }
+        if (d.isCompositeEditor()) {
+          sw.println("%s.traverseEditor(editor.%s.createEditorForTraversal(), localPath, paths);",getEditorDelegate(d.getComposedData()),d.getSimpleExpression());
         }
         sw.outdent();
         sw.println("}");
