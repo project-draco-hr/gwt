@@ -1,0 +1,33 @@
+{
+  MockJavaResource intf=new MockJavaResource("my.MyPlaceHistoryMapper"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package my;\n");
+      code.append("import com.google.gwt.place.shared.PlaceHistoryMapperWithFactory;\n");
+      code.append("import com.google.gwt.place.shared.PlaceTokenizer;\n");
+      code.append("import com.google.gwt.place.shared.WithTokenizers;\n");
+      code.append("import com.google.gwt.place.shared.Prefix;\n");
+      code.append("import com.google.gwt.place.testplaces.Place1;\n");
+      code.append("@WithTokenizers(Place1.Tokenizer.class)\n");
+      code.append("public interface MyPlaceHistoryMapper extends PlaceHistoryMapperWithFactory<MyPlaceHistoryMapper.Factory> {\n");
+      code.append("  interface Factory {\n");
+      code.append("    @Prefix(\"anotherPrefix\") PlaceTokenizer<Place1> bar();\n");
+      code.append("  }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+;
+  TypeOracle typeOracle=createTypeOracle(intf);
+  UnitTestTreeLogger.Builder loggerBuilder=new UnitTestTreeLogger.Builder();
+  loggerBuilder.expectError(String.format("Found duplicate tokenizer's place type \"%s\" on %s, already seen on %s",Place1.class.getName(),Place1.Tokenizer.class.getCanonicalName(),intf.getTypeName() + ".Factory#bar()"),null);
+  UnitTestTreeLogger logger=loggerBuilder.createLogger();
+  PlaceHistoryGeneratorContext context=createContext(logger,typeOracle,intf.getTypeName(),intf.getTypeName() + ".Factory");
+  try {
+    context.ensureInitialized();
+    fail();
+  }
+ catch (  UnableToCompleteException e) {
+  }
+  logger.assertCorrectLogEntries();
+}
