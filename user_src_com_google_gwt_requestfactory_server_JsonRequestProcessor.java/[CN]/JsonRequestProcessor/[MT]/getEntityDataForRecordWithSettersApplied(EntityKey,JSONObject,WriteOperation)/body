@@ -3,18 +3,15 @@
   Map<String,Property<?>> propertiesInProxy=getPropertiesFromRecordProxyType(entityKey.proxyType);
   Map<String,Class<?>> propertiesInDomain=updatePropertyTypes(propertiesInProxy,entityType);
   validateKeys(recordObject,propertiesInDomain.keySet());
-  Object entityInstance=getEntityInstance(writeOperation,entityType,entityKey.decodedId(propertiesInProxy.get(Constants.ENTITY_ID_PROPERTY).getType()),propertiesInProxy.get(Constants.ENTITY_ID_PROPERTY).getType());
+  Class<?> idType=getIdMethodForEntity(entityType).getReturnType();
+  Object entityInstance=getEntityInstance(writeOperation,entityType,entityKey.decodedId(idType),idType);
   cachedEntityLookup.put(entityKey,entityInstance);
   Iterator<?> keys=recordObject.keys();
   while (keys.hasNext()) {
     String key=(String)keys.next();
-    Class<?> propertyType=propertiesInDomain.get(key);
     Property<?> dtoProperty=propertiesInProxy.get(key);
     if (writeOperation == WriteOperation.PERSIST && (Constants.ENTITY_ID_PROPERTY.equals(key))) {
-      String id=generateIdForCreate(key);
-      if (id != null) {
-        entityType.getMethod(getMethodNameFromPropertyName(key,"set"),propertyType).invoke(entityInstance,id);
-      }
+      continue;
     }
  else {
       Object propertyValue=null;
