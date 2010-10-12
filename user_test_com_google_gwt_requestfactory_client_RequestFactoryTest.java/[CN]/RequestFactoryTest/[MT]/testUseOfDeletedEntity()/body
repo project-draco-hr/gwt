@@ -1,0 +1,36 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  SimpleBarRequest context=simpleBarRequest();
+  SimpleBarProxy willDelete=context.create(SimpleBarProxy.class);
+  willDelete.setUserName("A");
+  context.persistAndReturnSelf().using(willDelete).fire(new Receiver<SimpleBarProxy>(){
+    @Override public void onSuccess(    SimpleBarProxy response){
+      assertEquals("A",response.getUserName());
+      SimpleBarRequest context=simpleBarRequest();
+      response=context.edit(response);
+      response.setFindFails(true);
+      response.setUserName("B");
+      context.persistAndReturnSelf().using(response).fire(new Receiver<SimpleBarProxy>(){
+        @Override public void onSuccess(        SimpleBarProxy response){
+          assertNotNull(response);
+          assertEquals("B",response.getUserName());
+          SimpleBarRequest context=simpleBarRequest();
+          response=context.edit(response);
+          response.setUserName("C");
+          context.persistAndReturnSelf().using(response).fire(new Receiver<SimpleBarProxy>(){
+            @Override public void onFailure(            ServerFailure error){
+              assertTrue(error.getMessage().contains("The requested entity is not available on" + " the server"));
+              finishTestAndReset();
+            }
+            @Override public void onSuccess(            SimpleBarProxy response){
+              fail();
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}

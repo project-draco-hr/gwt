@@ -5,6 +5,9 @@
   validateKeys(recordObject,propertiesInDomain.keySet());
   Class<?> idType=getIdMethodForEntity(entityType).getReturnType();
   Object entityInstance=getEntityInstance(writeOperation,entityType,entityKey.decodedId(idType),idType);
+  if (entityInstance == null) {
+    throw new DeadEntityException("The requested entity is not available on the server");
+  }
   cachedEntityLookup.put(entityKey,entityInstance);
   Iterator<?> keys=recordObject.keys();
   while (keys.hasNext()) {
