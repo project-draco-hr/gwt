@@ -1,0 +1,41 @@
+{
+  CLDRFile supp=cldrFactory.make("supplementalData",true,DraftStatus.approved);
+  currencyFractions=new HashMap<String,Integer>();
+  defaultCurrencyFraction=0;
+  XPathParts parts=new XPathParts();
+  Iterator<String> iterator=supp.iterator("//supplementalData/currencyData/fractions/info");
+  while (iterator.hasNext()) {
+    String path=iterator.next();
+    parts.set(supp.getFullXPath(path));
+    Map<String,String> attr=parts.findAttributes("info");
+    if (attr == null) {
+      continue;
+    }
+    String curCode=attr.get("iso4217");
+    int digits=Integer.valueOf(attr.get("digits"));
+    if ("DEFAULT".equalsIgnoreCase(curCode)) {
+      defaultCurrencyFraction=digits;
+    }
+ else {
+      currencyFractions.put(curCode,digits);
+    }
+  }
+  iterator=supp.iterator("//supplementalData/currencyData/region");
+  while (iterator.hasNext()) {
+    String path=iterator.next();
+    parts.set(supp.getFullXPath(path));
+    Map<String,String> attr=parts.findAttributes("currency");
+    if (attr == null) {
+      continue;
+    }
+    String region=parts.findAttributeValue("region","iso3166");
+    String curCode=attr.get("iso4217");
+    if ("ZZ".equals(region) || "false".equals(attr.get("tender")) || "XXX".equals(curCode)) {
+      continue;
+    }
+    String to=attr.get("to");
+    if (to == null) {
+      stillInUse.add(curCode);
+    }
+  }
+}

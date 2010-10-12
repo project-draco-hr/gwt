@@ -1,0 +1,15 @@
+{
+  localeData.addEntries("predef",cldrFactory,"//ldml/dates/calendars/calendar[@type=\"gregorian\"]/dateTimeFormats/" + "availableFormats","dateFormatItem","id");
+  for (  GwtLocale locale : localeData.getAllLocales()) {
+    DateTimePatternGenerator dtpg=new DateTimePatternGenerator(locale);
+    for (    Map.Entry<String,String> entry : FORMATS.entrySet()) {
+      String skeleton=entry.getKey();
+      String cldrPattern=localeData.getEntry("predef",locale,skeleton);
+      String pattern=dtpg.getBestPattern(skeleton);
+      if (cldrPattern != null && !cldrPattern.equals(pattern)) {
+        System.err.println("Mismatch on skeleton pattern in locale " + locale + " for skeleton '"+ skeleton+ "': icu='"+ pattern+ "', cldr='"+ cldrPattern+ "'");
+      }
+      localeData.addEntry("predef",locale,skeleton,pattern);
+    }
+  }
+}

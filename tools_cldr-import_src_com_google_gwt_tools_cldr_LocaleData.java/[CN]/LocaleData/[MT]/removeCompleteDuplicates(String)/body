@@ -1,0 +1,30 @@
+{
+  MapKey[] keys=getSortedMapKeys();
+  for (  MapKey key : keys) {
+    String category=key.getCategory();
+    if (matchCategory != null && !matchCategory.equals(category)) {
+      continue;
+    }
+    GwtLocale locale=key.getLocale();
+    GwtLocale parent=inheritsFrom(category,locale);
+    if (parent == null) {
+      continue;
+    }
+    MapKey parentKey=key.inNewLocale(parent);
+    Map<String,String> parentMap=maps.get(parentKey);
+    if (parentMap == null) {
+      continue;
+    }
+    Map<String,String> map=maps.get(key);
+    boolean allMatch=true;
+    for (    Map.Entry<String,String> entry : map.entrySet()) {
+      if (!entry.getValue().equals(parentMap.get(entry.getKey()))) {
+        allMatch=false;
+        break;
+      }
+    }
+    if (allMatch) {
+      maps.remove(key);
+    }
+  }
+}

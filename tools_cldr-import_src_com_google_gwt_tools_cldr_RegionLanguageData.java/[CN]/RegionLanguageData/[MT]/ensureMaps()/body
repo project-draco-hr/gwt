@@ -1,0 +1,40 @@
+{
+  if (regionMap != null) {
+    return;
+  }
+  regionMap=new HashMap<String,SortedSet<LanguagePopulation>>();
+  languageMap=new HashMap<String,SortedSet<RegionPopulation>>();
+  CLDRFile supp=cldrFactory.make("supplementalData",true,DraftStatus.approved);
+  XPathParts parts=new XPathParts();
+  Iterator<String> iterator=supp.iterator("//supplementalData/territoryInfo/territory");
+  while (iterator.hasNext()) {
+    String path=iterator.next();
+    parts.set(supp.getFullXPath(path));
+    String language=parts.findAttributeValue("languagePopulation","type");
+    if (language == null) {
+      continue;
+    }
+    String territory=parts.findAttributeValue("territory","type");
+    String literacyPercentStr=parts.findAttributeValue("territory","literacyPercent");
+    String populationStr=parts.findAttributeValue("territory","population");
+    String populationPercentStr=parts.findAttributeValue("languagePopulation","populationPercent");
+    String statusStr=parts.findAttributeValue("languagePopulation","officialStatus");
+    double literacyPercent=Double.parseDouble(literacyPercentStr) * .01;
+    double population=Double.parseDouble(populationStr);
+    double populationPercent=Double.parseDouble(populationPercentStr) * .01;
+    double literatePopulation=population * populationPercent * literacyPercent;
+    boolean official="official".equals(statusStr);
+    SortedSet<RegionPopulation> regPop=languageMap.get(language);
+    if (regPop == null) {
+      regPop=new TreeSet<RegionPopulation>();
+      languageMap.put(language,regPop);
+    }
+    regPop.add(new RegionPopulation(territory,literatePopulation,official));
+    SortedSet<LanguagePopulation> langPop=regionMap.get(territory);
+    if (langPop == null) {
+      langPop=new TreeSet<LanguagePopulation>();
+      regionMap.put(territory,langPop);
+    }
+    langPop.add(new LanguagePopulation(language,literatePopulation,official));
+  }
+}

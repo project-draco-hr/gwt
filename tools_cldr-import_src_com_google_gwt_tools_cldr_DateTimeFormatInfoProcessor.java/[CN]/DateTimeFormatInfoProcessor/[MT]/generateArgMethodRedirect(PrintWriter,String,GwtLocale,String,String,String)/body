@@ -1,0 +1,41 @@
+{
+  String value=localeData.getEntry(category,locale,key);
+  if (value != null) {
+    pw.println();
+    if (getOverrides()) {
+      pw.println("  @Override");
+    }
+    pw.print("  public String " + method + "(");
+    String prefix="";
+    for (    String arg : args) {
+      pw.print(prefix + "String " + arg);
+      prefix=", ";
+    }
+    pw.println(") {");
+    final StringBuffer buf=new StringBuffer();
+    final StringGenerator gen=new StringGenerator(buf,false);
+    try {
+      List<TemplateChunk> chunks=MessageFormatParser.parse(value);
+      for (      TemplateChunk chunk : chunks) {
+        chunk.accept(new DefaultTemplateChunkVisitor(){
+          @Override public void visit(          ArgumentChunk argChunk) throws UnableToCompleteException {
+            gen.appendStringValuedExpression(args[argChunk.getArgumentNumber()]);
+          }
+          @Override public void visit(          StringChunk stringChunk) throws UnableToCompleteException {
+            gen.appendStringLiteral(stringChunk.getString());
+          }
+        }
+);
+      }
+    }
+ catch (    ParseException e) {
+      throw new RuntimeException("Unable to parse pattern '" + value + "' for locale "+ locale+ " key "+ category+ "/"+ key,e);
+    }
+catch (    UnableToCompleteException e) {
+      throw new RuntimeException("Unable to parse pattern '" + value + "' for locale "+ locale+ " key "+ category+ "/"+ key,e);
+    }
+    gen.completeString();
+    pw.println("    return " + buf.toString() + ";");
+    pw.println("  }");
+  }
+}
