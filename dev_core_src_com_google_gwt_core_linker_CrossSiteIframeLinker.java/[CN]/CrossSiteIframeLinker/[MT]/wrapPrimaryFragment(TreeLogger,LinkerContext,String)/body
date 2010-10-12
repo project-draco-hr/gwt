@@ -1,0 +1,22 @@
+{
+  StringBuffer out=new StringBuffer();
+  if (shouldIncludeBootstrapInPrimaryFragment(context)) {
+    try {
+      out.append(generateSelectionScript(logger,context,null));
+    }
+ catch (    UnableToCompleteException e) {
+      logger.log(TreeLogger.ERROR,"Problem setting up selection script",e);
+      e.printStackTrace();
+    }
+  }
+  if (shouldInstallCode(context)) {
+    out.append(context.getModuleFunctionName());
+    out.append(".onScriptDownloaded(");
+    out.append(JsToStringGenerationVisitor.javaScriptString(script.toString()));
+    out.append(")");
+  }
+ else {
+    out.append(script.toString());
+  }
+  return out.toString();
+}

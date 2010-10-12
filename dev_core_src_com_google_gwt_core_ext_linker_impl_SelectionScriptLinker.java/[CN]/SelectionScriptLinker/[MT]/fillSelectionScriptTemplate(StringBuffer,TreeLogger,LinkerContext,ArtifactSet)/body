@@ -1,0 +1,20 @@
+{
+  String computeScriptBase;
+  String processMetas;
+  try {
+    computeScriptBase=Utility.getFileFromClassPath(COMPUTE_SCRIPT_BASE_JS);
+    processMetas=Utility.getFileFromClassPath(PROCESS_METAS_JS);
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Unable to read selection script template",e);
+    throw new UnableToCompleteException();
+  }
+  replaceAll(selectionScript,"__COMPUTE_SCRIPT_BASE__",computeScriptBase);
+  replaceAll(selectionScript,"__PROCESS_METAS__",processMetas);
+  selectionScript=ResourceInjectionUtil.injectResources(selectionScript,artifacts);
+  permutationsUtil.addPermutationsJs(selectionScript,logger,context);
+  replaceAll(selectionScript,"__MODULE_FUNC__",context.getModuleFunctionName());
+  replaceAll(selectionScript,"__MODULE_NAME__",context.getModuleName());
+  replaceAll(selectionScript,"__HOSTED_FILENAME__",getHostedFilename());
+  return selectionScript.toString();
+}

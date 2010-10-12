@@ -1,33 +1,9 @@
 {
-  StringBuffer selectionScript=getSelectionScriptStringBuffer(logger,context);
-  String computeScriptBase;
-  String processMetas;
-  try {
-    computeScriptBase=Utility.getFileFromClassPath(COMPUTE_SCRIPT_BASE_JS);
-    processMetas=Utility.getFileFromClassPath(PROCESS_METAS_JS);
+  if (selectionScriptText != null) {
+    return selectionScriptText;
   }
- catch (  IOException e) {
-    logger.log(TreeLogger.ERROR,"Unable to read selection script template",e);
-    throw new UnableToCompleteException();
-  }
-  replaceAll(selectionScript,"__COMPUTE_SCRIPT_BASE__",computeScriptBase);
-  replaceAll(selectionScript,"__PROCESS_METAS__",processMetas);
-  int startPos=selectionScript.indexOf("// __MODULE_STYLES_END__");
-  if (startPos != -1) {
-    for (    StylesheetReference resource : artifacts.find(StylesheetReference.class)) {
-      String text=generateStylesheetInjector(resource.getSrc());
-      selectionScript.insert(startPos,text);
-      startPos+=text.length();
-    }
-  }
-  startPos=selectionScript.indexOf("// __MODULE_SCRIPTS_END__");
-  if (startPos != -1) {
-    for (    ScriptReference resource : artifacts.find(ScriptReference.class)) {
-      String text=generateScriptInjector(resource.getSrc());
-      selectionScript.insert(startPos,text);
-      startPos+=text.length();
-    }
-  }
-  selectionScript=processSelectionScriptCommon(selectionScript,logger,context);
-  return selectionScript.toString();
+  StringBuffer buffer=readFileToStringBuffer(getSelectionScriptTemplate(logger,context),logger);
+  selectionScriptText=fillSelectionScriptTemplate(buffer,logger,context,artifacts);
+  selectionScriptText=context.optimizeJavaScript(logger,selectionScriptText);
+  return selectionScriptText;
 }
