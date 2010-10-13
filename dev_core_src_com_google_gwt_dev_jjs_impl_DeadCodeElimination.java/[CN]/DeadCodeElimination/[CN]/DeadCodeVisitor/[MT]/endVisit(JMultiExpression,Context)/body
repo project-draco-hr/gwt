@@ -1,8 +1,13 @@
 {
   List<JExpression> exprs=x.exprs;
-  if (exprs.size() > 1) {
-    List<JExpression> nonFinalChildren=exprs.subList(0,exprs.size() - 1);
-    ignoringExpressionOutput.removeAll(nonFinalChildren);
+  if (exprs.size() > 0) {
+    if (ignoringExpressionOutput.contains(x)) {
+      ignoringExpressionOutput.removeAll(exprs);
+    }
+ else {
+      List<JExpression> nonFinalChildren=exprs.subList(0,exprs.size() - 1);
+      ignoringExpressionOutput.removeAll(nonFinalChildren);
+    }
   }
   for (int i=0; i < numRemovableExpressions(x); ++i) {
     JExpression expr=x.exprs.get(i);
@@ -21,6 +26,6 @@
     }
   }
   if (x.exprs.size() == 1) {
-    ctx.replaceMe(x.exprs.get(0));
+    maybeReplaceMe(x,x.exprs.get(0),ctx);
   }
 }

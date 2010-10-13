@@ -1,9 +1,10 @@
 {
+  info=getBestSourceInfo(original,info,condExpr);
   if (condExpr instanceof JMultiExpression) {
     JMultiExpression condMulti=(JMultiExpression)condExpr;
-    JMultiExpression newMulti=new JMultiExpression(sourceInfo);
+    JMultiExpression newMulti=new JMultiExpression(info);
     newMulti.exprs.addAll(allButLast(condMulti.exprs));
-    newMulti.exprs.add(conditional(null,sourceInfo,type,last(condMulti.exprs),thenExpr,elseExpr));
+    newMulti.exprs.add(conditional(null,info,type,last(condMulti.exprs),thenExpr,elseExpr));
     return newMulti;
   }
   if (condExpr instanceof JBooleanLiteral) {
@@ -16,34 +17,30 @@
   }
  else   if (thenExpr instanceof JBooleanLiteral) {
     if (((JBooleanLiteral)thenExpr).getValue()) {
-      JBinaryOperation binOp=new JBinaryOperation(sourceInfo,type,JBinaryOperator.OR,condExpr,elseExpr);
-      return binOp;
+      return shortCircuitOr(null,info,condExpr,elseExpr);
     }
  else {
-      JPrefixOperation notCondExpr=new JPrefixOperation(condExpr.getSourceInfo(),JUnaryOperator.NOT,condExpr);
-      JBinaryOperation binOp=new JBinaryOperation(sourceInfo,type,JBinaryOperator.AND,notCondExpr,elseExpr);
-      return binOp;
+      JExpression notCondExpr=not(null,condExpr.getSourceInfo(),condExpr);
+      return shortCircuitAnd(null,info,notCondExpr,elseExpr);
     }
   }
  else   if (elseExpr instanceof JBooleanLiteral) {
     if (((JBooleanLiteral)elseExpr).getValue()) {
-      JPrefixOperation notCondExpr=new JPrefixOperation(condExpr.getSourceInfo(),JUnaryOperator.NOT,condExpr);
-      JBinaryOperation binOp=new JBinaryOperation(sourceInfo,type,JBinaryOperator.OR,notCondExpr,thenExpr);
-      return binOp;
+      JExpression notCondExpr=not(null,condExpr.getSourceInfo(),condExpr);
+      return shortCircuitOr(null,info,notCondExpr,thenExpr);
     }
  else {
-      JBinaryOperation binOp=new JBinaryOperation(sourceInfo,type,JBinaryOperator.AND,condExpr,thenExpr);
-      return binOp;
+      return shortCircuitAnd(null,info,condExpr,thenExpr);
     }
   }
  else {
     JExpression unflipped=maybeUnflipBoolean(condExpr);
     if (unflipped != null) {
-      return new JConditional(sourceInfo,type,unflipped,elseExpr,thenExpr);
+      return new JConditional(info,type,unflipped,elseExpr,thenExpr);
     }
   }
   if (original != null) {
     return original;
   }
-  return new JConditional(sourceInfo,type,condExpr,thenExpr,elseExpr);
+  return new JConditional(info,type,condExpr,thenExpr,elseExpr);
 }

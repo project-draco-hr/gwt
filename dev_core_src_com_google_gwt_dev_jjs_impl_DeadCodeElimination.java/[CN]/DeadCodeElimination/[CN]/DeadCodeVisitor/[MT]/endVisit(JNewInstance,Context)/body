@@ -1,12 +1,16 @@
 {
   super.endVisit(x,ctx);
-  if (!ignoringExpressionOutput.contains(x) || !x.getTarget().isEmpty()) {
-    return;
+  if (ignoringExpressionOutput.contains(x)) {
+    if (!x.getTarget().isEmpty()) {
+      return;
+    }
+    JMultiExpression multi=new JMultiExpression(x.getSourceInfo());
+    multi.exprs.addAll(x.getArgs());
+    if (x.hasClinit()) {
+      multi.exprs.add(createClinitCall(x.getSourceInfo(),x.getTarget().getEnclosingType()));
+    }
+    ignoringExpressionOutput.add(multi);
+    ctx.replaceMe(this.accept(multi));
+    ignoringExpressionOutput.remove(multi);
   }
-  JMultiExpression multi=new JMultiExpression(x.getSourceInfo());
-  multi.exprs.addAll(x.getArgs());
-  if (x.hasClinit()) {
-    multi.exprs.add(createClinitCall(x.getSourceInfo(),x.getTarget().getEnclosingType()));
-  }
-  ctx.replaceMe(accept(multi));
 }

@@ -1,11 +1,12 @@
 {
+  info=getBestSourceInfo(original,info,condExpr);
   if (condExpr instanceof JMultiExpression) {
     JMultiExpression condMulti=(JMultiExpression)condExpr;
-    JBlock newBlock=new JBlock(sourceInfo);
+    JBlock newBlock=new JBlock(info);
     for (    JExpression expr : allButLast(condMulti.exprs)) {
       newBlock.addStmt(expr.makeStatement());
     }
-    newBlock.addStmt(ifStatement(null,sourceInfo,last(condMulti.exprs),thenStmt,elseStmt,currentMethod));
+    newBlock.addStmt(ifStatement(null,info,last(condMulti.exprs),thenStmt,elseStmt,currentMethod));
     return newBlock;
   }
   if (condExpr instanceof JBooleanLiteral) {
@@ -29,15 +30,15 @@
     if (unflipped != null) {
       thenStmt=ensureBlock(thenStmt);
       elseStmt=ensureBlock(elseStmt);
-      return ifStatement(null,sourceInfo,unflipped,elseStmt,thenStmt,currentMethod);
+      return ifStatement(null,info,unflipped,elseStmt,thenStmt,currentMethod);
     }
   }
-  JStatement rewritenStatement=rewriteIfIntoBoolean(sourceInfo,condExpr,thenStmt,elseStmt,currentMethod);
+  JStatement rewritenStatement=rewriteIfIntoBoolean(info,condExpr,thenStmt,elseStmt,currentMethod);
   if (rewritenStatement != null) {
     return rewritenStatement;
   }
   if (original != null) {
     return original;
   }
-  return new JIfStatement(condExpr.getSourceInfo(),condExpr,thenStmt,elseStmt);
+  return new JIfStatement(info,condExpr,thenStmt,elseStmt);
 }

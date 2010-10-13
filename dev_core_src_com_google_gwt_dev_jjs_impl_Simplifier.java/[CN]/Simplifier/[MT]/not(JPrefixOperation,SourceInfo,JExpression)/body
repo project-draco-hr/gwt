@@ -1,9 +1,10 @@
 {
+  info=getBestSourceInfo(original,info,arg);
   if (arg instanceof JMultiExpression) {
     JMultiExpression argMulti=(JMultiExpression)arg;
-    JMultiExpression newMulti=new JMultiExpression(sourceInfo);
+    JMultiExpression newMulti=new JMultiExpression(info);
     newMulti.exprs.addAll(allButLast(argMulti.exprs));
-    newMulti.exprs.add(not(null,sourceInfo,last(argMulti.exprs)));
+    newMulti.exprs.add(not(null,info,last(argMulti.exprs)));
     return newMulti;
   }
   if (arg instanceof JBinaryOperation) {
@@ -29,7 +30,7 @@
       newOp=JBinaryOperator.GTE;
     }
     if (newOp != null) {
-      JBinaryOperation newBinOp=new JBinaryOperation(argOp.getSourceInfo(),argOp.getType(),newOp,argOp.getLhs(),argOp.getRhs());
+      JBinaryOperation newBinOp=new JBinaryOperation(info,argOp.getType(),newOp,argOp.getLhs(),argOp.getRhs());
       return newBinOp;
     }
   }
@@ -40,8 +41,12 @@
       return argOp.getArg();
     }
   }
+ else   if (arg instanceof JBooleanLiteral) {
+    JBooleanLiteral booleanLit=(JBooleanLiteral)arg;
+    return JBooleanLiteral.get(!booleanLit.getValue());
+  }
   if (original != null) {
     return original;
   }
-  return new JPrefixOperation(arg.getSourceInfo(),JUnaryOperator.NOT,arg);
+  return new JPrefixOperation(info,JUnaryOperator.NOT,arg);
 }
