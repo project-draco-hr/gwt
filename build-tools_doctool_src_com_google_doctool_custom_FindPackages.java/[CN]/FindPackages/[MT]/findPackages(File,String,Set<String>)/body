@@ -1,0 +1,31 @@
+{
+  File[] files=dir.listFiles();
+  if (files == null) {
+    return;
+  }
+  boolean hasJava=false;
+  for (  File f : files) {
+    String name=f.getName();
+    if (f.isDirectory()) {
+      String subPackage=packageName == null ? name : packageName + "." + name;
+      findPackages(f,subPackage,packages);
+    }
+ else {
+      if (!hasJava && name.endsWith(".java")) {
+        hasJava=true;
+      }
+    }
+  }
+  if (hasJava && packageName != null) {
+    int index;
+    if ((index=packageName.indexOf(".translatable.")) != -1) {
+      packageName=packageName.substring(index + 14);
+    }
+    if ((index=packageName.indexOf(".super.")) != -1) {
+      packageName=packageName.substring(index + 7);
+    }
+    if (!exclusions.matcher(packageName).find()) {
+      packages.add(packageName);
+    }
+  }
+}
