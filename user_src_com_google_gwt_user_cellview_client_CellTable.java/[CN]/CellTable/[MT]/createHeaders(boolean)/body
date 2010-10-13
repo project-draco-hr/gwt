@@ -6,24 +6,37 @@
   SafeHtmlBuilder sb=new SafeHtmlBuilder();
   sb.appendHtmlConstant("<tr>");
   int columnCount=columns.size();
-  int curColumn=0;
-  for (  Header<?> header : theHeaders) {
+  if (columnCount > 0) {
+    Header<?> prevHeader=theHeaders.get(0);
+    int prevColspan=1;
     StringBuilder classesBuilder=new StringBuilder(className);
-    if (curColumn == 0) {
-      classesBuilder.append(" ");
-      classesBuilder.append(isFooter ? style.cellTableFirstColumnFooter() : style.cellTableFirstColumnHeader());
-    }
-    if (curColumn == columnCount - 1) {
-      classesBuilder.append(" ");
-      classesBuilder.append(isFooter ? style.cellTableLastColumnFooter() : style.cellTableLastColumnHeader());
+    classesBuilder.append(" ");
+    classesBuilder.append(isFooter ? style.cellTableFirstColumnFooter() : style.cellTableFirstColumnHeader());
+    for (int curColumn=1; curColumn < columnCount; curColumn++) {
+      Header<?> header=theHeaders.get(curColumn);
+      if (header != prevHeader) {
+        SafeHtmlBuilder headerBuilder=new SafeHtmlBuilder();
+        if (prevHeader != null) {
+          hasHeader=true;
+          prevHeader.render(headerBuilder);
+        }
+        sb.append(template.th(prevColspan,classesBuilder.toString(),headerBuilder.toSafeHtml()));
+        prevHeader=header;
+        prevColspan=1;
+        classesBuilder=new StringBuilder(className);
+      }
+ else {
+        prevColspan++;
+      }
     }
     SafeHtmlBuilder headerBuilder=new SafeHtmlBuilder();
-    if (header != null) {
+    if (prevHeader != null) {
       hasHeader=true;
-      header.render(headerBuilder);
+      prevHeader.render(headerBuilder);
     }
-    sb.append(template.th(classesBuilder.toString(),headerBuilder.toSafeHtml()));
-    curColumn++;
+    classesBuilder.append(" ");
+    classesBuilder.append(isFooter ? style.cellTableLastColumnFooter() : style.cellTableLastColumnHeader());
+    sb.append(template.th(prevColspan,classesBuilder.toString(),headerBuilder.toSafeHtml()));
   }
   sb.appendHtmlConstant("</tr>");
   TABLE_IMPL.replaceAllRows(this,section,sb.toSafeHtml());
