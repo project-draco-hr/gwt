@@ -35,7 +35,7 @@ Element target=event.getEventTarget().cast();
 ArrayList<Element> chain=new ArrayList<Element>();
 collectElementChain(chain,getElement(),target);
 boolean isMouseDown="mousedown".equals(eventType);
-CellTreeNodeView<?> nodeView=findItemByChain(chain,0,rootNode);
+final CellTreeNodeView<?> nodeView=findItemByChain(chain,0,rootNode);
 if (nodeView != null && nodeView != rootNode) {
 if (isMouseDown) {
 Element showMoreElem=nodeView.getShowMoreElement();
@@ -48,10 +48,20 @@ nodeView.showMore();
 return;
 }
 }
-if (nodeView.getCellParent().isOrHasChild(target)) {
+if (nodeView.getSelectionElement().isOrHasChild(target)) {
 if ("focus".equals(eventType) || isMouseDown) {
-isFocused=true;
-keyboardSelect(nodeView,false);
+final boolean targetsCellParent=nodeView.getCellParent().isOrHasChild(target);
+keyboardSelectCommand=new ScheduledCommand(){
+public void execute(){
+  if (keyboardSelectCommand == this && !nodeView.isDestroyed()) {
+    isFocused=true;
+    keyboardSelectCommand=null;
+    keyboardSelect(nodeView,!targetsCellParent);
+  }
+}
+}
+;
+Scheduler.get().scheduleDeferred(keyboardSelectCommand);
 }
 nodeView.fireEventToCell(event);
 }
