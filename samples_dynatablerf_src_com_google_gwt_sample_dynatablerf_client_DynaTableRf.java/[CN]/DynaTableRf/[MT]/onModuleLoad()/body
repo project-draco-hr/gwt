@@ -1,7 +1,6 @@
 {
   GWT.setUncaughtExceptionHandler(new UncaughtExceptionHandler(){
     public void onUncaughtException(    Throwable e){
-      Window.alert("Error: " + e.getMessage());
       log.log(Level.SEVERE,e.getMessage(),e);
     }
   }
@@ -14,6 +13,7 @@
     }
   }
 ;
+  Logger.getLogger("").addHandler(new ErrorDialog().getHandler());
   Logger.getLogger("").addHandler(new RequestFactoryLogHandler(provider,Level.WARNING,new ArrayList<String>()));
   FavoritesManager manager=new FavoritesManager(requests);
   PersonEditorWorkflow.register(eventBus,requests,manager);
@@ -21,4 +21,7 @@
   favorites=new FavoritesWidget(eventBus,requests,manager);
   filter=new DayFilterWidget(eventBus);
   RootLayoutPanel.get().add(GWT.<Binder>create(Binder.class).createAndBindUi(this));
+  if (GWT.getHostPageBaseURL().startsWith("file:")) {
+    log.log(Level.SEVERE,"The DynaTableRf sample cannot be run without its" + " server component.  If you are running the sample from a" + " GWT distribution, use the 'ant devmode' target to launch"+ " the DTRF server.");
+  }
 }

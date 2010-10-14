@@ -1,31 +1,26 @@
 {
-  PersonProxy person=event.getPerson();
-  if (person == null) {
+  EntityProxyId<PersonProxy> id=event.getId();
+  if (id == null) {
     return;
   }
-  EntityProxyId<PersonProxy> lookFor=person.stableId();
   PersonProxy found=null;
   for (  PersonProxy displayed : displayedList) {
-    if (displayed.stableId().equals(lookFor)) {
+    if (displayed.stableId().equals(id)) {
       found=displayed;
       break;
     }
   }
   if (event.isFavorite() && found == null) {
-    displayedList.add(person);
+    factory.find(id).to(new Receiver<PersonProxy>(){
+      @Override public void onSuccess(      PersonProxy response){
+        displayedList.add(response);
+        sortDisplayedList();
+      }
+    }
+).fire();
   }
  else   if (!event.isFavorite() && found != null) {
-    displayedList.remove(person);
+    displayedList.remove(found);
+    sortDisplayedList();
   }
- else {
-    return;
-  }
-  Collections.sort(displayedList,new Comparator<PersonProxy>(){
-    public int compare(    PersonProxy o1,    PersonProxy o2){
-      String name1=o1.getName() == null ? "" : o1.getName();
-      String name2=o2.getName() == null ? "" : o2.getName();
-      return name1.compareToIgnoreCase(name2);
-    }
-  }
-);
 }

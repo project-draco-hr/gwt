@@ -1,13 +1,13 @@
 {
   Request<PersonProxy> fetchRequest=requestFactory.find(person.stableId());
   fetchRequest.with(editorDriver.getPaths());
-  fetchRequest.fire(new Receiver<PersonProxy>(){
+  fetchRequest.to(new Receiver<PersonProxy>(){
     @Override public void onSuccess(    PersonProxy person){
       PersonEditorWorkflow.this.person=person;
       PersonRequest context=requestFactory.personRequest();
-      context.persist().using(person);
       edit(context);
+      context.persist().using(person);
     }
   }
-);
+).fire();
 }

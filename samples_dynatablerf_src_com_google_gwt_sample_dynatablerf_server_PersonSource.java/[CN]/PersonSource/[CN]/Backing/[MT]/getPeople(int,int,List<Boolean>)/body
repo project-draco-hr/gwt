@@ -1,0 +1,30 @@
+{
+  int peopleCount=countPeople();
+  int start=startIndex;
+  if (start >= peopleCount) {
+    return Collections.emptyList();
+  }
+  int end=Math.min(startIndex + maxCount,peopleCount);
+  if (start == end) {
+    return Collections.emptyList();
+  }
+  if (ALL_DAYS.equals(daysFilter)) {
+    return new ArrayList<Person>(people.values()).subList(start,end);
+  }
+ else   if (NO_DAYS.equals(daysFilter)) {
+    return new ArrayList<Person>();
+  }
+  Iterator<Person> it=people.values().iterator();
+  int skipped=0;
+  List<Person> toReturn=new ArrayList<Person>(maxCount);
+  while (toReturn.size() < maxCount && it.hasNext()) {
+    Person person=it.next();
+    if (person.getScheduleWithFilter(daysFilter).length() > 0) {
+      if (skipped++ < startIndex) {
+        continue;
+      }
+      toReturn.add(person);
+    }
+  }
+  return toReturn;
+}

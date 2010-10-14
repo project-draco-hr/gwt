@@ -1,9 +1,11 @@
 {
-  requestFactory.schoolCalendarRequest().getPeople(start,numRows).fire(new Receiver<List<PersonProxy>>(){
+  lastFetch=start;
+  requestFactory.schoolCalendarRequest().getPeople(start,numRows,filter).fire(new Receiver<List<PersonProxy>>(){
     @Override public void onSuccess(    List<PersonProxy> response){
       int responses=response.size();
       table.setRowData(start,response);
-      if (!table.isRowCountExact()) {
+      pager.setPageStart(start);
+      if (start == 0 || !table.isRowCountExact()) {
         table.setRowCount(start + responses,responses < numRows);
       }
     }

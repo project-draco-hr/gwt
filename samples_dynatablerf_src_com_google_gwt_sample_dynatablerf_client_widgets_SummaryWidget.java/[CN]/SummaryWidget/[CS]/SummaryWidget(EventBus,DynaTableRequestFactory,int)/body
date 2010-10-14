@@ -21,8 +21,17 @@
 );
   FilterChangeEvent.register(eventBus,new FilterChangeEvent.Handler(){
     public void onFilterChanged(    FilterChangeEvent e){
-      filter[e.getDay()]=e.isSelected();
-      fetch(0);
+      filter.set(e.getDay(),e.isSelected());
+      if (!pending) {
+        pending=true;
+        Scheduler.get().scheduleFinally(new ScheduledCommand(){
+          public void execute(){
+            pending=false;
+            fetch(0);
+          }
+        }
+);
+      }
     }
   }
 );
