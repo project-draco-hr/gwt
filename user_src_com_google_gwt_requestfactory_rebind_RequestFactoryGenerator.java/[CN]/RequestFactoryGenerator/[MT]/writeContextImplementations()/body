@@ -14,8 +14,12 @@
       String operation=jmethod.getEnclosingType().getQualifiedBinaryName() + "::" + jmethod.getName();
       StringBuilder parameterArray=new StringBuilder();
       StringBuilder parameterDeclaration=new StringBuilder();
+      StringBuilder typeParameterDeclaration=new StringBuilder();
       if (request.isInstance()) {
         parameterArray.append(",null");
+      }
+      for (      JTypeParameter param : jmethod.getTypeParameters()) {
+        typeParameterDeclaration.append(",").append(param.getQualifiedSourceName());
       }
       for (      JParameter param : jmethod.getParameters()) {
         parameterArray.append(",").append(param.getName());
@@ -27,7 +31,10 @@
       if (parameterDeclaration.length() > 0) {
         parameterDeclaration.deleteCharAt(0);
       }
-      sw.println("public %s %s(%s) {",jmethod.getReturnType().getParameterizedQualifiedSourceName(),jmethod.getName(),parameterDeclaration);
+      if (typeParameterDeclaration.length() > 0) {
+        typeParameterDeclaration.deleteCharAt(0).insert(0,"<").append(">");
+      }
+      sw.println("public %s %s %s(%s) {",typeParameterDeclaration,jmethod.getReturnType().getParameterizedQualifiedSourceName(),jmethod.getName(),parameterDeclaration);
       sw.indent();
       sw.println("class X extends %s<%s> implements %s {",AbstractRequest.class.getCanonicalName(),request.getDataType().getParameterizedQualifiedSourceName(),jmethod.getReturnType().getParameterizedQualifiedSourceName());
       sw.indent();
@@ -43,10 +50,10 @@
         Class<?> collectionType=request.getCollectionType().equals(CollectionType.LIST) ? ArrayList.class : HashSet.class;
         sw.println("decoded = new %s();",collectionType.getCanonicalName());
         String decodeMethod=request.isValueType() ? "decodeReturnValueList" : "decodeReturnObjectList";
-        sw.println("%s(%s.class, obj, (%s)decoded);",decodeMethod,request.getCollectionElementType().getQualifiedSourceName(),collectionType.getCanonicalName());
+        sw.println("%s(%s.class, obj, (%s)decoded);",decodeMethod,ModelUtils.getQualifiedBaseName(request.getCollectionElementType()),collectionType.getCanonicalName());
       }
  else       if (request.isValueType()) {
-        sw.println("decoded = %s.convertFromString(%s.class, String.valueOf(obj));",ValueCodex.class.getCanonicalName(),request.getDataType().getQualifiedSourceName());
+        sw.println("decoded = %s.convertFromString(%s.class, String.valueOf(obj));",ValueCodex.class.getCanonicalName(),ModelUtils.getQualifiedBaseName(request.getDataType()));
       }
  else       if (request.isEntityType()) {
         sw.println("decoded = decodeReturnObject(%s.class, obj);",request.getEntityType().getQualifiedSourceName());
