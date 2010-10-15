@@ -2,7 +2,8 @@
   this.listener=listener;
   this.requestFactory=requestFactory;
   this.employee=employee;
-  reportDataProvider=new AsyncDataProvider<ReportProxy>(Expenses.REPORT_RECORD_KEY_PROVIDER){
+  EntityProxyKeyProvider<ReportProxy> keyProvider=new EntityProxyKeyProvider<ReportProxy>();
+  reportDataProvider=new AsyncDataProvider<ReportProxy>(keyProvider){
     @Override protected void onRangeChanged(    HasData<ReportProxy> view){
       requestReports();
     }
@@ -17,7 +18,7 @@
   }
 );
   reportList.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
-  reportSelection=new NoSelectionModel<ReportProxy>(Expenses.REPORT_RECORD_KEY_PROVIDER);
+  reportSelection=new NoSelectionModel<ReportProxy>(keyProvider);
   reportSelection.addSelectionChangeHandler(new SelectionChangeEvent.Handler(){
     public void onSelectionChange(    SelectionChangeEvent event){
       listener.onReportSelected(reportSelection.getLastSelectedObject());

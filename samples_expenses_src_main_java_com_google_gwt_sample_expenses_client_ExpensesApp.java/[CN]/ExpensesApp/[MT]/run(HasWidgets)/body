@@ -1,0 +1,43 @@
+{
+  GWT.setUncaughtExceptionHandler(new GWT.UncaughtExceptionHandler(){
+    public void onUncaughtException(    Throwable e){
+      log.log(Level.SEVERE,e.getMessage(),e);
+    }
+  }
+);
+  final ExpenseTree expenseTree=shell.getExpenseTree();
+  final ExpenseList expenseList=shell.getExpenseList();
+  final ExpenseDetails expenseDetails=shell.getExpenseDetails();
+  root.add(shell);
+  RequestEvent.register(eventBus,new AuthenticationFailureHandler());
+  final LoginWidget login=shell.getLoginWidget();
+  Receiver<UserInformationProxy> receiver=new Receiver<UserInformationProxy>(){
+    @Override public void onSuccess(    UserInformationProxy userInformationRecord){
+      login.setUserInformation(userInformationRecord);
+    }
+  }
+;
+  requestFactory.userInformationRequest().getCurrentUserInformation(Location.getHref()).fire(receiver);
+  expenseTree.setListener(new ExpenseTree.Listener(){
+    public void onSelection(    String department,    EmployeeProxy employee){
+      lastDepartment=department;
+      lastEmployee=employee;
+      expenseList.setEmployee(department,employee);
+      shell.showExpenseDetails(false);
+    }
+  }
+);
+  expenseList.setListener(new ExpenseList.Listener(){
+    public void onReportSelected(    ReportProxy report){
+      expenseDetails.setReportRecord(report,lastDepartment,lastEmployee);
+      shell.showExpenseDetails(true);
+    }
+  }
+);
+  expenseList.init(requestFactory,eventBus);
+  expenseDetails.init(eventBus);
+  placeHistoryHandler.register(placeController,eventBus,new Place(){
+  }
+);
+  placeHistoryHandler.handleCurrentHistory();
+}
