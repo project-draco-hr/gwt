@@ -6,9 +6,14 @@
   }
 );
   final ExpenseTree expenseTree=shell.getExpenseTree();
-  final ExpenseList expenseList=shell.getExpenseList();
-  final ExpenseDetails expenseDetails=shell.getExpenseDetails();
-  root.add(shell);
+  final ExpenseReportList expenseList=shell.getExpenseList();
+  final ExpenseReportDetails expenseDetails=shell.getExpenseDetails();
+  expenseDetails.getReportsLink().addClickHandler(new ClickHandler(){
+    public void onClick(    ClickEvent event){
+      placeController.goTo(expenseDetails.getReportListPlace());
+    }
+  }
+);
   RequestEvent.register(eventBus,new AuthenticationFailureHandler());
   final LoginWidget login=shell.getLoginWidget();
   Receiver<UserInformationProxy> receiver=new Receiver<UserInformationProxy>(){
@@ -19,25 +24,21 @@
 ;
   requestFactory.userInformationRequest().getCurrentUserInformation(Location.getHref()).fire(receiver);
   expenseTree.setListener(new ExpenseTree.Listener(){
-    public void onSelection(    String department,    EmployeeProxy employee){
-      lastDepartment=department;
+    public void onSelection(    String department,    EntityProxyId<EmployeeProxy> employee){
       lastEmployee=employee;
-      expenseList.setEmployee(department,employee);
-      shell.showExpenseDetails(false);
+      lastDepartment=department;
+      placeController.goTo(new ReportListPlace(employee,department));
     }
   }
 );
-  expenseList.setListener(new ExpenseList.Listener(){
+  expenseList.setListener(new ExpenseReportList.Listener(){
     public void onReportSelected(    ReportProxy report){
-      expenseDetails.setReportRecord(report,lastDepartment,lastEmployee);
-      shell.showExpenseDetails(true);
+      placeController.goTo(new ReportPlace(new ReportListPlace(lastEmployee,lastDepartment),report.stableId()));
     }
   }
 );
-  expenseList.init(requestFactory,eventBus);
-  expenseDetails.init(eventBus);
-  placeHistoryHandler.register(placeController,eventBus,new Place(){
-  }
-);
+  activityManager.setDisplay(shell.getPanel());
+  placeHistoryHandler.register(placeController,eventBus,ReportListPlace.ALL);
   placeHistoryHandler.handleCurrentHistory();
+  root.add(shell);
 }
