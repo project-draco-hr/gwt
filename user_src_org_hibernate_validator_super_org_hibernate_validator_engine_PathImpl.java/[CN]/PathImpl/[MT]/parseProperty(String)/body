@@ -1,0 +1,32 @@
+{
+  PathImpl path=new PathImpl();
+  String tmp=property;
+  do {
+    MatchResult matcher=pathPattern.exec(tmp);
+    if (matcher != null) {
+      String value=matcher.getGroup(1);
+      String indexed=matcher.getGroup(2);
+      String index=matcher.getGroup(3);
+      NodeImpl node=new NodeImpl(value);
+      if (indexed != null) {
+        node.setInIterable(true);
+      }
+      if (index != null && index.length() > 0) {
+        try {
+          Integer i=Integer.parseInt(index);
+          node.setIndex(i);
+        }
+ catch (        NumberFormatException e) {
+          node.setKey(index);
+        }
+      }
+      path.addNode(node);
+      tmp=matcher.getGroup(5);
+    }
+ else {
+      throw new IllegalArgumentException("Unable to parse property path " + property);
+    }
+  }
+ while (tmp != null);
+  return path;
+}
