@@ -1,12 +1,7 @@
 {
-  Set<ConstraintViolation<Person>> violations=validator.validate(person,Default.class,ServerGroup.class);
-  if (!violations.isEmpty()) {
-    Set<ConstraintViolation<?>> temp=new HashSet<ConstraintViolation<?>>(violations);
-    throw new ConstraintViolationException(temp);
-  }
   String serverInfo=getServletContext().getServerInfo();
   String userAgent=getThreadLocalRequest().getHeader("User-Agent");
-  SafeHtmlBuilder builder=new SafeHtmlBuilder();
-  SafeHtml safeHtml=builder.appendEscapedLines("Hello, " + person.getName() + "!").appendHtmlConstant("<br>").appendEscaped("I am running " + serverInfo + ".").appendHtmlConstant("<br><br>").appendEscaped("It looks like you are using: ").appendEscaped(userAgent).toSafeHtml();
-  return safeHtml;
+  String value=escapeHtml(person.getName());
+  userAgent=escapeHtml(userAgent);
+  return "Hello, " + value + "!<br><br>I am running "+ serverInfo+ ".<br><br>It looks like you are using:<br>"+ userAgent;
 }

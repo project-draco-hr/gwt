@@ -17,27 +17,15 @@
   sendButton.setEnabled(false);
   textToServer.setText(person.getName());
   serverResponse.setText("");
-  greetingService.greetServer(person,new AsyncCallback<SafeHtml>(){
+  greetingService.greetServer(person,new AsyncCallback<String>(){
     public void onFailure(    Throwable caught){
-      if (caught instanceof ConstraintViolationException) {
-        ConstraintViolationException violationException=(ConstraintViolationException)caught;
-        Set<ConstraintViolation<?>> violations=violationException.getConstraintViolations();
-        StringBuffer sb=new StringBuffer();
-        for (        ConstraintViolation<?> constraintViolation : violations) {
-          sb.append(constraintViolation.getPropertyPath().toString()).append(":").append(constraintViolation.getMessage()).append("\n");
-        }
-        errorLabel.setText(sb.toString());
-        sendButton.setEnabled(true);
-        sendButton.setFocus(true);
-        return;
-      }
       dialogBox.setText("Remote Procedure Call - Failure");
       serverResponse.addStyleName(style.error());
       serverResponse.setHTML(SERVER_ERROR);
       dialogBox.center();
       closeButton.setFocus(true);
     }
-    public void onSuccess(    SafeHtml result){
+    public void onSuccess(    String result){
       dialogBox.setText("Remote Procedure Call");
       serverResponse.removeStyleName(style.error());
       serverResponse.setHTML(result);
