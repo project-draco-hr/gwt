@@ -1,0 +1,53 @@
+{
+  localeData.copyLocaleData("en","default","territory","languages","scripts","variants");
+  for (  GwtLocale locale : localeData.getNonEmptyLocales("territory")) {
+    Map<String,String> map=localeData.getEntries("territory",locale);
+    List<String> countryCodes=new ArrayList<String>();
+    for (    String regionCode : map.keySet()) {
+      if (!"ZZ".equals(regionCode) && regionCode.length() == 2) {
+        countryCodes.add(regionCode);
+      }
+    }
+    Locale javaLocale=new Locale(locale.getLanguageNotNull(),locale.getRegionNotNull(),locale.getVariantNotNull());
+    Collator collator=Collator.getInstance(javaLocale);
+    IndexedName[] names=new IndexedName[countryCodes.size()];
+    for (int i=0; i < names.length; ++i) {
+      names[i]=new IndexedName(collator,i,map.get(countryCodes.get(i)));
+    }
+    Arrays.sort(names);
+    StringBuilder buf=new StringBuilder();
+    boolean first=true;
+    for (int i=0; i < names.length; ++i) {
+      if (first) {
+        first=false;
+      }
+ else {
+        buf.append(',');
+      }
+      buf.append(countryCodes.get(names[i].getIndex()));
+    }
+    localeData.addEntry("territory",locale,"!sortorder",buf.toString());
+  }
+  Set<String> locales=cldrFactory.getAvailableLanguages();
+  for (  GwtLocale locale : localeData.getAllLocales()) {
+    Set<RegionPopulation> regions=getRegionsForLocale(locale);
+    StringBuilder buf=new StringBuilder();
+    if (!locale.isDefault()) {
+      int count=0;
+      for (      RegionPopulation region : regions) {
+        if (++count > 10 || region.getLiteratePopulation() < 3000000) {
+          break;
+        }
+        if (count > 1) {
+          buf.append(',');
+        }
+        buf.append(region.getRegion());
+      }
+    }
+    localeData.addEntry("territory",locale,"!likelyorder",buf.toString());
+  }
+  localeData.removeDuplicates("territory");
+  localeData.removeDuplicates("language");
+  localeData.removeDuplicates("script");
+  localeData.removeDuplicates("variant");
+}

@@ -1,0 +1,69 @@
+{
+  PrintWriter pw=null;
+  try {
+    pw=createFile("LocalizedNamesImpl","java",locale.getAsString());
+    printHeader(pw);
+    pw.println("package com.google.gwt.i18n.client.impl.cldr;");
+    pw.println();
+    if (!regionCodesWithNames.isEmpty()) {
+      pw.println("import com.google.gwt.core.client.JavaScriptObject;");
+      pw.println();
+    }
+    pw.println("// DO NOT EDIT - GENERATED FROM CLDR DATA");
+    pw.println();
+    pw.println("/**");
+    pw.println(" * Localized names for the \"" + locale + "\" locale.");
+    pw.println(" */");
+    pw.print("public class LocalizedNamesImpl" + localeSuffix(locale) + " extends ");
+    if (locale.isDefault()) {
+      pw.print("LocalizedNamesImplBase");
+    }
+ else {
+      pw.print("LocalizedNamesImpl" + localeSuffix(localeData.inheritsFrom(locale)));
+    }
+    pw.println(" {");
+    if (!locale.isDefault()) {
+      if (likelyOrder != null) {
+        writeStringListMethod(pw,"loadLikelyRegionCodes",likelyOrder);
+      }
+      if (sortOrder != null) {
+        writeStringListMethod(pw,"loadSortedRegionCodes",sortOrder);
+      }
+      if (!regionCodesWithNames.isEmpty()) {
+        pw.println();
+        pw.println("  @Override");
+        pw.println("  protected void loadNameMapJava() {");
+        pw.println("    super.loadNameMapJava();");
+        for (        String code : regionCodesWithNames) {
+          String name=namesMap.get(code);
+          if (name != null && !name.equals(code)) {
+            pw.println("    namesMap.put(\"" + quote(code) + "\", \""+ quote(name)+ "\");");
+          }
+        }
+        pw.println("  }");
+        pw.println();
+        pw.println("  @Override");
+        pw.println("  protected JavaScriptObject loadNameMapNative() {");
+        pw.println("    return overrideMap(super.loadNameMapNative(), " + "loadMyNameMap());");
+        pw.println("  }");
+        pw.println();
+        pw.println("  private native JavaScriptObject loadMyNameMap() /*-{");
+        generateNativeMap(pw,regionCodesWithNames,namesMap);
+        pw.println("  }-*/;");
+      }
+    }
+ else     if (!regionCodesWithNames.isEmpty()) {
+      pw.println();
+      pw.println("  @Override");
+      pw.println("  protected native JavaScriptObject loadNameMapNative() " + "/*-{");
+      generateNativeMap(pw,regionCodesWithNames,namesMap);
+      pw.println("  }-*/;");
+    }
+    pw.println("}");
+  }
+  finally {
+    if (pw != null) {
+      pw.close();
+    }
+  }
+}

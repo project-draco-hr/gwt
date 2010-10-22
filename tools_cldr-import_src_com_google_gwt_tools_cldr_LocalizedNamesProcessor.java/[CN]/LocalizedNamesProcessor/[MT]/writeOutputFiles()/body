@@ -1,0 +1,21 @@
+{
+  for (  GwtLocale locale : localeData.getNonEmptyLocales("territory")) {
+    Map<String,String> namesMap=localeData.getEntries("territory",locale);
+    List<String> regionCodesWithNames=new ArrayList<String>();
+    for (    String regionCode : namesMap.keySet()) {
+      if (!regionCode.startsWith("!")) {
+        regionCodesWithNames.add(regionCode);
+      }
+    }
+    String[] sortOrder=getRegionOrder(namesMap.get("!sortorder"));
+    String[] likelyOrder=getRegionOrder(namesMap.get("!likelyorder"));
+    if (regionCodesWithNames.isEmpty() && sortOrder == null && likelyOrder == null) {
+      return;
+    }
+    Collections.sort(regionCodesWithNames);
+    if (locale.isDefault()) {
+      generateDefaultLocale(namesMap,regionCodesWithNames,sortOrder,likelyOrder);
+    }
+    generateLocale(locale,namesMap,regionCodesWithNames,sortOrder,likelyOrder);
+  }
+}
