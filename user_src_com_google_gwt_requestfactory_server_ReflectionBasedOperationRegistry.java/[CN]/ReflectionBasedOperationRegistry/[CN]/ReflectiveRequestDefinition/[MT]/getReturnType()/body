@@ -3,14 +3,24 @@
   Class<?> requestReturnType=getReturnTypeFromParameter(requestMethod,requestMethod.getGenericReturnType());
   if (EntityProxy.class.isAssignableFrom(requestReturnType)) {
     ProxyFor annotation=requestReturnType.getAnnotation(ProxyFor.class);
+    ProxyForName nameAnnotation=requestReturnType.getAnnotation(ProxyForName.class);
+    Class<?> dtoClass=null;
     if (annotation != null) {
-      Class<?> dtoClass=annotation.value();
-      if (!dtoClass.equals(domainReturnType)) {
-        throw new IllegalArgumentException("Type mismatch between " + domainMethod + " return type, and "+ requestReturnType+ "'s ProxyFor annotation "+ dtoClass);
+      dtoClass=annotation.value();
+    }
+ else     if (nameAnnotation != null) {
+      try {
+        dtoClass=Class.forName(nameAnnotation.value(),false,Thread.currentThread().getContextClassLoader());
+      }
+ catch (      ClassNotFoundException e) {
+        throw new IllegalArgumentException("Unknown type specified in ProxyForName annotation",e);
       }
     }
  else {
       throw new IllegalArgumentException("Missing ProxyFor annotation on proxy type " + requestReturnType);
+    }
+    if (!dtoClass.equals(domainReturnType)) {
+      throw new IllegalArgumentException("Type mismatch between " + domainMethod + " return type, and "+ requestReturnType+ "'s ProxyFor annotation "+ dtoClass);
     }
     return requestReturnType;
   }

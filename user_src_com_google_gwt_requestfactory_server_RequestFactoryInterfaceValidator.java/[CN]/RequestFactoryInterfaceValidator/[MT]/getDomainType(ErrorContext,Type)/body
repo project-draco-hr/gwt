@@ -1,0 +1,23 @@
+{
+  Type toReturn=clientToDomainType.get(clientType);
+  if (toReturn != null) {
+    return toReturn;
+  }
+  if (isValueType(logger,clientType) || isCollectionType(logger,clientType)) {
+    toReturn=clientType;
+  }
+ else {
+    logger=logger.setType(clientType);
+    DomainMapper pv=new DomainMapper(logger);
+    visit(logger,clientType.getInternalName(),pv);
+    if (pv.getDomainInternalName() == null) {
+      logger.poison("%s has no mapping to a domain type (e.g. @%s or @%s)",print(clientType),ProxyFor.class.getSimpleName(),Service.class.getSimpleName());
+      toReturn=errorType;
+    }
+ else {
+      toReturn=Type.getObjectType(pv.getDomainInternalName());
+    }
+  }
+  clientToDomainType.put(clientType,toReturn);
+  return toReturn;
+}

@@ -1,0 +1,15 @@
+{
+  logger=logger.setMethod(method);
+  Type returnType=getReturnType(logger,method);
+  Method searchFor=createDomainMethod(logger,new Method(method.getName(),returnType,method.getArgumentTypes()));
+  RFMethod found=findCompatibleMethod(logger,domainServiceType,searchFor);
+  if (found != null) {
+    boolean isInstance=isAssignable(logger,instanceRequestIntf,method.getReturnType());
+    if (isInstance && found.isDeclaredStatic()) {
+      logger.poison("The method %s is declared to return %s, but the" + " service method is static",method.getName(),InstanceRequest.class.getCanonicalName());
+    }
+ else     if (!isInstance && !found.isDeclaredStatic) {
+      logger.poison("The method %s is declared to return %s, but the" + " service method is not static",method.getName(),Request.class.getCanonicalName());
+    }
+  }
+}

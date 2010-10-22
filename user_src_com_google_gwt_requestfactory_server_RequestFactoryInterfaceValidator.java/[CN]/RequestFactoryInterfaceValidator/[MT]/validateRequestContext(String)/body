@@ -1,0 +1,30 @@
+{
+  if (!Name.isBinaryName(binaryName)) {
+    parentLogger.poison("%s is not a binary name",binaryName);
+    return;
+  }
+  if (!validatedTypes.add(binaryName)) {
+    return;
+  }
+  if (FindRequest.class.getName().equals(binaryName)) {
+    return;
+  }
+  Type requestContextType=Type.getObjectType(BinaryName.toInternalName(binaryName));
+  final ErrorContext logger=parentLogger.setType(requestContextType);
+  if (!isAssignable(logger,requestContextIntf,requestContextType)) {
+    logger.poison("%s is not a %s",print(requestContextType),RequestContext.class.getSimpleName());
+    return;
+  }
+  Type domainServiceType=getDomainType(logger,requestContextType);
+  if (domainServiceType == errorType) {
+    logger.poison("The type %s must be annotated with a @%s or @%s annotation",BinaryName.toSourceName(binaryName),Service.class.getSimpleName(),ServiceName.class.getSimpleName());
+    return;
+  }
+  for (  RFMethod method : getMethodsInHierarchy(logger,requestContextType)) {
+    if (findCompatibleMethod(logger,requestContextIntf,method,false,true) != null) {
+      continue;
+    }
+    checkClientMethodInDomain(logger,method,domainServiceType);
+    maybeCheckReferredProxies(logger,method);
+  }
+}

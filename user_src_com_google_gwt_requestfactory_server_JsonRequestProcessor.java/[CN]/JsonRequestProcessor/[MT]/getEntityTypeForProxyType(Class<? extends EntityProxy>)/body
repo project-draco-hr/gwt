@@ -3,5 +3,14 @@
   if (dtoAnn != null) {
     return (Class<Object>)dtoAnn.value();
   }
+  ProxyForName name=record.getAnnotation(ProxyForName.class);
+  if (name != null) {
+    try {
+      return (Class<Object>)Class.forName(name.value(),false,Thread.currentThread().getContextClassLoader());
+    }
+ catch (    ClassNotFoundException e) {
+      throw new IllegalArgumentException("Could not find ProxyForName class",e);
+    }
+  }
   throw new IllegalArgumentException("Proxy class " + record.getName() + " missing ProxyFor annotation");
 }

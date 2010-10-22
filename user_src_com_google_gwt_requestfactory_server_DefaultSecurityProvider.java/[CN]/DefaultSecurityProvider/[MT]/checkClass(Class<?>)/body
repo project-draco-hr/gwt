@@ -1,12 +1,20 @@
 {
   Service service=clazz.getAnnotation(Service.class);
-  if (service == null) {
+  ServiceName serviceName=clazz.getAnnotation(ServiceName.class);
+  String className;
+  if (service != null) {
+    className=service.value().getName();
+  }
+ else   if (serviceName != null) {
+    className=serviceName.value();
+  }
+ else {
     throw new SecurityException("Class " + clazz.getName() + " does not have a @Service annotation.");
   }
   try {
-    Class.forName(service.value().getCanonicalName());
+    Class.forName(className);
   }
  catch (  ClassNotFoundException e) {
-    throw new SecurityException("Class " + service.value() + " from @Service annotation on "+ clazz+ " cannot be loaded.");
+    throw new SecurityException("Class " + className + " from @Service annotation on "+ clazz+ " cannot be loaded.");
   }
 }

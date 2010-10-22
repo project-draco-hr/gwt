@@ -75,8 +75,9 @@
     return new Date(Long.parseLong(parameterValue));
   }
   if (EntityProxy.class.isAssignableFrom(parameterType)) {
-    ProxyFor service=parameterType.getAnnotation(ProxyFor.class);
-    if (service != null) {
+    ProxyFor proxyFor=parameterType.getAnnotation(ProxyFor.class);
+    ProxyForName proxyForName=parameterType.getAnnotation(ProxyForName.class);
+    if (proxyFor != null || proxyForName != null) {
       EntityKey entityKey=getEntityKey(parameterValue.toString());
       DvsData dvsData=dvsDataMap.get(entityKey);
       if (dvsData != null) {
@@ -91,8 +92,9 @@
   }
   if (EntityProxyId.class.isAssignableFrom(parameterType)) {
     EntityKey entityKey=getEntityKey(parameterValue.toString());
-    ProxyFor service=entityKey.proxyType.getAnnotation(ProxyFor.class);
-    if (service == null) {
+    ProxyFor proxyFor=entityKey.proxyType.getAnnotation(ProxyFor.class);
+    ProxyForName proxyForName=entityKey.proxyType.getAnnotation(ProxyForName.class);
+    if (proxyFor == null && proxyForName == null) {
       throw new IllegalArgumentException("Unknown service, unable to decode " + parameterValue);
     }
     involvedKeys.add(entityKey);
