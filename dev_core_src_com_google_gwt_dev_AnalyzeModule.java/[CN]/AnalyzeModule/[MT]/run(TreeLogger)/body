@@ -1,0 +1,12 @@
+{
+  for (  String moduleName : options.getModuleNames()) {
+    File compilerWorkDir=options.getCompilerWorkDir(moduleName);
+    Util.recursiveDelete(compilerWorkDir,true);
+    compilerWorkDir.mkdirs();
+    ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
+    logger.log(TreeLogger.INFO,"Analyzing module " + module.getName());
+    int numPermutations=new PropertyPermutations(module.getProperties(),module.getActiveLinkerNames()).collapseProperties().size();
+    Util.writeStringAsFile(logger,new File(compilerWorkDir,Precompile.PERM_COUNT_FILENAME),String.valueOf(numPermutations));
+  }
+  return true;
+}
