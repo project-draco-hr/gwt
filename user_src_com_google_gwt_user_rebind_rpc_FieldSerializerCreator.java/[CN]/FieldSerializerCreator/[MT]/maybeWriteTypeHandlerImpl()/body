@@ -1,21 +1,8 @@
 {
-  if (serializableClass.isEnum() == null && serializableClass.isAbstract()) {
+  if (!needsTypeHandler()) {
     return;
   }
-  sourceWriter.println("public static class Handler implements " + TypeHandler.class.getCanonicalName() + " {");
-  sourceWriter.indent();
-  sourceWriter.println("public void deserialize(SerializationStreamReader reader, Object object) throws SerializationException {");
-  if (customFieldSerializer != null) {
-    JMethod deserializationMethod=CustomFieldSerializerValidator.getDeserializationMethod(customFieldSerializer,serializableClass);
-    JType castType=deserializationMethod.getParameters()[1].getType();
-    String typeSig=getTypeSig(deserializationMethod);
-    sourceWriter.indentln(customFieldSerializer.getQualifiedSourceName() + "." + typeSig+ "deserialize(reader, ("+ castType.getQualifiedSourceName()+ ")object);");
-  }
- else {
-    sourceWriter.indentln(fieldSerializerName + ".deserialize(reader, (" + serializableClass.getQualifiedSourceName()+ ")object);");
-  }
-  sourceWriter.println("}");
-  sourceWriter.println("public Object instantiate(SerializationStreamReader reader) throws SerializationException {");
+  sourceWriter.println("public Object create(SerializationStreamReader reader) throws SerializationException {");
   sourceWriter.indent();
   if (serializableClass.isEnum() != null || serializableClass.isDefaultInstantiable() || customFieldSerializerHasInstantiate) {
     sourceWriter.print("return ");
@@ -37,7 +24,20 @@
   }
   sourceWriter.outdent();
   sourceWriter.println("}");
-  sourceWriter.println("public void serialize(SerializationStreamWriter writer, Object object) throws SerializationException {");
+  sourceWriter.println();
+  sourceWriter.println("public void deserial(SerializationStreamReader reader, Object object) throws SerializationException {");
+  if (customFieldSerializer != null) {
+    JMethod deserializationMethod=CustomFieldSerializerValidator.getDeserializationMethod(customFieldSerializer,serializableClass);
+    JType castType=deserializationMethod.getParameters()[1].getType();
+    String typeSig=getTypeSig(deserializationMethod);
+    sourceWriter.indentln(customFieldSerializer.getQualifiedSourceName() + "." + typeSig+ "deserialize(reader, ("+ castType.getQualifiedSourceName()+ ")object);");
+  }
+ else {
+    sourceWriter.indentln(fieldSerializerName + ".deserialize(reader, (" + serializableClass.getQualifiedSourceName()+ ")object);");
+  }
+  sourceWriter.println("}");
+  sourceWriter.println();
+  sourceWriter.println("public void serial(SerializationStreamWriter writer, Object object) throws SerializationException {");
   if (customFieldSerializer != null) {
     JMethod serializationMethod=CustomFieldSerializerValidator.getSerializationMethod(customFieldSerializer,serializableClass);
     JType castType=serializationMethod.getParameters()[1].getType();
@@ -48,6 +48,5 @@
     sourceWriter.indentln(fieldSerializerName + ".serialize(writer, (" + serializableClass.getQualifiedSourceName()+ ")object);");
   }
   sourceWriter.println("}");
-  sourceWriter.outdent();
-  sourceWriter.println("}");
+  sourceWriter.println();
 }
