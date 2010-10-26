@@ -1,4 +1,6 @@
 {
+  JJSOptions options=unifiedAst.getOptions();
+  long startTimeMilliseconds=System.currentTimeMillis();
   Event jjsCompilePermutationEvent=SpeedTracerLogger.start(CompilerEventType.JJS_COMPILE_PERMUTATION,"name",permutation.prettyPrint());
   InternalCompilerException.preload();
   PropertyOracle[] propertyOracles=permutation.getPropertyOracles();
@@ -15,7 +17,6 @@
     AST ast=unifiedAst.getFreshAst();
     JProgram jprogram=ast.getJProgram();
     JsProgram jsProgram=ast.getJsProgram();
-    JJSOptions options=unifiedAst.getOptions();
     Map<StandardSymbolData,JsName> symbolTable=new TreeMap<StandardSymbolData,JsName>(new SymbolData.ClassIdentComparator());
     ResolveRebinds.exec(jprogram,permutation.getOrderedRebindAnswers());
     int optimizationLevel=options.getOptimizationLevel();
@@ -105,11 +106,19 @@ JsIEBlockSizeVisitor.exec(jsProgram);
 JsBreakUpLargeVarStatements.exec(jsProgram,propertyOracles);
 String[] js=new String[jsProgram.getFragmentCount()];
 StatementRanges[] ranges=new StatementRanges[js.length];
-SizeBreakdown[] sizeBreakdowns=options.isSoycEnabled() ? new SizeBreakdown[js.length] : null;
+SizeBreakdown[] sizeBreakdowns=options.isSoycEnabled() || options.isCompilerMetricsEnabled() ? new SizeBreakdown[js.length] : null;
 List<Map<Range,SourceInfo>> sourceInfoMaps=options.isSoycExtra() ? new ArrayList<Map<Range,SourceInfo>>() : null;
 generateJavaScriptCode(options,jsProgram,map,js,ranges,sizeBreakdowns,sourceInfoMaps,splitBlocks);
 PermutationResult toReturn=new PermutationResultImpl(js,permutation,makeSymbolMap(symbolTable),ranges);
 toReturn.addArtifacts(makeSoycArtifacts(logger,permutationId,jprogram,js,sizeBreakdowns,sourceInfoMaps,dependencies,map,obfuscateMap));
+if (options.isCompilerMetricsEnabled()) {
+CompilationMetricsArtifact compilationMetrics=new CompilationMetricsArtifact(permutation.getId());
+compilationMetrics.setCompileElapsedMilliseconds(System.currentTimeMillis() - startTimeMilliseconds);
+compilationMetrics.setElapsedMilliseconds(System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime());
+compilationMetrics.setJsSize(sizeBreakdowns);
+compilationMetrics.setPermutationDescription(permutation.prettyPrint());
+toReturn.addArtifacts(Lists.create(unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics));
+}
 logger.log(TreeLogger.TRACE,"Permutation took " + (System.currentTimeMillis() - permStart) + " ms");
 return toReturn;
 }

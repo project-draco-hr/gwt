@@ -1,0 +1,30 @@
+{
+  pw.append("  <compilation  id=\"" + metrics.getPermuationId() + "\" ");
+  pw.append("elapsed=\"" + metrics.getCompileElapsedMilliseconds() + "\" ");
+  pw.append("totalElapsed=\"" + metrics.getElapsedMilliseconds() + "\" ");
+  String description=metrics.getPermutationDescription();
+  if (description != null) {
+    pw.append(" description=\"" + escapeXmlAttributeContent(description) + "\"");
+  }
+  pw.append(">\n");
+  int[] jsSizes=metrics.getJsSize();
+  if (jsSizes != null) {
+    int totalSize=0, numFragments=0;
+    for (    int size : jsSizes) {
+      totalSize+=size;
+      numFragments++;
+    }
+    pw.append("   <javascript size=\"" + totalSize + "\" fragments=\""+ numFragments+ "\">\n");
+    boolean initialFragment=true;
+    for (    int size : jsSizes) {
+      pw.append("    <fragment ");
+      if (initialFragment) {
+        pw.append("initial=\"true\" ");
+        initialFragment=false;
+      }
+      pw.append("size=\"" + size + "\" />\n");
+    }
+    pw.append("   </javascript>\n");
+  }
+  pw.append("  </compilation>\n");
+}

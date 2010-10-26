@@ -1,11 +1,20 @@
 {
-  if (!anyReportFilesPresent(artifacts)) {
+  boolean reportFilesPresent=anyReportFilesPresent(artifacts);
+  boolean metricsPresent=anyCompilerMetricsPresent(artifacts);
+  if (!reportFilesPresent && !metricsPresent) {
     return artifacts;
   }
-  if (onePermutation) {
-    return emitPermutationDescriptions(artifacts);
+  artifacts=new ArtifactSet(artifacts);
+  if (!onePermutation) {
+    buildCompilerMetricsXml(artifacts);
   }
+  if (reportFilesPresent) {
+    if (onePermutation) {
+      emitPermutationDescriptions(artifacts);
+    }
  else {
-    return buildTopLevelFiles(logger,artifacts);
+      buildTopLevelFiles(logger,artifacts);
+    }
   }
+  return artifacts;
 }

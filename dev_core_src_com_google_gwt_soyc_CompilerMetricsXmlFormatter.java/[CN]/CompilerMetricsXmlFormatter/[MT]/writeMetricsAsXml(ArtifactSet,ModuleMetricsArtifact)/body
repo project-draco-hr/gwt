@@ -1,0 +1,26 @@
+{
+  ByteArrayOutputStream out=new ByteArrayOutputStream();
+  PrintWriter pw=new PrintWriter(out);
+  pw.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+  pw.append("<metrics version=\"" + XML_FORMAT_VERSION + "\" >\n");
+  writeModuleMetricsAsXml(moduleMetrics,pw);
+  Set<PrecompilationMetricsArtifact> precompilationMetrics=artifacts.find(PrecompilationMetricsArtifact.class);
+  if (!precompilationMetrics.isEmpty()) {
+    pw.append(" <precompilations>\n");
+    for (    PrecompilationMetricsArtifact metrics : precompilationMetrics) {
+      writePrecompilationMetricsAsXml(moduleMetrics,metrics,pw);
+    }
+    pw.append(" </precompilations>\n");
+  }
+  Set<CompilationMetricsArtifact> compilationMetrics=artifacts.find(CompilationMetricsArtifact.class);
+  if (!compilationMetrics.isEmpty()) {
+    pw.append(" <compilations>\n");
+    for (    CompilationMetricsArtifact metrics : compilationMetrics) {
+      writeCompilationMetricsAsXml(metrics,pw);
+    }
+    pw.append(" </compilations>\n");
+  }
+  pw.append("</metrics>\n");
+  pw.close();
+  return out.toByteArray();
+}

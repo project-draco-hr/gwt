@@ -1,0 +1,17 @@
+{
+  ModuleMetricsArtifact moduleMetrics=null;
+  Set<ModuleMetricsArtifact> moduleMetricsSet=artifacts.find(ModuleMetricsArtifact.class);
+  if (!moduleMetricsSet.isEmpty()) {
+    for (    ModuleMetricsArtifact metrics : moduleMetricsSet) {
+      moduleMetrics=metrics;
+      break;
+    }
+  }
+  if (moduleMetrics == null) {
+    return;
+  }
+  byte[] xmlResult=CompilerMetricsXmlFormatter.writeMetricsAsXml(artifacts,moduleMetrics);
+  EmittedArtifact metricsArtifact=new SyntheticArtifact(SoycReportLinker.class,"compilerMetrics.xml",xmlResult);
+  metricsArtifact.setPrivate(true);
+  artifacts.add(metricsArtifact);
+}
