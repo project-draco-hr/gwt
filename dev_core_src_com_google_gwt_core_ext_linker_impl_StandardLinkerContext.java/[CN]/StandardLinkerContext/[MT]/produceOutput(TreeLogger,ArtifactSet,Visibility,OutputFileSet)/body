@@ -1,0 +1,24 @@
+{
+  logger=logger.branch(TreeLogger.TRACE,"Linking " + visibility + " artifacts into "+ out.getPathDescription(),null);
+  for (  EmittedArtifact artifact : artifacts.find(EmittedArtifact.class)) {
+    TreeLogger artifactLogger=logger.branch(TreeLogger.DEBUG,"Emitting resource " + artifact.getPartialPath(),null);
+    if (!artifact.getVisibility().matches(visibility)) {
+      continue;
+    }
+    String partialPath=artifact.getPartialPath();
+    if (artifact.getVisibility() != Visibility.Public) {
+      partialPath=getExtraPathForLinker(artifact.getLinker(),partialPath);
+      if (partialPath.startsWith("/")) {
+        partialPath=partialPath.substring(1);
+      }
+    }
+    try {
+      OutputStream artifactStream=out.openForWrite(partialPath,artifact.getLastModified());
+      artifact.writeTo(artifactLogger,artifactStream);
+      artifactStream.close();
+    }
+ catch (    IOException e) {
+      artifactLogger.log(TreeLogger.ERROR,"Fatal error emitting this artifact",e);
+    }
+  }
+}

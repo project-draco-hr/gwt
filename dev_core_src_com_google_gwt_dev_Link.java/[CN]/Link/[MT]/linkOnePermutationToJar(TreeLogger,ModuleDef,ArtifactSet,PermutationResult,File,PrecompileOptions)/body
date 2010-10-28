@@ -15,16 +15,13 @@
     permArtifacts.add(compilation);
     ArtifactSet linkedArtifacts=linkerContext.invokeLinkForOnePermutation(logger,compilation,permArtifacts);
     for (    EmittedArtifact art : linkedArtifacts.find(EmittedArtifact.class)) {
-      String jarEntryPath;
-      if (art.isPrivate()) {
-        String pathWithLinkerName=linkerContext.getExtraPathForLinker(art.getLinker(),art.getPartialPath());
-        if (pathWithLinkerName.startsWith("/")) {
-          pathWithLinkerName=pathWithLinkerName.substring(1);
-        }
-        jarEntryPath="aux/" + pathWithLinkerName;
+      Visibility visibility=art.getVisibility();
+      String jarEntryPath=visibility.name() + "/";
+      if (visibility == Visibility.Public) {
+        jarEntryPath+=art.getPartialPath();
       }
  else {
-        jarEntryPath="target/" + art.getPartialPath();
+        jarEntryPath+=prefixArtifactPath(art,linkerContext);
       }
       ZipEntry ze=new ZipEntry(jarEntryPath);
       ze.setTime(art.getLastModified());

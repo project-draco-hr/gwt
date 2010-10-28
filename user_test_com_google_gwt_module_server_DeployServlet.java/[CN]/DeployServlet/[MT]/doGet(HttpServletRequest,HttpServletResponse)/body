@@ -1,0 +1,30 @@
+{
+  String path=req.getQueryString();
+  ServletContext context=getServletContext();
+  context.log("DeployServlet get: " + path);
+  InputStream istr=null;
+  ServletOutputStream ostr=null;
+  try {
+    istr=context.getResourceAsStream("/WEB-INF/deploy/" + path);
+    if (istr == null) {
+      res.sendError(HttpServletResponse.SC_NOT_FOUND);
+      return;
+    }
+    res.setStatus(HttpServletResponse.SC_OK);
+    res.setContentType("text/plain");
+    ostr=res.getOutputStream();
+    byte[] buf=new byte[4096];
+    int n;
+    while ((n=istr.read(buf)) >= 0) {
+      ostr.write(buf,0,n);
+    }
+  }
+  finally {
+    if (istr != null) {
+      istr.close();
+    }
+    if (ostr != null) {
+      ostr.flush();
+    }
+  }
+}
