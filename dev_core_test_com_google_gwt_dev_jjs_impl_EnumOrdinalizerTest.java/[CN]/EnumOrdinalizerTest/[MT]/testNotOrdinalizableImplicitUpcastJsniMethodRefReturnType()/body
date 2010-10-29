@@ -1,0 +1,11 @@
+{
+  EnumOrdinalizer.startTracker();
+  setupFruitEnum();
+  addSnippetClassDecl("public static Fruit returnSomeFruit() {","  return Fruit.APPLE;","}");
+  addSnippetClassDecl("public static native void jsniMethodRefWithEnumReturn() /*-{","  var result = @test.EntryPoint::returnSomeFruit()();","}-*/");
+  optimize("void","jsniMethodRefWithEnumReturn();");
+  EnumOrdinalizer.Tracker tracker=EnumOrdinalizer.getTracker();
+  EnumOrdinalizer.stopTracker();
+  assertTrue(tracker.isVisited("test.EntryPoint$Fruit"));
+  assertFalse(tracker.isOrdinalized("test.EntryPoint$Fruit"));
+}
