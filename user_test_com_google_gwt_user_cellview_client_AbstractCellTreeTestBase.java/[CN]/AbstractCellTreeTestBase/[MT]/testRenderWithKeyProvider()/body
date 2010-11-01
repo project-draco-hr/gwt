@@ -1,0 +1,35 @@
+{
+  final List<String> rendered=new ArrayList<String>();
+  final Cell<String> cell=new TextCell(){
+    @Override public void render(    String data,    Object key,    SafeHtmlBuilder sb){
+      int call=rendered.size();
+      rendered.add(data);
+      assertTrue("render() called more than thrice",rendered.size() < 4);
+      assertEquals(call + "value",data);
+      assertTrue(key instanceof Integer);
+      assertEquals(call,key);
+    }
+  }
+;
+  TreeViewModel model=new TreeViewModel(){
+    public NodeInfo<?> getNodeInfo(    Object value){
+      ProvidesKey<String> keyProvider=new ProvidesKey<String>(){
+        public Object getKey(        String item){
+          return Integer.parseInt(item.substring(0,1));
+        }
+      }
+;
+      ListDataProvider<String> dataProvider=new ListDataProvider<String>(keyProvider);
+      dataProvider.getList().add("0value");
+      dataProvider.getList().add("1value");
+      dataProvider.getList().add("2value");
+      return new DefaultNodeInfo<String>(dataProvider,cell);
+    }
+    public boolean isLeaf(    Object value){
+      return value != null;
+    }
+  }
+;
+  new CellTree(model,null);
+  assertEquals("Cell#render() should be called exactly thrice",3,rendered.size());
+}
