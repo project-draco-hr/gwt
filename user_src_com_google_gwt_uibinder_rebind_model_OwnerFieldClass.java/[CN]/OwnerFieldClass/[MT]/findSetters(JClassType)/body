@@ -1,14 +1,12 @@
 {
   Map<String,Collection<JMethod>> allSetters=findAllSetters(fieldType);
+  ambiguousSetters=new HashSet<String>();
   for (  String propertyName : allSetters.keySet()) {
     Collection<JMethod> propertySetters=allSetters.get(propertyName);
-    JMethod setter=disambiguateSetters(propertySetters);
-    if (setter == null) {
-      if (ambiguousSetters == null) {
-        ambiguousSetters=new HashSet<String>();
-      }
-      ambiguousSetters.add(propertyName);
-    }
+    JMethod setter=disambiguateSetters(propertyName,propertySetters);
     setters.put(propertyName,setter);
+  }
+  if (ambiguousSetters.size() == 0) {
+    ambiguousSetters=null;
   }
 }

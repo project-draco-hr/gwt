@@ -1,0 +1,24 @@
+{
+  if (propertySetters.size() == 1) {
+    return propertySetters.iterator().next();
+  }
+  JMethod preferredMethod=null;
+  int minRank=Integer.MAX_VALUE;
+  for (  JMethod method : propertySetters) {
+    int rank=rankMethodOnParameters(method);
+    if (rank < minRank) {
+      minRank=rank;
+      preferredMethod=method;
+      ambiguousSetters.remove(propertyName);
+    }
+ else     if (rank == minRank && !sameParameterTypes(preferredMethod,method)) {
+      if (!ambiguousSetters.contains(propertyName)) {
+        ambiguousSetters.add(propertyName);
+      }
+    }
+  }
+  if (ambiguousSetters.contains(propertyName)) {
+    return null;
+  }
+  return preferredMethod;
+}
