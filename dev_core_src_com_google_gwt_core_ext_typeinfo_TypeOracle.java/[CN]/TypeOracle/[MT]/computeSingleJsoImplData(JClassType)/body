@@ -25,7 +25,13 @@
  else       if (type.isAssignableTo(previousType)) {
       }
  else {
-        throw new InternalCompilerException("Already seen an implementing JSO subtype (" + previousType.getName() + ") for interface ("+ intf.getName()+ ") while examining newly-added type ("+ type.getName()+ "). This is a bug in "+ "JSORestrictionsChecker.");
+        JClassType impl=findFullyImplementingBase(intf,type,previousType);
+        if (impl != null) {
+          jsoSingleImpls.put(intf,impl);
+        }
+ else {
+          throw new InternalCompilerException("Already seen an implementing JSO subtype (" + previousType.getName() + ") for interface ("+ intf.getName()+ ") while examining newly-added type ("+ type.getName()+ "). This is a bug in "+ "JSORestrictionsChecker.");
+        }
       }
     }
   }
