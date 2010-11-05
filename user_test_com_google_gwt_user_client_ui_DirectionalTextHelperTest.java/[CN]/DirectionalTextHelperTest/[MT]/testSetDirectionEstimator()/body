@@ -1,0 +1,18 @@
+{
+  element=Document.get().createSpanElement();
+  BidiUtils.setDirectionOnElement(element,Direction.LTR);
+  directionalTextHelper=new DirectionalTextHelper(element,true);
+  directionalTextHelper.setDirectionEstimator(true);
+  assertFalse("setDirectionEstimator(true) refreshed appearance before text" + "had been received",isSpanWrapped());
+  directionalTextHelper.setDirectionEstimator(false);
+  directionalTextHelper.setTextOrHtml(IW_TEXT,false);
+  assertDirection("Original element's direction (LTR) was modified with no" + "apparent reason",Direction.LTR);
+  directionalTextHelper.setDirectionEstimator(true);
+  assertDirection("Direction was not refreshed on " + "setDirectionEstimator(true) after receiving text with no explicit " + "direction",Direction.RTL);
+  directionalTextHelper.setTextOrHtml(IW_TEXT,Direction.LTR,false);
+  directionalTextHelper.setDirectionEstimator(AnyRtlDirectionEstimator.get());
+  assertDirection("Direction was refreshed on setDirectionEstimator after " + "receiving text with explicit direction",Direction.LTR);
+  directionalTextHelper.setTextOrHtml(IW_TEXT,false);
+  directionalTextHelper.setDirectionEstimator(false);
+  assertDirection("Direction was not reset to the initial element direction" + " on turning off direction estimation when last call to setTextOrHtml" + " did not declare explicit direction.",Direction.LTR);
+}
