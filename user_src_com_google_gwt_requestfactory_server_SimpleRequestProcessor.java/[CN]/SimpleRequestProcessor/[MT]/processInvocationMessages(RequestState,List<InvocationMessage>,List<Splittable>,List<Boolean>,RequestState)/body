@@ -1,0 +1,18 @@
+{
+  for (  InvocationMessage invocation : invlist) {
+    try {
+      String[] operation=invocation.getOperation().split("::");
+      Method contextMethod=service.resolveRequestContextMethod(operation[0],operation[1]);
+      Method domainMethod=service.resolveDomainMethod(contextMethod);
+      List<Object> args=decodeInvocationArguments(state,invocation,contextMethod,domainMethod);
+      Object returnValue=service.invoke(domainMethod,args.toArray());
+      returnValue=resolveClientValue(returnState,returnValue,getPropertyRefs(invocation),"");
+      results.add(EntityCodex.encode(returnState,returnValue));
+      success.add(true);
+    }
+ catch (    ReportableException e) {
+      results.add(AutoBeanCodex.encode(createFailureMessage(e)));
+      success.add(false);
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  for (  Map.Entry<SimpleEntityProxyId<?>,AutoBean<? extends EntityProxy>> entry : toProcess.entrySet()) {
+    SimpleEntityProxyId<?> id=entry.getKey();
+    AutoBean<? extends EntityProxy> bean=entry.getValue();
+    Object domainObject=bean.getTag(DOMAIN_OBJECT);
+    WriteOperation writeOperation;
+    if (id.isEphemeral()) {
+      resolveClientEntityProxy(returnState,domainObject,Collections.<String>emptySet(),"");
+      if (id.isEphemeral()) {
+        throw new ReportableException("Could not persist entity " + service.getFlatId(returnState,domainObject.toString()));
+      }
+    }
+    if (service.loadDomainObject(returnState,service.getDomainClass(id.getProxyClass()),fromBase64(id.getServerId())) == null) {
+      writeOperation=WriteOperation.DELETE;
+    }
+ else     if (id.wasEphemeral()) {
+      writeOperation=WriteOperation.PERSIST;
+    }
+ else {
+      writeOperation=WriteOperation.UPDATE;
+    }
+    boolean inResponse=bean.getTag(IN_RESPONSE) != null;
+    int version=domainObject == null ? 0 : service.getVersion(domainObject);
+    if (writeOperation.equals(WriteOperation.UPDATE) && !inResponse) {
+      if (Integer.valueOf(version).equals(bean.getTag(Constants.ENCODED_VERSION_PROPERTY))) {
+        continue;
+      }
+    }
+    OperationMessage op=FACTORY.operation().as();
+    if (writeOperation == WriteOperation.PERSIST) {
+      op.setClientId(id.getClientId());
+    }
+    op.setOperation(writeOperation);
+    if (inResponse) {
+      Map<String,Splittable> propertyMap=new LinkedHashMap<String,Splittable>();
+      Map<String,Object> diff=AutoBeanUtils.getAllProperties(bean);
+      for (      Map.Entry<String,Object> d : diff.entrySet()) {
+        Object value=d.getValue();
+        if (value != null) {
+          propertyMap.put(d.getKey(),EntityCodex.encode(returnState,value));
+        }
+      }
+      op.setPropertyMap(propertyMap);
+    }
+    op.setServerId(id.getServerId());
+    op.setTypeToken(service.getTypeToken(id.getProxyClass()));
+    op.setVersion(version);
+    operations.add(op);
+  }
+}

@@ -1,0 +1,22 @@
+{
+  List<ViolationMessage> errorMessages=new ArrayList<ViolationMessage>();
+  for (  Map.Entry<SimpleEntityProxyId<?>,AutoBean<? extends EntityProxy>> entry : source.beans.entrySet()) {
+    Object domainObject=entry.getValue().getTag(DOMAIN_OBJECT);
+    if (domainObject != null) {
+      Set<ConstraintViolation<Object>> errors=service.validate(domainObject);
+      if (errors != null && !errors.isEmpty()) {
+        SimpleEntityProxyId<?> id=entry.getKey();
+        for (        ConstraintViolation<Object> error : errors) {
+          ViolationMessage message=FACTORY.violation().as();
+          message.setClientId(id.getClientId());
+          message.setMessage(error.getMessage());
+          message.setPath(error.getPropertyPath().toString());
+          message.setServerId(id.getServerId());
+          message.setTypeToken(service.getTypeToken(id.getProxyClass()));
+          errorMessages.add(message);
+        }
+      }
+    }
+  }
+  return errorMessages;
+}

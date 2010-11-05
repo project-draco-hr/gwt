@@ -1,0 +1,19 @@
+{
+  if (toReturn == null) {
+    return null;
+  }
+  if (TypeUtils.isValueType(intf) || TypeUtils.isValueType(toReturn.getClass()) || AutoBeanUtils.getAutoBean(toReturn) != null || bean.getConfiguration().getNoWrap().contains(intf)) {
+    return toReturn;
+  }
+  if (toReturn.getClass().isArray()) {
+    for (int i=0, j=Array.getLength(toReturn); i < j; i++) {
+      Object value=Array.get(toReturn,i);
+      if (value != null) {
+        Array.set(toReturn,i,maybeWrap(value.getClass(),value));
+      }
+    }
+    return toReturn;
+  }
+  ProxyAutoBean<Object> newBean=new ProxyAutoBean<Object>(intf,bean.getConfiguration(),toReturn);
+  return newBean.as();
+}

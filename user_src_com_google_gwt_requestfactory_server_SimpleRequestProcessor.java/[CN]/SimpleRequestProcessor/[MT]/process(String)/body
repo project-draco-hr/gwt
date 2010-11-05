@@ -1,0 +1,13 @@
+{
+  RequestMessage req=AutoBeanCodex.decode(FACTORY,RequestMessage.class,payload).as();
+  AutoBean<ResponseMessage> responseBean=FACTORY.response();
+  try {
+    process(req,responseBean.as());
+  }
+ catch (  ReportableException e) {
+    e.printStackTrace();
+    responseBean=FACTORY.response();
+    responseBean.as().setGeneralFailure(createFailureMessage(e).as());
+  }
+  return AutoBeanCodex.encode(responseBean).getPayload();
+}

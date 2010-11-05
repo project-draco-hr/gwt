@@ -1,0 +1,33 @@
+{
+  if (value == null) {
+    return LazySplittable.NULL;
+  }
+  if (value instanceof Iterable<?>) {
+    StringBuffer toReturn=new StringBuffer();
+    toReturn.append('[');
+    boolean first=true;
+    for (    Object val : ((Iterable<?>)value)) {
+      if (!first) {
+        toReturn.append(',');
+      }
+ else {
+        first=false;
+      }
+      if (val == null) {
+        toReturn.append("null");
+      }
+ else {
+        toReturn.append(encode(source,val).getPayload());
+      }
+    }
+    toReturn.append(']');
+    return new LazySplittable(toReturn.toString());
+  }
+  if (value instanceof EntityProxy) {
+    value=source.getSerializedProxyId(((EntityProxy)value).stableId());
+  }
+  if (value instanceof EntityProxyId<?>) {
+    value=source.getSerializedProxyId((EntityProxyId<?>)value);
+  }
+  return ValueCodex.encode(value);
+}

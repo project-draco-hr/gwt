@@ -1,0 +1,20 @@
+{
+  if (List.class.equals(clazz)) {
+    return List.class;
+  }
+ else   if (Set.class.equals(clazz)) {
+    return Set.class;
+  }
+ else   if (EntityProxy.class.isAssignableFrom(clazz)) {
+    ProxyFor pf=clazz.getAnnotation(ProxyFor.class);
+    if (pf != null) {
+      return pf.value();
+    }
+    ProxyForName pfn=clazz.getAnnotation(ProxyForName.class);
+    if (pfn != null) {
+      Class<?> toReturn=forName(pfn.value());
+      return toReturn;
+    }
+  }
+  return die(null,"Could not resolve a domain type for client type %s",clazz.getCanonicalName());
+}

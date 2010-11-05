@@ -1,0 +1,22 @@
+{
+  push(new StringBuilder());
+  if (value == null) {
+    return false;
+  }
+  Map<?,?> map=value.as();
+  if (map.isEmpty()) {
+    sb.append("{}");
+    return false;
+  }
+  boolean isEncodedKey=Splittable.class.equals(ctx.getKeyType());
+  boolean isEncodedValue=Splittable.class.equals(ctx.getValueType());
+  boolean isValueKey=ValueCodex.canDecode(ctx.getKeyType());
+  boolean isValueValue=ValueCodex.canDecode(ctx.getValueType());
+  if (isValueKey) {
+    writeValueKeyMap(map,isEncodedValue,isValueValue);
+  }
+ else {
+    writeObjectKeyMap(map,isEncodedKey,isEncodedValue,isValueValue);
+  }
+  return false;
+}

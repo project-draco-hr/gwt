@@ -1,0 +1,41 @@
+{
+  for (  Type type : types) {
+    if (type == null) {
+      continue;
+    }
+ else     if (type instanceof ParameterizedType) {
+      ParameterizedType param=(ParameterizedType)type;
+      Type[] actualTypeArguments=param.getActualTypeArguments();
+      Class<?> base=ensureBaseType(param.getRawType());
+      Type[] typeParameters=base.getTypeParameters();
+      Map<Type,Type> map=new HashMap<Type,Type>();
+      for (int i=0, j=typeParameters.length; i < j; i++) {
+        map.put(typeParameters[i],actualTypeArguments[i]);
+      }
+      Type[] lookFor=intf.equals(base) ? intf.getTypeParameters() : getParameterization(intf,base.getGenericInterfaces());
+      List<Type> toReturn=new ArrayList<Type>();
+      for (int i=0, j=lookFor.length; i < j; i++) {
+        Type found=map.get(lookFor[i]);
+        if (found != null) {
+          toReturn.add(found);
+        }
+      }
+      return toReturn.toArray(new Type[toReturn.size()]);
+    }
+ else     if (type instanceof Class<?>) {
+      Class<?> clazz=(Class<?>)type;
+      if (intf.equals(clazz)) {
+        return intf.getTypeParameters();
+      }
+      Type[] found=getParameterization(intf,clazz.getGenericSuperclass());
+      if (found != null) {
+        return found;
+      }
+      found=getParameterization(intf,clazz.getGenericInterfaces());
+      if (found != null) {
+        return found;
+      }
+    }
+  }
+  return null;
+}

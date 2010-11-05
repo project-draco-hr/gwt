@@ -41,28 +41,9 @@
       sw.println("public X() { super(%s.this);}",method.getSimpleSourceName());
       sw.println("@Override public X with(String... paths) {super.with(paths); return this;}");
       sw.println("@Override protected %s makeRequestData() {",RequestData.class.getCanonicalName());
-      sw.indentln("return new %s(\"%s\", new Object[] {%s}, propertyRefs);",RequestData.class.getCanonicalName(),operation,parameterArray);
-      sw.println("}");
-      sw.println("@Override protected void handleResult(Object obj) {");
-      sw.indent();
-      sw.println("Object decoded;");
-      if (request.isCollectionType()) {
-        Class<?> collectionType=request.getCollectionType().equals(CollectionType.LIST) ? ArrayList.class : HashSet.class;
-        sw.println("decoded = new %s();",collectionType.getCanonicalName());
-        String decodeMethod=request.isValueType() ? "decodeReturnValueList" : "decodeReturnObjectList";
-        sw.println("%s(%s.class, obj, (%s)decoded);",decodeMethod,ModelUtils.getQualifiedBaseName(request.getCollectionElementType()),collectionType.getCanonicalName());
-      }
- else       if (request.isValueType()) {
-        sw.println("decoded = %s.convertFromString(%s.class, String.valueOf(obj));",ValueCodex.class.getCanonicalName(),ModelUtils.getQualifiedBaseName(request.getDataType()));
-      }
- else       if (request.isEntityType()) {
-        sw.println("decoded = decodeReturnObject(%s.class, obj);",request.getEntityType().getQualifiedSourceName());
-      }
- else {
-        sw.println("throw new UnsupportedOperationException()");
-      }
-      sw.println("succeed((%s) decoded);",request.getDataType().getParameterizedQualifiedSourceName());
-      sw.outdent();
+      String elementType=request.isCollectionType() ? request.getCollectionElementType().getQualifiedSourceName() + ".class" : "null";
+      String returnTypeBaseQualifiedName=ModelUtils.ensureBaseType(request.getDataType()).getQualifiedSourceName();
+      sw.indentln("return new %s(\"%s\", new Object[] {%s}, propertyRefs, %s.class, %s);",RequestData.class.getCanonicalName(),operation,parameterArray,returnTypeBaseQualifiedName,elementType);
       sw.println("}");
       sw.outdent();
       sw.println("}");

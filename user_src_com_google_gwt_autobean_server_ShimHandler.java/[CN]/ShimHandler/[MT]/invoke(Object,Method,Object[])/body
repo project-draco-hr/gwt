@@ -1,0 +1,31 @@
+{
+  method.setAccessible(true);
+  Object toReturn;
+  String name=method.getName();
+  bean.checkWrapped();
+  method.setAccessible(true);
+  if (BeanMethod.OBJECT.matches(method)) {
+    return method.invoke(this,args);
+  }
+ else   if (BeanMethod.GET.matches(method)) {
+    toReturn=method.invoke(toWrap,args);
+    toReturn=bean.get(name,toReturn);
+  }
+ else   if (BeanMethod.SET.matches(method)) {
+    bean.checkFrozen();
+    toReturn=method.invoke(toWrap,args);
+    bean.set(name,args[0]);
+  }
+ else {
+    toReturn=method.invoke(toWrap,args);
+    bean.call(name,toReturn,args);
+  }
+  Class<?> intf=method.getReturnType();
+  if (!Object.class.equals(intf)) {
+    toReturn=maybeWrap(intf,toReturn);
+  }
+  if (interceptor != null) {
+    toReturn=interceptor.invoke(null,bean,toReturn);
+  }
+  return toReturn;
+}

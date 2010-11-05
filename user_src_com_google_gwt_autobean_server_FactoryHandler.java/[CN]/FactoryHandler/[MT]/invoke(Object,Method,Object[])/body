@@ -1,0 +1,27 @@
+{
+  Class<?> beanType;
+  Object toWrap=null;
+  if (method.getName().equals("create")) {
+    beanType=(Class<?>)args[0];
+    if (args.length == 2) {
+      toWrap=args[1];
+    }
+  }
+ else {
+    ParameterizedType returnType=(ParameterizedType)method.getGenericReturnType();
+    beanType=(Class<?>)returnType.getActualTypeArguments()[0];
+    if (args != null && args.length == 1) {
+      toWrap=args[0];
+    }
+  }
+  ProxyAutoBean<Object> toReturn=(ProxyAutoBean<Object>)AutoBeanUtils.getAutoBean(toWrap);
+  if (toReturn == null) {
+    if (toWrap == null) {
+      toReturn=new ProxyAutoBean<Object>(beanType,configuration);
+    }
+ else {
+      toReturn=new ProxyAutoBean<Object>(beanType,configuration,toWrap);
+    }
+  }
+  return toReturn;
+}

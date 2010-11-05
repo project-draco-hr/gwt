@@ -1,0 +1,13 @@
+{
+  if (Object.class.equals(method.getDeclaringClass()) || RequestFactory.class.equals(method.getDeclaringClass())) {
+    try {
+      return method.invoke(InProcessRequestFactory.this,args);
+    }
+ catch (    InvocationTargetException e) {
+      throw e.getCause();
+    }
+  }
+  Class<? extends RequestContext> context=method.getReturnType().asSubclass(RequestContext.class);
+  RequestContextHandler handler=new InProcessRequestContext(InProcessRequestFactory.this).new RequestContextHandler();
+  return context.cast(Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),new Class<?>[]{context},handler));
+}

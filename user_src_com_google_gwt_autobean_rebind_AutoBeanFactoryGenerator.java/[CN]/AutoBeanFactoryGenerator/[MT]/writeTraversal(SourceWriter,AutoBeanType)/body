@@ -1,0 +1,76 @@
+{
+  sw.println("@Override protected void traverseProperties(%s visitor, %s ctx) {",AutoBeanVisitor.class.getCanonicalName(),OneShotContext.class.getCanonicalName());
+  sw.indent();
+  for (  AutoBeanMethod method : type.getMethods()) {
+    if (!method.getAction().equals(Action.GET)) {
+      continue;
+    }
+    AutoBeanMethod setter=null;
+    if (!type.isSimpleBean()) {
+      for (      AutoBeanMethod maybeSetter : type.getMethods()) {
+        if (maybeSetter.getAction().equals(Action.SET) && maybeSetter.getPropertyName().equals(method.getPropertyName())) {
+          setter=maybeSetter;
+          break;
+        }
+      }
+    }
+    String valueExpression=String.format("%1$s value = (%1$s) %2$s.getAutoBean(as().%3$s());",AbstractAutoBean.class.getCanonicalName(),AutoBeanUtils.class.getCanonicalName(),method.getMethod().getName());
+    String visitMethod;
+    Class<?> propertyContextType;
+    if (method.isCollection()) {
+      propertyContextType=CollectionPropertyContext.class;
+      visitMethod="Collection";
+    }
+ else     if (method.isMap()) {
+      propertyContextType=MapPropertyContext.class;
+      visitMethod="Map";
+    }
+ else     if (method.isValueType()) {
+      propertyContextType=PropertyContext.class;
+      valueExpression=String.format("Object value = as().%s();",method.getMethod().getName());
+      visitMethod="Value";
+    }
+ else {
+      visitMethod="Reference";
+      propertyContextType=PropertyContext.class;
+    }
+    String propertyContextName=method.getPropertyName() + "PropertyContext";
+    sw.println("class %s implements %s {",propertyContextName,propertyContextType.getCanonicalName());
+    sw.indent();
+    sw.println("public boolean canSet() { return %s; }",type.isSimpleBean() || setter != null);
+    if (method.isCollection()) {
+      sw.println("public Class<?> getElementType() { return %s; }",method.getElementType().getQualifiedSourceName() + ".class");
+    }
+ else     if (method.isMap()) {
+      sw.println("public Class<?> getValueType() { return %s; }",method.getValueType().getQualifiedSourceName() + ".class");
+      sw.println("public Class<?> getKeyType() { return %s; }",method.getKeyType().getQualifiedSourceName() + ".class");
+    }
+    sw.println("public Class<?> getType() { return %s.class; }",method.getMethod().getReturnType().getQualifiedSourceName());
+    sw.println("public void set(Object obj) { ");
+    if (setter != null) {
+      sw.indentln("as().%s((%s) obj);",setter.getMethod().getName(),setter.getMethod().getParameters()[0].getType().getQualifiedSourceName());
+    }
+ else     if (type.isSimpleBean()) {
+      sw.indentln("values.put(\"%s\", obj);",method.getPropertyName());
+    }
+ else {
+      sw.indentln("throw new UnsupportedOperationException(\"No setter\");");
+    }
+    sw.println("}");
+    sw.outdent();
+    sw.println("}");
+    sw.print("{");
+    sw.indent();
+    sw.println("%1$s %1$s = new %1$s();",propertyContextName);
+    sw.println(valueExpression);
+    sw.println("if (visitor.visit%sProperty(\"%s\", value, %s))",visitMethod,method.getPropertyName(),propertyContextName);
+    if (!method.isValueType()) {
+      sw.indentln("if (value != null) { value.traverse(visitor, ctx); }");
+    }
+    sw.println("visitor.endVisit%sProperty(\"%s\", value, %s);",visitMethod,method.getPropertyName(),propertyContextName);
+    sw.outdent();
+    sw.print("}");
+  }
+  sw.outdent();
+  sw.println("}");
+}

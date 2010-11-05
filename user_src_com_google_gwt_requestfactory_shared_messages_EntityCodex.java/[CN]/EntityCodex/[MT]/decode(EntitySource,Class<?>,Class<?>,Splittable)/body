@@ -1,0 +1,44 @@
+{
+  if (split == null || split == LazySplittable.NULL) {
+    return null;
+  }
+  if (elementType != null) {
+    Collection<Object> collection=null;
+    if (List.class.equals(type)) {
+      collection=new ArrayList<Object>();
+    }
+ else     if (Set.class.equals(type)) {
+      collection=new HashSet<Object>();
+    }
+ else {
+      throw new UnsupportedOperationException();
+    }
+    if (ValueCodex.canDecode(elementType)) {
+      for (int i=0, j=split.size(); i < j; i++) {
+        if (split.isNull(i)) {
+          collection.add(null);
+        }
+ else {
+          Object element=ValueCodex.decode(elementType,split.get(i));
+          collection.add(element);
+        }
+      }
+    }
+ else {
+      for (int i=0, j=split.size(); i < j; i++) {
+        if (split.isNull(i)) {
+          collection.add(null);
+        }
+ else {
+          Object element=decode(source,elementType,null,split.get(i));
+          collection.add(element);
+        }
+      }
+    }
+    return collection;
+  }
+  if (source.isEntityType(type) || EntityProxyId.class.equals(type)) {
+    return source.getBeanForPayload(split.asString()).as();
+  }
+  return ValueCodex.decode(type,split);
+}

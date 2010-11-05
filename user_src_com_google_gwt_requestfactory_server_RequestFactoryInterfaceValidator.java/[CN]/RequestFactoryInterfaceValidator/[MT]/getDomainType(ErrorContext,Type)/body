@@ -6,6 +6,9 @@
   if (isValueType(logger,clientType) || isCollectionType(logger,clientType)) {
     toReturn=clientType;
   }
+ else   if (entityProxyIntf.equals(clientType)) {
+    toReturn=objectType;
+  }
  else {
     logger=logger.setType(clientType);
     DomainMapper pv=new DomainMapper(logger);
@@ -19,5 +22,11 @@
     }
   }
   clientToDomainType.put(clientType,toReturn);
+  if (isAssignable(logger,entityProxyIntf,clientType)) {
+    Type previousProxyType=domainToClientType.put(toReturn,clientType);
+    if (previousProxyType != null) {
+      logger.poison("The domain type %s has more than one proxy type: %s and %s",toReturn.getClassName(),previousProxyType.getClassName(),clientType.getClassName());
+    }
+  }
   return toReturn;
 }

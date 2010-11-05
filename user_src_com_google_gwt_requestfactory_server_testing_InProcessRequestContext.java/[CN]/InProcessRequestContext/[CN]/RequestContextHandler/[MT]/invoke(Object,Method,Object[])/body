@@ -1,0 +1,46 @@
+{
+  Class<?> owner=method.getDeclaringClass();
+  if (Object.class.equals(owner) || RequestContext.class.equals(owner) || AbstractRequestContext.class.equals(owner)) {
+    try {
+      return method.invoke(InProcessRequestContext.this,args);
+    }
+ catch (    InvocationTargetException e) {
+      throw e.getCause();
+    }
+  }
+  final Object[] actualArgs;
+  Type returnGenericType;
+  boolean isInstance=InstanceRequest.class.isAssignableFrom(method.getReturnType());
+  if (isInstance) {
+    returnGenericType=TypeUtils.getParameterization(InstanceRequest.class,method.getGenericReturnType(),method.getReturnType())[1];
+    if (args == null) {
+      actualArgs=new Object[1];
+    }
+ else {
+      actualArgs=new Object[args.length + 1];
+      System.arraycopy(args,0,actualArgs,1,args.length);
+    }
+  }
+ else {
+    returnGenericType=TypeUtils.getSingleParameterization(Request.class,method.getGenericReturnType(),method.getReturnType());
+    if (args == null) {
+      actualArgs=NO_ARGS;
+    }
+ else {
+      actualArgs=args;
+    }
+  }
+  final String operation=method.getDeclaringClass().getName() + "::" + method.getName();
+  final Class<?> returnType=TypeUtils.ensureBaseType(returnGenericType);
+  final Class<?> elementType=Collection.class.isAssignableFrom(returnType) ? TypeUtils.ensureBaseType(TypeUtils.getSingleParameterization(Collection.class,returnGenericType)) : null;
+  AbstractRequest<Object> req=new AbstractRequest<Object>(InProcessRequestContext.this){
+    @Override protected RequestData makeRequestData(){
+      return new RequestData(operation,actualArgs,propertyRefs,returnType,elementType);
+    }
+  }
+;
+  if (!isInstance) {
+    addInvocation(req);
+  }
+  return req;
+}

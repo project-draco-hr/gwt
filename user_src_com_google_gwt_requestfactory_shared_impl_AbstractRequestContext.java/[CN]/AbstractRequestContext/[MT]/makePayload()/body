@@ -1,0 +1,62 @@
+{
+  MessageFactory f=MessageFactoryHolder.FACTORY;
+  List<OperationMessage> operations=new ArrayList<OperationMessage>();
+  for (  AutoBean<?> currentView : editedProxies.values()) {
+    @SuppressWarnings("unchecked") SimpleEntityProxyId<EntityProxy> stableId=EntityProxyCategory.stableId((AutoBean<EntityProxy>)currentView);
+    OperationMessage operation=f.operation().as();
+    operation.setTypeToken(requestFactory.getTypeToken(stableId.getProxyClass()));
+    AutoBean<?> parent=currentView.getTag(PARENT_OBJECT);
+    if (parent == null) {
+      parent=requestFactory.createEntityProxy(stableId.getProxyClass(),stableId);
+      operation.setOperation(WriteOperation.PERSIST);
+      operation.setClientId(stableId.getClientId());
+    }
+ else {
+      operation.setServerId(stableId.getServerId());
+      operation.setOperation(WriteOperation.UPDATE);
+    }
+    Integer version=currentView.getTag(Constants.ENCODED_VERSION_PROPERTY);
+    if (version != null) {
+      operation.setVersion(version);
+    }
+    Map<String,Object> diff=AutoBeanUtils.diff(parent,currentView);
+    if (!diff.isEmpty()) {
+      Map<String,Splittable> propertyMap=new HashMap<String,Splittable>();
+      for (      Map.Entry<String,Object> entry : diff.entrySet()) {
+        propertyMap.put(entry.getKey(),EntityCodex.encode(this,entry.getValue()));
+      }
+      operation.setPropertyMap(propertyMap);
+    }
+    operations.add(operation);
+  }
+  List<InvocationMessage> invocationMessages=new ArrayList<InvocationMessage>();
+  for (  AbstractRequest<?> invocation : invocations) {
+    RequestData data=invocation.getRequestData();
+    InvocationMessage message=f.invocation().as();
+    String opsToSend=data.getOperation();
+    if (!opsToSend.isEmpty()) {
+      message.setOperation(opsToSend);
+    }
+    Set<String> refsToSend=data.getPropertyRefs();
+    if (!refsToSend.isEmpty()) {
+      message.setPropertyRefs(refsToSend);
+    }
+    List<Splittable> parameters=new ArrayList<Splittable>(data.getParameters().length);
+    for (    Object param : data.getParameters()) {
+      parameters.add(EntityCodex.encode(this,param));
+    }
+    if (!parameters.isEmpty()) {
+      message.setParameters(parameters);
+    }
+    invocationMessages.add(message);
+  }
+  AutoBean<RequestMessage> bean=f.request();
+  RequestMessage requestMessage=bean.as();
+  if (!invocationMessages.isEmpty()) {
+    requestMessage.setInvocations(invocationMessages);
+  }
+  if (!operations.isEmpty()) {
+    requestMessage.setOperations(operations);
+  }
+  return AutoBeanCodex.encode(bean).getPayload();
+}

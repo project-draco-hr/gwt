@@ -1,0 +1,16 @@
+{
+  boolean isStatic=Modifier.isStatic(domainMethod.getModifiers());
+  int baseLength=contextMethod.getParameterTypes().length;
+  int length=baseLength + (isStatic ? 0 : 1);
+  int offset=isStatic ? 0 : 1;
+  Class<?>[] contextArgs=new Class<?>[length];
+  Type[] genericArgs=new Type[length];
+  if (!isStatic) {
+    genericArgs[0]=TypeUtils.getSingleParameterization(InstanceRequest.class,contextMethod.getGenericReturnType());
+    contextArgs[0]=TypeUtils.ensureBaseType(genericArgs[0]);
+  }
+  System.arraycopy(contextMethod.getParameterTypes(),0,contextArgs,offset,baseLength);
+  System.arraycopy(contextMethod.getGenericParameterTypes(),0,genericArgs,offset,baseLength);
+  List<Object> args=decodeInvocationArguments(source,invocation,contextArgs,genericArgs);
+  return args;
+}

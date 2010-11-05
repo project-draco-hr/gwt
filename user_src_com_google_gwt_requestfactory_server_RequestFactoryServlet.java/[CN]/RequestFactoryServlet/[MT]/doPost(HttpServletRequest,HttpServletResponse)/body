@@ -4,7 +4,9 @@
   try {
     ensureConfig();
     String jsonRequestString=RPCServletUtils.readContent(request,JSON_CONTENT_TYPE,JSON_CHARSET);
-    response.setStatus(HttpServletResponse.SC_OK);
+    if (DUMP_PAYLOAD) {
+      System.out.println(">>> " + jsonRequestString);
+    }
     PrintWriter writer=response.getWriter();
     try {
       UserInformation userInfo=UserInformation.getCurrentUserInformation(request.getHeader("pageurl"));
@@ -13,19 +15,19 @@
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
       }
  else {
+        String payload=processor.process(jsonRequestString);
+        if (DUMP_PAYLOAD) {
+          System.out.println("<<< " + payload);
+        }
         response.setHeader("userId",String.format("%s",userInfo.getId()));
         response.setStatus(HttpServletResponse.SC_OK);
-        RequestProcessor<String> requestProcessor=new JsonRequestProcessor();
-        requestProcessor.setOperationRegistry(new ReflectionBasedOperationRegistry(new DefaultSecurityProvider()));
-        requestProcessor.setExceptionHandler(exceptionHandler);
         response.setContentType(RequestFactory.JSON_CONTENT_TYPE_UTF8);
-        writer.print(requestProcessor.decodeAndInvokeRequest(jsonRequestString));
+        writer.print(payload);
         writer.flush();
       }
     }
- catch (    RequestProcessingException e) {
-      writer.print((String)e.getResponse());
-      writer.flush();
+ catch (    RuntimeException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       log.log(Level.SEVERE,"Unexpected error",e);
     }
   }
