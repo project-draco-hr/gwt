@@ -1,0 +1,23 @@
+{
+  super.setKeyboardSelected(index,selected,stealFocus);
+  if (!isRowWithinBounds(index)) {
+    return;
+  }
+  Element elem=getRowElement(index);
+  T value=getPresenter().getRowDataValue(index);
+  boolean isOpen=selected && isOpen(index);
+  setStyleName(elem,style.cellBrowserOpenItem(),isOpen);
+  SafeHtml image=null;
+  if (isOpen) {
+    image=openImageHtml;
+  }
+ else   if (getTreeViewModel().isLeaf(value)) {
+    image=LEAF_IMAGE;
+  }
+ else {
+    image=closedImageHtml;
+  }
+  tmpElem.setInnerHTML(image.asString());
+  elem.replaceChild(tmpElem.getFirstChildElement(),elem.getFirstChildElement());
+  updateChildState(this,true);
+}

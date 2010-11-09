@@ -3,7 +3,7 @@
   if (!Element.is(eventTarget)) {
     return;
   }
-  Element target=event.getEventTarget().cast();
+  final Element target=event.getEventTarget().cast();
   String eventType=event.getType();
   if ("keydown".equals(eventType) && !isKeyboardNavigationSuppressed() && KeyboardSelectionPolicy.DISABLED != getKeyboardSelectionPolicy()) {
     if (handleKey(event)) {
@@ -51,13 +51,11 @@
       setRowStyleName(hoveringRow,style.cellTableHoveredRow(),style.cellTableHoveredRowCell(),false);
       hoveringRow=null;
     }
- else     if ("focus".equals(eventType) || isMouseDown) {
-      isFocused=true;
-      if (getPresenter().getKeyboardSelectedRow() != row || keyboardSelectedColumn != col) {
-        deselectKeyboardRow(getKeyboardSelectedRow());
-        keyboardSelectedColumn=col;
-        getPresenter().setKeyboardSelectedRow(row,false);
-      }
+ else     if (isMouseDown && ((getPresenter().getKeyboardSelectedRowInView() != row) || (keyboardSelectedColumn != col))) {
+      boolean isFocusable=CellBasedWidgetImpl.get().isFocusable(target);
+      isFocused=isFocused || isFocusable;
+      keyboardSelectedColumn=col;
+      getPresenter().setKeyboardSelectedRow(row,!isFocusable);
     }
     if (!isRowWithinBounds(row)) {
       return;

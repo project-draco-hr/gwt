@@ -1,50 +1,52 @@
 {
   final int start=range.getStart();
   final int length=range.getLength();
-  if (length < 0) {
-    throw new IllegalArgumentException("Range length cannot be less than 1");
+  if (start < 0) {
+    throw new IllegalArgumentException("Range start cannot be less than 0");
   }
+  if (length < 0) {
+    throw new IllegalArgumentException("Range length cannot be less than 0");
+  }
+  final int pageStart=getPageStart();
+  final int pageSize=getPageSize();
   final boolean pageStartChanged=(pageStart != start);
   if (pageStartChanged) {
+    PendingState<T> pending=ensurePendingState();
     if (!clearData) {
       if (start > pageStart) {
         int increase=start - pageStart;
-        if (rowData.size() > increase) {
+        if (getRowDataSize() > increase) {
           for (int i=0; i < increase; i++) {
-            rowData.remove(0);
+            pending.rowData.remove(0);
           }
         }
  else {
-          rowData.clear();
+          pending.rowData.clear();
         }
       }
  else {
         int decrease=pageStart - start;
-        if ((rowData.size() > 0) && (decrease < pageSize)) {
+        if ((getRowDataSize() > 0) && (decrease < pageSize)) {
           for (int i=0; i < decrease; i++) {
-            rowData.add(0,null);
+            pending.rowData.add(0,null);
           }
+          pending.replaceRange(start,start + decrease);
         }
  else {
-          rowData.clear();
+          pending.rowData.clear();
         }
       }
     }
-    pageStart=start;
-    pageStartChangedSinceRender=true;
+    pending.pageStart=start;
   }
   final boolean pageSizeChanged=(pageSize != length);
   if (pageSizeChanged) {
-    pageSize=length;
+    ensurePendingState().pageSize=length;
   }
   if (clearData) {
-    rowData.clear();
-    selectedRows.clear();
+    ensurePendingState().rowData.clear();
   }
-  updateLoadingState();
-  if (pageStartChanged || clearData || updateCachedData()) {
-    redraw();
-  }
+  updateCachedData();
   if (pageStartChanged || pageSizeChanged || forceRangeChangeEvent) {
     RangeChangeEvent.fire(display,getVisibleRange());
   }

@@ -4,16 +4,30 @@
   HasDataPresenter<String> presenter=new HasDataPresenter<String>(listView,view,10,null);
   presenter.setVisibleRange(new Range(0,100));
   assertEquals(new Range(0,100),presenter.getVisibleRange());
-  assertEquals(0,presenter.getRowData().size());
+  assertEquals(0,presenter.getRowDataSize());
+  presenter.flush();
   view.assertReplaceAllChildrenCalled(false);
   view.assertReplaceChildrenCalled(false);
   view.assertLastHtml(null);
   view.assertLoadingState(LoadingState.LOADING);
   presenter.setVisibleRange(new Range(0,100));
   assertEquals(new Range(0,100),presenter.getVisibleRange());
-  assertEquals(0,presenter.getRowData().size());
+  assertEquals(0,presenter.getRowDataSize());
+  presenter.flush();
   view.assertReplaceAllChildrenCalled(false);
   view.assertReplaceChildrenCalled(false);
   view.assertLastHtml(null);
   view.assertLoadingState(LoadingState.LOADING);
+  try {
+    presenter.setVisibleRange(new Range(-1,100));
+    fail("Expected IllegalArgumentException");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+  try {
+    presenter.setVisibleRange(new Range(0,-100));
+    fail("Expected IllegalArgumentException");
+  }
+ catch (  IllegalArgumentException e) {
+  }
 }

@@ -1,83 +1,30 @@
 {
   int valuesLength=values.size();
   int valuesEnd=start + valuesLength;
-  int pageEnd=pageStart + pageSize;
+  int pageStart=getPageStart();
+  int pageEnd=getPageStart() + getPageSize();
   int boundedStart=Math.max(start,pageStart);
   int boundedEnd=Math.min(valuesEnd,pageEnd);
   if (start != pageStart && boundedStart >= boundedEnd) {
     return;
   }
-  if (valuesEnd > rowCount) {
-    rowCount=valuesEnd;
-    RowCountChangeEvent.fire(display,rowCount,rowCountIsExact);
-  }
-  int cacheOffset=Math.max(0,boundedStart - pageStart - rowData.size());
+  PendingState<T> pending=ensurePendingState();
+  int cacheOffset=Math.max(0,boundedStart - pageStart - getRowDataSize());
   for (int i=0; i < cacheOffset; i++) {
-    rowData.add(null);
-  }
-  Object keyboardSelectedKey=null;
-  int keyboardSelectedAbsoluteRow=pageStart + keyboardSelectedRow;
-  boolean keyboardSelectedInRange=false;
-  boolean keyboardSelectedStillExists=false;
-  if (keyboardSelectedAbsoluteRow >= boundedStart && keyboardSelectedAbsoluteRow < boundedEnd) {
-    keyboardSelectedInRange=true;
-    if (keyboardSelectedRowValue != null) {
-      keyboardSelectedKey=getRowValueKey(keyboardSelectedRowValue);
-      keyboardSelectedRow=0;
-    }
+    pending.rowData.add(null);
   }
   for (int i=boundedStart; i < boundedEnd; i++) {
     T value=values.get(i - start);
     int dataIndex=i - pageStart;
-    if (dataIndex < rowData.size()) {
-      rowData.set(dataIndex,value);
+    if (dataIndex < getRowDataSize()) {
+      pending.rowData.set(dataIndex,value);
     }
  else {
-      rowData.add(value);
-    }
-    if (selectionModel != null) {
-      if (value != null && selectionModel.isSelected(value)) {
-        selectedRows.add(i);
-      }
- else {
-        selectedRows.remove(i);
-      }
-    }
-    if (keyboardSelectedKey != null && value != null && keyboardSelectedKey.equals(getRowValueKey(value))) {
-      keyboardSelectedRow=i - pageStart;
-      keyboardSelectedStillExists=true;
+      pending.rowData.add(value);
     }
   }
-  boundedStart=pageStartChangedSinceRender ? pageStart : boundedStart;
-  boundedStart-=cacheOffset;
-  List<T> boundedValues=rowData.subList(boundedStart - pageStart,boundedEnd - pageStart);
-  int boundedSize=boundedValues.size();
-  SafeHtmlBuilder sb=new SafeHtmlBuilder();
-  view.render(sb,boundedValues,boundedStart,selectionModel);
-  updateLoadingState();
-  int childCount=view.getChildCount();
-  if (boundedStart == pageStart && (boundedSize >= childCount || boundedSize >= getCurrentPageSize() || rowData.size() < childCount)) {
-    SafeHtml newContents=sb.toSafeHtml();
-    if (!newContents.equals(lastContents)) {
-      lastContents=newContents;
-      view.replaceAllChildren(boundedValues,newContents);
-    }
-    view.resetFocus();
-  }
- else {
-    lastContents=null;
-    view.replaceChildren(boundedValues,boundedStart - pageStart,sb.toSafeHtml());
-    if (keyboardSelectedStillExists) {
-      view.resetFocus();
-    }
-  }
-  pageStartChangedSinceRender=false;
-  if (keyboardSelectedInRange && !keyboardSelectedStillExists) {
-    if (keyboardSelectedKey != null) {
-      deselectKeyboardValue();
-    }
-    if (KeyboardSelectionPolicy.BOUND_TO_SELECTION == keyboardSelectionPolicy) {
-      selectKeyboardValue(keyboardSelectedRow);
-    }
+  pending.replaceRange(boundedStart - cacheOffset,boundedEnd);
+  if (valuesEnd > getRowCount()) {
+    setRowCount(valuesEnd,isRowCountExact());
   }
 }

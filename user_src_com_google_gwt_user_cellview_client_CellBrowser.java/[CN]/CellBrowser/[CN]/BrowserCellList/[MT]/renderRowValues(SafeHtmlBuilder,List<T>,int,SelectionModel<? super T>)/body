@@ -10,9 +10,8 @@
   int end=start + length;
   for (int i=start; i < end; i++) {
     T value=values.get(i - start);
-    Object key=getValueKey(value);
     boolean isSelected=selectionModel == null ? false : selectionModel.isSelected(value);
-    boolean isOpen=(focusedKey == null || !isFocusedOpen) ? false : focusedKey.equals(key);
+    boolean isOpen=isOpen(i);
     StringBuilder classesBuilder=new StringBuilder();
     classesBuilder.append(i % 2 == 0 ? evenItem : oddItem);
     if (isOpen) {
@@ -22,7 +21,7 @@
       classesBuilder.append(selectedItem);
     }
     SafeHtmlBuilder cellBuilder=new SafeHtmlBuilder();
-    cell.render(value,null,cellBuilder);
+    cell.render(value,getValueKey(value),cellBuilder);
     SafeHtml image;
     if (isOpen) {
       image=openImageHtml;
@@ -49,4 +48,5 @@
       sb.append(template.div(i,classesBuilder.toString(),imageWidth,image,cellBuilder.toSafeHtml()));
     }
   }
+  updateChildState(this,true);
 }

@@ -31,10 +31,10 @@ if (KeyboardSelectionPolicy.ENABLED == getKeyboardSelectionPolicy()) {
 return;
 }
 }
-Element target=event.getEventTarget().cast();
+final Element target=event.getEventTarget().cast();
 ArrayList<Element> chain=new ArrayList<Element>();
 collectElementChain(chain,getElement(),target);
-boolean isMouseDown="mousedown".equals(eventType);
+final boolean isMouseDown="mousedown".equals(eventType);
 final CellTreeNodeView<?> nodeView=findItemByChain(chain,0,rootNode);
 if (nodeView != null && nodeView != rootNode) {
 if (isMouseDown) {
@@ -49,19 +49,10 @@ return;
 }
 }
 if (nodeView.getSelectionElement().isOrHasChild(target)) {
-if ("focus".equals(eventType) || isMouseDown) {
-final boolean targetsCellParent=nodeView.getCellParent().isOrHasChild(target);
-keyboardSelectCommand=new ScheduledCommand(){
-public void execute(){
-  if (keyboardSelectCommand == this && !nodeView.isDestroyed()) {
-    isFocused=true;
-    keyboardSelectCommand=null;
-    keyboardSelect(nodeView,!targetsCellParent);
-  }
-}
-}
-;
-Scheduler.get().scheduleDeferred(keyboardSelectCommand);
+if (isMouseDown) {
+boolean isFocusable=CellBasedWidgetImpl.get().isFocusable(target);
+isFocused=isFocused || isFocusable;
+keyboardSelect(nodeView,!isFocusable);
 }
 nodeView.fireEventToCell(event);
 }

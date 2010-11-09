@@ -1,0 +1,37 @@
+{
+  if (cellList.isDestroyed) {
+    return null;
+  }
+  C newValue=cellList.getPresenter().getKeyboardSelectedRowValue();
+  Object newKey=cellList.getValueKey(newValue);
+  TreeNode closedNode=null;
+  if (cellList.focusedKey != null && cellList.isFocusedOpen && !cellList.focusedKey.equals(newKey)) {
+    closedNode=(treeNodes.size() > cellList.level + 1) ? treeNodes.get(cellList.level + 1) : null;
+    trimToLevel(cellList.level);
+  }
+  TreeNode openNode=null;
+  boolean justOpenedNode=false;
+  if (newKey != null) {
+    if (newKey.equals(cellList.focusedKey)) {
+      openNode=cellList.isFocusedOpen ? treeNodes.get(cellList.level + 1) : null;
+    }
+ else {
+      cellList.focusedKey=newKey;
+      NodeInfo<?> childNodeInfo=isLeaf(newValue) ? null : getNodeInfo(newValue);
+      if (childNodeInfo != null) {
+        cellList.isFocusedOpen=true;
+        justOpenedNode=true;
+        openNode=appendTreeNode(childNodeInfo,newValue);
+      }
+    }
+  }
+  if (fireEvents) {
+    if (closedNode != null) {
+      CloseEvent.fire(this,closedNode);
+    }
+    if (openNode != null && justOpenedNode) {
+      OpenEvent.fire(this,openNode);
+    }
+  }
+  return (openNode == null || openNode.isDestroyed()) ? null : openNode;
+}

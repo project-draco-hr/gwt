@@ -3,10 +3,11 @@
   if (!Element.is(eventTarget)) {
     return;
   }
-  Element target=event.getEventTarget().cast();
+  final Element target=event.getEventTarget().cast();
   String idxString="";
-  while ((target != null) && ((idxString=target.getAttribute("__idx")).length() == 0)) {
-    target=target.getParentElement();
+  Element cellTarget=target;
+  while ((cellTarget != null) && ((idxString=cellTarget.getAttribute("__idx")).length() == 0)) {
+    cellTarget=cellTarget.getParentElement();
   }
   if (idxString.length() > 0) {
     String eventType=event.getType();
@@ -16,14 +17,15 @@
     if (!isRowWithinBounds(indexOnPage)) {
       return;
     }
-    Element cellParent=getCellParent(target);
+    Element cellParent=getCellParent(cellTarget);
     T value=getDisplayedItem(indexOnPage);
     if (isMouseDown && !cell.handlesSelection()) {
       doSelection(event,value,indexOnPage);
     }
-    if ("focus".equals(eventType) || isMouseDown) {
-      isFocused=true;
-      doKeyboardSelection(event,value,indexOnPage);
+    if (isMouseDown && getPresenter().getKeyboardSelectedRowInView() != indexOnPage) {
+      boolean isFocusable=CellBasedWidgetImpl.get().isFocusable(target);
+      isFocused=isFocused || isFocusable;
+      getPresenter().setKeyboardSelectedRow(indexOnPage,!isFocusable);
     }
     fireEventToCell(event,cellParent,value);
   }

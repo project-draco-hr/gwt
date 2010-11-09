@@ -1,0 +1,161 @@
+{
+  pendingStateCommand=null;
+  if (pendingState == null) {
+    pendingStateLoop=0;
+    return;
+  }
+  pendingStateLoop++;
+  if (pendingStateLoop > LOOP_MAXIMUM) {
+    pendingStateLoop=0;
+    throw new IllegalStateException("A possible infinite loop has been detected in a Cell Widget. This " + "usually happens when your SelectionModel triggers a " + "SelectionChangeEvent when SelectionModel.isSelection() is "+ "called, which causes the table to redraw continuously.");
+  }
+  if (isResolvingState) {
+    throw new IllegalStateException("The Cell Widget is attempting to render itself within the render " + "loop. This usually happens when your render code modifies the " + "state of the Cell Widget then accesses data or elements "+ "within the Widget.");
+  }
+  isResolvingState=true;
+  TreeSet<Integer> modifiedRows=new TreeSet<Integer>();
+  State<T> oldState=state;
+  PendingState<T> pending=pendingState;
+  int pageStart=pending.getPageStart();
+  int pageSize=pending.getPageSize();
+  int pageEnd=pageStart + pageSize;
+  int rowDataCount=pending.getRowDataSize();
+  pending.keyboardSelectedRow=Math.max(0,Math.min(pending.keyboardSelectedRow,rowDataCount - 1));
+  if (KeyboardSelectionPolicy.DISABLED == keyboardSelectionPolicy) {
+    pending.keyboardSelectedRow=0;
+    pending.keyboardSelectedRowValue=null;
+  }
+ else   if (pending.keyboardSelectedRowChanged) {
+    pending.keyboardSelectedRowValue=rowDataCount > 0 ? pending.getRowDataValue(pending.keyboardSelectedRow) : null;
+  }
+ else   if (pending.keyboardSelectedRowValue != null) {
+    int bestMatchIndex=findIndexOfBestMatch(pending,pending.keyboardSelectedRowValue,pending.keyboardSelectedRow);
+    if (bestMatchIndex >= 0) {
+      pending.keyboardSelectedRow=bestMatchIndex;
+      pending.keyboardSelectedRowValue=rowDataCount > 0 ? pending.getRowDataValue(pending.keyboardSelectedRow) : null;
+    }
+ else {
+      pending.keyboardSelectedRow=0;
+      pending.keyboardSelectedRowValue=null;
+    }
+  }
+  if (KeyboardSelectionPolicy.BOUND_TO_SELECTION == keyboardSelectionPolicy && selectionModel != null) {
+    T oldValue=oldState.getRowDataSize() > 0 ? oldState.getRowDataValue(oldState.getKeyboardSelectedRow()) : null;
+    Object oldKey=getRowValueKey(oldValue);
+    T newValue=rowDataCount > 0 ? pending.getRowDataValue(pending.getKeyboardSelectedRow()) : null;
+    Object newKey=getRowValueKey(newValue);
+    if ((oldKey == null) ? newKey != null : !oldKey.equals(newKey)) {
+      if (oldValue != null && selectionModel.isSelected(oldValue)) {
+        selectionModel.setSelected(oldValue,false);
+      }
+      if (newValue != null && !selectionModel.isSelected(newValue)) {
+        selectionModel.setSelected(newValue,true);
+      }
+    }
+  }
+  boolean keyboardRowChanged=pending.keyboardSelectedRowChanged || (oldState.getKeyboardSelectedRow() != pending.keyboardSelectedRow) || (oldState.getKeyboardSelectedRowValue() == null && pending.keyboardSelectedRowValue != null);
+  for (int i=pageStart; i < pageStart + rowDataCount; i++) {
+    T rowValue=pending.getRowDataValue(i - pageStart);
+    boolean isSelected=(rowValue != null && selectionModel != null && selectionModel.isSelected(rowValue));
+    boolean wasSelected=oldState.isRowSelected(i);
+    if (isSelected) {
+      pending.selectedRows.add(i);
+      if (!wasSelected) {
+        modifiedRows.add(i);
+      }
+    }
+ else     if (wasSelected) {
+      modifiedRows.add(i);
+    }
+  }
+  if (pendingStateCommand != null) {
+    isResolvingState=false;
+    return;
+  }
+  pendingStateLoop=0;
+  state=pendingState;
+  pendingState=null;
+  boolean replacedEmptyRange=false;
+  for (  Range replacedRange : pending.replacedRanges) {
+    int start=replacedRange.getStart();
+    int length=replacedRange.getLength();
+    if (length == 0) {
+      replacedEmptyRange=true;
+    }
+    for (int i=start; i < start + length; i++) {
+      modifiedRows.add(i);
+    }
+  }
+  if (modifiedRows.size() > 0 && keyboardRowChanged) {
+    modifiedRows.add(oldState.getKeyboardSelectedRow());
+    modifiedRows.add(pending.keyboardSelectedRow);
+  }
+  List<Range> modifiedRanges=calculateModifiedRanges(modifiedRows,pageStart,pageEnd);
+  Range range0=modifiedRanges.size() > 0 ? modifiedRanges.get(0) : null;
+  Range range1=modifiedRanges.size() > 1 ? modifiedRanges.get(1) : null;
+  int replaceDiff=0;
+  for (  Range range : modifiedRanges) {
+    replaceDiff+=range.getLength();
+  }
+  int oldPageStart=oldState.getPageStart();
+  int oldPageSize=oldState.getPageSize();
+  int oldRowDataCount=oldState.getRowDataSize();
+  boolean redrawRequired=pending.redrawRequired;
+  if (pageStart != oldPageStart) {
+    redrawRequired=true;
+  }
+ else   if (rowDataCount < oldRowDataCount) {
+    redrawRequired=true;
+  }
+ else   if (range1 == null && range0 != null && range0.getStart() == pageStart && (replaceDiff >= oldRowDataCount || replaceDiff > oldPageSize)) {
+    redrawRequired=true;
+  }
+ else   if (replaceDiff >= REDRAW_MINIMUM && replaceDiff > REDRAW_THRESHOLD * oldRowDataCount) {
+    redrawRequired=true;
+  }
+ else   if (replacedEmptyRange && oldRowDataCount == 0) {
+    redrawRequired=true;
+  }
+  updateLoadingState();
+  if (redrawRequired) {
+    SafeHtmlBuilder sb=new SafeHtmlBuilder();
+    view.render(sb,pending.rowData,pending.pageStart,selectionModel);
+    SafeHtml newContents=sb.toSafeHtml();
+    if (!newContents.equals(lastContents)) {
+      lastContents=newContents;
+      view.replaceAllChildren(pending.rowData,newContents,pending.keyboardStealFocus);
+    }
+    view.resetFocus();
+  }
+ else   if (range0 != null) {
+    lastContents=null;
+{
+      int absStart=range0.getStart();
+      int relStart=absStart - pageStart;
+      SafeHtmlBuilder sb=new SafeHtmlBuilder();
+      List<T> replaceValues=pending.rowData.subList(relStart,relStart + range0.getLength());
+      view.render(sb,replaceValues,absStart,selectionModel);
+      view.replaceChildren(replaceValues,relStart,sb.toSafeHtml(),pending.keyboardStealFocus);
+    }
+    if (range1 != null) {
+      int absStart=range1.getStart();
+      int relStart=absStart - pageStart;
+      SafeHtmlBuilder sb=new SafeHtmlBuilder();
+      List<T> replaceValues=pending.rowData.subList(relStart,relStart + range1.getLength());
+      view.render(sb,replaceValues,absStart,selectionModel);
+      view.replaceChildren(replaceValues,relStart,sb.toSafeHtml(),pending.keyboardStealFocus);
+    }
+    view.resetFocus();
+  }
+ else   if (keyboardRowChanged) {
+    int oldSelectedRow=oldState.getKeyboardSelectedRow();
+    if (oldSelectedRow >= 0 && oldSelectedRow < rowDataCount) {
+      view.setKeyboardSelected(oldSelectedRow,false,false);
+    }
+    int newSelectedRow=pending.getKeyboardSelectedRow();
+    if (newSelectedRow >= 0 && newSelectedRow < rowDataCount) {
+      view.setKeyboardSelected(newSelectedRow,true,pending.keyboardStealFocus);
+    }
+  }
+  isResolvingState=false;
+}

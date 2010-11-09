@@ -2,33 +2,27 @@
   if (KeyboardSelectionPolicy.DISABLED == keyboardSelectionPolicy) {
     return;
   }
-  boolean isBound=KeyboardSelectionPolicy.BOUND_TO_SELECTION == keyboardSelectionPolicy;
-  if (keyboardSelectedRow >= 0 && keyboardSelectedRow < view.getChildCount()) {
-    view.setKeyboardSelected(keyboardSelectedRow,false,false);
-    if (isBound) {
-      deselectKeyboardValue();
-    }
-  }
+  int pageStart=getPageStart();
+  int pageSize=getPageSize();
+  int rowCount=getRowCount();
   int absIndex=pageStart + index;
-  if (absIndex < 0) {
-    absIndex=0;
-  }
- else   if (absIndex >= rowCount && rowCountIsExact) {
+  if (absIndex >= rowCount && isRowCountExact()) {
     absIndex=rowCount - 1;
   }
-  index=absIndex - pageStart;
+  index=Math.max(0,absIndex) - pageStart;
   if (keyboardPagingPolicy.isLimitedToRange()) {
     index=Math.max(0,Math.min(index,pageSize - 1));
   }
   int newPageStart=pageStart;
   int newPageSize=pageSize;
-  keyboardSelectedRow=0;
+  PendingState<T> pending=ensurePendingState();
+  pending.keyboardSelectedRow=0;
+  pending.keyboardSelectedRowValue=null;
+  pending.keyboardSelectedRowChanged=true;
   if (index >= 0 && index < pageSize) {
-    keyboardSelectedRow=index;
-    if (isBound) {
-      selectKeyboardValue(index);
-    }
-    view.setKeyboardSelected(index,true,stealFocus);
+    pending.keyboardSelectedRow=index;
+    pending.keyboardSelectedRowValue=index < pending.getRowDataSize() ? ensurePendingState().getRowDataValue(index) : null;
+    pending.keyboardStealFocus=stealFocus;
     return;
   }
  else   if (KeyboardPagingPolicy.CHANGE_PAGE == keyboardPagingPolicy) {
@@ -63,8 +57,7 @@
     }
   }
   if (newPageStart != pageStart || newPageSize != pageSize) {
-    deselectKeyboardValue();
-    keyboardSelectedRow=index;
+    pending.keyboardSelectedRow=index;
     setVisibleRange(new Range(newPageStart,newPageSize),false,false);
   }
 }
