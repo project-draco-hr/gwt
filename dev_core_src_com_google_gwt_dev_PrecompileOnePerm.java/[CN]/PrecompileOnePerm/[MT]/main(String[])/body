@@ -1,0 +1,31 @@
+{
+  Memory.initialize();
+  SpeedTracerLogger.init();
+  Event precompileEvent=SpeedTracerLogger.start(CompilerEventType.PRECOMPILE);
+  if (System.getProperty("gwt.jjs.dumpAst") != null) {
+    System.out.println("Will dump AST to: " + System.getProperty("gwt.jjs.dumpAst"));
+  }
+  final PrecompileOnePermOptions options=new PrecompileOnePermOptionsImpl();
+  boolean success=false;
+  if (new ArgProcessor(options).processArgs(args)) {
+    CompileTask task=new CompileTask(){
+      public boolean run(      TreeLogger logger) throws UnableToCompleteException {
+        FutureTask<UpdateResult> updater=null;
+        if (!options.isUpdateCheckDisabled()) {
+          updater=CheckForUpdates.checkForUpdatesInBackgroundThread(logger,CheckForUpdates.ONE_DAY);
+        }
+        boolean success=new PrecompileOnePerm(options).run(logger);
+        if (success) {
+          CheckForUpdates.logUpdateAvailable(logger,updater);
+        }
+        return success;
+      }
+    }
+;
+    if (CompileTaskRunner.runWithAppropriateLogger(options,task)) {
+      success=true;
+    }
+  }
+  precompileEvent.end();
+  System.exit(success ? 0 : 1);
+}

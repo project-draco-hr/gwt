@@ -1,0 +1,38 @@
+{
+  if (!validateOptions(logger,options)) {
+    return false;
+  }
+  options.setOptimizePrecompile(false);
+  List<String> moduleNames=options.getModuleNames();
+  int permToRun=options.getPermToCompile();
+  String moduleName=moduleNames.get(0);
+  File compilerWorkDir=options.getCompilerWorkDir(moduleName);
+  ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
+  StandardLinkerContext linkerContext=new StandardLinkerContext(TreeLogger.NULL,module,options);
+  if (!linkerContext.allLinkersAreShardable()) {
+    logger.log(TreeLogger.ERROR,"This compilation mode requires all linkers to be shardable.");
+    return false;
+  }
+  Precompile.PrecompileOptions optionsFileData=AnalyzeModule.readAnalyzeModuleOptionsFile(logger,compilerWorkDir);
+  if (optionsFileData == null) {
+    logger.log(TreeLogger.ERROR,"Couldn't find " + AnalyzeModule.OPTIONS_FILENAME + " in "+ compilerWorkDir);
+    return false;
+  }
+  logger.log(TreeLogger.INFO,"Precompiling only specified permutations");
+  if (options.isValidateOnly()) {
+    TreeLogger branch=logger.branch(TreeLogger.INFO,"Validating compilation " + module.getName());
+    if (!Precompile.validate(branch,options,module,options.getGenDir())) {
+      branch.log(TreeLogger.ERROR,"Validation failed");
+      return false;
+    }
+    branch.log(TreeLogger.INFO,"Validation succeeded");
+  }
+ else {
+    TreeLogger branch=logger.branch(TreeLogger.INFO,"Precompiling module " + module.getName());
+    if (!precompilePermutation(logger,compilerWorkDir,module,branch,permToRun)) {
+      branch.log(TreeLogger.ERROR,"Precompile failed");
+      return false;
+    }
+  }
+  return true;
+}

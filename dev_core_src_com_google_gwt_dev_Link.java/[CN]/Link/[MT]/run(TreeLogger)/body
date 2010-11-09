@@ -2,20 +2,20 @@
   loop_modules:   for (  String moduleName : options.getModuleNames()) {
     ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName);
     File compilerWorkDir=options.getCompilerWorkDir(moduleName);
-    PrecompilationResult precompileResults;
-    try {
-      precompileResults=Util.readFileAsObject(new File(compilerWorkDir,Precompile.PRECOMPILE_FILENAME),PrecompilationResult.class);
+    PrecompileOptions precompileOptions=AnalyzeModule.readAnalyzeModuleOptionsFile(logger,compilerWorkDir);
+    PrecompilationResult precompileResults=null;
+    if (precompileOptions == null) {
+      File precompilationFile=new File(compilerWorkDir,Precompile.PRECOMPILE_FILENAME);
+      precompileResults=CompilePerms.readPrecompilationFile(logger,precompilationFile);
+      if (precompileResults == null) {
+        return false;
+      }
+      if (precompileResults instanceof PrecompileOptions) {
+        precompileOptions=(PrecompileOptions)precompileResults;
+      }
     }
- catch (    ClassNotFoundException e) {
-      logger.log(TreeLogger.ERROR,"Error reading " + Precompile.PRECOMPILE_FILENAME);
-      return false;
-    }
-catch (    IOException e) {
-      logger.log(TreeLogger.ERROR,"Error reading " + Precompile.PRECOMPILE_FILENAME);
-      return false;
-    }
-    if (precompileResults instanceof PrecompileOptions) {
-      if (!doLinkFinal(logger,compilerWorkDir,module,(JJSOptions)precompileResults)) {
+    if (precompileOptions != null) {
+      if (!doLinkFinal(logger,compilerWorkDir,module,precompileOptions)) {
         return false;
       }
       continue loop_modules;

@@ -1,0 +1,20 @@
+{
+  List<String> moduleNames=options.getModuleNames();
+  if (moduleNames.size() != 1) {
+    logger.log(TreeLogger.ERROR,"Expected a single module name.");
+    return false;
+  }
+  int permToRun=options.getPermToCompile();
+  if (permToRun < 0) {
+    logger.log(TreeLogger.ERROR,"Expected argument -perm to specify the permutation to compile.");
+    return false;
+  }
+  String moduleName=moduleNames.get(0);
+  File compilerWorkDir=options.getCompilerWorkDir(moduleName);
+  PrecompileOptions precompilationOptions=AnalyzeModule.readAnalyzeModuleOptionsFile(logger,compilerWorkDir);
+  if (precompilationOptions == null) {
+    logger.log(TreeLogger.ERROR,"Could not read file " + AnalyzeModule.OPTIONS_FILENAME + " output from AnalyzeModule step.");
+    return false;
+  }
+  return compileSpecificPermutation(logger,moduleName,precompilationOptions,permToRun,compilerWorkDir);
+}
