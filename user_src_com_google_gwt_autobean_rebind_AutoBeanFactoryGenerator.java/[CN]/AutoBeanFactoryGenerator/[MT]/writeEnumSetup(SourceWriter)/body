@@ -1,0 +1,40 @@
+{
+  Map<String,List<JEnumConstant>> map=new HashMap<String,List<JEnumConstant>>();
+  for (  Map.Entry<JEnumConstant,String> entry : model.getEnumTokenMap().entrySet()) {
+    List<JEnumConstant> list=map.get(entry.getValue());
+    if (list == null) {
+      list=new ArrayList<JEnumConstant>();
+      map.put(entry.getValue(),list);
+    }
+    list.add(entry.getKey());
+  }
+  sw.println("@Override protected void initializeEnumMap() {");
+  sw.indent();
+  for (  Map.Entry<JEnumConstant,String> entry : model.getEnumTokenMap().entrySet()) {
+    sw.println("enumToStringMap.put(%s.%s, \"%s\");",entry.getKey().getEnclosingType().getQualifiedSourceName(),entry.getKey().getName(),entry.getValue());
+  }
+  for (  Map.Entry<String,List<JEnumConstant>> entry : map.entrySet()) {
+    String listExpr;
+    if (entry.getValue().size() == 1) {
+      JEnumConstant e=entry.getValue().get(0);
+      listExpr=String.format("%s.<%s<?>> singletonList(%s.%s)",Collections.class.getCanonicalName(),Enum.class.getCanonicalName(),e.getEnclosingType().getQualifiedSourceName(),e.getName());
+    }
+ else {
+      StringBuilder sb=new StringBuilder();
+      boolean needsComma=false;
+      sb.append(String.format("%s.<%s<?>> asList(",Arrays.class.getCanonicalName(),Enum.class.getCanonicalName()));
+      for (      JEnumConstant e : entry.getValue()) {
+        if (needsComma) {
+          sb.append(",");
+        }
+        needsComma=true;
+        sb.append(e.getEnclosingType().getQualifiedSourceName()).append(".").append(e.getName());
+      }
+      sb.append(")");
+      listExpr=sb.toString();
+    }
+    sw.println("stringsToEnumsMap.put(\"%s\", %s);",entry.getKey(),listExpr);
+  }
+  sw.outdent();
+  sw.println("}");
+}

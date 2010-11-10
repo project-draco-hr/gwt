@@ -8,7 +8,7 @@
     throw new UnableToCompleteException();
   }
   String packageName=toGenerate.getPackage().getName();
-  String simpleSourceName=toGenerate.getName().replace('.','_') + "Impl";
+  simpleSourceName=toGenerate.getName().replace('.','_') + "Impl";
   PrintWriter pw=context.tryCreate(logger,packageName,simpleSourceName);
   if (pw == null) {
     return packageName + "." + simpleSourceName;
@@ -18,7 +18,11 @@
   factory.setSuperclass(AbstractAutoBeanFactory.class.getCanonicalName());
   factory.addImplementedInterface(typeName);
   SourceWriter sw=factory.createSourceWriter(context,pw);
+  for (  AutoBeanType type : model.getAllTypes()) {
+    writeAutoBean(type);
+  }
   writeDynamicMethods(sw);
+  writeEnumSetup(sw);
   writeMethods(sw);
   sw.commit(logger);
   return factory.getCreatedClassName();

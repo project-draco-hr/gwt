@@ -5,14 +5,14 @@
     if (type.isNoWrap()) {
       continue;
     }
-    sw.println("creators.put(%s.class, new Creator() {",type.getPeerType().getQualifiedSourceName());
+    sw.println("creators.put(%s.class, new Creator() {",ModelUtils.ensureBaseType(type.getPeerType()).getQualifiedSourceName());
     if (type.isSimpleBean()) {
-      sw.indentln("public %1$s create() { return new %1$s(); }",type.getQualifiedSourceName());
+      sw.indentln("public %1$s create() { return new %1$s(%2$s.this); }",type.getQualifiedSourceName(),simpleSourceName);
     }
  else {
       sw.indentln("public %1$s create() { return null; }",type.getQualifiedSourceName());
     }
-    sw.indentln("public %1$s create(Object delegate) {" + " return new %1$s((%2$s) delegate); }",type.getQualifiedSourceName(),type.getPeerType().getQualifiedSourceName());
+    sw.indentln("public %1$s create(Object delegate) {" + " return new %1$s(%2$s.this, (%3$s) delegate); }",type.getQualifiedSourceName(),simpleSourceName,type.getPeerType().getQualifiedSourceName());
     sw.println("});");
   }
   sw.outdent();

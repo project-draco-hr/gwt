@@ -1,17 +1,16 @@
 {
   for (  AutoBeanFactoryMethod method : model.getMethods()) {
     AutoBeanType autoBeanType=method.getAutoBeanType();
-    writeAutoBean(autoBeanType);
     sw.println("public %s %s(%s) {",method.getReturnType().getQualifiedSourceName(),method.getName(),method.isWrapper() ? (method.getWrappedType().getQualifiedSourceName() + " wrapped") : "");
     if (method.isWrapper()) {
       sw.indent();
       sw.println("%s toReturn = %s.getAutoBean(wrapped);",method.getReturnType().getParameterizedQualifiedSourceName(),AutoBeanUtils.class.getCanonicalName());
       sw.println("if (toReturn != null) {return toReturn;}");
-      sw.println("return new %s(wrapped);",autoBeanType.getQualifiedSourceName());
+      sw.println("return new %s(%s.this, wrapped);",autoBeanType.getQualifiedSourceName(),simpleSourceName);
       sw.outdent();
     }
  else {
-      sw.indentln("return new %s();",autoBeanType.getQualifiedSourceName());
+      sw.indentln("return new %s(%s.this);",autoBeanType.getQualifiedSourceName(),simpleSourceName);
     }
     sw.println("}");
   }

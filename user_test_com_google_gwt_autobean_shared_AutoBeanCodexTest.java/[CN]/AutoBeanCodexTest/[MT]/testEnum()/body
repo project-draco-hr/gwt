@@ -1,0 +1,22 @@
+{
+  EnumMap map=(EnumMap)f;
+  assertEquals("BAR",map.getToken(MyEnum.BAR));
+  assertEquals("quux",map.getToken(MyEnum.BAZ));
+  assertEquals(MyEnum.BAR,map.getEnum(MyEnum.class,"BAR"));
+  assertEquals(MyEnum.BAZ,map.getEnum(MyEnum.class,"quux"));
+  List<MyEnum> arrayValue=Arrays.asList(MyEnum.FOO,MyEnum.BAR,MyEnum.BAZ);
+  Map<MyEnum,Integer> mapValue=new HashMap<MyEnum,Integer>();
+  mapValue.put(MyEnum.FOO,0);
+  mapValue.put(MyEnum.BAR,1);
+  mapValue.put(MyEnum.BAZ,2);
+  AutoBean<HasEnum> bean=f.hasEnum();
+  bean.as().setEnum(MyEnum.BAZ);
+  bean.as().setEnums(arrayValue);
+  bean.as().setMap(mapValue);
+  Splittable split=AutoBeanCodex.encode(bean);
+  assertFalse(split.getPayload().contains("BAZ"));
+  AutoBean<HasEnum> decoded=AutoBeanCodex.decode(f,HasEnum.class,split);
+  assertEquals(MyEnum.BAZ,decoded.as().getEnum());
+  assertEquals(arrayValue,decoded.as().getEnums());
+  assertEquals(mapValue,decoded.as().getMap());
+}

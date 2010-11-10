@@ -1,0 +1,35 @@
+{
+  toReturn.method=method;
+  TypeOracle oracle=method.getEnclosingType().getOracle();
+  toReturn.isValueType=ModelUtils.isValueType(oracle,method.getReturnType());
+  if (!toReturn.isValueType) {
+    JClassType returnClass=method.getReturnType().isClassOrInterface();
+    JClassType collectionInterface=oracle.findType(Collection.class.getCanonicalName());
+    JClassType mapInterface=oracle.findType(Map.class.getCanonicalName());
+    if (collectionInterface.isAssignableFrom(returnClass)) {
+      JClassType[] parameterizations=ModelUtils.findParameterizationOf(collectionInterface,returnClass);
+      toReturn.elementType=parameterizations[0];
+    }
+ else     if (mapInterface.isAssignableFrom(returnClass)) {
+      JClassType[] parameterizations=ModelUtils.findParameterizationOf(mapInterface,returnClass);
+      toReturn.keyType=parameterizations[0];
+      toReturn.valueType=parameterizations[1];
+    }
+  }
+  JEnumType enumType=method.getReturnType().isEnum();
+  if (enumType != null) {
+    Map<JEnumConstant,String> map=new LinkedHashMap<JEnumConstant,String>();
+    for (    JEnumConstant e : enumType.getEnumConstants()) {
+      String name;
+      PropertyName annotation=e.getAnnotation(PropertyName.class);
+      if (annotation == null) {
+        name=e.getName();
+      }
+ else {
+        name=annotation.value();
+      }
+      map.put(e,name);
+    }
+    toReturn.enumMap=map;
+  }
+}

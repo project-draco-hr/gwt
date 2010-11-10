@@ -8,13 +8,10 @@
       continue;
     }
     AutoBeanMethod.Builder builder=new AutoBeanMethod.Builder();
-    String name=method.getName();
     builder.setMethod(method);
     JClassType classReturn=method.getReturnType().isInterface();
     if (classReturn != null) {
-      if (!peers.containsKey(classReturn)) {
-        toCalculate.add(classReturn);
-      }
+      maybeCalculate(classReturn);
       if (noWrapTypes != null) {
         for (        JClassType noWrap : noWrapTypes) {
           if (noWrap.isAssignableFrom(classReturn)) {
@@ -24,21 +21,27 @@
         }
       }
     }
-    if (name.startsWith("get") && name.length() >= 4 && method.getParameters().length == 0) {
-      builder.setAction(Action.GET);
-    }
- else     if (name.startsWith("set") && name.length() >= 4 && method.getParameters().length == 1) {
-      builder.setAction(Action.SET);
-    }
- else {
-      builder.setAction(Action.CALL);
+    Action action=Action.which(method);
+    builder.setAction(action);
+    if (Action.CALL.equals(action)) {
       JMethod staticImpl=findStaticImpl(beanType,method);
       if (staticImpl == null && objectMethods.contains(method)) {
         continue;
       }
       builder.setStaticImp(staticImpl);
     }
-    toReturn.add(builder.build());
+    AutoBeanMethod toAdd=builder.build();
+    if (toAdd.isEnum()) {
+      allEnumConstants.putAll(toAdd.getEnumMap());
+    }
+    if (toAdd.isCollection()) {
+      maybeCalculate(toAdd.getElementType());
+    }
+ else     if (toAdd.isMap()) {
+      maybeCalculate(toAdd.getKeyType());
+      maybeCalculate(toAdd.getValueType());
+    }
+    toReturn.add(toAdd);
   }
   return toReturn;
 }

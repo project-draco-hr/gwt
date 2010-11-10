@@ -1,4 +1,5 @@
 {
+  NameFactory names=new NameFactory();
   sw.println("@Override protected void traverseProperties(%s visitor, %s ctx) {",AutoBeanVisitor.class.getCanonicalName(),OneShotContext.class.getCanonicalName());
   sw.indent();
   for (  AutoBeanMethod method : type.getMethods()) {
@@ -34,21 +35,21 @@
       visitMethod="Reference";
       propertyContextType=PropertyContext.class;
     }
-    String propertyContextName=method.getPropertyName() + "PropertyContext";
+    String propertyContextName=names.createName("_" + method.getPropertyName() + "PropertyContext");
     sw.println("class %s implements %s {",propertyContextName,propertyContextType.getCanonicalName());
     sw.indent();
     sw.println("public boolean canSet() { return %s; }",type.isSimpleBean() || setter != null);
     if (method.isCollection()) {
-      sw.println("public Class<?> getElementType() { return %s; }",method.getElementType().getQualifiedSourceName() + ".class");
+      sw.println("public Class<?> getElementType() { return %s.class; }",ModelUtils.ensureBaseType(method.getElementType()).getQualifiedSourceName());
     }
  else     if (method.isMap()) {
-      sw.println("public Class<?> getValueType() { return %s; }",method.getValueType().getQualifiedSourceName() + ".class");
-      sw.println("public Class<?> getKeyType() { return %s; }",method.getKeyType().getQualifiedSourceName() + ".class");
+      sw.println("public Class<?> getValueType() { return %s.class; }",ModelUtils.ensureBaseType(method.getValueType()).getQualifiedSourceName());
+      sw.println("public Class<?> getKeyType() { return %s.class; }",ModelUtils.ensureBaseType(method.getKeyType()).getQualifiedSourceName());
     }
-    sw.println("public Class<?> getType() { return %s.class; }",method.getMethod().getReturnType().getQualifiedSourceName());
+    sw.println("public Class<?> getType() { return %s.class; }",ModelUtils.ensureBaseType(method.getMethod().getReturnType()).getQualifiedSourceName());
     sw.println("public void set(Object obj) { ");
     if (setter != null) {
-      sw.indentln("as().%s((%s) obj);",setter.getMethod().getName(),setter.getMethod().getParameters()[0].getType().getQualifiedSourceName());
+      sw.indentln("as().%s((%s) obj);",setter.getMethod().getName(),ModelUtils.ensureBaseType(setter.getMethod().getParameters()[0].getType()).getQualifiedSourceName());
     }
  else     if (type.isSimpleBean()) {
       sw.indentln("values.put(\"%s\", obj);",method.getPropertyName());
