@@ -110,15 +110,16 @@ SizeBreakdown[] sizeBreakdowns=options.isSoycEnabled() || options.isCompilerMetr
 List<Map<Range,SourceInfo>> sourceInfoMaps=options.isSoycExtra() ? new ArrayList<Map<Range,SourceInfo>>() : null;
 generateJavaScriptCode(options,jsProgram,map,js,ranges,sizeBreakdowns,sourceInfoMaps,splitBlocks);
 PermutationResult toReturn=new PermutationResultImpl(js,permutation,makeSymbolMap(symbolTable),ranges);
-toReturn.addArtifacts(makeSoycArtifacts(logger,permutationId,jprogram,js,sizeBreakdowns,sourceInfoMaps,dependencies,map,obfuscateMap));
+CompilationMetricsArtifact compilationMetrics=null;
 if (options.isCompilerMetricsEnabled()) {
-CompilationMetricsArtifact compilationMetrics=new CompilationMetricsArtifact(permutation.getId());
+compilationMetrics=new CompilationMetricsArtifact(permutation.getId());
 compilationMetrics.setCompileElapsedMilliseconds(System.currentTimeMillis() - startTimeMilliseconds);
 compilationMetrics.setElapsedMilliseconds(System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime());
 compilationMetrics.setJsSize(sizeBreakdowns);
 compilationMetrics.setPermutationDescription(permutation.prettyPrint());
 toReturn.addArtifacts(Lists.create(unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics));
 }
+toReturn.addArtifacts(makeSoycArtifacts(logger,permutationId,jprogram,js,sizeBreakdowns,sourceInfoMaps,dependencies,map,obfuscateMap,unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics));
 logger.log(TreeLogger.TRACE,"Permutation took " + (System.currentTimeMillis() - permStart) + " ms");
 return toReturn;
 }
