@@ -1,0 +1,20 @@
+{
+  List<Path> propertyPathsOfViolations=new ArrayList<Path>();
+  for (  ConstraintViolation<?> violation : violations) {
+    propertyPathsOfViolations.add(violation.getPropertyPath());
+  }
+  assertEquals(propertyPaths.length,propertyPathsOfViolations.size(),"Wrong number of property paths. Expected: " + propertyPaths.length + " Actual: "+ propertyPathsOfViolations.size());
+  for (  String propertyPath : propertyPaths) {
+    Path expectedPath=PathImpl.createPathFromString(propertyPath);
+    boolean containsPath=false;
+    for (    Path actualPath : propertyPathsOfViolations) {
+      if (assertEqualPaths(expectedPath,actualPath)) {
+        containsPath=true;
+        break;
+      }
+    }
+    if (!containsPath) {
+      fail(expectedPath + " is not in the list of path instances contained in the actual constraint violations: " + propertyPathsOfViolations);
+    }
+  }
+}
