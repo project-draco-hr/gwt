@@ -37,10 +37,10 @@
     EqualityNormalizer.exec(jprogram);
     Pruner.exec(jprogram,false);
     jprogram.typeOracle.recomputeAfterOptimizations();
-    JavaToJavaScriptMap map=GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput(),symbolTable,propertyOracles);
+    JavaToJavaScriptMap jjsmap=GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput(),symbolTable,propertyOracles);
     JsNormalizer.exec(jsProgram);
     JsSymbolResolver.exec(jsProgram);
-    EvalFunctionsAtTopScope.exec(jsProgram,map);
+    EvalFunctionsAtTopScope.exec(jsProgram,jjsmap);
     if (optimizationLevel > OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
       optimizeJs(options,jsProgram);
     }
@@ -49,7 +49,7 @@
     SyntheticArtifact dependencies=null;
     if (options.isRunAsyncEnabled()) {
       ByteArrayOutputStream baos=new ByteArrayOutputStream();
-      CodeSplitter.exec(logger,jprogram,jsProgram,map,chooseDependencyRecorder(options.isSoycEnabled(),baos));
+      CodeSplitter.exec(logger,jprogram,jsProgram,jjsmap,chooseDependencyRecorder(options.isSoycEnabled(),baos));
       if (baos.size() == 0 && options.isSoycEnabled()) {
         recordNonSplitDependencies(jprogram,baos);
       }
@@ -108,7 +108,7 @@ String[] js=new String[jsProgram.getFragmentCount()];
 StatementRanges[] ranges=new StatementRanges[js.length];
 SizeBreakdown[] sizeBreakdowns=options.isSoycEnabled() || options.isCompilerMetricsEnabled() ? new SizeBreakdown[js.length] : null;
 List<Map<Range,SourceInfo>> sourceInfoMaps=options.isSoycExtra() ? new ArrayList<Map<Range,SourceInfo>>() : null;
-generateJavaScriptCode(options,jsProgram,map,js,ranges,sizeBreakdowns,sourceInfoMaps,splitBlocks);
+generateJavaScriptCode(options,jsProgram,jjsmap,js,ranges,sizeBreakdowns,sourceInfoMaps,splitBlocks);
 PermutationResult toReturn=new PermutationResultImpl(js,permutation,makeSymbolMap(symbolTable),ranges);
 CompilationMetricsArtifact compilationMetrics=null;
 if (options.isCompilerMetricsEnabled()) {
@@ -119,7 +119,7 @@ compilationMetrics.setJsSize(sizeBreakdowns);
 compilationMetrics.setPermutationDescription(permutation.prettyPrint());
 toReturn.addArtifacts(Lists.create(unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics));
 }
-toReturn.addArtifacts(makeSoycArtifacts(logger,permutationId,jprogram,js,sizeBreakdowns,sourceInfoMaps,dependencies,map,obfuscateMap,unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics));
+toReturn.addArtifacts(makeSoycArtifacts(logger,permutationId,jprogram,js,sizeBreakdowns,sourceInfoMaps,dependencies,jjsmap,obfuscateMap,unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics));
 logger.log(TreeLogger.TRACE,"Permutation took " + (System.currentTimeMillis() - permStart) + " ms");
 return toReturn;
 }
