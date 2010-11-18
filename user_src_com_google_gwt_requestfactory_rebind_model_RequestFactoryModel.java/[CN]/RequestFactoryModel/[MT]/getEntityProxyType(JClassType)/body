@@ -11,6 +11,16 @@
     EntityProxyModel.Builder builder=new EntityProxyModel.Builder();
     peerBuilders.put(entityProxyType,builder);
     builder.setQualifiedSourceName(ModelUtils.getQualifiedBaseName(entityProxyType));
+    if (entityProxyInterface.isAssignableFrom(entityProxyType)) {
+      builder.setType(Type.ENTITY);
+    }
+ else     if (valueProxyInterface.isAssignableFrom(entityProxyType)) {
+      builder.setType(Type.VALUE);
+    }
+ else {
+      poison("The type %s is not assignable to either %s or %s",entityProxyInterface.getQualifiedSourceName(),valueProxyInterface.getQualifiedSourceName());
+      die(poisonedMessage());
+    }
     ProxyFor proxyFor=entityProxyType.getAnnotation(ProxyFor.class);
     ProxyForName proxyForName=entityProxyType.getAnnotation(ProxyForName.class);
     if (proxyFor == null && proxyForName == null) {

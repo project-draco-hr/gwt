@@ -1,5 +1,16 @@
 {
-  id=getId(message);
+  SimpleProxyId<BaseProxy> baseId=getId(message);
+  if (baseId instanceof EntityProxyId<?>) {
+    id=(EntityProxyId<?>)baseId;
+  }
+ else {
+    id=null;
+  }
+  AutoBean<BaseProxy> stub=getProxyForReturnPayloadGraph(baseId);
+  AutoBean<?> edited=editedProxies.get(BaseProxyCategory.stableId(stub));
+  currentProxy=(BaseProxy)edited.as();
+  AutoBean<BaseProxy> parentBean=edited.getTag(PARENT_OBJECT);
+  parentProxy=parentBean == null ? null : parentBean.as();
   path=message.getPath();
   this.message=message.getMessage();
 }

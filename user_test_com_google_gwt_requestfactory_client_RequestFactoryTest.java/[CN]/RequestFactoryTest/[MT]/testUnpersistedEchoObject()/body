@@ -1,0 +1,16 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  final SimpleFooEventHandler<SimpleFooProxy> handler=new SimpleFooEventHandler<SimpleFooProxy>();
+  EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleFooProxy.class,handler);
+  SimpleFooRequest context=req.simpleFooRequest();
+  final SimpleFooProxy simpleFoo=context.create(SimpleFooProxy.class);
+  simpleFoo.setUnpersisted(true);
+  context.echo(simpleFoo).fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy response){
+      assertEquals(0,handler.totalEventCount);
+      checkStableIdEquals(simpleFoo,response);
+      finishTestAndReset();
+    }
+  }
+);
+}

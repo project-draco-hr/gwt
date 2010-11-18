@@ -1,13 +1,13 @@
 {
-  Type toReturn=clientToDomainType.get(clientType);
-  if (toReturn != null) {
-    return toReturn;
+  Type domainType=clientToDomainType.get(clientType);
+  if (domainType != null) {
+    return domainType;
   }
   if (isValueType(logger,clientType) || isCollectionType(logger,clientType)) {
-    toReturn=clientType;
+    domainType=clientType;
   }
- else   if (entityProxyIntf.equals(clientType)) {
-    toReturn=objectType;
+ else   if (entityProxyIntf.equals(clientType) || valueProxyIntf.equals(clientType)) {
+    domainType=objectType;
   }
  else {
     logger=logger.setType(clientType);
@@ -15,18 +15,15 @@
     visit(logger,clientType.getInternalName(),pv);
     if (pv.getDomainInternalName() == null) {
       logger.poison("%s has no mapping to a domain type (e.g. @%s or @%s)",print(clientType),ProxyFor.class.getSimpleName(),Service.class.getSimpleName());
-      toReturn=errorType;
+      domainType=errorType;
     }
  else {
-      toReturn=Type.getObjectType(pv.getDomainInternalName());
+      domainType=Type.getObjectType(pv.getDomainInternalName());
+      if (pv.isValueType()) {
+        valueTypes.add(clientType);
+      }
     }
   }
-  clientToDomainType.put(clientType,toReturn);
-  if (isAssignable(logger,entityProxyIntf,clientType)) {
-    Type previousProxyType=domainToClientType.put(toReturn,clientType);
-    if (previousProxyType != null) {
-      logger.poison("The domain type %s has more than one proxy type: %s and %s",toReturn.getClassName(),previousProxyType.getClassName(),clientType.getClassName());
-    }
-  }
-  return toReturn;
+  addToDomainMap(logger,domainType,clientType);
+  return domainType;
 }

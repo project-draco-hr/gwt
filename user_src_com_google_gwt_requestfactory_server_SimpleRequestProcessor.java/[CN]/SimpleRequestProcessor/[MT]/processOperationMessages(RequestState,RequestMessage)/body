@@ -6,8 +6,8 @@
   for (  final OperationMessage operation : operations) {
     String payloadId=operation.getOperation().equals(WriteOperation.PERSIST) ? IdUtil.ephemeralId(operation.getClientId(),operation.getTypeToken()) : IdUtil.persistedId(operation.getServerId(),operation.getTypeToken());
     AutoBean<? extends EntityProxy> bean=state.getBeanForPayload(payloadId);
-    bean.setTag(Constants.ENCODED_ID_PROPERTY,operation.getVersion());
-    final Object domain=bean.getTag(DOMAIN_OBJECT);
+    bean.setTag(Constants.ENCODED_VERSION_PROPERTY,operation.getVersion());
+    final Object domain=bean.getTag(Constants.DOMAIN_OBJECT);
     if (domain != null) {
       final Map<String,Splittable> flatValueMap=operation.getPropertyMap();
       if (flatValueMap != null) {
@@ -16,7 +16,7 @@
             if (flatValueMap.containsKey(propertyName)) {
               Class<?> elementType=ctx instanceof CollectionPropertyContext ? ((CollectionPropertyContext)ctx).getElementType() : null;
               Object newValue=EntityCodex.decode(state,ctx.getType(),elementType,flatValueMap.get(propertyName));
-              Object resolved=resolveDomainValue(newValue,false);
+              Object resolved=state.getResolver().resolveDomainValue(newValue,false);
               service.setProperty(domain,propertyName,service.getDomainClass(ctx.getType()),resolved);
             }
             return false;
@@ -25,7 +25,7 @@
             if (flatValueMap.containsKey(propertyName)) {
               Splittable split=flatValueMap.get(propertyName);
               Object newValue=ValueCodex.decode(ctx.getType(),split);
-              Object resolved=resolveDomainValue(newValue,false);
+              Object resolved=state.getResolver().resolveDomainValue(newValue,false);
               service.setProperty(domain,propertyName,ctx.getType(),resolved);
             }
             return false;

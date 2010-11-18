@@ -1,0 +1,20 @@
+{
+  this.service=service;
+  idFactory=new IdFactory(){
+    @Override public boolean isEntityType(    Class<?> clazz){
+      return EntityProxy.class.isAssignableFrom(clazz);
+    }
+    @Override public boolean isValueType(    Class<?> clazz){
+      return ValueProxy.class.isAssignableFrom(clazz);
+    }
+    @Override @SuppressWarnings("unchecked") protected <P extends BaseProxy>Class<P> getTypeFromToken(    String typeToken){
+      return (Class<P>)service.resolveClass(typeToken);
+    }
+    @Override protected String getTypeToken(    Class<?> clazz){
+      return service.getTypeToken(clazz);
+    }
+  }
+;
+  domainObjectsToId=new IdentityHashMap<Object,SimpleProxyId<?>>();
+  resolver=new Resolver(this);
+}

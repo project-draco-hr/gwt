@@ -1,14 +1,14 @@
 {
   Class<?> found=forName(typeToken);
-  if (!EntityProxy.class.isAssignableFrom(found)) {
-    die(null,"The requested type %s is not assignable to %s",typeToken,EntityProxy.class.getName());
+  if (!EntityProxy.class.isAssignableFrom(found) && !ValueProxy.class.isAssignableFrom(found)) {
+    die(null,"The requested type %s is not assignable to %s or %s",typeToken,EntityProxy.class.getCanonicalName(),ValueProxy.class.getCanonicalName());
   }
 synchronized (validator) {
     validator.antidote();
-    validator.validateEntityProxy(found.getName());
+    validator.validateProxy(found.getName());
     if (validator.isPoisoned()) {
       die(null,"The type %s did not pass RequestFactory validation",found.getCanonicalName());
     }
   }
-  return found.asSubclass(EntityProxy.class);
+  return found.asSubclass(BaseProxy.class);
 }

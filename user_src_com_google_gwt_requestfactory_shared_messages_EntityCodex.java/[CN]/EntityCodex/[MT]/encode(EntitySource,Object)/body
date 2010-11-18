@@ -23,11 +23,15 @@
     toReturn.append(']');
     return new LazySplittable(toReturn.toString());
   }
-  if (value instanceof EntityProxy) {
-    value=source.getSerializedProxyId(((EntityProxy)value).stableId());
+  if (value instanceof BaseProxy) {
+    AutoBean<BaseProxy> autoBean=AutoBeanUtils.getAutoBean((BaseProxy)value);
+    value=BaseProxyCategory.stableId(autoBean);
   }
-  if (value instanceof EntityProxyId<?>) {
-    value=source.getSerializedProxyId((EntityProxyId<?>)value);
+  if (value instanceof SimpleProxyId<?>) {
+    value=source.getSerializedProxyId((SimpleProxyId<?>)value);
+  }
+  if (value instanceof Poser<?>) {
+    value=((Poser<?>)value).getPosedValue();
   }
   return ValueCodex.encode(value);
 }

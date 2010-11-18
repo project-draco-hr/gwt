@@ -1,0 +1,43 @@
+{
+  if (domainValue == null) {
+    return null;
+  }
+  Class<?> assignableTo=TypeUtils.ensureBaseType(returnType);
+  ResolutionKey key=new ResolutionKey(domainValue,returnType);
+  Object previous=resolved.get(key);
+  if (previous != null && assignableTo.isInstance(previous)) {
+    return assignableTo.cast(previous);
+  }
+  Class<?> returnClass=service.getClientType(domainValue.getClass(),assignableTo);
+  if (ValueCodex.canDecode(returnClass)) {
+    return assignableTo.cast(domainValue);
+  }
+  boolean isProxy=BaseProxy.class.isAssignableFrom(returnClass);
+  boolean isId=EntityProxyId.class.isAssignableFrom(returnClass);
+  if (isProxy || isId) {
+    BaseProxy entity=resolveClientProxy(domainValue,assignableTo.asSubclass(BaseProxy.class),propertyRefs,key,prefix);
+    if (isId) {
+      return assignableTo.cast(((EntityProxy)entity).stableId());
+    }
+    return assignableTo.cast(entity);
+  }
+  if (Collection.class.isAssignableFrom(returnClass)) {
+    Collection<Object> accumulator;
+    if (List.class.isAssignableFrom(returnClass)) {
+      accumulator=new ArrayList<Object>();
+    }
+ else     if (Set.class.isAssignableFrom(returnClass)) {
+      accumulator=new HashSet<Object>();
+    }
+ else {
+      throw new ReportableException("Unsupported collection type" + returnClass.getName());
+    }
+    resolved.put(key,accumulator);
+    Type elementType=TypeUtils.getSingleParameterization(Collection.class,returnType);
+    for (    Object o : (Collection<?>)domainValue) {
+      accumulator.add(resolveClientValue(o,elementType,propertyRefs,prefix));
+    }
+    return assignableTo.cast(accumulator);
+  }
+  throw new ReportableException("Unsupported domain type " + returnClass.getCanonicalName());
+}

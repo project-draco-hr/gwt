@@ -1,0 +1,18 @@
+{
+  AbstractRequestContext context=requestContext(bean);
+  if (context == null || context.isLocked()) {
+    return returnValue;
+  }
+  if (returnValue instanceof BaseProxy) {
+    @SuppressWarnings("unchecked") T toReturn=(T)context.editProxy((BaseProxy)returnValue);
+    return toReturn;
+  }
+  if (returnValue instanceof Poser) {
+    ((Poser<?>)returnValue).setFrozen(false);
+  }
+  AutoBean<T> otherBean=AutoBeanUtils.getAutoBean(returnValue);
+  if (otherBean != null) {
+    otherBean.setTag(REQUEST_CONTEXT,bean.getTag(REQUEST_CONTEXT));
+  }
+  return returnValue;
+}

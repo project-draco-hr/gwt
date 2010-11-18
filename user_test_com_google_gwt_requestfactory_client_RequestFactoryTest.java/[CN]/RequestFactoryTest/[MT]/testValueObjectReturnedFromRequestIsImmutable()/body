@@ -1,0 +1,34 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  simpleFooRequest().returnValueProxy().fire(new Receiver<SimpleValueProxy>(){
+    @Override public void onSuccess(    SimpleValueProxy a){
+      try {
+        a.setNumber(77);
+        fail();
+      }
+ catch (      IllegalStateException expected) {
+      }
+      try {
+        a.getDate().setTime(1);
+        fail();
+      }
+ catch (      IllegalStateException expected) {
+      }
+      SimpleFooRequest ctx=simpleFooRequest();
+      final SimpleValueProxy toCheck=ctx.edit(a);
+      toCheck.setNumber(77);
+      toCheck.getDate().setTime(1);
+      ctx.returnValueProxy().fire(new Receiver<SimpleValueProxy>(){
+        @Override public void onSuccess(        SimpleValueProxy b){
+          b=simpleFooRequest().edit(b);
+          b.setNumber(77);
+          b.setDate(new Date(1));
+          checkEqualityAndHashcode(toCheck,b);
+          finishTestAndReset();
+        }
+      }
+);
+    }
+  }
+);
+}

@@ -1,33 +1,37 @@
 {
-  for (  Map.Entry<SimpleEntityProxyId<?>,AutoBean<? extends EntityProxy>> entry : toProcess.entrySet()) {
-    SimpleEntityProxyId<?> id=entry.getKey();
-    AutoBean<? extends EntityProxy> bean=entry.getValue();
-    Object domainObject=bean.getTag(DOMAIN_OBJECT);
+  for (  Map.Entry<SimpleProxyId<?>,AutoBean<? extends BaseProxy>> entry : toProcess.entrySet()) {
+    SimpleProxyId<?> id=entry.getKey();
+    AutoBean<? extends BaseProxy> bean=entry.getValue();
+    Object domainObject=bean.getTag(Constants.DOMAIN_OBJECT);
     WriteOperation writeOperation;
     if (id.isEphemeral()) {
-      resolveClientEntityProxy(returnState,domainObject,Collections.<String>emptySet(),"");
-      if (id.isEphemeral()) {
-        throw new ReportableException("Could not persist entity " + service.getFlatId(returnState,domainObject.toString()));
-      }
+      returnState.getResolver().resolveClientValue(domainObject,id.getProxyClass(),Collections.<String>emptySet());
     }
-    if (service.loadDomainObject(returnState,service.getDomainClass(id.getProxyClass()),fromBase64(id.getServerId())) == null) {
+    int version;
+    if (id.isEphemeral() || id.isSynthetic()) {
+      writeOperation=null;
+      version=0;
+    }
+ else     if (service.loadDomainObject(returnState,service.getDomainClass(id.getProxyClass()),id.getServerId()) == null) {
       writeOperation=WriteOperation.DELETE;
+      version=0;
     }
  else     if (id.wasEphemeral()) {
       writeOperation=WriteOperation.PERSIST;
+      version=service.getVersion(domainObject);
     }
  else {
       writeOperation=WriteOperation.UPDATE;
+      version=service.getVersion(domainObject);
     }
-    boolean inResponse=bean.getTag(IN_RESPONSE) != null;
-    int version=domainObject == null ? 0 : service.getVersion(domainObject);
-    if (writeOperation.equals(WriteOperation.UPDATE) && !inResponse) {
+    boolean inResponse=bean.getTag(Constants.IN_RESPONSE) != null;
+    if (WriteOperation.UPDATE.equals(writeOperation) && !inResponse) {
       if (Integer.valueOf(version).equals(bean.getTag(Constants.ENCODED_VERSION_PROPERTY))) {
         continue;
       }
     }
     OperationMessage op=FACTORY.operation().as();
-    if (writeOperation == WriteOperation.PERSIST) {
+    if (id.wasEphemeral()) {
       op.setClientId(id.getClientId());
     }
     op.setOperation(writeOperation);
@@ -42,7 +46,10 @@
       }
       op.setPropertyMap(propertyMap);
     }
-    op.setServerId(id.getServerId());
+    if (!id.isEphemeral() && !id.isSynthetic()) {
+      op.setServerId(toBase64(id.getServerId()));
+    }
+    op.setSyntheticId(id.getSyntheticId());
     op.setTypeToken(service.getTypeToken(id.getProxyClass()));
     op.setVersion(version);
     operations.add(op);

@@ -1,0 +1,23 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  SimpleFooRequest req=simpleFooRequest();
+  final SimpleValueProxy value=req.create(SimpleValueProxy.class);
+  value.setShouldBeNull("Hello world");
+  SimpleFooProxy foo=req.create(SimpleFooProxy.class);
+  foo.setSimpleValue(value);
+  req.echo(foo).fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy response){
+      fail();
+    }
+    @Override public void onViolation(    Set<Violation> errors){
+      assertEquals(1,errors.size());
+      Violation v=errors.iterator().next();
+      assertEquals(value,v.getInvalidProxy());
+      assertNull(v.getOriginalProxy());
+      assertEquals("shouldBeNull",v.getPath());
+      assertNull(v.getProxyId());
+      finishTestAndReset();
+    }
+  }
+);
+}

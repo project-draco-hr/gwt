@@ -1,0 +1,72 @@
+{
+  if (domainEntity == null) {
+    return null;
+  }
+  SimpleProxyId<? extends BaseProxy> id=state.getStableId(domainEntity);
+  boolean isEntityProxy=state.isEntityType(proxyType);
+  final boolean isOwnerValueProxy=state.isValueType(proxyType);
+  int version;
+  if (id == null || id.isEphemeral()) {
+    String address;
+    if (isEntityProxy) {
+      address=service.getFlatId(state,domainEntity);
+      version=service.getVersion(domainEntity);
+    }
+ else {
+      address=null;
+      version=0;
+    }
+    if (id == null) {
+      if (address == null) {
+        id=state.getIdFactory().allocateSyntheticId(proxyType,++syntheticId);
+      }
+ else {
+        id=state.getIdFactory().getId(proxyType,address,null);
+      }
+    }
+ else {
+      id.setServerId(address);
+    }
+  }
+ else   if (isEntityProxy) {
+    version=service.getVersion(domainEntity);
+  }
+ else {
+    version=0;
+  }
+  @SuppressWarnings("unchecked") AutoBean<T> bean=(AutoBean<T>)state.getBeanForPayload(id,domainEntity);
+  resolved.put(key,bean.as());
+  bean.setTag(Constants.IN_RESPONSE,true);
+  bean.setTag(Constants.ENCODED_VERSION_PROPERTY,version);
+  bean.accept(new AutoBeanVisitor(){
+    @Override public boolean visitReferenceProperty(    String propertyName,    AutoBean<?> value,    PropertyContext ctx){
+      String newPrefix=(prefix.length() > 0 ? (prefix + ".") : "") + propertyName;
+      Class<?> elementType=ctx instanceof CollectionPropertyContext ? ((CollectionPropertyContext)ctx).getElementType() : null;
+      boolean shouldSend=isOwnerValueProxy || matchesPropertyRef(propertyRefs,newPrefix) || elementType != null && ValueCodex.canDecode(elementType);
+      if (!shouldSend) {
+        return false;
+      }
+      Object domainValue=service.getProperty(domainEntity,propertyName);
+      if (domainValue == null) {
+        return false;
+      }
+      Type type;
+      if (elementType == null) {
+        type=ctx.getType();
+      }
+ else {
+        type=new CollectionType(ctx.getType(),elementType);
+      }
+      Object clientValue=resolveClientValue(domainValue,type,propertyRefs,newPrefix);
+      ctx.set(clientValue);
+      return false;
+    }
+    @Override public boolean visitValueProperty(    String propertyName,    Object value,    PropertyContext ctx){
+      value=service.getProperty(domainEntity,propertyName);
+      ctx.set(value);
+      return false;
+    }
+  }
+);
+  return bean.as();
+}

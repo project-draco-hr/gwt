@@ -1,0 +1,22 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  final SimpleFooEventHandler<SimpleFooProxy> handler=new SimpleFooEventHandler<SimpleFooProxy>();
+  EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleFooProxy.class,handler);
+  SimpleFooRequest context=req.simpleFooRequest();
+  final SimpleBarProxy simpleBar=context.create(SimpleBarProxy.class);
+  simpleBar.setUnpersisted(true);
+  final SimpleFooProxy simpleFoo=context.create(SimpleFooProxy.class);
+  simpleFoo.setUnpersisted(true);
+  simpleFoo.setBarField(simpleBar);
+  context.echoComplex(simpleFoo,simpleBar).with("barField").fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy response){
+      assertEquals(0,handler.totalEventCount);
+      checkStableIdEquals(simpleFoo,response);
+      SimpleBarProxy responseBar=response.getBarField();
+      assertNotNull(responseBar);
+      checkStableIdEquals(simpleBar,responseBar);
+      finishTestAndReset();
+    }
+  }
+);
+}

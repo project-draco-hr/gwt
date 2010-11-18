@@ -1,0 +1,43 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  SimpleFooRequest req=simpleFooRequest();
+  req.findSimpleFooById(1L).fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy response){
+      SimpleFooRequest req=simpleFooRequest();
+      final SimpleValueProxy created=req.create(SimpleValueProxy.class);
+      created.setNumber(42);
+      created.setString("Hello world!");
+      created.setSimpleFoo(response);
+      created.setSimpleValue(Arrays.asList(created));
+      response=req.edit(response);
+      response.setSimpleValue(created);
+      req.persistAndReturnSelf().using(response).with("simpleValue.simpleFoo","simpleValue.simpleValue").to(new Receiver<SimpleFooProxy>(){
+        @Override public void onSuccess(        SimpleFooProxy response){
+          SimpleValueProxy value=response.getSimpleValue();
+          assertEquals(42,value.getNumber());
+          assertEquals("Hello world!",value.getString());
+          assertSame(response,value.getSimpleFoo());
+          assertSame(value,value.getSimpleValue().get(0));
+          try {
+            response.getSimpleValue().setNumber(43);
+            fail("Should have thrown exception");
+          }
+ catch (          IllegalStateException expected) {
+          }
+          SimpleFooRequest req=simpleFooRequest();
+          response=req.edit(response);
+          response.getSimpleValue().setNumber(43);
+          req.persistAndReturnSelf().using(response).with("simpleValue").to(new Receiver<SimpleFooProxy>(){
+            @Override public void onSuccess(            SimpleFooProxy response){
+              assertEquals(43,response.getSimpleValue().getNumber());
+              finishTestAndReset();
+            }
+          }
+).fire();
+        }
+      }
+).fire();
+    }
+  }
+);
+}

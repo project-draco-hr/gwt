@@ -6,7 +6,8 @@
       Method domainMethod=service.resolveDomainMethod(contextMethod);
       List<Object> args=decodeInvocationArguments(state,invocation,contextMethod,domainMethod);
       Object returnValue=service.invoke(domainMethod,args.toArray());
-      returnValue=resolveClientValue(returnState,returnValue,getPropertyRefs(invocation),"");
+      Type requestReturnType=service.getRequestReturnType(contextMethod);
+      returnValue=state.getResolver().resolveClientValue(returnValue,requestReturnType,invocation.getPropertyRefs());
       results.add(EntityCodex.encode(returnState,returnValue));
       success.add(true);
     }

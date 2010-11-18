@@ -6,7 +6,12 @@
   if (foundProxy || foundService) {
     return new EmptyVisitor(){
       @Override public void visit(      String name,      Object value){
-        domainInternalName=((Type)value).getInternalName();
+        if ("value".equals(name)) {
+          domainInternalName=((Type)value).getInternalName();
+        }
+ else         if ("isValueType".equals(name)) {
+          isValueType=(Boolean)value;
+        }
       }
     }
 ;
@@ -14,18 +19,24 @@
   if (foundProxyName || foundServiceName) {
     return new EmptyVisitor(){
       @Override public void visit(      String name,      Object value){
-        String sourceName=(String)value;
-        StringBuffer desc=new StringBuffer(sourceName.replace('.','/'));
-        while (!loader.exists(desc.toString() + ".class")) {
-          logger.spam("Did not find " + desc.toString());
-          int idx=desc.lastIndexOf("/");
-          if (idx == -1) {
-            return;
+        if ("value".equals(name)) {
+          String sourceName=(String)value;
+          StringBuffer desc=new StringBuffer(sourceName.replace('.','/'));
+          while (!loader.exists(desc.toString() + ".class")) {
+            logger.spam("Did not find " + desc.toString());
+            int idx=desc.lastIndexOf("/");
+            if (idx == -1) {
+              return;
+            }
+            desc.setCharAt(idx,'$');
           }
-          desc.setCharAt(idx,'$');
+          domainInternalName=desc.toString();
+          logger.spam(domainInternalName);
         }
-        domainInternalName=desc.toString();
-        logger.spam(domainInternalName);
+ else         if ("isValueType".equals(name)) {
+          isValueType=(Boolean)value;
+          logger.spam("isValueType: %s",isValueType);
+        }
       }
     }
 ;

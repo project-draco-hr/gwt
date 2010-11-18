@@ -1,13 +1,41 @@
 {
   AutoBean<T> clone=toClone.clone(false);
+  takeOwnership(clone);
   clone.accept(new AutoBeanVisitor(){
-    @Override public boolean visitReferenceProperty(    String propertyName,    AutoBean<?> value,    PropertyContext ctx){
+    @Override public boolean visitCollectionProperty(    String propertyName,    AutoBean<Collection<?>> value,    CollectionPropertyContext ctx){
       if (value != null) {
+        Collection<Object> collection;
         if (List.class == ctx.getType()) {
-          ctx.set(new ArrayList<Object>((List<?>)value.as()));
+          collection=new ArrayList<Object>();
         }
  else         if (Set.class == ctx.getType()) {
-          ctx.set(new HashSet<Object>((Set<?>)value.as()));
+          collection=new HashSet<Object>();
+        }
+ else {
+          throw new IllegalArgumentException(ctx.getType().getName());
+        }
+        if (isValueType(ctx.getElementType())) {
+          for (          Object o : value.as()) {
+            if (o == null) {
+              collection.add(null);
+            }
+ else {
+              collection.add(editProxy((ValueProxy)o));
+            }
+          }
+        }
+ else {
+          collection.addAll(value.as());
+        }
+        ctx.set(collection);
+      }
+      return false;
+    }
+    @Override public boolean visitReferenceProperty(    String propertyName,    AutoBean<?> value,    PropertyContext ctx){
+      if (value != null) {
+        if (isValueType(ctx.getType())) {
+          @SuppressWarnings("unchecked") AutoBean<ValueProxy> valueBean=(AutoBean<ValueProxy>)value;
+          ctx.set(editProxy(valueBean.as()));
         }
       }
       return false;

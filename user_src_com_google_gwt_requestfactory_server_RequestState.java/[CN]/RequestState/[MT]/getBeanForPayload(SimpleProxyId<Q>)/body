@@ -1,0 +1,17 @@
+{
+  @SuppressWarnings("unchecked") AutoBean<Q> toReturn=(AutoBean<Q>)beans.get(id);
+  if (toReturn == null) {
+    Class<?> domainClass=service.getDomainClass(id.getProxyClass());
+    Object domain;
+    if (id.isEphemeral()) {
+      domain=service.createDomainObject(domainClass);
+    }
+ else {
+      String address=id.getServerId();
+      domain=service.loadDomainObject(this,domainClass,address);
+    }
+    domainObjectsToId.put(domain,id);
+    toReturn=createEntityProxyBean(id,domain);
+  }
+  return toReturn;
+}
