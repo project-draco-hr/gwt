@@ -2,6 +2,10 @@
   if (domainValue == null) {
     return null;
   }
+  boolean anyType=returnType == null;
+  if (anyType) {
+    returnType=Object.class;
+  }
   Class<?> assignableTo=TypeUtils.ensureBaseType(returnType);
   ResolutionKey key=new ResolutionKey(domainValue,returnType);
   Object previous=resolved.get(key);
@@ -9,13 +13,17 @@
     return assignableTo.cast(previous);
   }
   Class<?> returnClass=service.getClientType(domainValue.getClass(),assignableTo);
+  if (anyType) {
+    assignableTo=returnClass;
+  }
   if (ValueCodex.canDecode(returnClass)) {
     return assignableTo.cast(domainValue);
   }
   boolean isProxy=BaseProxy.class.isAssignableFrom(returnClass);
   boolean isId=EntityProxyId.class.isAssignableFrom(returnClass);
   if (isProxy || isId) {
-    BaseProxy entity=resolveClientProxy(domainValue,assignableTo.asSubclass(BaseProxy.class),propertyRefs,key,prefix);
+    Class<? extends BaseProxy> proxyClass=assignableTo.asSubclass(BaseProxy.class);
+    BaseProxy entity=resolveClientProxy(domainValue,proxyClass,propertyRefs,key,prefix);
     if (isId) {
       return assignableTo.cast(((EntityProxy)entity).stableId());
     }

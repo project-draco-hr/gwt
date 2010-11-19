@@ -1,0 +1,22 @@
+{
+  if (clazz == null) {
+    return die(null,"Could not find static method with a single" + " parameter of a key type");
+  }
+  String searchFor="find" + clazz.getSimpleName();
+  for (  Method method : clazz.getMethods()) {
+    if (!Modifier.isStatic(method.getModifiers())) {
+      continue;
+    }
+    if (!searchFor.equals(method.getName())) {
+      continue;
+    }
+    if (method.getParameterTypes().length != 1) {
+      continue;
+    }
+    if (!isKeyType(method.getParameterTypes()[0])) {
+      continue;
+    }
+    return method;
+  }
+  return getFind(clazz.getSuperclass());
+}

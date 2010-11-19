@@ -1,0 +1,12 @@
+{
+  SimpleProxyId<Q> id;
+  if (idMessage.getSyntheticId() > 0) {
+    @SuppressWarnings("unchecked") Class<Q> clazz=(Class<Q>)service.resolveClass(idMessage.getTypeToken());
+    id=idFactory.allocateSyntheticId(clazz,idMessage.getSyntheticId());
+  }
+ else {
+    String decodedId=idMessage.getServerId() == null ? null : SimpleRequestProcessor.fromBase64(idMessage.getServerId());
+    id=idFactory.getId(idMessage.getTypeToken(),decodedId,idMessage.getClientId());
+  }
+  return getBeanForPayload(id);
+}

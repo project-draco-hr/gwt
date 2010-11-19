@@ -3,13 +3,46 @@
     return;
   }
   logger=logger.setType(domainType);
-  Method getIdString=new Method("getId","()Ljava/lang/String;");
-  Method getIdLong=new Method("getId","()Ljava/lang/Long;");
-  if (findCompatibleMethod(logger,domainType,getIdString,false,true) == null && findCompatibleMethod(logger,domainType,getIdLong,false,true) == null) {
-    logger.poison("Did not find a getId() method that" + " returns a String or a Long");
+  String findMethodName="find" + BinaryName.getShortClassName(domainType.getClassName());
+  Type keyType=null;
+  RFMethod findMethod=null;
+  boolean foundFind=false;
+  boolean foundId=false;
+  boolean foundVersion=false;
+  for (  RFMethod method : getMethodsInHierarchy(logger,domainType)) {
+    if ("getId".equals(method.getName()) && method.getArgumentTypes().length == 0) {
+      foundId=true;
+      keyType=method.getReturnType();
+      if (!isResolvedKeyType(logger,keyType)) {
+        unresolvedKeyTypes.put(domainType,keyType);
+      }
+    }
+ else     if ("getVersion".equals(method.getName()) && method.getArgumentTypes().length == 0) {
+      foundVersion=true;
+      if (!isResolvedKeyType(logger,method.getReturnType())) {
+        unresolvedKeyTypes.put(domainType,method.getReturnType());
+      }
+    }
+ else     if (findMethodName.equals(method.getName()) && method.getArgumentTypes().length == 1) {
+      foundFind=true;
+      findMethod=method;
+    }
+    if (foundFind && foundId && foundVersion) {
+      break;
+    }
   }
-  Method getVersion=new Method("getVersion","()Ljava/lang/Integer;");
-  if (findCompatibleMethod(logger,domainType,getVersion) == null) {
-    logger.poison("Did not find a getVersion() method" + " that returns an Integer");
+  if (!foundId) {
+    logger.poison("There is no getId() method in type %s",print(domainType));
+  }
+  if (!foundVersion) {
+    logger.poison("There is no getVersion() method in type %s",print(domainType));
+  }
+  if (foundFind) {
+    if (keyType != null && !isAssignable(logger,findMethod.getArgumentTypes()[0],keyType)) {
+      logger.poison("The key type returned by %s getId()" + " cannot be used as the argument to %s(%s)",print(keyType),findMethod.getName(),print(findMethod.getArgumentTypes()[0]));
+    }
+  }
+ else {
+    logger.poison("There is no %s method in type %s that returns %2$s",findMethodName,print(domainType));
   }
 }

@@ -3,12 +3,20 @@
   if (toReturn == null) {
     Class<?> domainClass=service.getDomainClass(id.getProxyClass());
     Object domain;
-    if (id.isEphemeral()) {
+    if (id.isEphemeral() || id.isSynthetic()) {
       domain=service.createDomainObject(domainClass);
     }
  else {
-      String address=id.getServerId();
-      domain=service.loadDomainObject(this,domainClass,address);
+      Splittable address=StringQuoter.split(id.getServerId());
+      Class<?> param=service.getIdType(domainClass);
+      Object domainParam;
+      if (ValueCodex.canDecode(param)) {
+        domainParam=ValueCodex.decode(param,address);
+      }
+ else {
+        domainParam=new SimpleRequestProcessor(service).decodeOobMessage(param,address).get(0);
+      }
+      domain=service.loadDomainObject(this,domainClass,domainParam);
     }
     domainObjectsToId.put(domain,id);
     toReturn=createEntityProxyBean(id,domain);

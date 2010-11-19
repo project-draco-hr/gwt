@@ -1,12 +1,26 @@
 {
   Throwable ex;
   try {
-    return clazz.newInstance();
+    Constructor<?> c=clazz.getConstructor();
+    c.setAccessible(true);
+    return c.newInstance();
   }
  catch (  InstantiationException e) {
     return report("Could not create a new instance of the requested type");
   }
+catch (  NoSuchMethodException e) {
+    return report("The requested type is not default-instantiable");
+  }
+catch (  InvocationTargetException e) {
+    return report(e);
+  }
 catch (  IllegalAccessException e) {
+    ex=e;
+  }
+catch (  SecurityException e) {
+    ex=e;
+  }
+catch (  IllegalArgumentException e) {
     ex=e;
   }
   return die(ex,"Could not create a new instance of domain type %s",clazz.getCanonicalName());

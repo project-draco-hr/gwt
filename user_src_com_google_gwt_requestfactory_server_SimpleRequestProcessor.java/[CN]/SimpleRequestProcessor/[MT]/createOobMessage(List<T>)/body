@@ -1,0 +1,26 @@
+{
+  RequestState state=new RequestState(service);
+  List<Splittable> encodedValues=new ArrayList<Splittable>(domainValues.size());
+  for (  T domainValue : domainValues) {
+    Object clientValue;
+    if (domainValue == null) {
+      clientValue=null;
+    }
+ else {
+      Class<?> clientType=service.getClientType(domainValue.getClass(),BaseProxy.class);
+      clientValue=state.getResolver().resolveClientValue(domainValue,clientType,Collections.<String>emptySet());
+    }
+    encodedValues.add(EntityCodex.encode(state,clientValue));
+  }
+  IdToEntityMap map=new IdToEntityMap();
+  map.putAll(state.beans);
+  List<OperationMessage> operations=new ArrayList<OperationMessage>();
+  createReturnOperations(operations,state,map);
+  InvocationMessage invocation=FACTORY.invocation().as();
+  invocation.setParameters(encodedValues);
+  AutoBean<RequestMessage> bean=FACTORY.request();
+  RequestMessage resp=bean.as();
+  resp.setInvocations(Collections.singletonList(invocation));
+  resp.setOperations(operations);
+  return AutoBeanCodex.encode(bean);
+}

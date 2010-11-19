@@ -1,3 +1,18 @@
 {
-  return requestFactory.getHistoryToken(stableId);
+  AutoBean<IdMessage> bean=MessageFactoryHolder.FACTORY.id();
+  IdMessage ref=bean.as();
+  ref.setServerId(stableId.getServerId());
+  ref.setTypeToken(getRequestFactory().getTypeToken(stableId.getProxyClass()));
+  if (stableId.isSynthetic()) {
+    ref.setStrength(Strength.SYNTHETIC);
+    ref.setSyntheticId(stableId.getSyntheticId());
+  }
+ else   if (stableId.isEphemeral()) {
+    ref.setStrength(Strength.EPHEMERAL);
+    ref.setClientId(stableId.getClientId());
+  }
+ else {
+    ref.setStrength(Strength.PERSISTED);
+  }
+  return AutoBeanCodex.encode(bean);
 }

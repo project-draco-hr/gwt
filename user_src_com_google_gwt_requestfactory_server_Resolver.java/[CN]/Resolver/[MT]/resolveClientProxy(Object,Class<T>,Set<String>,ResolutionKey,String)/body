@@ -5,39 +5,44 @@
   SimpleProxyId<? extends BaseProxy> id=state.getStableId(domainEntity);
   boolean isEntityProxy=state.isEntityType(proxyType);
   final boolean isOwnerValueProxy=state.isValueType(proxyType);
-  int version;
+  Object domainVersion;
   if (id == null || id.isEphemeral()) {
-    String address;
+    Object domainId;
     if (isEntityProxy) {
-      address=service.getFlatId(state,domainEntity);
-      version=service.getVersion(domainEntity);
+      domainId=service.getId(domainEntity);
+      domainVersion=service.getVersion(domainEntity);
     }
  else {
-      address=null;
-      version=0;
+      domainId=null;
+      domainVersion=null;
     }
     if (id == null) {
-      if (address == null) {
+      if (domainId == null) {
         id=state.getIdFactory().allocateSyntheticId(proxyType,++syntheticId);
       }
  else {
-        id=state.getIdFactory().getId(proxyType,address,null);
+        Splittable flatValue=state.flatten(domainId);
+        id=state.getIdFactory().getId(proxyType,flatValue.getPayload(),0);
       }
     }
- else {
-      id.setServerId(address);
+ else     if (domainId != null) {
+      Splittable flatValue=state.flatten(domainId);
+      id.setServerId(flatValue.getPayload());
     }
   }
  else   if (isEntityProxy) {
-    version=service.getVersion(domainEntity);
+    domainVersion=service.getVersion(domainEntity);
   }
  else {
-    version=0;
+    domainVersion=null;
   }
   @SuppressWarnings("unchecked") AutoBean<T> bean=(AutoBean<T>)state.getBeanForPayload(id,domainEntity);
   resolved.put(key,bean.as());
   bean.setTag(Constants.IN_RESPONSE,true);
-  bean.setTag(Constants.ENCODED_VERSION_PROPERTY,version);
+  if (domainVersion != null) {
+    Splittable flatVersion=state.flatten(domainVersion);
+    bean.setTag(Constants.VERSION_PROPERTY_B64,SimpleRequestProcessor.toBase64(flatVersion.getPayload()));
+  }
   bean.accept(new AutoBeanVisitor(){
     @Override public boolean visitReferenceProperty(    String propertyName,    AutoBean<?> value,    PropertyContext ctx){
       String newPrefix=(prefix.length() > 0 ? (prefix + ".") : "") + propertyName;

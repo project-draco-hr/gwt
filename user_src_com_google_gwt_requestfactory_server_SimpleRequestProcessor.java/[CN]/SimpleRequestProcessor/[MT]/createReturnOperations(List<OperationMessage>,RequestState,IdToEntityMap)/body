@@ -7,26 +7,29 @@
     if (id.isEphemeral()) {
       returnState.getResolver().resolveClientValue(domainObject,id.getProxyClass(),Collections.<String>emptySet());
     }
-    int version;
-    if (id.isEphemeral() || id.isSynthetic()) {
+    if (id.isEphemeral() || id.isSynthetic() || domainObject == null) {
       writeOperation=null;
-      version=0;
     }
- else     if (service.loadDomainObject(returnState,service.getDomainClass(id.getProxyClass()),id.getServerId()) == null) {
+ else     if (!service.isLive(returnState,domainObject)) {
       writeOperation=WriteOperation.DELETE;
-      version=0;
     }
  else     if (id.wasEphemeral()) {
       writeOperation=WriteOperation.PERSIST;
-      version=service.getVersion(domainObject);
     }
  else {
       writeOperation=WriteOperation.UPDATE;
-      version=service.getVersion(domainObject);
+    }
+    Splittable version=null;
+    if (writeOperation == WriteOperation.PERSIST || writeOperation == WriteOperation.UPDATE) {
+      Object domainVersion=service.getVersion(domainObject);
+      if (domainVersion != null) {
+        version=returnState.flatten(domainVersion);
+      }
     }
     boolean inResponse=bean.getTag(Constants.IN_RESPONSE) != null;
     if (WriteOperation.UPDATE.equals(writeOperation) && !inResponse) {
-      if (Integer.valueOf(version).equals(bean.getTag(Constants.ENCODED_VERSION_PROPERTY))) {
+      String previousVersion=bean.<String>getTag(Constants.VERSION_PROPERTY_B64);
+      if (version != null && previousVersion != null && version.equals(fromBase64(previousVersion))) {
         continue;
       }
     }
@@ -51,7 +54,9 @@
     }
     op.setSyntheticId(id.getSyntheticId());
     op.setTypeToken(service.getTypeToken(id.getProxyClass()));
-    op.setVersion(version);
+    if (version != null) {
+      op.setVersion(toBase64(version.getPayload()));
+    }
     operations.add(op);
   }
 }

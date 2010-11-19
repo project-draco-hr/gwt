@@ -4,9 +4,10 @@
     return;
   }
   for (  final OperationMessage operation : operations) {
-    String payloadId=operation.getOperation().equals(WriteOperation.PERSIST) ? IdUtil.ephemeralId(operation.getClientId(),operation.getTypeToken()) : IdUtil.persistedId(operation.getServerId(),operation.getTypeToken());
-    AutoBean<? extends EntityProxy> bean=state.getBeanForPayload(payloadId);
-    bean.setTag(Constants.ENCODED_VERSION_PROPERTY,operation.getVersion());
+    AutoBean<? extends EntityProxy> bean=state.getBeanForPayload(operation);
+    if (operation.getVersion() != null) {
+      bean.setTag(Constants.VERSION_PROPERTY_B64,operation.getVersion());
+    }
     final Object domain=bean.getTag(Constants.DOMAIN_OBJECT);
     if (domain != null) {
       final Map<String,Splittable> flatValueMap=operation.getPropertyMap();
