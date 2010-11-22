@@ -1,0 +1,18 @@
+{
+  List<ServiceLayerDecorator> list=new ArrayList<ServiceLayerDecorator>();
+  ServiceLayerCache cache=new ServiceLayerCache();
+  list.add(cache);
+  if (decorators != null) {
+    list.addAll(Arrays.asList(decorators));
+  }
+  list.add(new LocatorServiceLayer());
+  list.add(new ReflectiveServiceLayer());
+  list.add(new ResolverServiceLayer());
+  list.get(list.size() - 1).top=cache;
+  for (int i=list.size() - 2; i >= 0; i--) {
+    ServiceLayerDecorator layer=list.get(i);
+    layer.next=list.get(i + 1);
+    layer.top=cache;
+  }
+  return cache;
+}

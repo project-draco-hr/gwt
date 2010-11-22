@@ -1,0 +1,36 @@
+{
+  Map<Object,Object> map=methodMap.get(method);
+  if (map == null) {
+    map=new ConcurrentHashMap<Object,Object>();
+    methodMap.put(method,map);
+  }
+  Object raw=map.get(key);
+  if (raw == NULL_MARKER) {
+    return null;
+  }
+  T toReturn=valueType.cast(raw);
+  if (toReturn == null) {
+    Throwable ex=null;
+    try {
+      toReturn=valueType.cast(method.invoke(getNext(),args));
+      map.put(key,toReturn == null ? NULL_MARKER : toReturn);
+    }
+ catch (    InvocationTargetException e) {
+      Throwable cause=e.getCause();
+      if (cause instanceof RuntimeException) {
+        throw ((RuntimeException)cause);
+      }
+      die(cause,"Unexpected checked exception");
+    }
+catch (    IllegalArgumentException e) {
+      ex=e;
+    }
+catch (    IllegalAccessException e) {
+      ex=e;
+    }
+    if (ex != null) {
+      die(ex,"Bad method invocation");
+    }
+  }
+  return toReturn;
+}

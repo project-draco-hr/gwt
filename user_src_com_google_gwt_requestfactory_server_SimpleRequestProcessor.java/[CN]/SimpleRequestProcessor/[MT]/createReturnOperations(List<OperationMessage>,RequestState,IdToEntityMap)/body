@@ -10,7 +10,7 @@
     if (id.isEphemeral() || id.isSynthetic() || domainObject == null) {
       writeOperation=null;
     }
- else     if (!service.isLive(returnState,domainObject)) {
+ else     if (!service.isLive(domainObject)) {
       writeOperation=WriteOperation.DELETE;
     }
  else     if (id.wasEphemeral()) {
@@ -52,8 +52,14 @@
     if (!id.isEphemeral() && !id.isSynthetic()) {
       op.setServerId(toBase64(id.getServerId()));
     }
-    op.setSyntheticId(id.getSyntheticId());
-    op.setTypeToken(service.getTypeToken(id.getProxyClass()));
+    if (id.isSynthetic()) {
+      op.setStrength(Strength.SYNTHETIC);
+      op.setSyntheticId(id.getSyntheticId());
+    }
+ else     if (id.isEphemeral()) {
+      op.setStrength(Strength.EPHEMERAL);
+    }
+    op.setTypeToken(service.resolveTypeToken(id.getProxyClass()));
     if (version != null) {
       op.setVersion(toBase64(version.getPayload()));
     }

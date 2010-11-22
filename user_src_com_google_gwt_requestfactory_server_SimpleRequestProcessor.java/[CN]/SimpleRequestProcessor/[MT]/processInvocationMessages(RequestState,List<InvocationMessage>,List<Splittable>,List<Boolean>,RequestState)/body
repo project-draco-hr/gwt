@@ -3,7 +3,13 @@
     try {
       String[] operation=invocation.getOperation().split("::");
       Method contextMethod=service.resolveRequestContextMethod(operation[0],operation[1]);
+      if (contextMethod == null) {
+        throw new UnexpectedException("Cannot resolve operation " + invocation.getOperation(),null);
+      }
       Method domainMethod=service.resolveDomainMethod(contextMethod);
+      if (domainMethod == null) {
+        throw new UnexpectedException("Cannot resolve domain method " + invocation.getOperation(),null);
+      }
       List<Object> args=decodeInvocationArguments(state,invocation,contextMethod,domainMethod);
       Object returnValue=service.invoke(domainMethod,args.toArray());
       Type requestReturnType=service.getRequestReturnType(contextMethod);

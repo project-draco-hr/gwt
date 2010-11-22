@@ -1,0 +1,25 @@
+{
+  Class<?> proxyType=getTop().resolveClientType(domainType,BaseProxy.class,false);
+  if (proxyType == null) {
+    return null;
+  }
+  Class<? extends Locator<?,?>> locatorType;
+  LocatorFor l=proxyType.getAnnotation(LocatorFor.class);
+  LocatorForName ln=proxyType.getAnnotation(LocatorForName.class);
+  if (l != null) {
+    locatorType=l.value();
+  }
+ else   if (ln != null) {
+    try {
+      @SuppressWarnings("unchecked") Class<? extends Locator<?,?>> found=(Class<? extends Locator<?,?>>)Class.forName(ln.value(),false,domainType.getClassLoader()).asSubclass(Locator.class);
+      locatorType=found;
+    }
+ catch (    ClassNotFoundException e) {
+      return die(e,"Could not find the type specified in the @%s annotation %s",LocatorForName.class.getCanonicalName(),ln.value());
+    }
+  }
+ else {
+    locatorType=null;
+  }
+  return locatorType;
+}

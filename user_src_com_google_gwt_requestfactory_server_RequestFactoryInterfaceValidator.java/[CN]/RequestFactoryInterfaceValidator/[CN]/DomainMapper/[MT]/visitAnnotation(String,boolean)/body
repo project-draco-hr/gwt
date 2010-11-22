@@ -1,19 +1,27 @@
 {
+  final boolean foundLocator=desc.equals(Type.getDescriptor(LocatorFor.class));
+  final boolean foundLocatorName=desc.equals(Type.getDescriptor(LocatorForName.class));
   boolean foundProxy=desc.equals(Type.getDescriptor(ProxyFor.class));
   boolean foundProxyName=desc.equals(Type.getDescriptor(ProxyForName.class));
   boolean foundService=desc.equals(Type.getDescriptor(Service.class));
   boolean foundServiceName=desc.equals(Type.getDescriptor(ServiceName.class));
-  if (foundProxy || foundService) {
+  if (foundLocator || foundProxy || foundService) {
     return new EmptyVisitor(){
       @Override public void visit(      String name,      Object value){
         if ("value".equals(name)) {
-          domainInternalName=((Type)value).getInternalName();
+          String found=((Type)value).getInternalName();
+          if (foundLocator) {
+            locatorInternalName=found;
+          }
+ else {
+            domainInternalName=found;
+          }
         }
       }
     }
 ;
   }
-  if (foundProxyName || foundServiceName) {
+  if (foundLocatorName || foundProxyName || foundServiceName) {
     return new EmptyVisitor(){
       @Override public void visit(      String name,      Object value){
         if ("value".equals(name)) {
@@ -27,7 +35,12 @@
             }
             desc.setCharAt(idx,'$');
           }
-          domainInternalName=desc.toString();
+          if (foundLocatorName) {
+            locatorInternalName=desc.toString();
+          }
+ else {
+            domainInternalName=desc.toString();
+          }
           logger.spam(domainInternalName);
         }
       }
