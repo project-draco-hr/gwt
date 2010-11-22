@@ -1,6 +1,17 @@
 {
   validator.initialize(constraintDescriptor.getAnnotation());
   ConstraintValidatorContextImpl<A,V> constraintValidatorContext=context.createConstraintValidatorContext(constraintDescriptor);
+  Set<Class<?>> constraintGroup=constraintDescriptor.getGroups();
+  if (groups.length == 0) {
+    groups=new Class<?>[]{Default.class};
+  }
+  if (constraintGroup.isEmpty()) {
+    constraintGroup=new HashSet<Class<?>>();
+    constraintGroup.add(Default.class);
+  }
+  if (!containsAny(groups,constraintGroup)) {
+    return;
+  }
   if (!validator.isValid(value,constraintValidatorContext)) {
     addViolations(context,violations,object,value,constraintDescriptor,constraintValidatorContext);
   }
