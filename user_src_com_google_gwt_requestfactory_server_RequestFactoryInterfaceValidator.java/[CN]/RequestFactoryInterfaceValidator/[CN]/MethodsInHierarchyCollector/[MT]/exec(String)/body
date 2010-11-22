@@ -1,4 +1,15 @@
 {
   RequestFactoryInterfaceValidator.this.visit(logger,internalName,this);
-  return methods;
+  Map<RFMethod,RFMethod> toReturn=new HashMap<RFMethod,RFMethod>();
+  for (  RFMethod method : methods) {
+    RFMethod key=new RFMethod(method.getName(),Type.getMethodDescriptor(Type.VOID_TYPE,method.getArgumentTypes()));
+    RFMethod compareTo=toReturn.get(key);
+    if (compareTo == null) {
+      toReturn.put(key,method);
+    }
+ else     if (isAssignable(logger,compareTo.getReturnType(),method.getReturnType())) {
+      toReturn.put(key,method);
+    }
+  }
+  return new HashSet<RFMethod>(toReturn.values());
 }
