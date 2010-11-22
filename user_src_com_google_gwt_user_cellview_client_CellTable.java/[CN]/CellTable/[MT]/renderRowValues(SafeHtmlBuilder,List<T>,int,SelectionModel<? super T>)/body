@@ -57,20 +57,35 @@
       if (value != null) {
         column.render(value,keyProvider,cellBuilder);
       }
+      SafeHtml contents=SafeHtmlUtils.EMPTY_SAFE_HTML;
       if (i == keyboardSelectedRow && curColumn == keyboardSelectedColumn) {
         if (isFocused) {
           tdClasses+=keyboardCellStyle;
         }
         char accessKey=getAccessKey();
         if (accessKey != 0) {
-          trBuilder.append(template.tdFocusableWithKey(tdClasses,getTabIndex(),accessKey,cellBuilder.toSafeHtml()));
+          contents=template.divFocusableWithKey(getTabIndex(),accessKey,cellBuilder.toSafeHtml());
         }
  else {
-          trBuilder.append(template.tdFocusable(tdClasses,getTabIndex(),cellBuilder.toSafeHtml()));
+          contents=template.divFocusable(getTabIndex(),cellBuilder.toSafeHtml());
         }
       }
  else {
-        trBuilder.append(template.td(tdClasses,cellBuilder.toSafeHtml()));
+        contents=template.div(cellBuilder.toSafeHtml());
+      }
+      HorizontalAlignmentConstant hAlign=column.getHorizontalAlignment();
+      VerticalAlignmentConstant vAlign=column.getVerticalAlignment();
+      if (hAlign != null && vAlign != null) {
+        trBuilder.append(template.tdBothAlign(tdClasses,hAlign.getTextAlignString(),vAlign.getVerticalAlignString(),contents));
+      }
+ else       if (hAlign != null) {
+        trBuilder.append(template.tdHorizontalAlign(tdClasses,hAlign.getTextAlignString(),contents));
+      }
+ else       if (vAlign != null) {
+        trBuilder.append(template.tdVerticalAlign(tdClasses,vAlign.getVerticalAlignString(),contents));
+      }
+ else {
+        trBuilder.append(template.td(tdClasses,contents));
       }
       curColumn++;
     }
