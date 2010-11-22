@@ -1,0 +1,16 @@
+{
+  List<SimpleProxyId<?>> ids=new ArrayList<SimpleProxyId<?>>(idMessages.size());
+  for (  IdMessage idMessage : idMessages) {
+    SimpleProxyId<?> id;
+    if (Strength.SYNTHETIC.equals(idMessage.getStrength())) {
+      Class<? extends BaseProxy> clazz=service.resolveClass(idMessage.getTypeToken());
+      id=idFactory.allocateSyntheticId(clazz,idMessage.getSyntheticId());
+    }
+ else {
+      String decodedId=idMessage.getServerId() == null ? null : SimpleRequestProcessor.fromBase64(idMessage.getServerId());
+      id=idFactory.getId(idMessage.getTypeToken(),decodedId,idMessage.getClientId());
+    }
+    ids.add(id);
+  }
+  return getBeansForIds(ids);
+}
