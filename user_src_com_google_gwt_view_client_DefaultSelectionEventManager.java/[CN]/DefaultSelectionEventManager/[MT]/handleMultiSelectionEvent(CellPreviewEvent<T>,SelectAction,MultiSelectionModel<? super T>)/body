@@ -1,0 +1,24 @@
+{
+  NativeEvent nativeEvent=event.getNativeEvent();
+  String type=nativeEvent.getType();
+  if ("click".equals(type)) {
+    boolean shift=nativeEvent.getShiftKey();
+    boolean ctrlOrMeta=nativeEvent.getCtrlKey() || nativeEvent.getMetaKey();
+    boolean clearOthers=(translator == null) ? !ctrlOrMeta : translator.clearCurrentSelection(event);
+    if (action == null || action == SelectAction.DEFAULT) {
+      action=ctrlOrMeta ? SelectAction.TOGGLE : SelectAction.SELECT;
+    }
+    doMultiSelection(selectionModel,event.getDisplay(),event.getIndex(),event.getValue(),action,shift,clearOthers);
+  }
+ else   if ("keyup".equals(type)) {
+    int keyCode=nativeEvent.getKeyCode();
+    if (keyCode == 32) {
+      boolean shift=nativeEvent.getShiftKey();
+      boolean clearOthers=(translator == null) ? false : translator.clearCurrentSelection(event);
+      if (action == null || action == SelectAction.DEFAULT) {
+        action=SelectAction.TOGGLE;
+      }
+      doMultiSelection(selectionModel,event.getDisplay(),event.getIndex(),event.getValue(),action,shift,clearOthers);
+    }
+  }
+}

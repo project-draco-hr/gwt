@@ -1,0 +1,18 @@
+{
+  NativeEvent nativeEvent=event.getNativeEvent();
+  if ("click".equals(nativeEvent.getType())) {
+    if (column > -1 && column != event.getColumn()) {
+      return SelectAction.IGNORE;
+    }
+    Element target=nativeEvent.getEventTarget().cast();
+    if ("input".equals(target.getTagName().toLowerCase())) {
+      final InputElement input=target.cast();
+      if ("checkbox".equals(input.getType().toLowerCase())) {
+        input.setChecked(event.getDisplay().getSelectionModel().isSelected(event.getValue()));
+        return SelectAction.TOGGLE;
+      }
+    }
+    return SelectAction.IGNORE;
+  }
+  return SelectAction.DEFAULT;
+}

@@ -1,16 +1,21 @@
 {
+  SelectionModel<String> model=new SingleSelectionModel<String>();
+  DefaultSelectionEventManager<String> manager=DefaultSelectionEventManager.createDefaultManager();
   MockDataProvider<String> provider=new MockDataProvider<String>(null);
-  DefaultNodeInfo<String> nodeInfo=new DefaultNodeInfo<String>(provider,new TextCell());
+  DefaultNodeInfo<String> nodeInfo=new DefaultNodeInfo<String>(provider,new TextCell(),model,manager,null);
   MockHasData<String> display=new MockHasData<String>();
   display.setVisibleRange(0,10);
   display.clearLastRowDataAndRange();
+  assertEquals(0,display.getHandlerCount(CellPreviewEvent.getType()));
   nodeInfo.setDataDisplay(display);
+  assertEquals(1,display.getHandlerCount(CellPreviewEvent.getType()));
   provider.assertLastRangeChanged(display);
   provider.clearLastRangeChanged();
   display.setVisibleRange(0,5);
   provider.assertLastRangeChanged(display);
   provider.clearLastRangeChanged();
   nodeInfo.unsetDataDisplay();
+  assertEquals(0,display.getHandlerCount(CellPreviewEvent.getType()));
   display.setVisibleRange(0,5);
   provider.assertLastRangeChanged(null);
 }

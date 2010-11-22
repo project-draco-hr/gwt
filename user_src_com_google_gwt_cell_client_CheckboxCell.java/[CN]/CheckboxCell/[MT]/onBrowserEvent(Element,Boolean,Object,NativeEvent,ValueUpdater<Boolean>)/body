@@ -4,11 +4,16 @@
   if ("change".equals(type) || enterPressed) {
     InputElement input=parent.getFirstChild().cast();
     Boolean isChecked=input.isChecked();
-    if (enterPressed) {
+    if (enterPressed && (handlesSelection() || !dependsOnSelection())) {
       isChecked=!isChecked;
       input.setChecked(isChecked);
     }
-    setViewData(key,isChecked);
+    if (value != isChecked && !dependsOnSelection()) {
+      setViewData(key,isChecked);
+    }
+ else {
+      clearViewData(key);
+    }
     if (valueUpdater != null) {
       valueUpdater.update(isChecked);
     }

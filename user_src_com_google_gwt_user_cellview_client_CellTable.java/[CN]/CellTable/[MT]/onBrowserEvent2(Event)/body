@@ -60,10 +60,14 @@
     if (!isRowWithinBounds(row)) {
       return;
     }
-    T value=getDisplayedItem(row);
-    if (isClick && !handlesSelection) {
+    boolean isSelectionHandled=handlesSelection || KeyboardSelectionPolicy.BOUND_TO_SELECTION == getKeyboardSelectionPolicy();
+    T value=getVisibleItem(row);
+    CellPreviewEvent<T> previewEvent=CellPreviewEvent.fire(this,event,this,row,col,value,cellIsEditing,isSelectionHandled);
+    if (isClick && !cellIsEditing && !isSelectionHandled) {
       doSelection(event,value,row,col);
     }
-    fireEventToCell(event,eventType,tableCell,value,row,columns.get(col));
+    if (!previewEvent.isCanceled()) {
+      fireEventToCell(event,eventType,tableCell,value,row,columns.get(col));
+    }
   }
 }

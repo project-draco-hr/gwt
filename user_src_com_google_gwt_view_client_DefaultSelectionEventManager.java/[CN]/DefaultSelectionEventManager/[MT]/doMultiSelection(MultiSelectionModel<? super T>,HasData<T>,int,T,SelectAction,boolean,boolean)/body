@@ -1,0 +1,41 @@
+{
+  boolean addToSelection=true;
+  if (action != null) {
+switch (action) {
+case IGNORE:
+      return;
+case SELECT:
+    addToSelection=true;
+  break;
+case DESELECT:
+addToSelection=false;
+break;
+case TOGGLE:
+addToSelection=!selectionModel.isSelected(rowValue);
+break;
+}
+}
+int pageStart=display.getVisibleRange().getStart();
+if (selectRange && pageStart == lastPageStart && lastSelectedIndex > -1 && shiftAnchor > -1 && display == lastDisplay) {
+int start=Math.min(shiftAnchor,row);
+int end=Math.max(shiftAnchor,row);
+if (lastSelectedIndex < start) {
+setRangeSelection(selectionModel,display,new Range(lastSelectedIndex,start - lastSelectedIndex),!shiftAdditive,false);
+}
+ else if (lastSelectedIndex > end) {
+setRangeSelection(selectionModel,display,new Range(end + 1,lastSelectedIndex - end),!shiftAdditive,false);
+}
+ else {
+shiftAdditive=addToSelection;
+}
+lastSelectedIndex=row;
+setRangeSelection(selectionModel,display,new Range(start,end - start + 1),shiftAdditive,clearOthers);
+}
+ else {
+lastDisplay=display;
+lastPageStart=pageStart;
+lastSelectedIndex=row;
+shiftAnchor=row;
+selectOne(selectionModel,rowValue,addToSelection,clearOthers);
+}
+}

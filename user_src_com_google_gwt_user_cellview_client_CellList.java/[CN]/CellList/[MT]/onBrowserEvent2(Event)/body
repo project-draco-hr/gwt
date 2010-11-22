@@ -17,9 +17,11 @@
     if (!isRowWithinBounds(indexOnPage)) {
       return;
     }
+    boolean isSelectionHandled=cell.handlesSelection() || KeyboardSelectionPolicy.BOUND_TO_SELECTION == getKeyboardSelectionPolicy();
     Element cellParent=getCellParent(cellTarget);
-    T value=getDisplayedItem(indexOnPage);
-    if (isClick && !cell.handlesSelection()) {
+    T value=getVisibleItem(indexOnPage);
+    CellPreviewEvent<T> previewEvent=CellPreviewEvent.fire(this,event,this,indexOnPage,value,cellIsEditing,isSelectionHandled);
+    if (isClick && !cellIsEditing && !isSelectionHandled) {
       doSelection(event,value,indexOnPage);
     }
     if (isClick && getPresenter().getKeyboardSelectedRowInView() != indexOnPage) {
@@ -27,6 +29,8 @@
       isFocused=isFocused || isFocusable;
       getPresenter().setKeyboardSelectedRow(indexOnPage,!isFocusable);
     }
-    fireEventToCell(event,cellParent,value);
+    if (!previewEvent.isCanceled()) {
+      fireEventToCell(event,cellParent,value);
+    }
   }
 }

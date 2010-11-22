@@ -4,19 +4,17 @@
   }
   Cell<T> parentCell=parentNodeInfo.getCell();
   String eventType=event.getType();
-  boolean isMouseDown="mousedown".equals(eventType);
-  SelectionModel<? super T> selectionModel=parentNodeInfo.getSelectionModel();
   Element cellParent=getCellParent();
   Object key=getValueKey();
-  if (selectionModel != null && isMouseDown && !parentCell.handlesSelection()) {
-    selectionModel.setSelected(value,true);
-  }
-  if (!cellParent.isOrHasChild(Element.as(event.getEventTarget()))) {
+  boolean cellWasEditing=parentCell.isEditing(cellParent,value,key);
+  boolean isSelectionHandled=parentCell.handlesSelection() || KeyboardSelectionPolicy.BOUND_TO_SELECTION == tree.getKeyboardSelectionPolicy();
+  HasData<T> display=(HasData<T>)parentNode.listView;
+  CellPreviewEvent<T> previewEvent=CellPreviewEvent.fire(display,event,display,getIndex(),value,cellWasEditing,isSelectionHandled);
+  if (previewEvent.isCanceled() || !cellParent.isOrHasChild(Element.as(event.getEventTarget()))) {
     return;
   }
   Set<String> consumedEvents=parentCell.getConsumedEvents();
   if (consumedEvents != null && consumedEvents.contains(eventType)) {
-    boolean cellWasEditing=parentCell.isEditing(cellParent,value,key);
     parentCell.onBrowserEvent(cellParent,value,key,event,parentNodeInfo.getValueUpdater());
     tree.cellIsEditing=parentCell.isEditing(cellParent,value,key);
     if (cellWasEditing && !tree.cellIsEditing) {
