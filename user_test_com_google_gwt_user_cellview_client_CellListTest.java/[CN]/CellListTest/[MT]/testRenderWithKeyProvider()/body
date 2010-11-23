@@ -1,0 +1,24 @@
+{
+  final List<String> rendered=new ArrayList<String>();
+  final Cell<String> cell=new TextCell(){
+    @Override public void render(    String data,    Object key,    SafeHtmlBuilder sb){
+      int call=rendered.size();
+      rendered.add(data);
+      assertTrue("render() called more than ten times",rendered.size() < 11);
+      assertEquals("test " + call,data);
+      assertTrue(key instanceof Integer);
+      assertEquals(call,key);
+    }
+  }
+;
+  ProvidesKey<String> keyProvider=new ProvidesKey<String>(){
+    public Object getKey(    String item){
+      return Integer.parseInt(item.substring(5));
+    }
+  }
+;
+  CellList<String> cellList=new CellList<String>(cell,keyProvider);
+  cellList.setRowData(createData(0,10));
+  cellList.getPresenter().flush();
+  assertEquals(10,rendered.size());
+}
