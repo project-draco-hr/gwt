@@ -1,0 +1,23 @@
+{
+  StringBuffer toReturn=new StringBuffer();
+  if (prop.tryGetValue() == null && !prop.isDerived()) {
+    toReturn.append("providers['" + prop.getName() + "'] = function()");
+    toReturn.append(prop.getPropertyProvider(logger,configProps));
+    toReturn.append(";");
+    toReturn.append("values['" + prop.getName() + "'] = {");
+    boolean needsComma=false;
+    int counter=0;
+    for (    String value : prop.getPossibleValues()) {
+      if (needsComma) {
+        toReturn.append(",");
+      }
+ else {
+        needsComma=true;
+      }
+      toReturn.append("'" + value + "':");
+      toReturn.append(counter++);
+    }
+    toReturn.append("};");
+  }
+  return toReturn.toString();
+}
