@@ -2,14 +2,6 @@
   String depGraphDescription=inferDepGraphDescription(depGraphName);
   PrintWriter outFile=null;
   String curClassName="";
-class HtmlInterner extends LinkedHashMap<String,Integer> {
-    int index=0;
-    public void intern(    String key){
-      if (!containsKey(key)) {
-        put(key,index++);
-      }
-    }
-  }
   HtmlInterner interner=new HtmlInterner();
   for (  String reportMethod : classesInPackage) {
     interner.intern(getPackageSubstring(reportMethod));
@@ -28,11 +20,7 @@ class HtmlInterner extends LinkedHashMap<String,Integer> {
   String packageDescription=packageName.length() == 0 ? "the default package" : packageName;
   addStandardHtmlProlog(outFile,"Method Dependencies for " + depGraphDescription,"Method Dependencies for " + depGraphDescription,"Showing Package: " + packageDescription);
   outFile.println("<script language=\"javascript\">");
-  outFile.println("  var internedStrings = [");
-  for (  String key : interner.keySet()) {
-    outFile.println("\"" + key + "\",");
-  }
-  outFile.println("  ];");
+  outFile.println(interner.getJs());
   outFile.println("  function showC(packageRef, classRef) {");
   outFile.println("    var className = internedStrings[packageRef] + \".\" + internedStrings[classRef];");
   outFile.println("    document.write(\"<a name='\" + className + \"'>\");");

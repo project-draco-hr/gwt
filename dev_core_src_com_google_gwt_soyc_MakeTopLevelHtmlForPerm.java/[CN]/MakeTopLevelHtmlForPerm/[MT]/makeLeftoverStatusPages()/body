@@ -1,5 +1,18 @@
 {
+  PrintWriter outFile=new PrintWriter(getOutFile(leftoversStatusFileName()));
+  addStandardHtmlProlog(outFile,"Leftovers page","Leftovers page","");
+  outFile.println("<div id=\"bd\">");
+  outFile.println("<p>These classes have some leftover code, neither initial nor " + "exclusive to any split point:</p>");
+  String curPackageName="";
   for (  String className : globalInformation.getClassToPackage().keySet()) {
-    makeLeftoversStatusPage(className);
+    String packageName=globalInformation.getClassToPackage().get(className);
+    if (packageName.compareTo("") == 0 || packageName.compareTo(curPackageName) != 0) {
+      curPackageName=packageName;
+      outFile.println("<div class='soyc-pkg-break'>Package: " + packageName + "</div>");
+    }
+    outFile.println("<a name=\"" + filename(className) + "\"></a><h3>"+ className+ "</h3>");
+    addLefttoversStatus(className,packageName,outFile);
   }
+  addStandardHtmlEnding(outFile);
+  outFile.close();
 }

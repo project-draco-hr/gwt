@@ -1,5 +1,9 @@
 {
-  for (  String packageName : globalInformation.getPackageToClasses().keySet()) {
+  PrintWriter outFile=new PrintWriter(getOutFile(classesInPackageFileName(breakdown,getPermutationId())));
+  addStandardHtmlProlog(outFile,"Classes in  " + breakdown.getDescription(),"Classes in " + breakdown.getDescription(),headerLineForBreakdown(breakdown));
+  String[] packageNames=globalInformation.getPackageToClasses().keySet().toArray(new String[0]);
+  Arrays.sort(packageNames);
+  for (  String packageName : packageNames) {
     TreeMap<Integer,Set<String>> sortedClasses=new TreeMap<Integer,Set<String>>(Collections.reverseOrder());
     int sumSize=0;
     for (    String className : globalInformation.getPackageToClasses().get(packageName)) {
@@ -23,40 +27,42 @@
         sumSize+=curSize;
       }
     }
-    PrintWriter outFile=new PrintWriter(getOutFile(classesInPackageFileName(breakdown,packageName,getPermutationId())));
-    addStandardHtmlProlog(outFile,"Classes in package " + packageName,"Classes in package " + packageName,headerLineForBreakdown(breakdown));
-    outFile.println("<table class=\"soyc-table\">");
-    outFile.println("<colgroup>");
-    outFile.println("<col id=\"soyc-splitpoint-type-col\">");
-    outFile.println("<col id=\"soyc-splitpoint-size-col\">");
-    outFile.println("</colgroup>");
-    outFile.println("<thead>");
-    outFile.println("<th>Package</th>");
-    outFile.println("<th>Size <span class=\"soyc-th-units\">(Bytes)</span></th>");
-    outFile.println("</thead>");
-    for (    Integer size : sortedClasses.keySet()) {
-      Set<String> classNames=sortedClasses.get(size);
-      for (      String className : classNames) {
-        String drillDownFileName=depLinker.dependencyLinkForClass(className);
-        float perc=((float)size / (float)sumSize) * 100;
-        outFile.println("<tr>");
-        if (drillDownFileName == null) {
-          outFile.println("<td>" + className + "</td>");
-        }
+    if (sortedClasses.size() > 0) {
+      outFile.println("<p>");
+      outFile.println("<table class=\"soyc-table\">");
+      outFile.print("<colgroup>");
+      outFile.print("<col id=\"soyc-splitpoint-type-col\">");
+      outFile.print("<col id=\"soyc-splitpoint-size-col\">");
+      outFile.println("</colgroup>");
+      outFile.print("<thead>");
+      outFile.print("<a name=\"" + filename(packageName) + "\"></a><th>Package: "+ packageName+ "</th>");
+      outFile.print("<th>Size <span class=\"soyc-th-units\">(Bytes)</span></th>");
+      outFile.print("</thead>");
+      for (      Integer size : sortedClasses.keySet()) {
+        Set<String> classNames=sortedClasses.get(size);
+        for (        String className : classNames) {
+          String drillDownFileName=depLinker.dependencyLinkForClass(className);
+          float perc=((float)size / (float)sumSize) * 100;
+          outFile.println("<tr>");
+          if (drillDownFileName == null) {
+            outFile.println("<td>" + className + "</td>");
+          }
  else {
-          outFile.println("<td><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ className+ "</a></td>");
+            outFile.println("<td><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ className+ "</a></td>");
+          }
+          outFile.print("<td>");
+          outFile.print("<div class=\"soyc-bar-graph goog-inline-block\">");
+          outFile.print("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
+          outFile.print("</div>");
+          outFile.print(size + " (" + formatNumber(perc)+ "%)");
+          outFile.print("</td>");
+          outFile.println("</tr>");
         }
-        outFile.println("<td>");
-        outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
-        outFile.println("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
-        outFile.println("</div>");
-        outFile.println(size + " (" + formatNumber(perc)+ "%)");
-        outFile.println("</td>");
-        outFile.println("</tr>");
       }
+      outFile.println("</table>");
+      outFile.println("</p>");
     }
-    outFile.println("</table>");
-    addStandardHtmlEnding(outFile);
-    outFile.close();
   }
+  addStandardHtmlEnding(outFile);
+  outFile.close();
 }
