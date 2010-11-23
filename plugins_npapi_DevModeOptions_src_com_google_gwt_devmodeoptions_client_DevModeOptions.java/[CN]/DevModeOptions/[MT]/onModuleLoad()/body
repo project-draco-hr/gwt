@@ -1,0 +1,34 @@
+{
+  StyleInjector.inject(bundle.css().getText(),true);
+  RootLayoutPanel.get().add(GWT.<Binder>create(Binder.class).createAndBindUi(this));
+  hosts=HostEntryStorage.get().getHostEntries();
+  addBtn.addClickHandler(new ClickHandler(){
+    public void onClick(    ClickEvent event){
+      addHost(HostEntry.create(hostname.getText(),includeYes.getValue()));
+    }
+  }
+);
+  hostname.setFocus(true);
+  String host=Location.getParameter("host");
+  if (host != null) {
+    hostname.setText(host);
+  }
+  hostname.addKeyPressHandler(new KeyPressHandler(){
+    public void onKeyPress(    KeyPressEvent event){
+      if (event.getCharCode() == KeyCodes.KEY_ENTER) {
+        addHost(HostEntry.create(hostname.getText(),includeYes.getValue()));
+      }
+    }
+  }
+);
+  savedHosts.setText(0,0,"Host");
+  savedHosts.setText(0,1,"Include/Exclude");
+  savedHosts.setText(0,2,"Remove");
+  savedHosts.getCellFormatter().addStyleName(0,0,bundle.css().savedHostsHeading());
+  savedHosts.getCellFormatter().addStyleName(0,0,bundle.css().textCol());
+  savedHosts.getCellFormatter().addStyleName(0,1,bundle.css().savedHostsHeading());
+  savedHosts.getCellFormatter().addStyleName(0,2,bundle.css().savedHostsHeading());
+  for (int i=0; i < hosts.length(); i++) {
+    displayHost(hosts.get(i));
+  }
+}
