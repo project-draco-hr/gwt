@@ -53,10 +53,9 @@
   String remoteServiceInterfaceName=elideTypeNames ? TypeNameObfuscator.SERVICE_INTERFACE_ID : TypeOracleMediator.computeBinaryClassName(serviceIntf);
   generateProxyFields(srcWriter,typesSentFromBrowser,serializationPolicyStrongName,remoteServiceInterfaceName);
   generateProxyContructor(srcWriter);
-  generateProxyMethods(srcWriter,typesSentFromBrowser,syncMethToAsyncMethMap);
-  if (elideTypeNames) {
-    generateStreamWriterOverride(srcWriter);
-  }
+  generateProxyMethods(srcWriter,typesSentFromBrowser,typeOracle,syncMethToAsyncMethMap);
+  generateStreamWriterOverride(srcWriter);
+  generateCheckRpcTokenTypeOverride(srcWriter,typeOracle,typesSentFromBrowser);
   srcWriter.commit(logger);
   context.commitArtifact(logger,new RpcLogArtifact(serviceIntf.getQualifiedSourceName(),serializationPolicyStrongName,rpcLog));
   return getProxyQualifiedName();

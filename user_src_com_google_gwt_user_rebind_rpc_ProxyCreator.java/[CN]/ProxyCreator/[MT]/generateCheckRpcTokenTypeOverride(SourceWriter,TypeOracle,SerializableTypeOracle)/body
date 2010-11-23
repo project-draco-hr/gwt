@@ -1,0 +1,28 @@
+{
+  JClassType rpcTokenType=typeOracle.findType(RpcToken.class.getName());
+  JClassType[] rpcTokenSubtypes=rpcTokenType.getSubtypes();
+  String rpcTokenImplementation="";
+  for (  JClassType rpcTokenSubtype : rpcTokenSubtypes) {
+    if (typesSentFromBrowser.isSerializable(rpcTokenSubtype)) {
+      if (!rpcTokenImplementation.isEmpty()) {
+        rpcTokenImplementation="";
+        break;
+      }
+ else {
+        rpcTokenImplementation=rpcTokenSubtype.getQualifiedSourceName();
+      }
+    }
+  }
+  if (!rpcTokenImplementation.isEmpty()) {
+    srcWriter.println("@Override");
+    srcWriter.println("protected void checkRpcTokenType(RpcToken token) {");
+    srcWriter.indent();
+    srcWriter.println("if (!(token instanceof " + rpcTokenImplementation + ")) {");
+    srcWriter.indent();
+    srcWriter.println("throw new RpcTokenException(\"Invalid RpcToken type: " + "expected '" + rpcTokenImplementation + "' but got '\" + "+ "token.getClass() + \"'\");");
+    srcWriter.outdent();
+    srcWriter.println("}");
+    srcWriter.outdent();
+    srcWriter.println("}");
+  }
+}

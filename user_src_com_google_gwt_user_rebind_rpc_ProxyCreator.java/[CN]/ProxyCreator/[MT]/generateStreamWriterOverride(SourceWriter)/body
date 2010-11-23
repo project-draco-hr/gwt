@@ -4,7 +4,14 @@
   srcWriter.indent();
   srcWriter.println("ClientSerializationStreamWriter toReturn =");
   srcWriter.indentln("(ClientSerializationStreamWriter) super.createStreamWriter();");
-  srcWriter.println("toReturn.addFlags(ClientSerializationStreamWriter.FLAG_ELIDE_TYPE_NAMES);");
+  if (elideTypeNames) {
+    srcWriter.println("toReturn.addFlags(ClientSerializationStreamWriter." + "FLAG_ELIDE_TYPE_NAMES);");
+  }
+  srcWriter.println("if (getRpcToken() != null) {");
+  srcWriter.indent();
+  srcWriter.println("toReturn.addFlags(ClientSerializationStreamWriter." + "FLAG_RPC_TOKEN_INCLUDED);");
+  srcWriter.outdent();
+  srcWriter.println("}");
   srcWriter.println("return toReturn;");
   srcWriter.outdent();
   srcWriter.println("}");

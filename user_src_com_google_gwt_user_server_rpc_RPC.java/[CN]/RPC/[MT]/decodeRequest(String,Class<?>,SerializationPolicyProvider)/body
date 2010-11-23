@@ -9,6 +9,10 @@
   try {
     ServerSerializationStreamReader streamReader=new ServerSerializationStreamReader(classLoader,serializationPolicyProvider);
     streamReader.prepareToRead(encodedRequest);
+    RpcToken rpcToken=null;
+    if (streamReader.hasFlags(AbstractSerializationStream.FLAG_RPC_TOKEN_INCLUDED)) {
+      rpcToken=(RpcToken)streamReader.deserializeValue(RpcToken.class);
+    }
     String serviceIntfName=maybeDeobfuscate(streamReader,streamReader.readString());
     if (type != null) {
       if (!implementsInterface(type,serviceIntfName)) {
@@ -47,7 +51,7 @@
       for (int i=0; i < parameterValues.length; i++) {
         parameterValues[i]=streamReader.deserializeValue(parameterTypes[i]);
       }
-      return new RPCRequest(method,parameterValues,serializationPolicy,streamReader.getFlags());
+      return new RPCRequest(method,parameterValues,rpcToken,serializationPolicy,streamReader.getFlags());
     }
  catch (    NoSuchMethodException e) {
       throw new IncompatibleRemoteServiceException(formatMethodNotFoundErrorMessage(serviceIntf,serviceMethodName,parameterTypes));

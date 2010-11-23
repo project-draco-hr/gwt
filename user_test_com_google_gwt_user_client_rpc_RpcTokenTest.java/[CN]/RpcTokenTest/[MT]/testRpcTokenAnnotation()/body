@@ -1,0 +1,18 @@
+{
+  AnnotatedRpcTokenTestServiceAsync service=getAnnotatedAsyncService();
+  final AnotherTestRpcToken token=new AnotherTestRpcToken();
+  token.token=1337;
+  ((HasRpcToken)service).setRpcToken(token);
+  service.getRpcTokenFromRequest(new AsyncCallback<RpcToken>(){
+    public void onSuccess(    RpcToken result){
+      assertNotNull(result);
+      assertTrue(result instanceof AnotherTestRpcToken);
+      assertEquals(token.token,((AnotherTestRpcToken)result).token);
+      finishTest();
+    }
+    public void onFailure(    Throwable caught){
+      TestSetValidator.rethrowException(caught);
+    }
+  }
+);
+}

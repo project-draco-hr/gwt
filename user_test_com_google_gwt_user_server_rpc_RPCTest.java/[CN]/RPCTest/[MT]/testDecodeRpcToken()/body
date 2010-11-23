@@ -1,0 +1,28 @@
+{
+class TestPolicy extends SerializationPolicy {
+    @Override public boolean shouldDeserializeFields(    Class<?> clazz){
+      return TestRpcToken.class.equals(clazz);
+    }
+    @Override public boolean shouldSerializeFields(    Class<?> clazz){
+      return TestRpcToken.class.equals(clazz);
+    }
+    @Override public void validateDeserialize(    Class<?> clazz) throws SerializationException {
+    }
+    @Override public void validateSerialize(    Class<?> clazz) throws SerializationException {
+    }
+    @Override public Set<String> getClientFieldNamesForEnhancedClass(    Class<?> clazz){
+      return null;
+    }
+  }
+class TestPolicyProvider implements SerializationPolicyProvider {
+    public SerializationPolicy getSerializationPolicy(    String moduleBaseURL,    String serializationPolicyStrongName){
+      return new TestPolicy();
+    }
+  }
+  RPCRequest requestWithoutToken=RPC.decodeRequest(VALID_V6_ENCODED_REQUEST);
+  assertNull(requestWithoutToken.getRpcToken());
+  RPCRequest requestWithToken=RPC.decodeRequest(VALID_V6_ENCODED_REQUEST_WITH_RPC_TOKEN,null,new TestPolicyProvider());
+  assertNotNull(requestWithToken.getRpcToken());
+  TestRpcToken token=(TestRpcToken)requestWithToken.getRpcToken();
+  assertEquals("RPC_TOKEN_VALUE",token.tokenValue);
+}

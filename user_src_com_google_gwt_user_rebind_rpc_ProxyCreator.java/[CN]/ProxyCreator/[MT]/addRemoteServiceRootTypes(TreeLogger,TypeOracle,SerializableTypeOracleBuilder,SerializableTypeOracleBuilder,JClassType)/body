@@ -2,6 +2,29 @@
   logger=logger.branch(TreeLogger.DEBUG,"Analyzing '" + remoteService.getParameterizedQualifiedSourceName() + "' for serializable types",null);
   JMethod[] methods=remoteService.getOverridableMethods();
   JClassType exceptionClass=typeOracle.getType(Exception.class.getName());
+  JClassType rteType=typeOracle.getType(RpcTokenException.class.getName());
+  JClassType rpcTokenClass=typeOracle.getType(RpcToken.class.getName());
+  RpcTokenImplementation tokenClassToUse=remoteService.findAnnotationInTypeHierarchy(RpcTokenImplementation.class);
+  if (tokenClassToUse != null) {
+    JClassType rpcTokenType=typeOracle.getType(tokenClassToUse.value());
+    if (rpcTokenType.isAssignableTo(rpcTokenClass)) {
+      typesSentFromBrowser.addRootType(logger,rpcTokenType);
+      typesSentToBrowser.addRootType(logger,rteType);
+    }
+ else {
+      logger.branch(TreeLogger.ERROR,"RPC token class " + tokenClassToUse.value() + " must implement "+ RpcToken.class.getName(),null);
+      throw new UnableToCompleteException();
+    }
+  }
+ else {
+    JClassType[] rpcTokenSubclasses=rpcTokenClass.getSubtypes();
+    for (    JClassType rpcTokenSubclass : rpcTokenSubclasses) {
+      typesSentFromBrowser.addRootType(logger,rpcTokenSubclass);
+    }
+    if (rpcTokenSubclasses.length > 0) {
+      typesSentToBrowser.addRootType(logger,rteType);
+    }
+  }
   TreeLogger validationLogger=logger.branch(TreeLogger.DEBUG,"Analyzing methods:",null);
   for (  JMethod method : methods) {
     TreeLogger methodLogger=validationLogger.branch(TreeLogger.DEBUG,method.toString(),null);
