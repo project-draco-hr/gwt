@@ -2,25 +2,6 @@
   TypeOracle typeOracle=context.getTypeOracle();
   PropertyOracle propertyOracle=context.getPropertyOracle();
   LocaleUtils localeUtils=LocaleUtils.getInstance(logger,propertyOracle,context);
-  String cookieName=null;
-  String queryParamName=null;
-  ConfigurationProperty prop;
-  try {
-    prop=propertyOracle.getConfigurationProperty(LocalePropertyProviderGenerator.LOCALE_COOKIE);
-    cookieName=prop.getValues().get(0);
-  }
- catch (  BadPropertyValueException e) {
-  }
-catch (  IndexOutOfBoundsException e) {
-  }
-  try {
-    prop=propertyOracle.getConfigurationProperty(LocalePropertyProviderGenerator.LOCALE_QUERYPARAM);
-    queryParamName=prop.getValues().get(0);
-  }
- catch (  BadPropertyValueException e) {
-  }
-catch (  IndexOutOfBoundsException e) {
-  }
   JClassType targetClass;
   try {
     targetClass=typeOracle.getType(typeName);
@@ -91,11 +72,6 @@ catch (    IOException e) {
     writer.println("}");
     writer.println();
     writer.println("@Override");
-    writer.println("public String getLocaleCookieName() {");
-    writer.println("  return " + possiblyNullStringConstant(cookieName) + ";");
-    writer.println("}");
-    writer.println();
-    writer.println("@Override");
     writer.println("public String getLocaleNativeDisplayName(String localeName) {");
     writer.println("  if (GWT.isScript()) {");
     writer.println("    if (nativeDisplayNamesNative == null) {");
@@ -125,11 +101,6 @@ catch (    IOException e) {
     writer.println("    }");
     writer.println("    return nativeDisplayNamesJava.get(localeName);");
     writer.println("  }");
-    writer.println("}");
-    writer.println();
-    writer.println("@Override");
-    writer.println("public String getLocaleQueryParamName() {");
-    writer.println("  return " + possiblyNullStringConstant(queryParamName) + ";");
     writer.println("}");
     writer.println();
     writer.println("@Override");

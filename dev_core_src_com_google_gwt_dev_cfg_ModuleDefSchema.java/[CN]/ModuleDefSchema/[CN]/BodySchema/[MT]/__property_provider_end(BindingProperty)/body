@@ -1,0 +1,11 @@
+{
+  ScriptSchema childSchema=((ScriptSchema)fChild);
+  String script=childSchema.getScript();
+  if (script == null) {
+    logger.log(TreeLogger.ERROR,"Property providers must specify a JavaScript body",null);
+    throw new UnableToCompleteException();
+  }
+  int lineNumber=childSchema.getStartLineNumber();
+  JsFunction fn=parseJsBlock(lineNumber,script);
+  property.setProvider(new PropertyProvider(fn.getBody().toSource()));
+}
