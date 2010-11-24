@@ -6,6 +6,20 @@
     RuntimeException ex=new RuntimeException(failureMessage);
     result.setException(ex);
   }
+ else   if (!GWT.isProdMode() && result.getException() != null) {
+    SerializationStreamFactory fac=(SerializationStreamFactory)junitHost;
+    SerializationStreamWriter writer=fac.createStreamWriter();
+    Throwable ex=result.getException();
+    try {
+      writer.writeObject(ex);
+    }
+ catch (    SerializationException e) {
+      StackTraceElement[] st=ex.getStackTrace();
+      ex=new Exception(ex.toString());
+      ex.setStackTrace(st);
+      result.setException(ex);
+    }
+  }
   TestInfo currentTest=getCurrentTest();
   currentResults.put(currentTest,result);
   ++currentTestIndex;
