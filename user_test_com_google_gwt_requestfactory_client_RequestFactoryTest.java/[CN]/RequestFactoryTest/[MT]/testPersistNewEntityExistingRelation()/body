@@ -7,11 +7,13 @@
   final SimpleFooProxy finalFoo=newFoo;
   simpleBarRequest().findSimpleBarById("999L").fire(new Receiver<SimpleBarProxy>(){
     @Override public void onSuccess(    SimpleBarProxy response){
+      response=checkSerialization(response);
       finalFoo.setBarField(response);
       fooReq.fire(new Receiver<Void>(){
         @Override public void onSuccess(        Void response){
           simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
             @Override public void onSuccess(            SimpleFooProxy finalFooProxy){
+              finalFooProxy=checkSerialization(finalFooProxy);
               assertEquals("GWT",finalFooProxy.getUserName());
               finishTestAndReset();
             }

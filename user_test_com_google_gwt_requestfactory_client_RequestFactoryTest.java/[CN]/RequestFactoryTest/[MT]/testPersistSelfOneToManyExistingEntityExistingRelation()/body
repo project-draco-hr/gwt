@@ -2,6 +2,7 @@
   delayTestFinish(DELAY_TEST_FINISH);
   simpleFooRequest().findSimpleFooById(999L).with("selfOneToManyField").fire(new Receiver<SimpleFooProxy>(){
     @Override public void onSuccess(    SimpleFooProxy fooProxy){
+      fooProxy=checkSerialization(fooProxy);
       SimpleFooRequest context=simpleFooRequest();
       Request<SimpleFooProxy> updReq=context.persistAndReturnSelf().using(fooProxy).with("selfOneToManyField");
       fooProxy=context.edit(fooProxy);
@@ -10,6 +11,7 @@
       fooProxyList.add(fooProxy);
       updReq.fire(new Receiver<SimpleFooProxy>(){
         @Override public void onSuccess(        SimpleFooProxy response){
+          response=checkSerialization(response);
           assertEquals(response.getSelfOneToManyField().size(),listCount + 1);
           assertContains(response.getSelfOneToManyField(),response);
           finishTestAndReset();

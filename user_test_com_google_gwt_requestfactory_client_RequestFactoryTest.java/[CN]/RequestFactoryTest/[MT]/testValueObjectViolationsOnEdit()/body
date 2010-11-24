@@ -1,7 +1,8 @@
 {
   delayTestFinish(DELAY_TEST_FINISH);
   simpleFooRequest().returnValueProxy().fire(new Receiver<SimpleValueProxy>(){
-    @Override public void onSuccess(    final SimpleValueProxy response){
+    @Override public void onSuccess(    SimpleValueProxy response){
+      final SimpleValueProxy original=checkSerialization(response);
       SimpleFooRequest req=simpleFooRequest();
       final SimpleValueProxy value=req.edit(response);
       value.setShouldBeNull("Hello world");
@@ -15,7 +16,7 @@
           assertEquals(1,errors.size());
           Violation v=errors.iterator().next();
           assertEquals(value,v.getInvalidProxy());
-          assertEquals(response,v.getOriginalProxy());
+          assertEquals(original,v.getOriginalProxy());
           assertEquals("shouldBeNull",v.getPath());
           assertNull(v.getProxyId());
           finishTestAndReset();

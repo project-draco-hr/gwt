@@ -1,0 +1,32 @@
+{
+  if (value == otherValue) {
+    return true;
+  }
+  if (value instanceof Collection<?> && otherValue instanceof Collection<?>) {
+    return sameOrEquals((Collection<?>)value,(Collection<?>)otherValue,pending,null);
+  }
+  if (value instanceof Map<?,?> && otherValue instanceof Map<?,?>) {
+    return sameOrEquals((Map<?,?>)value,(Map<?,?>)otherValue,pending);
+  }
+  if (value instanceof Splittable && otherValue instanceof Splittable) {
+    return sameOrEquals((Splittable)value,(Splittable)otherValue,pending);
+  }
+{
+    AutoBean<?> maybeValue=AutoBeanUtils.getAutoBean(value);
+    AutoBean<?> maybeOther=AutoBeanUtils.getAutoBean(otherValue);
+    if (maybeValue != null && maybeOther != null) {
+      value=maybeValue;
+      otherValue=maybeOther;
+    }
+  }
+  if (value instanceof AutoBean<?> && otherValue instanceof AutoBean<?>) {
+    return sameOrEquals((AutoBean<?>)value,(AutoBean<?>)otherValue,pending);
+  }
+  if (value == null ^ otherValue == null) {
+    return false;
+  }
+  if (value != null && !value.equals(otherValue)) {
+    return false;
+  }
+  return true;
+}

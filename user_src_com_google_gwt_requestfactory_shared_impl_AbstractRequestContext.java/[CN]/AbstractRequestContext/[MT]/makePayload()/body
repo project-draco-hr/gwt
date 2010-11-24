@@ -1,2 +1,14 @@
 {
+  MessageFactory f=MessageFactoryHolder.FACTORY;
+  List<OperationMessage> operations=makePayloadOperations();
+  List<InvocationMessage> invocationMessages=makePayloadInvocations();
+  AutoBean<RequestMessage> bean=f.request();
+  RequestMessage requestMessage=bean.as();
+  if (!invocationMessages.isEmpty()) {
+    requestMessage.setInvocations(invocationMessages);
+  }
+  if (!operations.isEmpty()) {
+    requestMessage.setOperations(operations);
+  }
+  return AutoBeanCodex.encode(bean).getPayload();
 }

@@ -1,0 +1,19 @@
+{
+  AutoBean<T> originalBean=AutoBeanUtils.getAutoBean(proxy);
+  SimpleProxyId<T> id=BaseProxyCategory.stableId(originalBean);
+  DefaultProxyStore store=new DefaultProxyStore();
+  ProxySerializer s=req.getSerializer(store);
+  String key=s.serialize(proxy);
+  assertNotNull(key);
+  store=new DefaultProxyStore(store.encode());
+  s=req.getSerializer(store);
+  T restored=s.deserialize(id.getProxyClass(),key);
+  AutoBean<BaseProxy> restoredBean=AutoBeanUtils.getAutoBean(restored);
+  assertNotSame(proxy,restored);
+  assertTrue(AutoBeanUtils.deepEquals(originalBean,restoredBean));
+  if (proxy instanceof EntityProxy && !id.isEphemeral()) {
+    assertEquals(((EntityProxy)proxy).stableId(),((EntityProxy)restored).stableId());
+  }
+  restoredBean.setTag(Constants.STABLE_ID,originalBean.getTag(Constants.STABLE_ID));
+  return restored;
+}

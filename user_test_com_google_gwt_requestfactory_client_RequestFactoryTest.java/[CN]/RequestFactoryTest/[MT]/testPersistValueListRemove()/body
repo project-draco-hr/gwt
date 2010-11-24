@@ -2,12 +2,14 @@
   delayTestFinish(DELAY_TEST_FINISH);
   simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
     @Override public void onSuccess(    SimpleFooProxy fooProxy){
+      fooProxy=checkSerialization(fooProxy);
       SimpleFooRequest context=simpleFooRequest();
       Request<SimpleFooProxy> updReq=context.persistAndReturnSelf().using(fooProxy);
       fooProxy=context.edit(fooProxy);
       final int oldValue=fooProxy.getNumberListField().remove(0);
       updReq.fire(new Receiver<SimpleFooProxy>(){
         @Override public void onSuccess(        SimpleFooProxy response){
+          response=checkSerialization(response);
           assertFalse(response.getNumberListField().contains(oldValue));
           finishTestAndReset();
         }

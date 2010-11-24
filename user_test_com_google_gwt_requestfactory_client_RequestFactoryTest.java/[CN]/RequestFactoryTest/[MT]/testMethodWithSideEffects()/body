@@ -4,6 +4,7 @@
   EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleFooProxy.class,handler);
   simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
     @Override public void onSuccess(    SimpleFooProxy newFoo){
+      newFoo=checkSerialization(newFoo);
       assertEquals(1,handler.updateEventCount);
       assertEquals(1,handler.totalEventCount);
       SimpleFooRequest context=simpleFooRequest();
@@ -18,6 +19,7 @@
           assertEquals(2,handler.totalEventCount);
           simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
             @Override public void onSuccess(            SimpleFooProxy finalFoo){
+              finalFoo=checkSerialization(finalFoo);
               assertEquals("Ray",finalFoo.getUserName());
               assertEquals(2,handler.updateEventCount);
               assertEquals(2,handler.totalEventCount);

@@ -1,0 +1,50 @@
+{
+  if (value == otherValue) {
+    return true;
+  }
+  if (value.isString()) {
+    if (!otherValue.isString()) {
+      return false;
+    }
+    return value.asString().equals(otherValue.asString());
+  }
+  if (value.isIndexed()) {
+    if (!otherValue.isIndexed()) {
+      return false;
+    }
+    if (value.size() != otherValue.size()) {
+      return false;
+    }
+    for (int i=0, j=value.size(); i < j; i++) {
+      if (!sameOrEquals(value.get(i),otherValue.get(i),pending)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  if (value.isKeyed()) {
+    if (!otherValue.isKeyed()) {
+      return false;
+    }
+    List<String> keys=value.getPropertyKeys();
+    for (    String key : keys) {
+      if (value.isNull(key)) {
+        if (!otherValue.isNull(key)) {
+          return false;
+        }
+      }
+ else       if (otherValue.isNull(key) || !sameOrEquals(value.get(key),otherValue.get(key),pending)) {
+        return false;
+      }
+    }
+    List<String> otherKeys=new ArrayList<String>(otherValue.getPropertyKeys());
+    otherKeys.removeAll(keys);
+    for (    String key : otherKeys) {
+      if (!value.isNull(key)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  throw new UnsupportedOperationException("Splittable of unknown type");
+}

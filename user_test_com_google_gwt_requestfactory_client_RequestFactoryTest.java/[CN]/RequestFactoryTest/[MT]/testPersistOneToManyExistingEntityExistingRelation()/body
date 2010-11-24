@@ -1,9 +1,11 @@
 {
   delayTestFinish(DELAY_TEST_FINISH);
   simpleBarRequest().findSimpleBarById("999L").fire(new Receiver<SimpleBarProxy>(){
-    @Override public void onSuccess(    final SimpleBarProxy barProxy){
+    @Override public void onSuccess(    SimpleBarProxy response){
+      final SimpleBarProxy barProxy=checkSerialization(response);
       simpleFooRequest().findSimpleFooById(999L).with("oneToManyField").fire(new Receiver<SimpleFooProxy>(){
         @Override public void onSuccess(        SimpleFooProxy fooProxy){
+          fooProxy=checkSerialization(fooProxy);
           SimpleFooRequest context=simpleFooRequest();
           Request<SimpleFooProxy> updReq=context.persistAndReturnSelf().using(fooProxy).with("oneToManyField");
           fooProxy=context.edit(fooProxy);
@@ -12,6 +14,7 @@
           barProxyList.add(barProxy);
           updReq.fire(new Receiver<SimpleFooProxy>(){
             @Override public void onSuccess(            SimpleFooProxy response){
+              response=checkSerialization(response);
               assertEquals(response.getOneToManyField().size(),listCount + 1);
               assertContains(response.getOneToManyField(),barProxy);
               finishTestAndReset();

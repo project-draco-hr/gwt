@@ -5,6 +5,7 @@
   willDelete.setUserName("A");
   context.persistAndReturnSelf().using(willDelete).fire(new Receiver<SimpleBarProxy>(){
     @Override public void onSuccess(    SimpleBarProxy response){
+      response=checkSerialization(response);
       assertEquals("A",response.getUserName());
       SimpleBarRequest context=simpleBarRequest();
       response=context.edit(response);
@@ -12,6 +13,7 @@
       response.setUserName("B");
       context.persistAndReturnSelf().using(response).fire(new Receiver<SimpleBarProxy>(){
         @Override public void onSuccess(        SimpleBarProxy response){
+          response=checkSerialization(response);
           assertNotNull(response);
           assertEquals("B",response.getUserName());
           SimpleBarRequest context=simpleBarRequest();
@@ -23,6 +25,7 @@
               finishTestAndReset();
             }
             @Override public void onSuccess(            SimpleBarProxy response){
+              response=checkSerialization(response);
               fail();
             }
           }

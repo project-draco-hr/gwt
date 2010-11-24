@@ -1,9 +1,11 @@
 {
   delayTestFinish(DELAY_TEST_FINISH);
   simpleBarRequest().findSimpleBarById("999L").fire(new Receiver<SimpleBarProxy>(){
-    @Override public void onSuccess(    final SimpleBarProxy barProxy){
+    @Override public void onSuccess(    SimpleBarProxy response){
+      final SimpleBarProxy barProxy=checkSerialization(response);
       simpleFooRequest().findSimpleFooById(999L).fire(new Receiver<SimpleFooProxy>(){
         @Override public void onSuccess(        SimpleFooProxy fooProxy){
+          fooProxy=checkSerialization(fooProxy);
           SimpleFooRequest context=simpleFooRequest();
           fooProxy=context.edit(fooProxy);
           fooProxy.setBarField(barProxy);
@@ -11,6 +13,7 @@
           fooProxy.setByteField((byte)55);
           context.persistAndReturnSelf().using(fooProxy).with("barField").fire(new Receiver<SimpleFooProxy>(){
             @Override public void onSuccess(            SimpleFooProxy received){
+              received=checkSerialization(received);
               assertNotNull(received.getBarField());
               assertEquals(barProxy.stableId(),received.getBarField().stableId());
               assertEquals("Hello",received.getUserName());
@@ -22,6 +25,7 @@
               received.setByteField(null);
               context.persistAndReturnSelf().using(received).fire(new Receiver<SimpleFooProxy>(){
                 @Override public void onSuccess(                SimpleFooProxy response){
+                  response=checkSerialization(response);
                   assertNull(response.getBarField());
                   assertNull(response.getUserName());
                   assertNull(response.getByteField());

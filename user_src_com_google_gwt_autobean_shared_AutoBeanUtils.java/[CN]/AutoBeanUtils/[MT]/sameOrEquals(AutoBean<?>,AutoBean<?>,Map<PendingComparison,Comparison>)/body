@@ -1,0 +1,28 @@
+{
+  if (value == otherValue) {
+    return true;
+  }
+ else   if (!value.getType().equals(otherValue.getType())) {
+    return false;
+  }
+  PendingComparison key=new PendingComparison(value,otherValue);
+  Comparison previous=pending.get(key);
+  if (previous == null) {
+    pending.put(key,Comparison.PENDING);
+    Map<String,Object> beanProperties=AutoBeanUtils.getAllProperties(value);
+    Map<String,Object> otherProperties=AutoBeanUtils.getAllProperties(otherValue);
+    for (    Map.Entry<String,Object> entry : beanProperties.entrySet()) {
+      Object property=entry.getValue();
+      Object otherProperty=otherProperties.get(entry.getKey());
+      if (!sameOrEquals(property,otherProperty,pending)) {
+        pending.put(key,Comparison.FALSE);
+        return false;
+      }
+    }
+    pending.put(key,Comparison.TRUE);
+    return true;
+  }
+ else {
+    return !Comparison.FALSE.equals(previous);
+  }
+}

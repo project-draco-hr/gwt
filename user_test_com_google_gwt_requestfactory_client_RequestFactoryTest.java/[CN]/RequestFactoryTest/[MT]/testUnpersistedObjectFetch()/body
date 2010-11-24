@@ -1,11 +1,13 @@
 {
   delayTestFinish(DELAY_TEST_FINISH);
   req.simpleFooRequest().getUnpersistedInstance().fire(new Receiver<SimpleFooProxy>(){
-    @Override public void onSuccess(    final SimpleFooProxy created){
+    @Override public void onSuccess(    SimpleFooProxy response){
+      final SimpleFooProxy created=checkSerialization(response);
       assertNotNull(created);
       assertTrue(created.getUnpersisted());
       req.simpleFooRequest().echo(created).fire(new Receiver<SimpleFooProxy>(){
         @Override public void onSuccess(        SimpleFooProxy response){
+          response=checkSerialization(response);
           assertNotNull(response);
           assertEquals(created.stableId(),response.stableId());
           assertTrue(response.getUnpersisted());

@@ -6,21 +6,24 @@
   rayFoo=context.edit(rayFoo);
   rayFoo.setUserName("Ray");
   persistRay.fire(new Receiver<SimpleFooProxy>(){
-    @Override public void onSuccess(    final SimpleFooProxy persistedRay){
+    @Override public void onSuccess(    SimpleFooProxy response){
+      final SimpleFooProxy persistedRay=checkSerialization(response);
       SimpleBarRequest context=simpleBarRequest();
       SimpleBarProxy amitBar=context.create(SimpleBarProxy.class);
       final Request<SimpleBarProxy> persistAmit=context.persistAndReturnSelf().using(amitBar);
       amitBar=context.edit(amitBar);
       amitBar.setUserName("Amit");
       persistAmit.fire(new Receiver<SimpleBarProxy>(){
-        @Override public void onSuccess(        SimpleBarProxy persistedAmit){
+        @Override public void onSuccess(        SimpleBarProxy response){
+          response=checkSerialization(response);
           SimpleFooRequest context=simpleFooRequest();
           final Request<SimpleFooProxy> persistRelationship=context.persistAndReturnSelf().using(persistedRay).with("barField");
           SimpleFooProxy newRec=context.edit(persistedRay);
-          newRec.setBarField(persistedAmit);
+          newRec.setBarField(response);
           persistRelationship.fire(new Receiver<SimpleFooProxy>(){
-            @Override public void onSuccess(            SimpleFooProxy relatedRay){
-              assertEquals("Amit",relatedRay.getBarField().getUserName());
+            @Override public void onSuccess(            SimpleFooProxy response){
+              response=checkSerialization(response);
+              assertEquals("Amit",response.getBarField().getUserName());
               finishTestAndReset();
             }
           }

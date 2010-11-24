@@ -11,9 +11,11 @@
   newBar=context2.edit(newBar);
   newBar.setUserName("Amit");
   fooReq.fire(new Receiver<SimpleFooProxy>(){
-    @Override public void onSuccess(    final SimpleFooProxy persistedFoo){
+    @Override public void onSuccess(    final SimpleFooProxy response){
+      final SimpleFooProxy persistedFoo=checkSerialization(response);
       barReq.fire(new Receiver<SimpleBarProxy>(){
-        @Override public void onSuccess(        final SimpleBarProxy persistedBar){
+        @Override public void onSuccess(        SimpleBarProxy response){
+          final SimpleBarProxy persistedBar=checkSerialization(response);
           assertEquals("Ray",persistedFoo.getUserName());
           SimpleFooRequest context=simpleFooRequest();
           final Request<Void> fooReq2=context.persist().using(persistedFoo);
@@ -23,6 +25,7 @@
             @Override public void onSuccess(            Void response){
               req.simpleFooRequest().findSimpleFooById(persistedFoo.getId()).with("barField.userName").fire(new Receiver<SimpleFooProxy>(){
                 @Override public void onSuccess(                SimpleFooProxy finalFooProxy){
+                  finalFooProxy=checkSerialization(finalFooProxy);
                   assertEquals("Amit",finalFooProxy.getBarField().getUserName());
                   finishTestAndReset();
                 }

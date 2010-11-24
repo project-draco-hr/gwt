@@ -12,7 +12,8 @@
   assertTrue(((SimpleEntityProxyId<?>)newFoo.stableId()).isEphemeral());
   newFoo.setUserName("GWT basic user");
   fooReq.fire(new Receiver<SimpleFooProxy>(){
-    @Override public void onSuccess(    final SimpleFooProxy returned){
+    @Override public void onSuccess(    SimpleFooProxy response){
+      final SimpleFooProxy returned=checkSerialization(response);
       assertEquals(futureId,foo.getId());
       assertFalse(((SimpleEntityProxyId<?>)foo.stableId()).isEphemeral());
       assertEquals(futureId,newFoo.getId());
@@ -25,10 +26,11 @@
       final SimpleFooProxy editableFoo=context.edit(returned);
       editableFoo.setUserName("GWT power user");
       editRequest.fire(new Receiver<SimpleFooProxy>(){
-        @Override public void onSuccess(        SimpleFooProxy returnedAfterEdit){
-          assertEquals(returnedAfterEdit.getId(),returned.getId());
-          assertEquals("GWT power user",returnedAfterEdit.getUserName());
-          checkStableIdEquals(editableFoo,returnedAfterEdit);
+        @Override public void onSuccess(        SimpleFooProxy response){
+          response=checkSerialization(response);
+          assertEquals(response.getId(),returned.getId());
+          assertEquals("GWT power user",response.getUserName());
+          checkStableIdEquals(editableFoo,response);
           finishTestAndReset();
         }
       }

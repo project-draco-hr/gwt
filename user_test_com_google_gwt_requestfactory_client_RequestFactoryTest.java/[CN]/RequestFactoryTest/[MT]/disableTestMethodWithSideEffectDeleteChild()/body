@@ -4,6 +4,7 @@
   final SimpleBarProxy bar=context.create(SimpleBarProxy.class);
   context.persistAndReturnSelf().using(bar).fire(new Receiver<SimpleBarProxy>(){
     @Override public void onSuccess(    SimpleBarProxy persistentBar){
+      persistentBar=checkSerialization(persistentBar);
       SimpleFooRequest context=req.simpleFooRequest();
       SimpleFooProxy foo=context.create(SimpleFooProxy.class);
       final Request<SimpleFooProxy> persistRequest=context.persistAndReturnSelf().using(foo);
@@ -12,6 +13,7 @@
       foo.setBarField(bar);
       persistRequest.fire(new Receiver<SimpleFooProxy>(){
         @Override public void onSuccess(        SimpleFooProxy persistentFoo){
+          persistentFoo=checkSerialization(persistentFoo);
           final SimpleFooEventHandler<SimpleFooProxy> fooHandler=new SimpleFooEventHandler<SimpleFooProxy>();
           EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleFooProxy.class,fooHandler);
           final SimpleFooEventHandler<SimpleBarProxy> barHandler=new SimpleFooEventHandler<SimpleBarProxy>();
