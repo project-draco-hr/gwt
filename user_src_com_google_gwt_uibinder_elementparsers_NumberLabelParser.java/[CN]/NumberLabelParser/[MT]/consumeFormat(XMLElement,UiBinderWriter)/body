@@ -1,0 +1,39 @@
+{
+  String format=elem.consumeAttribute("format",writer.getOracle().findType(DateTimeFormat.class.getCanonicalName()));
+  String predefinedFormat=elem.consumeRawAttribute("predefinedFormat");
+  String customFormat=elem.consumeStringAttribute("customFormat");
+  if (format != null) {
+    if (predefinedFormat != null || customFormat != null) {
+      writer.die(elem,AT_MOST_ONE_SPECIFIED_FORMAT);
+    }
+    if (hasCurrency(elem)) {
+      writer.die(elem,NO_CURRENCY_WITH_FORMAT);
+    }
+    return format;
+  }
+  if (predefinedFormat != null) {
+    if (customFormat != null) {
+      writer.die(elem,AT_MOST_ONE_SPECIFIED_FORMAT);
+    }
+    if ("CURRENCY".equals(predefinedFormat)) {
+      String currency=consumeCurrency(elem,writer);
+      return NumberFormat.class.getCanonicalName() + ".getCurrencyFormat(" + (currency != null ? currency : "")+ ")";
+    }
+    if (hasCurrency(elem)) {
+      writer.die(elem,NO_CURRENCY_WITH_PREDEFINED_FORMAT);
+    }
+    String f=predefinedFormats.get(predefinedFormat);
+    if (f == null) {
+      writer.die(elem,UNKNOWN_PREDEFINED_FORMAT,predefinedFormat);
+    }
+    return f;
+  }
+  if (customFormat != null) {
+    String currency=consumeCurrency(elem,writer);
+    return NumberFormat.class.getCanonicalName() + ".getFormat(" + customFormat+ (currency != null ? ", " + currency : "")+ ")";
+  }
+  if (hasCurrency(elem)) {
+    writer.die(elem,NO_CURRENCY_WITHOUT_SPECIFIED_FORMAT);
+  }
+  return null;
+}

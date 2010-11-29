@@ -1,0 +1,21 @@
+{
+  String format=elem.consumeAttribute("format",writer.getOracle().findType(DateTimeFormat.class.getCanonicalName()));
+  String predefinedFormat=elem.consumeAttribute("predefinedFormat",writer.getOracle().findType(PredefinedFormat.class.getCanonicalName()));
+  String customFormat=elem.consumeStringAttribute("customFormat");
+  if (format != null) {
+    if (predefinedFormat != null || customFormat != null) {
+      writer.die(elem,AT_MOST_ONE_SPECIFIED_FORMAT);
+    }
+    return format;
+  }
+  if (predefinedFormat != null) {
+    if (customFormat != null) {
+      writer.die(elem,AT_MOST_ONE_SPECIFIED_FORMAT);
+    }
+    return makeGetFormat(predefinedFormat);
+  }
+  if (customFormat != null) {
+    return makeGetFormat(customFormat);
+  }
+  return null;
+}

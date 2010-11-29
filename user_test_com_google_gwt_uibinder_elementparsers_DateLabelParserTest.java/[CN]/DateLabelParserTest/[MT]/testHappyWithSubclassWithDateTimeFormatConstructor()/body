@@ -1,0 +1,15 @@
+{
+  DateLabelParser parser=new DateLabelParser();
+  tester=new ElementParserTester("my.MyConstructedDateLabel",new DateLabelParser(),DATELABEL_SUBCLASS_FORMAT_CONSTRUCTOR);
+  StringBuffer b=new StringBuffer();
+  b.append("<ui:UiBinder xmlns:ui='" + ElementParserTester.BINDER_URI + "'");
+  b.append("    xmlns:my='urn:import:my'");
+  b.append("    xmlns:g='urn:import:com.google.gwt.user.client.ui'>");
+  b.append("  <my:MyConstructedDateLabel format='{someDateTimeFormat}' timezone='{someTimeZone}' /> ");
+  b.append("</ui:UiBinder>");
+  parser.parse(tester.getElem(b.toString(),"my:MyConstructedDateLabel"),"fieldName",tester.parsedType,tester.writer);
+  FieldWriter w=tester.fieldManager.lookup("fieldName");
+  assertEquals("new my.MyConstructedDateLabel(someDateTimeFormat)",w.getInitializer());
+  assertTrue(tester.writer.statements.isEmpty());
+  assertNull(tester.logger.died);
+}
