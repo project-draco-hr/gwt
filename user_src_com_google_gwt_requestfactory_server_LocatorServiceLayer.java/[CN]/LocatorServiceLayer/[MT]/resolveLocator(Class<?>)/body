@@ -4,18 +4,19 @@
     return null;
   }
   Class<? extends Locator<?,?>> locatorType;
-  LocatorFor l=proxyType.getAnnotation(LocatorFor.class);
-  LocatorForName ln=proxyType.getAnnotation(LocatorForName.class);
-  if (l != null) {
-    locatorType=l.value();
+  ProxyFor l=proxyType.getAnnotation(ProxyFor.class);
+  ProxyForName ln=proxyType.getAnnotation(ProxyForName.class);
+  if (l != null && !Locator.class.equals(l.locator())) {
+    @SuppressWarnings("unchecked") Class<? extends Locator<?,?>> found=(Class<? extends Locator<?,?>>)l.locator();
+    locatorType=found;
   }
- else   if (ln != null) {
+ else   if (ln != null && ln.locator().length() > 0) {
     try {
-      @SuppressWarnings("unchecked") Class<? extends Locator<?,?>> found=(Class<? extends Locator<?,?>>)Class.forName(ln.value(),false,domainType.getClassLoader()).asSubclass(Locator.class);
+      @SuppressWarnings("unchecked") Class<? extends Locator<?,?>> found=(Class<? extends Locator<?,?>>)Class.forName(ln.locator(),false,domainType.getClassLoader()).asSubclass(Locator.class);
       locatorType=found;
     }
  catch (    ClassNotFoundException e) {
-      return die(e,"Could not find the type specified in the @%s annotation %s",LocatorForName.class.getCanonicalName(),ln.value());
+      return die(e,"Could not find the locator type specified in the @%s annotation %s",ProxyForName.class.getCanonicalName(),ln.value());
     }
   }
  else {

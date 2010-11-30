@@ -1,48 +1,61 @@
 {
-  final boolean foundLocator=desc.equals(Type.getDescriptor(LocatorFor.class));
-  final boolean foundLocatorName=desc.equals(Type.getDescriptor(LocatorForName.class));
-  boolean foundProxy=desc.equals(Type.getDescriptor(ProxyFor.class));
-  boolean foundProxyName=desc.equals(Type.getDescriptor(ProxyForName.class));
-  boolean foundService=desc.equals(Type.getDescriptor(Service.class));
-  boolean foundServiceName=desc.equals(Type.getDescriptor(ServiceName.class));
-  if (foundLocator || foundProxy || foundService) {
+  boolean expectClasses=false;
+  boolean expectNames=false;
+  if (desc.equals(Type.getDescriptor(ProxyFor.class))) {
+    expectClasses=true;
+    found.add(ProxyFor.class);
+  }
+ else   if (desc.equals(Type.getDescriptor(ProxyForName.class))) {
+    expectNames=true;
+    found.add(ProxyForName.class);
+  }
+ else   if (desc.equals(Type.getDescriptor(Service.class))) {
+    expectClasses=true;
+    found.add(Service.class);
+  }
+ else   if (desc.equals(Type.getDescriptor(ServiceName.class))) {
+    expectNames=true;
+    found.add(ServiceName.class);
+  }
+  if (expectClasses) {
     return new EmptyVisitor(){
       @Override public void visit(      String name,      Object value){
         if ("value".equals(name)) {
-          String found=((Type)value).getInternalName();
-          if (foundLocator) {
-            locatorInternalName=found;
-          }
- else {
-            domainInternalName=found;
-          }
+          domainInternalName=((Type)value).getInternalName();
+        }
+ else         if ("locator".equals(name)) {
+          locatorInternalName=((Type)value).getInternalName();
         }
       }
     }
 ;
   }
-  if (foundLocatorName || foundProxyName || foundServiceName) {
+  if (expectNames) {
     return new EmptyVisitor(){
       @Override public void visit(      String name,      Object value){
-        if ("value".equals(name)) {
-          String sourceName=(String)value;
-          StringBuffer desc=new StringBuffer(sourceName.replace('.','/'));
-          while (!loader.exists(desc.toString() + ".class")) {
-            logger.spam("Did not find " + desc.toString());
-            int idx=desc.lastIndexOf("/");
-            if (idx == -1) {
-              return;
-            }
-            desc.setCharAt(idx,'$');
-          }
-          if (foundLocatorName) {
-            locatorInternalName=desc.toString();
-          }
- else {
-            domainInternalName=desc.toString();
-          }
-          logger.spam(domainInternalName);
+        String sourceName;
+        if ("value".equals(name) || "locator".equals(name)) {
+          sourceName=(String)value;
         }
+ else {
+          return;
+        }
+        StringBuffer desc=new StringBuffer(sourceName.replace('.','/'));
+        while (!loader.exists(desc.toString() + ".class")) {
+          logger.spam("Did not find " + desc.toString());
+          int idx=desc.lastIndexOf("/");
+          if (idx == -1) {
+            return;
+          }
+          desc.setCharAt(idx,'$');
+        }
+        if ("locator".equals(name)) {
+          locatorInternalName=desc.toString();
+        }
+ else {
+          domainInternalName=desc.toString();
+        }
+        logger.spam(domainInternalName);
       }
     }
 ;

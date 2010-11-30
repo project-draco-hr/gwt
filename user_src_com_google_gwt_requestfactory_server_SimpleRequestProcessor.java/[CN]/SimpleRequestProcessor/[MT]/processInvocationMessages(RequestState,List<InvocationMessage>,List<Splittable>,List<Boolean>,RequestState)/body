@@ -11,6 +11,10 @@
         throw new UnexpectedException("Cannot resolve domain method " + invocation.getOperation(),null);
       }
       List<Object> args=decodeInvocationArguments(state,invocation,contextMethod,domainMethod);
+      if (service.requiresServiceLocator(contextMethod,domainMethod)) {
+        Object serviceInstance=service.createServiceInstance(contextMethod,domainMethod);
+        args.add(0,serviceInstance);
+      }
       Object returnValue=service.invoke(domainMethod,args.toArray());
       Type requestReturnType=service.getRequestReturnType(contextMethod);
       returnValue=state.getResolver().resolveClientValue(returnValue,requestReturnType,invocation.getPropertyRefs());

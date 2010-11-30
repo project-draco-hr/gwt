@@ -1,0 +1,21 @@
+{
+  Class<? extends ServiceLocator> locatorType;
+  Class<?> requestContextClass=contextMethod.getDeclaringClass();
+  Service l=requestContextClass.getAnnotation(Service.class);
+  ServiceName ln=requestContextClass.getAnnotation(ServiceName.class);
+  if (l != null && !ServiceLocator.class.equals(l.locator())) {
+    locatorType=l.locator();
+  }
+ else   if (ln != null && ln.locator().length() > 0) {
+    try {
+      locatorType=Class.forName(ln.locator(),false,requestContextClass.getClassLoader()).asSubclass(ServiceLocator.class);
+    }
+ catch (    ClassNotFoundException e) {
+      return die(e,"Could not find the locator type specified in the @%s annotation %s",ServiceName.class.getCanonicalName(),ln.value());
+    }
+  }
+ else {
+    locatorType=null;
+  }
+  return locatorType;
+}
