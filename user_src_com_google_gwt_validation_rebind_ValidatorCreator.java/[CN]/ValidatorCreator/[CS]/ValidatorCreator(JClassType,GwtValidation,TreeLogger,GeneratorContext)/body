@@ -1,11 +1,8 @@
 {
   super(context,logger,validatorType);
   this.gwtValidation=gwtValidation;
-  TypeOracle oracle=context.getTypeOracle();
   for (  Class<?> clazz : gwtValidation.value()) {
-    JClassType jClass=oracle.findType(clazz.getCanonicalName());
-    BeanHelper helper=new BeanHelper(jClass,serverSideValidor.getConstraintsForClass(clazz));
-    beansToValidate.put(jClass,helper);
+    BeanHelper helper=createBeanHelper(clazz);
+    beansToValidate.put(helper.getJClass(),helper);
   }
-  threadLocalHelperMap.get().putAll(beansToValidate);
 }

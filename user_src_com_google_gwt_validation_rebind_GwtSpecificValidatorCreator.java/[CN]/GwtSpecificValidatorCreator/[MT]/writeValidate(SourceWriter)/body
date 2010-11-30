@@ -30,14 +30,10 @@
       sw.print(constraintDescriptorVar("this",count));
       sw.println(", groups);");
     }
-    Class<?> superClass=clazz.getSuperclass();
     writeValidateInterfaces(sw,clazz);
+    Class<?> superClass=clazz.getSuperclass();
     while (superClass != null) {
-      if (serverSideValidator.getConstraintsForClass(superClass).isBeanConstrained()) {
-        sw.print("//  GWT.create(");
-        sw.print(superClass.getCanonicalName());
-        sw.println("_GwtSpecificValidator);");
-      }
+      writeCallValidator(sw,superClass);
       writeValidateInterfaces(sw,superClass);
       superClass=superClass.getSuperclass();
     }

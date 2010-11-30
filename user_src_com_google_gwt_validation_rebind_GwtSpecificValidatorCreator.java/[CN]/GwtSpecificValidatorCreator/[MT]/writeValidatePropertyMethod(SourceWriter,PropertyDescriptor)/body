@@ -11,6 +11,16 @@
   sw.println(" value,");
   sw.println("Class<?>... groups) {");
   sw.outdent();
+  if (p.isCascaded()) {
+    BeanHelper helper=createBeanHelper(p.getElementClass());
+    sw.println("if(value != null) {");
+    sw.indent();
+    sw.print("violations.addAll(");
+    sw.print(helper.getValidatorInstanceName());
+    sw.println(".validate(context, value, groups));");
+    sw.outdent();
+    sw.println("}");
+  }
   int count=0;
   for (  ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
     count++;
