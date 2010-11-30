@@ -1,0 +1,31 @@
+{
+  if (!canvas1.isSupported()) {
+    return;
+  }
+  Context2d context1=canvas1.getContext2d();
+  Context2d context2=canvas2.getContext2d();
+  context1.setFillStyle(CssColor.make("#ffff00"));
+  FillStrokeStyle fillStyleCol=context1.getFillStyle();
+  assertTrue("fillStyleCol is a color",fillStyleCol.getType() == FillStrokeStyle.TYPE_CSSCOLOR);
+  assertFalse("fillStyleCol is a color",fillStyleCol.getType() == FillStrokeStyle.TYPE_GRADIENT);
+  assertFalse("fillStyleCol is a color",fillStyleCol.getType() == FillStrokeStyle.TYPE_PATTERN);
+  CanvasGradient gradient=context1.createLinearGradient(0,0,10,20);
+  gradient.addColorStop(0.5f,"#ffaaff");
+  context1.setFillStyle(gradient);
+  FillStrokeStyle fillStyleGrad=context1.getFillStyle();
+  assertFalse("fillStyleGrad is a gradient",fillStyleGrad.getType() == FillStrokeStyle.TYPE_CSSCOLOR);
+  assertTrue("fillStyleGrad is a gradient",fillStyleGrad.getType() == FillStrokeStyle.TYPE_GRADIENT);
+  assertFalse("fillStyleGrad is a gradient",fillStyleGrad.getType() == FillStrokeStyle.TYPE_PATTERN);
+  CanvasPattern pattern=context1.createPattern(canvas1.getCanvasElement(),Context2d.Repetition.REPEAT);
+  context1.setFillStyle(pattern);
+  FillStrokeStyle fillStylePat=context1.getFillStyle();
+  assertFalse("fillStylePat is a pattern",fillStylePat.getType() == FillStrokeStyle.TYPE_CSSCOLOR);
+  assertFalse("fillStylePat is a pattern",fillStylePat.getType() == FillStrokeStyle.TYPE_GRADIENT);
+  assertTrue("fillStylePat is a pattern",fillStylePat.getType() == FillStrokeStyle.TYPE_PATTERN);
+  FillStrokeStyle fillStyle=context1.getFillStyle();
+  context2.setFillStyle(fillStyle);
+  FillStrokeStyle fillStyle2=context2.getFillStyle();
+  assertFalse("fillStyle2 is a pattern",fillStyle2.getType() == FillStrokeStyle.TYPE_CSSCOLOR);
+  assertFalse("fillStyle2 is a pattern",fillStyle2.getType() == FillStrokeStyle.TYPE_GRADIENT);
+  assertTrue("fillStyle2 is a pattern",fillStyle2.getType() == FillStrokeStyle.TYPE_PATTERN);
+}

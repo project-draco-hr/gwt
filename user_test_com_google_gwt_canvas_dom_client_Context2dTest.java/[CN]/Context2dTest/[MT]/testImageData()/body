@@ -1,0 +1,48 @@
+{
+  if (!canvas1.isSupported()) {
+    return;
+  }
+  if (isGecko190OrBefore()) {
+    return;
+  }
+  canvas1.setHeight("40px");
+  canvas1.setWidth("60px");
+  canvas1.setCoordinateSpaceHeight(40);
+  canvas1.setCoordinateSpaceWidth(60);
+  Context2d context=canvas1.getContext2d();
+  context.setFillStyle("#ffff00");
+  context.fillRect(0,0,60,40);
+  ImageData onePx=context.createImageData(1,1);
+  assertEquals(1,onePx.getHeight());
+  assertEquals(1,onePx.getWidth());
+  CanvasPixelArray onePxArray=onePx.getData();
+  onePxArray.set(0,000);
+  onePxArray.set(1,000);
+  onePxArray.set(2,255);
+  onePxArray.set(3,255);
+  context.putImageData(onePx,10,10);
+  ImageData verifyPx=context.getImageData(10,10,1,1);
+  assertEquals(1,verifyPx.getWidth());
+  assertEquals(1,verifyPx.getHeight());
+  CanvasPixelArray verifyPxArray=verifyPx.getData();
+  assertEquals(onePxArray.get(0),verifyPxArray.get(0));
+  assertEquals(onePxArray.get(1),verifyPxArray.get(1));
+  assertEquals(onePxArray.get(2),verifyPxArray.get(2));
+  assertEquals(onePxArray.get(3),verifyPxArray.get(3));
+  ImageData clampPixels=context.createImageData(3,3);
+  CanvasPixelArray clampArraySet=clampPixels.getData();
+  try {
+    clampArraySet.set(2,-2);
+    clampArraySet.set(3,270);
+    context.putImageData(clampPixels,4f,4f);
+  }
+ catch (  Exception e) {
+    fail("Should not throw exception when setting values outside the range of 0...255");
+  }
+  clampPixels=context.getImageData(4f,4f,3f,3f);
+  CanvasPixelArray clampArrayGet=clampPixels.getData();
+  int aPixel=clampArrayGet.get(9999);
+  assertEquals("CanvasPixelArray should return 0 for values off its end",aPixel,0);
+  int bPixel=clampArrayGet.get(-9999);
+  assertEquals("CanvasPixelArray should return 0 for values off its end",bPixel,0);
+}

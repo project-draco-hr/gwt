@@ -1,0 +1,31 @@
+{
+  if (!canvas1.isSupported()) {
+    return;
+  }
+  Context2d context1=canvas1.getContext2d();
+  Context2d context2=canvas2.getContext2d();
+  context1.setStrokeStyle(CssColor.make("#ffff00"));
+  FillStrokeStyle strokeStyleCol=context1.getStrokeStyle();
+  assertTrue("strokeStyleCol is a color",strokeStyleCol.getType() == FillStrokeStyle.TYPE_CSSCOLOR);
+  assertFalse("strokeStyleCol is a color",strokeStyleCol.getType() == FillStrokeStyle.TYPE_GRADIENT);
+  assertFalse("strokeStyleCol is a color",strokeStyleCol.getType() == FillStrokeStyle.TYPE_PATTERN);
+  CanvasGradient gradient=context1.createLinearGradient(0,0,10,20);
+  gradient.addColorStop(0.5f,"#ff00ff");
+  context1.setStrokeStyle(gradient);
+  FillStrokeStyle strokeStyleGrad=context1.getStrokeStyle();
+  assertFalse("strokeStyleGrad is a gradient",strokeStyleGrad.getType() == FillStrokeStyle.TYPE_CSSCOLOR);
+  assertTrue("strokeStyleGrad is a gradient",strokeStyleGrad.getType() == FillStrokeStyle.TYPE_GRADIENT);
+  assertFalse("strokeStyleGrad is a gradient",strokeStyleGrad.getType() == FillStrokeStyle.TYPE_PATTERN);
+  CanvasPattern pattern=context1.createPattern(canvas1.getCanvasElement(),Context2d.Repetition.REPEAT);
+  context1.setStrokeStyle(pattern);
+  FillStrokeStyle strokeStylePat=context1.getStrokeStyle();
+  assertFalse("strokeStylePat is a pattern",strokeStylePat.getType() == FillStrokeStyle.TYPE_CSSCOLOR);
+  assertFalse("strokeStylePat is a pattern",strokeStylePat.getType() == FillStrokeStyle.TYPE_GRADIENT);
+  assertTrue("strokeStylePat is a pattern",strokeStylePat.getType() == FillStrokeStyle.TYPE_PATTERN);
+  FillStrokeStyle strokeStyle=context1.getStrokeStyle();
+  context2.setStrokeStyle(strokeStyle);
+  FillStrokeStyle strokeStyle2=context2.getStrokeStyle();
+  assertFalse("strokeStyle2 is a pattern",strokeStyle2.getType() == FillStrokeStyle.TYPE_CSSCOLOR);
+  assertFalse("strokeStyle2 is a pattern",strokeStyle2.getType() == FillStrokeStyle.TYPE_GRADIENT);
+  assertTrue("strokeStyle2 is a pattern",strokeStyle2.getType() == FillStrokeStyle.TYPE_PATTERN);
+}

@@ -1,0 +1,36 @@
+{
+  if (!canvas1.isSupported()) {
+    return;
+  }
+  canvas1.setHeight("40px");
+  canvas1.setWidth("60px");
+  canvas1.setCoordinateSpaceHeight(80);
+  canvas1.setCoordinateSpaceWidth(120);
+  assertEquals(40,canvas1.getOffsetHeight());
+  assertEquals(60,canvas1.getOffsetWidth());
+  assertEquals(80,canvas1.getCoordinateSpaceHeight());
+  assertEquals(120,canvas1.getCoordinateSpaceWidth());
+  Context2d context=canvas1.getContext2d();
+  context.setFillStyle(CssColor.make("#00fF00"));
+  context.fillRect(0f,0f,60f,80f);
+  context.setFillStyle("#fF0000");
+  context.fillRect(60f,0f,60f,80f);
+  ImageData imageData=context.getImageData(0,0,120,80);
+  CanvasPixelArray pixelArray=imageData.getData();
+  assertEquals(000,pixelArray.get(0));
+  assertEquals(255,pixelArray.get(1));
+  assertEquals(000,pixelArray.get(2));
+  assertEquals(255,pixelArray.get(3));
+  assertEquals(255,pixelArray.get((40 * 20 - 1) * 4 + 0));
+  assertEquals(000,pixelArray.get((40 * 20 - 1) * 4 + 1));
+  assertEquals(000,pixelArray.get((40 * 20 - 1) * 4 + 2));
+  assertEquals(255,pixelArray.get((40 * 20 - 1) * 4 + 3));
+  context.setFillStyle("#0000fF");
+  context.fillRect(0f,0f,20f,20f);
+  imageData=context.getImageData(0,0,20,20);
+  pixelArray=imageData.getData();
+  assertEquals(000,pixelArray.get(0));
+  assertEquals(000,pixelArray.get(1));
+  assertEquals(255,pixelArray.get(2));
+  assertEquals(255,pixelArray.get(3));
+}
