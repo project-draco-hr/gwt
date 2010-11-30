@@ -1,16 +1,20 @@
 {
-  this.type=getter.getReturnType();
-  if (Collection.class.isAssignableFrom(getType())) {
-    elementType=TypeUtils.ensureBaseType(TypeUtils.getSingleParameterization(Collection.class,getter.getGenericReturnType(),getter.getReturnType()));
-    keyType=valueType=null;
-  }
- else   if (Map.class.isAssignableFrom(getType())) {
-    Type[] types=TypeUtils.getParameterization(Map.class,getter.getGenericReturnType());
-    keyType=TypeUtils.ensureBaseType(types[0]);
-    valueType=TypeUtils.ensureBaseType(types[1]);
-    elementType=null;
-  }
- else {
-    elementType=keyType=valueType=null;
+synchronized (cache) {
+    Data previous=cache.get(getter);
+    if (previous != null) {
+      this.data=previous;
+      return;
+    }
+    this.data=new Data();
+    data.type=getter.getReturnType();
+    if (Collection.class.isAssignableFrom(getType())) {
+      data.elementType=TypeUtils.ensureBaseType(TypeUtils.getSingleParameterization(Collection.class,getter.getGenericReturnType(),getter.getReturnType()));
+    }
+ else     if (Map.class.isAssignableFrom(getType())) {
+      Type[] types=TypeUtils.getParameterization(Map.class,getter.getGenericReturnType());
+      data.keyType=TypeUtils.ensureBaseType(types[0]);
+      data.valueType=TypeUtils.ensureBaseType(types[1]);
+    }
+    cache.put(getter,data);
   }
 }
