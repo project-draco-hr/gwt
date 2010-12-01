@@ -24,7 +24,8 @@
   }
   ProvidesKey<C> keyProvider=nodeInfo.getProvidesKey();
   TreeViewModel model=nodeView.tree.getTreeViewModel();
-  for (  C value : values) {
+  for (int i=start; i < end; i++) {
+    C value=values.get(i - start);
     Object key=keyProvider.getKey(value);
     boolean isOpen=openNodes.contains(key);
     StringBuilder outerClasses=new StringBuilder(itemStyle);
@@ -53,7 +54,8 @@
       image=closedImage;
     }
     SafeHtmlBuilder cellBuilder=new SafeHtmlBuilder();
-    cell.render(value,key,cellBuilder);
+    Context context=new Context(i,0,key);
+    cell.render(context,value,cellBuilder);
     SafeHtml innerDiv=template.innerDiv(paddingDirection,imageWidth,innerClasses.toString(),image,itemValueStyle,cellBuilder.toSafeHtml());
     sb.append(template.outerDiv(paddingDirection,paddingAmount,outerClasses.toString(),innerDiv));
   }

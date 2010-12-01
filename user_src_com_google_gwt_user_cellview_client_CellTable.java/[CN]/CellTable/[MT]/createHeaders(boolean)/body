@@ -12,13 +12,15 @@
     StringBuilder classesBuilder=new StringBuilder(className);
     classesBuilder.append(" ");
     classesBuilder.append(isFooter ? style.cellTableFirstColumnFooter() : style.cellTableFirstColumnHeader());
-    for (int curColumn=1; curColumn < columnCount; curColumn++) {
+    int curColumn;
+    for (curColumn=1; curColumn < columnCount; curColumn++) {
       Header<?> header=theHeaders.get(curColumn);
       if (header != prevHeader) {
         SafeHtmlBuilder headerBuilder=new SafeHtmlBuilder();
         if (prevHeader != null) {
           hasHeader=true;
-          prevHeader.render(headerBuilder);
+          Context context=new Context(0,curColumn - prevColspan,prevHeader.getKey());
+          prevHeader.render(context,headerBuilder);
         }
         sb.append(template.th(prevColspan,classesBuilder.toString(),headerBuilder.toSafeHtml()));
         prevHeader=header;
@@ -32,7 +34,8 @@
     SafeHtmlBuilder headerBuilder=new SafeHtmlBuilder();
     if (prevHeader != null) {
       hasHeader=true;
-      prevHeader.render(headerBuilder);
+      Context context=new Context(0,curColumn - prevColspan,prevHeader.getKey());
+      prevHeader.render(context,headerBuilder);
     }
     classesBuilder.append(" ");
     classesBuilder.append(isFooter ? style.cellTableLastColumnFooter() : style.cellTableLastColumnHeader());

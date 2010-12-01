@@ -1,0 +1,21 @@
+{
+  super.onBrowserEvent(context,parent,value,event,valueUpdater);
+  InputElement input=getInputElement(parent);
+  Element target=event.getEventTarget().cast();
+  if (!input.isOrHasChild(target)) {
+    return;
+  }
+  String eventType=event.getType();
+  Object key=context.getKey();
+  if ("change".equals(eventType)) {
+    finishEditing(parent,value,key,valueUpdater);
+  }
+ else   if ("keyup".equals(eventType)) {
+    ViewData vd=getViewData(key);
+    if (vd == null) {
+      vd=new ViewData(value);
+      setViewData(key,vd);
+    }
+    vd.setCurrentValue(input.getValue());
+  }
+}

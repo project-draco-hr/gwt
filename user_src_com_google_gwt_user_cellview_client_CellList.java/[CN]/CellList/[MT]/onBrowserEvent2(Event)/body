@@ -20,7 +20,8 @@
     boolean isSelectionHandled=cell.handlesSelection() || KeyboardSelectionPolicy.BOUND_TO_SELECTION == getKeyboardSelectionPolicy();
     Element cellParent=getCellParent(cellTarget);
     T value=getVisibleItem(indexOnPage);
-    CellPreviewEvent<T> previewEvent=CellPreviewEvent.fire(this,event,this,indexOnPage,value,cellIsEditing,isSelectionHandled);
+    Context context=new Context(idx,0,getValueKey(value));
+    CellPreviewEvent<T> previewEvent=CellPreviewEvent.fire(this,event,this,context,value,cellIsEditing,isSelectionHandled);
     if (isClick && !cellIsEditing && !isSelectionHandled) {
       doSelection(event,value,indexOnPage);
     }
@@ -30,7 +31,7 @@
       getPresenter().setKeyboardSelectedRow(indexOnPage,!isFocusable,false);
     }
     if (!previewEvent.isCanceled()) {
-      fireEventToCell(event,cellParent,value);
+      fireEventToCell(context,event,cellParent,value);
     }
   }
 }

@@ -6,17 +6,18 @@
   String eventType=event.getType();
   Element cellParent=getCellParent();
   Object key=getValueKey();
-  boolean cellWasEditing=parentCell.isEditing(cellParent,value,key);
+  Context context=new Context(getIndex(),0,key);
+  boolean cellWasEditing=parentCell.isEditing(context,cellParent,value);
   boolean isSelectionHandled=parentCell.handlesSelection() || KeyboardSelectionPolicy.BOUND_TO_SELECTION == tree.getKeyboardSelectionPolicy();
   HasData<T> display=(HasData<T>)parentNode.listView;
-  CellPreviewEvent<T> previewEvent=CellPreviewEvent.fire(display,event,display,getIndex(),value,cellWasEditing,isSelectionHandled);
+  CellPreviewEvent<T> previewEvent=CellPreviewEvent.fire(display,event,display,context,value,cellWasEditing,isSelectionHandled);
   if (previewEvent.isCanceled() || !cellParent.isOrHasChild(Element.as(event.getEventTarget()))) {
     return;
   }
   Set<String> consumedEvents=parentCell.getConsumedEvents();
   if (consumedEvents != null && consumedEvents.contains(eventType)) {
-    parentCell.onBrowserEvent(cellParent,value,key,event,parentNodeInfo.getValueUpdater());
-    tree.cellIsEditing=parentCell.isEditing(cellParent,value,key);
+    parentCell.onBrowserEvent(context,cellParent,value,event,parentNodeInfo.getValueUpdater());
+    tree.cellIsEditing=parentCell.isEditing(context,cellParent,value);
     if (cellWasEditing && !tree.cellIsEditing) {
       CellBasedWidgetImpl.get().resetFocus(new Scheduler.ScheduledCommand(){
         public void execute(){

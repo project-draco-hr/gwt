@@ -1,11 +1,13 @@
 {
   final List<String> rendered=new ArrayList<String>();
-  final Cell<String> cell=new TextCell(){
-    @Override public void render(    String data,    Object key,    SafeHtmlBuilder sb){
+  final IndexCell<String> cell=new IndexCell<String>(){
+    @Override public void render(    Context context,    String data,    SafeHtmlBuilder sb){
+      super.render(context,data,sb);
       int call=rendered.size();
       rendered.add(data);
       assertTrue("render() called more than thrice",rendered.size() < 4);
       assertEquals(call + "value",data);
+      Object key=context.getKey();
       assertTrue(key instanceof Integer);
       assertEquals(call,key);
     }
@@ -35,6 +37,7 @@
   Scheduler.get().scheduleDeferred(new Scheduler.ScheduledCommand(){
     public void execute(){
       assertEquals("Cell#render() should be called exactly thrice",3,rendered.size());
+      cell.assertLastRenderIndex(2);
       finishTest();
     }
   }

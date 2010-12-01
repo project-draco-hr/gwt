@@ -28,13 +28,15 @@
   if (section == thead) {
     Header<?> header=headers.get(col);
     if (header != null && cellConsumesEventType(header.getCell(),eventType)) {
-      header.onBrowserEvent(tableCell,event);
+      Context context=new Context(0,col,header.getKey());
+      header.onBrowserEvent(context,tableCell,event);
     }
   }
  else   if (section == tfoot) {
     Header<?> footer=footers.get(col);
     if (footer != null && cellConsumesEventType(footer.getCell(),eventType)) {
-      footer.onBrowserEvent(tableCell,event);
+      Context context=new Context(0,col,footer.getKey());
+      footer.onBrowserEvent(context,tableCell,event);
     }
   }
  else   if (section == tbody) {
@@ -62,12 +64,13 @@
     }
     boolean isSelectionHandled=handlesSelection || KeyboardSelectionPolicy.BOUND_TO_SELECTION == getKeyboardSelectionPolicy();
     T value=getVisibleItem(row);
-    CellPreviewEvent<T> previewEvent=CellPreviewEvent.fire(this,event,this,row,col,value,cellIsEditing,isSelectionHandled);
+    Context context=new Context(row + getPageStart(),col,getValueKey(value));
+    CellPreviewEvent<T> previewEvent=CellPreviewEvent.fire(this,event,this,context,value,cellIsEditing,isSelectionHandled);
     if (isClick && !cellIsEditing && !isSelectionHandled) {
       doSelection(event,value,row,col);
     }
     if (!previewEvent.isCanceled()) {
-      fireEventToCell(event,eventType,tableCell,value,row,columns.get(col));
+      fireEventToCell(event,eventType,tableCell,value,context,columns.get(col));
     }
   }
 }
