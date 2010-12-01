@@ -1,0 +1,61 @@
+{
+  if (frozen == null) {
+    throw new RuntimeException("freeze() not called.");
+  }
+  outFile.println("  var internedStrings = [");
+  for (  String key : frozen.keySet()) {
+    outFile.print("\"" + key + "\",");
+  }
+  outFile.println("];");
+  outFile.println("  var spl = [");
+  for (int sp=1; sp <= globalInformation.getNumSplitPoints(); sp++) {
+    outFile.println("        '" + globalInformation.getSplitPointToLocation().get(sp) + "',");
+  }
+  outFile.println("  ];");
+  outFile.println("  function a(packageRef, classRef) {");
+  outFile.println("    var className = internedStrings[packageRef] + \".\" + " + "internedStrings[classRef];");
+  outFile.println("    document.write(\"<a name='\" + className + \"'>\");");
+  outFile.println("    document.write(\"<h3 class='soyc-class-header'>Class: \" + className + " + "\"</a></h3>\");");
+  outFile.println("  }");
+  outFile.println("  function b(c, deps) {");
+  outFile.println("    document.write(\"<div class='main'>" + "<a class='toggle soyc-call-stack-link' onclick='toggle.call(this)'>\");");
+  outFile.println("    document.write(\"<span class='calledBy'> Call stack: </span>\");");
+  outFile.println("    document.write(internedStrings[c[0]] + \".\" + internedStrings[c[1]] + " + "\"::\" + internedStrings[c[2]] + \"</a>\");");
+  outFile.println("    document.write(\"<ul class='soyc-call-stack-list'>\");");
+  outFile.println("    for (var i = 0; i < deps.length ; i++) {");
+  outFile.println("      var s = deps[i];");
+  outFile.println("      document.write(\"<li>\" + internedStrings[s[0]] + \".\" + " + "internedStrings[s[1]] + \"::\" + internedStrings[s[2]] + \"</li>\");");
+  outFile.println("    }");
+  outFile.println("    document.write(\"</ul></div>\");");
+  outFile.println("  }");
+  outFile.println("  function c(packageRef,classRef,packageHashRef) {");
+  outFile.println("    var packageName = internedStrings[packageRef];");
+  outFile.println("    var className = packageName + \".\" + internedStrings[classRef];");
+  outFile.println("    var d1 = 'methodDependencies-total-' + internedStrings[packageHashRef] " + "+ '-" + getPermutationId() + ".html';");
+  outFile.println("    document.write(\"<ul class='soyc-excl'>\");");
+  outFile.println("    document.write(\"<li><a href='\" + d1 + \"#\" + className + \"'>" + "See why it's live</a></li>\");");
+  outFile.println("    for (var sp = 1; sp <= " + globalInformation.getNumSplitPoints() + "; sp++) {");
+  outFile.println("      var d2 = 'methodDependencies-sp' + sp + '-' + " + "internedStrings[packageHashRef] + '-" + getPermutationId() + ".html';");
+  outFile.println("      document.write(\"<li><a href='\" + d2 + \"#\" + className +\"'>" + " See why it's not exclusive to s.p. #\" + sp + \" (\" + spl[sp - 1] + \")" + "</a></li>\");");
+  outFile.println("    }");
+  outFile.println("    document.write(\"</ul>\");");
+  outFile.println("  }");
+  outFile.println("  function d(packageRef) {");
+  outFile.println("    document.write(\"<div class='soyc-pkg-break'>Package: \" + " + "internedStrings[packageRef] + \"</div>\");");
+  outFile.println("  }");
+  outFile.println("  function e(packageRef,classRef,classHashRef) {");
+  outFile.println("    document.write(\"<a name='\" + classHashRef + \"'></a><h3>\" + " + "internedStrings[packageRef] + \".\" + internedStrings[classRef] + \"</h3>\");");
+  outFile.println("  }");
+  outFile.println("  function f() {");
+  outFile.println("    document.write(\"<p>Some code is included in the initial fragment" + "</p>\");");
+  outFile.println("  }");
+  outFile.println("  function g(packageRef, classRef, packageHashRef) {");
+  outFile.println("    document.write(\"<p>Some code is included in the initial fragment " + "(<a href='methodDependencies-initial-\" + internedStrings[packageHashRef] + \"-" + getPermutationId() + ".html#\" + internedStrings[packageRef] + \".\" + "+ "internedStrings[classRef] + \"'> See why</a>)</p>\");");
+  outFile.println("  }");
+  outFile.println("  function h(packageRef, classRef, sp) {");
+  outFile.println("    document.write(\"<p>Some code downloads with split point \" + sp + " + "\": \" + spl[sp - 1] + \"</p>\");");
+  outFile.println("  }");
+  outFile.println("  function i() {");
+  outFile.println("    document.write(\"<p>Some code is left over:</p>\");");
+  outFile.println("  }");
+}

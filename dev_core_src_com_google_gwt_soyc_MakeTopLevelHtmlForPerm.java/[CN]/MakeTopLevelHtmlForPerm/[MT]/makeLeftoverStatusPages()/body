@@ -4,15 +4,28 @@
   outFile.println("<div id=\"bd\">");
   outFile.println("<p>These classes have some leftover code, neither initial nor " + "exclusive to any split point:</p>");
   String curPackageName="";
+  HtmlInterner interner=new HtmlInterner();
+  for (  String className : globalInformation.getClassToPackage().keySet()) {
+    String packageName=globalInformation.getClassToPackage().get(className);
+    interner.intern(packageName);
+    interner.intern(getClassSubstring(className));
+    interner.intern(hashedFilenameFragment(packageName));
+  }
+  interner.freeze();
+  outFile.println("<script language=\"javascript\">");
+  interner.printInternedDataAsJs(outFile);
   for (  String className : globalInformation.getClassToPackage().keySet()) {
     String packageName=globalInformation.getClassToPackage().get(className);
     if (packageName.compareTo("") == 0 || packageName.compareTo(curPackageName) != 0) {
       curPackageName=packageName;
-      outFile.println("<div class='soyc-pkg-break'>Package: " + packageName + "</div>");
+      interner.printPackageHeader(outFile,packageName);
     }
-    outFile.println("<a name=\"" + filename(className) + "\"></a><h3>"+ className+ "</h3>");
-    addLefttoversStatus(className,packageName,outFile);
+    interner.printClassHeader(outFile,className);
+    if (globalInformation.dependencies != null) {
+      interner.printLeftoversStatus(outFile,packageName,className);
+    }
   }
+  outFile.println("</script>");
   addStandardHtmlEnding(outFile);
   outFile.close();
 }

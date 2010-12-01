@@ -1,0 +1,23 @@
+{
+  String depGraphDescription=inferDepGraphDescription(depGraphName);
+  PrintWriter outFile=null;
+  String curClassName="";
+  String outFileName=dependenciesFileName(depGraphName,packageName);
+  outFile=new PrintWriter(getOutFile(outFileName));
+  String packageDescription=packageName.length() == 0 ? "the default package" : packageName;
+  addStandardHtmlProlog(outFile,"Method Dependencies for " + depGraphDescription,"Method Dependencies for " + depGraphDescription,"Showing Package: " + packageDescription);
+  outFile.print("<script src=\"" + jsFileName + "\" language=\"javascript\" ></script>");
+  outFile.print("<script>");
+  for (  String method : classesInPackage) {
+    String className=method.replaceAll("::.*","");
+    String depMethod=dependencies.get(method);
+    if (curClassName.compareTo(className) != 0) {
+      curClassName=className;
+      interner.printDependencyClassHeader(outFile,className);
+    }
+    interner.printDependency(outFile,dependencies,method,depMethod);
+  }
+  outFile.println("</script>");
+  addStandardHtmlEnding(outFile);
+  outFile.close();
+}

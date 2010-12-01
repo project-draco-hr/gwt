@@ -2,30 +2,41 @@
   PrintWriter outFile=new PrintWriter(getOutFile(splitStatusFileName()));
   addStandardHtmlProlog(outFile,"Split point status","Split point status","");
   outFile.println("<div id=\"bd\">");
+  HtmlInterner interner=new HtmlInterner();
+  for (  String className : globalInformation.getClassToPackage().keySet()) {
+    String packageName=globalInformation.getClassToPackage().get(className);
+    interner.intern(packageName);
+    interner.intern(getClassSubstring(className));
+    interner.intern(hashedFilenameFragment(packageName));
+  }
+  interner.freeze();
+  outFile.println("<script language=\"javascript\">");
+  interner.printInternedDataAsJs(outFile);
   String curPackageName="";
   for (  String className : globalInformation.getClassToPackage().keySet()) {
     String packageName=globalInformation.getClassToPackage().get(className);
     if (packageName.compareTo("") == 0 || packageName.compareTo(curPackageName) != 0) {
       curPackageName=packageName;
-      outFile.println("<div class='soyc-pkg-break'>Package: " + packageName + "</div>");
+      interner.printPackageHeader(outFile,packageName);
     }
-    outFile.println("<a name=\"" + filename(className) + "\"></a><h3>"+ className+ "</h3>");
+    interner.printClassHeader(outFile,className);
     if (globalInformation.getInitialCodeBreakdown().classToSize.containsKey(className)) {
       if (globalInformation.dependencies != null) {
-        outFile.println("<p>Some code is included in the initial fragment (<a href=\"" + dependenciesFileName("initial",packageName) + "#"+ className+ "\">see why</a>)</p>");
+        interner.printHasInitialFragment(outFile,className);
       }
  else {
-        outFile.println("<p>Some code is included in the initial fragment</p>");
+        interner.printHasInitialFragment(outFile);
       }
     }
     for (    int sp : splitPointsWithClass(className)) {
-      outFile.println("<p>Some code downloads with split point " + sp + ": "+ globalInformation.getSplitPointToLocation().get(sp)+ "</p>");
+      interner.printHasCodeInSplitPoint(outFile,className,sp);
     }
     if (globalInformation.getLeftoversBreakdown().classToSize.containsKey(className)) {
-      outFile.println("<p>Some code is left over:</p>");
-      addLefttoversStatus(className,packageName,outFile);
+      interner.printSomeCodeLeftover(outFile);
+      interner.printLeftoversStatus(outFile,packageName,className);
     }
   }
+  outFile.println("</script>");
   addStandardHtmlEnding(outFile);
   outFile.close();
 }

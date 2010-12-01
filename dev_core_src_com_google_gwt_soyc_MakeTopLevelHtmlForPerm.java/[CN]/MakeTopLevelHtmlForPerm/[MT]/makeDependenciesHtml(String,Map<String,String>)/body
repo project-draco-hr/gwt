@@ -1,5 +1,23 @@
 {
   String curPackageName="";
+  HtmlInterner interner=new HtmlInterner();
+  for (  String reportMethod : dependencies.keySet()) {
+    interner.intern(getPackageSubstring(reportMethod));
+    interner.intern(getClassSubstring(reportMethod));
+    interner.intern(getMethodSubstring(reportMethod));
+    String depMethod=dependencies.get(reportMethod);
+    while (depMethod != null) {
+      interner.intern(getPackageSubstring(depMethod));
+      interner.intern(getClassSubstring(depMethod));
+      interner.intern(getMethodSubstring(depMethod));
+      depMethod=dependencies.get(depMethod);
+    }
+  }
+  interner.freeze();
+  String jsFileName="methodDependencies-" + depGraphName + "-"+ getPermutationId()+ ".js";
+  PrintWriter outFile=new PrintWriter(getOutFile(jsFileName));
+  interner.printInternedDataAsJs(outFile);
+  outFile.close();
   String packageName="";
   List<String> classesInPackage=new ArrayList<String>();
   for (  String method : dependencies.keySet()) {
@@ -8,13 +26,13 @@
       curPackageName=packageName;
     }
  else     if (curPackageName.compareTo(packageName) != 0) {
-      makeDependenciesInternedHtml(depGraphName,curPackageName,classesInPackage,dependencies);
+      makeDependenciesInternedHtml(depGraphName,curPackageName,classesInPackage,dependencies,interner,jsFileName);
       classesInPackage=new ArrayList<String>();
       curPackageName=packageName;
     }
     classesInPackage.add(method);
   }
   if (classesInPackage.size() > 0) {
-    makeDependenciesInternedHtml(depGraphName,curPackageName,classesInPackage,dependencies);
+    makeDependenciesInternedHtml(depGraphName,curPackageName,classesInPackage,dependencies,interner,jsFileName);
   }
 }
