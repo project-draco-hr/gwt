@@ -4,7 +4,7 @@
   }
   JsniRef parsed=JsniRef.parse(jsniMemberRef);
   if (parsed == null) {
-    logger.log(TreeLogger.WARN,"Malformed JSNI reference '" + jsniMemberRef + "'; expect subsequent failures",new NoSuchFieldError(jsniMemberRef));
+    logger.log(TreeLogger.ERROR,"Malformed JSNI reference '" + jsniMemberRef + "'; expect subsequent failures",new NoSuchFieldError(jsniMemberRef));
     return -1;
   }
   String className=parsed.className();
@@ -12,17 +12,17 @@
   if (dispClassInfo != null) {
     String memberName=parsed.memberSignature();
     if (singleJsoImplTypes.contains(canonicalizeClassName(className))) {
-      logger.log(TreeLogger.WARN,"Invalid JSNI reference to SingleJsoImpl interface (" + className + "); consider using a trampoline. "+ "Expect subsequent failures.",new NoSuchFieldError(jsniMemberRef));
+      logger.log(TreeLogger.ERROR,"Invalid JSNI reference to SingleJsoImpl interface (" + className + "); consider using a trampoline. "+ "Expect subsequent failures.",new NoSuchFieldError(jsniMemberRef));
       return -1;
     }
     int memberId=dispClassInfo.getMemberId(memberName);
     if (memberId < 0) {
       if (!className.startsWith("java.")) {
-        logger.log(TreeLogger.WARN,"Member '" + memberName + "' in JSNI reference '"+ jsniMemberRef+ "' could not be found; expect subsequent failures",new NoSuchFieldError(memberName));
+        logger.log(TreeLogger.ERROR,"Member '" + memberName + "' in JSNI reference '"+ jsniMemberRef+ "' could not be found; expect subsequent failures",new NoSuchFieldError(memberName));
       }
     }
     return synthesizeDispId(dispClassInfo.getClassId(),memberId);
   }
-  logger.log(TreeLogger.WARN,"Class '" + className + "' in JSNI reference '"+ jsniMemberRef+ "' could not be found; expect subsequent failures",new ClassNotFoundException(className));
+  logger.log(TreeLogger.ERROR,"Class '" + className + "' in JSNI reference '"+ jsniMemberRef+ "' could not be found; expect subsequent failures",new ClassNotFoundException(className));
   return -1;
 }
