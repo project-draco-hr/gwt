@@ -1,2 +1,22 @@
 {
+  Set<String> toReturn=intfNamesToAllInterfaces.get(intfName);
+  if (toReturn != null) {
+    return toReturn;
+  }
+  toReturn=Sets.create();
+  List<JClassType> q=new LinkedList<JClassType>();
+  JClassType intf=typeOracle.findType(intfName.replace('/','.').replace('$','.'));
+  if (intf != null) {
+    q.add(intf);
+  }
+  while (!q.isEmpty()) {
+    intf=q.remove(0);
+    String resourceName=getResourceName(intf);
+    if (!toReturn.contains(resourceName)) {
+      toReturn=Sets.add(toReturn,resourceName);
+      Collections.addAll(q,intf.getImplementedInterfaces());
+    }
+  }
+  intfNamesToAllInterfaces=Maps.put(intfNamesToAllInterfaces,intfName,toReturn);
+  return toReturn;
 }
