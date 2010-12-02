@@ -5,7 +5,12 @@
     String[] parts=symbolData.split(",");
     if (parts.length == 5) {
       String[] ref=parse(parts[0].substring(0,parts[0].lastIndexOf(')') + 1));
-      return new StackTraceElement(ref[0],ref[1],ste.getFileName(),ste.getLineNumber());
+      String filename="Unknown".equals(parts[3]) ? null : parts[3].substring(parts[3].lastIndexOf('/') + 1);
+      int lineNumber=ste.getLineNumber();
+      if (lineNumber == 0) {
+        lineNumber=Integer.parseInt(parts[4]);
+      }
+      return new StackTraceElement(ref[0],ref[1],filename,lineNumber);
     }
   }
   return ste;
