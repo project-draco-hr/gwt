@@ -1,10 +1,18 @@
 {
   delayTestFinish(DELAY_TEST_FINISH);
-  @SuppressWarnings("deprecation") final Date date=new Date(90,0,1);
-  Request<Date> procReq=simpleFooRequest().processDateList(Arrays.asList(date));
-  procReq.fire(new Receiver<Date>(){
-    @Override public void onSuccess(    Date response){
-      assertEquals(date,response);
+  Date date=new Date(90,0,1);
+  java.sql.Date sqlDate=new java.sql.Date(90,0,2);
+  Time sqlTime=new Time(1,2,3);
+  Timestamp sqlTimestamp=new Timestamp(12345L);
+  final List<Date> testList=Arrays.asList(date,sqlDate,sqlTime,sqlTimestamp);
+  simpleFooRequest().processDateList(testList).fire(new Receiver<List<Date>>(){
+    @Override public void onSuccess(    List<Date> response){
+      assertEquals(testList.size(),response.size());
+      Iterator<Date> expected=testList.iterator();
+      Iterator<Date> actual=response.iterator();
+      while (expected.hasNext()) {
+        assertEquals(expected.next().getTime(),actual.next().getTime());
+      }
       finishTestAndReset();
     }
   }

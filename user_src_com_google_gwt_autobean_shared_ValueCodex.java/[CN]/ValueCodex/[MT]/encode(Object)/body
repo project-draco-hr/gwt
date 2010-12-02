@@ -2,5 +2,17 @@
   if (obj == null) {
     return LazySplittable.NULL;
   }
-  return new LazySplittable(getTypeOrDie(obj.getClass()).toJsonExpression(obj));
+  Type t=findType(obj.getClass());
+  if (t == null) {
+    for (    Type maybe : Type.values()) {
+      if (maybe.canUpcast(obj)) {
+        t=maybe;
+        break;
+      }
+    }
+  }
+  if (t == null) {
+    throw new UnsupportedOperationException(obj.getClass().getName());
+  }
+  return new LazySplittable(t.toJsonExpression(obj));
 }

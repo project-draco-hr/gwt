@@ -8,15 +8,17 @@
     sb.append("{}");
     return false;
   }
-  boolean isEncodedKey=Splittable.class.equals(ctx.getKeyType());
-  boolean isEncodedValue=Splittable.class.equals(ctx.getValueType());
-  boolean isValueKey=ValueCodex.canDecode(ctx.getKeyType());
-  boolean isValueValue=ValueCodex.canDecode(ctx.getValueType());
+  Class<?> keyType=ctx.getKeyType();
+  Class<?> valueType=ctx.getValueType();
+  boolean isEncodedKey=Splittable.class.equals(keyType);
+  boolean isEncodedValue=Splittable.class.equals(valueType);
+  boolean isValueKey=ValueCodex.canDecode(keyType);
+  boolean isValueValue=ValueCodex.canDecode(valueType);
   if (isValueKey) {
-    writeValueKeyMap(map,isEncodedValue,isValueValue);
+    writeValueKeyMap(map,keyType,valueType,isEncodedValue,isValueValue);
   }
  else {
-    writeObjectKeyMap(map,isEncodedKey,isEncodedValue,isValueValue);
+    writeObjectKeyMap(map,valueType,isEncodedKey,isEncodedValue,isValueValue);
   }
   return false;
 }
