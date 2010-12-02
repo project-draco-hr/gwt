@@ -14,6 +14,28 @@
   assertEquals("bc",box.getItemText(1));
   box.setItemText(0,"");
   assertEquals("",box.getItemText(0));
+{
+    ListBox lb=new ListBox();
+    lb.insertItem(RTL_TEXT,Direction.RTL,0);
+    assertEquals(RTL_TEXT,lb.getItemText(0));
+    assertOptionText(BidiFormatter.getInstanceForCurrentLocale().unicodeWrap(RTL_TEXT,false,false),lb,0);
+    lb.insertItem(LTR_TEXT,Direction.LTR,0);
+    assertEquals(LTR_TEXT,lb.getItemText(0));
+    assertOptionText(BidiFormatter.getInstanceForCurrentLocale().unicodeWrap(LTR_TEXT,false,false),lb,0);
+    lb.setDirectionEstimator(true);
+    lb.setItemText(0,RTL_TEXT);
+    assertEquals(RTL_TEXT,lb.getItemText(0));
+    assertOptionText(BidiFormatter.getInstanceForCurrentLocale().unicodeWrap(RTL_TEXT,false,false),lb,0);
+    lb.setItemText(0,LTR_TEXT);
+    assertEquals(LTR_TEXT,lb.getItemText(0));
+    assertOptionText(BidiFormatter.getInstanceForCurrentLocale().unicodeWrap(LTR_TEXT,false,false),lb,0);
+    lb.setItemText(0,LTR_TEXT,Direction.RTL);
+    assertEquals(LTR_TEXT,lb.getItemText(0));
+    assertOptionText(BidiFormatter.getInstanceForCurrentLocale().unicodeWrapWithKnownDir(Direction.RTL,LTR_TEXT,false,false),lb,0);
+    lb.setItemText(0,RTL_TEXT,Direction.LTR);
+    assertEquals(RTL_TEXT,lb.getItemText(0));
+    assertOptionText(BidiFormatter.getInstanceForCurrentLocale().unicodeWrapWithKnownDir(Direction.LTR,RTL_TEXT,false,false),lb,0);
+  }
   try {
     box.setItemText(0,null);
     fail("Should have thrown Null Pointer");
