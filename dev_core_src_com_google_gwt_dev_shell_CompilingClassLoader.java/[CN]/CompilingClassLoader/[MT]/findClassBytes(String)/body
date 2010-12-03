@@ -12,12 +12,14 @@
   String lookupClassName=canonicalizeClassName(className);
   CompiledClass compiledClass=compilationState.getClassFileMap().get(lookupClassName);
   CompilationUnit unit=(compiledClass == null) ? getUnitForClassName(lookupClassName) : compiledClass.getUnit();
+  if (unit != null && unit.isError()) {
+    throw new ClassNotFoundException("Cannot load class " + className + " because it has errors.");
+  }
   if (emmaAvailable) {
     List<JsniMethod> jsniMethods=(unit == null) ? null : unit.getJsniMethods();
     if (unit != null && !unit.isSuperSource() && !unit.isGenerated() && unit.hasAnonymousClasses() && jsniMethods != null && jsniMethods.size() > 0 && !unit.createdClassMapping()) {
       if (!unit.constructAnonymousClassMappings(logger)) {
-        logger.log(TreeLogger.ERROR,"Our heuristic for mapping anonymous classes between compilers " + "failed. Unsafe to continue because the wrong jsni code " + "could end up running. className = "+ className);
-        return null;
+        throw new ClassNotFoundException("Our heuristic for mapping anonymous classes between compilers " + "failed. Unsafe to continue because the wrong jsni code " + "could end up running. className = "+ className);
       }
     }
   }
@@ -49,6 +51,9 @@
       }
     }
     classBytes=newBytes;
+  }
+  if (classBytes == null) {
+    throw new ClassNotFoundException(className);
   }
   return classBytes;
 }
