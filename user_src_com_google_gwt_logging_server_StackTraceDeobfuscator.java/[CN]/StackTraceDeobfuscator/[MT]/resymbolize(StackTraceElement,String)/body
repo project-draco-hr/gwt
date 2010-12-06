@@ -5,12 +5,22 @@
     String[] parts=symbolData.split(",");
     if (parts.length == 5) {
       String[] ref=parse(parts[0].substring(0,parts[0].lastIndexOf(')') + 1));
+      String declaringClass;
+      String methodName;
+      if (ref != null) {
+        declaringClass=ref[0];
+        methodName=ref[1];
+      }
+ else {
+        declaringClass=ste.getClassName();
+        methodName=ste.getMethodName();
+      }
       String filename="Unknown".equals(parts[3]) ? null : parts[3].substring(parts[3].lastIndexOf('/') + 1);
       int lineNumber=ste.getLineNumber();
       if (lineNumber == 0) {
         lineNumber=Integer.parseInt(parts[4]);
       }
-      return new StackTraceElement(ref[0],ref[1],filename,lineNumber);
+      return new StackTraceElement(declaringClass,methodName,filename,lineNumber);
     }
   }
   return ste;
