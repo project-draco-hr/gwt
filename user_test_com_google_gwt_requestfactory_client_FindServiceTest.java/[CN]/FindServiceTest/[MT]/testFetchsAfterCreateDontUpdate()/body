@@ -1,0 +1,26 @@
+{
+  final int[] count={0};
+  final HandlerRegistration registration=EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleFooProxy.class,new EntityProxyChange.Handler<SimpleFooProxy>(){
+    public void onProxyChange(    EntityProxyChange<SimpleFooProxy> event){
+      count[0]++;
+    }
+  }
+);
+  delayTestFinish(TEST_DELAY);
+  SimpleFooRequest context=req.simpleFooRequest();
+  SimpleFooProxy proxy=context.create(SimpleFooProxy.class);
+  context.persistAndReturnSelf().using(proxy).fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy response){
+      assertEquals(2,count[0]);
+      req.find(response.stableId()).fire(new Receiver<SimpleFooProxy>(){
+        @Override public void onSuccess(        SimpleFooProxy response){
+          assertEquals(2,count[0]);
+          registration.removeHandler();
+          finishTestAndReset();
+        }
+      }
+);
+    }
+  }
+);
+}
