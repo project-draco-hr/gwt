@@ -1,0 +1,21 @@
+{
+  ParameterizedTypeKey key=new ParameterizedTypeKey(genericType,enclosingType,typeArgs);
+  JParameterizedType result=parameterizedTypes.get(key);
+  if (result != null) {
+    return result;
+  }
+  if (genericType.isMemberType() && !genericType.isStatic()) {
+    if (genericType.getEnclosingType().isGenericType() != null && enclosingType.isParameterized() == null && enclosingType.isRawType() == null) {
+      throw new IllegalArgumentException("Generic type '" + genericType.getParameterizedQualifiedSourceName() + "' is a non-static member type, but the enclosing type '"+ enclosingType.getQualifiedSourceName()+ "' is not a parameterized or raw type");
+    }
+  }
+  JTypeParameter[] typeParameters=genericType.getTypeParameters();
+  if (typeArgs.length < typeParameters.length) {
+    throw new IllegalArgumentException("Not enough type arguments were specified to parameterize '" + genericType.getParameterizedQualifiedSourceName() + "'");
+  }
+ else {
+  }
+  result=new JParameterizedType(genericType,enclosingType,typeArgs);
+  parameterizedTypes.put(key,result);
+  return result;
+}
