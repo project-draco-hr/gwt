@@ -1,18 +1,27 @@
 {
-  List<OperationMessage> records=response.getOperations();
-  if (records == null) {
+  List<OperationMessage> ops=response.getOperations();
+  if (ops == null) {
     return;
   }
-  for (  OperationMessage op : records) {
+  for (  OperationMessage op : ops) {
     SimpleProxyId<?> id=getId(op);
-    if (id.isEphemeral()) {
-      processReturnOperation(id,op);
-    }
- else     if (id.wasEphemeral() && createdIds.contains(id)) {
-      processReturnOperation(id,op,WriteOperation.PERSIST,WriteOperation.UPDATE);
-    }
- else {
-      processReturnOperation(id,op,WriteOperation.UPDATE);
-    }
-  }
+    WriteOperation[] toPropagate=null;
+    WriteOperation effect=op.getOperation();
+    if (effect != null) {
+switch (effect) {
+case DELETE:
+        toPropagate=DELETE_ONLY;
+      break;
+case PERSIST:
+    toPropagate=PERSIST_AND_UPDATE;
+  break;
+case UPDATE:
+toPropagate=UPDATE_ONLY;
+break;
+default :
+throw new RuntimeException(effect.toString());
+}
+}
+processReturnOperation(id,op,toPropagate);
+}
 }
