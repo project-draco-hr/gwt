@@ -8,23 +8,15 @@
       System.out.println(">>> " + jsonRequestString);
     }
     try {
-      UserInformation userInfo=UserInformation.getCurrentUserInformation(request.getHeader("pageurl"));
-      if (!userInfo.isUserLoggedIn()) {
-        response.setHeader("login",userInfo.getLoginUrl());
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+      String payload=processor.process(jsonRequestString);
+      if (DUMP_PAYLOAD) {
+        System.out.println("<<< " + payload);
       }
- else {
-        String payload=processor.process(jsonRequestString);
-        if (DUMP_PAYLOAD) {
-          System.out.println("<<< " + payload);
-        }
-        response.setHeader("userId",String.format("%s",userInfo.getId()));
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setContentType(RequestFactory.JSON_CONTENT_TYPE_UTF8);
-        PrintWriter writer=response.getWriter();
-        writer.print(payload);
-        writer.flush();
-      }
+      response.setStatus(HttpServletResponse.SC_OK);
+      response.setContentType(RequestFactory.JSON_CONTENT_TYPE_UTF8);
+      PrintWriter writer=response.getWriter();
+      writer.print(payload);
+      writer.flush();
     }
  catch (    RuntimeException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

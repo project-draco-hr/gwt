@@ -34,7 +34,9 @@
     return new EmptyVisitor(){
       @Override public void visit(      String name,      Object value){
         String sourceName;
-        if ("value".equals(name) || "locator".equals(name)) {
+        boolean locatorRequired="locator".equals(name);
+        boolean valueRequired="value".equals(name);
+        if (valueRequired || locatorRequired) {
           sourceName=(String)value;
         }
  else {
@@ -45,17 +47,27 @@
           logger.spam("Did not find " + desc.toString());
           int idx=desc.lastIndexOf("/");
           if (idx == -1) {
+            if (locatorRequired) {
+              logger.poison("Cannot find locator named %s",value);
+            }
+ else             if (valueRequired) {
+              logger.poison("Cannot find domain type named %s",value);
+            }
             return;
           }
           desc.setCharAt(idx,'$');
         }
-        if ("locator".equals(name)) {
+        if (locatorRequired) {
           locatorInternalName=desc.toString();
+          logger.spam(locatorInternalName);
+        }
+ else         if (valueRequired) {
+          domainInternalName=desc.toString();
+          logger.spam(domainInternalName);
         }
  else {
-          domainInternalName=desc.toString();
+          throw new RuntimeException("Should not reach here");
         }
-        logger.spam(domainInternalName);
       }
     }
 ;
