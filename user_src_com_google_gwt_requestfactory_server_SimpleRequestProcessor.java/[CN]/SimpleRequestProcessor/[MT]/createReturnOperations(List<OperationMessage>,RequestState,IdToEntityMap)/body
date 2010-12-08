@@ -22,9 +22,10 @@
     Splittable version=null;
     if (writeOperation == WriteOperation.PERSIST || writeOperation == WriteOperation.UPDATE) {
       Object domainVersion=service.getVersion(domainObject);
-      if (domainVersion != null) {
-        version=returnState.flatten(domainVersion);
+      if (domainVersion == null) {
+        throw new UnexpectedException("The persisted entity with id " + service.getId(domainObject) + " has a null version",null);
       }
+      version=returnState.flatten(domainVersion);
     }
     boolean inResponse=bean.getTag(Constants.IN_RESPONSE) != null;
     if (WriteOperation.UPDATE.equals(writeOperation) && !inResponse) {
