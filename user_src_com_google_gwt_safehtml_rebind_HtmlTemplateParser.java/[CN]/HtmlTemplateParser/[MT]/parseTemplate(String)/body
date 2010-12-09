@@ -1,0 +1,23 @@
+{
+  this.template=template;
+  this.parsePosition=0;
+  Matcher match=TEMPLATE_PARAM_PATTERN.matcher(template);
+  int endOfPreviousMatch=0;
+  while (match.find()) {
+    if (match.start() > endOfPreviousMatch) {
+      parseAndAppendTemplateSegment(template.substring(endOfPreviousMatch,match.start()));
+      parsePosition=match.start();
+    }
+    int paramIndex=Integer.parseInt(match.group(1));
+    parsePosition=match.end();
+    parsedTemplate.addParameter(new ParameterChunk(getHtmlContextFromParseState(),paramIndex));
+    endOfPreviousMatch=match.end();
+  }
+  if (endOfPreviousMatch < template.length()) {
+    parseAndAppendTemplateSegment(template.substring(endOfPreviousMatch));
+  }
+  if (!streamHtmlParser.getState().equals(HtmlParser.STATE_TEXT)) {
+    logger.log(TreeLogger.ERROR,"Template does not end in inner-HTML context: " + template);
+    throw new UnableToCompleteException();
+  }
+}

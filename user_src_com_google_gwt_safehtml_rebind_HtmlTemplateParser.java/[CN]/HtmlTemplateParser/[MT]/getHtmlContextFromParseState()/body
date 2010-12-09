@@ -1,0 +1,45 @@
+{
+  if (streamHtmlParser.getState().equals(HtmlParser.STATE_ERROR)) {
+    logger.log(TreeLogger.ERROR,"Parsing template resulted in parse error: " + getTemplateParsedSoFar());
+    throw new UnableToCompleteException();
+  }
+  if (streamHtmlParser.inJavascript()) {
+    logger.log(TreeLogger.ERROR,"Template variables in javascript context are not supported: " + getTemplateParsedSoFar());
+    throw new UnableToCompleteException();
+  }
+  if (streamHtmlParser.getState().equals(HtmlParser.STATE_COMMENT)) {
+    logger.log(TreeLogger.ERROR,"Template variables inside HTML comments are not supported: " + getTemplateParsedSoFar());
+    throw new UnableToCompleteException();
+  }
+ else   if (streamHtmlParser.getState().equals(HtmlParser.STATE_TEXT) && !streamHtmlParser.inCss()) {
+    return new HtmlContext(HtmlContext.Type.TEXT);
+  }
+ else   if (streamHtmlParser.getState().equals(HtmlParser.STATE_VALUE)) {
+    final String tag=streamHtmlParser.getTag();
+    final String attribute=streamHtmlParser.getAttribute();
+    Preconditions.checkState(!tag.equals(""),"streamHtmlParser.getTag() should not be empty  while in " + "attribute value context; at %s",getTemplateParsedSoFar());
+    Preconditions.checkState(!attribute.equals(""),"streamHtmlParser.getAttribute() should not be empty while in " + "attribute value context; at %s",getTemplateParsedSoFar());
+    if (!streamHtmlParser.isAttributeQuoted()) {
+      logger.log(TreeLogger.ERROR,"Template variable in unquoted attribute value: " + getTemplateParsedSoFar());
+      throw new UnableToCompleteException();
+    }
+    if (streamHtmlParser.isUrlStart()) {
+      return new HtmlContext(HtmlContext.Type.URL_START,tag,attribute);
+    }
+ else     if (streamHtmlParser.inCss()) {
+      return new HtmlContext(HtmlContext.Type.CSS_ATTRIBUTE,tag,attribute);
+    }
+ else {
+      return new HtmlContext(HtmlContext.Type.ATTRIBUTE_VALUE,tag,attribute);
+    }
+  }
+ else   if (streamHtmlParser.inCss()) {
+    return new HtmlContext(HtmlContext.Type.CSS);
+  }
+ else   if (streamHtmlParser.getState().equals(HtmlParser.STATE_TAG) || streamHtmlParser.inAttribute()) {
+    logger.log(TreeLogger.ERROR,"Template variables in tags or in attribute names are not supported: " + getTemplateParsedSoFar());
+    throw new UnableToCompleteException();
+  }
+  logger.log(TreeLogger.ERROR,"unhandeled/illegal parse state" + streamHtmlParser.getState());
+  throw new UnableToCompleteException();
+}
