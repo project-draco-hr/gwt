@@ -1,0 +1,32 @@
+{
+  if (BeanHelper.isClassConstrained(type)) {
+    BeanHelper helper=createBeanHelper(type);
+    beansToValidate.add(helper);
+switch (stage) {
+case OBJECT:
+      sw.print("violations.addAll(");
+    sw.print(helper.getValidatorInstanceName());
+  sw.println(".validate(context, object, groups));");
+break;
+case PROPERTY:
+if (isPropertyConstrained(helper,p)) {
+sw.print("violations.addAll(");
+sw.print(helper.getValidatorInstanceName());
+sw.print(".validateProperty(context, object,");
+sw.println(" propertyName, groups));");
+}
+break;
+case VALUE:
+if (isPropertyConstrained(helper,p)) {
+sw.print("violations.addAll(");
+sw.print(helper.getValidatorInstanceName());
+sw.print(".validateValue(context, ");
+sw.print(helper.getTypeCanonicalName());
+sw.println(".class, propertyName, value, groups));");
+}
+break;
+default :
+throw new IllegalStateException();
+}
+}
+}

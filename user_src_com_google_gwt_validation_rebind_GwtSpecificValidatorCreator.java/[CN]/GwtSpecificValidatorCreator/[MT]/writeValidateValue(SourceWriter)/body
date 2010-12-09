@@ -14,14 +14,8 @@
     sw.print(property.getPropertyName());
     sw.println("\")) {");
     sw.indent();
-    sw.print(validateMethodName(property));
-    sw.print("(context, ");
-    sw.print("violations, ");
-    sw.print("null, ");
-    sw.print("(");
-    sw.print(Primitives.wrap(property.getElementClass()).getCanonicalName());
-    sw.print(") value, ");
-    sw.println("groups);");
+    writeValidatePropertyCall(sw,property,true);
+    writeValidateInheritance(sw,beanHelper.getClazz(),Stage.VALUE,property);
     sw.outdent();
     sw.print("} else ");
   }
@@ -34,7 +28,9 @@
   sw.println("\");");
   sw.outdent();
   sw.println("}");
-  sw.println("return violations;");
+  if (!beanHelper.getBeanDescriptor().getConstrainedProperties().isEmpty()) {
+    sw.println("return violations;");
+  }
   sw.outdent();
   sw.println("}");
 }

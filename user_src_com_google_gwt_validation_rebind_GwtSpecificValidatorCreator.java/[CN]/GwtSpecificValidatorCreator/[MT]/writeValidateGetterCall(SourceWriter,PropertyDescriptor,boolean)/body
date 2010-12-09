@@ -1,0 +1,26 @@
+{
+  sw.print(validateMethodGetterName(p));
+  sw.print("(context, ");
+  sw.print("violations, ");
+  if (useValue) {
+    sw.print("null, ");
+    sw.print("(");
+    sw.print(Primitives.wrap(p.getElementClass()).getCanonicalName());
+    sw.print(") value");
+  }
+ else {
+    sw.print("object, ");
+    JMethod method=beanType.findMethod(asGetter(p),NO_ARGS);
+    if (method.isPublic()) {
+      sw.print("object.");
+      sw.print(asGetter(p));
+      sw.print("()");
+    }
+ else {
+      gettersToWrap.add(method);
+      sw.print(toWrapperName(method) + "(object)");
+    }
+  }
+  sw.print(", ");
+  sw.println("groups);");
+}

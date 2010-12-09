@@ -1,0 +1,26 @@
+{
+  String propertyName=p.getPropertyName();
+  sw.print(validateMethodFieldName(p));
+  sw.print("(context, ");
+  sw.print("violations, ");
+  if (useValue) {
+    sw.print("null, ");
+    sw.print("(");
+    sw.print(Primitives.wrap(p.getElementClass()).getCanonicalName());
+    sw.print(") value");
+  }
+ else {
+    sw.print("object, ");
+    JField field=beanType.getField(propertyName);
+    if (field.isPublic()) {
+      sw.print("object.");
+      sw.print(propertyName);
+    }
+ else {
+      fieldsToWrap.add(field);
+      sw.print(toWrapperName(field) + "(object)");
+    }
+  }
+  sw.print(", ");
+  sw.println("groups);");
+}

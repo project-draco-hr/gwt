@@ -10,16 +10,10 @@
   if (beanHelper.getBeanDescriptor().isBeanConstrained()) {
     Set<PropertyDescriptor> properties=beanHelper.getBeanDescriptor().getConstrainedProperties();
     for (    PropertyDescriptor p : properties) {
-      writeValidatePropertyCall(sw,p);
+      writeValidatePropertyCall(sw,p,false);
     }
     int count=0;
-    Class<?> clazz=null;
-    try {
-      clazz=beanHelper.getClazz();
-    }
- catch (    ClassNotFoundException e) {
-      error(logger,e);
-    }
+    Class<?> clazz=beanHelper.getClazz();
     for (    ConstraintDescriptor<?> constraint : beanHelper.getBeanDescriptor().findConstraints().getConstraintDescriptors()) {
       count++;
       Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass=getValidatorForType(constraint,clazz);
@@ -30,13 +24,7 @@
       sw.print(constraintDescriptorVar("this",count));
       sw.println(", groups);");
     }
-    writeValidateInterfaces(sw,clazz);
-    Class<?> superClass=clazz.getSuperclass();
-    while (superClass != null) {
-      writeCallValidator(sw,superClass);
-      writeValidateInterfaces(sw,superClass);
-      superClass=superClass.getSuperclass();
-    }
+    writeValidateInheritance(sw,clazz,Stage.OBJECT,null);
     beanType.getFields();
   }
   sw.println("return violations;");

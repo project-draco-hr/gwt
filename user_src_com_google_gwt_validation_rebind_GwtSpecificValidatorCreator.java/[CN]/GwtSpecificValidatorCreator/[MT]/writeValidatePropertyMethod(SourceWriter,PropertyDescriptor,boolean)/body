@@ -1,6 +1,11 @@
 {
   sw.print("private final <T> void ");
-  sw.print(validateMethodName(p));
+  if (useField) {
+    sw.print(validateMethodFieldName(p));
+  }
+ else {
+    sw.print(validateMethodGetterName(p));
+  }
   sw.println("(");
   sw.indent();
   sw.indent();
@@ -24,13 +29,16 @@
   int count=0;
   for (  ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
     count++;
-    Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass=getValidatorForType(constraint,p.getElementClass());
-    sw.print("validate(context, violations, object, value, ");
-    sw.print("new ");
-    sw.print(validatorClass.getCanonicalName());
-    sw.print("(), ");
-    sw.print(constraintDescriptorVar(p.getPropertyName(),count));
-    sw.println(", groups);");
+    Annotation annotation=getAnnotation(p,useField,constraint);
+    if (annotation != null) {
+      Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass=getValidatorForType(constraint,p.getElementClass());
+      sw.print("validate(context, violations, object, value, ");
+      sw.print("new ");
+      sw.print(validatorClass.getCanonicalName());
+      sw.print("(), ");
+      sw.print(constraintDescriptorVar(p.getPropertyName(),count));
+      sw.println(", groups);");
+    }
   }
   sw.outdent();
   sw.println("}");
