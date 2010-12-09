@@ -1,0 +1,38 @@
+{
+  if (methods != null) {
+    return;
+  }
+  methods=baseType.getMethods();
+  methodMap=new HashMap<String,Object>();
+  for (int i=0; i < methods.length; ++i) {
+    JMethod baseMethod=methods[i];
+    JMethod newMethod=new JMethod(getParentType(),baseMethod);
+    initializeParams(baseMethod,newMethod);
+    newMethod.setReturnType(substitute(baseMethod.getReturnType()));
+    initializeExceptions(baseMethod,newMethod);
+    methods[i]=newMethod;
+    String methodName=newMethod.getName();
+    Object object=methodMap.get(methodName);
+    if (object == null) {
+      methodMap.put(methodName,newMethod);
+    }
+ else     if (object instanceof JMethod) {
+      List<JMethod> list=new ArrayList<JMethod>(2);
+      list.add((JMethod)object);
+      list.add(newMethod);
+      methodMap.put(methodName,list);
+    }
+ else {
+      List<JMethod> list=(List<JMethod>)object;
+      list.add(newMethod);
+    }
+  }
+  for (  String methodName : methodMap.keySet()) {
+    Object object=methodMap.get(methodName);
+    if (object instanceof List) {
+      List<JMethod> list=(List<JMethod>)object;
+      methodMap.put(methodName,list.toArray(TypeOracle.NO_JMETHODS));
+    }
+  }
+  methodMap=Maps.normalize(methodMap);
+}
