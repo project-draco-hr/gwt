@@ -1,19 +1,16 @@
 {
-  sw.print("private ");
+  writeUnsafeNativeLongIfNeeded(sw,method.getReturnType());
+  sw.print("private native ");
   sw.print(method.getReturnType().getQualifiedSourceName());
   sw.print(" ");
   sw.print(toWrapperName(method));
   sw.print("(");
   sw.print(beanType.getName());
-  sw.println(" object) {");
+  sw.println(" object) /*-{");
   sw.indent();
-  JPrimitiveType primitive=method.getReturnType().isPrimitive();
-  if (primitive != null) {
-    sw.println("return 0;");
-  }
- else {
-    sw.println("return null;");
-  }
+  sw.print("return object.");
+  sw.print(method.getJsniSignature());
+  sw.println("();");
   sw.outdent();
-  sw.println("}");
+  sw.println("}-*/;");
 }
