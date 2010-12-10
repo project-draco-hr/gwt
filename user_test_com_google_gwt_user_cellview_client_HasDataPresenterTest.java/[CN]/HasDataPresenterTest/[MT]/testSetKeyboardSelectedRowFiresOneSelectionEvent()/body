@@ -1,0 +1,36 @@
+{
+  HasData<String> listView=new MockHasData<String>();
+  MockView<String> view=new MockView<String>();
+  HasDataPresenter<String> presenter=new HasDataPresenter<String>(listView,view,10,null);
+  presenter.setVisibleRange(new Range(0,10));
+  populatePresenter(presenter);
+  presenter.flush();
+  presenter.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.BOUND_TO_SELECTION);
+  presenter.setKeyboardPagingPolicy(KeyboardPagingPolicy.CHANGE_PAGE);
+  MockSingleSelectionModel<String> model=new MockSingleSelectionModel<String>(null);
+  presenter.setSelectionModel(model);
+  presenter.flush();
+  assertNull(model.getSelectedObject());
+  MockSelectionChangeHandler handler=new MockSelectionChangeHandler();
+  model.addSelectionChangeHandler(handler);
+  presenter.setKeyboardSelectedRow(5,false,false);
+  presenter.flush();
+  model.fireSelectionChangeEvent();
+  handler.assertEventFired(true);
+  assertEquals("test 5",model.getSelectedObject());
+  presenter.setKeyboardSelectedRow(9,false,false);
+  presenter.flush();
+  model.fireSelectionChangeEvent();
+  handler.assertEventFired(true);
+  assertEquals("test 9",model.getSelectedObject());
+  presenter.setKeyboardSelectedRow(11,false,false);
+  presenter.flush();
+  model.fireSelectionChangeEvent();
+  handler.assertEventFired(false);
+  assertEquals("test 9",model.getSelectedObject());
+  populatePresenter(presenter);
+  presenter.flush();
+  model.fireSelectionChangeEvent();
+  assertEquals("test 10",model.getSelectedObject());
+  handler.assertEventFired(true);
+}
