@@ -7,8 +7,15 @@
   includeJs(ss,logger,getJsProcessMetas(context),"__PROCESS_METAS__");
   includeJs(ss,logger,getJsComputeScriptBase(context),"__COMPUTE_SCRIPT_BASE__");
   includeJs(ss,logger,getJsLoadExternalStylesheets(context),"__LOAD_STYLESHEETS__");
+  if (!artifacts.find(ScriptReference.class).isEmpty()) {
+    logger.log(TreeLogger.ERROR,"The " + getDescription() + " linker does not support <script> tags in the gwt.xml files");
+    throw new UnableToCompleteException();
+  }
   ss=ResourceInjectionUtil.injectStylesheets(ss,artifacts);
   ss=permutationsUtil.addPermutationsJs(ss,logger,context);
+  if (result != null) {
+    replaceAll(ss,"__KNOWN_PROPERTIES__",PropertiesUtil.addKnownPropertiesJs(logger,result));
+  }
   replaceAll(ss,"__MODULE_FUNC__",context.getModuleFunctionName());
   replaceAll(ss,"__MODULE_NAME__",context.getModuleName());
   replaceAll(ss,"__HOSTED_FILENAME__",getHostedFilename());
