@@ -1,0 +1,26 @@
+{
+  if (validationProviderClass == null) {
+    throw new ValidationException("builder is mandatory. Use Validation.byDefaultProvider() to use the generic provider discovery mechanism");
+  }
+  GenericBootstrapImpl state=new GenericBootstrapImpl();
+  if (resolver == null) {
+    resolver=state.getDefaultValidationProviderResolver();
+  }
+ else {
+    state.providerResolver(resolver);
+  }
+  List<ValidationProvider<?>> resolvers;
+  try {
+    resolvers=resolver.getValidationProviders();
+  }
+ catch (  RuntimeException re) {
+    throw new ValidationException("Unable to get available provider resolvers.",re);
+  }
+  for (  ValidationProvider<?> provider : resolvers) {
+    if (validationProviderClass.equals(provider.getClass())) {
+      @SuppressWarnings("unchecked") ValidationProvider<T> specificProvider=(ValidationProvider<T>)provider;
+      return specificProvider.createSpecializedConfiguration(state);
+    }
+  }
+  throw new ValidationException("Unable to find provider: " + validationProviderClass);
+}

@@ -1,0 +1,21 @@
+{
+  ValidationProviderResolver aResolver=this.resolver == null ? getDefaultValidationProviderResolver() : this.resolver;
+  List<ValidationProvider<?>> resolvers;
+  try {
+    resolvers=aResolver.getValidationProviders();
+  }
+ catch (  RuntimeException re) {
+    throw new ValidationException("Unable to get available provider resolvers.",re);
+  }
+  if (resolvers.size() == 0) {
+    throw new ValidationException("Unable to find a default provider");
+  }
+  Configuration<?> config;
+  try {
+    config=aResolver.getValidationProviders().get(0).createGenericConfiguration(this);
+  }
+ catch (  RuntimeException re) {
+    throw new ValidationException("Unable to instantiate Configuration.",re);
+  }
+  return config;
+}
