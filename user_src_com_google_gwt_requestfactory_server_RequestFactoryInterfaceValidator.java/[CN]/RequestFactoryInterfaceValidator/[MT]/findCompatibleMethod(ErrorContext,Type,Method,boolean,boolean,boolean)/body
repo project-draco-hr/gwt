@@ -1,0 +1,48 @@
+{
+  String methodName=searchFor.getName();
+  Type[] clientArgs=searchFor.getArgumentTypes();
+  Type clientReturnType=searchFor.getReturnType();
+  if (boxReturnTypes) {
+    clientReturnType=maybeBoxType(clientReturnType);
+  }
+  Map<String,List<RFMethod>> domainLookup=new LinkedHashMap<String,List<RFMethod>>();
+  for (  RFMethod method : getMethodsInHierarchy(logger,domainType)) {
+    List<RFMethod> list=domainLookup.get(method.getName());
+    if (list == null) {
+      list=new ArrayList<RFMethod>();
+      domainLookup.put(method.getName(),list);
+    }
+    list.add(method);
+  }
+  List<RFMethod> methods=domainLookup.get(methodName);
+  if (methods == null) {
+    if (mustFind) {
+      logger.poison("Could not find any methods named %s in %s",methodName,print(domainType));
+    }
+    return null;
+  }
+  if (methods.size() > 1 && !allowOverloads) {
+    StringBuilder sb=new StringBuilder();
+    sb.append(String.format("Method overloads found in type %s named %s:\n",print(domainType),methodName));
+    for (    RFMethod method : methods) {
+      sb.append("  ").append(print(method)).append("\n");
+    }
+    logger.poison(sb.toString());
+    return null;
+  }
+  for (  RFMethod domainMethod : methods) {
+    Type[] domainArgs=domainMethod.getArgumentTypes();
+    Type domainReturnType=domainMethod.getReturnType();
+    if (boxReturnTypes) {
+      domainReturnType=maybeBoxType(domainReturnType);
+    }
+    if (isAssignable(logger,domainArgs,clientArgs) && isAssignable(logger,clientReturnType,domainReturnType)) {
+      logger.spam("Mapped client method " + print(searchFor) + " to "+ print(domainMethod));
+      return domainMethod;
+    }
+  }
+  if (mustFind) {
+    logger.poison(messageCouldNotFindMethod(domainType,methods));
+  }
+  return null;
+}

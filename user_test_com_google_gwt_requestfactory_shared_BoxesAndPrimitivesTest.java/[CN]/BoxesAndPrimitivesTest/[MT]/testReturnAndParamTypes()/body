@@ -1,0 +1,39 @@
+{
+  delayTestFinish(TEST_DELAY);
+  Context ctx=context();
+  ctx.getBoxed().to(new TestReceiver<Integer>(){
+    @Override public void onSuccess(    Integer response){
+      assertEquals(EXPECTED_BOXED,response);
+    }
+  }
+);
+  ctx.getPrimitive().to(new TestReceiver<Integer>(){
+    @Override public void onSuccess(    Integer response){
+      assertEquals(EXPECTED_BOXED,response);
+    }
+  }
+);
+  ctx.getEntity().to(new TestReceiver<Proxy>(){
+    @Override public void onSuccess(    Proxy response){
+      assertEquals(EXPECTED_BOXED,response.getBoxed());
+      assertEquals(EXPECTED,response.getPrimitive());
+    }
+  }
+);
+  ctx.checkBoxed(EXPECTED_BOXED).to(new TestReceiver<Void>(){
+    @Override public void onSuccess(    Void response){
+    }
+  }
+);
+  ctx.checkPrimitive(EXPECTED).to(new TestReceiver<Void>(){
+    @Override public void onSuccess(    Void response){
+    }
+  }
+);
+  ctx.fire(new TestReceiver<Void>(){
+    @Override public void onSuccess(    Void response){
+      finishTest();
+    }
+  }
+);
+}
