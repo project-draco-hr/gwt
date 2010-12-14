@@ -1,19 +1,20 @@
 {
-  sw.println(GwtBeanDescriptor.class.getCanonicalName());
-  sw.println(" beanDescriptor = null; //TODO(nchalko) GWT.create");
   for (  PropertyDescriptor p : beanHelper.getBeanDescriptor().getConstrainedProperties()) {
     int count=0;
     for (    ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
-      count++;
       writeConstraintDescriptor(sw,constraint,constraintDescriptorVar(p.getPropertyName(),count));
+      count++;
     }
-    if (p.isCascaded()) {
+    writePropertyDescriptor(sw,p);
+    if (p.isCascaded() && !isIterable(p.getElementClass())) {
       beansToValidate.add(createBeanHelper(p.getElementClass()));
     }
   }
+  writeBeanDescriptor(sw);
+  sw.println();
   int count=0;
   for (  ConstraintDescriptor<?> constraint : beanHelper.getBeanDescriptor().getConstraintDescriptors()) {
-    count++;
     writeConstraintDescriptor(sw,constraint,constraintDescriptorVar("this",count));
+    count++;
   }
 }

@@ -1,4 +1,5 @@
 {
+  Class<?> elementClass=p.getElementClass();
   sw.print("private final <T> void ");
   if (useField) {
     sw.print(validateMethodFieldName(p));
@@ -12,12 +13,12 @@
   sw.println("GwtValidationContext<T> context,");
   sw.println("Set<ConstraintViolation<T>> violations,");
   sw.println(beanHelper.getTypeCanonicalName() + " object,");
-  sw.print(p.getElementClass().getCanonicalName());
+  sw.print(elementClass.getCanonicalName());
   sw.println(" value,");
   sw.println("Class<?>... groups) {");
   sw.outdent();
-  if (p.isCascaded()) {
-    BeanHelper helper=createBeanHelper(p.getElementClass());
+  if (p.isCascaded() && !isIterable(elementClass)) {
+    BeanHelper helper=createBeanHelper(elementClass);
     sw.println("if(value != null) {");
     sw.indent();
     sw.print("violations.addAll(");
@@ -28,17 +29,22 @@
   }
   int count=0;
   for (  ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
-    count++;
     Annotation annotation=getAnnotation(p,useField,constraint);
     if (annotation != null) {
-      Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass=getValidatorForType(constraint,p.getElementClass());
-      sw.print("validate(context, violations, object, value, ");
-      sw.print("new ");
-      sw.print(validatorClass.getCanonicalName());
-      sw.print("(), ");
-      sw.print(constraintDescriptorVar(p.getPropertyName(),count));
-      sw.println(", groups);");
+      Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass=getValidatorForType(constraint,elementClass);
+      if (validatorClass == null) {
+        logger.log(Type.WARN,"No ConstraintValidator of " + constraint + " for "+ p.getPropertyName()+ " of type "+ elementClass);
+      }
+ else {
+        sw.print("validate(context, violations, object, value, ");
+        sw.print("new ");
+        sw.print(validatorClass.getCanonicalName());
+        sw.print("(), ");
+        sw.print(constraintDescriptorVar(p.getPropertyName(),count));
+        sw.println(", groups);");
+      }
     }
+    count++;
   }
   sw.outdent();
   sw.println("}");
