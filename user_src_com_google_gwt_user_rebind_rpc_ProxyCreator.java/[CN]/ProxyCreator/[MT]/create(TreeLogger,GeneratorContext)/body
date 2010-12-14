@@ -14,6 +14,7 @@
   Map<JMethod,JMethod> syncMethToAsyncMethMap=rsav.validate(logger,serviceIntf,serviceAsync);
   final PropertyOracle propertyOracle=context.getPropertyOracle();
   TypeFilter blacklistTypeFilter=new BlacklistTypeFilter(logger,propertyOracle);
+  Event event=SpeedTracerLogger.start(CompilerEventType.GENERATOR_RPC_STOB);
   SerializableTypeOracleBuilder typesSentFromBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,typeOracle);
   typesSentFromBrowserBuilder.setTypeFilter(blacklistTypeFilter);
   SerializableTypeOracleBuilder typesSentToBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,typeOracle);
@@ -48,6 +49,7 @@
     writer.close();
     rpcLog=stringWriter.toString();
   }
+  event.end();
   generateTypeHandlers(logger,context,typesSentFromBrowser,typesSentToBrowser);
   String serializationPolicyStrongName=writeSerializationPolicyFile(logger,context,typesSentFromBrowser,typesSentToBrowser);
   String remoteServiceInterfaceName=elideTypeNames ? TypeNameObfuscator.SERVICE_INTERFACE_ID : SerializationUtils.getRpcTypeName(serviceIntf);

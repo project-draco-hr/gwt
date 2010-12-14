@@ -1,8 +1,8 @@
 {
   srcWriter.println("@SuppressWarnings(\"deprecation\")");
-  srcWriter.println("private static Map<Class<?>, String> loadSignaturesJava() {");
+  srcWriter.println("private static Map<String, String> loadSignaturesJava() {");
   srcWriter.indent();
-  srcWriter.println("Map<Class<?>, String> result = new HashMap<Class<?>, String>();");
+  srcWriter.println("Map<String, String> result = new HashMap<String, String>();");
   for (  JType type : getSerializableTypes()) {
     String typeString=typeStrings.get(type);
     if (!serializationOracle.maybeInstantiated(type) && !deserializationOracle.maybeInstantiated(type)) {
@@ -13,16 +13,8 @@
     if (customSerializer != null && CustomFieldSerializerValidator.getConcreteTypeMethod(customSerializer) != null) {
       typeRef=customSerializer.getQualifiedSourceName() + ".concreteType()";
     }
- else     if (type instanceof JClassType) {
-      typeRef=SerializationUtils.getStandardSerializerName((JClassType)type) + ".concreteType()";
-    }
  else {
-      typeRef=type.getLeafType().getQualifiedSourceName();
-      while (type.isArray() != null) {
-        typeRef+="[]";
-        type=type.isArray().getComponentType();
-      }
-      typeRef+=".class";
+      typeRef='"' + SerializationUtils.getRpcTypeName(type) + '"';
     }
     srcWriter.println("result.put(" + typeRef + ", \""+ typeString+ "\");");
   }

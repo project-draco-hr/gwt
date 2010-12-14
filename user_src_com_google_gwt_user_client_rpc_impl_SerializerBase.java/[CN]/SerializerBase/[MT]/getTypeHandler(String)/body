@@ -1,7 +1,18 @@
 {
-  TypeHandler typeHandler=methodMapJava.get(typeSignature);
-  if (typeHandler == null) {
+  String typeHandlerClass=methodMapJava.get(typeSignature);
+  if (typeHandlerClass == null) {
     throw new SerializationException(typeSignature);
+  }
+  TypeHandler typeHandler=handlerCache.get(typeHandlerClass);
+  if (typeHandler == null) {
+    try {
+      Class<?> klass=ReflectionHelper.loadClass(typeHandlerClass);
+      typeHandler=(TypeHandler)ReflectionHelper.newInstance(klass);
+      handlerCache.put(typeHandlerClass,typeHandler);
+    }
+ catch (    Exception e) {
+      throw new SerializationException(e);
+    }
   }
   return typeHandler;
 }
