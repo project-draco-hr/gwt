@@ -1,8 +1,7 @@
 {
   Event typeOracleMediatorEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_MEDIATOR);
   Event visitClassFileEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_MEDIATOR,"phase","Visit Class Files");
-  assert(context == null);
-  context=new TypeOracleBuildContext(argsLookup);
+  TypeOracleBuildContext context=new TypeOracleBuildContext(argsLookup);
   for (  TypeData typeData : typeDataList) {
     CollectClassData cv=processClass(typeData);
     if (!cv.hasNoExternalName()) {
@@ -17,7 +16,7 @@
     if (cv == null) {
       continue;
     }
-    JRealClassType type=createType(typeData,unresolvedTypes);
+    JRealClassType type=createType(typeData,unresolvedTypes,context);
     if (type != null) {
       binaryMapper.put(typeData.internalName,type);
       context.classMapType.put(type,cv);
@@ -28,7 +27,7 @@
   TreeLogger branch=logger.branch(TreeLogger.SPAM,"Resolving enclosing classes");
   for (Iterator<JRealClassType> it=unresolvedTypes.iterator(); it.hasNext(); ) {
     JRealClassType type=it.next();
-    if (!resolveEnclosingClass(branch,type)) {
+    if (!resolveEnclosingClass(branch,type,context)) {
       it.remove();
     }
   }
@@ -36,7 +35,7 @@
   Event resolveUnresolvedEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_MEDIATOR,"phase","Resolve Unresolved Types");
   for (  JRealClassType type : unresolvedTypes) {
     branch=logger.branch(TreeLogger.SPAM,"Resolving " + type.getQualifiedSourceName());
-    if (!resolveClass(branch,type)) {
+    if (!resolveClass(branch,type,context)) {
     }
   }
   resolveUnresolvedEvent.end();

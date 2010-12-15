@@ -1,0 +1,44 @@
+{
+  if (!(type instanceof JClassType)) {
+    return true;
+  }
+  if (type instanceof JRealClassType) {
+    return resolveClass(logger,(JRealClassType)type,context);
+  }
+  if (type instanceof JArrayType) {
+    return resolveClass(logger,((JArrayType)type).getComponentType(),context);
+  }
+  if (type instanceof JParameterizedType) {
+    return resolveClass(logger,((JParameterizedType)type).getBaseType(),context);
+  }
+  if (type instanceof JRawType) {
+    return resolveClass(logger,((JRawType)type).getBaseType(),context);
+  }
+  if (type instanceof JTypeParameter) {
+    JTypeParameter typeParam=(JTypeParameter)type;
+    if (!resolveClass(logger,typeParam.getDeclaringClass(),context)) {
+      return false;
+    }
+    for (    JClassType bound : typeParam.getBounds()) {
+      if (!resolveClass(logger,bound,context)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  if (type instanceof JWildcardType) {
+    JWildcardType wildcard=(JWildcardType)type;
+    for (    JClassType bound : wildcard.getUpperBounds()) {
+      if (!resolveClass(logger,bound,context)) {
+        return false;
+      }
+    }
+    for (    JClassType bound : wildcard.getLowerBounds()) {
+      if (!resolveClass(logger,bound,context)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+}
