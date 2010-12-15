@@ -1,0 +1,35 @@
+{
+  resources.add(CU_Object);
+  resources.add(CU_List);
+  resources.add(CU_GenericOuterInner);
+  resources.add(CU_ExtendsGenericOuterInner);
+  buildTypeOracle();
+  JClassType outer=typeOracle.getType("test.Outer");
+  JClassType inner=typeOracle.getType("test.Outer.Inner");
+  assertNull(outer.getEnclosingType());
+  assertEquals(outer,inner.getEnclosingType());
+  assertNull(inner.isParameterized());
+  assertNotNull(outer.isGenericType());
+  assertNotNull(inner.isGenericType());
+  JField field=inner.getField("field");
+  assertNotNull(field);
+  JType fieldType=field.getType();
+  JTypeParameter typeParam=fieldType.isTypeParameter();
+  assertNotNull(typeParam);
+  assertEquals("V",typeParam.getName());
+  JClassType[] bounds=typeParam.getBounds();
+  assertEquals(1,bounds.length);
+  assertEquals(typeOracle.getJavaLangObject(),bounds[0]);
+  JClassType extendsOuter=typeOracle.getType("test.ExtendsOuter");
+  JClassType extendsInner=typeOracle.getType("test.ExtendsOuter.ExtendsInner");
+  assertNull(extendsOuter.getEnclosingType());
+  assertEquals(extendsOuter,extendsInner.getEnclosingType());
+  JClassType outerSuper=extendsOuter.getSuperclass();
+  JParameterizedType outerSuperParam=outerSuper.isParameterized();
+  assertNotNull(outerSuperParam);
+  assertEquals(outer,outerSuperParam.getBaseType());
+  JClassType innerSuper=extendsInner.getSuperclass();
+  JParameterizedType innerSuperParam=innerSuper.isParameterized();
+  assertNotNull(innerSuperParam);
+  assertEquals(inner,innerSuperParam.getBaseType());
+}

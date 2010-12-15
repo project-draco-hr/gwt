@@ -1,0 +1,35 @@
+{
+  resources.add(CU_Object);
+  resources.add(CU_Assignable);
+  resources.add(CU_OuterInner);
+  buildTypeOracle();
+  JClassType[] allTypes=typeOracle.getTypes();
+  assertEquals(7,allTypes.length);
+  Map<JClassType,Set<JClassType>> assignabilityMap=new HashMap<JClassType,Set<JClassType>>();
+  JClassType inner=typeOracle.findType("test.Outer.Inner");
+  JClassType baseIntf=typeOracle.findType("test.sub.BaseInterface");
+  JClassType derivedIntf=typeOracle.findType("test.sub.DerivedInterface");
+  recordAssignability(assignabilityMap,derivedIntf,baseIntf);
+  JClassType derived=typeOracle.findType("test.sub.Derived");
+  recordAssignability(assignabilityMap,derived,inner);
+  JClassType nested=typeOracle.findType("test.sub.Derived.Nested");
+  recordAssignability(assignabilityMap,nested,inner);
+  recordAssignability(assignabilityMap,nested,derivedIntf);
+  recordAssignability(assignabilityMap,nested,baseIntf);
+  for (  JClassType fromType : allTypes) {
+    for (    JClassType toType : allTypes) {
+      if (fromType == toType || toType == typeOracle.getJavaLangObject()) {
+        assertIsAssignable(fromType,toType);
+      }
+ else {
+        Set<JClassType> set=assignabilityMap.get(fromType);
+        if (set != null && set.contains(toType)) {
+          assertIsAssignable(fromType,toType);
+        }
+ else {
+          assertIsNotAssignable(fromType,toType);
+        }
+      }
+    }
+  }
+}

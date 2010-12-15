@@ -1,0 +1,24 @@
+{
+  resources.add(CU_Object);
+  resources.add(CU_Throwable);
+  resources.add(CU_ConstrainedList);
+  resources.add(CU_ConstrainedListAsField);
+  buildTypeOracle();
+  JClassType type=typeOracle.getType("test.ConstrainedListAsField");
+  assertNull(type.isParameterized());
+  JField field=type.getField("field");
+  assertNotNull(field);
+  JType fieldType=field.getType();
+  JParameterizedType fieldParamType=fieldType.isParameterized();
+  assertNotNull(fieldParamType);
+  assertNull(fieldParamType.getEnclosingType());
+  JGenericType baseType=fieldParamType.getBaseType();
+  assertNotNull(baseType);
+  assertEquals("test.ConstrainedList",baseType.getQualifiedSourceName());
+  JClassType[] typeArgs=fieldParamType.getTypeArgs();
+  assertEquals(1,typeArgs.length);
+  JWildcardType wildcard=typeArgs[0].isWildcard();
+  assertNotNull(wildcard);
+  JClassType upperBound=wildcard.getUpperBound();
+  assertEquals("Throwable",upperBound.getSimpleSourceName());
+}
