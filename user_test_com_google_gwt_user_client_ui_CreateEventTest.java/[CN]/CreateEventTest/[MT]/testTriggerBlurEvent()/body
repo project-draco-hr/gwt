@@ -1,6 +1,9 @@
 {
   NonBubbleAssertingEventListener listener=new NonBubbleAssertingEventListener("blur"){
     @Override public void onBrowserEvent(    Event event){
+      if (cancelled) {
+        return;
+      }
       super.onBrowserEvent(event);
       assertEquals("blur",event.getType());
     }
@@ -9,5 +12,6 @@
   Event.setEventListener(parent,listener);
   Event.setEventListener(child,listener);
   child.dispatchEvent(Document.get().createBlurEvent());
+  listener.cancel();
   assertTrue("Expected child to receive event",listener.childReceived);
 }

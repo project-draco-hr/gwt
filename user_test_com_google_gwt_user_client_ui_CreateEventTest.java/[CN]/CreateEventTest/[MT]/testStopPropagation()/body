@@ -2,7 +2,7 @@
   NonBubbleAssertingEventListener listener=new NonBubbleAssertingEventListener("click"){
     @Override public void onBrowserEvent(    Event event){
       super.onBrowserEvent(event);
-      if (event.getCurrentTarget() == child) {
+      if (event.getCurrentEventTarget().equals(child)) {
         event.stopPropagation();
       }
     }
@@ -11,5 +11,6 @@
   Event.setEventListener(parent,listener);
   Event.setEventListener(child,listener);
   child.dispatchEvent(Document.get().createClickEvent(MOUSE_DETAIL,SCREEN_X,SCREEN_Y,CLIENT_X,CLIENT_Y,true,true,true,true));
+  listener.cancel();
   assertTrue("Expected child to receive event",listener.childReceived);
 }

@@ -1,6 +1,9 @@
 {
   NonBubbleAssertingEventListener listener=new NonBubbleAssertingEventListener("focus"){
     @Override public void onBrowserEvent(    Event event){
+      if (cancelled) {
+        return;
+      }
       super.onBrowserEvent(event);
       assertEquals("focus",event.getType());
     }
@@ -9,5 +12,6 @@
   Event.setEventListener(parent,listener);
   Event.setEventListener(child,listener);
   child.dispatchEvent(Document.get().createFocusEvent());
+  listener.cancel();
   assertTrue("Expected child to receive event",listener.childReceived);
 }

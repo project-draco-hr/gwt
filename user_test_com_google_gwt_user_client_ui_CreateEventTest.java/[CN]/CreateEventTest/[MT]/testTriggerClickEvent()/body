@@ -1,6 +1,9 @@
 {
   BubbleAssertingEventListener listener=new BubbleAssertingEventListener("click",true){
     @Override public void onBrowserEvent(    Event event){
+      if (cancelled) {
+        return;
+      }
       super.onBrowserEvent(event);
       assertMouseCoordinates(event);
     }
@@ -9,6 +12,7 @@
   Event.setEventListener(parent,listener);
   Event.setEventListener(child,listener);
   child.dispatchEvent(Document.get().createClickEvent(MOUSE_DETAIL,SCREEN_X,SCREEN_Y,CLIENT_X,CLIENT_Y,true,true,true,true));
+  listener.cancel();
   assertTrue("Expected child to receive event",listener.childReceived);
   assertTrue("Expected parent to receive event",listener.parentReceived);
 }
