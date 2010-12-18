@@ -31,18 +31,8 @@
   for (  ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
     Annotation annotation=getAnnotation(p,useField,constraint);
     if (annotation != null) {
-      Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass=getValidatorForType(constraint,elementClass);
-      if (validatorClass == null) {
-        logger.log(Type.WARN,"No ConstraintValidator of " + constraint + " for "+ p.getPropertyName()+ " of type "+ elementClass);
-      }
- else {
-        sw.print("validate(context, violations, object, value, ");
-        sw.print("new ");
-        sw.print(validatorClass.getCanonicalName());
-        sw.print("(), ");
-        sw.print(constraintDescriptorVar(p.getPropertyName(),count));
-        sw.println(", groups);");
-      }
+      String constraintDescriptorVar=constraintDescriptorVar(p.getPropertyName(),count);
+      writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
     }
     count++;
   }

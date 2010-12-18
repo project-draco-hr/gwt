@@ -1,0 +1,19 @@
+{
+  Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass=getValidatorForType(constraint,elementClass);
+  if (validatorClass == null) {
+    logger.log(Type.WARN,"No ConstraintValidator of " + constraint + " for "+ p.getPropertyName()+ " of type "+ elementClass);
+  }
+ else {
+    sw.print("validate(context, violations, object, value, ");
+    sw.print("new ");
+    sw.print(validatorClass.getCanonicalName());
+    sw.print("(), ");
+    sw.print(constraintDescriptorVar);
+    sw.println(", groups);");
+  }
+  int count=0;
+  for (  ConstraintDescriptor<?> compositeConstraint : constraint.getComposingConstraints()) {
+    String compositeVar=constraintDescriptorVar + "_" + count++;
+    writeValidateConstraint(sw,p,elementClass,compositeConstraint,compositeVar);
+  }
+}
