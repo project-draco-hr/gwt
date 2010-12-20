@@ -1,6 +1,5 @@
 {
   abortUncommittedResources(logger);
-  List<String> genTypeNames=new ArrayList<String>();
   try {
     TreeLogger branch;
     if (!committedGeneratedCups.isEmpty()) {
@@ -10,14 +9,13 @@
       if (branch.isLoggable(TreeLogger.DEBUG)) {
         subBranch=branch.branch(TreeLogger.DEBUG,"Generated source files...",null);
       }
-      for (      GeneratedUnit gcup : committedGeneratedCups) {
+      for (      GeneratedUnit gcup : committedGeneratedCups.values()) {
         String qualifiedTypeName=gcup.getTypeName();
-        genTypeNames.add(qualifiedTypeName);
         if (subBranch != null) {
           subBranch.log(TreeLogger.DEBUG,qualifiedTypeName,null);
         }
       }
-      compilationState.addGeneratedCompilationUnits(logger,committedGeneratedCups);
+      compilationState.addGeneratedCompilationUnits(logger,committedGeneratedCups.values());
     }
     return newlyGeneratedArtifacts;
   }
@@ -33,5 +31,7 @@
     committedGeneratedCups.clear();
     newlyGeneratedTypeNames.clear();
     newlyGeneratedArtifacts=new ArtifactSet();
+    cachedRebindResult=null;
+    cachedTypeNamesToReuse=null;
   }
 }

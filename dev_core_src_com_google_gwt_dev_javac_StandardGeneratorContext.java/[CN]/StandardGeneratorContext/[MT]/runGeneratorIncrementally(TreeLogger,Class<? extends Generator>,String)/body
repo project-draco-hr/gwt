@@ -1,0 +1,55 @@
+{
+  String msg="Invoking generator " + generatorClass.getName();
+  logger=logger.branch(TreeLogger.DEBUG,msg,null);
+  Generator generator=generators.get(generatorClass);
+  if (generator == null) {
+    try {
+      generator=generatorClass.newInstance();
+      generators.put(generatorClass,generator);
+    }
+ catch (    Throwable e) {
+      logger.log(TreeLogger.ERROR,"Unexpected error trying to instantiate Generator '" + generatorClass.getName() + "'",e);
+      throw new UnableToCompleteException();
+    }
+  }
+  setCurrentGenerator(generatorClass);
+  long before=System.currentTimeMillis();
+  String generatorClassName=generator.getClass().getName();
+  CompilerEventType type=eventsByGeneratorType.get(generatorClassName);
+  if (type == null) {
+    type=CompilerEventType.GENERATOR_OTHER;
+  }
+  Event generatorEvent=SpeedTracerLogger.start(type,"class",generatorClassName,"type",typeName);
+  try {
+    GeneratorExt generatorExt;
+    if (generator instanceof GeneratorExt) {
+      generatorExt=(GeneratorExt)generator;
+    }
+ else {
+      generatorExt=GeneratorExt.getWrappedInstance(generator);
+    }
+    RebindResult result;
+    result=generatorExt.generateIncrementally(logger,this,typeName);
+    long after=System.currentTimeMillis();
+    if (result.getResultStatus() == RebindStatus.USE_EXISTING) {
+      msg="Generator did not return a new class, type will be used as is";
+    }
+ else {
+      msg="Generator returned class '" + result.getReturnedTypeName() + "'";
+    }
+    msg+="; in " + (after - before) + " ms";
+    logger.log(TreeLogger.DEBUG,msg,null);
+    return result;
+  }
+ catch (  AssertionError e) {
+    logger.log(TreeLogger.ERROR,"Generator '" + generatorClass.getName() + "' failed an assertion while rebinding '"+ typeName+ "'",e);
+    throw new UnableToCompleteException();
+  }
+catch (  RuntimeException e) {
+    logger.log(TreeLogger.ERROR,"Generator '" + generatorClass.getName() + "' threw an exception while rebinding '"+ typeName+ "'",e);
+    throw new UnableToCompleteException();
+  }
+ finally {
+    generatorEvent.end();
+  }
+}

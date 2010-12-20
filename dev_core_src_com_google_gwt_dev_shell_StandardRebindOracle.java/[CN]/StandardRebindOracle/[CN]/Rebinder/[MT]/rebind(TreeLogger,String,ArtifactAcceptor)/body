@@ -2,17 +2,24 @@
   Event rebindEvent=SpeedTracerLogger.start(DevModeEventType.REBIND,"Type Name",typeName);
   try {
     genCtx.setPropertyOracle(propOracle);
-    String result=tryRebind(logger,typeName);
+    Rule rule=getRebindRule(logger,typeName);
+    if (rule == null) {
+      return typeName;
+    }
+    CachedRebindResult cachedResult=rebindCacheGet(rule,typeName);
+    if (cachedResult != null) {
+      genCtx.setCachedRebindResult(cachedResult);
+    }
+    RebindResult result=rule.realize(logger,genCtx,typeName);
+    String resultTypeName=processCacheableResult(logger,rule,typeName,cachedResult,result);
     if (artifactAcceptor != null) {
       ArtifactSet newlyGeneratedArtifacts=genCtx.finish(logger);
       if (!newlyGeneratedArtifacts.isEmpty()) {
         artifactAcceptor.accept(logger,newlyGeneratedArtifacts);
       }
     }
-    if (result == null) {
-      result=typeName;
-    }
-    return result;
+    assert(resultTypeName != null);
+    return resultTypeName;
   }
   finally {
     rebindEvent.end();

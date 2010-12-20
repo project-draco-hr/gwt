@@ -1,0 +1,16 @@
+{
+  while (sourceType instanceof JArrayType) {
+    sourceType=(JClassType)((JArrayType)sourceType).getComponentType();
+  }
+  JClassType enclosingType;
+  while ((enclosingType=sourceType.getEnclosingType()) != null) {
+    sourceType=enclosingType;
+  }
+  String sourceName=sourceType.getQualifiedSourceName();
+  String sourcePath=sourceName.replace('.','/') + ".java";
+  Resource sourceResource=module.findSourceFile(sourcePath);
+  if (sourceResource == null) {
+    return 0L;
+  }
+  return sourceResource.getLastModified();
+}
