@@ -1,4 +1,7 @@
 {
-  ConstraintViolation<T> violation=ConstraintViolationImpl.<T>builder().setConstraintDescriptor(constraintDescriptor).setInvalidValue(value).setLeafBean(object).setMessage(messageAndPath.getMessage()).setMessageTemplate(messageAndPath.getMessage()).setPropertyPath(messageAndPath.getPath()).setRootBean(context.getRootBean()).setRootBeanClass(context.getRootBeanClass()).build();
+  MessageInterpolator messageInterpolator=context.getMessageInterpolator();
+  ContextImpl messageContext=new ContextImpl(constraintDescriptor,value);
+  String message=messageInterpolator.interpolate(messageAndPath.getMessage(),messageContext);
+  ConstraintViolation<T> violation=ConstraintViolationImpl.<T>builder().setConstraintDescriptor(constraintDescriptor).setInvalidValue(value).setLeafBean(object).setMessage(message).setMessageTemplate(messageAndPath.getMessage()).setPropertyPath(messageAndPath.getPath()).setRootBean(context.getRootBean()).setRootBeanClass(context.getRootBeanClass()).build();
   return violation;
 }

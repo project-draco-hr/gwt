@@ -1,0 +1,16 @@
+{
+  StringBuffer sb=new StringBuffer();
+  int index=0;
+  MatchResult matcher;
+  while ((matcher=MESSAGE_PARAMETER_PATTERN.exec(message)) != null) {
+    String matched=matcher.getGroup(0);
+    sb.append(message.substring(index,matcher.getIndex()));
+    Object value=replacer.apply(removeCurlyBrace(matched));
+    sb.append(value == null ? matched : value);
+    index=MESSAGE_PARAMETER_PATTERN.getLastIndex();
+  }
+  if (index < message.length()) {
+    sb.append(message.substring(index));
+  }
+  return sb.toString();
+}
