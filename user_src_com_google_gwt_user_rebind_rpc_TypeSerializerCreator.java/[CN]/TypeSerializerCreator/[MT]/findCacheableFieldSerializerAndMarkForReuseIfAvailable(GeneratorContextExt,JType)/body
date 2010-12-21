@@ -1,0 +1,24 @@
+{
+  CachedRebindResult lastResult=ctx.getCachedGeneratorResult();
+  if (lastResult == null || !ctx.isGeneratorResultCachingEnabled()) {
+    return false;
+  }
+  String fieldSerializerName=SerializationUtils.getStandardSerializerName((JClassType)type);
+  if (type instanceof JClassType) {
+    if (!lastResult.isTypeCached(fieldSerializerName)) {
+      return false;
+    }
+  }
+ else {
+    return false;
+  }
+  try {
+    long lastModified=ctx.getSourceLastModifiedTime((JClassType)type);
+    if (lastModified != 0L && lastModified < lastResult.getTimeGenerated()) {
+      return ctx.reuseTypeFromCacheIfAvailable(fieldSerializerName);
+    }
+  }
+ catch (  RuntimeException ex) {
+  }
+  return false;
+}
