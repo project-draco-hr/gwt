@@ -1,0 +1,54 @@
+{
+  super(logger,argNumber,params);
+  PluralCount pluralCount=params[argNumber].getAnnotation(PluralCount.class);
+  Class<? extends PluralRule> ruleClass=pluralCount.value();
+  if (ruleClass == PluralRule.class) {
+    ruleClass=DefaultRule.class;
+  }
+  pluralRule=createLocalizedPluralRule(logger,method.getEnclosingType().getOracle(),ruleClass,locale);
+  missingPluralForms=new HashSet<String>();
+  for (  PluralForm form : pluralRule.pluralForms()) {
+    if (form.getWarnIfMissing() && !"other".equals(form.getName())) {
+      missingPluralForms.add(form.getName());
+    }
+  }
+  Offset offsetAnnot=params[argNumber].getAnnotation(Offset.class);
+  int offset=0;
+  if (offsetAnnot != null) {
+    offset=offsetAnnot.value();
+  }
+  this.pluralOffset=offset;
+  boolean isArray=false;
+  boolean isList=false;
+  JPrimitiveType primType=argType.isPrimitive();
+  JClassType classType=argType.isInterface();
+  if (classType != null) {
+    classType=classType.getErasedType();
+    if ("java.util.List".equals(classType.getQualifiedSourceName())) {
+      isList=true;
+    }
+ else {
+      classType=null;
+    }
+  }
+  JArrayType arrayType=argType.isArray();
+  if (arrayType != null) {
+    isArray=true;
+  }
+  if (!isList && !isArray && (primType == null || (primType != JPrimitiveType.INT && primType != JPrimitiveType.SHORT))) {
+    throw error(logger,method.getName() + ": PluralCount parameter must be int, short, array, or List");
+  }
+  String tempListSuffix="";
+  if (isList) {
+    tempListSuffix=".size()";
+  }
+ else   if (isArray) {
+    tempListSuffix=".length";
+  }
+  String tempCountSuffix=tempListSuffix;
+  if (isList || isArray || offset != 0) {
+    tempCountSuffix="_count";
+  }
+  listSuffix=tempListSuffix;
+  countSuffix=tempCountSuffix;
+}

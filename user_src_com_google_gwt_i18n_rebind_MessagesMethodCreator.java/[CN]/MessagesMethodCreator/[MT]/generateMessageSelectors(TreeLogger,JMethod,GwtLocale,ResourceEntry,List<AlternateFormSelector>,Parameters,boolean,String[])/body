@@ -1,0 +1,53 @@
+{
+  int numSelectors=selectors.size();
+  String[] lastForm=new String[numSelectors];
+  for (  String form : forms) {
+    String[] splitForms=form.split("\\|");
+    if (splitForms.length != numSelectors) {
+      throw error(logger,"Incorrect number of selector forms for " + m.getName() + " - '"+ form+ "'");
+    }
+    boolean seenEquals=false;
+    boolean allOther=true;
+    for (    String splitForm : splitForms) {
+      if (splitForm.startsWith("=")) {
+        seenEquals=true;
+        allOther=false;
+      }
+ else       if (!"other".equals(splitForm)) {
+        allOther=false;
+      }
+    }
+    if (allOther) {
+      logger.log(TreeLogger.WARN,"Ignoring supplied alternate form with all" + " 'other' values, @DefaultMessage will be used");
+      continue;
+    }
+    int firstDifferent=0;
+    while (firstDifferent < numSelectors && splitForms[firstDifferent].equals(lastForm[firstDifferent])) {
+      firstDifferent++;
+    }
+    for (int i=numSelectors; i-- > firstDifferent; ) {
+      if (lastForm[i] != null) {
+        selectors.get(i).generateSelectMatchEnd(writer,lastForm[i]);
+        if (i > firstDifferent) {
+          selectors.get(i).generateSelectEnd(writer);
+        }
+      }
+    }
+    for (int i=firstDifferent; i < numSelectors; ++i) {
+      if (i > firstDifferent || lastForm[i] == null) {
+        selectors.get(i).generateSelectStart(writer,splitForms[i].startsWith("="));
+      }
+      selectors.get(i).generateSelectMatchStart(writer,logger,splitForms[i]);
+      lastForm[i]=splitForms[i];
+    }
+    writer.print("returnVal = ");
+    generateString(logger,locale,resourceEntry.getForm(form),paramsAccessor,writer,isSafeHtml);
+    writer.println(";");
+  }
+  for (int i=numSelectors; i-- > 0; ) {
+    if (lastForm[i] != null) {
+      selectors.get(i).generateSelectMatchEnd(writer,lastForm[i]);
+      selectors.get(i).generateSelectEnd(writer);
+    }
+  }
+}

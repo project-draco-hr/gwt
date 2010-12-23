@@ -1,0 +1,44 @@
+{
+  if (isString) {
+    if (startedIfChain) {
+      out.print("} else ");
+    }
+ else {
+      startedIfChain=true;
+    }
+    if ("other".equals(value)) {
+      out.println("{  // other");
+    }
+ else {
+      value=value.replace("\"","\\\"");
+      out.println("if (\"" + value + "\".equals(arg"+ argNumber+ ")) {");
+    }
+  }
+ else {
+    if ("other".equals(value)) {
+      out.println("default:  // other");
+    }
+ else     if (enumType != null) {
+      JField field=enumType.findField(value);
+      JEnumConstant enumConstant=null;
+      if (field != null) {
+        enumConstant=field.isEnumConstant();
+      }
+      if (field == null || enumConstant == null) {
+        throw error(logger,"'" + value + "' is not a valid value of "+ enumType.getQualifiedSourceName()+ " or 'other'");
+      }
+      out.println("case " + enumConstant.getOrdinal() + ":  // "+ value);
+    }
+ else {
+      long longVal;
+      try {
+        longVal=Long.parseLong(value);
+      }
+ catch (      NumberFormatException e) {
+        throw error(logger,"'" + value + "' is not a valid numeric value",e);
+      }
+      out.println("case " + longVal + ":");
+    }
+  }
+  out.indent();
+}

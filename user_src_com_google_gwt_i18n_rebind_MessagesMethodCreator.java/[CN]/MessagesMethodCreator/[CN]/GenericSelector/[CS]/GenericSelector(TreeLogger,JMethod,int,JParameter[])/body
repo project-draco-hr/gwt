@@ -1,0 +1,24 @@
+{
+  super(logger,i,params);
+  JPrimitiveType primType=argType.isPrimitive();
+  JClassType classType=argType.isClass();
+  JEnumType tempEnumType=null;
+  boolean tempIsString=false;
+  if (primType != null) {
+    if (primType == JPrimitiveType.DOUBLE || primType == JPrimitiveType.FLOAT) {
+      throw error(logger,m.getName() + ": @Select arguments may only be" + " integral primitives, boolean, enums, or String");
+    }
+  }
+ else   if (classType != null) {
+    tempEnumType=classType.isEnum();
+    tempIsString="java.lang.String".equals(classType.getQualifiedSourceName());
+    if (tempEnumType == null && !tempIsString) {
+      throw error(logger,m.getName() + ": @Select arguments may only be" + " integral primitives, boolean, enums, or String");
+    }
+  }
+ else {
+    throw error(logger,m.getName() + ": @Select arguments may only be" + " integral primitives, boolean, enums, or String");
+  }
+  enumType=tempEnumType;
+  isString=tempIsString;
+}

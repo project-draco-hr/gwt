@@ -1,0 +1,37 @@
+{
+  missingPluralForms.remove(value);
+  if (value.startsWith("=")) {
+    try {
+      long val=Long.parseLong(value.substring(1));
+      out.println("case " + val + ":  // "+ value);
+    }
+ catch (    NumberFormatException e) {
+      throw error(logger,"Exact match value '" + value + "' must be integral",e);
+    }
+    out.indent();
+    return;
+  }
+  if (inExactMatches) {
+    inExactMatches=false;
+    out.println("default: // non-exact matches");
+    out.indent();
+    out.println("switch (arg" + argNumber + "_form) {");
+    out.indent();
+  }
+  if ("other".equals(value)) {
+    out.println("default: // other");
+    out.indent();
+    return;
+  }
+  PluralForm[] pluralForms=pluralRule.pluralForms();
+  for (int i=0; i < pluralForms.length; ++i) {
+    if (pluralForms[i].getName().equals(value)) {
+      out.println("case " + i + ":  // "+ value);
+      out.indent();
+      return;
+    }
+  }
+  logger.log(TreeLogger.WARN,"Plural form '" + value + "' unknown in "+ pluralRule.getClass().getCanonicalName()+ ": ignoring");
+  out.println("case " + (bogusCaseValue++) + ": // unknown plural form '"+ value+ "'");
+  out.indent();
+}
