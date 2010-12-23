@@ -1,24 +1,2 @@
 {
-  final RequestState source=new RequestState(service);
-  processOperationMessages(source,req);
-  List<ViolationMessage> errorMessages=validateEntities(source);
-  if (!errorMessages.isEmpty()) {
-    resp.setViolations(errorMessages);
-    return;
-  }
-  RequestState returnState=new RequestState(source);
-  List<Splittable> invocationResults=new ArrayList<Splittable>();
-  List<Boolean> invocationSuccess=new ArrayList<Boolean>();
-  List<InvocationMessage> invlist=req.getInvocations();
-  processInvocationMessages(source,invlist,invocationResults,invocationSuccess,returnState);
-  List<OperationMessage> operations=new ArrayList<OperationMessage>();
-  IdToEntityMap toProcess=new IdToEntityMap();
-  toProcess.putAll(source.beans);
-  toProcess.putAll(returnState.beans);
-  createReturnOperations(operations,returnState,toProcess);
-  resp.setInvocationResults(invocationResults);
-  resp.setStatusCodes(invocationSuccess);
-  if (!operations.isEmpty()) {
-    resp.setOperations(operations);
-  }
 }
