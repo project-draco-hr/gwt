@@ -1,0 +1,23 @@
+{
+  String fName=theClass.getName();
+  try {
+    getTestConstructor(theClass);
+  }
+ catch (  NoSuchMethodException e) {
+    addTest(warning("Class " + theClass.getName() + " has no public constructor TestCase(String name) or TestCase()"));
+    return;
+  }
+  if (!Modifier.isPublic(theClass.getModifiers())) {
+    addTest(warning("Class " + theClass.getName() + " is not public"));
+    return;
+  }
+  Class superClass=theClass;
+  Vector names=new Vector();
+  while (Test.class.isAssignableFrom(superClass)) {
+    for (    Method method : filter(copyOf(superClass.getDeclaredMethods()),METHOD_FILTER)) {
+      addTestMethod(method,names,theClass);
+    }
+    superClass=superClass.getSuperclass();
+  }
+  if (testCount() == 0)   addTest(warning("No tests found in " + theClass.getName()));
+}
