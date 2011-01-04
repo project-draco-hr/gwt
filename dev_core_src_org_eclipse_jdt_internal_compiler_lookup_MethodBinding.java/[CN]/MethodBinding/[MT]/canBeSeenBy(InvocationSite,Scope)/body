@@ -1,0 +1,25 @@
+{
+  if (isPublic())   return true;
+  SourceTypeBinding invocationType=scope.enclosingSourceType();
+  if (invocationType == declaringClass)   return true;
+  if (isProtected()) {
+    if (invocationType.fPackage == declaringClass.fPackage)     return true;
+    return invocationSite.isSuperAccess();
+  }
+  if (isPrivate()) {
+    ReferenceBinding outerInvocationType=invocationType;
+    ReferenceBinding temp=outerInvocationType.enclosingType();
+    while (temp != null) {
+      outerInvocationType=temp;
+      temp=temp.enclosingType();
+    }
+    ReferenceBinding outerDeclaringClass=(ReferenceBinding)declaringClass.erasure();
+    temp=outerDeclaringClass.enclosingType();
+    while (temp != null) {
+      outerDeclaringClass=temp;
+      temp=temp.enclosingType();
+    }
+    return outerInvocationType == outerDeclaringClass;
+  }
+  return invocationType.fPackage == declaringClass.fPackage;
+}

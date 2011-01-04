@@ -1,0 +1,17 @@
+{
+  MethodBinding originalMethod=this.original();
+  if ((originalMethod.tagBits & TagBits.DefaultValueResolved) == 0) {
+    if (originalMethod.declaringClass instanceof SourceTypeBinding) {
+      SourceTypeBinding sourceType=(SourceTypeBinding)originalMethod.declaringClass;
+      if (sourceType.scope != null) {
+        AbstractMethodDeclaration methodDeclaration=originalMethod.sourceMethod();
+        if (methodDeclaration != null && methodDeclaration.isAnnotationMethod()) {
+          methodDeclaration.resolve(sourceType.scope);
+        }
+      }
+    }
+    originalMethod.tagBits|=TagBits.DefaultValueResolved;
+  }
+  AnnotationHolder holder=originalMethod.declaringClass.retrieveAnnotationHolder(originalMethod,true);
+  return holder == null ? null : holder.getDefaultValue();
+}

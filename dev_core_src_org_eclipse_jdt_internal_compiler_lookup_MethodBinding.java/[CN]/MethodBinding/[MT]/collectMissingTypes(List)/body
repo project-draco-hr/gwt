@@ -1,0 +1,20 @@
+{
+  if ((this.tagBits & TagBits.HasMissingType) != 0) {
+    missingTypes=this.returnType.collectMissingTypes(missingTypes);
+    for (int i=0, max=this.parameters.length; i < max; i++) {
+      missingTypes=this.parameters[i].collectMissingTypes(missingTypes);
+    }
+    for (int i=0, max=this.thrownExceptions.length; i < max; i++) {
+      missingTypes=this.thrownExceptions[i].collectMissingTypes(missingTypes);
+    }
+    for (int i=0, max=this.typeVariables.length; i < max; i++) {
+      TypeVariableBinding variable=this.typeVariables[i];
+      missingTypes=variable.superclass().collectMissingTypes(missingTypes);
+      ReferenceBinding[] interfaces=variable.superInterfaces();
+      for (int j=0, length=interfaces.length; j < length; j++) {
+        missingTypes=interfaces[j].collectMissingTypes(missingTypes);
+      }
+    }
+  }
+  return missingTypes;
+}

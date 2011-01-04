@@ -1,0 +1,40 @@
+{
+  int length=this.parameters.length;
+  if (this.parameters == null || length == 0) {
+    return null;
+  }
+  MethodBinding originalMethod=this.original();
+  AnnotationHolder holder=originalMethod.declaringClass.retrieveAnnotationHolder(originalMethod,true);
+  AnnotationBinding[][] allParameterAnnotations=holder == null ? null : holder.getParameterAnnotations();
+  if (allParameterAnnotations == null && (this.tagBits & TagBits.HasParameterAnnotations) != 0) {
+    allParameterAnnotations=new AnnotationBinding[length][];
+    if (this.declaringClass instanceof SourceTypeBinding) {
+      SourceTypeBinding sourceType=(SourceTypeBinding)this.declaringClass;
+      if (sourceType.scope != null) {
+        AbstractMethodDeclaration methodDecl=sourceType.scope.referenceType().declarationOf(this);
+        for (int i=0; i < length; i++) {
+          Argument argument=methodDecl.arguments[i];
+          if (argument.annotations != null) {
+            ASTNode.resolveAnnotations(methodDecl.scope,argument.annotations,argument.binding);
+            allParameterAnnotations[i]=argument.binding.getAnnotations();
+          }
+ else {
+            allParameterAnnotations[i]=Binding.NO_ANNOTATIONS;
+          }
+        }
+      }
+ else {
+        for (int i=0; i < length; i++) {
+          allParameterAnnotations[i]=Binding.NO_ANNOTATIONS;
+        }
+      }
+    }
+ else {
+      for (int i=0; i < length; i++) {
+        allParameterAnnotations[i]=Binding.NO_ANNOTATIONS;
+      }
+    }
+    this.setParameterAnnotations(allParameterAnnotations);
+  }
+  return allParameterAnnotations;
+}

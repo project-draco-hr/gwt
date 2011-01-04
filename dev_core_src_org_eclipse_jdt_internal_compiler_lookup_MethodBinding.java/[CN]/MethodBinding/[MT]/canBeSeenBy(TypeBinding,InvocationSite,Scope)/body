@@ -1,0 +1,67 @@
+{
+  if (isPublic())   return true;
+  SourceTypeBinding invocationType=scope.enclosingSourceType();
+  if (invocationType == declaringClass && invocationType == receiverType)   return true;
+  if (invocationType == null)   return !isPrivate() && scope.getCurrentPackage() == declaringClass.fPackage;
+  if (isProtected()) {
+    if (invocationType == declaringClass)     return true;
+    if (invocationType.fPackage == declaringClass.fPackage)     return true;
+    ReferenceBinding currentType=invocationType;
+    TypeBinding receiverErasure=receiverType.erasure();
+    ReferenceBinding declaringErasure=(ReferenceBinding)declaringClass.erasure();
+    int depth=0;
+    do {
+      if (currentType.findSuperTypeOriginatingFrom(declaringErasure) != null) {
+        if (invocationSite.isSuperAccess())         return true;
+        if (receiverType instanceof ArrayBinding)         return false;
+        if (isStatic()) {
+          if (depth > 0)           invocationSite.setDepth(depth);
+          return true;
+        }
+        if (currentType == receiverErasure || receiverErasure.findSuperTypeOriginatingFrom(currentType) != null) {
+          if (depth > 0)           invocationSite.setDepth(depth);
+          return true;
+        }
+      }
+      depth++;
+      currentType=currentType.enclosingType();
+    }
+ while (currentType != null);
+    return false;
+  }
+  if (isPrivate()) {
+    receiverCheck: {
+      if (receiverType != declaringClass) {
+        if (receiverType.isTypeVariable() && ((TypeVariableBinding)receiverType).isErasureBoundTo(declaringClass.erasure()))         break receiverCheck;
+        return false;
+      }
+    }
+    if (invocationType != declaringClass) {
+      ReferenceBinding outerInvocationType=invocationType;
+      ReferenceBinding temp=outerInvocationType.enclosingType();
+      while (temp != null) {
+        outerInvocationType=temp;
+        temp=temp.enclosingType();
+      }
+      ReferenceBinding outerDeclaringClass=(ReferenceBinding)declaringClass.erasure();
+      temp=outerDeclaringClass.enclosingType();
+      while (temp != null) {
+        outerDeclaringClass=temp;
+        temp=temp.enclosingType();
+      }
+      if (outerInvocationType != outerDeclaringClass)       return false;
+    }
+    return true;
+  }
+  PackageBinding declaringPackage=declaringClass.fPackage;
+  if (invocationType.fPackage != declaringPackage)   return false;
+  if (receiverType instanceof ArrayBinding)   return false;
+  ReferenceBinding currentType=(ReferenceBinding)receiverType;
+  do {
+    if (declaringClass == currentType)     return true;
+    PackageBinding currentPackage=currentType.fPackage;
+    if (currentPackage != null && currentPackage != declaringPackage)     return false;
+  }
+ while ((currentType=currentType.superclass()) != null);
+  return false;
+}
