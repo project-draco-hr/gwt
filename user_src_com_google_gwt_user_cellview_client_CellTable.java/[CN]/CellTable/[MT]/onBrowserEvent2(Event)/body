@@ -24,12 +24,22 @@
     return;
   }
   TableSectionElement section=TableSectionElement.as(sectionElem);
+  boolean isClick="click".equals(eventType);
   int col=tableCell.getCellIndex();
   if (section == thead) {
     Header<?> header=headers.get(col);
-    if (header != null && cellConsumesEventType(header.getCell(),eventType)) {
-      Context context=new Context(0,col,header.getKey());
-      header.onBrowserEvent(context,tableCell,event);
+    if (header != null) {
+      if (cellConsumesEventType(header.getCell(),eventType)) {
+        Context context=new Context(0,col,header.getKey());
+        header.onBrowserEvent(context,tableCell,event);
+      }
+      Column<T,?> column=columns.get(col);
+      if (isClick && column.isSortable()) {
+        updatingSortList=true;
+        sortList.push(column);
+        updatingSortList=false;
+        ColumnSortEvent.fire(this,sortList);
+      }
     }
   }
  else   if (section == tfoot) {
@@ -40,7 +50,6 @@
     }
   }
  else   if (section == tbody) {
-    boolean isClick="click".equals(eventType);
     int row=tr.getSectionRowIndex();
     if ("mouseover".equals(eventType)) {
       if (hoveringRow != null && tbody.isOrHasChild(hoveringRow)) {
