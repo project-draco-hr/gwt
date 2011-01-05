@@ -2,11 +2,13 @@
   try {
     SelectionProperty localeProp=propertyOracle.getSelectionProperty(logger,PROP_LOCALE);
     ConfigurationProperty runtimeLocaleProp=propertyOracle.getConfigurationProperty(PROP_RUNTIME_LOCALES);
+    ConfigurationProperty queryParamProp=propertyOracle.getConfigurationProperty(PROP_LOCALE_QUERY_PARAM);
+    ConfigurationProperty cookieProp=propertyOracle.getConfigurationProperty(PROP_LOCALE_COOKIE);
     LocaleInfoContext localeInfoCtx=getLocaleInfoCtx(context);
-    LocaleUtils localeUtils=localeInfoCtx.getLocaleUtils(localeProp,runtimeLocaleProp);
+    LocaleUtils localeUtils=localeInfoCtx.getLocaleUtils(localeProp,runtimeLocaleProp,queryParamProp,cookieProp);
     if (localeUtils == null) {
-      localeUtils=createInstance(localeProp,runtimeLocaleProp);
-      localeInfoCtx.putLocaleUtils(localeProp,runtimeLocaleProp,localeUtils);
+      localeUtils=createInstance(localeProp,runtimeLocaleProp,queryParamProp,cookieProp);
+      localeInfoCtx.putLocaleUtils(localeProp,runtimeLocaleProp,queryParamProp,cookieProp,localeUtils);
     }
     return localeUtils;
   }
@@ -15,6 +17,6 @@
     GwtLocale defaultLocale=factory.fromString("default");
     Set<GwtLocale> allLocales=new HashSet<GwtLocale>();
     allLocales.add(defaultLocale);
-    return new LocaleUtils(defaultLocale,allLocales,allLocales,Collections.<GwtLocale>emptySet());
+    return new LocaleUtils(defaultLocale,allLocales,allLocales,Collections.<GwtLocale>emptySet(),null,null);
   }
 }

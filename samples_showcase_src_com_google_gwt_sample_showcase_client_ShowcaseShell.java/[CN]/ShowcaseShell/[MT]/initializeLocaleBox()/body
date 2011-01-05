@@ -1,4 +1,10 @@
 {
+  final String cookieName=LocaleInfo.getLocaleCookieName();
+  final String queryParam=LocaleInfo.getLocaleQueryParam();
+  if (cookieName == null && queryParam == null) {
+    localeSelectionCell.getStyle().setDisplay(Display.NONE);
+    return;
+  }
   String currentLocale=LocaleInfo.getCurrentLocale().getLocaleName();
   if (currentLocale.equals("default")) {
     currentLocale="en";
@@ -14,10 +20,20 @@
     }
   }
   localeBox.addChangeHandler(new ChangeHandler(){
-    public void onChange(    ChangeEvent event){
+    @SuppressWarnings("deprecation") public void onChange(    ChangeEvent event){
       String localeName=localeBox.getValue(localeBox.getSelectedIndex());
-      UrlBuilder builder=Location.createUrlBuilder().setParameter("locale",localeName);
-      Window.Location.replace(builder.buildString());
+      if (cookieName != null) {
+        Date expires=new Date();
+        expires.setYear(expires.getYear() + 1);
+        Cookies.setCookie(cookieName,localeName,expires);
+      }
+      if (queryParam != null) {
+        UrlBuilder builder=Location.createUrlBuilder().setParameter(queryParam,localeName);
+        Window.Location.replace(builder.buildString());
+      }
+ else {
+        Window.Location.reload();
+      }
     }
   }
 );
