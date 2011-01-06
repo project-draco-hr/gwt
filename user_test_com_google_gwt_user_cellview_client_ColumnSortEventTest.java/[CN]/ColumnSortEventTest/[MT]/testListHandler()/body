@@ -1,0 +1,31 @@
+{
+  List<String> values=new ArrayList<String>();
+  values.add("b");
+  values.add("a");
+  values.add("c");
+  ListHandler<String> handler=new ListHandler<String>(values);
+  IdentityColumn<String> col0=new IdentityColumn<String>(new TextCell());
+  handler.setComparator(col0,new Comparator<String>(){
+    public int compare(    String o1,    String o2){
+      return o1.compareTo(o2);
+    }
+  }
+);
+  IdentityColumn<String> col1=new IdentityColumn<String>(new TextCell());
+  handler.setComparator(col1,null);
+  ColumnSortList sortList=new ColumnSortList();
+  sortList.push(col0);
+  handler.onColumnSort(new ColumnSortEvent(sortList));
+  assertEquals("a",values.get(0));
+  assertEquals("b",values.get(1));
+  assertEquals("c",values.get(2));
+  sortList.push(col0);
+  handler.onColumnSort(new ColumnSortEvent(sortList));
+  assertEquals("c",values.get(0));
+  assertEquals("b",values.get(1));
+  assertEquals("a",values.get(2));
+  sortList.push(col1);
+  assertEquals("c",values.get(0));
+  assertEquals("b",values.get(1));
+  assertEquals("a",values.get(2));
+}
