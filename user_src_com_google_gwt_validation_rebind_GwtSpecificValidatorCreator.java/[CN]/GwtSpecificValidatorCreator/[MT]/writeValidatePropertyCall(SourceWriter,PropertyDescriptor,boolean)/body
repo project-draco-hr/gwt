@@ -1,8 +1,37 @@
 {
   if (hasGetter(property)) {
+    if (useValue) {
+      sw.print("if ( value == null || value instanceof ");
+      sw.print(getQualifiedSourceNonPrimitiveType(getElementType(property,false)));
+      sw.println(") {");
+      sw.indent();
+    }
     writeValidateGetterCall(sw,property,useValue);
+    if (useValue) {
+      sw.outdent();
+      sw.print("} else ");
+    }
   }
   if (hasField(property)) {
+    if (useValue) {
+      sw.print("if ( value == null || value instanceof ");
+      sw.print(getQualifiedSourceNonPrimitiveType(getElementType(property,true)));
+      sw.println(") {");
+      sw.indent();
+    }
     writeValidateFieldCall(sw,property,useValue);
+    if (useValue) {
+      sw.outdent();
+      sw.print("}  else ");
+    }
+  }
+  if (useValue & (hasGetter(property) || hasField(property))) {
+    sw.println(" {");
+    sw.indent();
+    sw.print("throw new ");
+    sw.print(ValidationException.class.getCanonicalName());
+    sw.println("(value.getClass() +\" is not a valid type for \"+ propertyName);");
+    sw.outdent();
+    sw.println("}");
   }
 }

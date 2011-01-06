@@ -1,5 +1,6 @@
 {
   Class<?> elementClass=p.getElementClass();
+  JType elementType=getElementType(p,useField);
   sw.print("private final <T> void ");
   if (useField) {
     sw.print(validateMethodFieldName(p));
@@ -13,14 +14,14 @@
   sw.println("GwtValidationContext<T> context,");
   sw.println("Set<ConstraintViolation<T>> violations,");
   sw.println(beanHelper.getTypeCanonicalName() + " object,");
-  sw.print(elementClass.getCanonicalName());
+  sw.print(elementType.getQualifiedSourceName());
   sw.println(" value,");
   sw.println("Class<?>... groups) {");
   sw.outdent();
   sw.print("context = context.append(\"");
   sw.print(p.getPropertyName());
   sw.println("\");");
-  if (p.isCascaded() && !isIterable(elementClass)) {
+  if (p.isCascaded() && !isIterableOrMap(elementClass)) {
     BeanHelper helper=createBeanHelper(elementClass);
     sw.println("if(value != null) {");
     sw.indent();
