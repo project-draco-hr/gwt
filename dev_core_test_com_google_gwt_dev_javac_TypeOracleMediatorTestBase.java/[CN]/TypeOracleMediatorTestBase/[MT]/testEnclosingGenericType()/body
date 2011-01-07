@@ -1,16 +1,19 @@
 {
-  resources.add(CU_Object);
-  resources.add(CU_List);
-  resources.add(CU_GenericOuterInner);
-  resources.add(CU_ExtendsGenericOuterInner);
+  addTestResource(CU_Object);
+  addTestResource(CU_String);
+  addTestResource(CU_List);
+  addTestResource(CU_GenericOuterInner);
+  addTestResource(CU_ExtendsGenericOuterInner);
   buildTypeOracle();
-  JClassType outer=typeOracle.getType("test.Outer");
-  JClassType inner=typeOracle.getType("test.Outer.Inner");
+  JClassType outer=typeOracle.getType(CU_GenericOuterInner.getPackageName() + ".GenericOuter");
+  JClassType inner=typeOracle.getType(CU_GenericOuterInner.getPackageName() + ".GenericOuter.Inner");
   assertNull(outer.getEnclosingType());
   assertEquals(outer,inner.getEnclosingType());
   assertNull(inner.isParameterized());
   assertNotNull(outer.isGenericType());
   assertNotNull(inner.isGenericType());
+  JField[] fields=inner.getFields();
+  assertEquals(fields.length,2);
   JField field=inner.getField("field");
   assertNotNull(field);
   JType fieldType=field.getType();
@@ -20,8 +23,8 @@
   JClassType[] bounds=typeParam.getBounds();
   assertEquals(1,bounds.length);
   assertEquals(typeOracle.getJavaLangObject(),bounds[0]);
-  JClassType extendsOuter=typeOracle.getType("test.ExtendsOuter");
-  JClassType extendsInner=typeOracle.getType("test.ExtendsOuter.ExtendsInner");
+  JClassType extendsOuter=typeOracle.getType(CU_GenericOuterInner.getPackageName() + ".ExtendsGenericOuter");
+  JClassType extendsInner=typeOracle.getType(CU_GenericOuterInner.getPackageName() + ".ExtendsGenericOuter.ExtendsInner");
   assertNull(extendsOuter.getEnclosingType());
   assertEquals(extendsOuter,extendsInner.getEnclosingType());
   JClassType outerSuper=extendsOuter.getSuperclass();
@@ -29,7 +32,7 @@
   assertNotNull(outerSuperParam);
   assertEquals(outer,outerSuperParam.getBaseType());
   JClassType innerSuper=extendsInner.getSuperclass();
-  JParameterizedType innerSuperParam=innerSuper.isParameterized();
-  assertNotNull(innerSuperParam);
-  assertEquals(inner,innerSuperParam.getBaseType());
+  assertEquals("GenericOuter.Inner",innerSuper.getName());
+  field=inner.getField("field");
+  assertNotNull(field);
 }

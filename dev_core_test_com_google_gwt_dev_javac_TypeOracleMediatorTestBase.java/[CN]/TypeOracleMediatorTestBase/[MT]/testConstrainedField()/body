@@ -1,11 +1,13 @@
 {
-  resources.add(CU_Object);
-  resources.add(CU_Throwable);
-  resources.add(CU_ConstrainedList);
-  resources.add(CU_ConstrainedListAsField);
+  addTestResource(CU_Object);
+  addTestResource(CU_Throwable);
+  addTestResource(CU_ConstrainedList);
+  addTestResource(CU_ConstrainedListAsField);
   buildTypeOracle();
-  JClassType type=typeOracle.getType("test.ConstrainedListAsField");
+  JClassType type=typeOracle.getType(CU_ConstrainedListAsField.getTypeName());
   assertNull(type.isParameterized());
+  JField[] fields=type.getFields();
+  assert(fields.length == 1);
   JField field=type.getField("field");
   assertNotNull(field);
   JType fieldType=field.getType();
@@ -14,7 +16,7 @@
   assertNull(fieldParamType.getEnclosingType());
   JGenericType baseType=fieldParamType.getBaseType();
   assertNotNull(baseType);
-  assertEquals("test.ConstrainedList",baseType.getQualifiedSourceName());
+  assertEquals(CU_ConstrainedList.getTypeName(),baseType.getQualifiedSourceName());
   JClassType[] typeArgs=fieldParamType.getTypeArgs();
   assertEquals(1,typeArgs.length);
   JWildcardType wildcard=typeArgs[0].isWildcard();
