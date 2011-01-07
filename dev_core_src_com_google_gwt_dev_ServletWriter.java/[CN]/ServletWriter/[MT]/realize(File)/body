@@ -1,0 +1,21 @@
+{
+  if (mappings.size() == 0) {
+    return;
+  }
+  webXml.getParentFile().mkdirs();
+  FileWriter xmlWriter=new FileWriter(webXml);
+  xmlWriter.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+  xmlWriter.write("<web-app>\n");
+  for (  Entry<String,String> entry : mappings.entrySet()) {
+    String servletClass=entry.getKey();
+    String servletPath=entry.getValue();
+    String servletName=servletClass.replace('.','_');
+    xmlWriter.write('\n');
+    xmlWriter.write(generateServletTag(servletName,servletClass));
+    xmlWriter.write('\n');
+    xmlWriter.write(generateServletMappingTag(servletName,servletPath));
+    xmlWriter.write('\n');
+  }
+  xmlWriter.write("\n</web-app>\n");
+  Utility.close(xmlWriter);
+}

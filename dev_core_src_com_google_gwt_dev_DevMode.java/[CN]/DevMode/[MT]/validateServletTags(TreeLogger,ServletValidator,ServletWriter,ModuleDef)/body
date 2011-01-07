@@ -1,0 +1,18 @@
+{
+  String[] servletPaths=module.getServletPaths();
+  if (servletPaths.length == 0) {
+    return;
+  }
+  TreeLogger servletLogger=logger.branch(TreeLogger.DEBUG,"Validating <servlet> tags for module '" + module.getName() + "'",null,new InstalledHelpInfo("servletMappings.html"));
+  for (  String servletPath : servletPaths) {
+    String servletClass=module.findServletForPath(servletPath);
+    assert(servletClass != null);
+    servletPath="/" + module.getName() + servletPath;
+    if (servletValidator == null) {
+      servletWriter.addMapping(servletClass,servletPath);
+    }
+ else {
+      servletValidator.validate(servletLogger,servletClass,servletPath);
+    }
+  }
+}

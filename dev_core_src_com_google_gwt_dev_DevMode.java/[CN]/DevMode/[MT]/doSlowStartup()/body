@@ -10,22 +10,11 @@
       return false;
     }
   }
-  ServletValidator servletValidator=null;
-  File webXml=new File(options.getWarDir(),"WEB-INF/web.xml");
-  if (!options.isNoServer() && webXml.exists()) {
-    servletValidator=ServletValidator.create(getTopLogger(),webXml);
-  }
-  TreeLogger branch=getTopLogger().branch(TreeLogger.TRACE,"Loading modules");
+  TreeLogger branch=getTopLogger().branch(TreeLogger.TRACE,"Linking modules");
   Event slowStartupEvent=SpeedTracerLogger.start(DevModeEventType.SLOW_STARTUP);
   try {
-    for (    String moduleName : options.getModuleNames()) {
-      TreeLogger moduleBranch=branch.branch(TreeLogger.TRACE,moduleName);
-      ModuleDef module=loadModule(moduleBranch,moduleName,false);
-      startupModules.put(module.getName(),module);
-      if (!options.isNoServer()) {
-        validateServletTags(moduleBranch,servletValidator,module,webXml);
-      }
-      TreeLogger loadLogger=moduleBranch.branch(TreeLogger.DEBUG,"Bootstrap link for command-line module '" + moduleName + "'");
+    for (    ModuleDef module : startupModules.values()) {
+      TreeLogger loadLogger=branch.branch(TreeLogger.DEBUG,"Bootstrap link for command-line module '" + module.getCanonicalName() + "'");
       link(loadLogger,module);
     }
   }

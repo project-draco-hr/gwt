@@ -8,5 +8,39 @@
   scanThread.setDaemon(true);
   scanThread.setPriority((Thread.MIN_PRIORITY + Thread.NORM_PRIORITY) / 2);
   scanThread.start();
-  return super.doStartup();
+  if (!super.doStartup()) {
+    return false;
+  }
+  ServletValidator servletValidator=null;
+  ServletWriter servletWriter=null;
+  File webXml=new File(options.getWarDir(),"WEB-INF/web.xml");
+  if (!options.isNoServer()) {
+    if (webXml.exists()) {
+      servletValidator=ServletValidator.create(getTopLogger(),webXml);
+    }
+ else {
+      servletWriter=new ServletWriter();
+    }
+  }
+  TreeLogger branch=getTopLogger().branch(TreeLogger.TRACE,"Loading modules");
+  try {
+    for (    String moduleName : options.getModuleNames()) {
+      TreeLogger moduleBranch=branch.branch(TreeLogger.TRACE,moduleName);
+      ModuleDef module=loadModule(moduleBranch,moduleName,false);
+      startupModules.put(module.getName(),module);
+      if (!options.isNoServer()) {
+        validateServletTags(moduleBranch,servletValidator,servletWriter,module);
+      }
+    }
+    if (servletWriter != null) {
+      servletWriter.realize(webXml);
+    }
+  }
+ catch (  IOException e) {
+    getTopLogger().log(TreeLogger.WARN,"Unable to generate '" + webXml.getAbsolutePath() + "'");
+  }
+catch (  UnableToCompleteException e) {
+    return false;
+  }
+  return true;
 }
