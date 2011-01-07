@@ -1,0 +1,18 @@
+{
+  JClassType itemType=writer.getOracle().findType(TreeItem.class.getName());
+  JClassType widgetType=writer.getOracle().findType(Widget.class.getName());
+  for (  XMLElement child : elem.consumeChildElements()) {
+    JClassType childType=writer.findFieldType(child);
+    if (itemType.isAssignableFrom(childType)) {
+      String childFieldName=writer.parseElementToField(child);
+      writer.addStatement("%1$s.addItem(%2$s);",fieldName,childFieldName);
+      continue;
+    }
+    if (widgetType.isAssignableFrom(childType)) {
+      String childFieldName=writer.parseElementToField(child);
+      writer.addStatement("%1$s.addItem(%2$s);",fieldName,childFieldName);
+      continue;
+    }
+    writer.die(child,BAD_CHILD);
+  }
+}
