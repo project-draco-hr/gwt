@@ -17,16 +17,11 @@
     }
   }
   TreeLogger branch=Messages.PUBLIC_PATH_LOCATIONS.branch(logger,null);
-  if (lazyPublicOracle == null) {
-    lazyPublicOracle=new ResourceOracleImpl(branch);
-    lazyPublicOracle.setPathPrefixes(publicPrefixSet);
-  }
+  lazyPublicOracle=new ResourceOracleImpl(branch);
+  lazyPublicOracle.setPathPrefixes(publicPrefixSet);
   branch=Messages.SOURCE_PATH_LOCATIONS.branch(logger,null);
   lazySourceOracle=new ResourceOracleImpl(branch);
   lazySourceOracle.setPathPrefixes(sourcePrefixSet);
-  ResourceOracleImpl.refresh(logger,lazyPublicOracle,lazySourceOracle);
-  if (lazySourceOracle.getResources().isEmpty()) {
-    branch.log(TreeLogger.WARN,"No source path entries; expect subsequent failures",null);
-  }
+  needsRefresh=true;
   moduleDefNormalize.end();
 }
