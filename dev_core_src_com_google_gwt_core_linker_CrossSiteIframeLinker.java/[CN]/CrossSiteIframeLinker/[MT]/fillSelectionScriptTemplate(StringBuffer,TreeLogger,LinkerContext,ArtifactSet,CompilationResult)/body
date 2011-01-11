@@ -7,9 +7,29 @@
   includeJs(ss,logger,getJsProcessMetas(context),"__PROCESS_METAS__");
   includeJs(ss,logger,getJsComputeScriptBase(context),"__COMPUTE_SCRIPT_BASE__");
   includeJs(ss,logger,getJsLoadExternalStylesheets(context),"__LOAD_STYLESHEETS__");
-  if (!artifacts.find(ScriptReference.class).isEmpty()) {
-    logger.log(TreeLogger.ERROR,"The " + getDescription() + " linker does not support <script> tags in the gwt.xml files");
-    throw new UnableToCompleteException();
+  SortedSet<ScriptReference> scripts=artifacts.find(ScriptReference.class);
+  if (!scripts.isEmpty()) {
+    String list="";
+    for (    ScriptReference script : scripts) {
+      list+=(script.getSrc() + "\n");
+    }
+    boolean failIfScriptTags=true;
+    for (    ConfigurationProperty prop : context.getConfigurationProperties()) {
+      if (prop.getName().equalsIgnoreCase(FAIL_IF_SCRIPT_TAG_PROPERTY)) {
+        if (prop.getValues().get(0).equalsIgnoreCase("false")) {
+          failIfScriptTags=false;
+        }
+      }
+    }
+    if (failIfScriptTags) {
+      String msg="The " + getDescription() + " linker does not support <script> tags in the gwt.xml files, but the"+ " gwt.xml file (or the gwt.xml files which it includes) contains the"+ " following script tags: \n"+ list+ "In order for your application to run correctly, you will need to"+ " include these tags in your host page directly. In order to avoid"+ " this error, you will need to remove the script tags from the"+ " gwt.xml file, or add this property to the gwt.xml file:"+ " <set-configuration-property name='xsiframe.failIfScriptTag' value='FALSE'/>";
+      logger.log(TreeLogger.ERROR,msg);
+      throw new UnableToCompleteException();
+    }
+ else {
+      String msg="Ignoring the following script tags in the gwt.xml " + "file\n" + list;
+      logger.log(TreeLogger.INFO,msg);
+    }
   }
   ss=ResourceInjectionUtil.injectStylesheets(ss,artifacts);
   ss=permutationsUtil.addPermutationsJs(ss,logger,context);
