@@ -1,11 +1,8 @@
 {
-  for (  Map.Entry<String,List<Method>> entry : toImplement(stubIntr).entrySet()) {
-    for (    Method method : entry.getValue()) {
-      String mangledName=entry.getKey();
-      String descriptor="(" + method.getDescriptor().substring(1 + method.getArgumentTypes()[0].getDescriptor().length());
-      String localName=method.getName().substring(0,method.getName().length() - 1);
-      Method toCall=new Method(localName,descriptor);
-      MethodVisitor mv=super.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC,mangledName,descriptor,null,null);
+  for (  String mangledName : toImplement(stubIntr)) {
+    for (    Method method : jsoData.getDeclarations(mangledName)) {
+      Method toCall=new Method(method.getName(),method.getDescriptor());
+      MethodVisitor mv=super.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC,mangledName,method.getDescriptor(),null,null);
       if (mv != null) {
         mv.visitCode();
         int var=1;
