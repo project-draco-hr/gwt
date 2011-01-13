@@ -11,23 +11,38 @@
   sw.println("(");
   sw.indent();
   sw.indent();
-  sw.println("GwtValidationContext<T> context,");
-  sw.println("Set<ConstraintViolation<T>> violations,");
+  sw.println("final GwtValidationContext<T> context,");
+  sw.println("final Set<ConstraintViolation<T>> violations,");
   sw.println(beanHelper.getTypeCanonicalName() + " object,");
-  sw.print(elementType.getQualifiedSourceName());
+  sw.print("final ");
+  sw.print(elementType.getParameterizedQualifiedSourceName());
   sw.println(" value,");
   sw.println("Class<?>... groups) {");
   sw.outdent();
-  sw.print("context = context.append(\"");
+  sw.print("final GwtValidationContext<T> myContext = context.append(\"");
   sw.print(p.getPropertyName());
   sw.println("\");");
-  if (p.isCascaded() && !isIterableOrMap(elementClass)) {
-    BeanHelper helper=createBeanHelper(elementClass);
+  if (p.isCascaded()) {
     sw.println("if(value != null) {");
     sw.indent();
-    sw.print("violations.addAll(");
-    sw.print(helper.getValidatorInstanceName());
-    sw.println(".validate(context, value, groups));");
+    if (isIterableOrMap(elementClass)) {
+      if (hasValid(p,useField)) {
+        JType associationType=getAssociationType(p,useField);
+        BeanHelper helper=createBeanHelper(associationType);
+        if (Map.class.isAssignableFrom(elementClass)) {
+          writeValidateMap(sw,p,associationType,helper);
+        }
+ else {
+          writeValidateIterable(sw,p,associationType,helper);
+        }
+      }
+    }
+ else {
+      BeanHelper helper=createBeanHelper(elementClass);
+      sw.print("violations.addAll(");
+      sw.print(helper.getValidatorInstanceName());
+      sw.println(".validate(myContext, value, groups));");
+    }
     sw.outdent();
     sw.println("}");
   }
