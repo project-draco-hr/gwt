@@ -1,35 +1,37 @@
 {
   List<EditorData> flatData=new ArrayList<EditorData>();
   List<EditorData> toReturn=new ArrayList<EditorData>();
-  for (  JClassType type : editorType.getFlattenedSupertypeHierarchy()) {
-    for (    JField field : type.getFields()) {
-      if (field.isPrivate() || field.isStatic() || field.getAnnotation(Editor.Ignore.class) != null) {
-        continue;
-      }
-      JType fieldClassType=field.getType();
-      if (shouldExamine(fieldClassType)) {
-        List<EditorData> data=createEditorData(EditorAccess.via(field));
-        accumulateEditorData(data,flatData,toReturn);
-      }
-    }
-    for (    JMethod method : type.getMethods()) {
-      if (method.isPrivate() || method.isStatic() || method.getAnnotation(Editor.Ignore.class) != null) {
-        continue;
-      }
-      JType methodReturnType=method.getReturnType();
-      if (shouldExamine(methodReturnType) && method.getParameters().length == 0) {
-        EditorAccess access=EditorAccess.via(method);
-        if (access.getPath().equals("as") && isEditorIntf.isAssignableFrom(editorType)) {
+  if (!leafValueEditorIntf.isAssignableFrom(editorType)) {
+    for (    JClassType type : editorType.getFlattenedSupertypeHierarchy()) {
+      for (      JField field : type.getFields()) {
+        if (field.isPrivate() || field.isStatic() || field.getAnnotation(Editor.Ignore.class) != null) {
           continue;
         }
- else         if (access.getPath().equals("createEditorForTraversal") && compositeEditorIntf.isAssignableFrom(editorType)) {
+        JType fieldClassType=field.getType();
+        if (shouldExamine(fieldClassType)) {
+          List<EditorData> data=createEditorData(EditorAccess.via(field));
+          accumulateEditorData(data,flatData,toReturn);
+        }
+      }
+      for (      JMethod method : type.getMethods()) {
+        if (method.isPrivate() || method.isStatic() || method.getAnnotation(Editor.Ignore.class) != null) {
           continue;
         }
-        List<EditorData> data=createEditorData(access);
-        accumulateEditorData(data,flatData,toReturn);
+        JType methodReturnType=method.getReturnType();
+        if (shouldExamine(methodReturnType) && method.getParameters().length == 0) {
+          EditorAccess access=EditorAccess.via(method);
+          if (access.getPath().equals("as") && isEditorIntf.isAssignableFrom(editorType)) {
+            continue;
+          }
+ else           if (access.getPath().equals("createEditorForTraversal") && compositeEditorIntf.isAssignableFrom(editorType)) {
+            continue;
+          }
+          List<EditorData> data=createEditorData(access);
+          accumulateEditorData(data,flatData,toReturn);
+        }
       }
+      type=type.getSuperclass();
     }
-    type=type.getSuperclass();
   }
   if (compositeEditorIntf.isAssignableFrom(editorType)) {
     JClassType subEditorType=calculateCompositeTypes(editorType)[1];
