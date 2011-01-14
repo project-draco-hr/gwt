@@ -1,0 +1,25 @@
+{
+  delayTestFinish(TEST_TIMEOUT);
+  final SimpleFooEditor editor=new SimpleFooEditor();
+  final SimpleFooDriver driver=GWT.create(SimpleFooDriver.class);
+  driver.initialize(req,editor);
+  req.simpleFooRequest().findSimpleFooById(1L).with(driver.getPaths()).fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy response){
+      SimpleFooRequest context=req.simpleFooRequest();
+      driver.edit(response,context);
+      editor.userName.setValue("One");
+      context.persistAndReturnSelf().using(response).with(driver.getPaths()).to(new Receiver<SimpleFooProxy>(){
+        @Override public void onSuccess(        SimpleFooProxy response){
+          assertEquals("One",response.getUserName());
+          driver.edit(response,req.simpleFooRequest());
+          editor.userName.setValue("Two");
+          driver.flush();
+          finishTestAndReset();
+        }
+      }
+);
+      driver.flush().fire();
+    }
+  }
+);
+}
