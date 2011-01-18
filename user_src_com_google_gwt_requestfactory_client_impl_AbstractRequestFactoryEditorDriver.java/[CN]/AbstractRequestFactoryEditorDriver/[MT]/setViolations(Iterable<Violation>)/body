@@ -1,23 +1,3 @@
 {
-  checkDelegate();
-  for (  Violation error : violations) {
-    Object key=error.getInvalidProxy();
-    List<AbstractEditorDelegate<?,?>> delegateList=delegateMap.get(key);
-    if (delegateList != null) {
-      for (      AbstractEditorDelegate<?,?> baseDelegate : delegateList) {
-        String basePath=baseDelegate.getPath();
-        String absolutePath=(basePath.length() > 0 ? basePath + "." : "") + error.getPath();
-        List<AbstractEditorDelegate<?,?>> leafDelegates=delegateMap.getPath(absolutePath);
-        if (leafDelegates != null) {
-          leafDelegates.get(0).recordError(error.getMessage(),null,error);
-        }
- else {
-          baseDelegate.recordError(error.getMessage(),null,error,error.getPath());
-        }
-      }
-    }
-  }
-  errors=new ArrayList<EditorError>();
-  delegate.flushErrors(errors);
-  return !errors.isEmpty();
+  return doSetViolations(new ViolationIterable(violations));
 }
