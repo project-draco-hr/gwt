@@ -1,0 +1,24 @@
+{
+  for (  Annotation annotation : annotations) {
+    if (annotation.annotationType().getAnnotation(Constraint.class) == null) {
+      try {
+        Method valueMethod=annotation.annotationType().getMethod("value");
+        Class<?> valueType=valueMethod.getReturnType();
+        if (valueType.isArray() && Annotation.class.isAssignableFrom(valueType.getComponentType())) {
+          Annotation[] valueAnnotions=(Annotation[])valueMethod.invoke(annotation);
+          for (          Annotation annotation2 : valueAnnotions) {
+            if (expectedAnnotation.equals(annotation2)) {
+              return true;
+            }
+          }
+        }
+      }
+ catch (      NoSuchMethodException ignore) {
+      }
+catch (      Exception e) {
+        throw error(logger,e);
+      }
+    }
+  }
+  return false;
+}
