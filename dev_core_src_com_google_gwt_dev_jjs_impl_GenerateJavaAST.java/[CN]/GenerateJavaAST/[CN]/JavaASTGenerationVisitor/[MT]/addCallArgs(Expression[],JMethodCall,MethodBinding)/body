@@ -3,31 +3,26 @@
   for (int i=0; i < args.length; ++i) {
     args[i]=dispProcessExpression(jdtArgs[i]);
   }
-  TypeBinding[] params=binding.parameters;
-  int n=params.length;
-  if (binding.isVarargs()) {
-    --n;
-  }
-  if (args.length < n) {
-    assert(call.getTarget().getName().equals("Enum"));
+  if (!binding.isVarargs()) {
+    call.addArgs(args);
     return;
   }
-  for (int i=0; i < n; ++i) {
+  TypeBinding[] params=binding.parameters;
+  int varArg=params.length - 1;
+  for (int i=0; i < varArg; ++i) {
     call.addArg(args[i]);
   }
-  if (binding.isVarargs()) {
-    JArrayType lastParamType=(JArrayType)typeMap.get(params[n]);
-    if (args.length == n + 1) {
-      if (program.typeOracle.canTriviallyCast(args[n].getType(),lastParamType)) {
-        call.addArg(args[n]);
-        return;
-      }
+  if (args.length == params.length) {
+    if (jdtArgs[varArg].resolvedType.isCompatibleWith(params[varArg])) {
+      call.addArg(args[varArg]);
+      return;
     }
-    List<JExpression> initializers=new ArrayList<JExpression>();
-    for (int i=n; i < args.length; ++i) {
-      initializers.add(args[i]);
-    }
-    JNewArray newArray=JNewArray.createInitializers(program,call.getSourceInfo(),lastParamType,initializers);
-    call.addArg(newArray);
   }
+  List<JExpression> initializers=new ArrayList<JExpression>();
+  for (int i=varArg; i < args.length; ++i) {
+    initializers.add(args[i]);
+  }
+  JArrayType lastParamType=(JArrayType)typeMap.get(params[varArg]);
+  JNewArray newArray=JNewArray.createInitializers(program,SourceOrigin.UNKNOWN,lastParamType,initializers);
+  call.addArg(newArray);
 }
