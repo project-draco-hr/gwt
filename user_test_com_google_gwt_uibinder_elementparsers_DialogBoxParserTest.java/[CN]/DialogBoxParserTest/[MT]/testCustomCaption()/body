@@ -1,0 +1,24 @@
+{
+  StringBuffer b=new StringBuffer();
+  DialogBoxParser parser=new DialogBoxParser();
+  String typeName=DialogBox.class.getCanonicalName();
+  tester=new ElementParserTester(typeName,parser,CAPTION_SUBCLASS);
+  b.append("<ui:UiBinder xmlns:ui='" + ElementParserTester.BINDER_URI + "'");
+  b.append("    xmlns:my='urn:import:my'");
+  b.append("    xmlns:g='urn:import:com.google.gwt.user.client.ui'>");
+  b.append("  <g:DialogBox autoHide='true' modal='true'>");
+  b.append("    <g:customCaption><my:MyCaption/></g:customCaption>");
+  b.append("    <g:Label>And your little dog, too!</g:Label>");
+  b.append("  </g:DialogBox> ");
+  b.append("</ui:UiBinder>");
+  parser.parse(tester.getElem(b.toString(),"g:DialogBox"),"fieldName",tester.parsedType,tester.writer);
+  String[] expected={"fieldName.setWidget(<g:Label>);"};
+  FieldWriter w=tester.fieldManager.lookup("fieldName");
+  assertEquals("new " + PARSED_TYPE + "(true, true, <my:MyCaption>)",w.getInitializer());
+  Iterator<String> i=tester.writer.statements.iterator();
+  for (  String e : expected) {
+    assertEquals(e,i.next());
+  }
+  assertFalse(i.hasNext());
+  assertNull(tester.logger.died);
+}

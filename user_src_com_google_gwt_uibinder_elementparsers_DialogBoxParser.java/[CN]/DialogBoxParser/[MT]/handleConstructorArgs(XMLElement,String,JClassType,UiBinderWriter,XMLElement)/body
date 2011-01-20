@@ -1,0 +1,20 @@
+{
+  boolean custom=isCustomWidget(writer,type);
+  if (!custom) {
+    String autoHide=elem.consumeBooleanAttribute("autoHide",false);
+    String modal=elem.consumeBooleanAttribute("modal",true);
+    if (customCaption != null) {
+      if (!writer.isWidgetElement(customCaption)) {
+        writer.die(customCaption,"<%s:%s> must be a widget",customCaption.getPrefix(),CUSTOM_CAPTION);
+      }
+      if (!isCaption(writer,customCaption)) {
+        writer.die(customCaption,"<%s:%s> must implement %s",customCaption.getPrefix(),CUSTOM_CAPTION,Caption.class.getCanonicalName());
+      }
+      String fieldElement=writer.parseElementToField(customCaption);
+      writer.setFieldInitializerAsConstructor(fieldName,writer.getOracle().findType(DialogBox.class.getCanonicalName()),autoHide,modal,fieldElement);
+    }
+ else {
+      writer.setFieldInitializerAsConstructor(fieldName,writer.getOracle().findType(DialogBox.class.getCanonicalName()),autoHide,modal);
+    }
+  }
+}

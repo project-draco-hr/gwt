@@ -1,13 +1,21 @@
 {
   String caption=null;
   String body=null;
+  XMLElement customCaption=null;
+  String prefix=elem.getPrefix();
   for (  XMLElement child : elem.consumeChildElements()) {
-    if ("caption".equals(child.getLocalName())) {
+    if (CAPTION.equals(child.getLocalName())) {
       if (caption != null) {
-        writer.die(elem,"May have only one <%s:caption>",elem.getPrefix());
+        writer.die(elem,"May have only one <%s:%s>",prefix,CAPTION);
       }
       HtmlInterpreter interpreter=HtmlInterpreter.newInterpreterForUiObject(writer,fieldName);
       caption=child.consumeInnerHtml(interpreter);
+    }
+ else     if (CUSTOM_CAPTION.equals(child.getLocalName())) {
+      if (customCaption != null) {
+        writer.die(elem,"May only have one <%s:%s>",prefix,CUSTOM_CAPTION);
+      }
+      customCaption=child.consumeSingleChildElement();
     }
  else {
       if (body != null) {
@@ -19,7 +27,10 @@
       body=writer.parseElementToField(child);
     }
   }
-  handleConstructorArgs(elem,fieldName,type,writer);
+  if (caption != null && customCaption != null) {
+    writer.die("Must choose between <%s:%s> or <%s:%s>",prefix,CAPTION,prefix,CUSTOM_CAPTION);
+  }
+  handleConstructorArgs(elem,fieldName,type,writer,customCaption);
   if (caption != null) {
     writer.addStatement("%s.setHTML(\"%s\");",fieldName,caption);
   }
