@@ -1,0 +1,27 @@
+{
+  ResizeLayoutPanel panel=createPanel();
+  panel.setWidget(new Label("hello world"));
+  panel.setWidth("100%");
+  panel.setHeight("100%");
+  final CustomResizeHandler handler=new CustomResizeHandler();
+  panel.addResizeHandler(handler);
+  handler.assertResizeFired(false);
+  container.setWidget(panel);
+  RootPanel.get().add(container);
+  delayTestFinish(10000);
+  Scheduler.get().scheduleDeferred(new ScheduledCommand(){
+    public void execute(){
+      handler.assertResizeFired(true);
+      resizeCommand.execute();
+      new Timer(){
+        @Override public void run(){
+          handler.assertResizeFired(true);
+          container.removeFromParent();
+          finishTest();
+        }
+      }
+.schedule(250);
+    }
+  }
+);
+}

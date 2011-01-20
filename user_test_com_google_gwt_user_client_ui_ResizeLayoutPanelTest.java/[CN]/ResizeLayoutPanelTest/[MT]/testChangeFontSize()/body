@@ -1,0 +1,32 @@
+{
+  ResizeLayoutPanel panel=createPanel();
+  panel.setWidget(new Label("hello world"));
+  panel.setWidth("10em");
+  panel.setHeight("10em");
+  final CustomResizeHandler handler=new CustomResizeHandler();
+  panel.addResizeHandler(handler);
+  handler.assertResizeFired(false);
+  final SimplePanel container=new SimplePanel();
+  container.getElement().getStyle().setFontSize(10,Unit.PT);
+  container.setHeight("10em");
+  container.setWidth("10em");
+  container.setWidget(panel);
+  RootPanel.get().add(container);
+  delayTestFinish(10000);
+  Scheduler.get().scheduleDeferred(new ScheduledCommand(){
+    public void execute(){
+      handler.assertResizeFired(true);
+      handler.assertResizeFired(false);
+      container.getElement().getStyle().setFontSize(12,Unit.PT);
+      new Timer(){
+        @Override public void run(){
+          handler.assertResizeFired(true);
+          container.removeFromParent();
+          finishTest();
+        }
+      }
+.schedule(250);
+    }
+  }
+);
+}
