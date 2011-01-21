@@ -8,7 +8,7 @@
   JMethod newMethod=new JMethod(sourceInfo.makeChild(CreateStaticImplsVisitor.class,"Devirtualized function"),newName,enclosingType,returnType,false,true,true,x.isPrivate());
   newMethod.setSynthetic();
   newMethod.addThrownExceptions(x.getThrownExceptions());
-  JParameter thisParam=JParameter.create(sourceInfo.makeChild(CreateStaticImplsVisitor.class,"Instance parameter"),"this$static",program.getNonNullType(enclosingType),true,true,newMethod);
+  JParameter thisParam=JParameter.create(sourceInfo.makeChild(CreateStaticImplsVisitor.class,"Instance parameter"),"this$static",enclosingType.getNonNull(),true,true,newMethod);
   Map<JParameter,JParameter> varMap=new IdentityHashMap<JParameter,JParameter>();
   for (int i=0; i < x.getParams().size(); ++i) {
     JParameter oldVar=x.getParams().get(i);
@@ -16,7 +16,7 @@
     varMap.put(oldVar,newVar);
   }
   List<JType> originalParamTypes=new ArrayList<JType>();
-  originalParamTypes.add(program.getNonNullType(enclosingType));
+  originalParamTypes.add(enclosingType.getNonNull());
   originalParamTypes.addAll(x.getOriginalParamTypes());
   newMethod.setOriginalTypes(x.getOriginalReturnType(),originalParamTypes);
   JAbstractMethodBody movedBody=x.getBody();
@@ -25,7 +25,7 @@
   JMethodBody newBody=new JMethodBody(delegateCallSourceInfo);
   x.setBody(newBody);
   JMethodCall newCall=new JMethodCall(delegateCallSourceInfo,null,newMethod);
-  newCall.addArg(new JThisRef(delegateCallSourceInfo,program.getNonNullType(enclosingType)));
+  newCall.addArg(new JThisRef(delegateCallSourceInfo,enclosingType));
   for (int i=0; i < x.getParams().size(); ++i) {
     JParameter param=x.getParams().get(i);
     newCall.addArg(new JParameterRef(delegateCallSourceInfo,param));
