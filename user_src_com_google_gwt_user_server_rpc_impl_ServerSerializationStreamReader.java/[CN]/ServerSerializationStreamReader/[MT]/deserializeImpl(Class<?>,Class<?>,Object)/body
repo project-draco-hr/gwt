@@ -1,6 +1,12 @@
 {
   if (customSerializer != null) {
-    deserializeWithCustomFieldDeserializer(customSerializer,instanceClass,instance);
+    @SuppressWarnings("unchecked") CustomFieldSerializer<Object> customFieldSerializer=(CustomFieldSerializer<Object>)SerializabilityUtil.loadCustomFieldSerializer(customSerializer);
+    if (customFieldSerializer == null) {
+      deserializeWithCustomFieldDeserializer(customSerializer,instanceClass,instance);
+    }
+ else {
+      customFieldSerializer.deserializeInstance(this,instance);
+    }
   }
  else   if (instanceClass.isArray()) {
     instance=deserializeArray(instanceClass,instance);

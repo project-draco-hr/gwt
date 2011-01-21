@@ -2,7 +2,13 @@
   assert(instance != null);
   Class<?> customSerializer=SerializabilityUtil.hasCustomFieldSerializer(instanceClass);
   if (customSerializer != null) {
-    serializeWithCustomSerializer(customSerializer,instance,instanceClass);
+    @SuppressWarnings("unchecked") CustomFieldSerializer<Object> customFieldSerializer=(CustomFieldSerializer<Object>)SerializabilityUtil.loadCustomFieldSerializer(customSerializer);
+    if (customFieldSerializer == null) {
+      serializeWithCustomSerializer(customSerializer,instance,instanceClass);
+    }
+ else {
+      customFieldSerializer.serializeInstance(this,instance);
+    }
   }
  else   if (instanceClass.isArray()) {
     serializeArray(instanceClass,instance);

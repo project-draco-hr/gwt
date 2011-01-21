@@ -1,0 +1,26 @@
+{
+  CustomFieldSerializer<?> customFieldSerializer=CLASS_TO_SERIALIZER_INSTANCE.get(customSerializerClass);
+  if (customFieldSerializer == null) {
+    if (CustomFieldSerializer.class.isAssignableFrom(customSerializerClass)) {
+      try {
+        customFieldSerializer=(CustomFieldSerializer)customSerializerClass.newInstance();
+      }
+ catch (      InstantiationException e) {
+        throw new SerializationException(e);
+      }
+catch (      IllegalAccessException e) {
+        throw new SerializationException(e);
+      }
+    }
+ else {
+      customFieldSerializer=NO_SUCH_SERIALIZER;
+    }
+    CLASS_TO_SERIALIZER_INSTANCE.put(customSerializerClass,customFieldSerializer);
+  }
+  if (customFieldSerializer == NO_SUCH_SERIALIZER) {
+    return null;
+  }
+ else {
+    return customFieldSerializer;
+  }
+}

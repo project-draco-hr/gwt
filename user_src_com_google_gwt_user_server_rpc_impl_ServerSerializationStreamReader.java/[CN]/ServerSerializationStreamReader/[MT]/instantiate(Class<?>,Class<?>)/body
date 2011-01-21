@@ -1,9 +1,15 @@
 {
   if (customSerializer != null) {
-    for (    Method method : customSerializer.getMethods()) {
-      if ("instantiate".equals(method.getName())) {
-        return method.invoke(null,this);
+    CustomFieldSerializer customFieldSerializer=SerializabilityUtil.loadCustomFieldSerializer(customSerializer);
+    if (customFieldSerializer == null) {
+      for (      Method method : customSerializer.getMethods()) {
+        if ("instantiate".equals(method.getName())) {
+          return method.invoke(null,this);
+        }
       }
+    }
+ else     if (customFieldSerializer.hasCustomInstantiateInstance()) {
+      return customFieldSerializer.instantiateInstance(this);
     }
   }
   if (instanceClass.isArray()) {
