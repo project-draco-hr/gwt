@@ -1,0 +1,32 @@
+{
+class TwoViewActivity extends SyncActivity {
+    MyView view2;
+    public TwoViewActivity(    MyView view1,    MyView view2){
+      super(view1);
+      this.view2=view2;
+    }
+    void secondView(){
+      display.setWidget(view2);
+    }
+    void firstView(){
+      display.setWidget(view);
+    }
+  }
+  final TwoViewActivity activity=new TwoViewActivity(new MyView(),new MyView());
+  ActivityMapper map=new ActivityMapper(){
+    public Activity getActivity(    Place place){
+      return activity;
+    }
+  }
+;
+  manager=new ActivityManager(map,eventBus);
+  manager.setDisplay(realDisplay);
+  manager.onPlaceChange(new PlaceChangeEvent(place1));
+  assertEquals(activity.view,realDisplay.widget);
+  activity.secondView();
+  assertEquals(activity.view2,realDisplay.widget);
+  activity.firstView();
+  assertEquals(activity.view,realDisplay.widget);
+  activity.secondView();
+  assertEquals(activity.view2,realDisplay.widget);
+}
