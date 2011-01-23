@@ -3,11 +3,20 @@
   boolean isInstantiated=instantiatedTypes.contains(type);
   JType leafType=type.getLeafType();
   int dims=type.getDims();
-  if (leafType instanceof JReferenceType) {
-    JReferenceType rLeafType=(JReferenceType)leafType;
-    if (rLeafType.getSuperClass() != null) {
-      JArrayType superArray=program.getTypeArray(rLeafType.getSuperClass(),dims);
-      rescue(superArray,true,isInstantiated);
+  boolean didSuperType=false;
+  if (leafType instanceof JClassType) {
+    JClassType superClass=((JClassType)leafType).getSuperClass();
+    if (superClass != null) {
+      rescue(program.getTypeArray(superClass,dims),true,isInstantiated);
+      didSuperType=true;
+    }
+  }
+  if (!didSuperType) {
+    if (dims > 1) {
+      rescue(program.getTypeArray(program.getTypeJavaLangObject(),dims - 1),true,isInstantiated);
+    }
+ else {
+      rescue(program.getTypeJavaLangObject(),true,isInstantiated);
     }
   }
   if (leafType instanceof JDeclaredType) {

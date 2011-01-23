@@ -2,11 +2,15 @@
   if (type.isExternal() || !type.hasClinit() || computed.contains(type)) {
     return;
   }
-  if (type.getSuperClass() != null) {
-    computeClinitTarget(type.getSuperClass(),computed);
+  JClassType superClass=null;
+  if (type instanceof JClassType) {
+    superClass=((JClassType)type).getSuperClass();
+  }
+  if (superClass != null) {
+    computeClinitTarget(superClass,computed);
   }
   if (type.getClinitTarget() != type) {
-    type.setClinitTarget(type.getSuperClass().getClinitTarget());
+    type.setClinitTarget(superClass.getClinitTarget());
   }
  else {
     JDeclaredType target=computeClinitTargetRecursive(type,computed,new IdentityHashSet<JDeclaredType>());
