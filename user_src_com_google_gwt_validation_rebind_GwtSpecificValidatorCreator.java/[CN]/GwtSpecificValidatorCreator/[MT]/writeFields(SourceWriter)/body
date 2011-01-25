@@ -1,4 +1,14 @@
 {
+  BeanInfo beanInfo;
+  try {
+    beanInfo=Introspector.getBeanInfo(beanHelper.getClazz());
+  }
+ catch (  IntrospectionException e) {
+    throw error(logger,e);
+  }
+  sw.print("java.util.List<String> allPropertyNames = java.util.Arrays.asList(");
+  sw.print(Joiner.on(",").join(Iterables.transform(ImmutableList.copyOf(beanInfo.getPropertyDescriptors()),Functions.compose(TO_LITERAL,PROPERTY_DESCRIPTOR_TO_NAME))));
+  sw.println(");");
   for (  PropertyDescriptor p : beanHelper.getBeanDescriptor().getConstrainedProperties()) {
     int count=0;
     for (    ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
