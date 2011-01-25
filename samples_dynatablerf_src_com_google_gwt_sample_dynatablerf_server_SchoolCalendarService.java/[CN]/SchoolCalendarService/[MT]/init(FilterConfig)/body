@@ -1,7 +1,9 @@
 {
   backingStore=(PersonSource)config.getServletContext().getAttribute(SchoolCalendarService.class.getName());
   if (backingStore == null) {
-    backingStore=PersonSource.of(PersonFuzzer.generateRandomPeople());
+    List<Person> randomPeople=PersonFuzzer.generateRandomPeople();
+    scheduleStore=ScheduleSource.of(PersonFuzzer.collectSchedules(randomPeople));
+    backingStore=PersonSource.of(randomPeople,scheduleStore);
     config.getServletContext().setAttribute(SchoolCalendarService.class.getName(),backingStore);
   }
 }

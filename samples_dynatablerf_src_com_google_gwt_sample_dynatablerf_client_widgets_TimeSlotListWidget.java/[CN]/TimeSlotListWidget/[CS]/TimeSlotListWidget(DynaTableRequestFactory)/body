@@ -1,0 +1,25 @@
+{
+  this.factory=factory;
+  table=new CellTable<TimeSlotListWidget.ScheduleRow>(ROWS_IN_A_DAY,GWT.<TableResources>create(TableResources.class));
+  table.addColumn(new WeekDayColumn(null),"Hour");
+  for (  WeekDay day : WeekDay.values()) {
+    WeekDayColumn col=new WeekDayColumn(day);
+class Updater implements FieldUpdater<ScheduleRow,String> {
+      private WeekDay columnDay;
+      public Updater(      WeekDay day){
+        columnDay=day;
+      }
+      public void update(      int index,      ScheduleRow row,      String value){
+        if (acceptClicks) {
+          row.toggleInUse(columnDay);
+        }
+      }
+    }
+    FieldUpdater<ScheduleRow,String> fieldUpdater=new Updater(day);
+    col.setFieldUpdater(fieldUpdater);
+    table.addColumn(col,day.getShortName());
+  }
+  table.setRowCount(ROWS_IN_A_DAY,false);
+  table.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
+  initWidget(uiBinder.createAndBindUi(this));
+}
