@@ -4,6 +4,8 @@
   builder.expectError(EditorModel.unexpectedInputTypeMessage(rfedType,types.getJavaLangObject()),null);
   builder.expectError(EditorModel.mustExtendMessage(rfedType),null);
   builder.expectError(EditorModel.tooManyInterfacesMessage(types.findType("t.TooManyInterfacesEditorDriver")),null);
+  builder.expectError(EditorModel.foundPrimitiveMessage(JPrimitiveType.LONG,"","lastModified.foo"),null);
+  builder.expectError(EditorModel.poisonedMessage(),null);
   UnitTestTreeLogger testLogger=builder.createLogger();
   try {
     new EditorModel(testLogger,types.getJavaLangObject(),rfedType);
@@ -19,6 +21,12 @@
   }
   try {
     new EditorModel(testLogger,types.findType("t.TooManyInterfacesEditorDriver"),rfedType);
+    fail("Should have thrown exception");
+  }
+ catch (  UnableToCompleteException expected) {
+  }
+  try {
+    new EditorModel(testLogger,types.findType("t.PersonEditorWithBadPrimitiveAccessDriver"),rfedType);
     fail("Should have thrown exception");
   }
  catch (  UnableToCompleteException expected) {

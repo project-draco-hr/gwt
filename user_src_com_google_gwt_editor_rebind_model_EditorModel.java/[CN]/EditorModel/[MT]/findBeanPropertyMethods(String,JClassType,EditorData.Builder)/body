@@ -8,13 +8,21 @@
     if (parts[i].length() == 0) {
       continue;
     }
+    boolean lastPart=i == j - 1;
     String getterName=camelCase("get",parts[i]);
     for (    JClassType search : lookingAt.getFlattenedSupertypeHierarchy()) {
       if (i == j - 1 && setterName == null) {
         for (        JMethod maybeSetter : search.getOverloads(camelCase("set",parts[i]))) {
-          if (maybeSetter.getReturnType().equals(JPrimitiveType.VOID) && maybeSetter.getParameters().length == 1 && maybeSetter.getParameters()[0].getType().isClassOrInterface() != null && maybeSetter.getParameters()[0].getType().isClassOrInterface().isAssignableFrom(propertyType)) {
-            setterName=maybeSetter.getName();
-            break;
+          if (maybeSetter.getReturnType().equals(JPrimitiveType.VOID) && maybeSetter.getParameters().length == 1) {
+            JType setterParamType=maybeSetter.getParameters()[0].getType();
+            if (setterParamType.isPrimitive() != null) {
+              setterParamType=oracle.findType(setterParamType.isPrimitive().getQualifiedBoxedSourceName());
+            }
+            boolean matches=setterParamType.isClassOrInterface().isAssignableFrom(propertyType);
+            if (matches) {
+              setterName=maybeSetter.getName();
+              break;
+            }
           }
         }
       }
@@ -22,7 +30,7 @@
       if (getter != null) {
         JType returnType=getter.getReturnType();
         lookingAt=returnType.isClassOrInterface();
-        if (lookingAt == null) {
+        if (!lastPart && lookingAt == null) {
           poison(foundPrimitiveMessage(returnType,interstitialGetters.toString(),path));
           return;
         }

@@ -145,8 +145,10 @@
       code.append("interface PersonProxy extends EntityProxy {\n");
       code.append("AddressProxy getAddress();\n");
       code.append("String getName();\n");
-      code.append("void setName(String name);\n");
+      code.append("long getLastModified();\n");
       code.append("String getReadonly();\n");
+      code.append("void setName(String name);\n");
+      code.append("void setLastModified(long value);\n");
       code.append("}");
       return code;
     }
@@ -158,6 +160,7 @@
       code.append("import " + Editor.class.getName() + ";\n");
       code.append("import " + SimpleEditor.class.getName() + ";\n");
       code.append("class PersonEditor implements Editor<PersonProxy> {\n");
+      code.append("SimpleEditor<Long> lastModified;\n");
       code.append("public SimpleEditor<String> name;\n");
       code.append("SimpleEditor<String> readonly;\n");
       code.append("public static SimpleEditor ignoredStatic;\n");
@@ -186,6 +189,28 @@
       code.append("package t;\n");
       code.append("import " + RequestFactoryEditorDriver.class.getName() + ";\n");
       code.append("interface PersonEditorWithAliasedSubEditorsDriver extends" + " RequestFactoryEditorDriver<PersonProxy, t.PersonEditorWithAliasedSubEditors> {\n");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.PersonEditorWithBadPrimitiveAccess"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + Editor.class.getName() + ";\n");
+      code.append("import " + SimpleEditor.class.getName() + ";\n");
+      code.append("class PersonEditorWithBadPrimitiveAccess implements Editor<PersonProxy> {\n");
+      code.append("@Path(\"lastModified.foo\") SimpleEditor<String> bad;\n");
+      code.append("}");
+      return code;
+    }
+  }
+,new MockJavaResource("t.PersonEditorWithBadPrimitiveAccessDriver"){
+    @Override protected CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package t;\n");
+      code.append("import " + RequestFactoryEditorDriver.class.getName() + ";\n");
+      code.append("interface PersonEditorWithBadPrimitiveAccessDriver extends" + " RequestFactoryEditorDriver<PersonProxy, t.PersonEditorWithBadPrimitiveAccess> {\n");
       code.append("}");
       return code;
     }
