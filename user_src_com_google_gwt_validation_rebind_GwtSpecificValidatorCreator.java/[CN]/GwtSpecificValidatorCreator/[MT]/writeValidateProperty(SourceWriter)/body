@@ -5,8 +5,10 @@
   sw.println("GwtValidationContext<T> context,");
   sw.println(beanHelper.getTypeCanonicalName() + " object,");
   sw.println("String propertyName,");
-  sw.println("Class<?>... groups) {");
+  sw.println("Class<?>... groups) throws ValidationException {");
   sw.outdent();
+  sw.println("try {");
+  sw.indent();
   writeNewViolations(sw);
   for (  PropertyDescriptor property : beanHelper.getBeanDescriptor().getConstrainedProperties()) {
     sw.print("if (propertyName.equals(\"");
@@ -20,6 +22,7 @@
   }
   writeIfPropertyNameNotFound(sw);
   sw.println("return violations;");
+  writeCatchUnexpectedException(sw,"\"Error validating \" + propertyName + \" of " + beanHelper.getTypeCanonicalName() + "\"");
   sw.outdent();
   sw.println("}");
 }
