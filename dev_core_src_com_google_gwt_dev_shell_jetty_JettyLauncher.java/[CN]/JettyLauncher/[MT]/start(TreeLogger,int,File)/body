@@ -4,14 +4,9 @@
   Log.setLog(new JettyTreeLogger(branch));
   jreLeakPrevention(logger);
   System.setProperty("org.mortbay.xml.XmlParser.Validating","false");
-  AbstractConnector connector=getConnector();
-  if (bindAddress != null) {
-    connector.setHost(bindAddress.toString());
-  }
-  connector.setPort(port);
-  connector.setReuseAddress(false);
-  connector.setSoLingerTime(0);
   Server server=new Server();
+  AbstractConnector connector=getConnector(logger);
+  setupConnector(connector,bindAddress,port);
   server.addConnector(connector);
   WebAppContext wac=createWebAppContext(logger,appRootDir);
   RequestLogHandler logHandler=new RequestLogHandler();

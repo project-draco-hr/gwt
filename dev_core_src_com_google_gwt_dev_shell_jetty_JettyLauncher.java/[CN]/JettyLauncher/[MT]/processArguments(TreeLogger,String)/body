@@ -1,0 +1,66 @@
+{
+  if (arguments != null && arguments.length() > 0) {
+    for (    String arg : arguments.split(",")) {
+      int equals=arg.indexOf('=');
+      String tag;
+      String value=null;
+      if (equals < 0) {
+        tag=arg;
+      }
+ else {
+        tag=arg.substring(0,equals);
+        value=arg.substring(equals + 1);
+      }
+      if ("ssl".equals(tag)) {
+        useSsl=true;
+        URL keyStoreUrl=getClass().getResource("localhost.keystore");
+        if (keyStoreUrl == null) {
+          logger.log(TreeLogger.ERROR,"Default GWT keystore not found");
+          return false;
+        }
+        keyStore=keyStoreUrl.toExternalForm();
+        keyStorePassword="localhost";
+      }
+ else       if ("keystore".equals(tag)) {
+        useSsl=true;
+        keyStore=value;
+      }
+ else       if ("password".equals(tag)) {
+        useSsl=true;
+        keyStorePassword=value;
+      }
+ else       if ("pwfile".equals(tag)) {
+        useSsl=true;
+        keyStorePassword=Util.readFileAsString(new File(value)).trim();
+        if (keyStorePassword == null) {
+          logger.log(TreeLogger.ERROR,"Unable to read keystore password from '" + value + "'");
+          return false;
+        }
+      }
+ else       if ("clientAuth".equals(tag)) {
+        useSsl=true;
+        try {
+          clientAuth=ClientAuth.valueOf(value);
+        }
+ catch (        IllegalArgumentException e) {
+          logger.log(TreeLogger.WARN,"Ignoring invalid clientAuth of '" + value + "'");
+        }
+      }
+ else {
+        logger.log(TreeLogger.ERROR,"Unexpected argument to " + JettyLauncher.class.getSimpleName() + ": "+ arg);
+        return false;
+      }
+    }
+    if (useSsl) {
+      if (keyStore == null) {
+        logger.log(TreeLogger.ERROR,"A keystore is required to use SSL");
+        return false;
+      }
+      if (keyStorePassword == null) {
+        logger.log(TreeLogger.ERROR,"A keystore password is required to use SSL");
+        return false;
+      }
+    }
+  }
+  return true;
+}
