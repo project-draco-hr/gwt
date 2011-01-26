@@ -1,25 +1,16 @@
 {
-  Throwable toReport;
   try {
-    Method method=domainObject.getClass().getMethod("get" + capitalize(property));
-    method.setAccessible(true);
-    Object value=method.invoke(domainObject);
+    Method getter=getTop().getGetter(domainObject.getClass(),property);
+    if (getter == null) {
+      die(null,"Could not determine getter for property %s on type %s",property,domainObject.getClass().getCanonicalName());
+    }
+    Object value=getter.invoke(domainObject);
     return value;
   }
- catch (  SecurityException e) {
-    toReport=e;
-  }
-catch (  NoSuchMethodException e) {
-    toReport=e;
-  }
-catch (  IllegalArgumentException e) {
-    toReport=e;
-  }
-catch (  IllegalAccessException e) {
-    toReport=e;
+ catch (  IllegalAccessException e) {
+    return die(e,"Could not retrieve property %s",property);
   }
 catch (  InvocationTargetException e) {
     return report(e);
   }
-  return die(toReport,"Could not retrieve property %s",property);
 }

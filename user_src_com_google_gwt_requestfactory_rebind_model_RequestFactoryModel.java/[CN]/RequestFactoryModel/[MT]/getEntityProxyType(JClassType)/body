@@ -29,6 +29,7 @@
       die(poisonedMessage());
     }
     List<RequestMethod> requestMethods=new ArrayList<RequestMethod>();
+    Map<String,JMethod> duplicatePropertyGetters=new HashMap<String,JMethod>();
     for (    JMethod method : entityProxyType.getInheritableMethods()) {
       if (method.getEnclosingType().equals(entityProxyInterface)) {
         continue;
@@ -37,10 +38,18 @@
       methodBuilder.setDeclarationMethod(method);
       JType transportedType;
       String name=method.getName();
-      if (name.startsWith("get") && method.getParameters().length == 0) {
+      if (JBeanMethod.GET.matches(method)) {
         transportedType=method.getReturnType();
+        String propertyName=JBeanMethod.GET.inferName(method);
+        JMethod previouslySeen=duplicatePropertyGetters.get(propertyName);
+        if (previouslySeen == null) {
+          duplicatePropertyGetters.put(propertyName,method);
+        }
+ else {
+          poison("Duplicate accessors for property %s: %s() and %s()",propertyName,previouslySeen.getName(),method.getName());
+        }
       }
- else       if (name.startsWith("set") && method.getParameters().length == 1) {
+ else       if (JBeanMethod.SET.matches(method)) {
         transportedType=method.getParameters()[0].getType();
       }
  else       if (name.equals("stableId") && method.getParameters().length == 0) {

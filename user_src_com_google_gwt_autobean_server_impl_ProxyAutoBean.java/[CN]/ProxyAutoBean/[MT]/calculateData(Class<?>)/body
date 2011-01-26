@@ -1,0 +1,38 @@
+{
+  Data toReturn;
+synchronized (cache) {
+    toReturn=cache.get(beanType);
+    if (toReturn == null) {
+      toReturn=new Data();
+      for (      Method method : beanType.getMethods()) {
+        if (BeanMethod.GET.matches(method)) {
+          toReturn.getters.add(method);
+          String name;
+          PropertyName annotation=method.getAnnotation(PropertyName.class);
+          if (annotation != null) {
+            name=annotation.value();
+          }
+ else {
+            name=BeanMethod.GET.inferName(method);
+          }
+          toReturn.getterNames.add(name);
+          Class<?> returnType=method.getReturnType();
+          if (TypeUtils.isValueType(returnType)) {
+            toReturn.propertyType.add(PropertyType.VALUE);
+          }
+ else           if (Collection.class.isAssignableFrom(returnType)) {
+            toReturn.propertyType.add(PropertyType.COLLECTION);
+          }
+ else           if (Map.class.isAssignableFrom(returnType)) {
+            toReturn.propertyType.add(PropertyType.MAP);
+          }
+ else {
+            toReturn.propertyType.add(PropertyType.REFERENCE);
+          }
+        }
+      }
+      cache.put(beanType,toReturn);
+    }
+  }
+  return toReturn;
+}

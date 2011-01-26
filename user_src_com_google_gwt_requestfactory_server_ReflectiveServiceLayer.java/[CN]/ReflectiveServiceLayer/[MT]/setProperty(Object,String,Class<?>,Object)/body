@@ -1,27 +1,16 @@
 {
-  Method setter;
-  Throwable ex;
   try {
-    setter=domainObject.getClass().getMethod("set" + capitalize(property),expectedType);
-    setter.setAccessible(true);
+    Method setter=getTop().getSetter(domainObject.getClass(),property);
+    if (setter == null) {
+      die(null,"Could not locate setter for property %s in type %s",property,domainObject.getClass().getCanonicalName());
+    }
     setter.invoke(domainObject,value);
     return;
   }
- catch (  SecurityException e) {
-    ex=e;
-  }
-catch (  NoSuchMethodException e) {
-    ex=e;
-  }
-catch (  IllegalArgumentException e) {
-    ex=e;
-  }
-catch (  IllegalAccessException e) {
-    ex=e;
+ catch (  IllegalAccessException e) {
+    die(e,"Could not set property %s",property);
   }
 catch (  InvocationTargetException e) {
     report(e);
-    return;
   }
-  die(ex,"Could not locate setter for property %s in type %s",property,domainObject.getClass().getCanonicalName());
 }
