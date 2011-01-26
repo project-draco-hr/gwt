@@ -3,11 +3,18 @@
     callback.onSuccess(cache[index]);
     return;
   }
-  RequestBuilder rb=new RequestBuilder(RequestBuilder.GET,url);
-  try {
-    rb.sendRequest("",new ETRCallback(callback));
+  if (md5Hash != null) {
+    JsonpRequestBuilder rb=new JsonpRequestBuilder();
+    rb.setPredeterminedId(md5Hash);
+    rb.requestObject(url,new ETRCallback(callback));
   }
- catch (  RequestException e) {
-    throw new ResourceException(this,"Unable to initiate request for external resource",e);
+ else {
+    RequestBuilder rb=new RequestBuilder(RequestBuilder.GET,url);
+    try {
+      rb.sendRequest("",new ETRCallback(callback));
+    }
+ catch (    RequestException e) {
+      throw new ResourceException(this,"Unable to initiate request for external resource",e);
+    }
   }
 }
