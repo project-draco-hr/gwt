@@ -4,20 +4,24 @@
   JClassType place2=typeOracle.getType(Place2.class.getName());
   JClassType place3=typeOracle.getType(Place3.class.getName());
   JClassType place4=typeOracle.getType(Place4.class.getName());
+  JClassType place6=typeOracle.getType(Place6.class.getName());
   JClassType factory=typeOracle.getType(TokenizerFactory.class.getName());
   PlaceHistoryGeneratorContext context=createContext(TreeLogger.NULL,typeOracle,WithFactory.class.getName(),TokenizerFactory.class.getName());
-  assertEquals(new HashSet<String>(Arrays.asList(Place1.Tokenizer.PREFIX,TokenizerFactory.PLACE2_PREFIX,"Place3","Place4")),context.getPrefixes());
-  assertEquals(Arrays.asList(place3,place4,place1,place2),new ArrayList<JClassType>(context.getPlaceTypes()));
+  assertEquals(new HashSet<String>(Arrays.asList("",Place1.Tokenizer.PREFIX,TokenizerFactory.PLACE2_PREFIX,"Place3","Place4")),context.getPrefixes());
+  assertEquals(Arrays.asList(place3,place4,place1,place2,place6),new ArrayList<JClassType>(context.getPlaceTypes()));
   assertEquals(Place1.Tokenizer.PREFIX,context.getPrefix(place1));
   assertEquals(TokenizerFactory.PLACE2_PREFIX,context.getPrefix(place2));
   assertEquals("Place3",context.getPrefix(place3));
   assertEquals("Place4",context.getPrefix(place4));
+  assertEquals("",context.getPrefix(place6));
   assertEquals(factory.getMethod("getTokenizer1",EMPTY_JTYPE_ARRAY),context.getTokenizerGetter(Place1.Tokenizer.PREFIX));
   assertEquals(factory.getMethod("getTokenizer2",EMPTY_JTYPE_ARRAY),context.getTokenizerGetter(TokenizerFactory.PLACE2_PREFIX));
   assertEquals(factory.getMethod("getTokenizer3",EMPTY_JTYPE_ARRAY),context.getTokenizerGetter("Place3"));
   assertNull(context.getTokenizerGetter("Place4"));
+  assertNull(context.getTokenizerGetter(""));
   assertNull(context.getTokenizerType(Place1.Tokenizer.PREFIX));
   assertNull(context.getTokenizerType(TokenizerFactory.PLACE2_PREFIX));
   assertNull(context.getTokenizerType("Place3"));
   assertEquals(typeOracle.getType(Tokenizer4.class.getName()),context.getTokenizerType("Place4"));
+  assertEquals(typeOracle.getType(Place6.Tokenizer.class.getCanonicalName()),context.getTokenizerType(""));
 }
