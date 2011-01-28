@@ -1,27 +1,2 @@
 {
-  if (field.getEnclosingType() != null) {
-    if (field.isStatic() && nameRef.getQualifier() != null) {
-      JsniCollector.reportJsniError(info,methodDecl,"Cannot make a qualified reference to the static field " + field.getName());
-    }
- else     if (!field.isStatic() && nameRef.getQualifier() == null) {
-      JsniCollector.reportJsniError(info,methodDecl,"Cannot make an unqualified reference to the instance field " + field.getName());
-    }
-  }
-  if (field.isCompileTimeConstant()) {
-    if (ctx.isLvalue()) {
-      JsniCollector.reportJsniError(info,methodDecl,"Cannot change the value of compile-time constant " + field.getName());
-    }
-    JLiteral initializer=field.getConstInitializer();
-    JType type=initializer.getType();
-    if (type instanceof JPrimitiveType || program.isJavaLangString(type)) {
-      GenerateJavaScriptLiterals generator=new GenerateJavaScriptLiterals(jsProgram);
-      generator.accept(initializer);
-      JsExpression result=generator.peek();
-      assert(result != null);
-      ctx.replaceMe(result);
-      return;
-    }
-  }
-  JsniFieldRef fieldRef=new JsniFieldRef(info,nameRef.getIdent(),field,currentClass,ctx.isLvalue());
-  nativeMethodBody.addJsniRef(fieldRef);
 }

@@ -1,0 +1,26 @@
+{
+  StringBuffer code=new StringBuffer();
+  code.append("class Buggy {\n");
+  code.append("  static final int foo = 3;\n");
+  code.append("  native void jsniMethod() /*-{\n");
+  code.append("    @Buggy::foo = 4;\n");
+  code.append("  }-*/;\n");
+  code.append("}\n");
+  shouldGenerateError(code,4,"Illegal assignment to compile-time constant 'Buggy.foo'");
+  code=new StringBuffer();
+  code.append("class Buggy {\n");
+  code.append("  static final String foo = \"asdf\";\n");
+  code.append("  native void jsniMethod() /*-{\n");
+  code.append("    @Buggy::foo = null;\n");
+  code.append("  }-*/;\n");
+  code.append("}\n");
+  shouldGenerateError(code,4,"Illegal assignment to compile-time constant 'Buggy.foo'");
+  code=new StringBuffer();
+  code.append("class Buggy {\n");
+  code.append("  static final Object foo = new Object();\n");
+  code.append("  native void jsniMethod() /*-{\n");
+  code.append("    @Buggy::foo = null;\n");
+  code.append("  }-*/;\n");
+  code.append("}\n");
+  shouldGenerateNoWarning(code);
+}

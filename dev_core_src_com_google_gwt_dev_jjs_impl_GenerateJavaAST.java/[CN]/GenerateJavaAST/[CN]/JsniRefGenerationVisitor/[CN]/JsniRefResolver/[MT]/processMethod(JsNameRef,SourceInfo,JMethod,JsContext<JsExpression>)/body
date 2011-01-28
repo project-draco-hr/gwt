@@ -1,23 +1,2 @@
 {
-  JDeclaredType enclosingType=method.getEnclosingType();
-  if (enclosingType != null) {
-    JClassType jsoImplType=program.typeOracle.getSingleJsoImpl(enclosingType);
-    if (jsoImplType != null) {
-      JsniCollector.reportJsniError(info,methodDecl,"Illegal reference to method '" + method.getName() + "' in type '"+ enclosingType.getName()+ "', which is implemented by an overlay type '"+ jsoImplType.getName()+ "'. Use a stronger type in the JSNI "+ "identifier or a Java trampoline method.");
-    }
- else     if (!method.needsVtable() && nameRef.getQualifier() != null) {
-      JsniCollector.reportJsniError(info,methodDecl,"Cannot make a qualified reference to the static method " + method.getName());
-    }
- else     if (method.needsVtable() && nameRef.getQualifier() == null && !(method instanceof JConstructor)) {
-      JsniCollector.reportJsniError(info,methodDecl,"Cannot make an unqualified reference to the instance method " + method.getName());
-    }
- else     if (!method.isStatic() && program.isJavaScriptObject(enclosingType)) {
-      JsniCollector.reportJsniError(info,methodDecl,"Illegal reference to instance method '" + method.getName() + "' in type '"+ enclosingType.getName()+ "', which is an overlay type; only static references to overlay types are allowed from JSNI");
-    }
-  }
-  if (ctx.isLvalue()) {
-    JsniCollector.reportJsniError(info,methodDecl,"Cannot reassign the Java method " + method.getName());
-  }
-  JsniMethodRef methodRef=new JsniMethodRef(info,nameRef.getIdent(),method,program.getJavaScriptObject());
-  nativeMethodBody.addJsniRef(methodRef);
 }

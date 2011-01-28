@@ -1,21 +1,21 @@
 {
-  if (!isJsoSubclass(type.binding)) {
+  SourceTypeBinding binding=type.binding;
+  if (!isJsoSubclass(binding)) {
     return false;
   }
-  if (type.enclosingType != null && !type.binding.isStatic()) {
+  if (type.enclosingType != null && !binding.isStatic()) {
     errorOn(type,ERR_IS_NONSTATIC_NESTED);
   }
-  ReferenceBinding[] interfaces=type.binding.superInterfaces();
+  ReferenceBinding[] interfaces=binding.superInterfaces();
   if (interfaces != null) {
     for (    ReferenceBinding interf : interfaces) {
       if (interf.methods() == null) {
         continue;
       }
       if (interf.methods().length > 0) {
-        ReferenceBinding superclass=type.binding.superclass();
+        ReferenceBinding superclass=binding.superclass();
         if (superclass == null || !superclass.implementsInterface(interf,true)) {
-          String intfName=CharOperation.toString(interf.compoundName);
-          state.addJsoInterface(type,cud,intfName);
+          state.addJsoInterface(type,cud,interf);
         }
       }
     }

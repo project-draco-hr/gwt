@@ -1,7 +1,9 @@
 {
-  Map<AbstractMethodDeclaration,JsniMethod> jsniMethods=JsniCollector.collectJsniMethods(cud,builder.getSource(),jsProgram);
+  Map<MethodDeclaration,JsniMethod> jsniMethods=JsniCollector.collectJsniMethods(cud,builder.getSource(),jsProgram);
+  JSORestrictionsChecker.check(jsoState,cud);
   final Set<String> jsniDeps=new HashSet<String>();
-  JsniChecker.check(cud,jsniMethods,new JsniChecker.TypeResolver(){
+  Map<String,Binding> jsniRefs=new HashMap<String,Binding>();
+  JsniChecker.check(cud,jsoState,jsniMethods,jsniRefs,new JsniChecker.TypeResolver(){
     public ReferenceBinding resolveType(    String typeName){
       ReferenceBinding resolveType=compiler.resolveType(typeName);
       if (resolveType != null) {
@@ -11,7 +13,6 @@
     }
   }
 );
-  JSORestrictionsChecker.check(jsoState,cud);
   ArtificialRescueChecker.check(cud,builder.isGenerated());
   BinaryTypeReferenceRestrictionsChecker.check(cud);
   MethodArgNamesLookup methodArgs=MethodParamCollector.collect(cud);

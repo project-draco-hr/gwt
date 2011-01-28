@@ -1,0 +1,16 @@
+{
+  StringBuffer code=new StringBuffer();
+  code.append("class Buggy {\n");
+  code.append("  interface IFoo {\n");
+  code.append("    void foo();\n");
+  code.append("  }\n");
+  code.append("  static final class Foo extends com.google.gwt.core.client.JavaScriptObject implements IFoo{\n");
+  code.append("    protected Foo() { };\n");
+  code.append("    public void foo() { };\n");
+  code.append("  }\n");
+  code.append("  native void jsniMeth(Object o) /*-{\n");
+  code.append("    new Object().@Buggy.IFoo::foo()();\n");
+  code.append("  }-*/;\n");
+  code.append("}\n");
+  shouldGenerateError(code,10,"Referencing interface method 'Buggy.IFoo.foo()': implemented by 'Buggy$Foo'; references to instance methods in overlay types are illegal; use a stronger type or a Java trampoline method");
+}
