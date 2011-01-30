@@ -1,0 +1,15 @@
+{
+  XsrfTestServiceAsync service=getAsyncService();
+  delayTestFinishForRpc();
+  service.drink("kumys",new AsyncCallback<Void>(){
+    public void onFailure(    Throwable caught){
+      RpcTokenException e=(RpcTokenException)caught;
+      assertTrue(e.getMessage().contains("XSRF token missing"));
+      checkServerState("kumys",false);
+    }
+    public void onSuccess(    Void result){
+      fail("Should've failed without XSRF token");
+    }
+  }
+);
+}
