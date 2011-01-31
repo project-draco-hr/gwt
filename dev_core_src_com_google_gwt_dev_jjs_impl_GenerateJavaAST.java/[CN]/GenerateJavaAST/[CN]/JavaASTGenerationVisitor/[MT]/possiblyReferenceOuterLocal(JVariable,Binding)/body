@@ -1,29 +1,2 @@
 {
-  if (variable instanceof JLocal || variable instanceof JParameter) {
-    LocalVariableBinding localBinding=(LocalVariableBinding)binding;
-    if (localBinding.declaringScope.methodScope() != currentMethodScope) {
-      variable=null;
-      VariableBinding[] vars=currentMethodScope.getEmulationPath(localBinding);
-      if (vars == null) {
-        return null;
-      }
-      assert(vars.length == 1);
-      VariableBinding varBinding=vars[0];
-      if (varBinding instanceof SyntheticArgumentBinding) {
-        JType type=(JType)typeMap.get(varBinding.type);
-        String name=String.valueOf(varBinding.name);
-        for (int i=0; i < currentMethod.getParams().size(); ++i) {
-          JParameter param=currentMethod.getParams().get(i);
-          if (type == param.getType() && name.equals(param.getName())) {
-            variable=param;
-            break;
-          }
-        }
-      }
-      if (variable == null) {
-        variable=(JField)typeMap.get(varBinding);
-      }
-    }
-  }
-  return variable;
 }
