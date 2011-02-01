@@ -1,0 +1,16 @@
+{
+  if (includeList.length == 0 && excludeList.length == 0 && skipList.length == 0 && caseSensitive) {
+    return getMatchingDefaultFilter(defaultExcludes,filterFileType);
+  }
+  ResourceFilter catchAll=new ResourceFilter(){
+    ZipScanner scanner=getScanner(includeList,excludeList,skipList,defaultExcludes,caseSensitive);
+    public boolean allows(    String path){
+      return filterFileType.matches(path) && scanner.match(path);
+    }
+  }
+;
+  if (!caseSensitive) {
+    return catchAll;
+  }
+  return customFilterWithCatchAll(includeList,excludeList,skipList,defaultExcludes,catchAll,filterFileType);
+}
