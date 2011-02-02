@@ -1,0 +1,29 @@
+{
+  AbstractEditorDelegate<?,?> delegate=(AbstractEditorDelegate<?,?>)ctx.getEditorDelegate();
+  if (delegate == null) {
+    return;
+  }
+  List<EditorError> errors=delegate.getErrors();
+  lastAdded=new ArrayList<EditorError>(errors);
+  lastAddedPath=ctx.getAbsolutePath();
+  errorStack.peek().addAll(errors);
+  errors.clear();
+  HasEditorErrors<T> asErrors=ctx.asHasEditorErrors();
+  if (asErrors != null) {
+    List<EditorError> tryConsume=errorStack.pop();
+    int prefixLength=ctx.getAbsolutePath().length();
+    prefixLength=prefixLength == 0 ? 0 : prefixLength + 1;
+    for (    EditorError error : tryConsume) {
+      ((SimpleError)error).setPathPrefixLength(prefixLength);
+    }
+    asErrors.showErrors(tryConsume);
+    if (!tryConsume.isEmpty()) {
+      List<EditorError> accumulator=errorStack.peek();
+      for (      EditorError e : tryConsume) {
+        if (!e.isConsumed()) {
+          accumulator.add(e);
+        }
+      }
+    }
+  }
+}

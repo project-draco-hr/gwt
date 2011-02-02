@@ -1,14 +1,15 @@
 {
   AbstractEditorDelegate<R,S> subDelegate=map.get(subEditor);
-  @SuppressWarnings("unchecked") Editor<Object> temp=(Editor<Object>)subEditor;
-  String subPath=path + composedEditor.getPathElement(temp);
+  String subPath=path + composedEditor.getPathElement(subEditor);
   if (subDelegate == null) {
-    subDelegate=createComposedDelegate();
+    @SuppressWarnings("unchecked") AbstractEditorDelegate<R,S> temp=(AbstractEditorDelegate<R,S>)createComposedDelegate();
+    subDelegate=temp;
     map.put(subEditor,subDelegate);
-    initializeSubDelegate(subDelegate,subPath,object,subEditor,delegateMap);
+    addSubDelegate(subDelegate,subPath,subEditor);
   }
  else {
     subDelegate.path=subPath;
-    subDelegate.refresh(object);
   }
+  subDelegate.setObject(ensureMutable(object));
+  traverse(new Initializer(),subDelegate);
 }

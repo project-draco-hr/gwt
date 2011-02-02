@@ -1,6 +1,12 @@
 {
   String editorDelegateName=getEditorDelegate(model.getRootData());
-  sw.println("protected %s createDelegate() {",Name.getSourceNameForClass(getEditorDelegateType()),model.getProxyType().getQualifiedSourceName(),model.getEditorType().getQualifiedSourceName());
+  sw.println("@Override public void accept(%s visitor) {",EditorVisitor.class.getCanonicalName());
+  sw.indent();
+  sw.println("%1$s ctx = new %1$s(getDelegate(), %2$s.class, getObject());",RootEditorContext.class.getCanonicalName(),model.getProxyType().getQualifiedSourceName());
+  sw.println("ctx.traverse(visitor, getDelegate());");
+  sw.outdent();
+  sw.println("}");
+  sw.println("@Override protected %s createDelegate() {",Name.getSourceNameForClass(getEditorDelegateType()),model.getProxyType().getQualifiedSourceName(),model.getEditorType().getQualifiedSourceName());
   sw.indent();
   sw.println("return new %1$s();",editorDelegateName);
   sw.outdent();

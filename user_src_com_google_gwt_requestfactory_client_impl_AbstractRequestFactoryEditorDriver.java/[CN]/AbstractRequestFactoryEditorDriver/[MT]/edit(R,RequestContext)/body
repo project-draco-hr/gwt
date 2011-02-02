@@ -1,7 +1,17 @@
 {
-  checkEditor();
   this.saveRequest=saveRequest;
-  delegate=createDelegate();
-  delegate.initialize(eventBus,requestFactory,"",object,editor,delegateMap,saveRequest);
-  delegateMap.put(object,delegate);
+  accept(new EditorVisitor(){
+    @Override public <T>void endVisit(    EditorContext<T> ctx){
+      RequestFactoryEditorDelegate<?,?> delegate=(RequestFactoryEditorDelegate<?,?>)ctx.getEditorDelegate();
+      if (delegate != null) {
+        delegate.setRequestContext(saveRequest);
+      }
+      Editor<T> editor=ctx.getEditor();
+      if (editor instanceof HasRequestContext) {
+        ((HasRequestContext<T>)editor).setRequestContext(saveRequest);
+      }
+    }
+  }
+);
+  doEdit(object);
 }

@@ -1,0 +1,41 @@
+{
+  String pkg=parent.getEditorType().getPackage().getName();
+  String simpleName=escapedBinaryName(parent.getEditorType().getName()) + "_" + data.getDeclaredPath().replace("_","_1").replace(".","_")+ "_Context";
+  PrintWriter pw=context.tryCreate(logger,pkg,simpleName);
+  if (pw != null) {
+    ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(pkg,simpleName);
+    String editedSourceName=data.getEditedType().getQualifiedSourceName();
+    f.setSuperclass(AbstractEditorContext.class.getCanonicalName() + "<" + editedSourceName+ ">");
+    SourceWriter sw=f.createSourceWriter(context,pw);
+    String parentSourceName=parent.getEditedType().getQualifiedSourceName();
+    sw.println("private final %s parent;",parentSourceName);
+    sw.println("public %s(%s parent, %s<%s, ?> delegate) {",simpleName,parentSourceName,AbstractEditorDelegate.class.getCanonicalName(),editedSourceName);
+    sw.indentln("super(delegate);");
+    sw.indentln("this.parent = parent;");
+    sw.println("}");
+    sw.println("public %s(%s parent, %s<%s> editor, String path) {",simpleName,parentSourceName,Editor.class.getCanonicalName(),editedSourceName);
+    sw.indentln("super(editor,path);");
+    sw.indentln("this.parent = parent;");
+    sw.println("}");
+    sw.println("@Override public boolean canSetInModel() {");
+    sw.indentln("return parent != null && %s && %s;",data.getSetterName() == null ? "false" : "true",data.getBeanOwnerGuard("parent"));
+    sw.println("}");
+    sw.println("@Override public %s checkAssignment(Object value) {",editedSourceName);
+    sw.indentln("return (%s) value;",editedSourceName);
+    sw.println("}");
+    sw.println("@Override public Class<%1$s> getEditedType() { return %1$s.class; }",editedSourceName);
+    sw.println("@Override public %s getFromModel() {",editedSourceName);
+    sw.indentln("return (parent != null && %s) ? parent%s%s : null;",data.getBeanOwnerGuard("parent"),data.getBeanOwnerExpression(),data.getGetterExpression());
+    sw.println("}");
+    sw.println("@Override public void setInModel(%s data) {",editedSourceName);
+    if (data.getSetterName() == null) {
+      sw.indentln("throw new UnsupportedOperationException();");
+    }
+ else {
+      sw.indentln("parent%s.%s(data);",data.getBeanOwnerExpression(),data.getSetterName());
+    }
+    sw.println("}");
+    sw.commit(logger);
+  }
+  return pkg + "." + simpleName;
+}
