@@ -1,11 +1,11 @@
 {
-  if (eventsToWrite == null) {
+  if (!enabled) {
     return;
   }
+  long endTimeNanos=timeKeeper.normalizedTimeNanos();
   if (data.length % 2 == 1) {
     throw new IllegalArgumentException("Unmatched data argument");
   }
-  long endTimeNanos=normalizedTimeNanos();
   Stack<Event> threadPendingEvents=pendingEvents.get();
   if (threadPendingEvents.isEmpty()) {
     throw new IllegalStateException("Tried to end an event that never started!");
@@ -22,7 +22,13 @@
   if (threadPendingEvents.isEmpty() && currentEvent != event) {
     currentEvent.addData("Missed","Fell off the end of the threadPending events");
   }
+  if (logGcTime) {
+    addGcEvents(currentEvent);
+  }
   currentEvent.addData(data);
+  if (logOverheadTime) {
+    addOverheadEvent(currentEvent);
+  }
   if (threadPendingEvents.isEmpty()) {
     eventsToWrite.add(currentEvent);
   }

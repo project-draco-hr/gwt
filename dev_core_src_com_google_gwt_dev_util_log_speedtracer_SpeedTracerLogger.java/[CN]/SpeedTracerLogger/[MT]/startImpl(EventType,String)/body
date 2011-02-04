@@ -1,5 +1,5 @@
 {
-  if (eventsToWrite == null) {
+  if (!enabled) {
     return dummyEvent;
   }
   if (data.length % 2 == 1) {
@@ -10,9 +10,12 @@
   if (!threadPendingEvents.isEmpty()) {
     parent=threadPendingEvents.peek();
   }
+ else {
+    timeKeeper.resetTimeBase();
+  }
   Event newEvent=new Event(parent,type,data);
   if (threadPendingEvents.size() == 0) {
-    newEvent.addData("baseTime","" + zeroTimeMilliseconds);
+    newEvent.addData("baseTime","" + timeKeeper.zeroTimeMillis());
   }
   threadPendingEvents.push(newEvent);
   return newEvent;
