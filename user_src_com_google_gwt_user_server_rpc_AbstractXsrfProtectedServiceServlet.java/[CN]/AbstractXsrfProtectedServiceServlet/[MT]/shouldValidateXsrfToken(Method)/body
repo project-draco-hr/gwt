@@ -1,0 +1,16 @@
+{
+  Class<?> servletClass=method.getDeclaringClass();
+  if (method.getAnnotation(NoXsrfProtect.class) != null || (Util.getClassAnnotation(servletClass,NoXsrfProtect.class) != null && method.getAnnotation(XsrfProtect.class) == null)) {
+    return false;
+  }
+  if (Util.getClassAnnotation(servletClass,XsrfProtect.class) != null || method.getAnnotation(XsrfProtect.class) != null) {
+    return true;
+  }
+  Method[] classMethods=servletClass.getMethods();
+  for (  Method classMethod : classMethods) {
+    if (RpcToken.class.isAssignableFrom(classMethod.getReturnType()) && !method.equals(classMethod)) {
+      return true;
+    }
+  }
+  return false;
+}
