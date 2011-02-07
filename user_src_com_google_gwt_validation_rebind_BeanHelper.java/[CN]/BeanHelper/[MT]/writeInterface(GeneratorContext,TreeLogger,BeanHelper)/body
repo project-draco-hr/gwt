@@ -4,8 +4,14 @@
     TreeLogger interfaceLogger=logger.branch(TreeLogger.TRACE,"Creating the interface for " + bean.getFullyQualifiedValidatorName());
     ClassSourceFileComposerFactory factory=new ClassSourceFileComposerFactory(bean.getPackage(),bean.getValidatorName());
     factory.addImplementedInterface(GwtSpecificValidator.class.getCanonicalName() + " <" + bean.getTypeCanonicalName()+ ">");
+    factory.addImport(GWT.class.getCanonicalName());
     factory.makeInterface();
     SourceWriter sw=factory.createSourceWriter(context,pw);
+    sw.print("static ");
+    sw.print(bean.getValidatorName());
+    sw.print(" INSTANCE = GWT.create(");
+    sw.print(bean.getValidatorName());
+    sw.println(".class);");
     sw.commit(interfaceLogger);
     pw.close();
   }

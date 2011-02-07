@@ -1,0 +1,21 @@
+{
+  Set<T> working=Sets.newHashSet(classes);
+  List<T> sorted=Lists.newArrayList();
+  Predicate<T> mostSpecific=createMostSpecificMatchPredicate(working,toClass);
+  boolean changed=false;
+  do {
+    changed=false;
+    for (    T t : Ordering.usingToString().sortedCopy(working)) {
+      if (mostSpecific.apply(t)) {
+        sorted.add(t);
+        working.remove(t);
+        changed=true;
+      }
+    }
+  }
+ while (changed);
+  if (!working.isEmpty()) {
+    throw new IllegalStateException("Unable to find a element that does not have a more specific element in the set " + working);
+  }
+  return ImmutableList.copyOf(sorted);
+}

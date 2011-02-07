@@ -1,6 +1,6 @@
 {
   Class<?> elementClass=p.getElementClass();
-  JType elementType=getElementType(p,useField);
+  JType elementType=beanHelper.getElementType(p,useField);
   sw.print("private final <T> void ");
   if (useField) {
     sw.print(validateMethodFieldName(p));
@@ -27,21 +27,20 @@
     sw.indent();
     if (isIterableOrMap(elementClass)) {
       if (hasValid(p,useField)) {
-        JType associationType=getAssociationType(p,useField);
-        BeanHelper helper=createBeanHelper(associationType);
+        JClassType associationType=beanHelper.getAssociationType(p,useField);
+        createBeanHelper(associationType);
         if (Map.class.isAssignableFrom(elementClass)) {
-          writeValidateMap(sw,p,associationType,helper);
+          writeValidateMap(sw,p);
         }
  else {
-          writeValidateIterable(sw,p,associationType,helper);
+          writeValidateIterable(sw,p);
         }
       }
     }
  else {
-      BeanHelper helper=createBeanHelper(elementClass);
+      createBeanHelper(elementClass);
       sw.print("violations.addAll(");
-      sw.print(helper.getValidatorInstanceName());
-      sw.println(".validate(myContext, value, groups));");
+      sw.println("myContext.getValidator().validate(myContext, value, groups));");
     }
     sw.outdent();
     sw.println("}");

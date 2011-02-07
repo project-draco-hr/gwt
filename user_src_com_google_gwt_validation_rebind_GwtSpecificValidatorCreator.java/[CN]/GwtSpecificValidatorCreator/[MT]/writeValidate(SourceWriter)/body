@@ -9,33 +9,30 @@
   sw.println("try {");
   sw.indent();
   writeNewViolations(sw);
-  if (beanHelper.getBeanDescriptor().isBeanConstrained()) {
-    Set<PropertyDescriptor> properties=beanHelper.getBeanDescriptor().getConstrainedProperties();
-    for (    PropertyDescriptor p : properties) {
-      writeValidatePropertyCall(sw,p,false);
-    }
-    int count=0;
-    Class<?> clazz=beanHelper.getClazz();
-    for (    ConstraintDescriptor<?> constraint : beanHelper.getBeanDescriptor().findConstraints().getConstraintDescriptors()) {
-      Annotation annotation=constraint.getAnnotation();
-      if (hasMatchingAnnotation(constraint)) {
-        Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass=getValidatorForType(constraint,clazz);
-        if (validatorClass != null) {
-          sw.print("validate(context, violations, null, object, ");
-          sw.print("new ");
-          sw.print(validatorClass.getCanonicalName());
-          sw.print("(), ");
-          sw.print(constraintDescriptorVar("this",count));
-          sw.println(", groups);");
-        }
- else {
-          logger.log(Type.WARN,"No ConstraintValidator of " + constraint + " for type "+ clazz);
-        }
-      }
-      count++;
-    }
-    writeValidateInheritance(sw,clazz,Stage.OBJECT,null);
+  Set<PropertyDescriptor> properties=beanHelper.getBeanDescriptor().getConstrainedProperties();
+  for (  PropertyDescriptor p : properties) {
+    writeValidatePropertyCall(sw,p,false);
   }
+  int count=0;
+  Class<?> clazz=beanHelper.getClazz();
+  for (  ConstraintDescriptor<?> constraint : beanHelper.getBeanDescriptor().getConstraintDescriptors()) {
+    if (hasMatchingAnnotation(constraint)) {
+      Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass=getValidatorForType(constraint,clazz);
+      if (validatorClass != null) {
+        sw.print("validate(context, violations, null, object, ");
+        sw.print("new ");
+        sw.print(validatorClass.getCanonicalName());
+        sw.print("(), ");
+        sw.print(constraintDescriptorVar("this",count));
+        sw.println(", groups);");
+      }
+ else {
+        logger.log(Type.WARN,"No ConstraintValidator of " + constraint + " for type "+ clazz);
+      }
+    }
+    count++;
+  }
+  writeValidateInheritance(sw,clazz,Stage.OBJECT,null);
   sw.println("return violations;");
   writeCatchUnexpectedException(sw,"\"Error validating " + beanHelper.getTypeCanonicalName() + "\"");
   sw.outdent();
