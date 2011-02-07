@@ -7,7 +7,7 @@ case TokenStream.SCRIPT:
       return block;
     }
 case TokenStream.DEBUGGER:
-  return mapDebuggerStatement();
+  return mapDebuggerStatement(node);
 case TokenStream.VOID:
 return null;
 case TokenStream.EXPRSTMT:
@@ -51,7 +51,11 @@ return mapIncDecFixity(JsUnaryOperator.DEC,node);
 case TokenStream.HOOK:
 return mapConditional(node);
 case TokenStream.STRING:
-return program.getStringLiteral(sourceInfoStack.peek().makeChild(JsParser.class,"JS String literal"),node.getString());
+{
+SourceInfo info=makeSourceInfoDistinct(node);
+info.addCorrelation(info.getCorrelationFactory().by(Literal.JS_STRING));
+return new JsStringLiteral(info,node.getString());
+}
 case TokenStream.NUMBER:
 return mapNumber(node);
 case TokenStream.CALL:

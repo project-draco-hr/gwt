@@ -14,7 +14,7 @@
     if (sawReturnStatement) {
       return x;
     }
-    JsExpression h=hoistedExpression(program,statement,localVariableNames);
+    JsExpression h=hoistedExpression(statement,localVariableNames);
     if (h == null) {
       return x;
     }
@@ -27,7 +27,7 @@
     }
   }
   if (!sawReturnStatement) {
-    hoisted.add(program.getUndefinedLiteral());
+    hoisted.add(new JsNameRef(x.getSourceInfo(),JsRootScope.INSTANCE.getUndefined()));
   }
   assert(hoisted.size() > 0);
   SourceInfo sourceInfo=x.getSourceInfo().makeChild(InliningVisitor.class,"Inlined invocation");
@@ -39,7 +39,7 @@
     outerOp.setArg2(op);
     op=outerOp;
   }
-  if (!isInlinable(program,callerFunction,invokedFunction,thisExpr,x.getArguments(),op)) {
+  if (!isInlinable(callerFunction,invokedFunction,thisExpr,x.getArguments(),op)) {
     return x;
   }
   NameRefReplacerVisitor v=new NameRefReplacerVisitor(thisExpr,x.getArguments(),invokedFunction.getParameters());

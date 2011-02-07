@@ -3,13 +3,17 @@ switch (node.getIntDatum()) {
 case TokenStream.THIS:
     return new JsThisRef(makeSourceInfo(node));
 case TokenStream.TRUE:
-  return program.getTrueLiteral();
+  return JsBooleanLiteral.TRUE;
 case TokenStream.FALSE:
-return program.getFalseLiteral();
+return JsBooleanLiteral.FALSE;
 case TokenStream.NULL:
-return program.getNullLiteral();
+return JsNullLiteral.INSTANCE;
 case TokenStream.UNDEFINED:
-return program.getUndefinedLiteral();
+{
+SourceInfo info=makeSourceInfoDistinct(node);
+info.addCorrelation(info.getCorrelationFactory().by(Literal.JS_UNDEFINED));
+return new JsNameRef(info,JsRootScope.INSTANCE.getUndefined());
+}
 default :
 throw createParserException("Unknown primary: " + node.getIntDatum(),node);
 }

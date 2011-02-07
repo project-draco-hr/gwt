@@ -3,6 +3,7 @@
   Node fromTest=fromInit.getNext();
   Node fromIncr=fromTest.getNext();
   Node fromBody=fromIncr.getNext();
+  SourceInfo info=makeSourceInfo(forNode);
   if (fromBody == null) {
     Node fromIter=forNode.getFirstChild();
     Node fromObjExpr=fromIter.getNext();
@@ -12,14 +13,14 @@
       Node fromIterVarName=fromIter.getFirstChild();
       String fromName=fromIterVarName.getString();
       JsName toName=getScope().declareName(fromName);
-      toForIn=new JsForIn(makeSourceInfo(forNode),toName);
+      toForIn=new JsForIn(info,toName);
       Node fromIterInit=fromIterVarName.getFirstChild();
       if (fromIterInit != null) {
         toForIn.setIterExpr(mapOptionalExpression(fromIterInit));
       }
     }
  else {
-      toForIn=new JsForIn(makeSourceInfo(forNode));
+      toForIn=new JsForIn(info);
       toForIn.setIterExpr(mapExpression(fromIter));
     }
     toForIn.setObjExpr(mapExpression(fromObjExpr));
@@ -28,12 +29,12 @@
       toForIn.setBody(bodyStmt);
     }
  else {
-      toForIn.setBody(program.getEmptyStmt());
+      toForIn.setBody(new JsEmpty(info));
     }
     return toForIn;
   }
  else {
-    JsFor toFor=new JsFor(makeSourceInfo(forNode));
+    JsFor toFor=new JsFor(info);
     JsNode initThingy=map(fromInit);
     if (initThingy != null) {
       if (initThingy instanceof JsVars) {
@@ -51,7 +52,7 @@
       toFor.setBody(bodyStmt);
     }
  else {
-      toFor.setBody(program.getEmptyStmt());
+      toFor.setBody(new JsEmpty(info));
     }
     return toFor;
   }
