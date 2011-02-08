@@ -58,10 +58,24 @@
         dependencies=new SyntheticArtifact(SoycReportLinker.class,"dependencies" + permutationId + ".xml.gz",baos.toByteArray());
       }
     }
+    boolean isIE6orUnknown=false;
+    for (    PropertyOracle oracle : propertyOracles) {
+      try {
+        SelectionProperty userAgentProperty=oracle.getSelectionProperty(logger,"user.agent");
+        if ("ie6".equals(userAgentProperty.getCurrentValue())) {
+          isIE6orUnknown=true;
+          break;
+        }
+      }
+ catch (      BadPropertyValueException e) {
+        isIE6orUnknown=true;
+        break;
+      }
+    }
     Map<JsName,String> obfuscateMap=Maps.create();
 switch (options.getOutput()) {
 case OBFUSCATED:
-      obfuscateMap=JsStringInterner.exec(jprogram,jsProgram);
+      obfuscateMap=JsStringInterner.exec(jprogram,jsProgram,isIE6orUnknown);
     JsObfuscateNamer.exec(jsProgram);
   if (options.isAggressivelyOptimize()) {
     if (JsStackEmulator.getStackMode(propertyOracles) == JsStackEmulator.StackMode.STRIP) {
@@ -80,27 +94,14 @@ case PRETTY:
 JsPrettyNamer.exec(jsProgram);
 break;
 case DETAILED:
-obfuscateMap=JsStringInterner.exec(jprogram,jsProgram);
+obfuscateMap=JsStringInterner.exec(jprogram,jsProgram,isIE6orUnknown);
 JsVerboseNamer.exec(jsProgram);
 break;
 default :
 throw new InternalCompilerException("Unknown output mode");
 }
 HandleCrossFragmentReferences.exec(logger,jsProgram,propertyOracles);
-boolean splitBlocks=false;
-for (PropertyOracle oracle : propertyOracles) {
-try {
-SelectionProperty userAgentProperty=oracle.getSelectionProperty(logger,"user.agent");
-if ("ie6".equals(userAgentProperty.getCurrentValue())) {
-splitBlocks=true;
-break;
-}
-}
- catch (BadPropertyValueException e) {
-splitBlocks=true;
-break;
-}
-}
+boolean splitBlocks=isIE6orUnknown;
 if (splitBlocks) {
 JsIEBlockSizeVisitor.exec(jsProgram);
 }
