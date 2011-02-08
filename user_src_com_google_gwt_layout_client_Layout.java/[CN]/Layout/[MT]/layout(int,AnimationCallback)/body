@@ -1,4 +1,7 @@
 {
+  if (animation != null) {
+    animation.cancel();
+  }
   if (duration == 0) {
     for (    Layer l : layers) {
       l.left=l.sourceLeft=l.targetLeft;
@@ -33,19 +36,16 @@
     adjustHorizontalConstraints(parentWidth,l);
     adjustVerticalConstraints(parentHeight,l);
   }
-  if (animation != null) {
-    animation.cancel();
-  }
   animation=new Animation(){
     @Override protected void onCancel(){
       onComplete();
     }
     @Override protected void onComplete(){
+      animation=null;
       layout();
       if (callback != null) {
         callback.onAnimationComplete();
       }
-      animation=null;
     }
     @Override protected void onUpdate(    double progress){
       for (      Layer l : layers) {
