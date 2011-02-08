@@ -15,9 +15,9 @@
   final PropertyOracle propertyOracle=context.getPropertyOracle();
   TypeFilter blacklistTypeFilter=new BlacklistTypeFilter(logger,propertyOracle);
   Event event=SpeedTracerLogger.start(CompilerEventType.GENERATOR_RPC_STOB);
-  SerializableTypeOracleBuilder typesSentFromBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,typeOracle);
+  SerializableTypeOracleBuilder typesSentFromBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,context);
   typesSentFromBrowserBuilder.setTypeFilter(blacklistTypeFilter);
-  SerializableTypeOracleBuilder typesSentToBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,typeOracle);
+  SerializableTypeOracleBuilder typesSentToBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,context);
   typesSentToBrowserBuilder.setTypeFilter(blacklistTypeFilter);
   addRoots(logger,typeOracle,typesSentFromBrowserBuilder,typesSentToBrowserBuilder);
   try {
@@ -59,6 +59,8 @@
   generateStreamWriterOverride(srcWriter);
   generateCheckRpcTokenTypeOverride(srcWriter,typeOracle,typesSentFromBrowser);
   srcWriter.commit(logger);
-  context.commitArtifact(logger,new RpcLogArtifact(serviceIntf.getQualifiedSourceName(),serializationPolicyStrongName,rpcLog));
+  if (context.isProdMode() || logger.isLoggable(TreeLogger.DEBUG)) {
+    context.commitArtifact(logger,new RpcLogArtifact(serviceIntf.getQualifiedSourceName(),serializationPolicyStrongName,rpcLog));
+  }
   return getProxyQualifiedName();
 }
