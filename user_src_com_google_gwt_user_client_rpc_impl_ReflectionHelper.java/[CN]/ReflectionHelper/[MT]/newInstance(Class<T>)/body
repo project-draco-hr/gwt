@@ -1,5 +1,14 @@
 {
-  Constructor<T> c=klass.getDeclaredConstructor();
-  c.setAccessible(true);
-  return c.newInstance();
+  Constructor<T> c=(Constructor<T>)constructorCache.get(klass);
+  try {
+    if (c == null) {
+      c=klass.getDeclaredConstructor();
+      c.setAccessible(true);
+      constructorCache.put(klass,c);
+    }
+    return c.newInstance();
+  }
+ catch (  Exception ex) {
+    throw new RuntimeException("Unexpected failure",ex);
+  }
 }

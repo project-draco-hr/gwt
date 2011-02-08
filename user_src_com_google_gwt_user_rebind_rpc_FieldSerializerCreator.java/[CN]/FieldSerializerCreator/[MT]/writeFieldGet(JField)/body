@@ -1,22 +1,37 @@
 {
   JType fieldType=serializableField.getType();
   String fieldTypeQualifiedSourceName=fieldType.getQualifiedSourceName();
+  String serializableClassQualifedName=serializableClass.getQualifiedSourceName();
   String fieldName=serializableField.getName();
   maybeSuppressLongWarnings(fieldType);
-  sourceWriter.print("private static native ");
+  sourceWriter.print("private static " + (isProd ? "native " : ""));
   sourceWriter.print(fieldTypeQualifiedSourceName);
   sourceWriter.print(" get");
   sourceWriter.print(Shared.capitalize(fieldName));
   sourceWriter.print("(");
-  sourceWriter.print(serializableClass.getQualifiedSourceName());
-  sourceWriter.println(" instance) /*-{");
+  sourceWriter.print(serializableClassQualifedName);
+  sourceWriter.print(" instance) ");
+  sourceWriter.println(methodStart);
   sourceWriter.indent();
-  sourceWriter.print("return instance.@");
-  sourceWriter.print(SerializationUtils.getRpcTypeName(serializableClass));
-  sourceWriter.print("::");
-  sourceWriter.print(fieldName);
-  sourceWriter.println(";");
+  if (context.isProdMode()) {
+    sourceWriter.print("return instance.@");
+    sourceWriter.print(SerializationUtils.getRpcTypeName(serializableClass));
+    sourceWriter.print("::");
+    sourceWriter.print(fieldName);
+    sourceWriter.println(";");
+  }
+ else {
+    sourceWriter.print("return ");
+    JPrimitiveType primType=fieldType.isPrimitive();
+    if (primType != null) {
+      sourceWriter.print("(" + primType.getQualifiedBoxedSourceName() + ") ");
+    }
+ else {
+      sourceWriter.print("(" + fieldTypeQualifiedSourceName + ") ");
+    }
+    sourceWriter.println("ReflectionHelper.getField(" + serializableClassQualifedName + ".class, instance, \""+ fieldName+ "\");");
+  }
   sourceWriter.outdent();
-  sourceWriter.println("}-*/;");
+  sourceWriter.println(methodEnd);
   sourceWriter.println();
 }

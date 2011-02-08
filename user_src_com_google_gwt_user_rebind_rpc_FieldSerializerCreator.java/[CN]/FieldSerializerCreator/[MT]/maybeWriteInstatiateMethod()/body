@@ -9,8 +9,10 @@
   JEnumType isEnum=serializableClass.isEnum();
   JClassType isClass=serializableClass.isClass();
   boolean useViolator=false;
+  boolean isAccessible=true;
   if (isEnum == null && isClass != null) {
-    useViolator=!classIsAccessible() || !ctorIsAccessible();
+    isAccessible=classIsAccessible() && ctorIsAccessible();
+    useViolator=!isAccessible && isProd;
   }
   sourceWriter.print("public static" + (useViolator ? " native " : " "));
   String qualifiedSourceName=serializableClass.getQualifiedSourceName();
@@ -27,8 +29,13 @@
     sourceWriter.println("assert (ordinal >= 0 && ordinal < values.length);");
     sourceWriter.println("return values[ordinal];");
   }
- else   if (useViolator) {
-    sourceWriter.println("return @" + qualifiedSourceName + "::new()();");
+ else   if (!isAccessible) {
+    if (isProd) {
+      sourceWriter.println("return @" + qualifiedSourceName + "::new()();");
+    }
+ else {
+      sourceWriter.println("return ReflectionHelper.newInstance(" + qualifiedSourceName + ".class);");
+    }
   }
  else {
     sourceWriter.println("return new " + qualifiedSourceName + "();");

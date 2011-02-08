@@ -4,21 +4,27 @@
   String serializableClassQualifedName=serializableClass.getQualifiedSourceName();
   String fieldName=serializableField.getName();
   maybeSuppressLongWarnings(fieldType);
-  sourceWriter.print("private static native void ");
+  sourceWriter.print("private static " + (isProd ? "native " : "") + "void");
   sourceWriter.print(" set");
   sourceWriter.print(Shared.capitalize(fieldName));
   sourceWriter.print("(");
   sourceWriter.print(serializableClassQualifedName);
   sourceWriter.print(" instance, ");
   sourceWriter.print(fieldTypeQualifiedSourceName);
-  sourceWriter.println(" value) /*-{");
+  sourceWriter.println(" value) ");
+  sourceWriter.println(methodStart);
   sourceWriter.indent();
-  sourceWriter.print("instance.@");
-  sourceWriter.print(SerializationUtils.getRpcTypeName(serializableClass));
-  sourceWriter.print("::");
-  sourceWriter.print(fieldName);
-  sourceWriter.println(" = value;");
+  if (context.isProdMode()) {
+    sourceWriter.print("instance.@");
+    sourceWriter.print(SerializationUtils.getRpcTypeName(serializableClass));
+    sourceWriter.print("::");
+    sourceWriter.print(fieldName);
+    sourceWriter.println(" = value;");
+  }
+ else {
+    sourceWriter.println("ReflectionHelper.setField(" + serializableClassQualifedName + ".class, instance, \""+ fieldName+ "\", value);");
+  }
   sourceWriter.outdent();
-  sourceWriter.println("}-*/;");
+  sourceWriter.println(methodEnd);
   sourceWriter.println();
 }
