@@ -1,0 +1,45 @@
+{
+  if (value == null) {
+    sb.append("null");
+    return;
+  }
+  Map<?,?> map=(Map<?,?>)value;
+  boolean isSimpleMap=keyDecoder instanceof ValueCoder;
+  if (isSimpleMap) {
+    boolean first=true;
+    sb.append("{");
+    for (    Map.Entry<?,?> entry : map.entrySet()) {
+      Object mapKey=entry.getKey();
+      if (mapKey == null) {
+        continue;
+      }
+      Object mapValue=entry.getValue();
+      if (mapValue == null) {
+        continue;
+      }
+      if (first) {
+        first=false;
+      }
+ else {
+        sb.append(",");
+      }
+      keyDecoder.encode(sb,mapKey);
+      sb.append(":");
+      valueDecoder.encode(sb,mapValue);
+    }
+    sb.append("}");
+  }
+ else {
+    List<Object> keys=new ArrayList<Object>(map.size());
+    List<Object> values=new ArrayList<Object>(map.size());
+    for (    Map.Entry<?,?> entry : map.entrySet()) {
+      keys.add(entry.getKey());
+      values.add(entry.getValue());
+    }
+    sb.append("[");
+    new CollectionCoder(List.class,keyDecoder).encode(sb,keys);
+    sb.append(",");
+    new CollectionCoder(List.class,valueDecoder).encode(sb,values);
+    sb.append("]");
+  }
+}

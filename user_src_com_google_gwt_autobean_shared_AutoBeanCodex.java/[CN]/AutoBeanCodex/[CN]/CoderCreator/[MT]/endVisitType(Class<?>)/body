@@ -1,0 +1,21 @@
+{
+  if (List.class.equals(type) || Set.class.equals(type)) {
+    stack.push(new CollectionCoder(type,stack.pop()));
+  }
+ else   if (Map.class.equals(type)) {
+    stack.push(new MapCoder(stack.pop(),stack.pop()));
+  }
+ else   if (Splittable.class.equals(type)) {
+    stack.push(new SplittableDecoder());
+  }
+ else   if (type.getEnumConstants() != null) {
+    @SuppressWarnings(value={"rawtypes","unchecked"}) EnumCoder decoder=new EnumCoder(type);
+    stack.push(decoder);
+  }
+ else   if (ValueCodex.canDecode(type)) {
+    stack.push(new ValueCoder(type));
+  }
+ else {
+    stack.push(new ObjectCoder(type));
+  }
+}

@@ -1,0 +1,33 @@
+{
+  AutoBean<HasComplexTypes> auto=factory.hasListOfList();
+  auto.accept(new AutoBeanVisitor(){
+    int count=0;
+    @Override public void endVisit(    AutoBean<?> bean,    Context ctx){
+      assertEquals(3,count);
+    }
+    @Override public void endVisitCollectionProperty(    String propertyName,    AutoBean<Collection<?>> value,    CollectionPropertyContext ctx){
+      check(propertyName,ctx);
+    }
+    @Override public void endVisitMapProperty(    String propertyName,    AutoBean<Map<?,?>> value,    MapPropertyContext ctx){
+      check(propertyName,ctx);
+    }
+    private void check(    String propertyName,    PropertyContext ctx){
+      count++;
+      StringBuilder sb=new StringBuilder();
+      ctx.accept(new ParameterizationTester(sb));
+      if ("list".equals(propertyName)) {
+        assertEquals(List.class.getName() + "<" + List.class.getName()+ "<"+ Intf.class.getName()+ ">>",sb.toString());
+      }
+ else       if ("listOfMap".equals(propertyName)) {
+        assertEquals(List.class.getName() + "<" + Map.class.getName()+ "<"+ String.class.getName()+ ","+ Intf.class.getName()+ ">>",sb.toString());
+      }
+ else       if ("map".equals(propertyName)) {
+        assertEquals(Map.class.getName() + "<" + Map.class.getName()+ "<"+ String.class.getName()+ ","+ String.class.getName()+ ">,"+ List.class.getName()+ "<"+ List.class.getName()+ "<"+ Intf.class.getName()+ ">>>",sb.toString());
+      }
+ else {
+        throw new RuntimeException(propertyName);
+      }
+    }
+  }
+);
+}
