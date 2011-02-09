@@ -2,7 +2,7 @@
   CompilationResult compResult=method.compilationResult;
   int[] indexes=compResult.lineSeparatorPositions;
   int startLine=Util.getLineNumber(method.sourceStart,indexes,0,indexes.length - 1);
-  SourceInfo info=SourceOrigin.create(method.sourceStart,method.bodyEnd,startLine,fileName);
+  SourceInfo info=baseInfo.makeChild(SourceOrigin.create(method.sourceStart,method.bodyEnd,startLine,baseInfo.getFileName()));
   String jsniCode=unitSource.substring(method.bodyStart,method.bodyEnd + 1);
   int startPos=jsniCode.indexOf("/*-{");
   int endPos=jsniCode.lastIndexOf("}-*/");
@@ -43,9 +43,9 @@
   int jsStartPos=absoluteJsStartPos - functionHeaderLength;
   int jsEndPos=absoluteJsEndPos - functionHeaderLength;
   int jsLine=info.getStartLine() + countLines(indexes,info.getStartPos(),absoluteJsStartPos);
-  SourceInfo jsInfo=jsProgram.createSourceInfo(jsStartPos,jsEndPos,jsLine,info.getFileName());
+  SourceInfo jsInfo=baseInfo.makeChild(SourceOrigin.create(jsStartPos,jsEndPos,jsLine,baseInfo.getFileName()));
   try {
-    List<JsStatement> result=JsParser.parse(jsInfo,jsProgram.getScope(),sr);
+    List<JsStatement> result=JsParser.parse(jsInfo,scope,sr);
     JsExprStmt jsExprStmt=(JsExprStmt)result.get(0);
     return (JsFunction)jsExprStmt.getExpression();
   }
