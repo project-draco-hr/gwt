@@ -1,0 +1,23 @@
+{
+  CachedRebindResult lastRebindResult=genContext.getCachedGeneratorResult();
+  if (lastRebindResult == null || !genContext.isGeneratorResultCachingEnabled()) {
+    return false;
+  }
+  long lastTimeGenerated=lastRebindResult.getTimeGenerated();
+  @SuppressWarnings("unchecked") Map<String,URL> cachedResolvedResources=(Map<String,URL>)lastRebindResult.getClientData(CACHED_RESOURCE_INFORMATION);
+  if (cachedResolvedResources == null) {
+    return false;
+  }
+  for (  Entry<String,URL> entry : cachedResolvedResources.entrySet()) {
+    String resourceName=entry.getKey();
+    URL resolvedUrl=entry.getValue();
+    URL currentUrl=ResourceGeneratorUtil.tryFindResource(logger,genContext,resourceContext,resourceName);
+    if (currentUrl == null || resolvedUrl == null || !resolvedUrl.toExternalForm().equals(currentUrl.toExternalForm())) {
+      return false;
+    }
+    if (!checkDependentResourceUpToDate(lastTimeGenerated,resolvedUrl)) {
+      return false;
+    }
+  }
+  return true;
+}

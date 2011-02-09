@@ -1,14 +1,6 @@
 {
   logger=logger.branch(TreeLogger.DEBUG,"Finding resources");
-  String locale;
-  try {
-    PropertyOracle oracle=context.getGeneratorContext().getPropertyOracle();
-    SelectionProperty prop=oracle.getSelectionProperty(logger,"locale");
-    locale=prop.getCurrentValue();
-  }
- catch (  BadPropertyValueException e) {
-    locale=null;
-  }
+  String locale=getLocale(logger,context.getGeneratorContext());
   checkForDeprecatedAnnotations(logger,method);
   boolean error=false;
   Source resourceAnnotation=method.getAnnotation(Source.class);
@@ -18,8 +10,9 @@
       for (      String extension : defaultSuffixes) {
         logger.log(TreeLogger.SPAM,"Trying default extension " + extension);
         for (        Locator locator : locators) {
-          URL resourceUrl=tryFindResource(locator,getPathRelativeToPackage(method.getEnclosingType().getPackage(),method.getName() + extension),locale);
+          URL resourceUrl=tryFindResource(locator,context,getPathRelativeToPackage(method.getEnclosingType().getPackage(),method.getName() + extension),locale);
           if (resourceUrl != null) {
+            addTypeRequirementsForMethod(context,method);
             return new URL[]{resourceUrl};
           }
         }
@@ -36,9 +29,9 @@
     for (    String resource : resources) {
       URL resourceURL=null;
       for (      Locator locator : locators) {
-        resourceURL=tryFindResource(locator,getPathRelativeToPackage(method.getEnclosingType().getPackage(),resource),locale);
+        resourceURL=tryFindResource(locator,context,getPathRelativeToPackage(method.getEnclosingType().getPackage(),resource),locale);
         if (resourceURL == null) {
-          resourceURL=tryFindResource(locator,resource,locale);
+          resourceURL=tryFindResource(locator,context,resource,locale);
         }
         if (resourceURL != null) {
           break;
@@ -54,5 +47,6 @@
   if (error) {
     throw new UnableToCompleteException();
   }
+  addTypeRequirementsForMethod(context,method);
   return toReturn;
 }

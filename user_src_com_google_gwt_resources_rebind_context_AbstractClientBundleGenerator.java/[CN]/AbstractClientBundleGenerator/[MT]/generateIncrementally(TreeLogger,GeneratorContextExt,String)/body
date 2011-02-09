@@ -1,0 +1,62 @@
+{
+  if (checkPropertyCacheability(logger,generatorContext) && checkSourceTypeCacheability(generatorContext) && checkDependentResourceCacheability(logger,generatorContext,null)) {
+    return new RebindResult(RebindStatus.USE_ALL_CACHED,typeName);
+  }
+  TypeOracle typeOracle=generatorContext.getTypeOracle();
+  JClassType sourceType=typeOracle.findType(typeName);
+  if (sourceType == null) {
+    logger.log(TreeLogger.ERROR,"Could not find requested typeName");
+    throw new UnableToCompleteException();
+  }
+ else   if (sourceType.isInterface() == null) {
+    logger.log(TreeLogger.ERROR,sourceType.getQualifiedSourceName() + " is not an interface.",null);
+    throw new UnableToCompleteException();
+  }
+  Map<Class<? extends ResourceGenerator>,List<JMethod>> taskList=createTaskList(logger,typeOracle,sourceType);
+  boolean canBeCacheable=checkResourceGeneratorCacheability(generatorContext,taskList);
+  AbstractResourceContext resourceContext=createResourceContext(logger,generatorContext,sourceType);
+  FieldsImpl fields=new FieldsImpl();
+  RequirementsImpl requirements=new RequirementsImpl(generatorContext.getPropertyOracle(),canBeCacheable);
+  resourceContext.setRequirements(requirements);
+  doAddFieldsAndRequirements(logger,generatorContext,fields,requirements);
+  requirements.addTypeHierarchy(sourceType);
+  Map<ResourceGenerator,List<JMethod>> generators=initAndPrepare(logger,taskList,resourceContext,requirements);
+  String generatedSimpleSourceName=generateSimpleSourceName(logger,resourceContext,requirements);
+  String packageName=sourceType.getPackage().getName();
+  String createdClassName=packageName + "." + generatedSimpleSourceName;
+  PrintWriter out=generatorContext.tryCreate(logger,packageName,generatedSimpleSourceName);
+  if (out != null) {
+    doCreateBundleForPermutation(logger,generatorContext,fields,generatedSimpleSourceName);
+    ClassSourceFileComposerFactory f=new ClassSourceFileComposerFactory(packageName,generatedSimpleSourceName);
+    f.addImport(GWT.class.getName());
+    f.addImport(ResourcePrototype.class.getName());
+    f.addImplementedInterface(sourceType.getQualifiedSourceName());
+    SourceWriter sw=f.createSourceWriter(generatorContext,out);
+    resourceContext.setSimpleSourceName(generatedSimpleSourceName);
+    JParameterizedType hashMapStringResource=getHashMapStringResource(typeOracle);
+    String resourceMapField=fields.define(hashMapStringResource,"resourceMap");
+    createFieldsAndAssignments(logger,sw,generators,resourceContext,fields);
+    sw.println(fields.getCode());
+    sw.println("static {");
+    sw.indentln("new " + resourceContext.getImplementationSimpleSourceName() + "()._init0();");
+    sw.println("}");
+    taskList.remove(BundleResourceGenerator.class);
+    writeMapMethods(sw,taskList,hashMapStringResource,resourceMapField);
+    sw.commit(logger);
+  }
+  finish(logger,resourceContext,generators.keySet());
+  doFinish(logger);
+  if (canBeCacheable) {
+    CachedPropertyInformation cpi=new CachedPropertyInformation(logger,generatorContext.getPropertyOracle(),requirements.getPermutationAxes(),requirements.getConfigurationPropertyNames());
+    Map<String,String> cti=requirements.getTypeSignatures();
+    Map<String,URL> cri=requirements.getResolvedResources();
+    CachedClientDataMap data=new CachedClientDataMap();
+    data.put(CACHED_PROPERTY_INFORMATION,cpi);
+    data.put(CACHED_RESOURCE_INFORMATION,cri);
+    data.put(CACHED_TYPE_INFORMATION,cti);
+    return new RebindResult(RebindStatus.USE_ALL_NEW,createdClassName,data);
+  }
+ else {
+    return new RebindResult(RebindStatus.USE_ALL_NEW_WITH_NO_CACHING,createdClassName);
+  }
+}

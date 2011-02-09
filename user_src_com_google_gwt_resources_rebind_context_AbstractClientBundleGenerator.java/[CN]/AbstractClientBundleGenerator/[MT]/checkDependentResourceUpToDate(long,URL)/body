@@ -1,0 +1,32 @@
+{
+  try {
+    if (url.getProtocol().equals(JAR_PROTOCOL)) {
+      JarURLConnection jarConn=(JarURLConnection)url.openConnection();
+      url=jarConn.getJarFileURL();
+    }
+    long lastModified;
+    if (url.getProtocol().equals(FILE_PROTOCOL)) {
+      File file;
+      try {
+        file=new File(url.toURI());
+      }
+ catch (      URISyntaxException uriEx) {
+        file=new File(url.getPath());
+      }
+      lastModified=file.lastModified();
+    }
+ else {
+      return false;
+    }
+    if (lastModified == 0L || lastModified > referenceTime) {
+      return false;
+    }
+  }
+ catch (  IOException ioEx) {
+    return false;
+  }
+catch (  RuntimeException ruEx) {
+    return false;
+  }
+  return true;
+}

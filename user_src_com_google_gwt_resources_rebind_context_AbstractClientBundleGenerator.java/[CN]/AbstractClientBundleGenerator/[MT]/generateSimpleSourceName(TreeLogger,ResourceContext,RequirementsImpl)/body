@@ -1,10 +1,14 @@
 {
   StringBuilder toReturn=new StringBuilder(context.getClientBundleType().getName().replaceAll("[.$]","_"));
-  Set<String> permutationAxes=new HashSet<String>(requirements.axes);
-  permutationAxes.add("locale");
   try {
+    requirements.addPermutationAxis("locale");
+  }
+ catch (  BadPropertyValueException e) {
+  }
+  try {
+    requirements.lockPermutationAxes();
     PropertyOracle oracle=context.getGeneratorContext().getPropertyOracle();
-    for (    String property : permutationAxes) {
+    for (    String property : requirements.getPermutationAxes()) {
       SelectionProperty prop=oracle.getSelectionProperty(logger,property);
       String value=prop.getCurrentValue();
       toReturn.append("_" + value);
