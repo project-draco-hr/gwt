@@ -1,14 +1,20 @@
 {
-  Set<T> working=Sets.newHashSet(classes);
+  List<T> working=Lists.newArrayList();
+  for (  T t : classes) {
+    if (!working.contains(t)) {
+      working.add(t);
+    }
+  }
   List<T> sorted=Lists.newArrayList();
   Predicate<T> mostSpecific=createMostSpecificMatchPredicate(working,toClass);
   boolean changed=false;
   do {
     changed=false;
-    for (    T t : Ordering.usingToString().sortedCopy(working)) {
+    for (Iterator<T> iterator=working.iterator(); iterator.hasNext(); ) {
+      T t=iterator.next();
       if (mostSpecific.apply(t)) {
         sorted.add(t);
-        working.remove(t);
+        iterator.remove();
         changed=true;
       }
     }
