@@ -59,14 +59,15 @@
       sw.println("getEditorChain().accept(visitor);");
     }
     for (    EditorData d : data) {
+      if (d.isDelegateRequired()) {
+        sw.println("if (%s != null) ",delegateFields.get(d));
+      }
       sw.println("{");
       sw.indent();
       String editorContextName=getEditorContext(delegateData,d);
+      sw.println("%s ctx = new %s(getObject(), editor.%s, appendPath(\"%s\"));",editorContextName,editorContextName,d.getSimpleExpression(),d.getDeclaredPath());
       if (d.isDelegateRequired()) {
-        sw.println("%s ctx = new %s(getObject(), %s);",editorContextName,editorContextName,delegateFields.get(d));
-      }
- else {
-        sw.println("%s ctx = new %s(getObject(), editor.%s, appendPath(\"%s\"));",editorContextName,editorContextName,d.getSimpleExpression(),d.getDeclaredPath());
+        sw.println("ctx.setEditorDelegate(%s);",delegateFields.get(d));
       }
       sw.println("ctx.traverse(visitor, %s);",d.isDelegateRequired() ? delegateFields.get(d) : "null");
       sw.outdent();

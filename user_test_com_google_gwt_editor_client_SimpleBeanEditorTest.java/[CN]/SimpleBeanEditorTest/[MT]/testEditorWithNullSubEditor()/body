@@ -1,0 +1,22 @@
+{
+  PersonEditor editor=new PersonEditor();
+  editor.addressEditor=null;
+  PersonEditorDriver driver=GWT.create(PersonEditorDriver.class);
+  driver.initialize(editor);
+  driver.edit(person);
+  assertEquals("Alice",editor.name.getValue());
+  editor.name.setValue("New name");
+  driver.flush();
+  assertEquals("New name",person.getName());
+  editor.name.setValue("Should see this");
+  editor.addressEditor=new AddressEditor();
+  editor.addressEditor.city.setValue("Should not see this");
+  driver.flush();
+  assertEquals("Should see this",person.getName());
+  assertEquals("City",person.getAddress().getCity());
+  driver.initialize(editor);
+  driver.edit(person);
+  editor.addressEditor.city.setValue("Should see this");
+  driver.flush();
+  assertEquals("Should see this",person.getAddress().getCity());
+}
