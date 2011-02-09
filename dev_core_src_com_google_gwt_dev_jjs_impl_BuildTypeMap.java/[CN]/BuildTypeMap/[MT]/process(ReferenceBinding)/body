@@ -2,10 +2,12 @@
   JDeclaredType type=(JDeclaredType)getType(binding);
   try {
     if (type instanceof JClassType && type != program.getTypeJavaLangObject()) {
-      JMethod getClassMethod=program.createMethod(type.getSourceInfo().makeChild(BuildDeclMapVisitor.class,"Synthetic getClass()"),"getClass",type,program.getTypeJavaLangClass(),false,false,false,false,false);
+      SourceInfo info=type.getSourceInfo().makeChild();
+      JMethod getClassMethod=program.createMethod(info,"getClass",type,program.getTypeJavaLangClass(),false,false,false,false,false);
       assert(type.getMethods().get(2) == getClassMethod);
       getClassMethod.freezeParamTypes();
       getClassMethod.setSynthetic();
+      info.addCorrelation(program.getCorrelator().by(getClassMethod));
     }
     if (binding.isNestedType() && !binding.isStatic() && !(binding instanceof BinaryTypeBinding)) {
       assert(type instanceof JClassType);

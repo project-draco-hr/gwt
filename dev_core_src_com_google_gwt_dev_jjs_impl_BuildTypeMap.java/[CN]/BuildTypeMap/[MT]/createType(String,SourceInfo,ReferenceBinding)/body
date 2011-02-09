@@ -18,13 +18,17 @@
     throw new InternalCompilerException("ReferenceBinding is not a class, interface, or enum.");
   }
   info.addCorrelation(program.getCorrelator().by(newType));
-  JMethod clinit=program.createMethod(info.makeChild(BuildTypeMapVisitor.class,"Class initializer"),"$clinit",newType,program.getTypeVoid(),false,true,true,true,false);
+  SourceInfo child=info.makeChild();
+  JMethod clinit=program.createMethod(child,"$clinit",newType,program.getTypeVoid(),false,true,true,true,false);
   clinit.freezeParamTypes();
   clinit.setSynthetic();
+  child.addCorrelation(program.getCorrelator().by(clinit));
   if (newType instanceof JClassType) {
-    JMethod init=program.createMethod(info.makeChild(BuildTypeMapVisitor.class,"Instance initializer"),"$init",newType,program.getTypeVoid(),false,false,true,true,false);
+    child=info.makeChild();
+    JMethod init=program.createMethod(child,"$init",newType,program.getTypeVoid(),false,false,true,true,false);
     init.freezeParamTypes();
     init.setSynthetic();
+    child.addCorrelation(program.getCorrelator().by(init));
   }
   newType.setExternal(linker.isExternalType(newType.getName()));
   return newType;

@@ -1,16 +1,21 @@
 {
   JField mapField;
 {
-    SourceInfo sourceInfo=type.getSourceInfo().makeChild(JavaASTGenerationVisitor.class,"Enum$Map");
-    JClassType mapClass=program.createClass(sourceInfo,type.getName() + "$Map",false,true);
+    SourceInfo typeInfo=type.getSourceInfo().makeChild();
+    JClassType mapClass=program.createClass(typeInfo,type.getName() + "$Map",false,true);
+    typeInfo.addCorrelation(program.getCorrelator().by(mapClass));
     mapClass.setSuperClass(program.getTypeJavaLangObject());
-    mapField=program.createField(sourceInfo,"$MAP",mapClass,program.getJavaScriptObject(),true,Disposition.FINAL);
-    JMethodCall call=new JMethodCall(sourceInfo,null,program.getIndexedMethod("Enum.createValueOfMap"));
-    call.addArg(new JFieldRef(sourceInfo,null,valuesField,type));
-    JFieldRef mapRef=new JFieldRef(sourceInfo,null,mapField,type);
-    JDeclarationStatement declStmt=new JDeclarationStatement(sourceInfo,mapRef,call);
-    JMethod clinit=program.createMethod(sourceInfo,"$clinit",mapClass,program.getTypeVoid(),false,true,true,true,false);
+    SourceInfo fieldInfo=typeInfo.makeChild();
+    mapField=program.createField(fieldInfo,"$MAP",mapClass,program.getJavaScriptObject(),true,Disposition.FINAL);
+    fieldInfo.addCorrelation(program.getCorrelator().by(mapField));
+    SourceInfo methodInfo=typeInfo.makeChild();
+    JMethodCall call=new JMethodCall(methodInfo,null,program.getIndexedMethod("Enum.createValueOfMap"));
+    call.addArg(new JFieldRef(methodInfo,null,valuesField,type));
+    JFieldRef mapRef=new JFieldRef(methodInfo,null,mapField,type);
+    JDeclarationStatement declStmt=new JDeclarationStatement(methodInfo,mapRef,call);
+    JMethod clinit=program.createMethod(methodInfo,"$clinit",mapClass,program.getTypeVoid(),false,true,true,true,false);
     clinit.freezeParamTypes();
+    methodInfo.addCorrelation(program.getCorrelator().by(clinit));
     JBlock clinitBlock=((JMethodBody)clinit.getBody()).getBlock();
     clinitBlock.addStmt(declStmt);
     mapField.setInitializer(declStmt);

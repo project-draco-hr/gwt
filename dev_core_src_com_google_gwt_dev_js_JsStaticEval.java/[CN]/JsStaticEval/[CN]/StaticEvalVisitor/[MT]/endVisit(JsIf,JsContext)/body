@@ -16,24 +16,24 @@
     ctx.replaceMe(condExpr.makeStmt());
   }
  else   if (thenExpr != null && elseExpr != null) {
-    JsConditional cond=new JsConditional(makeSourceInfo(x,"Replaced if statement with conditional"),x.getIfExpr(),thenExpr,elseExpr);
+    JsConditional cond=new JsConditional(x.getSourceInfo(),x.getIfExpr(),thenExpr,elseExpr);
     ctx.replaceMe(accept(cond.makeStmt()));
   }
  else   if (thenIsEmpty && elseExpr != null) {
-    JsBinaryOperation op=new JsBinaryOperation(makeSourceInfo(x,"Replaced if statement with ||"),JsBinaryOperator.OR,x.getIfExpr(),elseExpr);
+    JsBinaryOperation op=new JsBinaryOperation(x.getSourceInfo(),JsBinaryOperator.OR,x.getIfExpr(),elseExpr);
     ctx.replaceMe(accept(op.makeStmt()));
   }
  else   if (thenIsEmpty && !elseIsEmpty) {
-    JsUnaryOperation negatedOperation=new JsPrefixOperation(makeSourceInfo(x,"Simplified if with empty then statement"),JsUnaryOperator.NOT,x.getIfExpr());
-    JsIf newIf=new JsIf(makeSourceInfo(x,"Simplified if with empty then statement"),negatedOperation,elseStmt,null);
+    JsUnaryOperation negatedOperation=new JsPrefixOperation(x.getSourceInfo(),JsUnaryOperator.NOT,x.getIfExpr());
+    JsIf newIf=new JsIf(x.getSourceInfo(),negatedOperation,elseStmt,null);
     ctx.replaceMe(accept(newIf));
   }
  else   if (elseIsEmpty && thenExpr != null) {
-    JsBinaryOperation op=new JsBinaryOperation(makeSourceInfo(x,"Replaced if statement with &&"),JsBinaryOperator.AND,x.getIfExpr(),thenExpr);
+    JsBinaryOperation op=new JsBinaryOperation(x.getSourceInfo(),JsBinaryOperator.AND,x.getIfExpr(),thenExpr);
     ctx.replaceMe(accept(op.makeStmt()));
   }
  else   if (elseIsEmpty && elseStmt != null) {
-    JsIf newIf=new JsIf(makeSourceInfo(x,"Pruned empty else statement"),x.getIfExpr(),thenStmt,null);
+    JsIf newIf=new JsIf(x.getSourceInfo(),x.getIfExpr(),thenStmt,null);
     ctx.replaceMe(accept(newIf));
   }
 }
