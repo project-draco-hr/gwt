@@ -6,17 +6,21 @@
   double direction=(oldIndex < newIndex) ? 100.0 : -100.0;
   double vDirection=isAnimationVertical ? direction : 0.0;
   double hDirection=isAnimationVertical ? 0.0 : LocaleInfo.getCurrentLocale().isRTL() ? -direction : direction;
-  if (oldLayer != null) {
-    oldLayer.setTopHeight(0.0,Unit.PCT,100.0,Unit.PCT);
-    oldLayer.setLeftWidth(0.0,Unit.PCT,100.0,Unit.PCT);
-    setWidgetVisible(lastVisibleWidget,oldLayer,true);
+  hidingWidget=null;
+  if (visibleWidget != lastVisibleWidget) {
+    if (oldLayer != null) {
+      oldLayer.setTopHeight(0.0,Unit.PCT,100.0,Unit.PCT);
+      oldLayer.setLeftWidth(0.0,Unit.PCT,100.0,Unit.PCT);
+      setWidgetVisible(lastVisibleWidget,oldLayer,true);
+    }
+    if (newLayer != null) {
+      newLayer.setTopHeight(vDirection,Unit.PCT,100.0,Unit.PCT);
+      newLayer.setLeftWidth(hDirection,Unit.PCT,100.0,Unit.PCT);
+      setWidgetVisible(visibleWidget,newLayer,true);
+    }
+    layout.layout();
+    hidingWidget=lastVisibleWidget;
   }
-  if (newLayer != null) {
-    newLayer.setTopHeight(vDirection,Unit.PCT,100.0,Unit.PCT);
-    newLayer.setLeftWidth(hDirection,Unit.PCT,100.0,Unit.PCT);
-    setWidgetVisible(visibleWidget,newLayer,true);
-  }
-  layout.layout();
   if (oldLayer != null) {
     oldLayer.setTopHeight(-vDirection,Unit.PCT,100.0,Unit.PCT);
     oldLayer.setLeftWidth(-hDirection,Unit.PCT,100.0,Unit.PCT);
@@ -27,6 +31,5 @@
     newLayer.setLeftWidth(0.0,Unit.PCT,100.0,Unit.PCT);
     setWidgetVisible(visibleWidget,newLayer,true);
   }
-  hidingWidget=lastVisibleWidget;
   lastVisibleWidget=visibleWidget;
 }
