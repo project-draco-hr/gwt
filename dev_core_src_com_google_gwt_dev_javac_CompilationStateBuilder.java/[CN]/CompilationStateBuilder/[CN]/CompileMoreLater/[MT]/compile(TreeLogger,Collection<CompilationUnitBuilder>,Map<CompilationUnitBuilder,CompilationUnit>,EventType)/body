@@ -9,7 +9,13 @@
   ArrayList<CompilationUnit> resultUnits=new ArrayList<CompilationUnit>();
   do {
     this.newlyBuiltUnits=new ArrayList<CompilationUnit>();
-    compiler.doCompile(builders);
+    Event jdtCompilerEvent=SpeedTracerLogger.start(eventType);
+    try {
+      compiler.doCompile(builders);
+    }
+  finally {
+      jdtCompilerEvent.end();
+    }
     resultUnits.addAll(this.newlyBuiltUnits);
     builders.clear();
     for (    CompilationUnit unit : this.newlyBuiltUnits) {
