@@ -3,11 +3,11 @@
 {
     SourceInfo typeInfo=type.getSourceInfo().makeChild();
     JClassType mapClass=program.createClass(typeInfo,type.getName() + "$Map",false,true);
-    typeInfo.addCorrelation(program.getCorrelator().by(mapClass));
+    typeInfo.addCorrelation(typeInfo.getCorrelator().by(mapClass));
     mapClass.setSuperClass(program.getTypeJavaLangObject());
     SourceInfo fieldInfo=typeInfo.makeChild();
     mapField=program.createField(fieldInfo,"$MAP",mapClass,program.getJavaScriptObject(),true,Disposition.FINAL);
-    fieldInfo.addCorrelation(program.getCorrelator().by(mapField));
+    fieldInfo.addCorrelation(fieldInfo.getCorrelator().by(mapField));
     SourceInfo methodInfo=typeInfo.makeChild();
     JMethodCall call=new JMethodCall(methodInfo,null,program.getIndexedMethod("Enum.createValueOfMap"));
     call.addArg(new JFieldRef(methodInfo,null,valuesField,type));
@@ -15,7 +15,7 @@
     JDeclarationStatement declStmt=new JDeclarationStatement(methodInfo,mapRef,call);
     JMethod clinit=program.createMethod(methodInfo,"$clinit",mapClass,program.getTypeVoid(),false,true,true,true,false);
     clinit.freezeParamTypes();
-    methodInfo.addCorrelation(program.getCorrelator().by(clinit));
+    methodInfo.addCorrelation(methodInfo.getCorrelator().by(clinit));
     JBlock clinitBlock=((JMethodBody)clinit.getBody()).getBlock();
     clinitBlock.addStmt(declStmt);
     mapField.setInitializer(declStmt);
