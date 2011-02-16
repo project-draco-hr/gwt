@@ -1,0 +1,31 @@
+{
+  assertNotNull(unit);
+  assertEquals(resource.getLastModified(),unit.getLastModified());
+  assertEquals(resource.getString(),unit.getSource());
+  Dependencies deps=unit.getDependencies();
+  assertObjectInDeps(deps.qualified,deps.simple,"java.lang.Object","Object");
+  assertObjectInDeps(deps.qualified,deps.simple,"java.lang.String","String");
+  assertObjectInDeps(deps.qualified,deps.simple,"test.SerializationTest","SerializationTest");
+  MethodArgNamesLookup lookup=unit.getMethodArgs();
+  String methods[]=lookup.getMethods();
+  assertEquals(1,methods.length);
+  assertEquals("test.SerializationTest.methodArgsTest(ILjava/lang/Object;)Ljava/lang/String;",methods[0]);
+  List<JsniMethod> jsniMethods=unit.getJsniMethods();
+  assertEquals(1,jsniMethods.size());
+  JsniMethod jsniMethod=jsniMethods.get(0);
+  String[] paramNames=jsniMethod.paramNames();
+  assertEquals(0,paramNames.length);
+  assertEquals("@test.SerializationTest::getTrue()",jsniMethod.name());
+  JsFunction jsniFunction=jsniMethod.function();
+  String origFunction=parseJs("function() { return true; }");
+  String newFunction=parseJs("function() " + jsniFunction.getBody().toSource());
+  assertEquals(origFunction,newFunction);
+  List<CompiledClass> compiledClasses=Lists.create(unit.getCompiledClasses());
+  assertEquals(1,compiledClasses.size());
+  CompiledClass compiledClass=compiledClasses.get(0);
+  byte[] byteCode=compiledClass.getBytes();
+  assertNotNull(byteCode);
+  assertEquals("test",compiledClass.getPackageName());
+  assertEquals("test/SerializationTest",compiledClass.getInternalName());
+  assertSame(unit,compiledClass.getUnit());
+}

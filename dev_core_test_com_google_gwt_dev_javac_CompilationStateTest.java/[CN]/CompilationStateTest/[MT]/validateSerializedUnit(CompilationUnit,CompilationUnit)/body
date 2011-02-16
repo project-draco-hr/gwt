@@ -1,0 +1,42 @@
+{
+  Map<String,CompiledClass> origMap=new HashMap<String,CompiledClass>();
+  for (  CompiledClass cc : originalUnit.getCompiledClasses()) {
+    origMap.put(cc.getInternalName(),cc);
+  }
+  Map<String,CompiledClass> newMap=new HashMap<String,CompiledClass>();
+  for (  CompiledClass cc : newUnit.getCompiledClasses()) {
+    newMap.put(cc.getInternalName(),cc);
+  }
+  assertEquals(origMap.size(),newMap.size());
+  for (  String name : origMap.keySet()) {
+    assertEquals(name,newMap.get(name).getInternalName());
+  }
+  Map<String,Ref> origQualified=originalUnit.getDependencies().qualified;
+  Map<String,Ref> newQualified=newUnit.getDependencies().qualified;
+  for (  String name : origQualified.keySet()) {
+    Ref origRef=origQualified.get(name);
+    Ref newRef=newQualified.get(name);
+    if (origRef == null) {
+      assertNull(newRef);
+    }
+ else {
+      assertNotNull(newRef);
+      assertEquals(origRef.getSignatureHash(),newRef.getSignatureHash());
+    }
+  }
+  assertEquals(originalUnit.getSource(),newUnit.getSource());
+  List<JsniMethod> origJsniMethods=originalUnit.getJsniMethods();
+  Map<String,JsniMethod> newJsniMethods=new HashMap<String,JsniMethod>();
+  for (  JsniMethod jsniMethod : newUnit.getJsniMethods()) {
+    newJsniMethods.put(jsniMethod.name(),jsniMethod);
+  }
+  for (  JsniMethod origMethod : origJsniMethods) {
+    JsniMethod newMethod=newJsniMethods.get(origMethod.name());
+    assertNotNull(newMethod);
+    assertEquals(origMethod.paramNames().length,newMethod.paramNames().length);
+    for (int i=0; i < origMethod.paramNames().length; i++) {
+      assertEquals(origMethod.paramNames()[i],newMethod.paramNames()[i]);
+    }
+    assertEquals(parseJs("function() " + origMethod.function().getBody()),parseJs("function() " + newMethod.function().getBody()));
+  }
+}
