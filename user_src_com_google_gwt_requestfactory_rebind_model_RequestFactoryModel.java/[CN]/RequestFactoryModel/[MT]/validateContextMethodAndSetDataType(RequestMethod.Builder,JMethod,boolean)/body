@@ -1,0 +1,38 @@
+{
+  JClassType requestReturnType=method.getReturnType().isInterface();
+  JClassType invocationReturnType;
+  if (requestReturnType == null) {
+    poison(badContextReturnType(method,requestInterface,instanceRequestInterface));
+    return false;
+  }
+  if (instanceRequestInterface.isAssignableFrom(requestReturnType)) {
+    JClassType[] params=ModelUtils.findParameterizationOf(instanceRequestInterface,requestReturnType);
+    methodBuilder.setInstanceType(getEntityProxyType(params[0]));
+    invocationReturnType=params[1];
+  }
+ else   if (requestInterface.isAssignableFrom(requestReturnType)) {
+    JClassType[] params=ModelUtils.findParameterizationOf(requestInterface,requestReturnType);
+    invocationReturnType=params[0];
+  }
+ else {
+    poison(badContextReturnType(method,requestInterface,instanceRequestInterface));
+    return false;
+  }
+  boolean paramsOk=true;
+  JParameter[] params=method.getParameters();
+  for (int i=0; i < params.length; ++i) {
+    JParameter param=params[i];
+    paramsOk=validateTransportableType(new RequestMethod.Builder(),param.getType(),false) && paramsOk;
+  }
+  for (  JMethod maybeSetter : requestReturnType.getInheritableMethods()) {
+    if (JBeanMethod.SET.matches(maybeSetter) || JBeanMethod.SET_BUILDER.matches(maybeSetter)) {
+      if (allowSetters) {
+        methodBuilder.addExtraSetter(maybeSetter);
+      }
+ else {
+        poison(noSettersAllowed(maybeSetter));
+      }
+    }
+  }
+  return validateTransportableType(methodBuilder,invocationReturnType,true);
+}

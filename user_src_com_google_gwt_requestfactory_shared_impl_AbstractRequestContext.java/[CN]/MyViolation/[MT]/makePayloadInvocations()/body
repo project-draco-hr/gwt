@@ -1,0 +1,22 @@
+{
+  MessageFactory f=MessageFactoryHolder.FACTORY;
+  List<InvocationMessage> invocationMessages=new ArrayList<InvocationMessage>();
+  for (  AbstractRequest<?> invocation : invocations) {
+    RequestData data=invocation.getRequestData();
+    InvocationMessage message=f.invocation().as();
+    message.setOperation(data.getOperation());
+    Set<String> refsToSend=data.getPropertyRefs();
+    if (!refsToSend.isEmpty()) {
+      message.setPropertyRefs(refsToSend);
+    }
+    List<Splittable> parameters=new ArrayList<Splittable>(data.getOrderedParameters().length);
+    for (    Object param : data.getOrderedParameters()) {
+      parameters.add(EntityCodex.encode(this,param));
+    }
+    if (!parameters.isEmpty()) {
+      message.setParameters(parameters);
+    }
+    invocationMessages.add(message);
+  }
+  return invocationMessages;
+}

@@ -1,8 +1,9 @@
 {
   Service serviceAnnotation=contextType.getAnnotation(Service.class);
   ServiceName serviceNameAnnotation=contextType.getAnnotation(ServiceName.class);
-  if (serviceAnnotation == null && serviceNameAnnotation == null) {
-    poison("RequestContext subtype %s is missing a @%s annotation",contextType.getQualifiedSourceName(),Service.class.getSimpleName());
+  JsonRpcService jsonRpcAnnotation=contextType.getAnnotation(JsonRpcService.class);
+  if (serviceAnnotation == null && serviceNameAnnotation == null && jsonRpcAnnotation == null) {
+    poison("RequestContext subtype %s is missing a @%s or @%s annotation",contextType.getQualifiedSourceName(),Service.class.getSimpleName(),JsonRpcService.class.getSimpleName());
     return;
   }
   List<RequestMethod> requestMethods=new ArrayList<RequestMethod>();
@@ -12,7 +13,7 @@
     }
     RequestMethod.Builder methodBuilder=new RequestMethod.Builder();
     methodBuilder.setDeclarationMethod(method);
-    if (!validateContextMethodAndSetDataType(methodBuilder,method)) {
+    if (!validateContextMethodAndSetDataType(methodBuilder,method,jsonRpcAnnotation != null)) {
       continue;
     }
     requestMethods.add(methodBuilder.build());

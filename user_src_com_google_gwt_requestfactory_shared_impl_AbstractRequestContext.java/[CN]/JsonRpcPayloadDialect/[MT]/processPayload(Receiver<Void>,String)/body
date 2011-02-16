@@ -1,0 +1,21 @@
+{
+  Splittable raw=StringQuoter.split(payload);
+  @SuppressWarnings("unchecked") Receiver<Object> callback=(Receiver<Object>)invocations.get(0).getReceiver();
+  if (!raw.isNull("error")) {
+    Splittable error=raw.get("error");
+    ServerFailure failure=new ServerFailure(error.get("message").asString());
+    fail(receiver,failure);
+    return;
+  }
+  Splittable result=raw.get("result");
+  @SuppressWarnings("unchecked") Class<BaseProxy> target=(Class<BaseProxy>)invocations.get(0).getRequestData().getReturnType();
+  SimpleProxyId<BaseProxy> id=getRequestFactory().allocateId(target);
+  AutoBean<BaseProxy> bean=getRequestFactory().createProxy(target,id);
+  AutoBeanCodex.decodeInto(result,bean);
+  if (callback != null) {
+    callback.onSuccess(bean.as());
+  }
+  if (receiver != null) {
+    receiver.onSuccess(null);
+  }
+}

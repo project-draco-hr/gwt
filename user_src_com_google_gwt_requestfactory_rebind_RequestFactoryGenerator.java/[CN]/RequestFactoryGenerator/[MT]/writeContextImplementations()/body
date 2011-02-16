@@ -8,10 +8,10 @@
     factory.setSuperclass(AbstractRequestContext.class.getCanonicalName());
     factory.addImplementedInterface(method.getImplementedInterfaceQualifiedSourceName());
     SourceWriter sw=factory.createSourceWriter(context,pw);
-    sw.println("public %s(%s requestFactory) {super(requestFactory);}",method.getSimpleSourceName(),AbstractRequestFactory.class.getCanonicalName());
+    sw.println("public %s(%s requestFactory) {super(requestFactory, %s.%s);}",method.getSimpleSourceName(),AbstractRequestFactory.class.getCanonicalName(),Dialect.class.getCanonicalName(),method.getDialect().name());
     for (    RequestMethod request : method.getRequestMethods()) {
       JMethod jmethod=request.getDeclarationMethod();
-      String operation=jmethod.getEnclosingType().getQualifiedBinaryName() + "::" + jmethod.getName();
+      String operation=request.getOperation();
       StringBuilder parameterArray=new StringBuilder();
       StringBuilder parameterDeclaration=new StringBuilder();
       StringBuilder typeParameterDeclaration=new StringBuilder();
@@ -45,9 +45,33 @@
       String returnTypeBaseQualifiedName=ModelUtils.ensureBaseType(request.getDataType()).getQualifiedSourceName();
       sw.indentln("return new %s(\"%s\", new Object[] {%s}, propertyRefs, %s.class, %s);",RequestData.class.getCanonicalName(),operation,parameterArray,returnTypeBaseQualifiedName,elementType);
       sw.println("}");
+      if (method.getDialect().equals(Dialect.JSON_RPC)) {
+        for (        JMethod setter : request.getExtraSetters()) {
+          PropertyName propertyNameAnnotation=setter.getAnnotation(PropertyName.class);
+          String propertyName=propertyNameAnnotation == null ? JBeanMethod.SET.inferName(setter) : propertyNameAnnotation.value();
+          String maybeReturn=JBeanMethod.SET_BUILDER.matches(setter) ? "return this;" : "";
+          sw.println("%s { getRequestData().setNamedParameter(\"%s\", %s); %s}",setter.getReadableDeclaration(false,false,false,false,true),propertyName,setter.getParameters()[0].getName(),maybeReturn);
+        }
+      }
       sw.outdent();
       sw.println("}");
       sw.println("X x = new X();");
+      if (request.getApiVersion() != null) {
+        sw.println("x.getRequestData().setApiVersion(\"%s\");",Generator.escape(request.getApiVersion()));
+      }
+      if (method.getDialect().equals(Dialect.JSON_RPC)) {
+        for (        JParameter param : jmethod.getParameters()) {
+          PropertyName annotation=param.getAnnotation(PropertyName.class);
+          String propertyName=annotation == null ? param.getName() : annotation.value();
+          boolean isContent=param.isAnnotationPresent(JsonRpcContent.class);
+          if (isContent) {
+            sw.println("x.getRequestData().setRequestContent(%s);",param.getName());
+          }
+ else {
+            sw.println("x.getRequestData().setNamedParameter(\"%s\", %s);",propertyName,param.getName());
+          }
+        }
+      }
       if (!request.isInstance()) {
         sw.println("addInvocation(x);");
       }

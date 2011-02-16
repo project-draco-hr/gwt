@@ -1,0 +1,20 @@
+{
+  RequestData data=invocations.get(0).getRequestData();
+  AutoBean<JsonRpcRequest> bean=MessageFactoryHolder.FACTORY.jsonRpcRequest();
+  JsonRpcRequest request=bean.as();
+  request.setVersion("2.0");
+  request.setApiVersion(data.getApiVersion());
+  request.setId(payloadId++);
+  Map<String,Splittable> params=new HashMap<String,Splittable>();
+  for (  Map.Entry<String,Object> entry : data.getNamedParameters().entrySet()) {
+    Object obj=entry.getValue();
+    Splittable value=encode(obj);
+    params.put(entry.getKey(),value);
+  }
+  if (data.getRequestResource() != null) {
+    params.put("resource",encode(data.getRequestResource()));
+  }
+  request.setParams(params);
+  request.setMethod(data.getOperation());
+  return AutoBeanCodex.encode(bean).getPayload();
+}

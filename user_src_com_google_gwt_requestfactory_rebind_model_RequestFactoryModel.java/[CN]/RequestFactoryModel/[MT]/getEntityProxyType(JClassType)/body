@@ -24,9 +24,9 @@
     }
     ProxyFor proxyFor=entityProxyType.getAnnotation(ProxyFor.class);
     ProxyForName proxyForName=entityProxyType.getAnnotation(ProxyForName.class);
-    if (proxyFor == null && proxyForName == null) {
-      poison("The %s type does not have a @%s or @%s annotation",entityProxyType.getQualifiedSourceName(),ProxyFor.class.getSimpleName(),ProxyForName.class.getSimpleName());
-      die(poisonedMessage());
+    JsonRpcProxy jsonRpcProxy=entityProxyType.getAnnotation(JsonRpcProxy.class);
+    if (proxyFor == null && proxyForName == null && jsonRpcProxy == null) {
+      poison("The %s type does not have a @%s, @%s, or @%s annotation",entityProxyType.getQualifiedSourceName(),ProxyFor.class.getSimpleName(),ProxyForName.class.getSimpleName(),JsonRpcProxy.class.getSimpleName());
     }
     List<RequestMethod> requestMethods=new ArrayList<RequestMethod>();
     Map<String,JMethod> duplicatePropertyGetters=new HashMap<String,JMethod>();
@@ -49,7 +49,7 @@
           poison("Duplicate accessors for property %s: %s() and %s()",propertyName,previouslySeen.getName(),method.getName());
         }
       }
- else       if (JBeanMethod.SET.matches(method)) {
+ else       if (JBeanMethod.SET.matches(method) || JBeanMethod.SET_BUILDER.matches(method)) {
         transportedType=method.getParameters()[0].getType();
       }
  else       if (name.equals("stableId") && method.getParameters().length == 0) {

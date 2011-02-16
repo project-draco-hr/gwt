@@ -8,6 +8,7 @@
     }
   }
   Class<? extends RequestContext> context=method.getReturnType().asSubclass(RequestContext.class);
-  RequestContextHandler handler=new InProcessRequestContext(InProcessRequestFactory.this).new RequestContextHandler();
+  Dialect dialect=method.getReturnType().isAnnotationPresent(JsonRpcService.class) ? Dialect.JSON_RPC : Dialect.STANDARD;
+  RequestContextHandler handler=new InProcessRequestContext(InProcessRequestFactory.this,dialect).new RequestContextHandler();
   return context.cast(Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),new Class<?>[]{context},handler));
 }

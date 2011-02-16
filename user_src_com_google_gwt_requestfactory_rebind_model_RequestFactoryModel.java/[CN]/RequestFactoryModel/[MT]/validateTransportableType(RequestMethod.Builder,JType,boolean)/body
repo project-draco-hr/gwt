@@ -9,7 +9,7 @@
       return true;
     }
   }
-  if (ModelUtils.isValueType(oracle,transportedClass)) {
+  if (ModelUtils.isValueType(oracle,transportedClass) || splittableType.equals(transportedClass)) {
     methodBuilder.setValueType(true);
   }
  else   if (entityProxyInterface.isAssignableFrom(transportedClass) || valueProxyInterface.isAssignableFrom(transportedClass)) {
@@ -34,6 +34,27 @@
     JClassType elementType=ModelUtils.findParameterizationOf(collectionInterface,transportedClass)[0];
     methodBuilder.setCollectionElementType(elementType);
     validateTransportableType(methodBuilder,elementType,requireObject);
+  }
+ else   if (mapInterface.isAssignableFrom(transportedClass)) {
+    JParameterizedType parameterized=transportedClass.isParameterized();
+    if (parameterized == null) {
+      poison("Requests that return Maps must be parameterized");
+      return false;
+    }
+    if (mapInterface.equals(parameterized.getBaseType())) {
+      methodBuilder.setCollectionType(CollectionType.MAP);
+    }
+ else {
+      poison("Requests that return maps may be declared with" + " %s only",mapInterface.getQualifiedSourceName());
+      return false;
+    }
+    JClassType[] params=ModelUtils.findParameterizationOf(mapInterface,transportedClass);
+    JClassType keyType=params[0];
+    JClassType valueType=params[1];
+    methodBuilder.setMapKeyType(keyType);
+    methodBuilder.setMapValueType(valueType);
+    validateTransportableType(methodBuilder,keyType,requireObject);
+    validateTransportableType(methodBuilder,valueType,requireObject);
   }
  else {
     poison("Invalid Request parameterization %s",transportedClass.getQualifiedSourceName());
