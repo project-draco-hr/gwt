@@ -1,0 +1,79 @@
+{
+  MockJavaResource ILLEGAL_STATE_EXCEPTION=new MockJavaResource("java.lang.IllegalStateException"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package java.lang;\n");
+      code.append("public class IllegalStateException extends Throwable {}\n");
+      return code;
+    }
+  }
+;
+  MockJavaResource NUMBER_FORMAT_EXCEPTION=new MockJavaResource("java.lang.NumberFormatException"){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package java.lang;\n");
+      code.append("public class NumberFormatException extends Throwable {}\n");
+      return code;
+    }
+  }
+;
+  MockJavaResource CLASS_DEP_EXCEPTION_ORIG=new MockJavaResource(CLASS_DEP_TYPE_NAME){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("public class ClassDependency {\n");
+      code.append("  public int methodPublic(String arg) ");
+      code.append("      throws IllegalStateException, NumberFormatException {");
+      code.append("    return 1;\n");
+      code.append("  }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+;
+  MockJavaResource CLASS_DEP_EXCEPTION_MOD1=new MockJavaResource(CLASS_DEP_TYPE_NAME){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("public class ClassDependency {\n");
+      code.append("  public int methodPublic(String arg) {return 1;};\n");
+      code.append("}");
+      return code;
+    }
+  }
+;
+  MockJavaResource CLASS_DEP_EXCEPTION_MOD2=new MockJavaResource(CLASS_DEP_TYPE_NAME){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("public class ClassDependency {\n");
+      code.append("  public int methodPublic(String arg)");
+      code.append("     throws IllegalStateException {");
+      code.append("    return 1;\n");
+      code.append("  }\n");
+      code.append("}");
+      return code;
+    }
+  }
+;
+  MockJavaResource CLASS_DEP_EXCEPTION_MOD3=new MockJavaResource(CLASS_DEP_TYPE_NAME){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("public class ClassDependency {\n");
+      code.append("  public int methodPublic(String arg)");
+      code.append("     throws NumberFormatException, IllegalStateException {");
+      code.append("    return 1;\n");
+      code.append("  }\n");
+      code.append("}");
+      return code;
+    }
+  }
+;
+  oracle.add(ILLEGAL_STATE_EXCEPTION);
+  oracle.add(NUMBER_FORMAT_EXCEPTION);
+  CompiledClass originalClass=buildClass(CLASS_DEP_EXCEPTION_ORIG);
+  assertSignaturesNotEqual(originalClass,buildClass(CLASS_DEP_EXCEPTION_MOD1));
+  assertSignaturesNotEqual(originalClass,buildClass(CLASS_DEP_EXCEPTION_MOD2));
+  assertSignaturesEqual(originalClass,buildClass(CLASS_DEP_EXCEPTION_MOD3));
+}

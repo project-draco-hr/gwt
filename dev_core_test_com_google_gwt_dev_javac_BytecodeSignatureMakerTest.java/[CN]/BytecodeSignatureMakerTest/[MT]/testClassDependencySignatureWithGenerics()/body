@@ -1,0 +1,27 @@
+{
+  MockJavaResource CLASS_DEP_GENERIC_ORIG=new MockJavaResource(CLASS_DEP_TYPE_NAME){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("public class ClassDependency<T> {\n");
+      code.append("  public int methodPublic(T arg) {return 1;};\n");
+      code.append("}");
+      return code;
+    }
+  }
+;
+  MockJavaResource CLASS_DEP_GENERIC_PARAMETERIZED=new MockJavaResource(CLASS_DEP_TYPE_NAME){
+    @Override protected CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("import java.util.Map;");
+      code.append("public class ClassDependency<T extends Map> {\n");
+      code.append("  public int methodPublic(T arg) {return 1;};\n");
+      code.append("}");
+      return code;
+    }
+  }
+;
+  CompiledClass originalClass=buildClass(CLASS_DEP_GENERIC_ORIG);
+  assertSignaturesNotEqual(originalClass,buildClass(CLASS_DEP_GENERIC_PARAMETERIZED));
+}

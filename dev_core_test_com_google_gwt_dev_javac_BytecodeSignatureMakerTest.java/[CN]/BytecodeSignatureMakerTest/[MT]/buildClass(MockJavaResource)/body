@@ -1,0 +1,18 @@
+{
+  oracle.addOrReplace(resource);
+  this.rebuildCompilationState();
+  CompilationUnit unit=state.getCompilationUnitMap().get(resource.getTypeName());
+  assertNotNull(unit);
+  String internalName=resource.getTypeName().replace(".","/");
+  CategorizedProblem[] problems=unit.getProblems();
+  if (problems != null && problems.length != 0) {
+    fail(problems[0].toString());
+  }
+  for (  CompiledClass cc : unit.getCompiledClasses()) {
+    if (cc.getInternalName().equals(internalName)) {
+      return cc;
+    }
+  }
+  fail("Couldn't find class " + internalName + " after compiling.");
+  return null;
+}
