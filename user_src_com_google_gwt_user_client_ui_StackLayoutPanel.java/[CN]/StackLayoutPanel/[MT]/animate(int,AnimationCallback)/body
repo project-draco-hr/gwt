@@ -1,0 +1,28 @@
+{
+  if (layoutData.size() == 0) {
+    if (callback != null) {
+      callback.onAnimationComplete();
+    }
+    return;
+  }
+  double top=0, bottom=0;
+  int i=0;
+  for (; i < layoutData.size(); ++i) {
+    LayoutData data=layoutData.get(i);
+    layoutPanel.setWidgetTopHeight(data.header,top,unit,data.headerSize,unit);
+    top+=data.headerSize;
+    layoutPanel.setWidgetTopHeight(data.widget,top,unit,0,unit);
+    if (i == selectedIndex) {
+      break;
+    }
+  }
+  for (int j=layoutData.size() - 1; j > i; --j) {
+    LayoutData data=layoutData.get(j);
+    layoutPanel.setWidgetBottomHeight(data.header,bottom,unit,data.headerSize,unit);
+    layoutPanel.setWidgetBottomHeight(data.widget,bottom,unit,0,unit);
+    bottom+=data.headerSize;
+  }
+  LayoutData data=layoutData.get(selectedIndex);
+  layoutPanel.setWidgetTopBottom(data.widget,top,unit,bottom,unit);
+  layoutPanel.animate(duration,callback);
+}
