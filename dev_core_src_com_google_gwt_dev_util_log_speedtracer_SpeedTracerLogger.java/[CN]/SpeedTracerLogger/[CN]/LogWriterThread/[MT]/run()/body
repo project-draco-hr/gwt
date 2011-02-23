@@ -1,10 +1,12 @@
 {
+  long nextFlush=System.currentTimeMillis() + FLUSH_TIMER_MSECS;
   try {
-    boolean shuttingDown=false;
-    while (!threadEventQueue.isEmpty() || !shuttingDown) {
-      Event event=threadEventQueue.take();
-      if (event == shutDownSentinel) {
-        shuttingDown=true;
+    while (true) {
+      Event event=threadEventQueue.poll(nextFlush - System.currentTimeMillis(),TimeUnit.MILLISECONDS);
+      if (event == null) {
+      }
+ else       if (event == shutDownSentinel) {
+        break;
       }
  else       if (event == flushSentinel) {
         writer.flush();
@@ -14,6 +16,10 @@
         JsonObject json=event.toJson();
         json.write(writer);
         writer.write('\n');
+      }
+      if (System.currentTimeMillis() >= nextFlush) {
+        writer.flush();
+        nextFlush=System.currentTimeMillis() + FLUSH_TIMER_MSECS;
       }
     }
     if (outputFormat.equals(Format.HTML)) {
