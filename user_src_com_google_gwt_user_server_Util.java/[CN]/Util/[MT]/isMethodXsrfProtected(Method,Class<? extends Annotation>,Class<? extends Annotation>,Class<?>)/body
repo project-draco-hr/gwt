@@ -1,0 +1,16 @@
+{
+  Class<?> declaringClass=method.getDeclaringClass();
+  if (method.getAnnotation(noXsrfAnnotation) != null || (Util.getClassAnnotation(declaringClass,noXsrfAnnotation) != null && method.getAnnotation(xsrfAnnotation) == null)) {
+    return false;
+  }
+  if (Util.getClassAnnotation(declaringClass,xsrfAnnotation) != null || method.getAnnotation(xsrfAnnotation) != null) {
+    return true;
+  }
+  Method[] classMethods=declaringClass.getMethods();
+  for (  Method classMethod : classMethods) {
+    if (xsrfTokenInterface.isAssignableFrom(classMethod.getReturnType()) && !method.equals(classMethod)) {
+      return true;
+    }
+  }
+  return false;
+}
