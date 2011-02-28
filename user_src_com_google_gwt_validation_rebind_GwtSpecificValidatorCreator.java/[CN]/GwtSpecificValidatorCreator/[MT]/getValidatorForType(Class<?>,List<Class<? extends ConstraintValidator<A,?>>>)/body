@@ -1,22 +1,18 @@
 {
+  type=Primitives.wrap(type);
   Map<Class<?>,Class<? extends ConstraintValidator<A,?>>> map=Maps.newHashMap();
   for (  Class<? extends ConstraintValidator<A,?>> constraintClass : constraintValidatorClasses) {
-    Class<?> aType=getTypeOfConstraintValidator(constraintClass);
+    Class<?> aType=Primitives.wrap(getTypeOfConstraintValidator(constraintClass));
     if (aType.isAssignableFrom(type)) {
       map.put(aType,constraintClass);
     }
   }
-  Class<?> best=null;
-  for (  Class<?> c : map.keySet()) {
-    if (best == null) {
-      best=c;
-    }
- else {
-      if (c.equals(type)) {
-        best=c;
-        break;
-      }
+  final Set<Class<?>> best=Util.findBestMatches(type,map.keySet());
+  Predicate<Class<?>> inBest=new Predicate<Class<?>>(){
+    @Override public boolean apply(    Class<?> key){
+      return best.contains(key);
     }
   }
-  return map.get(best);
+;
+  return ImmutableSet.copyOf(Maps.filterKeys(map,inBest).values());
 }

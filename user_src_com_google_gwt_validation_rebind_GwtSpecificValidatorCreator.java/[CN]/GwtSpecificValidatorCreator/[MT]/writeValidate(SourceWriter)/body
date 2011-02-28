@@ -17,8 +17,8 @@
   Class<?> clazz=beanHelper.getClazz();
   for (  ConstraintDescriptor<?> constraint : beanHelper.getBeanDescriptor().getConstraintDescriptors()) {
     if (hasMatchingAnnotation(constraint)) {
-      Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass=getValidatorForType(constraint,clazz);
-      if (validatorClass != null) {
+      if (!constraint.getConstraintValidatorClasses().isEmpty()) {
+        Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass=getValidatorForType(constraint,clazz);
         sw.print("validate(context, violations, null, object, ");
         sw.print("new ");
         sw.print(validatorClass.getCanonicalName());
@@ -26,7 +26,7 @@
         sw.print(constraintDescriptorVar("this",count));
         sw.println(", groups);");
       }
- else {
+ else       if (constraint.getComposingConstraints().isEmpty()) {
         logger.log(Type.WARN,"No ConstraintValidator of " + constraint + " for type "+ clazz);
       }
     }

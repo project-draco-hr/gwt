@@ -1,7 +1,14 @@
 {
   List<Class<? extends ConstraintValidator<A,?>>> constraintValidatorClasses=constraint.getConstraintValidatorClasses();
   if (constraintValidatorClasses.isEmpty()) {
-    return null;
+    throw new UnexpectedTypeException("No ConstraintValidator found for  " + constraint.getAnnotation());
   }
-  return getValidatorForType(clazz,constraintValidatorClasses);
+  ImmutableSet<Class<? extends ConstraintValidator<A,?>>> best=getValidatorForType(targetType,constraintValidatorClasses);
+  if (best.isEmpty()) {
+    throw new UnexpectedTypeException("No " + constraint.getAnnotation() + " ConstraintValidator for type "+ targetType);
+  }
+  if (best.size() > 1) {
+    throw new UnexpectedTypeException("More than one maximally specific " + constraint.getAnnotation() + " ConstraintValidator for type "+ targetType+ ", found "+ Ordering.usingToString().sortedCopy(best));
+  }
+  return Iterables.get(best,0);
 }

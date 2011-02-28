@@ -6,9 +6,19 @@
  catch (  IntrospectionException e) {
     throw error(logger,e);
   }
-  sw.print("java.util.List<String> allPropertyNames = java.util.Arrays.asList(");
+  sw.println("private static final java.util.List<String> ALL_PROPERTY_NAMES = ");
+  sw.indent();
+  sw.indent();
+  sw.println("java.util.Collections.<String>unmodifiableList(");
+  sw.indent();
+  sw.indent();
+  sw.print("java.util.Arrays.<String>asList(");
   sw.print(Joiner.on(",").join(Iterables.transform(ImmutableList.copyOf(beanInfo.getPropertyDescriptors()),Functions.compose(TO_LITERAL,PROPERTY_DESCRIPTOR_TO_NAME))));
-  sw.println(");");
+  sw.println("));");
+  sw.outdent();
+  sw.outdent();
+  sw.outdent();
+  sw.outdent();
   for (  PropertyDescriptor p : beanHelper.getBeanDescriptor().getConstrainedProperties()) {
     int count=0;
     for (    ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {

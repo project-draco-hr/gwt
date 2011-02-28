@@ -4,6 +4,7 @@
   for (  ConstraintDescriptor<?> composingConstraint : constraint.getComposingConstraints()) {
     writeConstraintDescriptor(sw,composingConstraint,constraintDescripotorVar + "_" + count++);
   }
+  sw.print("private final ");
   sw.print(ConstraintDescriptorImpl.class.getCanonicalName());
   sw.print("<");
   sw.print(annotationType.getCanonicalName());
@@ -38,6 +39,12 @@
   sw.print(".setConstraintValidatorClasses(");
   sw.print(asLiteral(asArray(constraint.getConstraintValidatorClasses(),new Class[0])));
   sw.println(")");
+  int ccCount=constraint.getComposingConstraints().size();
+  for (int i=0; i < ccCount; i++) {
+    sw.print(".addComposingConstraint(");
+    sw.print(constraintDescripotorVar + "_" + i);
+    sw.println(")");
+  }
   sw.print(".setGroups(");
   Set<Class<?>> groups=constraint.getGroups();
   sw.print(asLiteral(asArray(groups,new Class<?>[0])));
