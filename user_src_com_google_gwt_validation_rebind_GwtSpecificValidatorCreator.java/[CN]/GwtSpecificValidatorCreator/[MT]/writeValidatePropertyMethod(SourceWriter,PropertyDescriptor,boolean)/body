@@ -45,9 +45,12 @@
     sw.outdent();
     sw.println("}");
   }
+  Set<Object> includedAnnotations=Sets.newHashSet();
   int count=0;
   for (  ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
-    if (hasMatchingAnnotation(p,useField,constraint)) {
+    Object annotation=constraint.getAnnotation();
+    if (!includedAnnotations.contains(annotation) && hasMatchingAnnotation(p,useField,constraint)) {
+      includedAnnotations.add(annotation);
       String constraintDescriptorVar=constraintDescriptorVar(p.getPropertyName(),count);
       writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
     }
