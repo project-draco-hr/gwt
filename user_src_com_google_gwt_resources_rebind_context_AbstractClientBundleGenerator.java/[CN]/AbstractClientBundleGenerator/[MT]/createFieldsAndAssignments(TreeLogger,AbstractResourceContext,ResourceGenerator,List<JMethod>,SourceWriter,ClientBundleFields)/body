@@ -17,11 +17,26 @@
       continue;
     }
     String ident=fields.define(m.getReturnType().isClassOrInterface(),m.getName(),null,true,false);
-    sw.print(m.getReadableDeclaration(false,true,true,true,true));
-    sw.println(" {");
+    String initializerName=m.getName() + "Initializer";
+    sw.println("private void " + initializerName + "() {");
+    sw.indentln(ident + " = " + rhs+ ";");
+    sw.println("}");
+    sw.println("private static class " + initializerName + " {");
+    sw.indent();
+    sw.println("static {");
+    sw.indentln(INSTANCE_NAME + "." + initializerName+ "();");
+    sw.println("}");
+    sw.print("static ");
+    sw.print(m.getReturnType().getParameterizedQualifiedSourceName());
+    sw.println(" get() {");
     sw.indentln("return " + ident + ";");
     sw.println("}");
-    init.println(ident + " = " + rhs+ ";");
+    sw.outdent();
+    sw.println("}");
+    sw.print(m.getReadableDeclaration(false,true,true,true,true));
+    sw.println(" {");
+    sw.indentln("return " + initializerName + ".get();");
+    sw.println("}");
   }
   if (fail) {
     return false;
