@@ -1,0 +1,52 @@
+{
+  super(Document.get().createTableElement(),pageSize,keyProvider);
+  if (TABLE_IMPL == null) {
+    TABLE_IMPL=GWT.create(Impl.class);
+  }
+  if (template == null) {
+    template=GWT.create(Template.class);
+  }
+  this.resources=resources;
+  this.style=resources.cellTableStyle();
+  this.style.ensureInjected();
+  sortList=new ColumnSortList(new ColumnSortList.Delegate(){
+    public void onModification(){
+      if (!updatingSortList) {
+        createHeaders(false);
+      }
+    }
+  }
+);
+  table=getElement().cast();
+  table.setCellSpacing(0);
+  colgroup=Document.get().createColGroupElement();
+  table.appendChild(colgroup);
+  thead=table.createTHead();
+  if (table.getTBodies().getLength() > 0) {
+    tbody=table.getTBodies().getItem(0);
+  }
+ else {
+    tbody=Document.get().createTBodyElement();
+    table.appendChild(tbody);
+  }
+  table.appendChild(tbodyLoading=Document.get().createTBodyElement());
+  tfoot=table.createTFoot();
+  setStyleName(this.style.cellTableWidget());
+{
+    tbodyLoadingCell=Document.get().createTDElement();
+    TableRowElement tr=Document.get().createTRElement();
+    tbodyLoading.appendChild(tr);
+    tr.appendChild(tbodyLoadingCell);
+    tbodyLoadingCell.setAlign("center");
+    tbodyLoadingCell.appendChild(messagesPanel.getElement());
+    adopt(messagesPanel);
+    messagesPanel.add(emptyTableWidgetContainer);
+    messagesPanel.add(loadingIndicatorContainer);
+    loadingIndicatorContainer.setStyleName(style.cellTableLoading());
+  }
+  setLoadingIndicator(loadingIndicator);
+  Set<String> eventTypes=new HashSet<String>();
+  eventTypes.add("mouseover");
+  eventTypes.add("mouseout");
+  CellBasedWidgetImpl.get().sinkEvents(this,eventTypes);
+}
