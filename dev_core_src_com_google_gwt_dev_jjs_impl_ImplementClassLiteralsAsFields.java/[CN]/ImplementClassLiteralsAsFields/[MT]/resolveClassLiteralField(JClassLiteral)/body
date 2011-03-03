@@ -1,0 +1,16 @@
+{
+  JType type=classLiteral.getRefType();
+  JField field=classLiteralFields.get(type);
+  if (field == null) {
+    SourceInfo info=typeClassLiteralHolder.getSourceInfo().makeChild();
+    JMethodCall alloc=computeClassObjectAllocation(info,type);
+    field=new JField(info,program.getClassLiteralName(type),typeClassLiteralHolder,program.getTypeJavaLangClass(),true,Disposition.FINAL);
+    typeClassLiteralHolder.addField(field);
+    info.addCorrelation(info.getCorrelator().by(Literal.CLASS));
+    JFieldRef fieldRef=new JFieldRef(info,null,field,typeClassLiteralHolder);
+    JDeclarationStatement decl=new JDeclarationStatement(info,fieldRef,alloc);
+    classLiteralHolderClinitBody.getBlock().addStmt(decl);
+    classLiteralFields.put(type,field);
+  }
+  return field;
+}

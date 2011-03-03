@@ -1,0 +1,17 @@
+{
+  List<JClassLiteral> classLiterals=new ArrayList<JClassLiteral>();
+  int realDims=0;
+  for (  JExpression dim : dims) {
+    if (dim instanceof JAbsentArrayDimension) {
+      break;
+    }
+    ++realDims;
+  }
+  JType cur=arrayType;
+  for (int i=0; i < realDims; ++i) {
+    JClassLiteral classLit=new JClassLiteral(info.makeChild(),cur);
+    classLiterals.add(classLit);
+    cur=((JArrayType)cur).getElementType();
+  }
+  return new JNewArray(info,arrayType.getNonNull(),dims,null,classLiterals);
+}

@@ -1,11 +1,14 @@
 {
   SourceInfo info=nativeMethodBody.getSourceInfo();
   String ident=nameRef.getIdent();
-  HasEnclosingType node=program.jsniMap.get(ident);
+  JNode node=program.jsniMap.get(ident);
   if (node == null) {
     node=findJsniRefTarget(info,ident);
     if (node == null) {
       return;
+    }
+    if (node instanceof JType) {
+      node=new JClassLiteral(info.makeChild(),(JType)node);
     }
     program.jsniMap.put(ident,node);
   }
@@ -15,7 +18,10 @@
  else   if (node instanceof JMethod) {
     processMethod(nameRef,info,(JMethod)node,ctx);
   }
+ else   if (node instanceof JClassLiteral) {
+    processClassLiteral((JClassLiteral)node,ctx);
+  }
  else {
-    throw new InternalCompilerException((HasSourceInfo)node,"JSNI reference to something other than a field or method?",null);
+    throw new InternalCompilerException(node,"JSNI reference to something other than a class, field, or method?",null);
   }
 }
