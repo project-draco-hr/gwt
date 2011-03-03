@@ -1,4 +1,5 @@
 {
+  final HostedModeOptionsImpl options=shell.options;
   registerHandler(new ArgHandlerPort(options){
     @Override public String[] getDefaultArgs(){
       return new String[]{"-port","auto"};
@@ -16,7 +17,7 @@
     }
   }
 );
-  options.setServletContainerLauncher(new MyJettyLauncher());
+  options.setServletContainerLauncher(shell.new MyJettyLauncher());
   registerHandler(new com.google.gwt.dev.ArgHandlerOutDirDeprecated(options));
   registerHandler(new ArgHandlerWarDir(options){
     @Override public String[] getDefaultArgs(){
@@ -57,7 +58,7 @@
       return true;
     }
     @Override public boolean setFlag(){
-      developmentMode=false;
+      shell.developmentMode=false;
       return true;
     }
   }
@@ -70,7 +71,7 @@
       return "-prod";
     }
     @Override public boolean setFlag(){
-      developmentMode=false;
+      shell.developmentMode=false;
       return true;
     }
   }
@@ -92,7 +93,7 @@
       return false;
     }
     @Override public void setInt(    int minutes){
-      baseTestMethodTimeoutMillis=minutes * 60 * 1000;
+      shell.baseTestMethodTimeoutMillis=minutes * 60 * 1000;
     }
   }
 );
@@ -113,7 +114,7 @@
       return false;
     }
     @Override public void setInt(    int minutes){
-      baseTestBeginTimeoutMillis=minutes * 60 * 1000;
+      shell.baseTestBeginTimeoutMillis=minutes * 60 * 1000;
     }
   }
 );
@@ -131,7 +132,7 @@
       return false;
     }
     @Override public boolean setString(    String runStyleArg){
-      runStyleName=runStyleArg;
+      shell.runStyleName=runStyleArg;
       return true;
     }
   }
@@ -151,13 +152,13 @@
     }
     @Override public boolean setString(    String str){
       if (str.equals("none")) {
-        batchingStrategy=new NoBatchingStrategy();
+        shell.batchingStrategy=new NoBatchingStrategy();
       }
  else       if (str.equals("class")) {
-        batchingStrategy=new ClassBatchingStrategy();
+        shell.batchingStrategy=new ClassBatchingStrategy();
       }
  else       if (str.equals("module")) {
-        batchingStrategy=new ModuleBatchingStrategy();
+        shell.batchingStrategy=new ModuleBatchingStrategy();
       }
  else {
         return false;
@@ -174,7 +175,7 @@
       return "-notHeadless";
     }
     @Override public boolean setFlag(){
-      JUnitShell.this.setHeadless(false);
+      shell.setHeadless(false);
       return true;
     }
   }
@@ -194,13 +195,13 @@
     }
     @Override public boolean setString(    String str){
       if (str.equals("simple")) {
-        compileStrategy=new SimpleCompileStrategy(JUnitShell.this);
+        shell.compileStrategy=new SimpleCompileStrategy(shell);
       }
  else       if (str.equals("all")) {
-        compileStrategy=new PreCompileStrategy(JUnitShell.this);
+        shell.compileStrategy=new PreCompileStrategy(shell);
       }
  else       if (str.equals("parallel")) {
-        compileStrategy=new ParallelCompileStrategy(JUnitShell.this);
+        shell.compileStrategy=new ParallelCompileStrategy(shell);
       }
  else {
         return false;
@@ -211,13 +212,26 @@
 );
   registerHandler(new ArgHandlerFlag(){
     @Override public String getPurpose(){
-      return "Use a document in standards mode (rather than quirks mode) for the hosting page";
+      return "Run each test using an HTML document in standards mode (rather than quirks mode)";
     }
     @Override public String getTag(){
       return "-standardsMode";
     }
     @Override public boolean setFlag(){
-      setStandardsMode(true);
+      shell.setStandardsMode(true);
+      return true;
+    }
+  }
+);
+  registerHandler(new ArgHandlerFlag(){
+    @Override public String getPurpose(){
+      return "Run each test using an HTML document in quirks mode (rather than standards mode)";
+    }
+    @Override public String getTag(){
+      return "-quirksMode";
+    }
+    @Override public boolean setFlag(){
+      shell.setStandardsMode(false);
       return true;
     }
   }
@@ -239,7 +253,7 @@
       return false;
     }
     @Override public void setInt(    int value){
-      tries=value;
+      shell.tries=value;
     }
   }
 );
@@ -254,9 +268,9 @@
       return new String[]{"userAgents"};
     }
     @Override public boolean setString(    String str){
-      remoteUserAgents=str.split(",");
-      for (int i=0; i < remoteUserAgents.length; i++) {
-        remoteUserAgents[i]=remoteUserAgents[i].trim();
+      shell.remoteUserAgents=str.split(",");
+      for (int i=0; i < shell.remoteUserAgents.length; i++) {
+        shell.remoteUserAgents[i]=shell.remoteUserAgents[i].trim();
       }
       return true;
     }
