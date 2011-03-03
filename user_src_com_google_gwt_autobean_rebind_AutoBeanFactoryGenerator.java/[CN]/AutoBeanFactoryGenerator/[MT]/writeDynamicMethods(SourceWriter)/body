@@ -1,20 +1,45 @@
 {
-  sw.println("{");
+  List<JClassType> privatePeers=new ArrayList<JClassType>();
+  sw.println("@Override protected void initializeCreatorMap(%s map) {",JsniCreatorMap.class.getCanonicalName());
   sw.indent();
   for (  AutoBeanType type : model.getAllTypes()) {
     if (type.isNoWrap()) {
       continue;
     }
-    sw.println("creators.put(%s.class, new Creator() {",ModelUtils.ensureBaseType(type.getPeerType()).getQualifiedSourceName());
-    if (type.isSimpleBean()) {
-      sw.indentln("public %1$s create() { return new %1$s(%2$s.this); }",type.getQualifiedSourceName(),simpleSourceName);
+    String classLiteralAccessor;
+    JClassType peer=type.getPeerType();
+    String peerName=ModelUtils.ensureBaseType(peer).getQualifiedSourceName();
+    if (peer.isPublic()) {
+      classLiteralAccessor=peerName + ".class";
     }
  else {
-      sw.indentln("public %1$s create() { return null; }",type.getQualifiedSourceName());
+      privatePeers.add(peer);
+      classLiteralAccessor="classLit_" + peerName.replace('.','_') + "()";
     }
-    sw.indentln("public %1$s create(Object delegate) {" + " return new %1$s(%2$s.this, (%3$s) delegate); }",type.getQualifiedSourceName(),simpleSourceName,type.getPeerType().getQualifiedSourceName());
-    sw.println("});");
+    sw.println("map.add(%s, getConstructors_%s());",classLiteralAccessor,peerName.replace('.','_'));
   }
   sw.outdent();
   sw.println("}");
+  for (  JClassType peer : privatePeers) {
+    String peerName=ModelUtils.ensureBaseType(peer).getQualifiedSourceName();
+    sw.println("private native Class<?> classLit_%s() /*-{return @%s::class;}-*/;",peerName.replace('.','_'),peerName);
+  }
+  String factoryJNIName=context.getTypeOracle().findType(AutoBeanFactory.class.getCanonicalName()).getJNISignature();
+  for (  AutoBeanType type : model.getAllTypes()) {
+    String peerName=ModelUtils.ensureBaseType(type.getPeerType()).getQualifiedSourceName();
+    String peerJNIName=ModelUtils.ensureBaseType(type.getPeerType()).getJNISignature();
+    sw.println("private native %s<%s> getConstructors_%s() /*-{",JsArray.class.getCanonicalName(),JavaScriptObject.class.getCanonicalName(),peerName.replace('.','_'));
+    sw.indent();
+    sw.println("return [");
+    if (type.isSimpleBean()) {
+      sw.indentln("@%s::new(%s),",type.getQualifiedSourceName(),factoryJNIName);
+    }
+ else {
+      sw.indentln(",");
+    }
+    sw.indentln("@%s::new(%s%s)",type.getQualifiedSourceName(),factoryJNIName,peerJNIName);
+    sw.println("];");
+    sw.outdent();
+    sw.println("}-*/;");
+  }
 }

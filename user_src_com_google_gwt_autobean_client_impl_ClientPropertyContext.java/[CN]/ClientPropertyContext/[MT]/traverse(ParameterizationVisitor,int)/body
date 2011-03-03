@@ -1,0 +1,20 @@
+{
+  if (simpleType != null) {
+    visitor.visitType(simpleType);
+    visitor.endVisitType(simpleType);
+    return 0;
+  }
+  Class<?> type=paramTypes[count];
+  int paramCount=paramCounts[count];
+  ++count;
+  if (visitor.visitType(type)) {
+    for (int i=0; i < paramCount; i++) {
+      if (visitor.visitParameter()) {
+        count=traverse(visitor,count);
+      }
+      visitor.endVisitParameter();
+    }
+  }
+  visitor.endVisitType(type);
+  return count;
+}

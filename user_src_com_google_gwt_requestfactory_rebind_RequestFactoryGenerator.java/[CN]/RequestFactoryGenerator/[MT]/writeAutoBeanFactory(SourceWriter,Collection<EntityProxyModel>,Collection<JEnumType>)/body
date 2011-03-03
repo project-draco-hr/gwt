@@ -1,0 +1,30 @@
+{
+  if (!extraEnums.isEmpty()) {
+    StringBuilder extraClasses=new StringBuilder();
+    for (    JEnumType enumType : extraEnums) {
+      if (extraClasses.length() > 0) {
+        extraClasses.append(",");
+      }
+      extraClasses.append(enumType.getQualifiedSourceName()).append(".class");
+    }
+    sw.println("@%s({%s})",ExtraEnums.class.getCanonicalName(),extraClasses);
+  }
+  sw.println("@%s({%s.class, %s.class, %s.class})",Category.class.getCanonicalName(),EntityProxyCategory.class.getCanonicalName(),ValueProxyCategory.class.getCanonicalName(),BaseProxyCategory.class.getCanonicalName());
+  sw.println("@%s(%s.class)",NoWrap.class.getCanonicalName(),EntityProxyId.class.getCanonicalName());
+  sw.println("interface Factory extends %s {",AutoBeanFactory.class.getCanonicalName());
+  sw.indent();
+  for (  EntityProxyModel proxy : models) {
+    sw.println("%s<%s> %s();",AutoBean.class.getCanonicalName(),proxy.getQualifiedSourceName(),proxy.getQualifiedSourceName().replace('.','_'));
+  }
+  sw.outdent();
+  sw.println("}");
+  sw.println("public static Factory FACTORY;",GWT.class.getCanonicalName());
+  sw.println("@Override public Factory getAutoBeanFactory() {");
+  sw.indent();
+  sw.println("if (FACTORY == null) {");
+  sw.indentln("FACTORY = %s.create(Factory.class);",GWT.class.getCanonicalName());
+  sw.println("}");
+  sw.println("return FACTORY;");
+  sw.outdent();
+  sw.println("}");
+}

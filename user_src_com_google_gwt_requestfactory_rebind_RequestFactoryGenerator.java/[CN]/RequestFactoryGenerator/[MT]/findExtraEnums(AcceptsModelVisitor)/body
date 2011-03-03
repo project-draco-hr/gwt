@@ -1,0 +1,32 @@
+{
+  final Set<JEnumType> toReturn=new LinkedHashSet<JEnumType>();
+  final Set<JEnumType> referenced=new HashSet<JEnumType>();
+  final ModelVisitor remover=new AllReachableTypesVisitor(model){
+    @Override void examineTypeOnce(    JClassType type){
+      JEnumType asEnum=type.isEnum();
+      if (asEnum != null) {
+        referenced.add(asEnum);
+      }
+      super.examineTypeOnce(type);
+    }
+  }
+;
+  method.accept(new RequestMethodTypesVisitor(){
+    @Override public boolean visit(    EntityProxyModel x){
+      x.accept(remover);
+      return false;
+    }
+    @Override void examineTypeOnce(    JClassType type){
+      JEnumType asEnum=type.isEnum();
+      if (asEnum != null) {
+        toReturn.add(asEnum);
+      }
+    }
+  }
+);
+  toReturn.removeAll(referenced);
+  if (toReturn.isEmpty()) {
+    return Collections.emptySet();
+  }
+  return Collections.unmodifiableSet(toReturn);
+}

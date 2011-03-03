@@ -9,6 +9,9 @@
     factory.addImplementedInterface(method.getImplementedInterfaceQualifiedSourceName());
     SourceWriter sw=factory.createSourceWriter(context,pw);
     sw.println("public %s(%s requestFactory) {super(requestFactory, %s.%s);}",method.getSimpleSourceName(),AbstractRequestFactory.class.getCanonicalName(),Dialect.class.getCanonicalName(),method.getDialect().name());
+    Set<EntityProxyModel> models=findReferencedEntities(method);
+    Set<JEnumType> extraEnumTypes=findExtraEnums(method);
+    writeAutoBeanFactory(sw,models,extraEnumTypes);
     for (    RequestMethod request : method.getRequestMethods()) {
       JMethod jmethod=request.getDeclarationMethod();
       String operation=request.getOperation();
