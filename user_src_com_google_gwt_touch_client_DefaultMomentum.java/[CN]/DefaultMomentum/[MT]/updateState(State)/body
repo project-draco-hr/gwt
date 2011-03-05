@@ -1,0 +1,20 @@
+{
+  int ellapsedMillis=state.getElapsedMillis();
+  int totalEllapsedMillis=state.getCumulativeElapsedMillis();
+  Point initialVelocity=state.getInitialVelocity();
+  Point oldVelocity=state.getVelocity();
+  double decelFactor=Math.pow(DECELERATION_FACTOR,totalEllapsedMillis);
+  double minDecel=ellapsedMillis * MIN_DECELERATION;
+  double newVelocityX=calcNewVelocity(initialVelocity.getX(),decelFactor,oldVelocity.getX(),minDecel);
+  double newVelocityY=calcNewVelocity(initialVelocity.getY(),decelFactor,oldVelocity.getY(),minDecel);
+  Point newVelocity=new Point(newVelocityX,newVelocityY);
+  state.setVelocity(newVelocity);
+  int elapsedMillis=state.getElapsedMillis();
+  Point dist=newVelocity.mult(new Point(elapsedMillis,elapsedMillis));
+  Point position=state.getPosition();
+  state.setPosition(position.plus(dist));
+  if (Math.abs(newVelocity.getX()) < DECELERATION_STOP_VELOCITY && Math.abs(newVelocity.getY()) < DECELERATION_STOP_VELOCITY) {
+    return false;
+  }
+  return true;
+}

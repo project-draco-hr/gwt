@@ -1,0 +1,30 @@
+{
+  if (!touching) {
+    return;
+  }
+  event.preventDefault();
+  Touch touch=getTouchFromEvent(event);
+  Point touchPoint=new Point(touch.getPageX(),touch.getPageY());
+  double touchTime=Duration.currentTimeMillis();
+  lastTouchPosition.setTemporalPoint(touchPoint,touchTime);
+  if (!dragging) {
+    Point diff=touchPoint.minus(startTouchPosition);
+    double absDiffX=Math.abs(diff.getX());
+    double absDiffY=Math.abs(diff.getY());
+    if (absDiffX > MIN_TRACKING_FOR_DRAG || absDiffY > MIN_TRACKING_FOR_DRAG) {
+      dragging=true;
+      onDragStart(event);
+    }
+  }
+  if (dragging) {
+    onDragMove(event);
+    double trackingTime=touchTime - recentTouchPosition.getTime();
+    if (trackingTime > MAX_TRACKING_TIME && recentTouchPositionOnDeck != null) {
+      recentTouchPosition.setTemporalPoint(recentTouchPositionOnDeck.getPoint(),recentTouchPositionOnDeck.getTime());
+      recentTouchPositionOnDeck=null;
+    }
+ else     if (trackingTime > MAX_TRACKING_TIME_ON_DECK && recentTouchPositionOnDeck == null) {
+      recentTouchPositionOnDeck=new TemporalPoint(touchPoint,touchTime);
+    }
+  }
+}
