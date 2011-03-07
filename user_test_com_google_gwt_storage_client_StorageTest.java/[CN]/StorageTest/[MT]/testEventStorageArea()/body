@@ -1,0 +1,20 @@
+{
+  if (storage == null) {
+    return;
+  }
+  delayTestFinish(2000);
+  storage.setItem("tesaFoo","tesaBar");
+  handler=new StorageEvent.Handler(){
+    public void onStorageChange(    StorageEvent event){
+      Storage eventStorage=event.getStorageArea();
+      assertEquals(storage,eventStorage);
+      boolean equalsLocal=Storage.getLocalStorageIfSupported().equals(eventStorage);
+      boolean equalsSession=Storage.getSessionStorageIfSupported().equals(eventStorage);
+      assertFalse(equalsLocal == equalsSession);
+      finishTest();
+    }
+  }
+;
+  storage.addStorageEventHandler(handler);
+  storage.clear();
+}

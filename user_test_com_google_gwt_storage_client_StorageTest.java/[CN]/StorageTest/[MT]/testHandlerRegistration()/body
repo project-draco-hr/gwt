@@ -1,0 +1,28 @@
+{
+  if (storage == null) {
+    return;
+  }
+  final boolean[] eventFired=new boolean[1];
+  eventFired[0]=false;
+  delayTestFinish(3000);
+  handler=new StorageEvent.Handler(){
+    public void onStorageChange(    StorageEvent event){
+      fail("Storage change should not have fired.");
+      eventFired[0]=true;
+      finishTest();
+    }
+  }
+;
+  HandlerRegistration registration=storage.addStorageEventHandler(handler);
+  registration.removeHandler();
+  storage.setItem("thrFoo","thrBar");
+  storage.clear();
+  new Timer(){
+    @Override public void run(){
+      if (!eventFired[0]) {
+        finishTest();
+      }
+    }
+  }
+.schedule(1000);
+}

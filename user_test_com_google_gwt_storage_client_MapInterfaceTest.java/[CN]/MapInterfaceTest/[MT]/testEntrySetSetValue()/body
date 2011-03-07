@@ -1,0 +1,22 @@
+{
+  if (!supportsPut) {
+    return;
+  }
+  final Map<K,V> map;
+  final V valueToSet;
+  try {
+    map=makePopulatedMap();
+    valueToSet=getValueNotInPopulatedMap();
+  }
+ catch (  UnsupportedOperationException e) {
+    return;
+  }
+  Set<Entry<K,V>> entrySet=map.entrySet();
+  Entry<K,V> entry=entrySet.iterator().next();
+  final V oldValue=entry.getValue();
+  final V returnedValue=entry.setValue(valueToSet);
+  assertEquals(oldValue,returnedValue);
+  assertTrue(entrySet.contains(mapEntry(entry.getKey(),valueToSet)));
+  assertEquals(valueToSet,map.get(entry.getKey()));
+  assertInvariants(map);
+}

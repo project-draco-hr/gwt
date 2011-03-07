@@ -1,0 +1,29 @@
+{
+  final Map<K,V> map;
+  try {
+    map=makePopulatedMap();
+  }
+ catch (  UnsupportedOperationException e) {
+    return;
+  }
+  Set<Entry<K,V>> entrySet=map.entrySet();
+  Set<Entry<K,V>> entriesToRemove=singleton(entrySet.iterator().next());
+  if (supportsRemove) {
+    int initialSize=map.size();
+    boolean didRemove=entrySet.removeAll(entriesToRemove);
+    assertTrue(didRemove);
+    assertEquals(initialSize - entriesToRemove.size(),map.size());
+    for (    Entry<K,V> entry : entriesToRemove) {
+      assertFalse(entrySet.contains(entry));
+    }
+  }
+ else {
+    try {
+      entrySet.removeAll(entriesToRemove);
+      fail("Expected UnsupportedOperationException.");
+    }
+ catch (    UnsupportedOperationException e) {
+    }
+  }
+  assertInvariants(map);
+}

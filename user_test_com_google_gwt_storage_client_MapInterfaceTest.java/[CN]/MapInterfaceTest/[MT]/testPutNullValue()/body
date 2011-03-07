@@ -1,0 +1,38 @@
+{
+  if (!supportsPut) {
+    return;
+  }
+  final Map<K,V> map;
+  try {
+    map=makeEitherMap();
+  }
+ catch (  UnsupportedOperationException e) {
+    return;
+  }
+  final K keyToPut;
+  try {
+    keyToPut=getKeyNotInPopulatedMap();
+  }
+ catch (  UnsupportedOperationException e) {
+    return;
+  }
+  if (allowsNullValues) {
+    int initialSize=map.size();
+    final V oldValue=map.get(keyToPut);
+    final V returnedValue=map.put(keyToPut,null);
+    assertEquals(oldValue,returnedValue);
+    assertNull(map.get(keyToPut));
+    assertTrue(map.containsKey(keyToPut));
+    assertTrue(map.containsValue(null));
+    assertEquals(initialSize + 1,map.size());
+  }
+ else {
+    try {
+      map.put(keyToPut,null);
+      fail("Expected RuntimeException");
+    }
+ catch (    RuntimeException e) {
+    }
+  }
+  assertInvariants(map);
+}

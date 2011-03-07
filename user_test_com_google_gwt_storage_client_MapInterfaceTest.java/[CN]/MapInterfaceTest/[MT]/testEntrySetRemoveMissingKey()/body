@@ -1,0 +1,29 @@
+{
+  final Map<K,V> map;
+  final K key;
+  try {
+    map=makeEitherMap();
+    key=getKeyNotInPopulatedMap();
+  }
+ catch (  UnsupportedOperationException e) {
+    return;
+  }
+  Set<Entry<K,V>> entrySet=map.entrySet();
+  Entry<K,V> entry=mapEntry(key,getValueNotInPopulatedMap());
+  int initialSize=map.size();
+  if (supportsRemove) {
+    boolean didRemove=entrySet.remove(entry);
+    assertFalse(didRemove);
+  }
+ else {
+    try {
+      boolean didRemove=entrySet.remove(entry);
+      assertFalse(didRemove);
+    }
+ catch (    UnsupportedOperationException optional) {
+    }
+  }
+  assertEquals(initialSize,map.size());
+  assertFalse(map.containsKey(key));
+  assertInvariants(map);
+}

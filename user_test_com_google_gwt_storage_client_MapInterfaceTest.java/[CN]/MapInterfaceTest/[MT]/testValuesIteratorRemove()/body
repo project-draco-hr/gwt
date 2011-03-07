@@ -1,0 +1,34 @@
+{
+  final Map<K,V> map;
+  try {
+    map=makePopulatedMap();
+  }
+ catch (  UnsupportedOperationException e) {
+    return;
+  }
+  Collection<V> valueCollection=map.values();
+  Iterator<V> iterator=valueCollection.iterator();
+  if (supportsIteratorRemove) {
+    int initialSize=map.size();
+    iterator.next();
+    iterator.remove();
+    assertEquals(initialSize - 1,map.size());
+    assertInvariants(map);
+    try {
+      iterator.remove();
+      fail("Expected IllegalStateException.");
+    }
+ catch (    IllegalStateException e) {
+    }
+  }
+ else {
+    try {
+      iterator.next();
+      iterator.remove();
+      fail("Expected UnsupportedOperationException.");
+    }
+ catch (    UnsupportedOperationException e) {
+    }
+  }
+  assertInvariants(map);
+}

@@ -1,0 +1,29 @@
+{
+  final Map<K,V> map;
+  try {
+    map=makePopulatedMap();
+  }
+ catch (  UnsupportedOperationException e) {
+    return;
+  }
+  Collection<V> valueCollection=map.values();
+  Set<V> valuesToRetain=singleton(valueCollection.iterator().next());
+  if (supportsRemove) {
+    valueCollection.retainAll(valuesToRetain);
+    for (    V value : valuesToRetain) {
+      assertTrue(valueCollection.contains(value));
+    }
+    for (    V value : valueCollection) {
+      assertTrue(valuesToRetain.contains(value));
+    }
+  }
+ else {
+    try {
+      valueCollection.retainAll(valuesToRetain);
+      fail("Expected UnsupportedOperationException.");
+    }
+ catch (    UnsupportedOperationException e) {
+    }
+  }
+  assertInvariants(map);
+}

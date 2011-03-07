@@ -1,0 +1,36 @@
+{
+  final Map<K,V> map;
+  try {
+    map=makeEitherMap();
+  }
+ catch (  UnsupportedOperationException e) {
+    return;
+  }
+  final K keyToPut;
+  final V valueToPut;
+  try {
+    keyToPut=getKeyNotInPopulatedMap();
+    valueToPut=getValueNotInPopulatedMap();
+  }
+ catch (  UnsupportedOperationException e) {
+    return;
+  }
+  if (supportsPut) {
+    int initialSize=map.size();
+    V oldValue=map.put(keyToPut,valueToPut);
+    assertEquals(valueToPut,map.get(keyToPut));
+    assertTrue(map.containsKey(keyToPut));
+    assertTrue(map.containsValue(valueToPut));
+    assertEquals(initialSize + 1,map.size());
+    assertNull(oldValue);
+  }
+ else {
+    try {
+      map.put(keyToPut,valueToPut);
+      fail("Expected UnsupportedOperationException.");
+    }
+ catch (    UnsupportedOperationException e) {
+    }
+  }
+  assertInvariants(map);
+}

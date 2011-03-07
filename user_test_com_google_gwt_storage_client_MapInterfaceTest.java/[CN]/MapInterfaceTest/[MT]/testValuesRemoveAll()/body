@@ -1,0 +1,29 @@
+{
+  final Map<K,V> map;
+  try {
+    map=makePopulatedMap();
+  }
+ catch (  UnsupportedOperationException e) {
+    return;
+  }
+  Collection<V> valueCollection=map.values();
+  Set<V> valuesToRemove=singleton(valueCollection.iterator().next());
+  if (supportsRemove) {
+    valueCollection.removeAll(valuesToRemove);
+    for (    V value : valuesToRemove) {
+      assertFalse(valueCollection.contains(value));
+    }
+    for (    V value : valueCollection) {
+      assertFalse(valuesToRemove.contains(value));
+    }
+  }
+ else {
+    try {
+      valueCollection.removeAll(valuesToRemove);
+      fail("Expected UnsupportedOperationException.");
+    }
+ catch (    UnsupportedOperationException e) {
+    }
+  }
+  assertInvariants(map);
+}
