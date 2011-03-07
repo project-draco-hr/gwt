@@ -1,135 +1,45 @@
 {
-  String gwtUserPath=installPath + '/' + "gwt-user.jar";
-  String gwtDevPath=installPath + '/' + "gwt-dev.jar";
-  String gwtValidationPath=installPath + '/' + "validation-api-1.0.0.GA.jar";
-  String gwtValidationSourcesPath=installPath + '/' + "validation-api-1.0.0.GA-sources.jar";
-  String gwtModuleDtd="";
-  GwtVersion gwtVersion=About.getGwtVersionObject();
-  if (gwtVersion.isNoNagVersion()) {
-    gwtModuleDtd="\n<!DOCTYPE module PUBLIC \"-//Google Inc.//DTD Google Web Toolkit " + About.getGwtVersionNum() + "//EN\" \"http://google-web-toolkit.googlecode.com/svn/tags/"+ About.getGwtVersionNum()+ "/distro-source/core/src/gwt-module.dtd\">";
+  for (  Procrastinator toDo : argProcessingToDos) {
+    toDo.stopProcratinating();
   }
-  int pos=moduleName.lastIndexOf('.');
-  String modulePackageName=moduleName.substring(0,pos);
-  String moduleShortName=moduleName.substring(pos + 1);
-  if (junitPath == null && !maven) {
-    System.err.println("Not creating tests because -junit argument was not specified.\n");
+  if (templates.contains("maven")) {
+    junitPath="junit-provided-by-maven";
+    if (templates.contains("eclipse")) {
+      System.err.println("'maven' template is being generated removing 'eclipse'" + " template from generated output.");
+      templates.remove("eclipse");
+    }
+    if (templates.contains("ant")) {
+      System.err.println("'maven' template is being generated removing 'ant'" + " template from generated output.");
+      templates.remove("ant");
+    }
   }
-  String srcFolder=maven ? "src/main/java" : "src";
-  String testFolder=maven ? "src/test/java" : "test";
-  String warFolder=maven ? "src/main/webapp" : "war";
-  File srcDir=Utility.getDirectory(outDir,srcFolder,true);
-  File warDir=Utility.getDirectory(outDir,warFolder,true);
-  File webInfDir=Utility.getDirectory(warDir,"WEB-INF",true);
-  File libDir=Utility.getDirectory(webInfDir,"lib",true);
-  File moduleDir=Utility.getDirectory(srcDir,modulePackageName.replace('.','/'),true);
-  File clientDir=Utility.getDirectory(moduleDir,"client",true);
-  File serverDir=Utility.getDirectory(moduleDir,"server",true);
-  File sharedDir=Utility.getDirectory(moduleDir,"shared",true);
-  File moduleTestDir=Utility.getDirectory(outDir,testFolder + "/" + modulePackageName.replace('.','/'),true);
-  File clientTestDir=Utility.getDirectory(moduleTestDir,"client",true);
-  Map<String,String> replacements=new HashMap<String,String>();
-  replacements.put("@moduleShortName",moduleShortName);
-  replacements.put("@modulePackageName",modulePackageName);
-  replacements.put("@moduleName",moduleName);
-  replacements.put("@clientPackage",modulePackageName + ".client");
-  replacements.put("@serverPackage",modulePackageName + ".server");
-  replacements.put("@sharedPackage",modulePackageName + ".shared");
-  replacements.put("@gwtSdk",installPath);
-  replacements.put("@gwtUserPath",gwtUserPath);
-  replacements.put("@gwtDevPath",gwtDevPath);
-  replacements.put("@gwtValidationPath",gwtValidationPath);
-  replacements.put("@gwtValidationSourcesPath",gwtValidationSourcesPath);
-  replacements.put("@gwtVersion",About.getGwtVersionNum());
-  replacements.put("@gwtModuleDtd",gwtModuleDtd);
-  replacements.put("@shellClass",DevMode.class.getName());
-  replacements.put("@compileClass",Compiler.class.getName());
-  replacements.put("@startupUrl",moduleShortName + ".html");
-  replacements.put("@renameTo",moduleShortName.toLowerCase());
-  replacements.put("@moduleNameJUnit",moduleName + "JUnit");
-  replacements.put("@srcFolder",srcFolder);
-  replacements.put("@testFolder",testFolder);
-  replacements.put("@warFolder",warFolder);
-  String copyServletDeps="";
-  if (!maven) {
-    copyServletDeps="<copy todir=\"" + warFolder + "/WEB-INF/lib\" "+ "file=\"${gwt.sdk}/gwt-servlet-deps.jar\" />";
-  }
-  replacements.put("@copyServletDeps",copyServletDeps);
-  StringBuilder serverLibs=new StringBuilder();
-  if (libDir.exists()) {
-    for (    File file : libDir.listFiles()) {
-      if (file.getName().toLowerCase().endsWith(".jar")) {
-        serverLibs.append("   <classpathentry kind=\"lib\" path=\"war/WEB-INF/lib/");
-        serverLibs.append(file.getName());
-        serverLibs.append("\"/>\n");
+  if (junitPath != null) {
+    ArrayList<String> testTemplates=new ArrayList<String>();
+    for (    String template : templates) {
+      String testTemplateName="_" + template + "-test";
+      if (getTemplateRoot(testTemplateName) != null) {
+        testTemplates.add(testTemplateName);
       }
     }
+    templates.addAll(testTemplates);
   }
-  replacements.put("@serverClasspathLibs",serverLibs.toString());
-  String antEclipseRule="";
-  if (noEclipse) {
-    antEclipseRule="\n\n" + "  <target name=\"eclipse.generate\" depends=\"libs\" description=\"Generate eclipse project\">\n" + "    <java failonerror=\"true\" fork=\"true\" classname=\"" + this.getClass().getName() + "\">\n"+ "      <classpath>\n"+ "        <path refid=\"project.class.path\"/>\n"+ "      </classpath>\n"+ "      <arg value=\"-XonlyEclipse\"/>\n"+ "      <arg value=\"-ignore\"/>\n"+ "      <arg value=\""+ moduleName+ "\"/>\n"+ "    </java>\n"+ "  </target>";
-  }
- else {
-    antEclipseRule="";
-  }
-  replacements.put("@antEclipseRule",antEclipseRule);
-{
-    String testTargetsBegin="";
-    String testTargetsEnd="";
-    String junitJarPath=junitPath;
-    String eclipseTestDir="";
-    if (junitPath != null || maven) {
-      eclipseTestDir="\n   <classpathentry kind=\"src\" path=\"" + testFolder + "\"/>";
-    }
-    if (junitPath == null) {
-      testTargetsBegin="\n<!--" + "\n" + "Test targets suppressed because -junit argument was not specified when running webAppCreator.\n";
-      testTargetsEnd="-->\n";
-      junitJarPath="path_to_the_junit_jar";
-    }
-    replacements.put("@testTargetsBegin",testTargetsBegin);
-    replacements.put("@testTargetsEnd",testTargetsEnd);
-    replacements.put("@junitJar",junitJarPath);
-    replacements.put("@eclipseTestDir",eclipseTestDir);
-  }
-  List<FileCreator> files=new ArrayList<FileCreator>();
-  if (!onlyEclipse) {
-    files.add(new FileCreator(moduleDir,moduleShortName + ".gwt.xml","Module.gwt.xml"));
-    files.add(new FileCreator(warDir,moduleShortName + ".html","AppHtml.html"));
-    files.add(new FileCreator(warDir,moduleShortName + ".css","AppCss.css"));
-    files.add(new FileCreator(webInfDir,"web.xml","web.xml"));
-    files.add(new FileCreator(clientDir,moduleShortName + ".java","AppClassTemplate.java"));
-    files.add(new FileCreator(clientDir,"GreetingService.java","RpcClientTemplate.java"));
-    files.add(new FileCreator(clientDir,"GreetingServiceAsync.java","RpcAsyncClientTemplate.java"));
-    files.add(new FileCreator(serverDir,"GreetingServiceImpl.java","RpcServerTemplate.java"));
-    files.add(new FileCreator(sharedDir,"FieldVerifier.java","SharedClassTemplate.java"));
-    if (ant) {
-      files.add(new FileCreator(outDir,"build.xml","project.ant.xml"));
-    }
-    if (maven) {
-      files.add(new FileCreator(outDir,"pom.xml","project.maven.xml"));
-    }
-    files.add(new FileCreator(outDir,"README.txt","README.txt"));
-    if (junitPath != null || maven) {
-      files.add(new FileCreator(moduleTestDir,moduleShortName + "JUnit.gwt.xml","JUnit.gwt.xml"));
-      files.add(new FileCreator(clientTestDir,moduleShortName + "Test" + ".java","JUnitClassTemplate.java"));
-    }
-  }
-  if (!noEclipse) {
-    files.add(new FileCreator(outDir,".project",".project"));
-    files.add(new FileCreator(outDir,".classpath",".classpath"));
-    files.add(new FileCreator(outDir,moduleShortName + ".launch","App.launch"));
-    if (junitPath != null || maven) {
-      files.add(new FileCreator(outDir,moduleShortName + "Test-dev.launch","JUnit-dev.launch"));
-      files.add(new FileCreator(outDir,moduleShortName + "Test-prod.launch","JUnit-prod.launch"));
-    }
-  }
+  System.out.println("Generating from templates: " + templates);
+  Map<String,String> replacements=getReplacements(installPath,moduleName);
+  List<FileCreator> files=getFiles(replacements);
   for (  FileCreator fileCreator : files) {
-    URL url=WebAppCreator.class.getResource(fileCreator.sourceName + "src");
+    URL url=WebAppCreator.class.getResource(fileCreator.sourceName);
     if (url == null) {
-      throw new FileNotFoundException(fileCreator.sourceName + "src");
+      throw new WebAppCreatorException("Could not find " + fileCreator.sourceName);
     }
     File file=Utility.createNormalFile(fileCreator.destDir,fileCreator.destName,overwrite,ignore);
-    if (file != null) {
+    if (file == null) {
+      continue;
+    }
+    if (fileCreator.isBinary) {
+      byte[] data=Util.readURLAsBytes(url);
+      Utility.writeTemplateBinaryFile(file,data);
+    }
+ else {
       String data=Util.readURLAsString(url);
       Utility.writeTemplateFile(file,data,replacements);
     }

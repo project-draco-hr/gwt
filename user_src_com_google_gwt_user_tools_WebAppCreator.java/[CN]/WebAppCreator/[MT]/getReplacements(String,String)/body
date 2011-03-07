@@ -1,0 +1,85 @@
+{
+  String gwtUserPath=installPath + '/' + "gwt-user.jar";
+  String gwtDevPath=installPath + '/' + "gwt-dev.jar";
+  String gwtValidationPath=installPath + '/' + "validation-api-1.0.0.GA.jar";
+  String gwtValidationSourcesPath=installPath + '/' + "validation-api-1.0.0.GA-sources.jar";
+  String gwtModuleDtd="";
+  GwtVersion gwtVersion=About.getGwtVersionObject();
+  if (gwtVersion.isNoNagVersion()) {
+    gwtModuleDtd="\n<!DOCTYPE module PUBLIC \"-//Google Inc.//DTD Google Web Toolkit " + About.getGwtVersionNum() + "//EN\" \"http://google-web-toolkit.googlecode.com/svn/tags/"+ About.getGwtVersionNum()+ "/distro-source/core/src/gwt-module.dtd\">";
+  }
+  int pos=theModuleName.lastIndexOf('.');
+  String modulePackageName=theModuleName.substring(0,pos);
+  String moduleShortName=theModuleName.substring(pos + 1);
+  Map<String,String> replacements=new HashMap<String,String>();
+  String srcFolder=templates.contains("maven") ? "src/main/java" : "src";
+  String testFolder=templates.contains("maven") ? "src/test/java" : "test";
+  String warFolder=templates.contains("maven") ? "src/main/webapp" : "war";
+{
+    if (junitPath == null) {
+      System.err.println("Not creating tests because -junit argument was not specified.\n");
+    }
+    String testTargetsBegin="";
+    String testTargetsEnd="";
+    String junitJarPath=junitPath;
+    String eclipseTestDir="";
+    if (junitPath != null) {
+      eclipseTestDir="\n   <classpathentry kind=\"src\" path=\"" + testFolder + "\"/>";
+    }
+    if (junitPath == null) {
+      testTargetsBegin="\n<!--" + "\n" + "Test targets suppressed because -junit argument was not specified when running"+ " webAppCreator.\n";
+      testTargetsEnd="-->\n";
+      junitJarPath="path_to_the_junit_jar";
+    }
+    replacements.put("@testTargetsBegin",testTargetsBegin);
+    replacements.put("@testTargetsEnd",testTargetsEnd);
+    replacements.put("@junitJar",junitJarPath);
+    replacements.put("@eclipseTestDir",eclipseTestDir);
+  }
+  replacements.put("@srcFolder",srcFolder);
+  replacements.put("@testFolder",testFolder);
+  replacements.put("@warFolder",warFolder);
+  replacements.put("@moduleShortName",moduleShortName);
+  replacements.put("@modulePackageName",modulePackageName);
+  replacements.put("@moduleFolder",modulePackageName.replace('.','/'));
+  replacements.put("@moduleName",theModuleName);
+  replacements.put("@clientPackage",modulePackageName + ".client");
+  replacements.put("@serverPackage",modulePackageName + ".server");
+  replacements.put("@sharedPackage",modulePackageName + ".shared");
+  replacements.put("@gwtSdk",installPath);
+  replacements.put("@gwtUserPath",gwtUserPath);
+  replacements.put("@gwtDevPath",gwtDevPath);
+  replacements.put("@gwtValidationPath",gwtValidationPath);
+  replacements.put("@gwtValidationSourcesPath",gwtValidationSourcesPath);
+  replacements.put("@gwtVersion",About.getGwtVersionNum());
+  replacements.put("@gwtModuleDtd",gwtModuleDtd);
+  replacements.put("@shellClass",DevMode.class.getName());
+  replacements.put("@compileClass",Compiler.class.getName());
+  replacements.put("@startupUrl",moduleShortName + ".html");
+  replacements.put("@renameTo",moduleShortName.toLowerCase());
+  replacements.put("@moduleNameJUnit",theModuleName + "JUnit");
+  String copyServletDeps="";
+  copyServletDeps="<copy todir=\"" + warFolder + "/WEB-INF/lib\" "+ "file=\"${gwt.sdk}/gwt-servlet-deps.jar\" />";
+  replacements.put("@copyServletDeps",copyServletDeps);
+  File libDirectory=new File(outDir + warFolder + "WEB-INF/lib");
+  StringBuilder serverLibs=new StringBuilder();
+  if (libDirectory.exists()) {
+    for (    File file : libDirectory.listFiles()) {
+      if (file.getName().toLowerCase().endsWith(".jar")) {
+        serverLibs.append("   <classpathentry kind=\"lib\" path=\"war/WEB-INF/lib/");
+        serverLibs.append(file.getName());
+        serverLibs.append("\"/>\n");
+      }
+    }
+  }
+  replacements.put("@serverClasspathLibs",serverLibs.toString());
+  String antEclipseRule="";
+  if (!templates.contains("eclipse")) {
+    antEclipseRule="\n\n" + "  <target name=\"eclipse.generate\" depends=\"libs\" description" + "=\"Generate eclipse project\">\n"+ "    <java failonerror=\"true\" fork=\"true\" classname=\"" + this.getClass().getName() + "\">\n"+ "      <classpath>\n"+ "        <path refid=\"project.class.path\"/>\n"+ "      </classpath>\n"+ "      <arg value=\"-XonlyEclipse\"/>\n"+ "      <arg value=\"-ignore\"/>\n"+ "      <arg value=\""+ theModuleName+ "\"/>\n"+ "    </java>\n"+ "  </target>";
+  }
+ else {
+    antEclipseRule="";
+  }
+  replacements.put("@antEclipseRule",antEclipseRule);
+  return replacements;
+}

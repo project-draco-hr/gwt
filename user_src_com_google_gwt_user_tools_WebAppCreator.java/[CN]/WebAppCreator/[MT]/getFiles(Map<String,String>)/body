@@ -1,0 +1,18 @@
+{
+  List<FileCreator> files=new ArrayList<FileCreator>();
+  Utility.getDirectory(outDir.getPath(),true);
+  for (  String template : templates) {
+    URL templateUrl=getTemplateRoot(template);
+    if ("jar".equals(templateUrl.getProtocol())) {
+      files.addAll(getTemplateFilesFromZip(replacements,templateUrl,outDir));
+    }
+ else     if ("file".equals(templateUrl.getProtocol())) {
+      File templateRoot=new File(templateUrl.getPath());
+      files.addAll(getTemplateFiles(replacements,templateRoot,outDir,getTemplateBasePath(template)));
+    }
+ else {
+      throw new WebAppCreatorException("Cannot handle template '" + template + "' protocol: "+ templateUrl.getProtocol());
+    }
+  }
+  return files;
+}

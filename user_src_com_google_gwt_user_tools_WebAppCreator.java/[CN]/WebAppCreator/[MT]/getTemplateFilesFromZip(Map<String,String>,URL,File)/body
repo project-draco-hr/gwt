@@ -1,0 +1,38 @@
+{
+  String zipPath=zipUrl.getFile();
+  int separator=zipPath.indexOf('!');
+  if (separator == -1) {
+    throw new WebAppCreatorException("Error opening template zip file. '!' not found in " + zipUrl);
+  }
+  String zipFilename=zipPath.substring(0,separator);
+  String templateDirName=zipPath.substring(separator + 2);
+  ZipFile zipFile;
+  try {
+    zipFile=new ZipFile(new File(new URI(zipFilename)));
+  }
+ catch (  URISyntaxException e) {
+    throw new WebAppCreatorException("Could not open Zip file. Malformed URI",e);
+  }
+  Enumeration<? extends ZipEntry> allZipEntries=zipFile.entries();
+  ArrayList<FileCreator> templateEntries=new ArrayList<FileCreator>();
+  while (allZipEntries.hasMoreElements()) {
+    ZipEntry entry=allZipEntries.nextElement();
+    String fullName=entry.getName();
+    if (fullName.startsWith(templateDirName + "/")) {
+      String relativeName=fullName.substring(templateDirName.length());
+      String replacedName=replaceFileName(replacements,relativeName);
+      if (entry.isDirectory()) {
+        Utility.getDirectory(destDirectory,replacedName,true);
+      }
+ else       if (fullName.endsWith("src")) {
+        String destName=replacedName.substring(0,replacedName.length() - 3);
+        templateEntries.add(new FileCreator(destDirectory,destName,"/" + fullName,false));
+      }
+ else       if (fullName.endsWith("bin")) {
+        String destName=replacedName.substring(0,replacedName.length() - 3);
+        templateEntries.add(new FileCreator(destDirectory,destName,"/" + fullName,true));
+      }
+    }
+  }
+  return templateEntries;
+}

@@ -1,0 +1,22 @@
+{
+  List<FileCreator> files=new ArrayList<FileCreator>();
+  File[] filesInDir=srcDirectory.listFiles();
+  for (  File srcFile : filesInDir) {
+    String replacedName=replaceFileName(replacements,srcFile.getName());
+    if (srcFile.isDirectory()) {
+      File newDirectory=Utility.getDirectory(destDirectory,replacedName,true);
+      files.addAll(getTemplateFiles(replacements,srcFile,newDirectory,templateClassRoot + srcFile.getName() + "/"));
+    }
+ else     if (srcFile.getName().endsWith("src")) {
+      String srcFilename=templateClassRoot + srcFile.getName();
+      String destName=replacedName.substring(0,replacedName.length() - 3);
+      files.add(new FileCreator(destDirectory,destName,srcFilename,false));
+    }
+ else     if (srcFile.getName().endsWith("bin")) {
+      String srcFilename=templateClassRoot + srcFile.getName();
+      String destName=replacedName.substring(0,replacedName.length() - 3);
+      files.add(new FileCreator(destDirectory,destName,srcFilename,true));
+    }
+  }
+  return files;
+}
