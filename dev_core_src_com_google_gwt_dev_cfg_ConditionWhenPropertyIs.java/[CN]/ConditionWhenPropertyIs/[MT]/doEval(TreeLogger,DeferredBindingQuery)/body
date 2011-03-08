@@ -15,6 +15,25 @@
       return true;
     }
  else {
+      try {
+        SelectionProperty prop=propertyOracle.getSelectionProperty(logger,propName);
+        List<? extends Set<String>> fallbackValues=prop.getFallbackValues(value);
+        if (fallbackValues != null && fallbackValues.size() > 0) {
+          logger.log(TreeLogger.DEBUG,"Property value '" + value + "'"+ " is the fallback of '"+ fallbackValues.toString()+ "'",null);
+          int cost=-1;
+          for (          Set<String> values : fallbackValues) {
+            for (            String fallbackValue : values) {
+              if (testValue.equals(fallbackValue)) {
+                query.setFallbackEvaluationCost(cost);
+                return false;
+              }
+            }
+            cost--;
+          }
+        }
+      }
+ catch (      BadPropertyValueException e) {
+      }
       return false;
     }
   }

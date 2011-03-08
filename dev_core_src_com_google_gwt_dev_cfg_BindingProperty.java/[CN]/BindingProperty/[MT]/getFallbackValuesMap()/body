@@ -1,0 +1,29 @@
+{
+  if (fallbackValueMap == null) {
+    HashMap<String,LinkedList<LinkedHashSet<String>>> valuesMap=new HashMap<String,LinkedList<LinkedHashSet<String>>>();
+    for (    Entry<String,LinkedList<String>> e : fallbackValues.entrySet()) {
+      String from=e.getKey();
+      LinkedList<LinkedHashSet<String>> alternates=new LinkedList<LinkedHashSet<String>>();
+      valuesMap.put(from,alternates);
+      LinkedList<String> childList=fallbackValues.get(from);
+      LinkedHashSet<String> children=new LinkedHashSet<String>();
+      children.addAll(childList);
+      while (children != null && children.size() > 0) {
+        alternates.add(children);
+        LinkedHashSet<String> newChildren=new LinkedHashSet<String>();
+        for (        String child : children) {
+          childList=fallbackValues.get(child);
+          if (null == childList) {
+            continue;
+          }
+          for (          String val : childList) {
+            newChildren.add(val);
+          }
+        }
+        children=newChildren;
+      }
+    }
+    fallbackValueMap=valuesMap;
+  }
+  return fallbackValueMap;
+}
