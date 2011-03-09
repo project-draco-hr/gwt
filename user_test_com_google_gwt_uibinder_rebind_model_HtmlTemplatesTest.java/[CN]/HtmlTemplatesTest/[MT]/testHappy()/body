@@ -1,0 +1,21 @@
+{
+  Tokenator t=new Tokenator();
+  HtmlTemplates h=new HtmlTemplates();
+  String call=h.addSafeHtmlTemplate("<DialogBox id=\'" + t.nextToken("\" + domId0 + \"") + "\'>this is a dialog box</DialogBox>",t);
+  String[] expectedTemplates={"@Template(\"<DialogBox id=\'{0}\'>this is a dialog box</DialogBox>\")","SafeHtml html1(String arg0);"," "};
+  List<String> templates=new ArrayList<String>();
+  for (  HtmlTemplate ht : h.getTemplates()) {
+    templates.addAll(ht.getTemplate());
+  }
+  Iterator<String> i=templates.iterator();
+  for (  String et : expectedTemplates) {
+    assertEquals(et,i.next());
+  }
+  assertFalse(i.hasNext());
+  String expectedCall="template.html1(domId0).asString()";
+  assertEquals(call,expectedCall);
+  StringWriter s=new StringWriter();
+  IndentedWriter n=new IndentedWriter(new PrintWriter(s));
+  h.writeTemplates(n);
+  assertEquals("@Template(\"<DialogBox id=\'{0}\'>this is a dialog " + "box</DialogBox>\")\nSafeHtml html1(String arg0);\n \n",s.toString());
+}
