@@ -1,27 +1,3 @@
 {
-  final com.google.gwt.user.client.Element parent=Document.get().createDivElement().cast();
-  parent.setInnerHTML(startHtml);
-  Document.get().getBody().appendChild(parent);
-  Element child=parent.getFirstChildElement();
-  Element target=(child == null) ? parent : child;
-  final MockValueUpdater valueUpdater=new MockValueUpdater();
-  Event.setEventListener(parent,new EventListener(){
-    public void onBrowserEvent(    Event event){
-      try {
-        DOM.setEventListener(parent,null);
-        Context context=new Context(0,0,DEFAULT_KEY);
-        createCell().onBrowserEvent(context,parent,value,event,valueUpdater);
-        parent.removeFromParent();
-      }
- catch (      Exception e) {
-        fail("An exception occured while handling the event: " + e.getMessage());
-      }
-    }
-  }
-);
-  Event.sinkEvents(target,Event.getTypeInt(event.getType()));
-  target.dispatchEvent(event);
-  assertNull(DOM.getEventListener(parent));
-  valueUpdater.assertLastValue(expectedValue);
-  return parent;
+  return testOnBrowserEvent(createCell(),startHtml,event,value,expectedValue,true);
 }
