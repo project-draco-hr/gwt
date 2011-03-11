@@ -1,0 +1,23 @@
+{
+  List<JExpression> args=pop(jdtArgs);
+  if (!binding.isVarargs()) {
+    return args;
+  }
+  if (jdtArgs == null) {
+    args=new ArrayList<JExpression>(1);
+  }
+  TypeBinding[] params=binding.parameters;
+  int varArg=params.length - 1;
+  if (args.size() == params.length) {
+    if (jdtArgs[varArg].resolvedType.isCompatibleWith(params[varArg])) {
+      return args;
+    }
+  }
+  List<JExpression> tail=args.subList(varArg,args.size());
+  ArrayList<JExpression> initializers=new ArrayList<JExpression>(tail);
+  tail.clear();
+  JArrayType lastParamType=(JArrayType)typeMap.get(params[varArg]);
+  JNewArray newArray=JNewArray.createInitializers(SourceOrigin.UNKNOWN,lastParamType,initializers);
+  args.add(newArray);
+  return args;
+}

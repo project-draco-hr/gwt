@@ -1,0 +1,22 @@
+{
+  try {
+    JExpression initialization=pop(x.initialization);
+    JField field=typeMap.get(x.binding);
+    if (field instanceof JEnumField) {
+      assert(initialization instanceof JNewInstance);
+    }
+    if (initialization != null) {
+      SourceInfo info=makeSourceInfo(x);
+      JExpression instance=null;
+      if (!x.isStatic()) {
+        instance=makeThisRef(info);
+      }
+      JStatement decl=new JDeclarationStatement(info,new JFieldRef(info,instance,field,curClass.type),initialization);
+      curMethod.body.getBlock().addStmt(decl);
+    }
+    popMethodInfo();
+  }
+ catch (  Throwable e) {
+    throw translateException(x,e);
+  }
+}

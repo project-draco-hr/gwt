@@ -1,0 +1,18 @@
+{
+  if (superClass.syntheticOuterLocalVariables() != null) {
+    for (    SyntheticArgumentBinding arg : superClass.syntheticOuterLocalVariables()) {
+      JType varType=typeMap.get(arg.type);
+      String varName=intern(arg.name);
+      JParameter param=null;
+      for (      JParameter paramIt : curMethod.method.getParams()) {
+        if (varType == paramIt.getType() && varName.equals(paramIt.getName())) {
+          param=paramIt;
+        }
+      }
+      if (param == null) {
+        throw new InternalCompilerException("Could not find matching local arg for explicit super ctor call.");
+      }
+      call.addArg(new JParameterRef(call.getSourceInfo(),param));
+    }
+  }
+}

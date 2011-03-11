@@ -1,0 +1,43 @@
+{
+  try {
+    ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,options.getModuleNames().get(0));
+    final CompilationState compilationState=buildGwtAst(logger,module);
+    long start=System.currentTimeMillis();
+    Map<String,JDeclaredType> compStateTypes=new HashMap<String,JDeclaredType>();
+    for (    CompilationUnit unit : compilationState.getCompilationUnits()) {
+      for (      JDeclaredType type : unit.getTypes()) {
+        compStateTypes.put(type.getName(),type);
+      }
+    }
+    logger.log(TreeLogger.INFO,(System.currentTimeMillis() - start) + " time to get all types");
+    start=System.currentTimeMillis();
+    JProgram jprogram=buildGenerateJavaAst(logger,module,compilationState);
+    logger.log(TreeLogger.INFO,(System.currentTimeMillis() - start) + " time to build old AST");
+    for (    JDeclaredType genJavaAstType : jprogram.getDeclaredTypes()) {
+      String typeName=genJavaAstType.getName();
+      if ("com.google.gwt.core.client.JavaScriptObject".equals(typeName)) {
+        continue;
+      }
+      JDeclaredType compStateType=compStateTypes.get(typeName);
+      if (compStateType == null) {
+        System.out.println("No matching prebuilt type for '" + typeName + "'");
+      }
+ else {
+        String oldSource=genJavaAstType.toSource();
+        String newSource=compStateType.toSource();
+        if (!oldSource.equals(newSource)) {
+          System.out.println("Mismatched output for '" + typeName + "'");
+          System.out.println("GenerateJavaAST:");
+          System.out.println(oldSource);
+          System.out.println("GwtAstBuilder:");
+          System.out.println(newSource);
+        }
+      }
+    }
+    return !compilationState.hasErrors();
+  }
+ catch (  Throwable e) {
+    logAndTranslateException(logger,e);
+    return false;
+  }
+}

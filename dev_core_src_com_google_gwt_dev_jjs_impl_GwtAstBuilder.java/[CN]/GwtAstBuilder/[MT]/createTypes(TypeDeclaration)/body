@@ -1,0 +1,47 @@
+{
+  SourceInfo info=makeSourceInfo(x);
+  try {
+    SourceTypeBinding binding=x.binding;
+    String name;
+    if (binding instanceof LocalTypeBinding) {
+      char[] localName=binding.constantPoolName();
+      name=new String(localName).replace('/','.');
+    }
+ else {
+      name=dotify(binding.compoundName);
+    }
+    name=intern(name);
+    JDeclaredType type;
+    if (binding.isClass()) {
+      type=new JClassType(info,name,binding.isAbstract(),binding.isFinal());
+    }
+ else     if (binding.isInterface() || binding.isAnnotationType()) {
+      type=new JInterfaceType(info,name);
+    }
+ else     if (binding.isEnum()) {
+      if (binding.isAnonymousType()) {
+        type=new JClassType(info,name,false,true);
+      }
+ else {
+        type=new JEnumType(info,name,binding.isAbstract());
+      }
+    }
+ else {
+      throw new InternalCompilerException("ReferenceBinding is not a class, interface, or enum.");
+    }
+    typeMap.setSourceType(binding,type);
+    newTypes.add(type);
+    if (x.memberTypes != null) {
+      for (      TypeDeclaration memberType : x.memberTypes) {
+        createTypes(memberType);
+      }
+    }
+  }
+ catch (  Throwable e) {
+    InternalCompilerException ice=translateException(null,e);
+    StringBuffer sb=new StringBuffer();
+    x.printHeader(0,sb);
+    ice.addNode(x.getClass().getName(),sb.toString(),info);
+    throw ice;
+  }
+}

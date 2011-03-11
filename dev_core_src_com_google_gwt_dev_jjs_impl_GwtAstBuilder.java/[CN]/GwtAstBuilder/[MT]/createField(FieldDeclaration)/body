@@ -1,0 +1,34 @@
+{
+  if (x instanceof Initializer) {
+    return;
+  }
+  SourceInfo info=makeSourceInfo(x);
+  FieldBinding binding=x.binding;
+  JType type=typeMap.get(binding.type);
+  JDeclaredType enclosingType=(JDeclaredType)typeMap.get(binding.declaringClass);
+  JField field;
+  if (x.initialization != null && x.initialization instanceof AllocationExpression && ((AllocationExpression)x.initialization).enumConstant != null) {
+    field=new JEnumField(info,intern(binding.name),binding.original().id,(JEnumType)enclosingType,(JClassType)type);
+  }
+ else {
+    boolean isCompileTimeConstant=binding.isStatic() && (binding.isFinal()) && (binding.constant() != Constant.NotAConstant)&& (binding.type.isBaseType());
+    assert(type instanceof JPrimitiveType || !isCompileTimeConstant);
+    assert(!binding.isFinal() || !binding.isVolatile());
+    Disposition disposition;
+    if (isCompileTimeConstant) {
+      disposition=Disposition.COMPILE_TIME_CONSTANT;
+    }
+ else     if (binding.isFinal()) {
+      disposition=Disposition.FINAL;
+    }
+ else     if (binding.isVolatile()) {
+      disposition=Disposition.VOLATILE;
+    }
+ else {
+      disposition=Disposition.NONE;
+    }
+    field=new JField(info,intern(binding.name),enclosingType,type,binding.isStatic(),disposition);
+  }
+  enclosingType.addField(field);
+  typeMap.setField(binding,field);
+}

@@ -1,0 +1,57 @@
+{
+  try {
+    SourceInfo info=makeSourceInfo(x);
+    JBlock body=popBlock(info,x.action);
+    JExpression collection=pop(x.collection);
+    JDeclarationStatement elementDecl=pop(x.elementVariable);
+    assert(elementDecl.initializer == null);
+    JLocal elementVar=(JLocal)curMethod.locals.get(x.elementVariable.binding);
+    String elementVarName=elementVar.getName();
+    JForStatement result;
+    if (x.collectionVariable != null) {
+      JLocal arrayVar=JProgram.createLocal(info,elementVarName + "$array",collection.getType(),true,curMethod.body);
+      JLocal indexVar=JProgram.createLocal(info,elementVarName + "$index",JPrimitiveType.INT,false,curMethod.body);
+      JLocal maxVar=JProgram.createLocal(info,elementVarName + "$max",JPrimitiveType.INT,true,curMethod.body);
+      List<JStatement> initializers=new ArrayList<JStatement>(3);
+      initializers.add(makeDeclaration(info,arrayVar,collection));
+      initializers.add(makeDeclaration(info,indexVar,JIntLiteral.get(0)));
+      initializers.add(makeDeclaration(info,maxVar,new JArrayLength(info,new JLocalRef(info,arrayVar))));
+      JExpression condition=new JBinaryOperation(info,JPrimitiveType.BOOLEAN,JBinaryOperator.LT,new JLocalRef(info,indexVar),new JLocalRef(info,maxVar));
+      List<JExpressionStatement> increments=new ArrayList<JExpressionStatement>(1);
+      increments.add(new JPrefixOperation(info,JUnaryOperator.INC,new JLocalRef(info,indexVar)).makeStatement());
+      elementDecl.initializer=new JArrayRef(info,new JLocalRef(info,arrayVar),new JLocalRef(info,indexVar));
+      body.addStmt(0,elementDecl);
+      result=new JForStatement(info,initializers,condition,increments,body);
+    }
+ else {
+      CompilationUnitScope cudScope=scope.compilationUnitScope();
+      ReferenceBinding javaUtilIterator=scope.getJavaUtilIterator();
+      ReferenceBinding javaLangIterable=scope.getJavaLangIterable();
+      MethodBinding iterator=javaLangIterable.getExactMethod(ITERATOR,NO_TYPES,cudScope);
+      MethodBinding hasNext=javaUtilIterator.getExactMethod(HAS_NEXT,NO_TYPES,cudScope);
+      MethodBinding next=javaUtilIterator.getExactMethod(NEXT,NO_TYPES,cudScope);
+      JLocal iteratorVar=JProgram.createLocal(info,(elementVarName + "$iterator"),typeMap.get(javaUtilIterator),false,curMethod.body);
+      List<JStatement> initializers=new ArrayList<JStatement>(1);
+      initializers.add(makeDeclaration(info,iteratorVar,new JMethodCall(info,collection,typeMap.get(iterator))));
+      JExpression condition=new JMethodCall(info,new JLocalRef(info,iteratorVar),typeMap.get(hasNext));
+      elementDecl.initializer=new JMethodCall(info,new JLocalRef(info,iteratorVar),typeMap.get(next));
+      if (elementVar.getType() != javaLangObject) {
+        ReferenceBinding collectionType=(ReferenceBinding)x.collection.resolvedType;
+        MethodBinding iteratorMethod=collectionType.getExactMethod(ITERATOR,NO_TYPES,cudScope);
+        ReferenceBinding iteratorType=(ReferenceBinding)iteratorMethod.returnType;
+        MethodBinding nextMethod=iteratorType.getMethods(NEXT)[0];
+        TypeBinding collectionElementType=nextMethod.returnType;
+        JType toType=typeMap.get(collectionElementType);
+        assert(toType instanceof JReferenceType);
+        elementDecl.initializer=maybeCast(toType,elementDecl.initializer);
+      }
+      body.addStmt(0,elementDecl);
+      result=new JForStatement(info,initializers,condition,Collections.<JExpressionStatement>emptyList(),body);
+    }
+    elementDecl.initializer=maybeBoxOrUnbox(elementDecl.initializer,x.elementVariableImplicitWidening);
+    push(result);
+  }
+ catch (  Throwable e) {
+    throw translateException(x,e);
+  }
+}

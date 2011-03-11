@@ -1,0 +1,34 @@
+{
+  SourceTypeBinding binding=x.binding;
+  JDeclaredType type=(JDeclaredType)typeMap.get(binding);
+  try {
+    ReferenceBinding superClassBinding=binding.superclass();
+    if (type instanceof JClassType && superClassBinding != null) {
+      assert(binding.superclass().isClass() || binding.superclass().isEnum());
+      JClassType superClass=(JClassType)typeMap.get(superClassBinding);
+      ((JClassType)type).setSuperClass(superClass);
+    }
+    ReferenceBinding[] superInterfaces=binding.superInterfaces();
+    for (    ReferenceBinding superInterfaceBinding : superInterfaces) {
+      assert(superInterfaceBinding.isInterface());
+      JInterfaceType superInterface=(JInterfaceType)typeMap.get(superInterfaceBinding);
+      type.addImplements(superInterface);
+    }
+    ReferenceBinding enclosingBinding=binding.enclosingType();
+    if (enclosingBinding != null) {
+      type.setEnclosingType((JDeclaredType)typeMap.get(enclosingBinding));
+    }
+    if (x.memberTypes != null) {
+      for (      TypeDeclaration memberType : x.memberTypes) {
+        resolveTypeRefs(memberType);
+      }
+    }
+  }
+ catch (  Throwable e) {
+    InternalCompilerException ice=translateException(null,e);
+    StringBuffer sb=new StringBuffer();
+    x.printHeader(0,sb);
+    ice.addNode(x.getClass().getName(),sb.toString(),type.getSourceInfo());
+    throw ice;
+  }
+}

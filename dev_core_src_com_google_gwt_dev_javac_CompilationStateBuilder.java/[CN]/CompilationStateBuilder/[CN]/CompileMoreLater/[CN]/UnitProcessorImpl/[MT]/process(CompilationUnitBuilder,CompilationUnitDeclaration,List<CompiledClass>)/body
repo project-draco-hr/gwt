@@ -36,7 +36,13 @@
       apiRefs.set(i,interner.intern(apiRefs.get(i)));
     }
     Dependencies dependencies=new Dependencies(packageName,unresolvedQualified,unresolvedSimple,apiRefs);
-    CompilationUnit unit=builder.build(compiledClasses,dependencies,jsniMethods.values(),methodArgs,cud.compilationResult().getProblems());
+    List<JDeclaredType> types=Collections.emptyList();
+    if (GwtAstBuilder.ENABLED) {
+      if (!cud.compilationResult().hasErrors()) {
+        types=astBuilder.process(cud,jsniMethods,jsniRefs);
+      }
+    }
+    CompilationUnit unit=builder.build(compiledClasses,types,dependencies,jsniMethods.values(),methodArgs,cud.compilationResult().getProblems());
     addValidUnit(unit);
     ContentId contentId=builder.getContentId();
     unitCache.put(contentId,unit);

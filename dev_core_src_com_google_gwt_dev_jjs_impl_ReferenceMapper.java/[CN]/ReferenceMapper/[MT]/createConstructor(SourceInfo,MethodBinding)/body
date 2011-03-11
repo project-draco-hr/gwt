@@ -1,0 +1,27 @@
+{
+  JDeclaredType enclosingType=(JDeclaredType)get(b.declaringClass);
+  JMethod method=new JConstructor(info,(JClassType)enclosingType);
+  enclosingType.addMethod(method);
+  int argPosition=0;
+  ReferenceBinding declaringClass=b.declaringClass;
+  if (declaringClass.isNestedType() && !declaringClass.isStatic()) {
+    if (declaringClass.syntheticEnclosingInstanceTypes() != null) {
+      for (      ReferenceBinding argType : declaringClass.syntheticEnclosingInstanceTypes()) {
+        createParameter(info,argType,method,argPosition++);
+      }
+    }
+  }
+  argPosition=mapParameters(info,method,b,argPosition);
+  if (declaringClass.isNestedType() && !declaringClass.isStatic()) {
+    if (declaringClass.syntheticOuterLocalVariables() != null) {
+      for (      SyntheticArgumentBinding arg : declaringClass.syntheticOuterLocalVariables()) {
+        createParameter(info,arg.type,method,argPosition++);
+      }
+    }
+  }
+  mapExceptions(method,b);
+  if (b.isSynthetic()) {
+    method.setSynthetic();
+  }
+  return method;
+}

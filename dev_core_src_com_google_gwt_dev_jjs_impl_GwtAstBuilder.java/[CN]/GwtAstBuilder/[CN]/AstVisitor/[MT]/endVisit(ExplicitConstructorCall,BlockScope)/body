@@ -1,0 +1,47 @@
+{
+  try {
+    SourceInfo info=makeSourceInfo(x);
+    JConstructor ctor=(JConstructor)typeMap.get(x.binding);
+    JExpression trueQualifier=makeThisRef(info);
+    JMethodCall call=new JMethodCall(info,trueQualifier,ctor);
+    List<JExpression> callArgs=popCallArgs(x.arguments,x.binding);
+    if (curClass.classType.isEnumOrSubclass() != null) {
+      JParameterRef enumNameRef=new JParameterRef(info,curMethod.method.getParams().get(0));
+      call.addArg(enumNameRef);
+      JParameterRef enumOrdinalRef=new JParameterRef(info,curMethod.method.getParams().get(1));
+      call.addArg(enumOrdinalRef);
+    }
+    if (x.isSuperAccess()) {
+      JExpression qualifier=pop(x.qualification);
+      ReferenceBinding superClass=x.binding.declaringClass;
+      boolean nestedSuper=superClass.isNestedType() && !superClass.isStatic();
+      if (nestedSuper) {
+        processSuperCallThisArgs(superClass,call,qualifier,x.qualification);
+      }
+      call.addArgs(callArgs);
+      if (nestedSuper) {
+        processSuperCallLocalArgs(superClass,call);
+      }
+    }
+ else {
+      assert(x.qualification == null);
+      ReferenceBinding declaringClass=x.binding.declaringClass;
+      boolean nested=declaringClass.isNestedType() && !declaringClass.isStatic();
+      if (nested) {
+        processThisCallThisArgs(declaringClass,call);
+      }
+      call.addArgs(callArgs);
+      if (nested) {
+        processThisCallLocalArgs(declaringClass,call);
+      }
+    }
+    call.setStaticDispatchOnly();
+    push(call.makeStatement());
+  }
+ catch (  Throwable e) {
+    throw translateException(x,e);
+  }
+ finally {
+    scope.methodScope().isConstructorCall=false;
+  }
+}

@@ -1,0 +1,37 @@
+{
+  try {
+    JExpression curRef=resolveNameReference(x,scope);
+    if (curRef == null) {
+      push(null);
+      return;
+    }
+    if (x.genericCast != null) {
+      JType castType=typeMap.get(x.genericCast);
+      curRef=maybeCast(castType,curRef);
+    }
+    SourceInfo info=curRef.getSourceInfo();
+    if (x.otherBindings != null) {
+      for (int i=0; i < x.otherBindings.length; ++i) {
+        FieldBinding fieldBinding=x.otherBindings[i];
+        if (fieldBinding.declaringClass == null) {
+          if (!ARRAY_LENGTH_FIELD.equals(String.valueOf(fieldBinding.name))) {
+            throw new InternalCompilerException("Expected [array].length.");
+          }
+          curRef=new JArrayLength(info,curRef);
+        }
+ else {
+          JField field=typeMap.get(fieldBinding);
+          curRef=new JFieldRef(info,curRef,field,curClass.type);
+        }
+        if (x.otherGenericCasts != null && x.otherGenericCasts[i] != null) {
+          JType castType=typeMap.get(x.otherGenericCasts[i]);
+          curRef=maybeCast(castType,curRef);
+        }
+      }
+    }
+    push(curRef);
+  }
+ catch (  Throwable e) {
+    throw translateException(x,e);
+  }
+}

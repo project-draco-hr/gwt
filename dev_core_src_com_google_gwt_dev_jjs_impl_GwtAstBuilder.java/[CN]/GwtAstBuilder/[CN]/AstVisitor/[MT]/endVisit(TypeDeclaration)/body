@@ -1,0 +1,23 @@
+{
+  JDeclaredType type=curClass.type;
+  if (type.getSuperClass() != null) {
+    JMethod myClinit=type.getMethods().get(0);
+    JMethod superClinit=type.getSuperClass().getMethods().get(0);
+    JMethodCall superClinitCall=new JMethodCall(myClinit.getSourceInfo(),null,superClinit);
+    JMethodBody body=(JMethodBody)myClinit.getBody();
+    body.getBlock().addStmt(0,superClinitCall.makeStatement());
+  }
+  if (type.getSuperClass() != null && !JSORestrictionsChecker.isJsoSubclass(x.binding)) {
+    implementGetClass(type);
+  }
+  if ("com.google.gwt.core.client.GWT".equals(type.getName())) {
+    implementGwtMethods(type);
+  }
+  if (type instanceof JEnumType) {
+    processEnumType((JEnumType)type);
+  }
+  if (type instanceof JClassType) {
+    addBridgeMethods(x.binding);
+  }
+  curClass=classStack.pop();
+}

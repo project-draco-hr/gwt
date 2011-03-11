@@ -1,0 +1,40 @@
+{
+  try {
+    List<JStatement> statements=pop(x.statements);
+    JStatement constructorCall=pop(x.constructorCall);
+    JBlock block=curMethod.body.getBlock();
+    SourceInfo info=curMethod.method.getSourceInfo();
+    boolean hasExplicitThis=(x.constructorCall != null) && !x.constructorCall.isSuperAccess();
+    if (!hasExplicitThis) {
+      ReferenceBinding declaringClass=(ReferenceBinding)x.binding.declaringClass.erasure();
+      if (declaringClass instanceof NestedTypeBinding) {
+        NestedTypeBinding nestedBinding=(NestedTypeBinding)declaringClass;
+        if (nestedBinding.enclosingInstances != null) {
+          for (          SyntheticArgumentBinding arg : nestedBinding.enclosingInstances) {
+            JBinaryOperation asg=assignSyntheticField(info,arg);
+            block.addStmt(asg.makeStatement());
+          }
+        }
+        if (nestedBinding.outerLocalVariables != null) {
+          for (          SyntheticArgumentBinding arg : nestedBinding.outerLocalVariables) {
+            JBinaryOperation asg=assignSyntheticField(info,arg);
+            block.addStmt(asg.makeStatement());
+          }
+        }
+      }
+    }
+    if (constructorCall != null) {
+      block.addStmt(constructorCall);
+    }
+    if (!hasExplicitThis) {
+      JMethod initMethod=curClass.type.getMethods().get(1);
+      JMethodCall initCall=new JMethodCall(info,makeThisRef(info),initMethod);
+      block.addStmt(initCall.makeStatement());
+    }
+    block.addStmts(statements);
+    popMethodInfo();
+  }
+ catch (  Throwable e) {
+    throw translateException(x,e);
+  }
+}

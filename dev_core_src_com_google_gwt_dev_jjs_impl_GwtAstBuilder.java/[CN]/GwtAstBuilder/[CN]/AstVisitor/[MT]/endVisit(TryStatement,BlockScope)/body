@@ -1,0 +1,19 @@
+{
+  try {
+    SourceInfo info=makeSourceInfo(x);
+    JBlock finallyBlock=pop(x.finallyBlock);
+    List<JBlock> catchBlocks=pop(x.catchBlocks);
+    JBlock tryBlock=pop(x.tryBlock);
+    List<JLocalRef> catchArgs=new ArrayList<JLocalRef>();
+    if (x.catchBlocks != null) {
+      for (      Argument argument : x.catchArguments) {
+        JLocal local=(JLocal)curMethod.locals.get(argument.binding);
+        catchArgs.add(new JLocalRef(info,local));
+      }
+    }
+    push(new JTryStatement(info,tryBlock,catchArgs,catchBlocks,finallyBlock));
+  }
+ catch (  Throwable e) {
+    throw translateException(x,e);
+  }
+}

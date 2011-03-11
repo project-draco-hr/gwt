@@ -1,0 +1,33 @@
+{
+  try {
+    SourceInfo info=makeSourceInfo(x);
+    JMethod method=typeMap.get(x.binding);
+    List<JExpression> arguments=popCallArgs(x.arguments,x.binding);
+    JExpression receiver=pop(x.receiver);
+    if (x.receiver instanceof ThisReference) {
+      if (method.isStatic()) {
+        receiver=null;
+      }
+ else       if ((x.bits & ASTNode.DepthMASK) != 0) {
+        ReferenceBinding targetType=scope.enclosingSourceType().enclosingTypeAt((x.bits & ASTNode.DepthMASK) >> ASTNode.DepthSHIFT);
+        receiver=makeThisReference(info,targetType,true,scope);
+      }
+    }
+    JMethodCall call=new JMethodCall(info,receiver,method);
+    boolean isSuperRef=x.receiver instanceof SuperReference || x.receiver instanceof QualifiedSuperReference;
+    if (isSuperRef) {
+      call.setStaticDispatchOnly();
+    }
+    call.addArgs(arguments);
+    if (x.valueCast != null) {
+      JType castType=typeMap.get(x.valueCast);
+      push(maybeCast(castType,call));
+    }
+ else {
+      push(call);
+    }
+  }
+ catch (  Throwable e) {
+    throw translateException(x,e);
+  }
+}

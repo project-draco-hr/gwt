@@ -1,0 +1,33 @@
+{
+  TreeLogger logger=createLogger();
+  ModuleDef module=ModuleDefLoader.createSyntheticModule(logger,"com.google.gwt.dev.jjs.CompilerSuite.GwtAstBuilderTest",new String[]{"com.google.gwt.junit.JUnit","com.google.gwt.dev.jjs.CompilerSuite"},false);
+  CompilationState compilationState=CompileModule.buildGwtAst(logger,module);
+  assertFalse(compilationState.hasErrors());
+  JProgram jprogram=CompileModule.buildGenerateJavaAst(logger,module,compilationState);
+  Map<String,JDeclaredType> compStateTypes=new HashMap<String,JDeclaredType>();
+  for (  CompilationUnit unit : compilationState.getCompilationUnits()) {
+    for (    JDeclaredType type : unit.getTypes()) {
+      compStateTypes.put(type.getName(),type);
+    }
+  }
+  for (  JDeclaredType genJavaAstType : jprogram.getDeclaredTypes()) {
+    String typeName=genJavaAstType.getName();
+    if ("com.google.gwt.core.client.JavaScriptObject".equals(typeName)) {
+      continue;
+    }
+    if (typeName.startsWith("com.google.gwt.lang.asyncloaders")) {
+      continue;
+    }
+    if ("com.google.gwt.dev.jjs.test.B$1".equals(typeName)) {
+      continue;
+    }
+    if (typeName.startsWith("com.google.gwt.dev.jjs.test.CoverageTest$Inner$1")) {
+      continue;
+    }
+    JDeclaredType compStateType=compStateTypes.get(typeName);
+    assertNotNull("No matching prebuilt type for '" + typeName + "'",compStateType);
+    String oldSource=genJavaAstType.toSource();
+    String newSource=compStateType.toSource();
+    assertEquals("Mismatched output for '" + typeName + "'",oldSource,newSource);
+  }
+}
