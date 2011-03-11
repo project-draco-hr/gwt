@@ -1,0 +1,26 @@
+{
+  try {
+    final OutputStream ostr=context.tryCreateResource(logger,catalogName);
+    if (ostr != null) {
+      return new OutputStream(){
+        @Override public void close() throws IOException {
+          try {
+            context.commitResource(logger,ostr).setVisibility(Visibility.Private);
+          }
+ catch (          UnableToCompleteException e) {
+          }
+        }
+        @Override public void write(        byte[] b,        int off,        int len) throws IOException {
+          ostr.write(b,off,len);
+        }
+        @Override public void write(        int b) throws IOException {
+          ostr.write(b);
+        }
+      }
+;
+    }
+  }
+ catch (  UnableToCompleteException e) {
+  }
+  return null;
+}

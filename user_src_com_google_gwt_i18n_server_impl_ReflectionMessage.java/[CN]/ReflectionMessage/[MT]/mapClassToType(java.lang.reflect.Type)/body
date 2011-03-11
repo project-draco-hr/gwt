@@ -1,0 +1,84 @@
+{
+  if (type instanceof Class<?>) {
+    Class<?> clazz=(Class<?>)type;
+    if (clazz.isPrimitive()) {
+      if (clazz == boolean.class) {
+        return Type.BOOLEAN;
+      }
+      if (clazz == byte.class) {
+        return Type.BYTE;
+      }
+      if (clazz == char.class) {
+        return Type.CHAR;
+      }
+      if (clazz == double.class) {
+        return Type.DOUBLE;
+      }
+      if (clazz == float.class) {
+        return Type.FLOAT;
+      }
+      if (clazz == int.class) {
+        return Type.INT;
+      }
+      if (clazz == long.class) {
+        return Type.LONG;
+      }
+      if (clazz == short.class) {
+        return Type.SHORT;
+      }
+    }
+    if (clazz == String.class) {
+      return Type.STRING;
+    }
+    if (Number.class.isAssignableFrom(clazz)) {
+      return Type.NUMBER;
+    }
+    if (SafeHtml.class.isAssignableFrom(clazz)) {
+      return Type.SAFEHTML;
+    }
+    if (Date.class.isAssignableFrom(clazz)) {
+      return Type.DATE;
+    }
+    if (Enum.class.isAssignableFrom(clazz)) {
+      Enum<?>[] enumConstants=(Enum<?>[])clazz.getEnumConstants();
+      int n=enumConstants.length;
+      String[] names=new String[n];
+      for (int i=0; i < n; ++i) {
+        names[i]=enumConstants[i].name();
+      }
+      return new Type.EnumType(clazz.getCanonicalName(),names);
+    }
+    if (List.class.isAssignableFrom(clazz)) {
+      Type componentType=Type.OBJECT;
+      String sourceName="java.util.List<java.util.Object>";
+      return new Type.ListType(sourceName,componentType);
+    }
+    if (clazz.isArray()) {
+      Class<?> componentClass=clazz.getComponentType();
+      Type componentType=mapClassToType(componentClass);
+      return new Type.ArrayType(componentType.toString() + "[]",componentType);
+    }
+  }
+  if (type instanceof ParameterizedType) {
+    ParameterizedType pType=(ParameterizedType)type;
+    java.lang.reflect.Type rawType=pType.getRawType();
+    if (rawType instanceof Class<?>) {
+      Class<?> clazz=(Class<?>)rawType;
+      if (List.class.isAssignableFrom(clazz)) {
+        java.lang.reflect.Type[] typeArgs=pType.getActualTypeArguments();
+        Type componentType=mapClassToType(typeArgs[0]);
+        String sourceName=clazz.getCanonicalName() + "<" + componentType.getSourceName()+ ">";
+        return new Type.ListType(sourceName,componentType);
+      }
+      if (Map.class.isAssignableFrom(clazz)) {
+        if (type instanceof ParameterizedType) {
+          java.lang.reflect.Type[] typeArgs=pType.getActualTypeArguments();
+          if (typeArgs.length == 2 && typeArgs[0] == String.class && typeArgs[1] == String.class) {
+            return Type.STRING_MAP;
+          }
+        }
+      }
+    }
+  }
+  return new Type(type.toString());
+}

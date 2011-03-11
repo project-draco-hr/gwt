@@ -1,0 +1,30 @@
+{
+  Writer catWriter=null;
+  try {
+    String catalogName=genPath + msgCatFactory.getExtension();
+    Context ctx=new MessageCatalogContextImpl(context,logger);
+    MessageInterface msgIntf=new TypeOracleMessageInterface(LocaleUtils.getLocaleFactory(),targetClass,resourceList);
+    catWriter=msgCatFactory.getWriter(ctx,catalogName);
+    if (catWriter == null) {
+      logger.log(TreeLogger.TRACE,"Already generated " + catalogName);
+      return false;
+    }
+    msgIntf.accept(catWriter.visitClass());
+  }
+ catch (  MessageProcessingException e) {
+    logger.log(TreeLogger.ERROR,e.getMessage(),e);
+    seenError=true;
+  }
+ finally {
+    if (catWriter != null) {
+      try {
+        catWriter.close();
+      }
+ catch (      IOException e) {
+        logger.log(TreeLogger.ERROR,"IO error closing catalog writer",e);
+        seenError=true;
+      }
+    }
+  }
+  return seenError;
+}

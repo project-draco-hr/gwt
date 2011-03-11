@@ -1,0 +1,23 @@
+{
+  String defaultLocale=DefaultLocale.DEFAULT_LOCALE;
+  DefaultLocale defLocaleAnnot=getAnnotation(DefaultLocale.class);
+  if (defLocaleAnnot != null) {
+    defaultLocale=defLocaleAnnot.value();
+  }
+  GwtLocale sourceLocale;
+  try {
+    sourceLocale=factory.fromString(defaultLocale);
+  }
+ catch (  IllegalArgumentException e) {
+    sourceLocale=factory.fromString(DefaultLocale.DEFAULT_LOCALE);
+  }
+  cv.visitMessageInterface(this,sourceLocale);
+  for (  Message msg : getMessages()) {
+    MessageTranslation trans=msg.getTranslation(locale);
+    MessageVisitor mv=cv.visitMessage(msg,trans != null ? trans : msg);
+    if (mv != null) {
+      msg.accept(mv);
+    }
+  }
+  cv.endMessageInterface(this);
+}

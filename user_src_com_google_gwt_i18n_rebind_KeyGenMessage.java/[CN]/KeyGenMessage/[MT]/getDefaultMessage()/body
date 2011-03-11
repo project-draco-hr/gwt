@@ -1,0 +1,25 @@
+{
+  if (isAnnotationPresent(DefaultMessage.class)) {
+    DefaultMessage annot=getAnnotation(DefaultMessage.class);
+    return annot.value();
+  }
+ else   if (isAnnotationPresent(DefaultStringMapValue.class)) {
+    DefaultStringMapValue annot=getAnnotation(DefaultStringMapValue.class);
+    String[] keyValues=annot.value();
+    StringBuilder buf=new StringBuilder();
+    boolean needComma=false;
+    for (int i=0; i < keyValues.length; i+=2) {
+      if (needComma) {
+        buf.append(',');
+      }
+ else {
+        needComma=true;
+      }
+      buf.append(MessageUtils.quoteComma(keyValues[i]));
+    }
+    return buf.toString();
+  }
+ else {
+    return MessageUtils.getConstantsDefaultValue(this);
+  }
+}

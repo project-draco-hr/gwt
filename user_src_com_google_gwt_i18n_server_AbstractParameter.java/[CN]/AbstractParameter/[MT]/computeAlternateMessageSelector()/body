@@ -1,0 +1,35 @@
+{
+  PluralCount pluralAnnot=getAnnotation(PluralCount.class);
+  if (pluralAnnot != null) {
+    Class<? extends PluralRule> pluralClass=pluralAnnot.value();
+    DefaultLocale defLocaleAnnot=getAnnotation(DefaultLocale.class);
+    String defaultLocale=null;
+    if (defLocaleAnnot != null) {
+      defaultLocale=defLocaleAnnot.value();
+    }
+ else {
+      defaultLocale=DefaultLocale.DEFAULT_LOCALE;
+    }
+    PluralRule pluralRule=getLocalizedPluralRule(pluralClass,localeFactory.fromString(defaultLocale));
+    return new PluralRuleAdapter(pluralRule);
+  }
+  Select selectAnnot=getAnnotation(Select.class);
+  if (selectAnnot != null) {
+    final String[] validValues=type.getEnumValues();
+    return new AlternateMessageSelector(){
+      public boolean isFormAcceptable(      String form){
+        if (validValues == null) {
+          return true;
+        }
+        for (        String value : validValues) {
+          if (value.equals(form)) {
+            return true;
+          }
+        }
+        return false;
+      }
+    }
+;
+  }
+  return null;
+}

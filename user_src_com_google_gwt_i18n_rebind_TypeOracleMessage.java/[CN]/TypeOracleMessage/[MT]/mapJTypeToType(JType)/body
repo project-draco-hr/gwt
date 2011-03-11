@@ -1,0 +1,77 @@
+{
+  JPrimitiveType primType=type.isPrimitive();
+  if (primType != null) {
+    if (primType == JPrimitiveType.BOOLEAN) {
+      return Type.BOOLEAN;
+    }
+    if (primType == JPrimitiveType.BYTE) {
+      return Type.BYTE;
+    }
+    if (primType == JPrimitiveType.CHAR) {
+      return Type.CHAR;
+    }
+    if (primType == JPrimitiveType.DOUBLE) {
+      return Type.DOUBLE;
+    }
+    if (primType == JPrimitiveType.FLOAT) {
+      return Type.FLOAT;
+    }
+    if (primType == JPrimitiveType.INT) {
+      return Type.INT;
+    }
+    if (primType == JPrimitiveType.LONG) {
+      return Type.LONG;
+    }
+    if (primType == JPrimitiveType.SHORT) {
+      return Type.SHORT;
+    }
+    throw new RuntimeException("Unexpected primitive type " + primType);
+  }
+  JArrayType arrayType=type.isArray();
+  if (arrayType != null) {
+    JType componentType=arrayType.getComponentType();
+    return new Type.ArrayType(componentType.getQualifiedSourceName() + "[]",mapJTypeToType(componentType));
+  }
+  JEnumType enumType=type.isEnum();
+  String qualSourceName=type.getQualifiedSourceName();
+  if (enumType != null) {
+    JEnumConstant[] enumConstants=enumType.getEnumConstants();
+    int n=enumConstants.length;
+    String[] names=new String[n];
+    for (int i=0; i < n; ++i) {
+      names[i]=enumConstants[i].getName();
+    }
+    return new Type.EnumType(qualSourceName,names);
+  }
+  String stringQualifiedName=String.class.getCanonicalName();
+  if (stringQualifiedName.equals(qualSourceName)) {
+    return Type.STRING;
+  }
+  if (SafeHtml.class.getCanonicalName().equals(qualSourceName)) {
+    return Type.SAFEHTML;
+  }
+  JClassType date=oracle.findType(Date.class.getCanonicalName());
+  JClassType classType=type.isClassOrInterface();
+  if (date != null && classType != null && date.isAssignableFrom(classType)) {
+    return Type.DATE;
+  }
+  String listQualifiedName=List.class.getCanonicalName();
+  JClassType list=oracle.findType(listQualifiedName);
+  JParameterizedType parameterizedType=type.isParameterized();
+  if (list != null && classType != null && list.isAssignableFrom(classType)) {
+    if (parameterizedType == null) {
+      return new Type.ListType(listQualifiedName + "<Object>",Type.OBJECT);
+    }
+    JType componentType=parameterizedType.getTypeArgs()[0];
+    return new Type.ListType(listQualifiedName + "<" + componentType.getQualifiedSourceName()+ ">",mapJTypeToType(componentType));
+  }
+  String mapQualifiedName=Map.class.getCanonicalName();
+  JClassType map=oracle.findType(mapQualifiedName);
+  if (map != null && classType != null && map.isAssignableFrom(classType) && parameterizedType != null) {
+    JClassType[] typeArgs=parameterizedType.getTypeArgs();
+    if (typeArgs.length == 2 && stringQualifiedName.equals(typeArgs[0].getQualifiedSourceName()) && stringQualifiedName.equals(typeArgs[1].getQualifiedSourceName())) {
+      return Type.STRING_MAP;
+    }
+  }
+  return new Type(qualSourceName);
+}

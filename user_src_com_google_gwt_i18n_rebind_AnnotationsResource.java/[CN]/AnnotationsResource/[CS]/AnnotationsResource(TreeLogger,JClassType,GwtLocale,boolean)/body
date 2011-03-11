@@ -35,10 +35,11 @@
       key=keyAnnot.value();
     }
  else {
-      key=keyGenerator.generateKey(method.getEnclosingType().getQualifiedSourceName(),method.getName(),textString,meaningString);
-    }
-    if (key == null) {
-      throw new AnnotationsError("Could not compute key for " + method.getEnclosingType().getQualifiedSourceName() + "."+ method.getName());
+      Message msg=new KeyGenMessage(method);
+      key=keyGenerator.generateKey(msg);
+      if (key == null) {
+        throw new AnnotationsError("Could not compute key for " + method.getEnclosingType().getQualifiedSourceName() + "."+ method.getName()+ " using "+ keyGenerator);
+      }
     }
     MethodEntry entry=new MethodEntry(textString,meaningString);
     map.put(key,entry);
@@ -46,9 +47,9 @@
     if (description != null) {
       entry.description=description.value();
     }
-    PluralText pluralText=method.getAnnotation(PluralText.class);
+    @SuppressWarnings("deprecation") com.google.gwt.i18n.client.Messages.PluralText pluralText=method.getAnnotation(com.google.gwt.i18n.client.Messages.PluralText.class);
     if (pluralText != null) {
-      String[] pluralForms=pluralText.value();
+      @SuppressWarnings("deprecation") String[] pluralForms=pluralText.value();
       if ((pluralForms.length & 1) != 0) {
         throw new AnnotationsError("Odd number of strings supplied to @PluralText: must be" + " pairs of form names and messages");
       }

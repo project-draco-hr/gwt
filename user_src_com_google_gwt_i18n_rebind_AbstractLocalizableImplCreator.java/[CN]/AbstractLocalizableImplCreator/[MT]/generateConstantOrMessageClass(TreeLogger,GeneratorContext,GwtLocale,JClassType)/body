@@ -96,9 +96,22 @@ catch (  IllegalArgumentException e) {
     if (found) {
       for (      String genClassName : generate.format()) {
         MessageCatalogFormat msgWriter=null;
+        MessageCatalogFactory msgCatFactory=null;
         try {
-          Class<? extends MessageCatalogFormat> msgFormatClass=Class.forName(genClassName,false,MessageCatalogFormat.class.getClassLoader()).asSubclass(MessageCatalogFormat.class);
-          msgWriter=msgFormatClass.newInstance();
+          Class<?> clazz=Class.forName(genClassName,false,MessageCatalogFormat.class.getClassLoader());
+          if (MessageCatalogFormat.class.isAssignableFrom(clazz)) {
+            Class<? extends MessageCatalogFormat> msgFormatClass=clazz.asSubclass(MessageCatalogFormat.class);
+            msgWriter=msgFormatClass.newInstance();
+          }
+ else           if (MessageCatalogFactory.class.isAssignableFrom(clazz)) {
+            Class<? extends MessageCatalogFactory> msgFactoryClass=clazz.asSubclass(MessageCatalogFactory.class);
+            msgCatFactory=msgFactoryClass.newInstance();
+          }
+ else {
+            logger.log(TreeLogger.ERROR,"Class specified in @Generate must " + "either be a subtype of MessageCatalogFormat or " + "MessageCatalogFactory");
+            seenError=true;
+            continue;
+          }
         }
  catch (        InstantiationException e) {
           logger.log(TreeLogger.ERROR,"Error instantiating @Generate class " + genClassName,e);
@@ -119,25 +132,11 @@ catch (        ClassNotFoundException e) {
         if (genLocales.length != 1) {
           genPath+='_' + locale.toString();
         }
-        genPath+=msgWriter.getExtension();
-        OutputStream outStr=context.tryCreateResource(logger,genPath);
-        if (outStr != null) {
-          TreeLogger branch=logger.branch(TreeLogger.TRACE,"Generating " + genPath + " from "+ className+ " for locale "+ locale,null);
-          PrintWriter out=null;
-          try {
-            out=new PrintWriter(new BufferedWriter(new OutputStreamWriter(outStr,"UTF-8")),false);
-          }
- catch (          UnsupportedEncodingException e) {
-            throw error(logger,e.getMessage());
-          }
-          try {
-            msgWriter.write(branch,locale.toString(),resourceList,out,targetClass);
-            out.flush();
-            context.commitResource(logger,outStr).setVisibility(Visibility.Private);
-          }
- catch (          UnableToCompleteException e) {
-            seenError=true;
-          }
+        if (msgCatFactory != null) {
+          seenError|=generateToMsgCatFactory(logger,context,locale,targetClass,seenError,resourceList,msgCatFactory,genPath);
+        }
+ else         if (msgWriter != null) {
+          seenError|=generateToLegacyMsgCatFormat(logger,context,locale,targetClass,seenError,resourceList,className,msgWriter,genPath);
         }
       }
     }

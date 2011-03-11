@@ -1,20 +1,9 @@
 {
   GenerateKeys generator=getClassAnnotation(targetClass,GenerateKeys.class);
-  if (generator != null) {
-    String className=generator.value();
-    try {
-      Class<? extends KeyGenerator> keyGeneratorClass=Class.forName(className,false,KeyGenerator.class.getClassLoader()).asSubclass(KeyGenerator.class);
-      return keyGeneratorClass.newInstance();
-    }
- catch (    InstantiationException e) {
-      throw new AnnotationsError("@GenerateKeys: unable to instantiate " + className);
-    }
-catch (    IllegalAccessException e) {
-      throw new AnnotationsError("@GenerateKeys: unable to instantiate " + className);
-    }
-catch (    ClassNotFoundException e) {
-      throw new AnnotationsError("Invalid class specified to @GenerateKeys: " + className);
-    }
+  try {
+    return MessageUtils.getKeyGenerator(generator);
   }
-  return new MethodNameKeyGenerator();
+ catch (  KeyGeneratorException e) {
+    throw new AnnotationsError(e.getMessage());
+  }
 }

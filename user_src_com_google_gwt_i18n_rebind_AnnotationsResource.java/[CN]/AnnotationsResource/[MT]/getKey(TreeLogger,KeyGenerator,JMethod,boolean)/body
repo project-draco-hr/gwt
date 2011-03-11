@@ -10,15 +10,12 @@
  catch (  AnnotationsError e) {
     return null;
   }
-  String meaningString=null;
-  Meaning meaning=method.getAnnotation(Meaning.class);
-  if (meaning != null) {
-    meaningString=meaning.value();
-  }
   if (keyGenerator == null) {
     return null;
   }
-  String keyStr=keyGenerator.generateKey(method.getEnclosingType().getQualifiedSourceName(),method.getName(),text,meaningString);
+  MessageInterface msgIntf=new KeyGenMessageInterface(method.getEnclosingType());
+  Message msg=new KeyGenMessage(method);
+  String keyStr=keyGenerator.generateKey(msg);
   if (keyStr == null) {
     if (text == null) {
       logger.log(TreeLogger.ERROR,"Key generator " + keyGenerator.getClass().getName() + " requires the default value be specified in an annotation for method "+ method.getName(),null);

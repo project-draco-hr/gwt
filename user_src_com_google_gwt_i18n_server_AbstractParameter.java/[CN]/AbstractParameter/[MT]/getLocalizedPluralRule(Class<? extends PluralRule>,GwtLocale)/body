@@ -1,0 +1,37 @@
+{
+  if (PluralRule.class == pluralClass) {
+    pluralClass=DefaultRule.class;
+  }
+  if (!Localizable.class.isAssignableFrom(pluralClass)) {
+    try {
+      return pluralClass.newInstance();
+    }
+ catch (    InstantiationException e) {
+      return null;
+    }
+catch (    IllegalAccessException e) {
+      return null;
+    }
+  }
+  String fqcn=pluralClass.getCanonicalName();
+  for (  GwtLocale search : locale.getCompleteSearchList()) {
+    String cn=fqcn;
+    if (!search.isDefault()) {
+      cn+="_" + search.getAsString();
+    }
+    try {
+      Class<?> clazz=Class.forName(cn);
+      pluralClass=clazz.asSubclass(PluralRule.class);
+      return pluralClass.newInstance();
+    }
+ catch (    ClassCastException e) {
+    }
+catch (    ClassNotFoundException e) {
+    }
+catch (    InstantiationException e) {
+    }
+catch (    IllegalAccessException e) {
+    }
+  }
+  return null;
+}

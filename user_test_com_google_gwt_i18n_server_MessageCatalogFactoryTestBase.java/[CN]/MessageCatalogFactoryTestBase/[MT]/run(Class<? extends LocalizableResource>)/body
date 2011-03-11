@@ -1,0 +1,15 @@
+{
+  MessageCatalogFactory factory=getMessageCatalogFactory();
+  MessageInterface msgIntf=new ReflectionMessageInterface(localeFactory,clazz);
+  ByteArrayOutputStream baos=new ByteArrayOutputStream();
+  Context ctx=new MockMessageCatalogContext(baos);
+  Writer writer=factory.getWriter(ctx,clazz.getCanonicalName());
+  try {
+    MessageInterfaceVisitor cv=writer.visitClass();
+    msgIntf.accept(cv);
+  }
+  finally {
+    writer.close();
+  }
+  return baos.toByteArray();
+}

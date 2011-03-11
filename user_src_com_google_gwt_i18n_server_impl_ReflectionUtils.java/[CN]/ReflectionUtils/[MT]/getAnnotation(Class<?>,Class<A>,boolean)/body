@@ -1,0 +1,18 @@
+{
+  boolean inherited=forceInherit || annotClass.isAnnotationPresent(Inherited.class);
+  LinkedList<Class<?>> workQueue=new LinkedList<Class<?>>();
+  workQueue.add(clazz);
+  while (!workQueue.isEmpty()) {
+    clazz=workQueue.removeFirst();
+    A result=clazz.getAnnotation(annotClass);
+    if (result != null || !inherited) {
+      return result;
+    }
+    Class<?> superClass=clazz.getSuperclass();
+    if (superClass != null) {
+      workQueue.addLast(superClass);
+    }
+    workQueue.addAll(Arrays.asList(clazz.getInterfaces()));
+  }
+  return null;
+}

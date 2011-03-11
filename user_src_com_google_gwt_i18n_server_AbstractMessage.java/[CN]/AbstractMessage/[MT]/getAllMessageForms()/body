@@ -1,0 +1,31 @@
+{
+  if (overrideDefault != null) {
+    return overrideDefault.getAllMessageForms();
+  }
+  List<AlternateFormMapping> mapping=new ArrayList<AlternateFormMapping>();
+  List<Parameter> params=getParameters();
+  int[] selectorIndices=getSelectorParameterIndices();
+  int numSelectors=selectorIndices.length;
+  if (!isStringMap) {
+    mapping.add(new AlternateFormMapping(defaultForms,getDefaultMessage()));
+  }
+  String[] altMessages=null;
+  if (isStringMap) {
+    DefaultStringMapValue smv=getAnnotation(DefaultStringMapValue.class);
+    if (smv != null) {
+      altMessages=smv.value();
+    }
+  }
+ else {
+    altMessages=getAlternateMessages();
+  }
+  if (altMessages == null) {
+    return mapping;
+  }
+  int n=altMessages.length;
+  for (int msgIdx=0; msgIdx < n; msgIdx+=2) {
+    addMapping(mapping,numSelectors,altMessages[msgIdx],altMessages[msgIdx + 1]);
+  }
+  Collections.sort(mapping);
+  return mapping;
+}

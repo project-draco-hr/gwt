@@ -1,0 +1,23 @@
+{
+  int firstDifferent=0;
+  while (firstDifferent < numSelectors && formNames[firstDifferent].equals(lastForm[firstDifferent])) {
+    ++firstDifferent;
+  }
+  for (int i=numSelectors; i-- > firstDifferent; ) {
+    if (lastForm[i] != null && formVisitors[i] != null) {
+      formVisitors[i].endForm(i,lastForm[i]);
+      if (i > firstDifferent) {
+        formVisitors[i].endSelector(i,getSelectorParam(i));
+      }
+    }
+  }
+  for (int i=firstDifferent; i < numSelectors; ++i) {
+    if ((i > firstDifferent || lastForm[i] == null) && formVisitors[i] != null) {
+      formVisitors[i].beginSelector(i,getSelectorParam(i));
+    }
+    lastForm[i]=formNames[i];
+    if (formVisitors[i] != null) {
+      formVisitors[i].beginForm(i,lastForm[i]);
+    }
+  }
+}

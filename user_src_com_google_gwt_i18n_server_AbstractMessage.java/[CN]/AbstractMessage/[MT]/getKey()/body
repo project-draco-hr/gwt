@@ -1,0 +1,24 @@
+{
+  KeyGeneratorException keyGenException=null;
+  if (key == null) {
+    Key keyAnnot=getAnnotation(Key.class);
+    if (keyAnnot != null) {
+      key=keyAnnot.value();
+    }
+ else {
+      GenerateKeys keyGenAnnot=getAnnotation(GenerateKeys.class);
+      try {
+        KeyGenerator keyGen=MessageUtils.getKeyGenerator(keyGenAnnot);
+        key=keyGen.generateKey(this);
+      }
+ catch (      KeyGeneratorException e) {
+        keyGenException=e;
+      }
+    }
+  }
+  if (key == null) {
+    GenerateKeys keyGenAnnot=getAnnotation(GenerateKeys.class);
+    throw new RuntimeException("null key on " + getMessageInterface().getQualifiedName() + "."+ getMethodName()+ ", @GenerateKeys="+ keyGenAnnot+ ", defmsg="+ defaultMessage+ ", meaning="+ meaning+ ", @DefaultMessage="+ getAnnotation(DefaultMessage.class)+ ", @Meaning="+ getAnnotation(Meaning.class)+ ", override="+ overrideDefault,keyGenException);
+  }
+  return key;
+}

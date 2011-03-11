@@ -1,0 +1,50 @@
+{
+  matchedLocale=getDefaultLocale();
+  if (isAnnotationPresent(DefaultMessage.class)) {
+    messageStyle=MessageStyle.MESSAGE_FORMAT;
+    DefaultMessage defMsgAnnot=getAnnotation(DefaultMessage.class);
+    defaultMessage=defMsgAnnot.value();
+  }
+ else   if (isAnnotationPresent(DefaultStringMapValue.class)) {
+    messageStyle=MessageStyle.PLAIN;
+    processStringMap(getAnnotation(DefaultStringMapValue.class));
+    isStringMap=true;
+  }
+ else {
+    messageStyle=MessageStyle.PLAIN;
+    defaultMessage=MessageUtils.getConstantsDefaultValue(this);
+  }
+  Meaning meaningAnnot=getAnnotation(Meaning.class);
+  if (meaningAnnot != null) {
+    meaning=meaningAnnot.value();
+  }
+ else {
+    meaning=null;
+  }
+  if (overrideDefault == null) {
+    overrideDefault=getTranslation(localeFactory.getDefault());
+    if (overrideDefault == this) {
+      overrideDefault=null;
+    }
+  }
+  List<Parameter> params=getParameters();
+  int[] selectorIndices=getSelectorParameterIndices();
+  int numSelectors=selectorIndices.length;
+  defaultForms=new ArrayList<AlternateForm>();
+  selectors=new AlternateMessageSelector[numSelectors];
+  for (int i=0; i < numSelectors; ++i) {
+    int selIdx=selectorIndices[i];
+    if (selIdx < 0) {
+      selectors[i]=new AlternateMessageSelector(){
+        public boolean isFormAcceptable(        String form){
+          return true;
+        }
+      }
+;
+    }
+ else {
+      selectors[i]=params.get(selIdx).getAlternateMessageSelector();
+      defaultForms.add(AlternateMessageSelector.OTHER);
+    }
+  }
+}

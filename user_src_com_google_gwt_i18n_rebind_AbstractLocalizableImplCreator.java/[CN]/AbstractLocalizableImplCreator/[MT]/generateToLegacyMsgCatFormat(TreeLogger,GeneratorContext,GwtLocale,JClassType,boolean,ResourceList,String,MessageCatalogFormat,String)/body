@@ -1,0 +1,23 @@
+{
+  genPath+=msgWriter.getExtension();
+  OutputStream outStr=context.tryCreateResource(logger,genPath);
+  if (outStr != null) {
+    TreeLogger branch=logger.branch(TreeLogger.TRACE,"Generating " + genPath + " from "+ className+ " for locale "+ locale,null);
+    PrintWriter out=null;
+    try {
+      out=new PrintWriter(new BufferedWriter(new OutputStreamWriter(outStr,"UTF-8")),false);
+    }
+ catch (    UnsupportedEncodingException e) {
+      throw error(logger,"UTF-8 not supported",e);
+    }
+    try {
+      msgWriter.write(branch,locale.toString(),resourceList,out,targetClass);
+      out.flush();
+      context.commitResource(logger,outStr).setVisibility(Visibility.Private);
+    }
+ catch (    UnableToCompleteException e) {
+      seenError=true;
+    }
+  }
+  return seenError;
+}

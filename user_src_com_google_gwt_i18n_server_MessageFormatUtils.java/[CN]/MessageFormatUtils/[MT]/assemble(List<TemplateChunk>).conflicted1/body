@@ -1,0 +1,19 @@
+{
+  final StringBuilder buf=new StringBuilder();
+  TemplateChunkVisitor visitor=new DefaultTemplateChunkVisitor(){
+    @Override public void visit(    ArgumentChunk argChunk) throws VisitorAbortException {
+      throw new VisitorAbortException("Argument in Plain message");
+    }
+    @Override public void visit(    StaticArgChunk argChunk) throws VisitorAbortException {
+      buf.append(argChunk.getString());
+    }
+    @Override public void visit(    StringChunk stringChunk) throws VisitorAbortException {
+      buf.append(stringChunk.getString());
+    }
+  }
+;
+  for (  TemplateChunk chunk : message) {
+    chunk.accept(visitor);
+  }
+  return buf.toString();
+}

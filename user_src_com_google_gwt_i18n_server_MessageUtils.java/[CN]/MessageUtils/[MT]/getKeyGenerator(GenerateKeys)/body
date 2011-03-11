@@ -1,0 +1,29 @@
+{
+  if (keyGenAnnot == null) {
+    return new MethodNameKeyGenerator();
+  }
+  String keyGenClassName=keyGenAnnot.value();
+  Throwable caught=null;
+  try {
+    Class<?> clazz=Class.forName(keyGenClassName);
+    if (KeyGenerator.class.isAssignableFrom(clazz)) {
+      Class<? extends KeyGenerator> kgClass=clazz.asSubclass(KeyGenerator.class);
+      return kgClass.newInstance();
+    }
+    if (com.google.gwt.i18n.rebind.keygen.KeyGenerator.class.isAssignableFrom(clazz)) {
+      Class<? extends com.google.gwt.i18n.rebind.keygen.KeyGenerator> kgClass=clazz.asSubclass(com.google.gwt.i18n.rebind.keygen.KeyGenerator.class);
+      return new KeyGeneratorAdapter(kgClass.newInstance());
+    }
+    throw new KeyGeneratorException(keyGenClassName + " in @GenerateKeys must implement KeyGenerator");
+  }
+ catch (  ClassNotFoundException e) {
+    caught=e;
+  }
+catch (  InstantiationException e) {
+    caught=e;
+  }
+catch (  IllegalAccessException e) {
+    caught=e;
+  }
+  throw new KeyGeneratorException("Unable to process @GenerateKeys('" + keyGenClassName + "'): "+ caught.getMessage(),caught);
+}

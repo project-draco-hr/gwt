@@ -1,0 +1,41 @@
+{
+  writer.println();
+  String description=msg.getDescription();
+  if (description != null) {
+    writer.println("# Description: " + description);
+  }
+  String meaning=msg.getMeaning();
+  if (meaning != null) {
+    writer.println("# Meaning: " + meaning);
+  }
+  List<Parameter> params=msg.getParameters();
+  for (int i=0; i < params.size(); ++i) {
+    Parameter param=params.get(i);
+    writer.print("#   " + i + " - "+ param.getName());
+    if (param.isAnnotationPresent(PluralCount.class)) {
+      writer.print(", Plural Count");
+    }
+    if (param.isAnnotationPresent(Select.class)) {
+      writer.print(", Selector");
+    }
+    if (param.isAnnotationPresent(Example.class)) {
+      Example exampleAnnot=param.getAnnotation(Example.class);
+      writer.print(", Example: " + exampleAnnot.value());
+    }
+    writer.println();
+  }
+  int[] selectorIndices=msg.getSelectorParameterIndices();
+  if (selectorIndices.length > 0) {
+    if (selectorIndices[0] >= 0) {
+      writer.println(SELECTOR_BOILERPLATE_1);
+      writer.println(SELECTOR_BOILERPLATE_2);
+    }
+ else {
+      writer.println(STRINGMAP_BOILERPLATE_1);
+      writer.println(STRINGMAP_BOILERPLATE_2);
+    }
+  }
+  baseKey=quoteKey(msg.getKey());
+  writer.println(baseKey + "=" + propertiesMessage(msg.getMessageStyle(),msg.getDefaultMessage()));
+  return this;
+}
