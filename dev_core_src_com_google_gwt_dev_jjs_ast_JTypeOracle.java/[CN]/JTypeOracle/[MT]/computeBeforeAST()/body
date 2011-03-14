@@ -1,2 +1,63 @@
 {
+  javaLangObject=program.getTypeJavaLangObject();
+  javaIoSerializable=program.getFromTypeMap(Serializable.class.getName());
+  javaLangCloneable=program.getFromTypeMap(Cloneable.class.getName());
+  superClassMap.clear();
+  subClassMap.clear();
+  superInterfaceMap.clear();
+  subInterfaceMap.clear();
+  implementsMap.clear();
+  couldImplementMap.clear();
+  isImplementedMap.clear();
+  couldBeImplementedMap.clear();
+  jsoSingleImpls.clear();
+  dualImpls.clear();
+  for (  JDeclaredType type : program.getDeclaredTypes()) {
+    if (type instanceof JClassType) {
+      recordSuperSubInfo((JClassType)type);
+    }
+ else {
+      recordSuperSubInfo((JInterfaceType)type);
+    }
+  }
+  JClassType jsoType=program.getJavaScriptObject();
+  List<JClassType> jsoSubTypes=Lists.create();
+  if (jsoType != null) {
+    jsoSubTypes=new ArrayList<JClassType>(get(subClassMap,jsoType));
+    Collections.sort(jsoSubTypes,new HasNameSort());
+    for (    JClassType jsoSubType : jsoSubTypes) {
+      for (      JInterfaceType intf : jsoSubType.getImplements()) {
+        jsoSingleImpls.put(intf,jsoSubType);
+        for (        JInterfaceType superIntf : get(superInterfaceMap,intf)) {
+          if (!jsoSingleImpls.containsKey(superIntf)) {
+            jsoSingleImpls.put(superIntf,jsoSubType);
+          }
+        }
+      }
+    }
+  }
+  for (  JDeclaredType type : program.getDeclaredTypes()) {
+    if (type instanceof JClassType) {
+      computeImplements((JClassType)type);
+    }
+  }
+  for (  JDeclaredType type : program.getDeclaredTypes()) {
+    if (type instanceof JClassType) {
+      computeCouldImplement((JClassType)type);
+    }
+  }
+  for (  JDeclaredType type : program.getDeclaredTypes()) {
+    if (type instanceof JClassType) {
+      computeVirtualUpRefs((JClassType)type);
+    }
+  }
+  for (  JInterfaceType jsoIntf : jsoSingleImpls.keySet()) {
+    Set<JClassType> implementors=get(isImplementedMap,jsoIntf);
+    for (    JClassType implementor : implementors) {
+      if (!program.isJavaScriptObject(implementor)) {
+        dualImpls.add(jsoIntf);
+        break;
+      }
+    }
+  }
 }

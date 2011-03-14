@@ -2,7 +2,7 @@
   JReferenceType argType=(JReferenceType)x.getExpr().getType();
   JReferenceType toType=x.getTestType();
   assert(toType == toType.getUnderlyingType());
-  if (program.typeOracle.canTriviallyCast(argType,toType)) {
+  if (program.typeOracle.canTriviallyCast(argType,toType) || (program.typeOracle.isEffectivelyJavaScriptObject(argType) && program.typeOracle.isEffectivelyJavaScriptObject(toType))) {
     JNullLiteral nullLit=program.getLiteralNull();
     JBinaryOperation eq=new JBinaryOperation(x.getSourceInfo(),program.getTypePrimitiveBoolean(),JBinaryOperator.NEQ,x.getExpr(),nullLit);
     ctx.replaceMe(eq);
@@ -10,10 +10,10 @@
  else {
     JMethod method;
     boolean isJsoCast=false;
-    if (program.typeOracle.getSingleJsoImpl(toType) != null) {
+    if (program.typeOracle.isDualJsoInterface(toType)) {
       method=program.getIndexedMethod("Cast.instanceOfOrJso");
     }
- else     if (program.isJavaScriptObject(toType)) {
+ else     if (program.typeOracle.isEffectivelyJavaScriptObject(toType)) {
       isJsoCast=true;
       method=program.getIndexedMethod("Cast.instanceOfJso");
     }

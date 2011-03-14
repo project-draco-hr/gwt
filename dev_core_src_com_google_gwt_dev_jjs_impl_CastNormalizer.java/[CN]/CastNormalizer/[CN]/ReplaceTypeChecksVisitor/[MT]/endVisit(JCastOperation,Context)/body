@@ -16,12 +16,12 @@
     JExpression curExpr=expr;
     JReferenceType refType=((JReferenceType)toType).getUnderlyingType();
     JReferenceType argType=(JReferenceType)expr.getType();
-    if (program.typeOracle.canTriviallyCast(argType,refType)) {
+    if (program.typeOracle.canTriviallyCast(argType,refType) || (program.typeOracle.isEffectivelyJavaScriptObject(argType) && program.typeOracle.isEffectivelyJavaScriptObject(refType))) {
       replaceExpr=curExpr;
     }
  else {
       JMethod method;
-      boolean isJsoCast=program.isJavaScriptObject(refType);
+      boolean isJsoCast=program.typeOracle.isEffectivelyJavaScriptObject(refType);
       if (isJsoCast) {
         method=program.getIndexedMethod("Cast.dynamicCastJso");
       }

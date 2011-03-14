@@ -3,4 +3,20 @@
   for (  JDeclaredType type : program.getDeclaredTypes()) {
     computeClinitTarget(type,computed);
   }
+  nextDual:   for (Iterator<JInterfaceType> it=dualImpls.iterator(); it.hasNext(); ) {
+    JInterfaceType dualIntf=it.next();
+    Set<JClassType> implementors=get(isImplementedMap,dualIntf);
+    for (    JClassType implementor : implementors) {
+      if (isInstantiatedType(implementor) && !program.isJavaScriptObject(implementor)) {
+        continue nextDual;
+      }
+    }
+    it.remove();
+  }
+  Iterator<JClassType> jit=jsoSingleImpls.values().iterator();
+  while (jit.hasNext()) {
+    if (!isInstantiatedType(jit.next())) {
+      jit.remove();
+    }
+  }
 }

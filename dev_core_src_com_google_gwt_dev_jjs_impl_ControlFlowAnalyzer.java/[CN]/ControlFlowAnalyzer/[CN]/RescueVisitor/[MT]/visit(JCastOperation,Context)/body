@@ -1,7 +1,14 @@
 {
   JType targetType=x.getCastType();
-  if (program.isJavaScriptObject(targetType)) {
+  if (program.typeOracle.canBeJavaScriptObject(targetType)) {
     rescue((JReferenceType)targetType,true,true);
+    JType exprType=x.getExpr().getType();
+    if (program.typeOracle.isSingleJsoImpl(targetType)) {
+      if (program.getTypeJavaLangObject() == exprType || program.typeOracle.canBeJavaScriptObject(exprType)) {
+        JClassType jsoImplementor=program.typeOracle.getSingleJsoImpl((JReferenceType)targetType);
+        rescue(jsoImplementor,true,true);
+      }
+    }
   }
   return true;
 }

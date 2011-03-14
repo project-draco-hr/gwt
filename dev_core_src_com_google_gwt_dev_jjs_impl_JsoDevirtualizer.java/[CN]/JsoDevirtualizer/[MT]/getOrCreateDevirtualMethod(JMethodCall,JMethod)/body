@@ -1,0 +1,43 @@
+{
+  JMethod polyMethod=polyMethodCall.getTarget();
+  if (polyMethodToDevirtualMethods.containsKey(polyMethod)) {
+    return polyMethodToDevirtualMethods.get(polyMethod);
+  }
+  JClassType jsoType=program.getJavaScriptObject();
+  SourceInfo sourceInfo=jsoType.getSourceInfo().makeChild(SourceOrigin.UNKNOWN);
+  String name=polyMethod.getName() + "__devirtual$";
+  JMethod newMethod=program.createMethod(sourceInfo,name,jsoType,polyMethod.getType(),false,true,true,false,false);
+  newMethod.setSynthetic();
+  JParameter thisParam=JProgram.createParameter(sourceInfo,"this$static",program.getTypeJavaLangObject(),true,true,newMethod);
+  for (  JParameter oldParam : polyMethod.getParams()) {
+    JProgram.createParameter(sourceInfo,oldParam.getName(),oldParam.getType(),true,false,newMethod);
+  }
+  newMethod.freezeParamTypes();
+  newMethod.addThrownExceptions(polyMethod.getThrownExceptions());
+  sourceInfo.addCorrelation(sourceInfo.getCorrelator().by(newMethod));
+  JExpression instance=polyMethodCall.getInstance();
+  JLocal temp=JProgram.createLocal(sourceInfo,"maybeJsoInvocation",thisParam.getType(),true,(JMethodBody)newMethod.getBody());
+  JMultiExpression multi=new JMultiExpression(sourceInfo);
+  multi.exprs.add(JProgram.createAssignmentStmt(sourceInfo,new JLocalRef(sourceInfo,temp),new JParameterRef(sourceInfo,thisParam)).getExpr());
+  JMethodCall condition=new JMethodCall(sourceInfo,null,isJavaObjectMethod);
+  condition.addArg(new JLocalRef(sourceInfo,temp));
+  JMethodCall thenValue=new JMethodCall(sourceInfo,new JLocalRef(sourceInfo,temp),polyMethod);
+  for (  JParameter param : newMethod.getParams()) {
+    if (param != thisParam) {
+      thenValue.addArg(new JParameterRef(sourceInfo,param));
+    }
+  }
+  JMethodCall elseValue=new JMethodCall(sourceInfo,null,jsoImpl);
+  elseValue.addArg(new JLocalRef(sourceInfo,temp));
+  for (  JParameter param : newMethod.getParams()) {
+    if (param != thisParam) {
+      elseValue.addArg(new JParameterRef(sourceInfo,param));
+    }
+  }
+  JConditional conditional=new JConditional(sourceInfo,polyMethod.getType(),condition,thenValue,elseValue);
+  multi.exprs.add(conditional);
+  JReturnStatement returnStatement=new JReturnStatement(sourceInfo,multi);
+  ((JMethodBody)newMethod.getBody()).getBlock().addStmt(returnStatement);
+  polyMethodToDevirtualMethods.put(polyMethod,newMethod);
+  return newMethod;
+}
