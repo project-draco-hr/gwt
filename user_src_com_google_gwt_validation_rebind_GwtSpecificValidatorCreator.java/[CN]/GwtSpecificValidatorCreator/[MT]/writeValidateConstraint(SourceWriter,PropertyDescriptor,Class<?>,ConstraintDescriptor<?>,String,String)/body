@@ -1,0 +1,80 @@
+{
+  boolean isComposite=!constraint.getComposingConstraints().isEmpty();
+  boolean firstReportAsSingleViolation=constraint.isReportAsSingleViolation() && violationsVar.equals(DEFAULT_VIOLATION_VAR) && isComposite;
+  boolean reportAsSingleViolation=firstReportAsSingleViolation || !violationsVar.equals(DEFAULT_VIOLATION_VAR);
+  boolean hasValidator=!constraint.getConstraintValidatorClasses().isEmpty();
+  String compositeViolationsVar=constraintDescriptorVar + "_violations";
+  if (firstReportAsSingleViolation) {
+    sw.print("// Report ");
+    sw.print(constraint.getAnnotation().annotationType().getCanonicalName());
+    sw.println(" as Single Violation");
+    writeNewViolations(sw,compositeViolationsVar);
+  }
+  if (hasValidator) {
+    Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass;
+    try {
+      validatorClass=getValidatorForType(constraint,elementClass);
+    }
+ catch (    UnexpectedTypeException e) {
+      throw error(logger,e);
+    }
+    if (firstReportAsSingleViolation) {
+      sw.println("if (!");
+      sw.indent();
+      sw.indent();
+    }
+    sw.print("validate(myContext, ");
+    sw.print(violationsVar);
+    sw.print(", object, value, ");
+    sw.print("new ");
+    sw.print(validatorClass.getCanonicalName());
+    sw.print("(), ");
+    sw.print(constraintDescriptorVar);
+    sw.print(", groups)");
+    if (firstReportAsSingleViolation) {
+      sw.println(") {");
+      sw.outdent();
+    }
+ else     if (!reportAsSingleViolation) {
+      sw.println(";");
+    }
+ else     if (isComposite) {
+      sw.println(" ||");
+    }
+  }
+ else   if (!isComposite) {
+    logger.log(Type.WARN,"No ConstraintValidator of " + constraint + " for "+ p.getPropertyName()+ " of type "+ elementClass);
+  }
+  if (firstReportAsSingleViolation) {
+    sw.print("if (");
+    sw.indent();
+    sw.indent();
+  }
+  int count=0;
+  for (  ConstraintDescriptor<?> compositeConstraint : constraint.getComposingConstraints()) {
+    String compositeVar=constraintDescriptorVar + "_" + count++;
+    writeValidateConstraint(sw,p,elementClass,compositeConstraint,compositeVar,firstReportAsSingleViolation ? compositeViolationsVar : violationsVar);
+    if (!reportAsSingleViolation) {
+      sw.println(";");
+    }
+ else {
+      sw.println(" ||");
+    }
+  }
+  if (isComposite && reportAsSingleViolation) {
+    sw.print("false");
+  }
+  if (firstReportAsSingleViolation) {
+    sw.println(" ) {");
+    sw.outdent();
+    sw.print("addSingleViolation(myContext, violations, object, value, ");
+    sw.print(constraintDescriptorVar);
+    sw.println(");");
+    sw.outdent();
+    sw.println("}");
+    if (hasValidator) {
+      sw.outdent();
+      sw.println("}");
+    }
+  }
+}
