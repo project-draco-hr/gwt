@@ -1,0 +1,23 @@
+{
+  assertValidAbstractResourcePathName(resourceAbstractPathName);
+  TrieNode currentNode=rootTrieNode;
+  PathPrefix mostSpecificPrefix=rootTrieNode.getPathPrefix();
+  for (  String part : parts) {
+    assert(!"".equals(part));
+    TrieNode childNode=currentNode.findChild(part);
+    if (childNode != null) {
+      PathPrefix moreSpecificPrefix=childNode.getPathPrefix();
+      if (moreSpecificPrefix != null) {
+        mostSpecificPrefix=moreSpecificPrefix;
+      }
+      currentNode=childNode;
+    }
+ else {
+      break;
+    }
+  }
+  if (mostSpecificPrefix == null || !mostSpecificPrefix.allows(resourceAbstractPathName)) {
+    return null;
+  }
+  return mostSpecificPrefix;
+}
