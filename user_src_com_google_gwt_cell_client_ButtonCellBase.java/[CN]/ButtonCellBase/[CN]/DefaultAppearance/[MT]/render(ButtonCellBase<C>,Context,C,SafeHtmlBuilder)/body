@@ -1,0 +1,53 @@
+{
+  SafeHtmlBuilder classes=new SafeHtmlBuilder();
+  classes.appendEscaped(style.buttonCellBase());
+  Decoration decoration=cell.getDecoration();
+  if (decoration == Decoration.PRIMARY) {
+    classes.appendEscaped(" " + style.buttonCellBasePrimary());
+  }
+ else   if (decoration == Decoration.NEGATIVE) {
+    classes.appendEscaped(" " + style.buttonCellBaseNegative());
+  }
+ else {
+    classes.appendEscaped(" " + style.buttonCellBaseDefault());
+  }
+  if (cell.isCollapseLeft()) {
+    classes.appendEscaped(" " + style.buttonCellBaseCollapseLeft());
+  }
+  if (cell.isCollapseRight()) {
+    classes.appendEscaped(" " + style.buttonCellBaseCollapseRight());
+  }
+  ImageResource icon=cell.getIcon();
+  if (icon != lastIcon) {
+    if (icon == null) {
+      iconSafeHtml=SafeHtmlUtils.EMPTY_SAFE_HTML;
+    }
+ else {
+      AbstractImagePrototype proto=AbstractImagePrototype.create(icon);
+      SafeHtml iconOnly=SafeHtmlUtils.fromTrustedString(proto.getHTML());
+      int halfHeight=(int)Math.round(icon.getHeight() / 2.0);
+      iconSafeHtml=template.iconWrapper(iconDirection,halfHeight,iconOnly);
+    }
+  }
+  char accessKey=cell.getAccessKey();
+  StringBuilder attributes=new StringBuilder();
+  if (!cell.isEnabled()) {
+    attributes.append("disabled=disabled ");
+  }
+  if (accessKey != 0) {
+    attributes.append("accessKey=\"").append(SafeHtmlUtils.htmlEscape("" + accessKey));
+    attributes.append("\" ");
+  }
+  int iconWidth=(icon == null) ? 0 : icon.getWidth();
+  SafeHtml safeValue=renderer.render(value);
+  SafeHtml content=template.iconContentLayout(CommonResources.getInlineBlockStyle(),iconDirection,iconWidth + DEFAULT_ICON_PADDING,iconSafeHtml,safeValue);
+  int tabIndex=cell.getTabIndex();
+  StringBuilder openTag=new StringBuilder();
+  openTag.append("<button type=\"button\"");
+  openTag.append(" class=\"" + classes.toSafeHtml().asString() + "\"");
+  openTag.append(" tabindex=\"" + tabIndex + "\" ");
+  openTag.append(attributes.toString()).append(">");
+  sb.appendHtmlConstant(openTag.toString());
+  sb.append(content);
+  sb.appendHtmlConstant("</button>");
+}
