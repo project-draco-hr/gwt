@@ -4,14 +4,13 @@
   for (  GeneratedUnit generatedUnit : generatedUnits) {
     GeneratedCompilationUnitBuilder builder=new GeneratedCompilationUnitBuilder(generatedUnit);
     ContentId contentId=new ContentId(generatedUnit.getTypeName(),generatedUnit.getStrongHash());
-    CompilationUnit existingUnit=unitCache.get(contentId);
-    if (existingUnit != null) {
-      cachedUnits.put(builder,existingUnit);
-      compileMoreLater.addValidUnit(existingUnit);
+    CompilationUnit cachedUnit=unitCache.find(contentId);
+    if (cachedUnit != null) {
+      cachedUnits.put(builder,cachedUnit);
+      compileMoreLater.addValidUnit(cachedUnit);
+      continue;
     }
- else {
-      builders.add(builder);
-    }
+    builders.add(builder);
   }
   return compileMoreLater.compile(logger,builders,cachedUnits,CompilerEventType.JDT_COMPILER_CSB_GENERATED);
 }

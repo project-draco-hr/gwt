@@ -1,2 +1,23 @@
 {
+  Map<String,CompilationUnit> unitMap=state.getCompilationUnitMap();
+  for (  MockJavaResource file : files) {
+    String typeName=file.getTypeName();
+    Dependencies dependencies=unitMap.get(typeName).getDependencies();
+    Set<String> actualTypeNames=new HashSet<String>();
+    for (    Ref ref : dependencies.qualified.values()) {
+      if (ref != null) {
+        actualTypeNames.add(ref.getInternalName().replace('/','.'));
+      }
+    }
+    for (    Ref ref : dependencies.simple.values()) {
+      if (ref != null) {
+        actualTypeNames.add(ref.getInternalName().replace('/','.'));
+      }
+    }
+    actualTypeNames.remove(null);
+    actualTypeNames.remove("java.lang.Object");
+    actualTypeNames.remove(typeName);
+    Set<String> expectedTypeNames=EXPECTED_DEPENDENCIES.get(typeName);
+    assertEquals("Resource: " + file,expectedTypeNames,actualTypeNames);
+  }
 }

@@ -1,0 +1,21 @@
+{
+  logger.log(TreeLogger.TRACE,"Added " + addCount.intValue() + " units to persistent cache.");
+  addCount.set(0);
+  if (cleanupHasRun) {
+    return;
+  }
+  cleanupHasRun=true;
+  unitCacheMapLoader.await();
+  File[] cacheFiles=getCacheFiles();
+  if (cacheFiles.length < CACHE_FILE_THRESHOLD) {
+    return;
+  }
+synchronized (unitMap) {
+    for (    UnitCacheEntry unitCacheEntry : unitMap.values()) {
+      if (unitCacheEntry.getOrigin() == UnitOrigin.PERSISTENT) {
+        unitWriteQueue.add(new UnitWriteMessage(unitCacheEntry));
+      }
+    }
+  }
+  unitWriteQueue.add(UnitWriteMessage.DELETE_OLD_CACHE_FILES);
+}

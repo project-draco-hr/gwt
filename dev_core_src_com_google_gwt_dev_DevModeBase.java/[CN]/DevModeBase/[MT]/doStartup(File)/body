@@ -1,0 +1,22 @@
+{
+  bindAddress=options.getBindAddress();
+  connectAddress=options.getConnectAddress();
+  ui.initialize(options.getLogLevel());
+  topLogger=ui.getTopLogger();
+  CompilationStateBuilder.init(getTopLogger(),persistentCacheDir);
+  ui.setCallback(DoneEvent.getType(),this);
+  final TreeLogger logger=getTopLogger();
+  final CheckForUpdates updateChecker=CheckForUpdates.createUpdateChecker(logger);
+  if (updateChecker != null) {
+    Thread checkerThread=new Thread("GWT Update Checker"){
+      @Override public void run(){
+        CheckForUpdates.logUpdateAvailable(logger,updateChecker.check(checkForUpdatesInterval()));
+      }
+    }
+;
+    checkerThread.setDaemon(true);
+    checkerThread.start();
+  }
+  ensureCodeServerListener();
+  return true;
+}

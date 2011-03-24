@@ -5,19 +5,18 @@
   for (  Resource resource : resources) {
     String typeName=Shared.toTypeName(resource.getPath());
     ResourceCompilationUnitBuilder builder=new ResourceCompilationUnitBuilder(typeName,resource);
-    String location=resource.getLocation();
-    ResourceTag tag=resourceContentCache.get(location);
-    if (tag != null && tag.getLastModified() == resource.getLastModified()) {
-      ContentId contentId=tag.getContentId();
-      CompilationUnit existingUnit=unitCache.get(contentId);
-      if (existingUnit != null) {
-        cachedUnits.put(builder,existingUnit);
-        compileMoreLater.addValidUnit(existingUnit);
+    CompilationUnit cachedUnit=unitCache.find(resource.getLocation());
+    if (cachedUnit != null) {
+      if (cachedUnit.getLastModified() == resource.getLastModified()) {
+        cachedUnits.put(builder,cachedUnit);
+        compileMoreLater.addValidUnit(cachedUnit);
         continue;
       }
+      unitCache.remove(cachedUnit);
     }
     builders.add(builder);
   }
+  logger.log(TreeLogger.TRACE,"Found " + cachedUnits.size() + " cached units.  Used "+ cachedUnits.size()+ " / "+ resources.size()+ " units from cache.");
   Collection<CompilationUnit> resultUnits=compileMoreLater.compile(logger,builders,cachedUnits,CompilerEventType.JDT_COMPILER_CSB_FROM_ORACLE);
   return new CompilationState(logger,resultUnits,compileMoreLater);
 }

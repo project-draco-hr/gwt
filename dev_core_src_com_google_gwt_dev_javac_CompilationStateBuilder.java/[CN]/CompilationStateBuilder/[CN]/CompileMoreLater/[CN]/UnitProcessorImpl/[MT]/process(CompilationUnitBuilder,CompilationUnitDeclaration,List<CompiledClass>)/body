@@ -44,17 +44,6 @@
     }
     CompilationUnit unit=builder.build(compiledClasses,types,dependencies,jsniMethods.values(),methodArgs,cud.compilationResult().getProblems());
     addValidUnit(unit);
-    ContentId contentId=builder.getContentId();
-    unitCache.put(contentId,unit);
-    if (builder instanceof ResourceCompilationUnitBuilder) {
-      ResourceCompilationUnitBuilder rcub=(ResourceCompilationUnitBuilder)builder;
-      ResourceTag resourceTag=new ResourceTag(rcub.getLastModifed(),contentId);
-      resourceContentCache.put(builder.getLocation(),resourceTag);
-      keepAliveLatestVersion.put(resourceTag,unit);
-    }
- else     if (builder instanceof GeneratedCompilationUnitBuilder) {
-      keepAliveRecentlyGenerated.put(unit.getTypeName(),unit);
-    }
     newlyBuiltUnits.add(unit);
   }
   finally {

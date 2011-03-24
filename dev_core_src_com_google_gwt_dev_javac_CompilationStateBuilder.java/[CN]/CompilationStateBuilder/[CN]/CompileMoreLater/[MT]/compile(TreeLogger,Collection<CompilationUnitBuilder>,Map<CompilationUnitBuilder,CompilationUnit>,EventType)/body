@@ -5,7 +5,6 @@
       allValidClasses.put(sourceName,cc);
     }
   }
-  Map<CompiledClass,CompiledClass> cachedStructurallySame=new IdentityHashMap<CompiledClass,CompiledClass>();
   ArrayList<CompilationUnit> resultUnits=new ArrayList<CompilationUnit>();
   do {
     this.newlyBuiltUnits=new ArrayList<CompilationUnit>();
@@ -25,12 +24,16 @@
     for (Iterator<Entry<CompilationUnitBuilder,CompilationUnit>> it=cachedUnits.entrySet().iterator(); it.hasNext(); ) {
       Entry<CompilationUnitBuilder,CompilationUnit> entry=it.next();
       CompilationUnit unit=entry.getValue();
-      boolean isValid=unit.getDependencies().validate(allValidClasses,cachedStructurallySame);
+      boolean isValid=unit.getDependencies().validate(logger,allValidClasses);
       if (!isValid) {
+        logger.log(TreeLogger.TRACE,"Invalid Unit: " + unit.getTypeName());
         invalidatedUnits.add(unit);
         builders.add(entry.getKey());
         it.remove();
       }
+    }
+    if (invalidatedUnits.size() > 0) {
+      logger.log(TreeLogger.TRACE,"Invalid units found: " + invalidatedUnits.size());
     }
     for (    CompilationUnit unit : invalidatedUnits) {
       for (      CompiledClass cc : unit.getCompiledClasses()) {
@@ -39,7 +42,11 @@
     }
   }
  while (builders.size() > 0);
+  for (  CompilationUnit unit : resultUnits) {
+    unitCache.add(unit);
+  }
   resultUnits.addAll(cachedUnits.values());
+  unitCache.cleanup(logger);
   Collections.sort(resultUnits,CompilationUnit.COMPARATOR);
   logger=logger.branch(TreeLogger.DEBUG,"Validating newly compiled units");
   for (  CompilationUnit unit : resultUnits) {
