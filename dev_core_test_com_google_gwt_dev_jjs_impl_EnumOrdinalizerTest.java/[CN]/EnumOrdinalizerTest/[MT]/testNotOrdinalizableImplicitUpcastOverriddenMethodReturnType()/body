@@ -1,7 +1,7 @@
 {
   runTypeTightener=true;
   runMethodCallTightener=true;
-  EnumOrdinalizer.startTracker();
+  EnumOrdinalizer.resetTracker();
   addSnippetClassDecl("public interface EnumInterface {","  String name();","}");
   addSnippetClassDecl("public abstract class AbstractClass<T extends EnumInterface> {","  public abstract T getEnumClass();","}");
   addSnippetClassDecl("public class CustomClass1 extends AbstractClass<EnumClass1> {","  public EnumClass1 getEnumClass() { return EnumClass1.CONST1; }","}");
@@ -11,7 +11,6 @@
   addSnippetClassDecl("public static void testEnumClass(AbstractClass abstractClass) {","  EnumInterface enumClass = abstractClass.getEnumClass();","}");
   optimize("void","EntryPoint ep = new EntryPoint();","AbstractClass abstractClass1 = ep.new CustomClass1();","AbstractClass abstractClass2 = ep.new CustomClass2();","testEnumClass(abstractClass1);","testEnumClass(abstractClass2);");
   EnumOrdinalizer.Tracker tracker=EnumOrdinalizer.getTracker();
-  EnumOrdinalizer.stopTracker();
   assertTrue(tracker.isVisited("test.EntryPoint$EnumClass1"));
   assertFalse(tracker.isOrdinalized("test.EntryPoint$EnumClass1"));
   assertTrue(tracker.isVisited("test.EntryPoint$EnumClass2"));
