@@ -1,6 +1,5 @@
 {
   this.exposedCompiledClasses=Lists.normalizeUnmodifiable(compiledClasses);
-  this.exposedTypes=Lists.normalizeUnmodifiable(types);
   this.dependencies=dependencies;
   this.jsniMethods=Lists.create(jsniMethods.toArray(new JsniMethod[jsniMethods.size()]));
   this.methodArgs=methodArgs;
@@ -16,5 +15,15 @@
   this.hasErrors=hasAnyErrors;
   for (  CompiledClass cc : compiledClasses) {
     cc.initUnit(this);
+  }
+  try {
+    ByteArrayOutputStream baos=new ByteArrayOutputStream();
+    ObjectOutputStream out=new ObjectOutputStream(baos);
+    JProgram.serializeTypes(types,out);
+    out.close();
+    astToken=diskCache.writeByteArray(baos.toByteArray());
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Unexpected IOException on in-memory stream",e);
   }
 }

@@ -1,0 +1,23 @@
+{
+  CompilationState compilationState=getCompilationState();
+  assertFalse(compilationState.hasErrors());
+  for (  CompilationUnit unit : compilationState.getCompilationUnits()) {
+    Map<String,JDeclaredType> compStateTypes=new HashMap<String,JDeclaredType>();
+    for (    JDeclaredType type : unit.getTypes()) {
+      compStateTypes.put(type.getName(),type);
+    }
+    byte[] bytes=unit.getTypesSerialized();
+    ByteArrayInputStream bais=new ByteArrayInputStream(bytes);
+    ObjectInputStream ois=new ObjectInputStream(bais);
+    List<JDeclaredType> deserializedTypes=JProgram.deserializeTypes(ois);
+    assertEquals(compStateTypes.size(),deserializedTypes.size());
+    for (    JDeclaredType deserializedType : deserializedTypes) {
+      String typeName=deserializedType.getName();
+      JDeclaredType compStateType=compStateTypes.get(typeName);
+      assertNotNull("No matching prebuilt type for '" + typeName + "'",compStateType);
+      String oldSource=compStateType.toSource();
+      String newSource=deserializedType.toSource();
+      assertEquals("Mismatched output for '" + typeName + "'",oldSource,newSource);
+    }
+  }
+}

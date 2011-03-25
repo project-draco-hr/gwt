@@ -7,7 +7,31 @@
   }
   ArrayList<CompilationUnit> resultUnits=new ArrayList<CompilationUnit>();
   do {
-    this.newlyBuiltUnits=new ArrayList<CompilationUnit>();
+    buildQueue=new LinkedBlockingQueue<CompilationUnitBuilder>();
+    final ArrayList<CompilationUnit> newlyBuiltUnits=new ArrayList<CompilationUnit>();
+    final CompilationUnitBuilder sentinel=CompilationUnitBuilder.create((GeneratedUnit)null);
+    final Throwable[] workerException=new Throwable[1];
+    Thread buildThread=new Thread(){
+      @Override public void run(){
+        try {
+          do {
+            CompilationUnitBuilder builder=buildQueue.take();
+            if (builder == sentinel) {
+              return;
+            }
+            CompilationUnit unit=builder.build();
+            newlyBuiltUnits.add(unit);
+          }
+ while (true);
+        }
+ catch (        Throwable e) {
+          workerException[0]=e;
+        }
+      }
+    }
+;
+    buildThread.setName("CompilationUnitBuilder");
+    buildThread.start();
     Event jdtCompilerEvent=SpeedTracerLogger.start(eventType);
     try {
       compiler.doCompile(builders);
@@ -15,9 +39,25 @@
   finally {
       jdtCompilerEvent.end();
     }
-    resultUnits.addAll(this.newlyBuiltUnits);
+    buildQueue.add(sentinel);
+    try {
+      buildThread.join();
+      if (workerException[0] != null) {
+        throw workerException[0];
+      }
+    }
+ catch (    RuntimeException e) {
+      throw e;
+    }
+catch (    Throwable e) {
+      throw new RuntimeException("Exception processing units",e);
+    }
+ finally {
+      buildQueue=null;
+    }
+    resultUnits.addAll(newlyBuiltUnits);
     builders.clear();
-    for (    CompilationUnit unit : this.newlyBuiltUnits) {
+    for (    CompilationUnit unit : newlyBuiltUnits) {
       unit.getDependencies().resolve(allValidClasses);
     }
     Collection<CompilationUnit> invalidatedUnits=new ArrayList<CompilationUnit>();

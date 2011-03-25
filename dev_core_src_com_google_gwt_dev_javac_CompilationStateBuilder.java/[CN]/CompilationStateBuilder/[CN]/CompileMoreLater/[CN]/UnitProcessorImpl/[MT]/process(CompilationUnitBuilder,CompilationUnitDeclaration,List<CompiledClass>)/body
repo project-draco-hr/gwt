@@ -42,9 +42,11 @@
         types=astBuilder.process(cud,jsniMethods,jsniRefs);
       }
     }
-    CompilationUnit unit=builder.build(compiledClasses,types,dependencies,jsniMethods.values(),methodArgs,cud.compilationResult().getProblems());
-    addValidUnit(unit);
-    newlyBuiltUnits.add(unit);
+    for (    CompiledClass cc : compiledClasses) {
+      allValidClasses.put(cc.getSourceName(),cc);
+    }
+    builder.setClasses(compiledClasses).setTypes(types).setDependencies(dependencies).setJsniMethods(jsniMethods.values()).setMethodArgs(methodArgs).setProblems(cud.compilationResult().getProblems());
+    buildQueue.add(builder);
   }
   finally {
     event.end();
