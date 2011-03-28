@@ -6,13 +6,15 @@
       File[] files=getCacheFiles();
       for (      File cacheFile : files) {
         FileInputStream fis=null;
+        BufferedInputStream bis=null;
         ObjectInputStream inputStream=null;
         if (cacheFile.equals(currentCacheFile)) {
           continue;
         }
         try {
           fis=new FileInputStream(cacheFile);
-          inputStream=new ObjectInputStream(fis);
+          bis=new BufferedInputStream(fis);
+          inputStream=new ObjectInputStream(bis);
           while (true) {
             CompilationUnit unit=(CompilationUnit)inputStream.readObject();
             if (unit == null) {
@@ -41,6 +43,7 @@ catch (        ClassNotFoundException ex) {
         }
  finally {
           Utility.close(inputStream);
+          Utility.close(bis);
           Utility.close(fis);
           logger.log(TreeLogger.TRACE,cacheFile.getName() + ": Load complete");
         }
