@@ -1,0 +1,13 @@
+{
+  runCreator("-out",projectFolder,"-XnoEclipse","-junit",mockJar,MY_PROJECT);
+  String libDir="war" + File.separatorChar + "WEB-INF"+ File.separatorChar+ "lib";
+  assertTrue(new File(projectFolder + File.separatorChar + libDir).mkdirs());
+  String libJarName=libDir + File.separatorChar + "foo.jar";
+  File libFile=new File(projectFolder + File.separatorChar + libJarName);
+  assertTrue(libFile.createNewFile());
+  runCreator("-out",projectFolder,"-XonlyEclipse","-junit",mockJar,MY_PROJECT);
+  assertFileExists(".classpath");
+  File classpathFile=new File(projectFolder + File.separatorChar + ".classpath");
+  String classpathContents=Util.readURLAsString(classpathFile.toURI().toURL());
+  assertTrue(".classpath does not contain " + libJarName,classpathContents.contains(libJarName));
+}
