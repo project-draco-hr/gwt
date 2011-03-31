@@ -7,6 +7,7 @@
   boolean seenPluralCount=false;
   boolean seenSelect=false;
   int numParams=params.length;
+  int lastPluralArgNumber=-1;
   List<AlternateFormSelector> selectors=new ArrayList<AlternateFormSelector>();
   for (int i=0; i < numParams; ++i) {
     PluralCount pluralCount=params[i].getAnnotation(PluralCount.class);
@@ -26,6 +27,7 @@
         resourceList.setPluralForms(key,pluralSelector.getPluralForms());
       }
       seenPluralCount=true;
+      lastPluralArgNumber=i;
     }
     if (selector != null) {
       selectors.add(selector);
@@ -92,7 +94,7 @@
     }
     String[] forms=resourceForms.toArray(new String[resourceForms.size()]);
     Arrays.sort(forms,new ExactValueComparator());
-    generateMessageSelectors(logger,m,locale,resourceEntry,selectors,paramsAccessor,isSafeHtml,forms);
+    generateMessageSelectors(logger,m,locale,resourceEntry,selectors,paramsAccessor,isSafeHtml,forms,lastPluralArgNumber);
     for (    AlternateFormSelector selector : selectors) {
       selector.issueWarnings(logger,m,locale);
     }
@@ -103,7 +105,7 @@
     writer.println("}");
   }
   writer.print("return ");
-  generateString(logger,locale,template,paramsAccessor,writer,isSafeHtml);
+  generateString(logger,locale,template,paramsAccessor,writer,isSafeHtml,lastPluralArgNumber);
   writer.println(";");
   for (int i=0; i < numParams; ++i) {
     if (!seenFlags[i]) {
