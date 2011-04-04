@@ -10,17 +10,19 @@
     return false;
   }
   ui.setCallback(DoneEvent.getType(),this);
-  final TreeLogger logger=getTopLogger();
-  final CheckForUpdates updateChecker=CheckForUpdates.createUpdateChecker(logger);
-  if (updateChecker != null) {
-    Thread checkerThread=new Thread("GWT Update Checker"){
-      @Override public void run(){
-        CheckForUpdates.logUpdateAvailable(logger,updateChecker.check(checkForUpdatesInterval()));
+  if (!options.isUpdateCheckDisabled()) {
+    final TreeLogger logger=getTopLogger();
+    final CheckForUpdates updateChecker=CheckForUpdates.createUpdateChecker(logger);
+    if (updateChecker != null) {
+      Thread checkerThread=new Thread("GWT Update Checker"){
+        @Override public void run(){
+          CheckForUpdates.logUpdateAvailable(logger,updateChecker.check(checkForUpdatesInterval()));
+        }
       }
-    }
 ;
-    checkerThread.setDaemon(true);
-    checkerThread.start();
+      checkerThread.setDaemon(true);
+      checkerThread.start();
+    }
   }
   ensureCodeServerListener();
   return true;
