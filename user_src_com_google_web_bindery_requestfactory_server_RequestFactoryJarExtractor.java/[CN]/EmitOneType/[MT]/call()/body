@@ -1,0 +1,20 @@
+{
+  if (mode.isEmitClasses()) {
+    String fileName=state.type.getInternalName();
+    if (fileName == null) {
+      System.err.println("Got null filename from " + state.type);
+      return null;
+    }
+    fileName+=".class";
+    emitter.emit(fileName,state.contents);
+  }
+  if (mode.isEmitSource()) {
+    String sourcePath=getPackagePath(state.originalType) + state.source;
+    String destPath=getPackagePath(state.type) + state.source;
+    if (sources.add(sourcePath) && loader.exists(sourcePath)) {
+      String contents=Util.readStreamAsString(loader.getResourceAsStream(sourcePath));
+      emitter.emit(destPath,new ByteArrayInputStream(Util.getBytes(contents)));
+    }
+  }
+  return null;
+}

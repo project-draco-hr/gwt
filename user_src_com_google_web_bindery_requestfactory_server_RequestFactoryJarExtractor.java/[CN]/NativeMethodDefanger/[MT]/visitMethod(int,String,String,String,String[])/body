@@ -1,0 +1,27 @@
+{
+  if ((access & Opcodes.ACC_NATIVE) != 0) {
+    MethodVisitor mv=super.visitMethod(access & ~Opcodes.ACC_NATIVE,name,desc,signature,exceptions);
+    if (mv != null) {
+      mv.visitCode();
+      String exceptionName=Type.getInternalName(RuntimeException.class);
+      mv.visitTypeInsn(Opcodes.NEW,exceptionName);
+      mv.visitInsn(Opcodes.DUP);
+      mv.visitLdcInsn(NATIVE_METHOD_ERROR);
+      mv.visitMethodInsn(Opcodes.INVOKESPECIAL,exceptionName,"<init>","(Ljava/lang/String;)V");
+      mv.visitInsn(Opcodes.ATHROW);
+      int numSlots=0;
+      for (      Type t : Type.getArgumentTypes(desc)) {
+        numSlots+=t.getSize();
+      }
+      if ((access & Opcodes.ACC_STATIC) == 0) {
+        numSlots++;
+      }
+      mv.visitMaxs(3,numSlots);
+      mv.visitEnd();
+    }
+    return null;
+  }
+ else {
+    return super.visitMethod(access,name,desc,signature,exceptions);
+  }
+}

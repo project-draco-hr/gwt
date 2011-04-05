@@ -1,0 +1,20 @@
+{
+  if (((SimpleEntityProxyId<P>)proxyId).isEphemeral()) {
+    throw new IllegalArgumentException("Cannot fetch unpersisted entity");
+  }
+  AbstractRequestContext context=new AbstractRequestContext(AbstractRequestFactory.this,AbstractRequestContext.Dialect.STANDARD){
+    @Override protected AutoBeanFactory getAutoBeanFactory(){
+      return AbstractRequestFactory.this.getAutoBeanFactory();
+    }
+  }
+;
+  return new AbstractRequest<P>(context){
+{
+      requestContext.addInvocation(this);
+    }
+    @Override protected RequestData makeRequestData(){
+      return new RequestData("com.google.web.bindery.requestfactory.shared.impl.FindRequest::find",new Object[]{proxyId},propertyRefs,proxyId.getProxyClass(),null);
+    }
+  }
+;
+}

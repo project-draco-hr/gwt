@@ -1,0 +1,23 @@
+{
+  if (args.length < 2) {
+    System.err.println("Usage: java -cp gwt-dev.jar:gwt-user.jar:json.jar" + RequestFactoryJarExtractor.class.getCanonicalName() + " <target-name> outfile.jar");
+    System.err.println("Valid targets:");
+    for (    String target : SEEDS.keySet()) {
+      System.err.println("  " + target);
+    }
+    System.exit(1);
+  }
+  String target=args[0];
+  List<Class<?>> seeds=SEEDS.get(target);
+  if (seeds == null) {
+    System.err.println("Unknown target: " + target);
+    System.exit(1);
+  }
+  Mode mode=Mode.match(target);
+  Logger errorContext=Logger.getLogger(RequestFactoryJarExtractor.class.getName());
+  ClassLoaderLoader classLoader=new ClassLoaderLoader(Thread.currentThread().getContextClassLoader());
+  JarEmitter jarEmitter=new JarEmitter(new File(args[1]));
+  RequestFactoryJarExtractor extractor=new RequestFactoryJarExtractor(errorContext,classLoader,jarEmitter,seeds,mode);
+  extractor.run();
+  System.exit(0);
+}
