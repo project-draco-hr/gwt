@@ -1,0 +1,23 @@
+{
+  TypeOracle typeOracle=compilationState.getTypeOracle();
+  String typeName=testCase.getClass().getName();
+  typeName=typeName.replace('$','.');
+  JClassType foundType=typeOracle.findType(typeName);
+  if (foundType != null) {
+    return null;
+  }
+  Map<String,CompilationUnit> unitMap=compilationState.getCompilationUnitMap();
+  CompilationUnit unit=unitMap.get(typeName);
+  String errMsg;
+  if (unit == null) {
+    errMsg="The test class '" + typeName + "' was not found in module '"+ moduleName+ "'; no compilation unit for that type was seen";
+  }
+ else   if (unit.isError()) {
+    CompilationProblemReporter.logMissingTypeErrorWithHints(logger,typeName,compilationState);
+    errMsg="The test class '" + typeName + "' had compile errors; check log for details";
+  }
+ else {
+    errMsg="Unexpected error: the test class '" + typeName + "' appears to be valid, but no corresponding type was found in TypeOracle; please contact GWT support";
+  }
+  return new JUnitFatalLaunchException(errMsg);
+}

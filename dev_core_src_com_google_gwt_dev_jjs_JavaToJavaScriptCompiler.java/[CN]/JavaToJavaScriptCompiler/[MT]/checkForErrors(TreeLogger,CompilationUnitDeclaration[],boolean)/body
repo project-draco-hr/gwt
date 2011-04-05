@@ -4,31 +4,20 @@
   if (cuds.length == 0) {
     compilationFailed=true;
   }
-  Set<IProblem> problemSet=new HashSet<IProblem>();
   for (  CompilationUnitDeclaration cud : cuds) {
-    CompilationResult result=cud.compilationResult();
+    final CompilationResult result=cud.compilationResult();
     if (result.hasErrors()) {
       compilationFailed=true;
       if (!itemizeErrors) {
         break;
       }
-      TreeLogger branch=logger.branch(TreeLogger.ERROR,"Errors in " + String.valueOf(result.getFileName()),null);
-      IProblem[] errors=result.getErrors();
-      for (      IProblem problem : errors) {
-        if (problemSet.contains(problem)) {
-          continue;
+      String typeName=new String(cud.getMainTypeName());
+      CompilationProblemReporter.reportErrors(logger,result.getErrors(),new String(cud.getFileName()),true,new SourceFetcher(){
+        public String getSource(){
+          return new String(result.getCompilationUnit().getContents());
         }
-        problemSet.add(problem);
-        String msg=problem.toString();
-        msg=msg.substring(msg.indexOf(' '));
-        int line=problem.getSourceLineNumber();
-        StringBuffer msgBuf=new StringBuffer();
-        msgBuf.append("Line ");
-        msgBuf.append(line);
-        msgBuf.append(": ");
-        msgBuf.append(msg);
-        branch.log(TreeLogger.ERROR,msgBuf.toString(),null);
       }
+,typeName,false);
     }
   }
   checkForErrorsEvent.end();

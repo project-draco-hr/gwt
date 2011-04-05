@@ -1,0 +1,18 @@
+{
+  final Set<CompilationUnit> visited=new HashSet<CompilationUnit>();
+  final Queue<CompilationUnit> toVisit=new LinkedList<CompilationUnit>();
+  Map<String,CompilationUnit> unitMap=compilationState.unitMap;
+  addUnitToVisit(unitMap,missingType,toVisit);
+  while (!toVisit.isEmpty()) {
+    CompilationUnit unit=toVisit.remove();
+    if (visited.contains(unit)) {
+      continue;
+    }
+    visited.add(unit);
+    CompilationProblemReporter.reportErrors(logger,unit,false);
+    Dependencies deps=unit.getDependencies();
+    for (    String ref : deps.getApiRefs()) {
+      addUnitToVisit(unitMap,ref,toVisit);
+    }
+  }
+}

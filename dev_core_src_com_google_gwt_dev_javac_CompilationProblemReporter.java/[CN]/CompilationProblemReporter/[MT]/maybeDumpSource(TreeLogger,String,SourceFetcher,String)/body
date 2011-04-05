@@ -1,0 +1,27 @@
+{
+  if (location.startsWith("/mock/")) {
+    return;
+  }
+  if (CompilationProblemReporter.isCompilationUnitOnDisk(location)) {
+    return;
+  }
+  if (!logger.isLoggable(TreeLogger.INFO)) {
+    return;
+  }
+  File tmpSrc;
+  Throwable caught=null;
+  try {
+    while (typeName.length() < 3) {
+      typeName="_" + typeName;
+    }
+    tmpSrc=File.createTempFile(typeName,".java");
+    Util.writeStringAsFile(tmpSrc,fetcher.getSource());
+    String dumpPath=tmpSrc.getAbsolutePath();
+    logger.log(TreeLogger.INFO,"See snapshot: " + dumpPath,null);
+    return;
+  }
+ catch (  IOException e) {
+    caught=e;
+  }
+  logger.log(TreeLogger.INFO,"Unable to dump source to disk",caught);
+}

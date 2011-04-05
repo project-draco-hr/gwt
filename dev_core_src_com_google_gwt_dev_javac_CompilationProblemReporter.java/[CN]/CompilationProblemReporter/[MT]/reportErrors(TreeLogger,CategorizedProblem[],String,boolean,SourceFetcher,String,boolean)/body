@@ -1,0 +1,51 @@
+{
+  if (problems == null || problems.length == 0) {
+    return null;
+  }
+  TreeLogger.Type warnLogLevel;
+  TreeLogger.Type errorLogLevel;
+  if (suppressErrors) {
+    errorLogLevel=TreeLogger.TRACE;
+    warnLogLevel=TreeLogger.DEBUG;
+  }
+ else {
+    errorLogLevel=TreeLogger.ERROR;
+    warnLogLevel=TreeLogger.WARN;
+  }
+  TreeLogger branch=null;
+  for (  CategorizedProblem problem : problems) {
+    TreeLogger.Type logLevel;
+    if (problem.isError()) {
+      logLevel=errorLogLevel;
+    }
+ else     if (problem.isWarning() && problem instanceof GWTProblem) {
+      logLevel=warnLogLevel;
+    }
+ else {
+      continue;
+    }
+    StringBuffer msgBuf=new StringBuffer();
+    int line=problem.getSourceLineNumber();
+    if (line > 0) {
+      msgBuf.append("Line ");
+      msgBuf.append(line);
+      msgBuf.append(": ");
+    }
+    msgBuf.append(problem.getMessage());
+    HelpInfo helpInfo=null;
+    if (problem instanceof GWTProblem) {
+      GWTProblem gwtProblem=(GWTProblem)problem;
+      helpInfo=gwtProblem.getHelpInfo();
+    }
+    if (branch == null) {
+      Type branchType=isError ? errorLogLevel : warnLogLevel;
+      String branchString=isError ? "Errors" : "Warnings";
+      branch=logger.branch(branchType,branchString + " in '" + fileName+ "'",null);
+    }
+    branch.log(logLevel,msgBuf.toString(),null,helpInfo);
+  }
+  if (branch != null && fetcher != null) {
+    CompilationProblemReporter.maybeDumpSource(branch,fileName,fetcher,typeName);
+  }
+  return branch;
+}
