@@ -16,5 +16,12 @@
   server.start();
   server.setStopAtShutdown(true);
   Log.setLog(new JettyTreeLogger(logger));
-  return createServletContainer(logger,appRootDir,server,wac,connector.getLocalPort());
+  int connectorPort=connector.getLocalPort();
+  if (connector.getLocalPort() < 0) {
+    branch.log(TreeLogger.ERROR,String.format("Failed to connect to open channel with port %d (return value %d)",port,connectorPort));
+    if (connector.getConnection() == null) {
+      branch.log(TreeLogger.TRACE,"Connection is null");
+    }
+  }
+  return createServletContainer(logger,appRootDir,server,wac,connectorPort);
 }
