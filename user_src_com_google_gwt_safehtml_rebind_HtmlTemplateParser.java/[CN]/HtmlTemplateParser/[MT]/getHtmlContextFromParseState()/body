@@ -23,8 +23,18 @@
       logger.log(TreeLogger.ERROR,"Template variable in unquoted attribute value: " + getTemplateParsedSoFar());
       throw new UnableToCompleteException();
     }
+    if ("meta".equals(tag) && "content".equals(attribute)) {
+      logger.log(TreeLogger.ERROR,"Template variables in content attribute of meta tag are not supported: " + getTemplateParsedSoFar());
+      throw new UnableToCompleteException();
+    }
     if (streamHtmlParser.isUrlStart()) {
-      return new HtmlContext(HtmlContext.Type.URL_START,tag,attribute);
+      Preconditions.checkState(lookBehind == '"' || lookBehind == '\'',"At the start of a quoted attribute, lookBehind should be a quote character; at %s",getTemplateParsedSoFar());
+      if (lookAhead == lookBehind) {
+        return new HtmlContext(HtmlContext.Type.URL_ATTRIBUTE_ENTIRE,tag,attribute);
+      }
+ else {
+        return new HtmlContext(HtmlContext.Type.URL_ATTRIBUTE_START,tag,attribute);
+      }
     }
  else     if (streamHtmlParser.inCss()) {
       if (streamHtmlParser.getValueIndex() == 0) {

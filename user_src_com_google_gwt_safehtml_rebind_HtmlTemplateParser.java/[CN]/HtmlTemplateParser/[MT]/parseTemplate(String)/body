@@ -1,15 +1,24 @@
 {
   this.template=template;
-  this.parsePosition=0;
+  parsePosition=0;
+  lookBehind=0;
+  lookAhead=0;
   Matcher match=TEMPLATE_PARAM_PATTERN.matcher(template);
   int endOfPreviousMatch=0;
   while (match.find()) {
     if (match.start() > endOfPreviousMatch) {
       parseAndAppendTemplateSegment(template.substring(endOfPreviousMatch,match.start()));
       parsePosition=match.start();
+      lookBehind=template.charAt(parsePosition - 1);
     }
     int paramIndex=Integer.parseInt(match.group(1));
     parsePosition=match.end();
+    if (parsePosition < template.length()) {
+      lookAhead=template.charAt(parsePosition);
+    }
+ else {
+      lookAhead=0;
+    }
     parsedTemplate.addParameter(new ParameterChunk(getHtmlContextFromParseState(),paramIndex));
     endOfPreviousMatch=match.end();
   }
