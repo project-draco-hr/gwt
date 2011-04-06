@@ -1,7 +1,11 @@
 {
   MessagesWriter messages=writer.getMessages();
   for (  AttributeMessage am : messages.consumeAttributeMessages(elem)) {
-    elem.setAttribute(am.getAttribute(),writer.tokenForStringExpression(am.getMessageUnescaped()));
+    String message=am.getMessageUnescaped();
+    if (!writer.useSafeHtmlTemplates()) {
+      message+=".replaceAll(\"&\", \"&amp;\").replaceAll(\"'\", \"&#39;\")";
+    }
+    elem.setAttribute(am.getAttribute(),writer.tokenForStringExpression(message));
   }
   return null;
 }

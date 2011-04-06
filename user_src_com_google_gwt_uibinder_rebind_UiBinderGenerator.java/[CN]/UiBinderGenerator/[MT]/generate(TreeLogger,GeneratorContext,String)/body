@@ -20,19 +20,8 @@
   String packageName=interfaceType.getPackage().getName();
   PrintWriterManager writers=new PrintWriterManager(genCtx,logger,packageName);
   PrintWriter printWriter=writers.tryToMakePrintWriterFor(implName);
-  Class<?> elementFactoryClass;
-  HtmlElementFactory elementFactory=null;
-  try {
-    PropertyOracle propertyOracle=genCtx.getPropertyOracle();
-    ConfigurationProperty factoryProperty=propertyOracle.getConfigurationProperty("uibinder.html.elementfactory");
-    elementFactoryClass=Class.forName(factoryProperty.getValues().get(0));
-    elementFactory=(HtmlElementFactory)elementFactoryClass.newInstance();
-  }
- catch (  Exception e) {
-    throw new RuntimeException(e);
-  }
   if (printWriter != null) {
-    generateOnce(interfaceType,implName,printWriter,logger,oracle,resourceOracle,writers,designTime,elementFactory);
+    generateOnce(interfaceType,implName,printWriter,logger,oracle,resourceOracle,genCtx.getPropertyOracle(),writers,designTime);
   }
   return packageName + "." + implName;
 }

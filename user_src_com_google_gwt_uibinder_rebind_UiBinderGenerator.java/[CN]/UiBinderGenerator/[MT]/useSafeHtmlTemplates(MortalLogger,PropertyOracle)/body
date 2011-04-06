@@ -1,0 +1,20 @@
+{
+  List<String> values;
+  try {
+    values=propertyOracle.getConfigurationProperty(XSS_SAFE_CONFIG_PROPERTY).getValues();
+  }
+ catch (  BadPropertyValueException e) {
+    logger.warn("No value found for configuration property %s.",XSS_SAFE_CONFIG_PROPERTY);
+    return true;
+  }
+  String value=values.get(0);
+  if (!value.equals(Boolean.FALSE.toString()) && !value.equals(Boolean.TRUE.toString())) {
+    logger.warn("Unparseable value \"%s\" found for configuration property %s",value,XSS_SAFE_CONFIG_PROPERTY);
+    return true;
+  }
+  Boolean rtn=Boolean.valueOf(value);
+  if (!rtn) {
+    logger.warn("Configuration property %s is false! UiBinder SafeHtml integration is off, " + "leaving your users more vulnerable to cross-site scripting attacks.",XSS_SAFE_CONFIG_PROPERTY);
+  }
+  return rtn;
+}
