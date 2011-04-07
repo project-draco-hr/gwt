@@ -19,14 +19,16 @@
     }
     sw.println("public %s {",getBaseMethodDeclaration(jmethod));
     sw.indent();
+    sw.println("%s.this.checkWrapped();",type.getSimpleSourceName());
 switch (method.getAction()) {
 case GET:
-      sw.println("%s toReturn = %s.this.getWrapped().%s();",ModelUtils.getQualifiedBaseSourceName(jmethod.getReturnType()),type.getSimpleSourceName(),methodName);
+      sw.println("%s toReturn = %3$s.this.get(\"%2$s\", getWrapped().%2$s());",ModelUtils.getQualifiedBaseSourceName(jmethod.getReturnType()),methodName,type.getSimpleSourceName());
     writeReturnWrapper(sw,type,method);
   sw.println("return toReturn;");
 break;
 case SET:
 case SET_BUILDER:
+sw.println("%s.this.checkFrozen();",type.getSimpleSourceName());
 sw.println("%s.this.getWrapped().%s(%s);",type.getSimpleSourceName(),methodName,parameters[0].getName());
 sw.println("%s.this.set(\"%s\", %s);",type.getSimpleSourceName(),methodName,parameters[0].getName());
 if (JBeanMethod.SET_BUILDER.equals(method.getAction())) {
