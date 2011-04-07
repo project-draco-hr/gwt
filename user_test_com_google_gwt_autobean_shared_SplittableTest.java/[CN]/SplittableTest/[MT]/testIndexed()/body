@@ -1,0 +1,28 @@
+{
+  Splittable s=StringQuoter.createIndexed();
+  assertTrue(s.isIndexed());
+  assertFalse(s.isKeyed());
+  assertFalse(s.isString());
+  assertEquals(0,s.size());
+  string("foo").assign(s,0);
+  string("bar").assign(s,1);
+  string("baz").assign(s,2);
+  assertEquals(3,s.size());
+  assertEquals("[\"foo\",\"bar\",\"baz\"]",s.getPayload());
+  string("quux").assign(s,1);
+  assertEquals("[\"foo\",\"quux\",\"baz\"]",s.getPayload());
+  Splittable s2=s.deepCopy();
+  assertNotSame(s,s2);
+  assertEquals(s.size(),s2.size());
+  for (int i=0, j=s.size(); i < j; i++) {
+    assertEquals(s.get(i).asString(),s2.get(i).asString());
+  }
+  s.setSize(2);
+  assertEquals(2,s.size());
+  assertEquals("[\"foo\",\"quux\"]",s.getPayload());
+  Object o=new Object();
+  s.setReified("reified",o);
+  assertFalse(s.getPayload().contains("reified"));
+  assertFalse(s.getPayload().contains("__s"));
+  assertSame(o,s.getReified("reified"));
+}

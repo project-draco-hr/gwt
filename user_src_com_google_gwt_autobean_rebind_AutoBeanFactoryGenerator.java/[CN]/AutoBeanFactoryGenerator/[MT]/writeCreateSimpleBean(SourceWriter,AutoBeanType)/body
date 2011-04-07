@@ -3,37 +3,43 @@
   sw.indent();
   sw.println("return new %s() {",type.getPeerType().getQualifiedSourceName());
   sw.indent();
+  sw.println("private final %s data = %s.this.data;",Splittable.class.getCanonicalName(),type.getQualifiedSourceName());
   for (  AutoBeanMethod method : type.getMethods()) {
     JMethod jmethod=method.getMethod();
+    JType returnType=jmethod.getReturnType();
     sw.println("public %s {",getBaseMethodDeclaration(jmethod));
     sw.indent();
 switch (method.getAction()) {
 case GET:
 {
-        JPrimitiveType primitive=jmethod.getReturnType().isPrimitive();
-        if (primitive != null) {
-          sw.println("Object toReturn = values.get(\"%s\");",method.getPropertyName());
-          sw.println("if (toReturn == null) {");
-          sw.indentln("return %s;",primitive.getUninitializedFieldExpression());
-          sw.println("} else {");
-          sw.indentln("return (%s) toReturn;",primitive.getQualifiedBoxedSourceName());
-          sw.println("}");
+        String castType;
+        if (returnType.isPrimitive() != null) {
+          castType=returnType.isPrimitive().getQualifiedBoxedSourceName();
+          sw.println("%s toReturn = getOrReify(\"%s\");",castType,method.getPropertyName());
+          sw.println("return toReturn == null ? %s : toReturn;",returnType.isPrimitive().getUninitializedFieldExpression());
+        }
+ else         if (returnType.equals(context.getTypeOracle().findType(Splittable.class.getCanonicalName()))) {
+          sw.println("return data.isNull(\"%1$s\") ? null : data.get(\"%1$s\");",method.getPropertyName());
         }
  else {
-          sw.println("return (%s) values.get(\"%s\");",ModelUtils.getQualifiedBaseSourceName(jmethod.getReturnType()),method.getPropertyName());
+          castType=ModelUtils.getQualifiedBaseSourceName(returnType);
+          sw.println("return (%s) getOrReify(\"%s\");",castType,method.getPropertyName());
         }
       }
     break;
 case SET:
 case SET_BUILDER:
-  sw.println("values.put(\"%s\", %s);",method.getPropertyName(),jmethod.getParameters()[0].getName());
-if (JBeanMethod.SET_BUILDER.equals(method.getAction())) {
-  sw.println("return this;");
-}
-break;
+{
+    JParameter param=jmethod.getParameters()[0];
+    sw.println("setProperty(\"%s\", %s);",method.getPropertyName(),param.getName());
+    if (JBeanMethod.SET_BUILDER.equals(method.getAction())) {
+      sw.println("return this;");
+    }
+    break;
+  }
 case CALL:
 JMethod staticImpl=method.getStaticImpl();
-if (!jmethod.getReturnType().equals(JPrimitiveType.VOID)) {
+if (!returnType.equals(JPrimitiveType.VOID)) {
 sw.print("return ");
 }
 sw.print("%s.%s(%s.this",staticImpl.getEnclosingType().getQualifiedSourceName(),staticImpl.getName(),type.getSimpleSourceName());

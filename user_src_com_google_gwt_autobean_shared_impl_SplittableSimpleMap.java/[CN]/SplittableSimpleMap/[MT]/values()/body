@@ -1,0 +1,27 @@
+{
+  return new AbstractCollection<V>(){
+    final List<String> keys=data.getPropertyKeys();
+    @Override public Iterator<V> iterator(){
+      return new Iterator<V>(){
+        final Iterator<String> it=keys.iterator();
+        String lastEncodedKey;
+        public boolean hasNext(){
+          return it.hasNext();
+        }
+        public V next(){
+          lastEncodedKey=it.next();
+          return getRaw(lastEncodedKey);
+        }
+        public void remove(){
+          Splittable.NULL.assign(data,lastEncodedKey);
+          reified.setReified(lastEncodedKey,null);
+        }
+      }
+;
+    }
+    @Override public int size(){
+      return keys.size();
+    }
+  }
+;
+}

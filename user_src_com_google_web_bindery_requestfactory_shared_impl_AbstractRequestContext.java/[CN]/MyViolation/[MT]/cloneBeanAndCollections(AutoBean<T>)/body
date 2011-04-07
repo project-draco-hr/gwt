@@ -1,8 +1,12 @@
 {
-  AutoBean<T> clone=toClone.clone(false);
+  AutoBean<T> clone=toClone.getFactory().create(toClone.getType());
+  clone.setTag(STABLE_ID,toClone.getTag(STABLE_ID));
+  clone.setTag(Constants.VERSION_PROPERTY_B64,toClone.getTag(Constants.VERSION_PROPERTY_B64));
   takeOwnership(clone);
   clone.accept(new AutoBeanVisitor(){
+    final Map<String,Object> values=AutoBeanUtils.getAllProperties(toClone);
     @Override public boolean visitCollectionProperty(    String propertyName,    AutoBean<Collection<?>> value,    CollectionPropertyContext ctx){
+      value=AutoBeanUtils.<Collection<?>,Collection<?>>getAutoBean((Collection<?>)values.get(propertyName));
       if (value != null) {
         Collection<Object> collection;
         if (List.class == ctx.getType()) {
@@ -14,13 +18,13 @@
  else {
           throw new IllegalArgumentException(ctx.getType().getName());
         }
-        if (isValueType(ctx.getElementType())) {
+        if (isValueType(ctx.getElementType()) || isEntityType(ctx.getElementType())) {
           for (          Object o : value.as()) {
             if (o == null) {
               collection.add(null);
             }
  else {
-              collection.add(editProxy((ValueProxy)o));
+              collection.add(editProxy((BaseProxy)o));
             }
           }
         }
@@ -32,12 +36,20 @@
       return false;
     }
     @Override public boolean visitReferenceProperty(    String propertyName,    AutoBean<?> value,    PropertyContext ctx){
+      value=AutoBeanUtils.getAutoBean(values.get(propertyName));
       if (value != null) {
-        if (isValueType(ctx.getType())) {
-          @SuppressWarnings("unchecked") AutoBean<ValueProxy> valueBean=(AutoBean<ValueProxy>)value;
+        if (isValueType(ctx.getType()) || isEntityType(ctx.getType())) {
+          @SuppressWarnings("unchecked") AutoBean<BaseProxy> valueBean=(AutoBean<BaseProxy>)value;
           ctx.set(editProxy(valueBean.as()));
         }
+ else {
+          ctx.set(value.as());
+        }
       }
+      return false;
+    }
+    @Override public boolean visitValueProperty(    String propertyName,    Object value,    PropertyContext ctx){
+      ctx.set(values.get(propertyName));
       return false;
     }
   }

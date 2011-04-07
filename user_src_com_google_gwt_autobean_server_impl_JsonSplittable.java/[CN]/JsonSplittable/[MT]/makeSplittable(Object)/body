@@ -1,9 +1,29 @@
 {
-  if (object instanceof JSONObject) {
-    return new JsonSplittable((JSONObject)object);
+  if (JSONObject.NULL.equals(object)) {
+    return null;
   }
-  if (object instanceof JSONArray) {
-    return new JsonSplittable((JSONArray)object);
+  Reference<JsonSplittable> ref=canonical.get(object);
+  JsonSplittable seen=ref == null ? null : ref.get();
+  if (seen == null) {
+    if (object instanceof JSONObject) {
+      seen=new JsonSplittable((JSONObject)object);
+    }
+ else     if (object instanceof JSONArray) {
+      seen=new JsonSplittable((JSONArray)object);
+    }
+ else     if (object instanceof String) {
+      seen=new JsonSplittable(object.toString());
+    }
+ else     if (object instanceof Number) {
+      seen=new JsonSplittable(((Number)object).doubleValue());
+    }
+ else     if (object instanceof Boolean) {
+      seen=new JsonSplittable((Boolean)object);
+    }
+ else {
+      throw new RuntimeException("Unhandled type " + object.getClass());
+    }
+    canonical.put(object,new WeakReference<JsonSplittable>(seen));
   }
-  return new JsonSplittable(object.toString());
+  return seen;
 }
