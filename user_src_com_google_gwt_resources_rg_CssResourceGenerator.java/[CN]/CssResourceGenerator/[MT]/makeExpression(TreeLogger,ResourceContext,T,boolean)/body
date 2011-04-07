@@ -1,0 +1,48 @@
+{
+  DefaultTextOutput out=new DefaultTextOutput(!prettyOutput);
+  CssGenerationVisitor v=new CssGenerationVisitor(out);
+  v.accept(node);
+  String template=out.toString();
+  StringBuilder b=new StringBuilder();
+  int start=0;
+  int numExpressions=0;
+  b.append('(');
+  for (  Map.Entry<Integer,List<CssSubstitution>> entry : v.getSubstitutionPositions().entrySet()) {
+    b.append('"');
+    b.append(Generator.escape(template.substring(start,entry.getKey())));
+    b.append('\"');
+    numExpressions=concatOp(numExpressions,b);
+    for (    CssSubstitution x : entry.getValue()) {
+      TreeLogger loopLogger=logger.branch(TreeLogger.DEBUG,"Performing substitution in node " + x.toString());
+      if (x instanceof CssIf) {
+        CssIf asIf=(CssIf)x;
+        String expression=makeExpression(loopLogger,context,new CollapsedNode(asIf),prettyOutput);
+        String elseExpression;
+        if (asIf.getElseNodes().isEmpty()) {
+          elseExpression="\"\"";
+        }
+ else {
+          elseExpression=makeExpression(loopLogger,context,new CollapsedNode(asIf.getElseNodes()),prettyOutput);
+        }
+        b.append("((" + asIf.getExpression() + ") ? "+ expression+ " : "+ elseExpression+ ") ");
+        numExpressions=concatOp(numExpressions,b);
+      }
+ else       if (x instanceof CssProperty) {
+        CssProperty property=(CssProperty)x;
+        validateValue(loopLogger,context.getClientBundleType(),property.getValues());
+        b.append("(" + property.getValues().getExpression() + ") ");
+        numExpressions=concatOp(numExpressions,b);
+      }
+ else {
+        loopLogger.log(TreeLogger.ERROR,"Unhandled substitution " + x.getClass());
+        throw new UnableToCompleteException();
+      }
+    }
+    start=entry.getKey();
+  }
+  b.append('"');
+  b.append(Generator.escape(template.substring(start)));
+  b.append('"');
+  b.append(')');
+  return b.toString();
+}

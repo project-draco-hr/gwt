@@ -3,8 +3,7 @@
   try {
     PropertyOracle propertyOracle=context.getGeneratorContext().getPropertyOracle();
     ConfigurationProperty styleProp=propertyOracle.getConfigurationProperty(KEY_STYLE);
-    String style=styleProp.getValues().get(0);
-    prettyOutput=style.equals("pretty");
+    obfuscationStyle=CssObfuscationStyle.getObfuscationStyle(styleProp.getValues().get(0));
     ConfigurationProperty mergeProp=propertyOracle.getConfigurationProperty(KEY_MERGE_ENABLED);
     String merge=mergeProp.getValues().get(0);
     enableMerge=merge.equals("true");
@@ -20,11 +19,12 @@
     throw new UnableToCompleteException();
   }
   TypeOracle typeOracle=context.getGeneratorContext().getTypeOracle();
-  JClassType baseInterface=typeOracle.findType(getBaseInterfaceName());
-  for (  JMethod m : baseInterface.getInheritableMethods()) {
+  JClassType superInterface=typeOracle.findType(getSuperclassInterfaceName());
+  JClassType baseInterface=typeOracle.findType(getBaseclassInterfaceName());
+  for (  JMethod m : superInterface.getInheritableMethods()) {
     ignoredMethods.add(m.getName());
   }
-  checkTypes(context,typeOracle);
   stylesheetMap=new IdentityHashMap<JMethod,CssStylesheet>();
-  initReplacements(logger,context,classPrefix);
+  SortedSet<JClassType> cssResourceSubtypes=computeOperableTypes(logger,baseInterface);
+  initReplacements(logger,context,classPrefix,cssResourceSubtypes);
 }
