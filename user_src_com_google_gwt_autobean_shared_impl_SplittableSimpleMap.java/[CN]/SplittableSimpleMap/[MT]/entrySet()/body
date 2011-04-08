@@ -1,0 +1,40 @@
+{
+  return new AbstractSet<Map.Entry<K,V>>(){
+    final List<String> keys=data.getPropertyKeys();
+    @Override public Iterator<java.util.Map.Entry<K,V>> iterator(){
+      return new Iterator<Map.Entry<K,V>>(){
+        Iterator<String> keyIterator=keys.iterator();
+        String encodedKey;
+        public boolean hasNext(){
+          return keyIterator.hasNext();
+        }
+        public java.util.Map.Entry<K,V> next(){
+          encodedKey=keyIterator.next();
+          return new Map.Entry<K,V>(){
+            @SuppressWarnings("unchecked") final K key=(K)keyCoder.decode(state,StringQuoter.split(StringQuoter.quote(encodedKey)));
+            @SuppressWarnings("unchecked") final V value=(V)valueCoder.decode(state,data.get(encodedKey));
+            public K getKey(){
+              return key;
+            }
+            public V getValue(){
+              return value;
+            }
+            public V setValue(            V newValue){
+              return put(key,newValue);
+            }
+          }
+;
+        }
+        public void remove(){
+          Splittable.NULL.assign(data,encodedKey);
+          reified.setReified(encodedKey,null);
+        }
+      }
+;
+    }
+    @Override public int size(){
+      return keys.size();
+    }
+  }
+;
+}

@@ -11,16 +11,10 @@
   if (type.isSimpleBean()) {
     sw.println("public %s(%s factory) {super(factory);}",type.getSimpleSourceName(),AutoBeanFactory.class.getCanonicalName());
   }
-  sw.println("public %1$s(%1$s toClone, boolean deep) {",type.getSimpleSourceName());
-  sw.indentln("super(toClone, deep);");
-  sw.println("}");
   sw.println("public %s(%s factory, %s wrapped) {",type.getSimpleSourceName(),AutoBeanFactory.class.getCanonicalName(),type.getPeerType().getQualifiedSourceName());
-  sw.indentln("super(factory, wrapped);");
+  sw.indentln("super(wrapped, factory);");
   sw.println("}");
   sw.println("public %s as() {return shim;}",type.getPeerType().getQualifiedSourceName());
-  sw.println("public %s clone(boolean deep) {",type.getQualifiedSourceName());
-  sw.indentln("return new %s(this, deep);",type.getSimpleSourceName());
-  sw.println("}");
   sw.println("public Class<%1$s> getType() {return %1$s.class;}",ModelUtils.ensureBaseType(type.getPeerType()).getQualifiedSourceName());
   if (type.isSimpleBean()) {
     writeCreateSimpleBean(sw,type);

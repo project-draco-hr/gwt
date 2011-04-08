@@ -1,10 +1,11 @@
 {
-  boolean isString=payload.charAt(0) == '\"';
-  if (isString) {
+  char c=payload.charAt(0);
+  boolean isSimple=c != '{' && c != '[';
+  if (isSimple) {
     payload="[" + payload + "]";
   }
-  Splittable toReturn=JsoSplittable.create(JsonUtils.safeEval(payload));
-  if (isString) {
+  Splittable toReturn=JsonUtils.safeEval(payload).<JsoSplittable>cast();
+  if (isSimple) {
     toReturn=toReturn.get(0);
   }
   return toReturn;
