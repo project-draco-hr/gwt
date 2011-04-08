@@ -1,0 +1,36 @@
+{
+  if (context.getCachedData(KEY_HAS_CACHED_DATA,Boolean.class) != Boolean.TRUE) {
+    ConfigurationProperty prop;
+    TreeSet<String> reservedPrefixes=new TreeSet<String>();
+    try {
+      prop=context.getGeneratorContext().getPropertyOracle().getConfigurationProperty(KEY_RESERVED_PREFIXES);
+      context.getRequirements().addConfigurationProperty(KEY_RESERVED_PREFIXES);
+      for (      String value : prop.getValues()) {
+        value=value.trim();
+        if (value.length() == 0) {
+          logger.log(TreeLogger.WARN,"Ignoring nonsensical empty string value for " + KEY_RESERVED_PREFIXES + " configuration property");
+          continue;
+        }
+        if (value.startsWith(".")) {
+          value=value.substring(1);
+        }
+        reservedPrefixes.add(value.toLowerCase());
+      }
+    }
+ catch (    BadPropertyValueException e) {
+    }
+    String computedPrefix=computeClassPrefix(classPrefix,operableTypes,reservedPrefixes);
+    context.putCachedData(KEY_BY_CLASS_AND_METHOD,new IdentityHashMap<JClassType,Map<JMethod,String>>());
+    context.putCachedData(KEY_CLASS_PREFIX,computedPrefix);
+    context.putCachedData(KEY_CLASS_COUNTER,new Counter());
+    context.putCachedData(KEY_HAS_CACHED_DATA,Boolean.TRUE);
+    context.putCachedData(KEY_RESERVED_PREFIXES,reservedPrefixes);
+    context.putCachedData(KEY_SHARED_METHODS,new IdentityHashMap<JMethod,String>());
+  }
+  classCounter=context.getCachedData(KEY_CLASS_COUNTER,Counter.class);
+  replacementsByClassAndMethod=context.getCachedData(KEY_BY_CLASS_AND_METHOD,Map.class);
+  replacementsForSharedMethods=context.getCachedData(KEY_SHARED_METHODS,Map.class);
+  classPrefix=context.getCachedData(KEY_CLASS_PREFIX,String.class);
+  SortedSet<String> reservedPrefixes=context.getCachedData(KEY_RESERVED_PREFIXES,SortedSet.class);
+  computeObfuscatedNames(logger,classPrefix,reservedPrefixes,operableTypes);
+}
