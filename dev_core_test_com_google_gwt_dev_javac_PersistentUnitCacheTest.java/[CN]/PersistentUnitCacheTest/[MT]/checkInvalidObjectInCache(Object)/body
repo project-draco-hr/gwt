@@ -1,0 +1,14 @@
+{
+  TreeLogger logger=TreeLogger.NULL;
+  File cacheDir=lastCacheDir=File.createTempFile("PersistentUnitTest-CNF","");
+  File unitCacheDir=mkCacheDir(cacheDir);
+  File errorFile=new File(unitCacheDir,PersistentUnitCache.CACHE_FILE_PREFIX + "12345");
+  ObjectOutputStream os=new ObjectOutputStream(new FileOutputStream(errorFile));
+  os.writeObject(toSerialize);
+  os.close();
+  assertNumCacheFiles(unitCacheDir,1);
+  PersistentUnitCache cache=new PersistentUnitCache(logger,cacheDir);
+  cache.cleanup(logger);
+  cache.shutdown();
+  assertNumCacheFiles(unitCacheDir,0);
+}

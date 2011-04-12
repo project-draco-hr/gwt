@@ -11,6 +11,7 @@
         if (cacheFile.equals(currentCacheFile)) {
           continue;
         }
+        boolean deleteCacheFile=false;
         try {
           fis=new FileInputStream(cacheFile);
           bis=new BufferedInputStream(fis);
@@ -36,15 +37,22 @@
  catch (        EOFException ex) {
         }
 catch (        IOException ex) {
-          logger.log(TreeLogger.WARN,"Error reading cache file: " + cacheFile.getAbsolutePath(),ex);
+          deleteCacheFile=true;
+          logger.log(TreeLogger.TRACE,"Ignoring and deleting cache log " + cacheFile.getAbsolutePath() + " due to read error.",ex);
         }
 catch (        ClassNotFoundException ex) {
-          logger.log(TreeLogger.ERROR,"Error deserializing CompilationUnit in " + cacheFile.getAbsolutePath(),ex);
+          deleteCacheFile=true;
+          logger.log(TreeLogger.TRACE,"Ignoring and deleting cache log " + cacheFile.getAbsolutePath() + " due to deserialization error.",ex);
         }
  finally {
           Utility.close(inputStream);
           Utility.close(bis);
           Utility.close(fis);
+        }
+        if (deleteCacheFile) {
+          cacheFile.delete();
+        }
+ else {
           logger.log(TreeLogger.TRACE,cacheFile.getName() + ": Load complete");
         }
       }
