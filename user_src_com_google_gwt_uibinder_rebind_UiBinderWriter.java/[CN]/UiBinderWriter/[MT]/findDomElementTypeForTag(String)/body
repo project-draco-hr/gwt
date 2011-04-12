@@ -1,3 +1,15 @@
 {
-  return elementFactory.findElementTypeForTag(tag,oracle);
+  JClassType elementClass=oracle.findType("com.google.gwt.dom.client.Element");
+  JClassType[] types=elementClass.getSubtypes();
+  for (  JClassType type : types) {
+    TagName annotation=type.getAnnotation(TagName.class);
+    if (annotation != null) {
+      for (      String annotationTag : annotation.value()) {
+        if (annotationTag.equals(tag)) {
+          return type;
+        }
+      }
+    }
+  }
+  return elementClass;
 }
