@@ -1,6 +1,18 @@
 {
+  HtmlContext.Type contextType=htmlContext.getType();
+  if (isSafeHtml(parameterType) && HtmlContext.Type.TEXT != contextType) {
+    throw error(logger,SAFE_HTML_CN + " used in a non-text context. Did you mean to use " + JAVA_LANG_STRING_FQCN+ " or "+ SAFE_STYLES_CN+ " instead?");
+  }
+ else   if (isSafeStyles(parameterType) && HtmlContext.Type.CSS_ATTRIBUTE_START != contextType) {
+    if (HtmlContext.Type.CSS_ATTRIBUTE == contextType) {
+      throw error(logger,SAFE_STYLES_CN + " cannot be used in the middle of a CSS attribute. " + "It must be used at the start a CSS attribute.");
+    }
+ else {
+      throw error(logger,SAFE_STYLES_CN + " used in a non-CSS attribute context. Did you mean to use " + JAVA_LANG_STRING_FQCN+ " or "+ SAFE_HTML_CN+ " instead?");
+    }
+  }
   print("sb.append(");
-switch (htmlContext.getType()) {
+switch (contextType) {
 case CSS:
     logger.log(TreeLogger.WARN,"Template with variable in CSS context: " + "The template code generator cannot guarantee HTML-safety of " + "the template -- please inspect manually");
   emitTextContextParameterExpression(formalParameterName,parameterType);
@@ -10,7 +22,9 @@ emitTextContextParameterExpression(formalParameterName,parameterType);
 break;
 case CSS_ATTRIBUTE:
 case CSS_ATTRIBUTE_START:
-logger.log(TreeLogger.WARN,"Template with variable in CSS context: " + "The template code generator cannot guarantee HTML-safety of " + "the template -- please inspect manually");
+if (!isSafeStyles(parameterType)) {
+logger.log(TreeLogger.WARN,"Template with variable in CSS attribute context: The template code generator cannot" + " guarantee HTML-safety of the template -- please inspect manually or use " + SAFE_STYLES_CN + " to specify arguments in a CSS attribute context");
+}
 emitAttributeContextParameterExpression(logger,htmlContext,formalParameterName,parameterType);
 break;
 case URL_ATTRIBUTE_START:
@@ -19,7 +33,7 @@ case ATTRIBUTE_VALUE:
 emitAttributeContextParameterExpression(logger,htmlContext,formalParameterName,parameterType);
 break;
 default :
-throw new IllegalStateException("unknown HTML context for formal template parameter " + formalParameterName + ": "+ htmlContext);
+throw error(logger,"unknown HTML context for formal template parameter " + formalParameterName + ": "+ htmlContext);
 }
 println(");");
 }

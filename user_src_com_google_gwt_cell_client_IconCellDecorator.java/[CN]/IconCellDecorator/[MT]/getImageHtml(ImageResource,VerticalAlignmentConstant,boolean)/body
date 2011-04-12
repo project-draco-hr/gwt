@@ -7,14 +7,16 @@
     AbstractImagePrototype proto=AbstractImagePrototype.create(res);
     image=SafeHtmlUtils.fromTrustedString(proto.getHTML());
   }
+  SafeStylesBuilder cssStyles=new SafeStylesBuilder().appendTrustedString(direction + ":0px;");
   if (HasVerticalAlignment.ALIGN_TOP == valign) {
-    return template.imageWrapperTop(direction,image);
+    return template.imageWrapperTop(cssStyles.toSafeStyles(),image);
   }
  else   if (HasVerticalAlignment.ALIGN_BOTTOM == valign) {
-    return template.imageWrapperBottom(direction,image);
+    return template.imageWrapperBottom(cssStyles.toSafeStyles(),image);
   }
  else {
     int halfHeight=(int)Math.round(res.getHeight() / 2.0);
-    return template.imageWrapperMiddle(direction,halfHeight,image);
+    cssStyles.appendTrustedString("margin-top:-" + halfHeight + "px;");
+    return template.imageWrapperMiddle(cssStyles.toSafeStyles(),image);
   }
 }

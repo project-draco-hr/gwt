@@ -3,14 +3,16 @@
   if (isTop) {
     classesBuilder.append(" ").append(style.cellTreeTopItemImage());
   }
-  String direction;
+  SafeStylesBuilder cssBuilder=new SafeStylesBuilder();
   if (LocaleInfo.getCurrentLocale().isRTL()) {
-    direction="right";
+    cssBuilder.appendTrustedString("right: 0px;");
   }
  else {
-    direction="left";
+    cssBuilder.appendTrustedString("left: 0px;");
   }
+  cssBuilder.appendTrustedString("width: " + res.getWidth() + "px;");
+  cssBuilder.appendTrustedString("height: " + res.getHeight() + "px;");
   AbstractImagePrototype proto=AbstractImagePrototype.create(res);
   SafeHtml image=SafeHtmlUtils.fromTrustedString(proto.getHTML());
-  return TREE_IMPL.imageWrapper(classesBuilder.toString(),direction,res.getWidth(),res.getHeight(),image);
+  return template.imageWrapper(classesBuilder.toString(),cssBuilder.toSafeStyles(),image);
 }
