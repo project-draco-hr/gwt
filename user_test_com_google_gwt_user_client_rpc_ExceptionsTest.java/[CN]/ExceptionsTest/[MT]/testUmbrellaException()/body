@@ -1,0 +1,16 @@
+{
+  ExceptionsTestServiceAsync service=getServiceAsync();
+  delayTestFinishForRpc();
+  final UmbrellaException expected=TestSetFactory.createUmbrellaException();
+  service.echo(expected,new AsyncCallback<UmbrellaException>(){
+    public void onFailure(    Throwable caught){
+      TestSetValidator.rethrowException(caught);
+    }
+    public void onSuccess(    UmbrellaException result){
+      assertNotNull(result);
+      assertTrue(TestSetValidator.isValid(expected,result));
+      finishTest();
+    }
+  }
+);
+}

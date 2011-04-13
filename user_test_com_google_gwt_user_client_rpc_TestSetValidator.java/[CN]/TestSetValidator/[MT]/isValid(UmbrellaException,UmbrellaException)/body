@@ -1,0 +1,43 @@
+{
+  if (actual == null) {
+    return false;
+  }
+  if (!equals(expected,actual)) {
+    return false;
+  }
+  Set<Throwable> expectedCauses=expected.getCauses();
+  Set<Throwable> actualCauses=actual.getCauses();
+  if (actualCauses.size() != expectedCauses.size()) {
+    return false;
+  }
+  Iterator<Throwable> expectedIter=expectedCauses.iterator();
+  while (expectedIter.hasNext()) {
+    Throwable expectedCause=expectedIter.next();
+    if (expectedCause == null) {
+      return false;
+    }
+  }
+  Iterator<Throwable> actualIter=actualCauses.iterator();
+  while (actualIter.hasNext()) {
+    Throwable actualCause=actualIter.next();
+    if (actualCause == null) {
+      return false;
+    }
+  }
+  expectedIter=expectedCauses.iterator();
+  while (expectedIter.hasNext()) {
+    Throwable expectedCause=expectedIter.next();
+    actualIter=actualCauses.iterator();
+    boolean found=false;
+    while (!found && actualIter.hasNext()) {
+      Throwable actualCause=actualIter.next();
+      if (equals(expectedCause,actualCause)) {
+        found=true;
+      }
+    }
+    if (!found) {
+      return false;
+    }
+  }
+  return true;
+}
