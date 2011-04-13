@@ -1,0 +1,20 @@
+{
+  scroller.setMomentum(new DefaultMomentum(){
+    @Override public boolean updateState(    State state){
+      return false;
+    }
+  }
+);
+  double millis=Duration.currentTimeMillis();
+  scroller.getRecentTouchPosition().setTemporalPoint(new Point(0,0),millis);
+  scroller.getLastTouchPosition().setTemporalPoint(new Point(100,100),millis + 100);
+  scroller.onDragEnd(createTouchEndEvent());
+  scroller.assertOnDragEndCalled(true);
+  assertFalse(scroller.isTouching());
+  assertFalse(scroller.isDragging());
+  assertTrue(scroller.isMomentumActive());
+  getMomentumCommand(scroller).execute();
+  assertFalse(scroller.isTouching());
+  assertFalse(scroller.isDragging());
+  assertFalse(scroller.isMomentumActive());
+}

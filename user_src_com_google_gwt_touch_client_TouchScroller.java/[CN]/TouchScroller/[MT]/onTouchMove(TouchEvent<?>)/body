@@ -2,7 +2,6 @@
   if (!touching) {
     return;
   }
-  event.preventDefault();
   Touch touch=getTouchFromEvent(event);
   Point touchPoint=new Point(touch.getPageX(),touch.getPageY());
   double touchTime=Duration.currentTimeMillis();
@@ -12,10 +11,37 @@
     double absDiffX=Math.abs(diff.getX());
     double absDiffY=Math.abs(diff.getY());
     if (absDiffX > MIN_TRACKING_FOR_DRAG || absDiffY > MIN_TRACKING_FOR_DRAG) {
+      if (absDiffX > absDiffY) {
+        int hPosition=widget.getHorizontalScrollPosition();
+        int hMin=widget.getMinimumHorizontalScrollPosition();
+        int hMax=widget.getMaximumHorizontalScrollPosition();
+        if (diff.getX() < 0 && hMax <= hPosition) {
+          cancelAll();
+          return;
+        }
+ else         if (diff.getX() > 0 && hMin >= hPosition) {
+          cancelAll();
+          return;
+        }
+      }
+ else {
+        int vPosition=widget.getVerticalScrollPosition();
+        int vMin=widget.getMinimumVerticalScrollPosition();
+        int vMax=widget.getMaximumVerticalScrollPosition();
+        if (diff.getY() < 0 && vMax <= vPosition) {
+          cancelAll();
+          return;
+        }
+ else         if (diff.getY() > 0 && vMin >= vPosition) {
+          cancelAll();
+          return;
+        }
+      }
       dragging=true;
       onDragStart(event);
     }
   }
+  event.preventDefault();
   if (dragging) {
     onDragMove(event);
     double trackingTime=touchTime - recentTouchPosition.getTime();
