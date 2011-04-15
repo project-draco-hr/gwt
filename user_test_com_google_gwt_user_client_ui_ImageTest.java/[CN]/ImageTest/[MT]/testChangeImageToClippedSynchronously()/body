@@ -1,0 +1,34 @@
+{
+  if (isIE6()) {
+    return;
+  }
+  final Image image=new Image("counting-forwards.png");
+  assertEquals("unclipped",getCurrentImageStateName(image));
+  image.addErrorHandler(new TestErrorHandler(image));
+  final TestLoadHandler loadHandler=new TestLoadHandler(){
+    public void onLoad(    LoadEvent event){
+      if (isFinished()) {
+        fail("LoadHandler fired twice. Expected it to fire only once.");
+      }
+      assertEquals("clipped",getCurrentImageStateName(image));
+      assertEquals(12,image.getOriginLeft());
+      assertEquals(13,image.getOriginTop());
+      assertEquals(8,image.getWidth());
+      assertEquals(8,image.getHeight());
+      finish();
+    }
+  }
+;
+  image.addLoadHandler(loadHandler);
+  RootPanel.get().add(image);
+  image.setVisibleRect(12,13,8,8);
+  assertEquals("clipped",getCurrentImageStateName(image));
+  delayTestFinish(DEFAULT_TEST_TIMEOUT);
+  new Timer(){
+    @Override public void run(){
+      assertTrue(loadHandler.isFinished());
+      finishTest();
+    }
+  }
+.schedule(SYNTHETIC_LOAD_EVENT_TIMEOUT);
+}

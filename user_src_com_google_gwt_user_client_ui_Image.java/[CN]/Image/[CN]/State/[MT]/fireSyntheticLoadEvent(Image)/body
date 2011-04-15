@@ -1,9 +1,18 @@
 {
-  DeferredCommand.addCommand(new Command(){
+  syntheticEventCommand=new ScheduledCommand(){
     public void execute(){
+      if (image.state != State.this || this != syntheticEventCommand) {
+        return;
+      }
+      syntheticEventCommand=null;
+      if (!image.isAttached()) {
+        getImageElement(image).setPropertyString(UNHANDLED_EVENT_ATTR,"load");
+        return;
+      }
       NativeEvent evt=Document.get().createLoadEvent();
       getImageElement(image).dispatchEvent(evt);
     }
   }
-);
+;
+  Scheduler.get().scheduleDeferred(syntheticEventCommand);
 }

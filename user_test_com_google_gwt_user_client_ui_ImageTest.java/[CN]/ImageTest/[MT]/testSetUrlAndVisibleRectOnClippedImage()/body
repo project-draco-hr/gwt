@@ -1,42 +1,45 @@
 {
   final Image image=new Image("counting-backwards.png",12,12,12,12);
-  delayTestFinish(5000);
   final TestLoadListener listener=new TestLoadListener(image){
-    private int onLoadEventCount=0;
     public void onLoad(    Widget sender){
-      if (++onLoadEventCount == 2) {
-        assertEquals(0,image.getOriginLeft());
-        assertEquals(16,image.getOriginTop());
-        assertEquals(16,image.getWidth());
-        assertEquals(16,image.getHeight());
-        assertEquals("clipped",getCurrentImageStateName(image));
-        finish();
+      if (isFinished()) {
+        fail("LoadListener fired twice. Expected it to fire only once.");
       }
+      assertEquals(0,image.getOriginLeft());
+      assertEquals(16,image.getOriginTop());
+      assertEquals(16,image.getWidth());
+      assertEquals(16,image.getHeight());
+      assertEquals("clipped",getCurrentImageStateName(image));
+      finish();
     }
   }
 ;
   image.addLoadListener(listener);
-  image.addLoadHandler(new LoadHandler(){
-    private int onLoadEventCount=0;
+  final TestLoadHandler loadHandler=new TestLoadHandler(){
     public void onLoad(    LoadEvent event){
-      if (++onLoadEventCount == 2) {
-        assertEquals(0,image.getOriginLeft());
-        assertEquals(16,image.getOriginTop());
-        assertEquals(16,image.getWidth());
-        assertEquals(16,image.getHeight());
-        assertEquals("clipped",getCurrentImageStateName(image));
-        if (listener.isFinished()) {
-          finishTest();
-        }
+      if (isFinished()) {
+        fail("LoadHandler fired twice. Expected it to fire only once.");
+      }
+      if (listener.isFinished()) {
+        finish();
+      }
  else {
-          fail("Listener did not fire first");
-        }
+        fail("Listener did not fire first");
       }
     }
   }
-);
+;
+  image.addLoadHandler(loadHandler);
   image.addErrorHandler(new TestErrorHandler(image));
   RootPanel.get().add(image);
   assertEquals("clipped",getCurrentImageStateName(image));
   image.setUrlAndVisibleRect("counting-forwards.png",0,16,16,16);
+  delayTestFinish(DEFAULT_TEST_TIMEOUT);
+  new Timer(){
+    @Override public void run(){
+      assertTrue(loadHandler.isFinished());
+      finishTest();
+    }
+  }
+.schedule(SYNTHETIC_LOAD_EVENT_TIMEOUT);
 }
