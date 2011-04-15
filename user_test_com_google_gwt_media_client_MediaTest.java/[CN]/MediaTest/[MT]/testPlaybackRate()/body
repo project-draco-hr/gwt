@@ -1,22 +1,25 @@
 {
-  final MediaElement element=getElement();
-  if (element == null) {
+  final MediaBase media=getMedia();
+  if (media == null) {
     return;
   }
-  int waitMillis=5000;
-  delayTestFinish(3 * waitMillis);
-  assertEquals("Default playback rate should be 1.0",1.0,element.getDefaultPlaybackRate());
-  element.play();
+  assertEquals("Default playback rate should be 1.0",1.0,media.getDefaultPlaybackRate());
+  delayTestFinish(20 * 1000);
   new Timer(){
     @Override public void run(){
+      MediaError error=media.getError();
+      if (error != null) {
+        fail("Media error (" + error.getCode() + ")");
+      }
       double rate=2.0;
-      element.setPlaybackRate(rate);
-      assertEquals("Should be able to change playback rate",rate,element.getPlaybackRate());
+      media.setPlaybackRate(rate);
+      assertEquals("Should be able to change playback rate",rate,media.getPlaybackRate());
       rate=1.0;
-      element.setPlaybackRate(rate);
-      assertEquals("Should be able to change playback rate",rate,element.getPlaybackRate());
+      media.setPlaybackRate(rate);
+      assertEquals("Should be able to change playback rate",rate,media.getPlaybackRate());
       finishTest();
     }
   }
-.schedule(waitMillis);
+.schedule(15 * 1000);
+  media.play();
 }

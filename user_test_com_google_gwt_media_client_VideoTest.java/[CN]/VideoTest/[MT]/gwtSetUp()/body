@@ -3,12 +3,19 @@
   if (video == null) {
     return;
   }
-  VideoElement element=video.getVideoElement();
-  if (!element.canPlayType(videoFormatH264).equalsIgnoreCase(MediaElement.CANNOT_PLAY)) {
-    element.setSrc(videoUrlH264);
+  String canPlayH264=video.canPlayType(videoFormatH264);
+  String canPlayOgv=video.canPlayType(videoFormatOgv);
+  if (canPlayH264.equals(MediaElement.CAN_PLAY_PROBABLY)) {
+    video.setSrc(videoUrlH264);
   }
- else   if (!element.canPlayType(videoFormatOgv).equalsIgnoreCase(MediaElement.CANNOT_PLAY)) {
-    element.setSrc(videoUrlOgv);
+ else   if (canPlayOgv.equals(MediaElement.CAN_PLAY_PROBABLY)) {
+    video.setSrc(videoUrlOgv);
+  }
+ else   if (canPlayH264.equals(MediaElement.CAN_PLAY_MAYBE)) {
+    video.setSrc(videoUrlH264);
+  }
+ else   if (canPlayOgv.equals(MediaElement.CAN_PLAY_MAYBE)) {
+    video.setSrc(videoUrlOgv);
   }
  else {
     throw new Exception("Could not find suitable video format");

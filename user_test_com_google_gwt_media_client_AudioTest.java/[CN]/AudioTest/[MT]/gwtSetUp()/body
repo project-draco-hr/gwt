@@ -3,14 +3,19 @@
   if (audio == null) {
     return;
   }
-  AudioElement element=audio.getAudioElement();
-  String canPlayMp3=element.canPlayType(audioFormatMp3);
-  String canPlayOgg=element.canPlayType(audioFormatOgg);
-  if (!canPlayMp3.equalsIgnoreCase(MediaElement.CANNOT_PLAY)) {
-    element.setSrc(audioUrlMp3);
+  String canPlayMp3=audio.canPlayType(audioFormatMp3);
+  String canPlayOgg=audio.canPlayType(audioFormatOgg);
+  if (canPlayMp3.equals(MediaElement.CAN_PLAY_PROBABLY)) {
+    audio.setSrc(audioUrlMp3);
   }
- else   if (!canPlayOgg.equalsIgnoreCase(MediaElement.CANNOT_PLAY)) {
-    element.setSrc(audioUrlOgg);
+ else   if (canPlayOgg.equals(MediaElement.CAN_PLAY_PROBABLY)) {
+    audio.setSrc(audioUrlOgg);
+  }
+ else   if (canPlayMp3.equals(MediaElement.CAN_PLAY_MAYBE)) {
+    audio.setSrc(audioUrlMp3);
+  }
+ else   if (canPlayOgg.equals(MediaElement.CAN_PLAY_MAYBE)) {
+    audio.setSrc(audioUrlOgg);
   }
  else {
     throw new Exception("Could not find suitable audio format");

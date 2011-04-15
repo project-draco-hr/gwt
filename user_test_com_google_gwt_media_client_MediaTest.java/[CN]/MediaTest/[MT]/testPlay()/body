@@ -1,16 +1,19 @@
 {
-  MediaElement element=getElement();
-  if (element == null) {
+  final MediaBase media=getMedia();
+  if (media == null) {
     return;
   }
-  int waitMillis=10000;
-  delayTestFinish(3 * waitMillis);
-  element.setPlaybackRate(1.0);
-  element.play();
+  delayTestFinish(20 * 1000);
   new Timer(){
     @Override public void run(){
+      MediaError error=media.getError();
+      if (error != null) {
+        fail("Media error (" + error.getCode() + ")");
+      }
+      assertTrue(media.getCurrentTime() > 0);
       finishTest();
     }
   }
-.schedule(waitMillis);
+.schedule(15 * 1000);
+  media.play();
 }
