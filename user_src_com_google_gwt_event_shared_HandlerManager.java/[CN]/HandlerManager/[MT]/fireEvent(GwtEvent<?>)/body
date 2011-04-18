@@ -3,16 +3,19 @@
     event.revive();
   }
   Object oldSource=event.getSource();
-  event.setSource(source);
+  event.overrideSource(source);
   try {
     eventBus.fireEvent(event);
   }
-  finally {
+ catch (  com.google.web.bindery.event.shared.UmbrellaException e) {
+    throw new UmbrellaException(e.getCauses());
+  }
+ finally {
     if (oldSource == null) {
       event.kill();
     }
  else {
-      event.setSource(oldSource);
+      event.overrideSource(oldSource);
     }
   }
 }

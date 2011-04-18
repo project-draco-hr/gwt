@@ -1,0 +1,37 @@
+{
+  CountingEventBus eventBus=new CountingEventBus(new SimpleEventBus());
+  FooEvent.register(eventBus,fooHandler1);
+  FooEvent.register(eventBus,fooHandler2);
+  HandlerRegistration reg1=FooEvent.register(eventBus,adaptor1);
+  eventBus.fireEvent(new FooEvent());
+  assertEquals(3,eventBus.getCount(FooEvent.TYPE));
+  assertFired(fooHandler1,fooHandler2,adaptor1);
+  FooEvent.register(eventBus,fooHandler3);
+  assertEquals(4,eventBus.getCount(FooEvent.TYPE));
+  FooEvent.register(eventBus,fooHandler1);
+  FooEvent.register(eventBus,fooHandler2);
+  HandlerRegistration reg2=FooEvent.register(eventBus,adaptor1);
+  assertEquals(7,eventBus.getCount(FooEvent.TYPE));
+  eventBus.addHandler(BarEvent.TYPE,adaptor1);
+  eventBus.addHandler(BarEvent.TYPE,barHandler1);
+  eventBus.addHandler(BarEvent.TYPE,barHandler2);
+  assertEquals(7,eventBus.getCount(FooEvent.TYPE));
+  assertEquals(3,eventBus.getCount(BarEvent.TYPE));
+  reset();
+  eventBus.fireEvent(new FooEvent());
+  assertFired(fooHandler1,fooHandler2,fooHandler3,adaptor1);
+  assertNotFired(barHandler1,barHandler2);
+  reg1.removeHandler();
+  eventBus.fireEvent(new FooEvent());
+  assertFired(fooHandler1,fooHandler2,fooHandler3,adaptor1);
+  assertNotFired(barHandler1,barHandler2);
+  reg2.removeHandler();
+  reset();
+  eventBus.fireEvent(new FooEvent());
+  assertFired(fooHandler1,fooHandler2,fooHandler3);
+  assertNotFired(adaptor1,barHandler1,barHandler2);
+  reset();
+  eventBus.fireEvent(new BarEvent());
+  assertNotFired(fooHandler1,fooHandler2,fooHandler3);
+  assertFired(barHandler1,barHandler2,adaptor1);
+}

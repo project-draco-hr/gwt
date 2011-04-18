@@ -1,0 +1,15 @@
+{
+  CountingEventBus wrapped=new CountingEventBus();
+  ResettableEventBus wideScope=new ResettableEventBus(wrapped);
+  ResettableEventBus narrowScope=new ResettableEventBus(wideScope);
+  Event.Type<FooEvent.Handler> type=FooEvent.TYPE;
+  wideScope.addHandler(type,fooHandler1);
+  narrowScope.addHandler(type,fooHandler2);
+  wrapped.fireEvent(new FooEvent());
+  assertFired(fooHandler1,fooHandler2);
+  reset();
+  narrowScope.removeHandlers();
+  wrapped.fireEvent(new FooEvent());
+  assertFired(fooHandler1);
+  assertNotFired(fooHandler2);
+}
