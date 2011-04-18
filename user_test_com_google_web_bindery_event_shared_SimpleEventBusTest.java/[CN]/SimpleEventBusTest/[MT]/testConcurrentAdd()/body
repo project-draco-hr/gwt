@@ -1,0 +1,26 @@
+{
+  final SimpleEventBus eventBus=new SimpleEventBus();
+  final FooEvent.Handler two=new FooEvent.Handler(){
+    public void onFoo(    FooEvent event){
+      add(this);
+    }
+  }
+;
+  FooEvent.Handler one=new FooEvent.Handler(){
+    public void onFoo(    FooEvent event){
+      FooEvent.register(eventBus,two);
+      add(this);
+    }
+  }
+;
+  FooEvent.register(eventBus,one);
+  FooEvent.register(eventBus,fooHandler1);
+  FooEvent.register(eventBus,fooHandler2);
+  FooEvent.register(eventBus,fooHandler3);
+  eventBus.fireEvent(new FooEvent());
+  assertFired(one,fooHandler1,fooHandler2,fooHandler3);
+  assertNotFired(two);
+  reset();
+  eventBus.fireEvent(new FooEvent());
+  assertFired(one,two,fooHandler1,fooHandler2,fooHandler3);
+}

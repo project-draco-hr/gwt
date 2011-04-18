@@ -1,0 +1,22 @@
+{
+  RuntimeException exception1=new RuntimeException("first exception");
+  RuntimeException exception2=new RuntimeException("second exception");
+  final SimpleEventBus eventBus=new SimpleEventBus();
+  FooEvent.register(eventBus,fooHandler1);
+  FooEvent.register(eventBus,new ThrowingHandler(exception1));
+  FooEvent.register(eventBus,fooHandler2);
+  FooEvent.register(eventBus,new ThrowingHandler(exception2));
+  FooEvent.register(eventBus,fooHandler3);
+  FooEvent event=new FooEvent();
+  try {
+    eventBus.fireEvent(event);
+    fail("eventBus should have thrown");
+  }
+ catch (  UmbrellaException e) {
+    Set<Throwable> causes=e.getCauses();
+    assertEquals("Exception should wrap the two thrown exceptions",2,causes.size());
+    assertTrue("First exception should be under the umbrella",causes.contains(exception1));
+    assertTrue("Second exception should be under the umbrella",causes.contains(exception2));
+  }
+  assertFired(fooHandler1,fooHandler2,fooHandler3);
+}

@@ -1,0 +1,21 @@
+{
+  final SimpleEventBus eventBus=new SimpleEventBus();
+  FooEvent.Handler one=new FooEvent.Handler(){
+    HandlerRegistration reg=addIt();
+    public void onFoo(    FooEvent event){
+      reg.removeHandler();
+      addIt();
+      add(this);
+    }
+    private HandlerRegistration addIt(){
+      return FooEvent.register(eventBus,fooHandler1);
+    }
+  }
+;
+  FooEvent.register(eventBus,one);
+  eventBus.fireEvent(new FooEvent());
+  assertFired(one);
+  reset();
+  eventBus.fireEvent(new FooEvent());
+  assertFired(one,fooHandler1);
+}

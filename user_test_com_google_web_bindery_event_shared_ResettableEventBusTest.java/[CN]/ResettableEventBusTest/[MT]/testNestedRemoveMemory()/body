@@ -1,0 +1,19 @@
+{
+  SimpleEventBus eventBus=new SimpleEventBus();
+  ResettableEventBus wideScope=new ResettableEventBus(eventBus);
+  ResettableEventBus narrowScope=new ResettableEventBus(wideScope);
+  Event.Type<FooEvent.Handler> type=FooEvent.TYPE;
+  wideScope.addHandler(type,fooHandler1);
+  narrowScope.addHandler(type,fooHandler2);
+  narrowScope.addHandler(type,fooHandler3);
+  narrowScope.removeHandlers();
+  wideScope.removeHandlers();
+  assertEquals(0,wideScope.getRegistrationSize());
+  assertEquals(0,narrowScope.getRegistrationSize());
+  wideScope.addHandler(type,fooHandler1);
+  narrowScope.addHandler(type,fooHandler2);
+  wideScope.removeHandlers();
+  narrowScope.removeHandlers();
+  assertEquals(0,wideScope.getRegistrationSize());
+  assertEquals(0,narrowScope.getRegistrationSize());
+}
