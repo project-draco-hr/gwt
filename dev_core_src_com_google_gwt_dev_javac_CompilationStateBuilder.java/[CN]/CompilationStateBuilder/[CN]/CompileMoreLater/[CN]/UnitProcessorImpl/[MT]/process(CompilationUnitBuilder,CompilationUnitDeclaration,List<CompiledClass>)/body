@@ -15,7 +15,8 @@
       }
     }
 );
-    ArtificialRescueChecker.check(cud,builder.isGenerated());
+    Map<TypeDeclaration,Binding[]> artificialRescues=new HashMap<TypeDeclaration,Binding[]>();
+    ArtificialRescueChecker.check(cud,builder.isGenerated(),artificialRescues);
     BinaryTypeReferenceRestrictionsChecker.check(cud);
     MethodArgNamesLookup methodArgs=MethodParamCollector.collect(cud);
     StringInterner interner=StringInterner.get();
@@ -39,7 +40,7 @@
     List<JDeclaredType> types=Collections.emptyList();
     if (GwtAstBuilder.ENABLED) {
       if (!cud.compilationResult().hasErrors()) {
-        types=astBuilder.process(cud,jsniMethods,jsniRefs);
+        types=astBuilder.process(cud,artificialRescues,jsniMethods,jsniRefs);
       }
     }
     for (    CompiledClass cc : compiledClasses) {
