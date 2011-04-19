@@ -1,15 +1,20 @@
 {
   Type type=Type.getType(annotData.getDesc());
+  String typeName=type.getClassName();
   try {
-    Class<?> clazz=Class.forName(type.getClassName(),false,Thread.currentThread().getContextClassLoader());
+    Class<?> clazz=Class.forName(typeName,false,Thread.currentThread().getContextClassLoader());
     if (!Annotation.class.isAssignableFrom(clazz)) {
-      logger.log(TreeLogger.ERROR,"Type " + type.getClassName() + " is not an annotation");
+      logger.log(TreeLogger.ERROR,"Type " + typeName + " is not an annotation");
       return null;
     }
     return clazz.asSubclass(Annotation.class);
   }
  catch (  ClassNotFoundException e) {
-    logger.log(TreeLogger.WARN,"Ignoring unresolvable annotation type " + type.getClassName());
+    TreeLogger.Type level=TreeLogger.WARN;
+    if (shouldSuppressUnresolvableAnnotation(logger,typeName)) {
+      level=TreeLogger.DEBUG;
+    }
+    logger.log(level,"Ignoring unresolvable annotation type " + typeName);
     return null;
   }
 }
