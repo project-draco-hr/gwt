@@ -2,9 +2,17 @@
   if ("<clinit>".equals(name) || "<init>".equals(name)) {
     return null;
   }
-  RFMethod method=new RFMethod(name,desc);
+  final RFMethod method=new RFMethod(name,desc);
   method.setDeclaredStatic((access & Opcodes.ACC_STATIC) != 0);
   method.setDeclaredSignature(signature);
   methods.add(method);
-  return null;
+  return new EmptyVisitor(){
+    @Override public AnnotationVisitor visitAnnotation(    String desc,    boolean visible){
+      if (desc.equals(Type.getDescriptor(SkipInterfaceValidation.class))) {
+        method.setValidationSkipped(true);
+      }
+      return null;
+    }
+  }
+;
 }
