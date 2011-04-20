@@ -1,0 +1,44 @@
+{
+  ArrayList<TaskProxy> list=new ArrayList<TaskProxy>(0);
+  if (taskProxyList == null) {
+    return list;
+  }
+  String taskProxyStrings[]=taskProxyList.split(TASKSEP);
+  for (  String taskProxyString : taskProxyStrings) {
+    if (taskProxyString == null) {
+      continue;
+    }
+    String taskProxyStringData[]=taskProxyString.split(FIELDSEP);
+    if (taskProxyStringData.length >= 4) {
+      String dateString=taskProxyStringData[0];
+      String idString=taskProxyStringData[1];
+      String nameString=taskProxyStringData[2];
+      if (FIELDEMPTY.equals(nameString)) {
+        nameString=null;
+      }
+      String notesString=taskProxyStringData[3];
+      if (FIELDEMPTY.equals(notesString)) {
+        notesString=null;
+      }
+      Date dueDate=null;
+      try {
+        dueDate=new Date(Long.parseLong(dateString));
+      }
+ catch (      NumberFormatException nfe) {
+      }
+      Long idLong=0L;
+      try {
+        idLong=Long.parseLong(idString);
+      }
+ catch (      NumberFormatException nfe) {
+      }
+      TaskProxyImpl taskProxy=new TaskProxyImpl();
+      taskProxy.setDueDate(dueDate);
+      taskProxy.setId(idLong);
+      taskProxy.setName(nameString);
+      taskProxy.setNotes(notesString);
+      list.add(taskProxy);
+    }
+  }
+  return list;
+}

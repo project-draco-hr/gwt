@@ -1,0 +1,28 @@
+{
+  clientFactory.getShell().setAddButtonHandler(new ClickHandler(){
+    public void onClick(    ClickEvent event){
+      clientFactory.getPlaceController().goTo(TaskEditPlace.getTaskCreatePlace());
+    }
+  }
+);
+  final TaskListView view=clientFactory.getTaskListView();
+  view.setPresenter(this);
+  if (clearTaskList) {
+    view.clearList();
+  }
+  container.setWidget(view);
+  refreshTimer=new Timer(){
+    @Override public void run(){
+      refreshTaskList();
+    }
+  }
+;
+  if (storage != null) {
+    String taskString=storage.getItem(TASKLIST_SAVE_KEY);
+    if (taskString != null) {
+      List<TaskProxy> list=getTaskProxyFromString(taskString);
+      setTasks(list);
+    }
+  }
+  refreshTaskList();
+}

@@ -1,0 +1,37 @@
+{
+  taskList=new CellTable<TaskProxy>();
+  taskList.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
+  taskList.setWidth("100%");
+  Column<TaskProxy,String> nameColumn=new TextColumn<TaskProxy>(){
+    @Override public String getValue(    TaskProxy object){
+      return (object == null) ? null : object.getName();
+    }
+  }
+;
+  taskList.addColumn(nameColumn,"Task");
+  Column<TaskProxy,String> notesColumn=new TextColumn<TaskProxy>(){
+    @Override public String getValue(    TaskProxy object){
+      return (object == null) ? "" : object.getNotes();
+    }
+  }
+;
+  taskList.addColumn(notesColumn,"Description");
+  Column<TaskProxy,Date> dateColumn=new Column<TaskProxy,Date>(new DateCell()){
+    @Override public Date getValue(    TaskProxy object){
+      return (object == null) ? null : object.getDueDate();
+    }
+  }
+;
+  taskList.addColumn(dateColumn,"Due Date");
+  final NoSelectionModel<TaskProxy> selectionModel=new NoSelectionModel<TaskProxy>();
+  taskList.setSelectionModel(selectionModel);
+  selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler(){
+    public void onSelectionChange(    SelectionChangeEvent event){
+      if (presenter != null) {
+        presenter.selectTask(selectionModel.getLastSelectedObject());
+      }
+    }
+  }
+);
+  initWidget(uiBinder.createAndBindUi(this));
+}

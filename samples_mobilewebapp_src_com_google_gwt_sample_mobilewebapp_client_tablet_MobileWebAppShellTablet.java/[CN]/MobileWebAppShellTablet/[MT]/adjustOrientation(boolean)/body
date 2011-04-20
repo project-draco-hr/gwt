@@ -1,0 +1,28 @@
+{
+  if (isPortrait) {
+    if (taskListActivity != null) {
+      taskListActivity.onStop();
+      taskListActivity=null;
+    }
+    splitPanel.setWidgetSize(taskListContainer,0);
+    contentContainer.insert(clientFactory.getTaskListView(),0);
+    contentContainer.setAnimationDuration(500);
+    Widget curWidget=contentContainer.getVisibleWidget();
+    if (curWidget == null || curWidget == contentEmptyMessage) {
+      clientFactory.getPlaceController().goTo(new TaskListPlace(false));
+      contentContainer.animate(0);
+    }
+  }
+ else {
+    splitPanel.setWidgetSize(taskListContainer,LANDSCAPE_TASK_LIST_WIDTH_PCT);
+    if (taskListActivity == null) {
+      taskListActivity=new TaskListActivity(clientFactory,false);
+      taskListActivity.start(taskListContainer,clientFactory.getEventBus());
+      clientFactory.getTaskListView().asWidget().getElement().getStyle().clearDisplay();
+    }
+    contentContainer.setAnimationDuration(0);
+    if (contentContainer.getVisibleWidget() == null) {
+      contentContainer.setWidget(contentEmptyMessage);
+    }
+  }
+}

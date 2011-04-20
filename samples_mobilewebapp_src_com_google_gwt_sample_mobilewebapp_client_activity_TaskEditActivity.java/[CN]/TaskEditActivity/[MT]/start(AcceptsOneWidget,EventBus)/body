@@ -1,0 +1,20 @@
+{
+  clientFactory.getShell().setAddButtonHandler(null);
+  final TaskEditView view=clientFactory.getTaskEditView();
+  view.setPresenter(this);
+  showTask(null);
+  if (taskId != null) {
+    view.setLocked(true);
+    clientFactory.getRequestFactory().taskRequest().findTask(this.taskId).fire(new Receiver<TaskProxy>(){
+      @Override public void onSuccess(      TaskProxy response){
+        if (isDead) {
+          return;
+        }
+        showTask(response);
+        view.setLocked(false);
+      }
+    }
+);
+  }
+  container.setWidget(view.asWidget());
+}
