@@ -1,11 +1,9 @@
 {
   Event findEntryPointsEvent=SpeedTracerLogger.start(CompilerEventType.FIND_ENTRY_POINTS);
-  SourceInfo sourceInfo=program.createSourceInfoSynthetic(JavaToJavaScriptCompiler.class);
-  JMethod bootStrapMethod=program.createMethod(sourceInfo,"init",program.getIndexedType("EntryMethodHolder"),program.getTypeVoid(),false,true,true,false,false);
-  bootStrapMethod.freezeParamTypes();
-  bootStrapMethod.setSynthetic();
+  JMethod bootStrapMethod=program.getIndexedMethod("EntryMethodHolder.init");
   JMethodBody body=(JMethodBody)bootStrapMethod.getBody();
   JBlock block=body.getBlock();
+  SourceInfo info=block.getSourceInfo().makeChild();
   JMethod registerEntry=program.getIndexedMethod("Impl.registerEntry");
   program.addEntryMethod(registerEntry);
   for (  String mainClassName : mainClassNames) {
@@ -17,7 +15,7 @@
     }
     JMethod mainMethod=findMainMethod(mainType);
     if (mainMethod != null && mainMethod.isStatic()) {
-      JMethodCall onModuleLoadCall=new JMethodCall(null,null,mainMethod);
+      JMethodCall onModuleLoadCall=new JMethodCall(info,null,mainMethod);
       block.addStmt(onModuleLoadCall.makeStatement());
       continue;
     }
@@ -30,7 +28,7 @@
         logger.log(TreeLogger.ERROR,"Could not find module entry point class '" + resultTypeName + "' after rebinding from '"+ mainClassName+ "'",null);
         throw new UnableToCompleteException();
       }
-      JMethodCall onModuleLoadCall=createReboundModuleLoad(logger,resultType,mainClassName,bootStrapMethod.getEnclosingType());
+      JMethodCall onModuleLoadCall=createReboundModuleLoad(logger,info,resultType,mainClassName,bootStrapMethod.getEnclosingType());
       resultTypes.add((JClassType)resultType);
       entryCalls.add(onModuleLoadCall);
     }
@@ -38,7 +36,7 @@
       block.addStmt(entryCalls.get(0).makeStatement());
     }
  else {
-      JReboundEntryPoint reboundEntryPoint=new JReboundEntryPoint(mainType.getSourceInfo(),mainType,resultTypes,entryCalls);
+      JReboundEntryPoint reboundEntryPoint=new JReboundEntryPoint(info,mainType,resultTypes,entryCalls);
       block.addStmt(reboundEntryPoint);
     }
   }
