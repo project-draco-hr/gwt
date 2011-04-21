@@ -6,12 +6,20 @@
   SimpleFooProxy foo=req.create(SimpleFooProxy.class);
   foo.setSimpleValue(value);
   req.echo(foo).fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onConstraintViolation(    Set<ConstraintViolation<?>> errors){
+      assertEquals(1,errors.size());
+      ConstraintViolation<?> v=errors.iterator().next();
+      assertEquals(value,v.getRootBean());
+      assertEquals(value,v.getLeafBean());
+      assertEquals("shouldBeNull",v.getPropertyPath().toString());
+      super.onConstraintViolation(errors);
+    }
     @Override public void onSuccess(    SimpleFooProxy response){
       fail();
     }
-    @Override public void onViolation(    Set<Violation> errors){
+    @SuppressWarnings("deprecation") @Override public void onViolation(    Set<com.google.web.bindery.requestfactory.shared.Violation> errors){
       assertEquals(1,errors.size());
-      Violation v=errors.iterator().next();
+      com.google.web.bindery.requestfactory.shared.Violation v=errors.iterator().next();
       assertEquals(value,v.getInvalidProxy());
       assertNull(v.getOriginalProxy());
       assertEquals("shouldBeNull",v.getPath());

@@ -8,18 +8,36 @@
       if (errors != null && !errors.isEmpty()) {
         SimpleProxyId<?> id=entry.getKey();
         for (        ConstraintViolation<Object> error : errors) {
-          ViolationMessage message=FACTORY.violation().as();
-          message.setClientId(id.getClientId());
-          message.setMessage(error.getMessage());
-          message.setPath(error.getPropertyPath().toString());
+          IdMessage rootId=FACTORY.id().as();
+          rootId.setClientId(id.getClientId());
+          rootId.setTypeToken(service.resolveTypeToken(id.getProxyClass()));
           if (id.isEphemeral()) {
-            message.setClientId(id.getClientId());
-            message.setStrength(Strength.EPHEMERAL);
+            rootId.setStrength(Strength.EPHEMERAL);
           }
  else {
-            message.setServerId(toBase64(id.getServerId()));
+            rootId.setServerId(toBase64(id.getServerId()));
           }
-          message.setTypeToken(service.resolveTypeToken(id.getProxyClass()));
+          IdMessage leafId=null;
+          if (error.getLeafBean() != null) {
+            SimpleProxyId<?> stableId=source.getStableId(error.getLeafBean());
+            if (stableId != null) {
+              leafId=FACTORY.id().as();
+              leafId.setClientId(stableId.getClientId());
+              leafId.setTypeToken(service.resolveTypeToken(stableId.getProxyClass()));
+              if (stableId.isEphemeral()) {
+                leafId.setStrength(Strength.EPHEMERAL);
+              }
+ else {
+                leafId.setServerId(toBase64(stableId.getServerId()));
+              }
+            }
+          }
+          ViolationMessage message=FACTORY.violation().as();
+          message.setLeafBeanId(leafId);
+          message.setMessage(error.getMessage());
+          message.setMessageTemplate(error.getMessageTemplate());
+          message.setPath(error.getPropertyPath().toString());
+          message.setRootBeanId(rootId);
           errorMessages.add(message);
         }
       }

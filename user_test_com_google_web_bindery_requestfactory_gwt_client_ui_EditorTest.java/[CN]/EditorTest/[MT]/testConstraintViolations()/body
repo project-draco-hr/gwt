@@ -8,13 +8,10 @@
       SimpleFooRequest context=req.simpleFooRequest();
       driver.edit(response,context);
       context.persistAndReturnSelf().using(response).with(driver.getPaths()).to(new Receiver<SimpleFooProxy>(){
-        @Override public void onSuccess(        SimpleFooProxy response){
-          fail("Expected errors. You may be missing jars, see " + "the comment in RequestFactoryTest.ShouldNotSucceedReceiver.onSuccess");
-        }
-        @SuppressWarnings("deprecation") @Override public void onViolation(        Set<com.google.web.bindery.requestfactory.shared.Violation> errors){
+        @Override public void onConstraintViolation(        Set<ConstraintViolation<?>> errors){
           assertEquals(1,errors.size());
-          com.google.web.bindery.requestfactory.shared.Violation v=errors.iterator().next();
-          driver.setViolations(errors);
+          ConstraintViolation<?> v=errors.iterator().next();
+          driver.setConstraintViolations(errors);
           assertEquals(1,editor.errors.size());
           EditorError error=editor.errors.get(0);
           assertEquals("userName",error.getAbsolutePath());
@@ -24,6 +21,9 @@
           assertSame(v,error.getUserData());
           assertNull(error.getValue());
           finishTestAndReset();
+        }
+        @Override public void onSuccess(        SimpleFooProxy response){
+          fail("Expected errors. You may be missing jars, see " + "the comment in RequestFactoryTest.ShouldNotSucceedReceiver.onSuccess");
         }
       }
 );

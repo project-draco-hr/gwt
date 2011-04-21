@@ -1,0 +1,29 @@
+{
+  reuse();
+  Set<Throwable> causes=null;
+  for (  AbstractRequest<?> request : new ArrayList<AbstractRequest<?>>(state.invocations)) {
+    try {
+      request.onViolation(errors);
+    }
+ catch (    Throwable t) {
+      if (causes == null) {
+        causes=new HashSet<Throwable>();
+      }
+      causes.add(t);
+    }
+  }
+  if (receiver != null) {
+    try {
+      receiver.onConstraintViolation(errors);
+    }
+ catch (    Throwable t) {
+      if (causes == null) {
+        causes=new HashSet<Throwable>();
+      }
+      causes.add(t);
+    }
+  }
+  if (causes != null) {
+    throw new UmbrellaException(causes);
+  }
+}

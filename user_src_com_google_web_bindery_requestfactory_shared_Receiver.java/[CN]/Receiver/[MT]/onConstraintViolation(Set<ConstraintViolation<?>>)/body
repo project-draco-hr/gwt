@@ -1,0 +1,25 @@
+{
+  Set<Violation> converted=new HashSet<Violation>();
+  for (  final ConstraintViolation<?> v : violations) {
+    converted.add(new Violation(){
+      public BaseProxy getInvalidProxy(){
+        return (BaseProxy)v.getRootBean();
+      }
+      public String getMessage(){
+        return v.getMessage();
+      }
+      public BaseProxy getOriginalProxy(){
+        AutoBean<? extends BaseProxy> parent=AutoBeanUtils.getAutoBean(v.getRootBean()).getTag(Constants.PARENT_OBJECT);
+        return parent == null ? null : parent.as();
+      }
+      public String getPath(){
+        return v.getPropertyPath().toString();
+      }
+      public EntityProxyId<?> getProxyId(){
+        return v.getRootBean() instanceof EntityProxy ? ((EntityProxy)v.getRootBean()).stableId() : null;
+      }
+    }
+);
+  }
+  onViolation(Collections.unmodifiableSet(converted));
+}

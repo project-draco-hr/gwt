@@ -1,0 +1,20 @@
+{
+  assertEquals(1,errors.size());
+  com.google.web.bindery.requestfactory.shared.Violation error=errors.iterator().next();
+  assertEquals("userName",error.getPath());
+  assertEquals("size must be between 3 and 30",error.getMessage());
+  assertEquals(proxy.stableId(),error.getProxyId());
+  proxy.setUserName("long enough");
+  request.fire(new Receiver<T>(){
+    @Override public void onSuccess(    T response){
+      if (voidReturnExpected) {
+        assertNull(response);
+      }
+ else {
+        assertEquals(proxy.stableId(),((SimpleFooProxy)response).stableId());
+      }
+      finishTestAndReset();
+    }
+  }
+);
+}
