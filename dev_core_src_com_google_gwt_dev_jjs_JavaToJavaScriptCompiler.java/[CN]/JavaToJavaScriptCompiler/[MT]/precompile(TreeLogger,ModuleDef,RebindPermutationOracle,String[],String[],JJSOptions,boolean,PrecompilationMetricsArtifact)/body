@@ -16,11 +16,15 @@
   allRootTypes.addAll(JProgram.CODEGEN_TYPES_SET);
   allRootTypes.addAll(JProgram.INDEX_TYPES_SET);
   allRootTypes.add(FragmentLoaderCreator.ASYNC_FRAGMENT_LOADER);
+  TypeOracle typeOracle=rpo.getCompilationState().getTypeOracle();
+  for (  com.google.gwt.core.ext.typeinfo.JClassType singleJsoIntf : typeOracle.getSingleJsoImplInterfaces()) {
+    allRootTypes.add(typeOracle.getSingleJsoImpl(singleJsoIntf).getQualifiedSourceName());
+  }
   Memory.maybeDumpMemory("CompStateBuilt");
   CompilationUnitDeclaration[] goldenCuds=WebModeCompilerFrontEnd.getCompilationUnitDeclarations(logger,allRootTypes.toArray(new String[allRootTypes.size()]),rpo,TypeLinker.NULL_TYPE_LINKER).compiledUnits;
   List<String> finalTypeOracleTypes=Lists.create();
   if (precompilationMetrics != null) {
-    for (    com.google.gwt.core.ext.typeinfo.JClassType type : rpo.getCompilationState().getTypeOracle().getTypes()) {
+    for (    com.google.gwt.core.ext.typeinfo.JClassType type : typeOracle.getTypes()) {
       finalTypeOracleTypes=Lists.add(finalTypeOracleTypes,type.getPackage().getName() + "." + type.getName());
     }
     precompilationMetrics.setFinalTypeOracleTypes(finalTypeOracleTypes);
