@@ -33,12 +33,12 @@
   }
   makeImmutable(toMutate);
   Q proxy=toMutate.as();
-  if (operations != null && requestFactory.isEntityType(id.getProxyClass())) {
+  if (operations != null && state.requestFactory.isEntityType(id.getProxyClass())) {
     for (    WriteOperation writeOperation : operations) {
-      if (writeOperation.equals(WriteOperation.UPDATE) && !requestFactory.hasVersionChanged(id,op.getVersion())) {
+      if (writeOperation.equals(WriteOperation.UPDATE) && !state.requestFactory.hasVersionChanged(id,op.getVersion())) {
         continue;
       }
-      requestFactory.getEventBus().fireEventFromSource(new EntityProxyChange<EntityProxy>((EntityProxy)proxy,writeOperation),id.getProxyClass());
+      state.requestFactory.getEventBus().fireEventFromSource(new EntityProxyChange<EntityProxy>((EntityProxy)proxy,writeOperation),id.getProxyClass());
     }
   }
   return proxy;

@@ -16,14 +16,14 @@
   }
   processReturnOperations(response);
   Set<Throwable> causes=null;
-  for (int i=0, j=invocations.size(); i < j; i++) {
+  for (int i=0, j=state.invocations.size(); i < j; i++) {
     try {
       if (response.getStatusCodes().get(i)) {
-        invocations.get(i).onSuccess(response.getInvocationResults().get(i));
+        state.invocations.get(i).onSuccess(response.getInvocationResults().get(i));
       }
  else {
         ServerFailureMessage failure=AutoBeanCodex.decode(MessageFactoryHolder.FACTORY,ServerFailureMessage.class,response.getInvocationResults().get(i)).as();
-        invocations.get(i).onFail(new ServerFailure(failure.getMessage(),failure.getExceptionType(),failure.getStackTrace(),failure.isFatal()));
+        state.invocations.get(i).onFail(new ServerFailure(failure.getMessage(),failure.getExceptionType(),failure.getStackTrace(),failure.isFatal()));
       }
     }
  catch (    Throwable t) {
@@ -44,9 +44,9 @@
       causes.add(t);
     }
   }
-  editedProxies.clear();
-  invocations.clear();
-  returnedProxies.clear();
+  state.editedProxies.clear();
+  state.invocations.clear();
+  state.returnedProxies.clear();
   if (causes != null) {
     throw new UmbrellaException(causes);
   }
