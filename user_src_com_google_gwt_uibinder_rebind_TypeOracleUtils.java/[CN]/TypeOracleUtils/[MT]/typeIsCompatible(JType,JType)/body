@@ -1,0 +1,19 @@
+{
+  if (paramType == argType) {
+    return true;
+  }
+  JClassType paramClass=paramType.isClassOrInterface();
+  if (paramClass != null) {
+    JClassType argClass=argType.isClassOrInterface();
+    return argClass != null && paramClass.isAssignableFrom(argClass);
+  }
+  JArrayType paramArray=paramType.isArray();
+  if (paramArray != null) {
+    JArrayType argArray=argType.isArray();
+    return argArray != null && typeIsCompatible(paramArray.getComponentType(),argArray.getComponentType());
+  }
+  if (paramType instanceof JPrimitiveType && argType instanceof JPrimitiveType) {
+    return isWideningPrimitiveConversion((JPrimitiveType)paramType,(JPrimitiveType)argType);
+  }
+  return false;
+}
