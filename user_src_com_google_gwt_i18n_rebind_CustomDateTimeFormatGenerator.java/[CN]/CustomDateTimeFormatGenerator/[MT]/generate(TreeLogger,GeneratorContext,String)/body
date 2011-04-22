@@ -22,6 +22,14 @@
     logger.log(TreeLogger.ERROR,typeName + " is not assignable to " + CustomDateTimeFormat.class.getName());
     throw new UnableToCompleteException();
   }
+  JClassType oldDateTimeFormat;
+  try {
+    oldDateTimeFormat=typeOracle.getType(com.google.gwt.i18n.client.DateTimeFormat.class.getName());
+  }
+ catch (  NotFoundException e) {
+    logger.log(TreeLogger.ERROR,"No client DateTimeFormat type?",e);
+    throw new UnableToCompleteException();
+  }
   JClassType dateTimeFormat;
   try {
     dateTimeFormat=typeOracle.getType(DateTimeFormat.class.getName());
@@ -43,20 +51,28 @@
     writer.indent();
     for (    JMethod method : targetClass.getMethods()) {
       JType returnType=method.getReturnType();
-      if (returnType != dateTimeFormat) {
+      if (returnType != dateTimeFormat && returnType != oldDateTimeFormat) {
         logger.log(TreeLogger.ERROR,typeName + "." + method.getName()+ " must return DateTimeFormat");
         throw new UnableToCompleteException();
       }
+      String pattern;
       Pattern annotation=method.getAnnotation(Pattern.class);
       if (annotation == null) {
-        logger.log(TreeLogger.ERROR,typeName + "." + method.getName()+ " must have an @Pattern annotation");
-        throw new UnableToCompleteException();
+        com.google.gwt.i18n.client.CustomDateTimeFormat.Pattern oldAnnotation=method.getAnnotation(com.google.gwt.i18n.client.CustomDateTimeFormat.Pattern.class);
+        if (oldAnnotation == null) {
+          logger.log(TreeLogger.ERROR,typeName + "." + method.getName()+ " must have an @Pattern annotation");
+          throw new UnableToCompleteException();
+        }
+        pattern=oldAnnotation.value();
       }
-      String pattern=annotation.value();
+ else {
+        pattern=annotation.value();
+      }
       pattern=dtpg.getBestPattern(pattern);
       writer.println();
-      writer.println("public " + method.getReturnType().getQualifiedSourceName() + " "+ method.getName()+ "() {");
-      writer.println("  return DateTimeFormat.getFormat(\"" + pattern + "\");");
+      String retTypeName=method.getReturnType().getQualifiedSourceName();
+      writer.println("public " + retTypeName + " "+ method.getName()+ "() {");
+      writer.println("  return " + retTypeName + ".getFormat(\""+ pattern+ "\");");
       writer.println("}");
     }
     writer.commit(logger);
