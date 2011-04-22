@@ -5,8 +5,19 @@
     uiWriter.ensureCurrentFieldAttached();
     String elementPointer=idHolder + "Element";
     uiWriter.addInitStatement("com.google.gwt.user.client.Element %s = " + "com.google.gwt.dom.client.Document.get().getElementById(%s).cast();",elementPointer,idHolder);
-    uiWriter.addDetachStatement("%1$s.addAndReplaceElement(%2$s, %3$s);",fieldName,childField,elementPointer);
+    FieldManager fieldManager=uiWriter.getFieldManager();
+    if (uiWriter.useLazyWidgetBuilders()) {
+      String lazyDomElementPath=LazyDomElement.class.getCanonicalName();
+      fieldManager.registerField(lazyDomElementPath,elementPointer).setInitializer(String.format("new %s(%s)",lazyDomElementPath,fieldManager.convertFieldToGetter(idHolder)));
+      FieldWriter fieldWriter=fieldManager.require(fieldName);
+      fieldWriter.addAttachStatement("%s.get();",fieldManager.convertFieldToGetter(elementPointer));
+      fieldWriter.addDetachStatement("%s.addAndReplaceElement(%s, %s.get());",fieldName,childField,fieldManager.convertFieldToGetter(elementPointer));
+    }
+ else {
+      uiWriter.addDetachStatement("%1$s.addAndReplaceElement(%2$s, %3$s);",fieldName,childField,elementPointer);
+    }
     String tag=getLegalPlaceholderTag(elem);
+    idHolder=fieldManager.convertFieldToGetter(idHolder);
     if (uiWriter.useSafeHtmlTemplates()) {
       idHolder=uiWriter.tokenForStringExpression(idHolder);
     }

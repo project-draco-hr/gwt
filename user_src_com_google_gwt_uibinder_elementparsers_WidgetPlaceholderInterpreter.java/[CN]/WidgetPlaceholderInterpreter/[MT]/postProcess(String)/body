@@ -1,9 +1,14 @@
 {
   for (  String idHolder : idToWidgetElement.keySet()) {
     XMLElement childElem=idToWidgetElement.get(idHolder);
-    String childField=uiWriter.parseElementToField(childElem);
+    String childField=uiWriter.parseElementToFieldWriter(childElem).getName();
     genSetWidgetTextCall(idHolder,childField);
-    uiWriter.addInitStatement("%1$s.addAndReplaceElement(%2$s, %3$s);",fieldName,childField,idHolder);
+    if (uiWriter.useLazyWidgetBuilders()) {
+      fieldManager.require(fieldName).addDetachStatement("%1$s.addAndReplaceElement(%2$s, %3$s);",fieldName,fieldManager.convertFieldToGetter(childField),idHolder);
+    }
+ else {
+      uiWriter.addInitStatement("%1$s.addAndReplaceElement(%2$s, %3$s);",fieldName,childField,idHolder);
+    }
   }
   idToWidgetElement.clear();
   return super.postProcess(consumed);

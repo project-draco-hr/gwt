@@ -4,7 +4,18 @@
   fieldManager.validate();
   StringWriter stringWriter=new StringWriter();
   IndentedWriter niceWriter=new IndentedWriter(new PrintWriter(stringWriter));
-  writeBinder(niceWriter,rootField);
+  if (useLazyWidgetBuilders) {
+    for (    ImplicitCssResource css : bundleClass.getCssMethods()) {
+      String fieldName=css.getName();
+      FieldWriter cssField=fieldManager.require(fieldName);
+      cssField.addStatement("%s.ensureInjected();",fieldName);
+      cssField.setBuildPrecendence(2);
+    }
+    writeBinderForAttachableStrategy(niceWriter,rootField);
+  }
+ else {
+    writeBinder(niceWriter,rootField);
+  }
   ensureAttachmentCleanedUp();
   return stringWriter.toString();
 }

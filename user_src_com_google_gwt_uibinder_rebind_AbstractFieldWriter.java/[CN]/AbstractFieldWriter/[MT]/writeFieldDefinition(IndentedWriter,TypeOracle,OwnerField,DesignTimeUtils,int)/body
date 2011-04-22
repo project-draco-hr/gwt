@@ -1,0 +1,69 @@
+{
+  if (initializer == null) {
+    if (ownerField != null && ownerField.isProvided()) {
+      initializer=String.format("owner.%s",name);
+    }
+ else {
+      JClassType type=getInstantiableType();
+      if (type != null) {
+        if ((type.isInterface() == null) && (type.findConstructor(new JType[0]) == null)) {
+          logger.die(NO_DEFAULT_CTOR_ERROR,type.getQualifiedSourceName(),type.getName());
+        }
+      }
+      initializer=String.format("(%1$s) GWT.create(%1$s.class)",getQualifiedSourceName());
+    }
+  }
+  w.newline();
+  w.write("/**");
+  w.write(" * Getter for %s called %s times.",name,getterCount);
+  w.write(" */");
+  if (getterCount > 1) {
+    w.write("private %1$s %2$s;",getQualifiedSourceName(),name);
+  }
+  w.write("private %s %s {",getQualifiedSourceName(),FieldManager.getFieldGetter(name));
+  w.indent();
+  w.write("return %s;",(getterCount > 1) ? name : FieldManager.getFieldBuilder(name));
+  w.outdent();
+  w.write("}");
+  w.write("private %s %s {",getQualifiedSourceName(),FieldManager.getFieldBuilder(name));
+  w.indent();
+  w.write("// Creation section.");
+  if (getterCount > 1) {
+    w.write("%s = %s;",name,initializer);
+  }
+ else {
+    w.write("%s %s = %s;",getQualifiedSourceName(),name,initializer);
+  }
+  w.write("// Setup section.");
+  for (  String s : statements) {
+    w.write(s);
+  }
+  String attachedVar=null;
+  if (attachStatements.size() > 0) {
+    w.newline();
+    w.write("// Attach section.");
+    attachedVar=getNextAttachVar();
+    JClassType elementType=typeOracle.findType(Element.class.getName());
+    String elementToAttach=getInstantiableType().isAssignableTo(elementType) ? name : name + ".getElement()";
+    w.write("UiBinderUtil.TempAttachment %s = UiBinderUtil.attachToDom(%s);",attachedVar,elementToAttach);
+    for (    String s : attachStatements) {
+      w.write(s);
+    }
+  }
+  if (attachedVar != null) {
+    w.newline();
+    w.write("// Detach section.");
+    w.write("%s.detach();",attachedVar);
+    for (    String s : detachStatements) {
+      w.write(s);
+    }
+  }
+  if ((ownerField != null) && !ownerField.isProvided()) {
+    w.newline();
+    w.write("owner.%1$s = %1$s;",name);
+  }
+  w.newline();
+  w.write("return %s;",name);
+  w.outdent();
+  w.write("}");
+}

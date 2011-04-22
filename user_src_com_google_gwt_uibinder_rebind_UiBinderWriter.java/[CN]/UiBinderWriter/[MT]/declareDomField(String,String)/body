@@ -1,0 +1,16 @@
+{
+  ensureAttached();
+  String name=declareDomIdHolder();
+  if (useLazyWidgetBuilders) {
+    FieldWriter field=fieldManager.require(fieldName);
+    field.setInitializer(formatCode("com.google.gwt.dom.client.Document.get().getElementById(%s).cast()",fieldManager.convertFieldToGetter(name)));
+    field.addStatement("%s.removeAttribute(\"id\");",fieldName);
+    fieldManager.require(ancestorField).addAttachStatement(fieldManager.convertFieldToGetter(fieldName) + ";");
+  }
+ else {
+    setFieldInitializer(fieldName,"null");
+    addInitStatement("%s = com.google.gwt.dom.client.Document.get().getElementById(%s).cast();",fieldName,name);
+    addInitStatement("%s.removeAttribute(\"id\");",fieldName);
+  }
+  return tokenForStringExpression(fieldManager.convertFieldToGetter(name));
+}

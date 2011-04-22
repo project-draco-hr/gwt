@@ -1,8 +1,18 @@
 {
-  if (idIsHasText.contains(idHolder)) {
-    uiWriter.addInitStatement("%s.setText(%s.getElementById(%s).getInnerText());",childField,fieldName,idHolder);
+  if (uiWriter.useLazyWidgetBuilders()) {
+    if (idIsHasText.contains(idHolder)) {
+      fieldManager.require(childField).addAttachStatement("%s.setText(%s.getElementById(%s).getInnerText());",childField,fieldManager.convertFieldToGetter(fieldName),fieldManager.convertFieldToGetter(idHolder));
+    }
+ else     if (idIsHasHTML.contains(idHolder)) {
+      fieldManager.require(childField).addAttachStatement("%s.setHTML(%s.getElementById(%s).getInnerHTML());",childField,fieldManager.convertFieldToGetter(fieldName),fieldManager.convertFieldToGetter(idHolder));
+    }
   }
-  if (idIsHasHTML.contains(idHolder)) {
-    uiWriter.addInitStatement("%s.setHTML(%s.getElementById(%s).getInnerHTML());",childField,fieldName,idHolder);
+ else {
+    if (idIsHasText.contains(idHolder)) {
+      uiWriter.addInitStatement("%s.setText(%s.getElementById(%s).getInnerText());",childField,fieldName,idHolder);
+    }
+    if (idIsHasHTML.contains(idHolder)) {
+      uiWriter.addInitStatement("%s.setHTML(%s.getElementById(%s).getInnerHTML());",childField,fieldName,idHolder);
+    }
   }
 }

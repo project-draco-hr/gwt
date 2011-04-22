@@ -2,7 +2,9 @@
   MortalLogger logger=new MortalLogger(treeLogger);
   String templatePath=deduceTemplateFile(logger,interfaceType);
   MessagesWriter messages=new MessagesWriter(BINDER_URI,logger,templatePath,interfaceType.getPackage().getName(),implName);
-  UiBinderWriter uiBinderWriter=new UiBinderWriter(interfaceType,implName,templatePath,oracle,logger,new FieldManager(oracle,logger),messages,designTime,uiBinderCtx,useSafeHtmlTemplates(logger,propertyOracle));
+  boolean useLazyWidgetBuilders=useLazyWidgetBuilders(logger,propertyOracle);
+  FieldManager fieldManager=new FieldManager(oracle,logger,useLazyWidgetBuilders);
+  UiBinderWriter uiBinderWriter=new UiBinderWriter(interfaceType,implName,templatePath,oracle,logger,fieldManager,messages,designTime,uiBinderCtx,useSafeHtmlTemplates(logger,propertyOracle),useLazyWidgetBuilders);
   Document doc=getW3cDoc(logger,designTime,resourceOracle,templatePath);
   designTime.rememberPathForElements(doc);
   uiBinderWriter.parseDocument(doc,binderPrintWriter);
