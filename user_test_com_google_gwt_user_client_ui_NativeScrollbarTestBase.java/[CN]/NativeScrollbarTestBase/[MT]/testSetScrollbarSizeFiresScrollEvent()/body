@@ -1,0 +1,33 @@
+{
+  setScrollSize(scrollbar,400);
+  assertEquals(400,getScrollSize(scrollbar));
+  delayTestFinish(TEST_TIMEOUT);
+  Scheduler.get().scheduleDeferred(new ScheduledCommand(){
+    public void execute(){
+      setScrollPosition(scrollbar,100);
+      assertEquals(100,getScrollPosition(scrollbar));
+      Scheduler.get().scheduleDeferred(new ScheduledCommand(){
+        public void execute(){
+          final TestScrollHandler handler=new TestScrollHandler(){
+            public void onScroll(            ScrollEvent event){
+              finish();
+            }
+          }
+;
+          scrollbar.addScrollHandler(handler);
+          setScrollbarSize(scrollbar,"400px");
+          new Timer(){
+            @Override public void run(){
+              assertEquals(0,getScrollPosition(scrollbar));
+              assertTrue(handler.isFinished());
+              finishTest();
+            }
+          }
+.schedule(SCROLL_EVENT_TIMEOUT);
+        }
+      }
+);
+    }
+  }
+);
+}

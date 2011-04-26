@@ -1,0 +1,34 @@
+{
+  if (w.getParent() != this) {
+    return false;
+  }
+  if (w == getWidget()) {
+    boolean toRet=super.remove(w);
+    maybeUpdateScrollbars();
+    return toRet;
+  }
+  try {
+    orphan(w);
+  }
+  finally {
+    w.getElement().removeFromParent();
+    Widget hScrollbarWidget=(hScrollbar == null) ? null : hScrollbar.asWidget();
+    Widget vScrollbarWidget=(vScrollbar == null) ? null : vScrollbar.asWidget();
+    if (w == hScrollbarWidget) {
+      hScrollbar=null;
+      hScrollbarHandler.removeHandler();
+      hScrollbarHandler=null;
+      layout.removeChild(hScrollbarLayer);
+      hScrollbarLayer=null;
+    }
+ else     if (w == vScrollbarWidget) {
+      vScrollbar=null;
+      vScrollbarHandler.removeHandler();
+      vScrollbarHandler=null;
+      layout.removeChild(vScrollbarLayer);
+      vScrollbarLayer=null;
+    }
+  }
+  maybeUpdateScrollbars();
+  return true;
+}

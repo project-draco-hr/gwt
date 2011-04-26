@@ -1,0 +1,27 @@
+{
+  final TestScrollHandler handler=new TestScrollHandler(){
+    public void onScroll(    ScrollEvent event){
+      finish();
+    }
+  }
+;
+  scrollbar.addScrollHandler(handler);
+  setScrollSize(scrollbar,500);
+  delayTestFinish(TEST_TIMEOUT);
+  Scheduler.get().scheduleDeferred(new ScheduledCommand(){
+    public void execute(){
+      setScrollPosition(scrollbar,100);
+      assertEquals(100,getScrollPosition(scrollbar));
+      assertEquals(0,getMinimumScrollPosition(scrollbar));
+      assertEquals(300,getMaximumScrollPosition(scrollbar));
+      new Timer(){
+        @Override public void run(){
+          assertTrue(handler.isFinished());
+          finishTest();
+        }
+      }
+.schedule(SCROLL_EVENT_TIMEOUT);
+    }
+  }
+);
+}

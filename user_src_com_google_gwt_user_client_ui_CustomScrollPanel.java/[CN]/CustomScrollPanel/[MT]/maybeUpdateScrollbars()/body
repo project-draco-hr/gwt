@@ -1,0 +1,55 @@
+{
+  if (!isAttached()) {
+    return;
+  }
+  Widget w=getWidget();
+  int contentHeight=(w == null) ? 0 : w.getOffsetHeight();
+  int contentWidth=(w == null) ? 0 : w.getOffsetWidth();
+  int realScrollbarHeight=0;
+  int realScrollbarWidth=0;
+  if (hScrollbar != null && (alwaysShowScrollbars || getElement().getClientWidth() < contentWidth)) {
+    realScrollbarHeight=hScrollbarHeight;
+  }
+  if (vScrollbar != null && (alwaysShowScrollbars || getElement().getClientHeight() < contentHeight)) {
+    realScrollbarWidth=vScrollbarWidth;
+  }
+  boolean isRtl=ScrollImpl.get().isRtl(getScrollableElement());
+  if (realScrollbarHeight > 0) {
+    hScrollbarLayer.setVisible(true);
+    if (isRtl) {
+      hScrollbarLayer.setLeftRight(realScrollbarWidth,Unit.PX,0.0,Unit.PX);
+    }
+ else {
+      hScrollbarLayer.setLeftRight(0.0,Unit.PX,realScrollbarWidth,Unit.PX);
+    }
+    hScrollbarLayer.setBottomHeight(0.0,Unit.PX,realScrollbarHeight,Unit.PX);
+    hScrollbar.setScrollWidth(Math.max(0,contentWidth - realScrollbarWidth));
+  }
+ else   if (hScrollbarLayer != null) {
+    hScrollbarLayer.setVisible(false);
+  }
+  if (realScrollbarWidth > 0) {
+    vScrollbarLayer.setVisible(true);
+    vScrollbarLayer.setTopBottom(0.0,Unit.PX,realScrollbarHeight,Unit.PX);
+    if (isRtl) {
+      vScrollbarLayer.setLeftWidth(0.0,Unit.PX,realScrollbarWidth,Unit.PX);
+    }
+ else {
+      vScrollbarLayer.setRightWidth(0.0,Unit.PX,realScrollbarWidth,Unit.PX);
+    }
+    vScrollbar.setScrollHeight(Math.max(0,contentHeight - realScrollbarHeight));
+  }
+ else   if (vScrollbarLayer != null) {
+    vScrollbarLayer.setVisible(false);
+  }
+  cornerLayer.setBottomHeight(0.0,Unit.PX,realScrollbarHeight,Unit.PX);
+  if (isRtl) {
+    cornerLayer.setLeftWidth(0.0,Unit.PX,realScrollbarWidth,Unit.PX);
+  }
+ else {
+    cornerLayer.setRightWidth(0.0,Unit.PX,realScrollbarWidth,Unit.PX);
+  }
+  cornerLayer.setVisible(hScrollbarHeight > 0 && vScrollbarWidth > 0);
+  layout.layout();
+  maybeUpdateScrollbarPositions();
+}

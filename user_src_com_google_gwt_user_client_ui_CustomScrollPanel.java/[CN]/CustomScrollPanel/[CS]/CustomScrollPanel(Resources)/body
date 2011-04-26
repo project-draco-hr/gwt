@@ -1,0 +1,30 @@
+{
+  super(DOM.createDiv(),DOM.createDiv(),DOM.createDiv());
+  Style style=resources.customScrollPanelStyle();
+  style.ensureInjected();
+  setStyleName(style.customScrollPanel());
+  layout=new Layout(getElement());
+  Element containerElem=getContainerElement();
+  containerElem.setClassName(CommonResources.getInlineBlockStyle());
+  Element scrollable=getScrollableElement();
+  scrollable.getStyle().setOverflow(Overflow.SCROLL);
+  scrollable.appendChild(containerElem);
+  scrollableLayer=layout.attachChild(scrollable);
+  getElement().getStyle().setOverflow(Overflow.HIDDEN);
+  cornerElem=Document.get().createDivElement();
+  cornerElem.addClassName(style.customScrollPanelCorner());
+  cornerLayer=layout.attachChild(cornerElem);
+  NativeHorizontalScrollbar.Resources hResources=GWT.create(NativeHorizontalScrollbar.ResourcesTransparant.class);
+  setHorizontalScrollbar(new NativeHorizontalScrollbar(hResources),AbstractNativeScrollbar.getNativeScrollbarHeight());
+  NativeVerticalScrollbar.Resources vResources=GWT.create(NativeVerticalScrollbar.ResourcesTransparant.class);
+  setVerticalScrollbar(new NativeVerticalScrollbar(vResources),AbstractNativeScrollbar.getNativeScrollbarWidth());
+  ResizeLayoutPanel.Impl.Delegate containerResizeDelegate=new ResizeLayoutPanel.Impl.Delegate(){
+    public void onResize(){
+      maybeUpdateScrollbars();
+    }
+  }
+;
+  containerResizeImpl.init(getContainerElement(),containerResizeDelegate);
+  Event.sinkEvents(getElement(),Event.ONSCROLL);
+  Event.sinkEvents(getScrollableElement(),Event.ONSCROLL);
+}
