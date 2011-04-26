@@ -1,2 +1,106 @@
 {
+  for (  CompilationUnit unit : cachedUnits.values()) {
+    for (    CompiledClass cc : unit.getCompiledClasses()) {
+      String sourceName=cc.getSourceName();
+      allValidClasses.put(sourceName,cc);
+    }
+  }
+  ArrayList<CompilationUnit> resultUnits=new ArrayList<CompilationUnit>();
+  do {
+    buildQueue=new LinkedBlockingQueue<CompilationUnitBuilder>();
+    final ArrayList<CompilationUnit> newlyBuiltUnits=new ArrayList<CompilationUnit>();
+    final CompilationUnitBuilder sentinel=CompilationUnitBuilder.create((GeneratedUnit)null);
+    final Throwable[] workerException=new Throwable[1];
+    Thread buildThread=new Thread(){
+      @Override public void run(){
+        try {
+          do {
+            CompilationUnitBuilder builder=buildQueue.take();
+            if (builder == sentinel) {
+              return;
+            }
+            CompilationUnit unit=builder.build();
+            newlyBuiltUnits.add(unit);
+          }
+ while (true);
+        }
+ catch (        Throwable e) {
+          workerException[0]=e;
+        }
+      }
+    }
+;
+    buildThread.setName("CompilationUnitBuilder");
+    buildThread.start();
+    Event jdtCompilerEvent=SpeedTracerLogger.start(eventType);
+    try {
+      compiler.doCompile(builders);
+    }
+  finally {
+      jdtCompilerEvent.end();
+    }
+    buildQueue.add(sentinel);
+    try {
+      buildThread.join();
+      if (workerException[0] != null) {
+        throw workerException[0];
+      }
+    }
+ catch (    RuntimeException e) {
+      throw e;
+    }
+catch (    Throwable e) {
+      throw new RuntimeException("Exception processing units",e);
+    }
+ finally {
+      buildQueue=null;
+    }
+    resultUnits.addAll(newlyBuiltUnits);
+    builders.clear();
+    for (    CompilationUnit unit : newlyBuiltUnits) {
+      unit.getDependencies().resolve(allValidClasses);
+    }
+    Collection<CompilationUnit> invalidatedUnits=new ArrayList<CompilationUnit>();
+    for (Iterator<Entry<CompilationUnitBuilder,CompilationUnit>> it=cachedUnits.entrySet().iterator(); it.hasNext(); ) {
+      Entry<CompilationUnitBuilder,CompilationUnit> entry=it.next();
+      CompilationUnit unit=entry.getValue();
+      boolean isValid=unit.getDependencies().validate(logger,allValidClasses);
+      if (!isValid) {
+        if (logger.isLoggable(TreeLogger.TRACE)) {
+          logger.log(TreeLogger.TRACE,"Invalid Unit: " + unit.getTypeName());
+        }
+        invalidatedUnits.add(unit);
+        builders.add(entry.getKey());
+        it.remove();
+      }
+    }
+    if (invalidatedUnits.size() > 0) {
+      if (logger.isLoggable(TreeLogger.TRACE)) {
+        logger.log(TreeLogger.TRACE,"Invalid units found: " + invalidatedUnits.size());
+      }
+    }
+    for (    CompilationUnit unit : invalidatedUnits) {
+      for (      CompiledClass cc : unit.getCompiledClasses()) {
+        allValidClasses.remove(cc.getSourceName());
+      }
+    }
+  }
+ while (builders.size() > 0);
+  for (  CompilationUnit unit : resultUnits) {
+    unitCache.add(unit);
+  }
+  resultUnits.addAll(cachedUnits.values());
+  unitCache.cleanup(logger);
+  Collections.sort(resultUnits,CompilationUnit.COMPARATOR);
+  logger=logger.branch(TreeLogger.DEBUG,"Validating newly compiled units");
+  int errorCount=0;
+  for (  CompilationUnit unit : resultUnits) {
+    if (CompilationProblemReporter.reportErrors(logger,unit,suppressErrors)) {
+      errorCount++;
+    }
+  }
+  if (suppressErrors && errorCount > 0 && !logger.isLoggable(TreeLogger.TRACE) && logger.isLoggable(TreeLogger.INFO)) {
+    logger.log(TreeLogger.INFO,"Ignored " + errorCount + " unit"+ (errorCount > 1 ? "s" : "")+ " with compilation errors in first pass.  Specify -logLevel DEBUG to see all errors");
+  }
+  return resultUnits;
 }
