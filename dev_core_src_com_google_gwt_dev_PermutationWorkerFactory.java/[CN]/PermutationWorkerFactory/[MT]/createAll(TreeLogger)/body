@@ -2,7 +2,9 @@
   logger=logger.branch(TreeLogger.TRACE,"Creating PermutationWorkerFactory instances");
   List<PermutationWorkerFactory> mutableFactories=new ArrayList<PermutationWorkerFactory>();
   String classes=System.getProperty(FACTORY_IMPL_PROPERTY,ThreadedPermutationWorkerFactory.class.getName() + "," + ExternalPermutationWorkerFactory.class.getName());
-  logger.log(TreeLogger.SPAM,"Factory impl property is " + classes);
+  if (logger.isLoggable(TreeLogger.SPAM)) {
+    logger.log(TreeLogger.SPAM,"Factory impl property is " + classes);
+  }
   String[] classParts=classes.split(",");
   for (  String className : classParts) {
     try {
@@ -10,7 +12,9 @@
       PermutationWorkerFactory factory=clazz.newInstance();
       factory.init(logger);
       mutableFactories.add(factory);
-      logger.log(TreeLogger.SPAM,"Added PermutationWorkerFactory " + clazz.getName());
+      if (logger.isLoggable(TreeLogger.SPAM)) {
+        logger.log(TreeLogger.SPAM,"Added PermutationWorkerFactory " + clazz.getName());
+      }
     }
  catch (    ClassCastException e) {
       logger.log(TreeLogger.ERROR,className + " is not a " + PermutationWorkerFactory.class.getName());

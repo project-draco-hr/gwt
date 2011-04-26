@@ -1,6 +1,8 @@
 {
   Event loadPersistentUnitEvent=SpeedTracerLogger.start(DevModeEventType.LOAD_PERSISTENT_UNIT_CACHE);
-  logger.log(TreeLogger.TRACE,"Looking for previously cached Compilation Units in " + cacheDirectory.getAbsolutePath());
+  if (logger.isLoggable(TreeLogger.TRACE)) {
+    logger.log(TreeLogger.TRACE,"Looking for previously cached Compilation Units in " + cacheDirectory.getAbsolutePath());
+  }
   try {
     if (cacheDirectory.isDirectory() && cacheDirectory.canRead()) {
       File[] files=getCacheFiles();
@@ -38,11 +40,15 @@
         }
 catch (        IOException ex) {
           deleteCacheFile=true;
-          logger.log(TreeLogger.TRACE,"Ignoring and deleting cache log " + cacheFile.getAbsolutePath() + " due to read error.",ex);
+          if (logger.isLoggable(TreeLogger.TRACE)) {
+            logger.log(TreeLogger.TRACE,"Ignoring and deleting cache log " + cacheFile.getAbsolutePath() + " due to read error.",ex);
+          }
         }
 catch (        ClassNotFoundException ex) {
           deleteCacheFile=true;
-          logger.log(TreeLogger.TRACE,"Ignoring and deleting cache log " + cacheFile.getAbsolutePath() + " due to deserialization error.",ex);
+          if (logger.isLoggable(TreeLogger.TRACE)) {
+            logger.log(TreeLogger.TRACE,"Ignoring and deleting cache log " + cacheFile.getAbsolutePath() + " due to deserialization error.",ex);
+          }
         }
  finally {
           Utility.close(inputStream);
@@ -53,12 +59,14 @@ catch (        ClassNotFoundException ex) {
           cacheFile.delete();
         }
  else {
-          logger.log(TreeLogger.TRACE,cacheFile.getName() + ": Load complete");
+          if (logger.isLoggable(TreeLogger.TRACE)) {
+            logger.log(TreeLogger.TRACE,cacheFile.getName() + ": Load complete");
+          }
         }
       }
     }
  else {
-      logger.log(TreeLogger.TRACE,"Starting with empty Cache: CompilationUnit cache directory does " + "not exist or is not readable.");
+      logger.log(TreeLogger.TRACE,"Starting with empty Cache: CompilationUnit cache directory does not exist or is not readable.");
     }
   }
   finally {

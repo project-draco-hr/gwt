@@ -3,12 +3,16 @@
     disconnectFromHost();
     return false;
   }
-  logger.log(TreeLogger.DEBUG,"sending " + MessageType.LOAD_MODULE + " message, userAgent: "+ handler.getUserAgent());
+  if (logger.isLoggable(TreeLogger.DEBUG)) {
+    logger.log(TreeLogger.DEBUG,"sending " + MessageType.LOAD_MODULE + " message, userAgent: "+ handler.getUserAgent());
+  }
   ReturnMessage returnMessage=null;
 synchronized (handler.getSynchronizationObject()) {
     new LoadModuleMessage(this,url,tabKey,sessionKey,moduleName,handler.getUserAgent()).send();
     returnMessage=reactToMessages(handler,true);
   }
-  logger.log(TreeLogger.DEBUG,"loaded module, returnValue: " + returnMessage.getReturnValue() + ", isException: "+ returnMessage.isException());
+  if (logger.isLoggable(TreeLogger.DEBUG)) {
+    logger.log(TreeLogger.DEBUG,"loaded module, returnValue: " + returnMessage.getReturnValue() + ", isException: "+ returnMessage.isException());
+  }
   return !returnMessage.isException();
 }

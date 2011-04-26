@@ -2,7 +2,9 @@
   while (true) {
     ExceptionOrReturnValue returnValue;
     MessageType type=Message.readMessageType(getStreamFromOtherSide());
-    logger.log(TreeLogger.INFO,"client: received " + type + ", thread: "+ Thread.currentThread().getName());
+    if (logger.isLoggable(TreeLogger.INFO)) {
+      logger.log(TreeLogger.INFO,"client: received " + type + ", thread: "+ Thread.currentThread().getName());
+    }
     try {
 switch (type) {
 case INVOKE:
@@ -12,7 +14,9 @@ case INVOKE:
   break;
 case FREE_VALUE:
 FreeMessage freeMessage=FreeMessage.receive(this);
+if (logger.isLoggable(TreeLogger.DEBUG)) {
 logger.log(TreeLogger.DEBUG,type + " message " + freeMessage.getIds());
+}
 handler.freeValue(this,freeMessage.getIds());
 break;
 case LOAD_JSNI:

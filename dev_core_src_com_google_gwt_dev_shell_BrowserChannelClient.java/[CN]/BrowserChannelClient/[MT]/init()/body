@@ -1,16 +1,22 @@
 {
-  logger.log(TreeLogger.DEBUG,"sending " + MessageType.CHECK_VERSIONS + " message");
+  if (logger.isLoggable(TreeLogger.DEBUG)) {
+    logger.log(TreeLogger.DEBUG,"sending " + MessageType.CHECK_VERSIONS + " message");
+  }
   new CheckVersionsMessage(this,PROTOCOL_VERSION_OLDEST,PROTOCOL_VERSION_CURRENT,versionString).send();
   MessageType type=Message.readMessageType(getStreamFromOtherSide());
 switch (type) {
 case PROTOCOL_VERSION:
     ProtocolVersionMessage protocolMessage=ProtocolVersionMessage.receive(this);
   protocolVersion=protocolMessage.getProtocolVersion();
-logger.log(TreeLogger.DEBUG,MessageType.PROTOCOL_VERSION + ": protocol version = " + protocolVersion);
+if (logger.isLoggable(TreeLogger.DEBUG)) {
+  logger.log(TreeLogger.DEBUG,MessageType.PROTOCOL_VERSION + ": protocol version = " + protocolVersion);
+}
 break;
 case FATAL_ERROR:
 FatalErrorMessage errorMessage=FatalErrorMessage.receive(this);
+if (logger.isLoggable(TreeLogger.DEBUG)) {
 logger.log(TreeLogger.ERROR,"Received FATAL_ERROR message " + errorMessage.getError());
+}
 return false;
 default :
 return false;

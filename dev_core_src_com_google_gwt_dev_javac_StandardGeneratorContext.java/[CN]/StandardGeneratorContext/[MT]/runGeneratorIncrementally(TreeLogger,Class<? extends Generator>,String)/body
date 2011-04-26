@@ -13,7 +13,8 @@
     }
   }
   setCurrentGenerator(generatorClass);
-  long before=System.currentTimeMillis();
+  boolean loggable=logger.isLoggable(TreeLogger.DEBUG);
+  long before=loggable ? System.currentTimeMillis() : 0L;
   String generatorClassName=generator.getClass().getName();
   CompilerEventType type=eventsByGeneratorType.get(generatorClassName);
   if (type == null) {
@@ -30,15 +31,17 @@
     }
     RebindResult result;
     result=generatorExt.generateIncrementally(logger,this,typeName);
-    long after=System.currentTimeMillis();
-    if (result.getResultStatus() == RebindStatus.USE_EXISTING) {
-      msg="Generator did not return a new class, type will be used as is";
-    }
+    if (loggable) {
+      if (result.getResultStatus() == RebindStatus.USE_EXISTING) {
+        msg="Generator did not return a new class, type will be used as is";
+      }
  else {
-      msg="Generator returned class '" + result.getReturnedTypeName() + "'";
+        msg="Generator returned class '" + result.getReturnedTypeName() + "'";
+      }
+      long after=System.currentTimeMillis();
+      msg+="; in " + (after - before) + " ms";
+      logger.log(TreeLogger.DEBUG,msg,null);
     }
-    msg+="; in " + (after - before) + " ms";
-    logger.log(TreeLogger.DEBUG,msg,null);
     return result;
   }
  catch (  AssertionError e) {

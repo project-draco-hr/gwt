@@ -1,6 +1,5 @@
 {
-  String msg="The development shell servlet received a request for '" + partialPath + "' in module '"+ moduleName+ ".gwt.xml' ";
-  logger=logger.branch(TreeLogger.TRACE,msg,null);
+  logger=logger.branch(TreeLogger.TRACE,"The development shell servlet received a request for '" + partialPath + "' in module '"+ moduleName+ ".gwt.xml' ",null);
   if (shouldAutoGenerateResources()) {
     if (autoGenerateResources(request,response,logger,partialPath,moduleName)) {
       return;
@@ -38,6 +37,7 @@
       }
     }
     if (foundResource == null) {
+      String msg;
       if ("gwt.js".equals(partialPath)) {
         msg="Loading the old 'gwt.js' bootstrap script is no longer supported; please load '" + moduleName + ".nocache.js' directly";
       }
@@ -61,8 +61,9 @@
   }
   if (mimeType == null) {
     mimeType=guessMimeType(path);
-    msg="Guessed MIME type '" + mimeType + "'";
-    logger.log(TreeLogger.TRACE,msg,null);
+    if (logger.isLoggable(TreeLogger.TRACE)) {
+      logger.log(TreeLogger.TRACE,"Guessed MIME type '" + mimeType + "'",null);
+    }
   }
   maybeIssueXhtmlWarning(logger,mimeType,partialPath);
   long cacheSeconds=getCacheTime(path);
