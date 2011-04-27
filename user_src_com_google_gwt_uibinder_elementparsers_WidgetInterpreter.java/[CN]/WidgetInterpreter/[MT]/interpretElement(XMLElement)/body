@@ -4,17 +4,14 @@
   }
   FieldManager fieldManager=uiWriter.getFieldManager();
   FieldWriter fieldWriter=fieldManager.require(fieldName);
-  int childrenPrecedence=fieldWriter.getBuildPrecedence() + 1;
   String idHolder=uiWriter.declareDomIdHolder();
   uiWriter.ensureCurrentFieldAttached();
   FieldWriter childFieldWriter=uiWriter.parseElementToFieldWriter(elem);
-  childFieldWriter.setBuildPrecendence(childrenPrecedence);
   String elementPointer=idHolder + "Element";
   uiWriter.addInitStatement("com.google.gwt.user.client.Element %s = " + "com.google.gwt.dom.client.Document.get().getElementById(%s).cast();",elementPointer,idHolder);
   if (uiWriter.useLazyWidgetBuilders()) {
     String lazyDomElementPath=LazyDomElement.class.getCanonicalName();
     FieldWriter elementWriter=fieldManager.registerField(lazyDomElementPath,elementPointer);
-    elementWriter.setBuildPrecendence(childrenPrecedence);
     elementWriter.setInitializer(String.format("new %s(%s)",lazyDomElementPath,fieldManager.convertFieldToGetter(idHolder)));
     fieldWriter.addAttachStatement("%s.get();",fieldManager.convertFieldToGetter(elementPointer));
     fieldWriter.addDetachStatement("%s.addAndReplaceElement(%s, %s.get());",fieldName,fieldManager.convertFieldToGetter(childFieldWriter.getName()),fieldManager.convertFieldToGetter(elementPointer));

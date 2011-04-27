@@ -1,16 +1,13 @@
 {
   FieldWriter fieldWriter=fieldManager.require(fieldName);
-  int childrenPrecedence=fieldWriter.getBuildPrecedence() + 1;
   for (  String idHolder : idToWidgetElement.keySet()) {
     XMLElement childElem=idToWidgetElement.get(idHolder);
     FieldWriter childFieldWriter=uiWriter.parseElementToFieldWriter(childElem);
-    childFieldWriter.setBuildPrecendence(childrenPrecedence);
     genSetWidgetTextCall(idHolder,childFieldWriter.getName());
     if (uiWriter.useLazyWidgetBuilders()) {
       String lazyDomElementPath=LazyDomElement.class.getCanonicalName();
       String elementPointer=idHolder + "Element";
       FieldWriter elementWriter=fieldManager.registerField(lazyDomElementPath,elementPointer);
-      elementWriter.setBuildPrecendence(childrenPrecedence);
       elementWriter.setInitializer(String.format("new %s(%s)",lazyDomElementPath,fieldManager.convertFieldToGetter(idHolder)));
       fieldWriter.addAttachStatement("%s.get();",fieldManager.convertFieldToGetter(elementPointer));
       fieldWriter.addDetachStatement("%s.addAndReplaceElement(%s, %s.get());",fieldName,fieldManager.convertFieldToGetter(childFieldWriter.getName()),fieldManager.convertFieldToGetter(elementPointer));
