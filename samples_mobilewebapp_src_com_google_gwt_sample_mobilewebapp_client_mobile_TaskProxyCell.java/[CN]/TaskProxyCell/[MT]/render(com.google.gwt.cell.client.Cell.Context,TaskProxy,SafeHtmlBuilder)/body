@@ -2,18 +2,25 @@
   if (value == null) {
     return;
   }
+  SafeHtml name;
+  if (value.getName() == null) {
+    name=SafeHtmlUtils.fromSafeConstant("<i>Unnamed</i>");
+  }
+ else {
+    name=SafeHtmlUtils.fromString(value.getName());
+  }
   Date date=value.getDueDate();
   Date today=new Date();
   today.setHours(0);
   today.setMinutes(0);
   today.setSeconds(0);
   if (date == null) {
-    sb.append(template.noDate(value.getName()));
+    sb.append(template.noDate(name));
   }
  else   if (date.before(today)) {
-    sb.append(template.pastDue(value.getName(),dateFormat.format(date)));
+    sb.append(template.pastDue(name,dateFormat.format(date)));
   }
  else {
-    sb.append(template.onTime(value.getName(),dateFormat.format(date)));
+    sb.append(template.onTime(name,dateFormat.format(date)));
   }
 }

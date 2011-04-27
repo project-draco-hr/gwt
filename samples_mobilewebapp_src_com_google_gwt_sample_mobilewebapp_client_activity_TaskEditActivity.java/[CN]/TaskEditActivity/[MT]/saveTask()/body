@@ -1,0 +1,20 @@
+{
+  TaskRequest context=(TaskRequest)clientFactory.getTaskEditView().getEditorDriver().flush();
+  if (taskPersistRequest == null) {
+    taskPersistRequest=context.persist().using(task);
+  }
+  taskPersistRequest.fire(new Receiver<Void>(){
+    @Override public void onConstraintViolation(    Set<ConstraintViolation<?>> violations){
+      handleConstraintViolations(violations);
+    }
+    @Override public void onFailure(    ServerFailure error){
+      Window.alert("An error occurred on the server while saving this task." + " Please try saving the task again.");
+      doCancelTask();
+    }
+    @Override public void onSuccess(    Void response){
+      TaskEditActivity.this.notify("Task Saved");
+      clientFactory.getPlaceController().goTo(new TaskListPlace(true));
+    }
+  }
+);
+}
