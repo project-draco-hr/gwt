@@ -1,4 +1,6 @@
 {
+  JClassType attachableHTMLPanelType=typeOracle.findType(AttachableHTMLPanel.class.getName());
+  boolean outputAttachDetachCallbacks=useLazyWidgetBuilders && getAssignableType() != null && getAssignableType().isAssignableTo(attachableHTMLPanelType);
   if (initializer == null) {
     if (ownerField != null && ownerField.isProvided()) {
       initializer=String.format("owner.%s",name);
@@ -42,7 +44,7 @@
   if (attachStatements.size() > 0) {
     w.newline();
     w.write("// Attach section.");
-    if (isAttachable) {
+    if (outputAttachDetachCallbacks) {
       w.write("%s.wrapInitializationCallback = ",getName());
       w.indent();
       w.indent();
@@ -60,7 +62,7 @@
     for (    String s : attachStatements) {
       w.write(s);
     }
-    if (isAttachable) {
+    if (outputAttachDetachCallbacks) {
       w.outdent();
       w.write("}");
       w.outdent();
@@ -73,7 +75,7 @@
     w.write("%s.detach();",attachedVar);
   }
   if (detachStatements.size() > 0) {
-    if (isAttachable) {
+    if (outputAttachDetachCallbacks) {
       w.write("%s.detachedInitializationCallback = ",getName());
       w.indent();
       w.indent();
@@ -85,7 +87,7 @@
     for (    String s : detachStatements) {
       w.write(s);
     }
-    if (isAttachable) {
+    if (outputAttachDetachCallbacks) {
       w.outdent();
       w.write("}");
       w.outdent();
