@@ -65,6 +65,17 @@ catch (    Throwable e) {
       Entry<CompilationUnitBuilder,CompilationUnit> entry=it.next();
       CompilationUnit unit=entry.getValue();
       boolean isValid=unit.getDependencies().validate(logger,allValidClasses);
+      if (isValid && unit.isError()) {
+        for (        CompiledClass cc : unit.getCompiledClasses()) {
+          try {
+            cc.getNameEnvironmentAnswer();
+          }
+ catch (          ClassFormatException ex) {
+            isValid=false;
+            break;
+          }
+        }
+      }
       if (!isValid) {
         if (logger.isLoggable(TreeLogger.TRACE)) {
           logger.log(TreeLogger.TRACE,"Invalid Unit: " + unit.getTypeName());
