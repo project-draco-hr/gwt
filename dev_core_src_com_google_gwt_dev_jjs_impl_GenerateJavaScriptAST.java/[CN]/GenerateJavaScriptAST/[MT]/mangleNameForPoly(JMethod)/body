@@ -1,7 +1,13 @@
 {
-  JMethod directOverride=x.getDirectOverride();
-  if (directOverride == null) {
+  if (x.getOverrides().isEmpty()) {
     return mangleNameForPolyImpl(x);
   }
-  return mangleNameForPoly(directOverride);
+ else {
+    for (    JMethod override : x.getOverrides()) {
+      if (override.getOverrides().isEmpty()) {
+        return mangleNameForPolyImpl(override);
+      }
+    }
+  }
+  throw new InternalCompilerException("Cycle in overrides???");
 }

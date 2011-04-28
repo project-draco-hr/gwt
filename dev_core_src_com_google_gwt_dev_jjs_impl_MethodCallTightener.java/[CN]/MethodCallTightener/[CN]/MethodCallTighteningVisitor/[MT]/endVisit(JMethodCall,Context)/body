@@ -6,7 +6,13 @@
   }
   JReferenceType instanceType=((JReferenceType)instance.getType()).getUnderlyingType();
   JReferenceType enclosingType=method.getEnclosingType();
-  if (instanceType == enclosingType || !(instanceType instanceof JClassType)) {
+  if (instanceType == enclosingType || instanceType instanceof JInterfaceType) {
+    return;
+  }
+  if (instanceType instanceof JArrayType) {
+    return;
+  }
+  if (instanceType instanceof JNullType) {
     return;
   }
   assert(instanceType instanceof JClassType);
@@ -14,7 +20,7 @@
   JClassType type;
   outer:   for (type=(JClassType)instanceType; type != null && type != enclosingType; type=type.getSuperClass()) {
     for (    JMethod methodIt : type.getMethods()) {
-      if (methodIt.canBePolymorphic() && methodOverrides(methodIt,method)) {
+      if (methodOverrides(methodIt,method)) {
         foundMethod=methodIt;
         break outer;
       }
@@ -23,7 +29,7 @@
   if (foundMethod == null) {
     return;
   }
-  JMethodCall call=new JMethodCall(x.getSourceInfo(),x.getInstance(),foundMethod,x.getType());
+  JMethodCall call=new JMethodCall(x.getSourceInfo(),x.getInstance(),foundMethod);
   call.addArgs(x.getArgs());
   ctx.replaceMe(call);
 }
