@@ -1,0 +1,24 @@
+{
+  if (!method.canBePolymorphic() || type instanceof JNullType) {
+    return IdentitySets.create(method);
+  }
+  type=type.getUnderlyingType();
+  if (type instanceof JArrayType) {
+    type=baseArrayType;
+  }
+  Set<JClassType> concreteTypes=getConcreteTypesFor((JDeclaredType)type);
+  if (type != method.getEnclosingType()) {
+    concreteTypes.retainAll(getConcreteTypesFor(method.getEnclosingType()));
+  }
+  String signature=method.getSignature();
+  Set<JMethod> results=IdentitySets.create();
+  for (  JClassType candidate : concreteTypes) {
+    results=findMethodMatching(candidate,signature,results);
+  }
+  if (results.size() == 0) {
+    return IdentitySets.create(method);
+  }
+ else {
+    return results;
+  }
+}

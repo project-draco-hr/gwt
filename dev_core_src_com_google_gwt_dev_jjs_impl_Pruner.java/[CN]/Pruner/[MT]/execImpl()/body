@@ -10,13 +10,15 @@
     }
     livenessAnalyzer.traverseFromLeftoversFragmentHasLoaded();
     program.typeOracle.setInstantiatedTypes(livenessAnalyzer.getInstantiatedTypes());
-    PruneVisitor pruner=new PruneVisitor(livenessAnalyzer.getReferencedTypes(),livenessAnalyzer.getLiveFieldsAndMethods());
+    Set<JNode> referencedNonTypes=new IdentityHashSet<JNode>(livenessAnalyzer.getLiveFieldsAndMethods());
+    referencedNonTypes.addAll(livenessAnalyzer.getMethodsReferencedButNotExecuted());
+    PruneVisitor pruner=new PruneVisitor(livenessAnalyzer.getReferencedTypes(),referencedNonTypes,livenessAnalyzer.getMethodsReferencedButNotExecuted());
     pruner.accept(program);
     stats.recordModified(pruner.getNumMods());
     if (!pruner.didChange()) {
       break;
     }
-    CleanupRefsVisitor cleaner=new CleanupRefsVisitor(livenessAnalyzer.getLiveFieldsAndMethods(),pruner.getMethodToOriginalParamsMap());
+    CleanupRefsVisitor cleaner=new CleanupRefsVisitor(referencedNonTypes,pruner.getMethodToOriginalParamsMap());
     cleaner.accept(program.getDeclaredTypes());
   }
   return stats;

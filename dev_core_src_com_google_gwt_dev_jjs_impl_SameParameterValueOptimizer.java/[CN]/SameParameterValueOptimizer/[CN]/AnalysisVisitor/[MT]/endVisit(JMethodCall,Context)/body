@@ -1,27 +1,25 @@
 {
-  JMethod method=x.getTarget();
-  if (x.canBePolymorphic() || rescuedMethods.contains(method)) {
-    return;
-  }
   List<JExpression> args=x.getArgs();
-  List<JParameter> params=method.getParams();
-  for (int i=0; i < args.size() && i < params.size(); i++) {
-    JParameter param=params.get(i);
-    JExpression arg=args.get(i);
-    if (!(arg instanceof JValueLiteral)) {
-      parameterValues.put(param,null);
-      continue;
-    }
-    if (!parameterValues.containsKey(param)) {
-      parameterValues.put(param,(JValueLiteral)arg);
-      continue;
-    }
-    JValueLiteral commonParamValue=parameterValues.get(param);
-    if (commonParamValue == null) {
-      continue;
-    }
-    if (!equalLiterals(commonParamValue,(JValueLiteral)arg)) {
-      parameterValues.put(param,null);
+  for (  JMethod method : program.typeOracle.getPossibleDispatches(x)) {
+    List<JParameter> params=method.getParams();
+    for (int i=0; i < params.size(); i++) {
+      JParameter param=params.get(i);
+      JExpression arg=args.get(i);
+      if (!(arg instanceof JValueLiteral)) {
+        parameterValues.put(param,null);
+        continue;
+      }
+      if (!parameterValues.containsKey(param)) {
+        parameterValues.put(param,(JValueLiteral)arg);
+        continue;
+      }
+      JValueLiteral commonParamValue=parameterValues.get(param);
+      if (commonParamValue == null) {
+        continue;
+      }
+      if (!equalLiterals(commonParamValue,(JValueLiteral)arg)) {
+        parameterValues.put(param,null);
+      }
     }
   }
 }
