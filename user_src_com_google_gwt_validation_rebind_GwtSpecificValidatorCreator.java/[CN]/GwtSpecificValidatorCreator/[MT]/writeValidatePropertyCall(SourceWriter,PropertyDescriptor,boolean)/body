@@ -1,15 +1,19 @@
 {
+  if (useValue) {
+    sw.println("boolean valueTypeMatches = false;");
+  }
   if (beanHelper.hasGetter(property)) {
     if (useValue) {
       sw.print("if ( value == null || value instanceof ");
       sw.print(getQualifiedSourceNonPrimitiveType(beanHelper.getElementType(property,false)));
       sw.println(") {");
       sw.indent();
+      sw.println("valueTypeMatches = true;");
     }
     writeValidateGetterCall(sw,property,useValue);
     if (useValue) {
       sw.outdent();
-      sw.print("} else ");
+      sw.println("}");
     }
   }
   if (beanHelper.hasField(property)) {
@@ -18,15 +22,16 @@
       sw.print(getQualifiedSourceNonPrimitiveType(beanHelper.getElementType(property,true)));
       sw.println(") {");
       sw.indent();
+      sw.println("valueTypeMatches = true;");
     }
     writeValidateFieldCall(sw,property,useValue);
     if (useValue) {
       sw.outdent();
-      sw.print("}  else ");
+      sw.println("}");
     }
   }
   if (useValue & (beanHelper.hasGetter(property) || beanHelper.hasField(property))) {
-    sw.println(" {");
+    sw.println("if(!valueTypeMatches)  {");
     sw.indent();
     sw.print("throw new ValidationException");
     sw.println("(value.getClass() +\" is not a valid type for \"+ propertyName);");
