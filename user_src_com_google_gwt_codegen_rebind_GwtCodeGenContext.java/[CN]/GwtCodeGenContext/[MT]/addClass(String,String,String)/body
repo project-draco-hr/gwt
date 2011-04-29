@@ -1,0 +1,15 @@
+{
+  String superPkg=superPath == null ? pkgName : superPath + "." + pkgName;
+  final PrintWriter pw=ctx.tryCreate(logger,superPkg,className);
+  if (pw == null) {
+    return null;
+  }
+  return new JavaSourceWriterBuilder(new AbortablePrintWriter(pw){
+    @Override protected void onClose(    boolean aborted){
+      if (!aborted) {
+        ctx.commit(logger,pw);
+      }
+    }
+  }
+,pkgName,className);
+}

@@ -1,0 +1,31 @@
+{
+  this.printWriter=printWriter;
+  if (targetPackageName == null) {
+    throw new IllegalArgumentException("Cannot supply a null package name to" + targetClassShortName);
+  }
+  if (targetPackageName.length() > 0) {
+    println("package " + targetPackageName + ";");
+  }
+  writeImportGroup(imports,PKG_REGEX_GOOGLE,true);
+  writeImportGroup(imports,PKG_REGEX_BOTH,false);
+  writeImportGroup(imports,PKG_REGEX_JAVA,true);
+  if (classJavaDocComment != null) {
+    beginJavaDocComment();
+    print(classJavaDocComment);
+    endJavaDocComment();
+  }
+ else {
+    println();
+  }
+  for (  String annotation : annotationDeclarations) {
+    println('@' + annotation);
+  }
+  if (isClass) {
+    emitClassDecl(targetClassShortName,superClassName,interfaceNames);
+  }
+ else {
+    emitInterfaceDecl(targetClassShortName,superClassName,interfaceNames);
+  }
+  println(" {");
+  indent();
+}
