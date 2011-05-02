@@ -1,0 +1,47 @@
+{
+  if (tutoralPopup != null) {
+    if (tutorialVideo != null) {
+      tutorialVideo.setSrc(tutorialVideo.getCurrentSrc());
+    }
+    tutoralPopup.center();
+    return;
+  }
+  tutorialVideo=Video.createIfSupported();
+  if (tutorialVideo == null) {
+    Label label=new Label("Click the link below to view the tutoral:");
+    Anchor anchor=new Anchor(EXTERNAL_TUTORIAL_URL,EXTERNAL_TUTORIAL_URL);
+    anchor.setTarget("_blank");
+    FlowPanel panel=new FlowPanel();
+    panel.add(label);
+    panel.add(anchor);
+    tutoralPopup=new PopupPanel(true,false);
+    tutoralPopup.setWidget(panel);
+    tutoralPopup.setGlassEnabled(true);
+    anchor.addClickHandler(new ClickHandler(){
+      public void onClick(      ClickEvent event){
+        tutoralPopup.hide();
+      }
+    }
+);
+    tutoralPopup.center();
+    return;
+  }
+  tutorialVideo.addSource("video/tutorial.ogv",VideoElement.TYPE_OGG);
+  tutorialVideo.addSource("video/tutorial.mp4",VideoElement.TYPE_MP4);
+  tutorialVideo.setControls(true);
+  tutorialVideo.setAutoplay(true);
+  final DialogBox popup=new DialogBox(false,false);
+  popup.setText("Tutorial");
+  VerticalPanel vPanel=new VerticalPanel();
+  vPanel.add(tutorialVideo);
+  vPanel.add(new Button("Close",new ClickHandler(){
+    public void onClick(    ClickEvent event){
+      tutorialVideo.pause();
+      popup.hide();
+    }
+  }
+));
+  popup.setWidget(vPanel);
+  tutoralPopup=popup;
+  popup.center();
+}
