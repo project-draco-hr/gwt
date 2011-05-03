@@ -1,0 +1,16 @@
+{
+  JParameterizedType parameterClass=control.createMock(JParameterizedType.class);
+  expect(ownerFieldType.isParameterized()).andReturn(parameterClass);
+  JClassType arg=control.createMock(JClassType.class);
+  expect(parameterClass.getTypeArgs()).andReturn(new JClassType[]{arg});
+  expect(templateFieldType.isAssignableTo(arg)).andReturn(false);
+  expect(parameterClass.getQualifiedSourceName()).andStubReturn(QUALIFIED_SOURCE_NAME);
+  control.replay();
+  try {
+    FieldWriter field=new FieldWriterOfLazyDomElement(templateFieldType,ownerField,MortalLogger.NULL);
+    fail("Expected exception not thrown.");
+  }
+ catch (  UnableToCompleteException utce) {
+  }
+  control.verify();
+}

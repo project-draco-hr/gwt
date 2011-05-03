@@ -3,8 +3,13 @@
   String name=declareDomIdHolder();
   if (useLazyWidgetBuilders) {
     FieldWriter field=fieldManager.require(fieldName);
-    field.setInitializer(formatCode("new %s(%s).get().cast()",LazyDomElement.class.getCanonicalName(),fieldManager.convertFieldToGetter(name)));
-    fieldManager.require(ancestorField).addAttachStatement(fieldManager.convertFieldToGetter(fieldName) + ";");
+    if (isOwnerFieldLazyDomElement(fieldName)) {
+      field.setInitializer(formatCode("new %s(%s)",field.getQualifiedSourceName(),fieldManager.convertFieldToGetter(name)));
+    }
+ else {
+      field.setInitializer(formatCode("new %s(%s).get().cast()",LazyDomElement.class.getCanonicalName(),fieldManager.convertFieldToGetter(name)));
+      fieldManager.require(ancestorField).addAttachStatement(fieldManager.convertFieldToGetter(fieldName) + ";");
+    }
   }
  else {
     setFieldInitializer(fieldName,"null");
