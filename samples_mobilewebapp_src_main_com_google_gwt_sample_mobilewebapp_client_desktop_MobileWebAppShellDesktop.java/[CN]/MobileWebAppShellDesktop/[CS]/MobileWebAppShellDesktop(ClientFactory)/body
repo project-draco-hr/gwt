@@ -4,7 +4,12 @@
   mainMenu.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
   mainMenu.setVisibleRange(0,30);
   final List<MainMenuItem> menuItems=new ArrayList<MainMenuItem>();
-  menuItems.add(new MainMenuItem("Task List",new TaskListPlace(false)));
+  menuItems.add(new MainMenuItem("Task List",new TaskListPlace(false)){
+    @Override public boolean mapsToPlace(    Place p){
+      return p instanceof TaskListPlace;
+    }
+  }
+);
   menuItems.add(new MainMenuItem("Add Task",TaskEditPlace.getTaskCreatePlace()));
   mainMenu.setRowData(menuItems);
   final SingleSelectionModel<MainMenuItem> selectionModel=new SingleSelectionModel<MainMenuItem>();
@@ -22,7 +27,7 @@
     public void onPlaceChange(    PlaceChangeEvent event){
       Place place=event.getNewPlace();
       for (      MainMenuItem menuItem : menuItems) {
-        if (place == menuItem.getPlace()) {
+        if (menuItem.mapsToPlace(place)) {
           selectionModel.setSelected(menuItem,true);
           return;
         }

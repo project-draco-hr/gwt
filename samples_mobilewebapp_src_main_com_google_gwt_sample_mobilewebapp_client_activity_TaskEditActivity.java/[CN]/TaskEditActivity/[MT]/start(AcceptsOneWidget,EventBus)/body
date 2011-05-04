@@ -14,27 +14,32 @@
  else {
     isEditing=true;
     view.setEditing(true);
-    view.setLocked(true);
-    clientFactory.getRequestFactory().taskRequest().findTask(this.taskId).fire(new Receiver<TaskProxy>(){
-      @Override public void onFailure(      ServerFailure error){
-        Window.alert("An error occurred on the server while loading this task." + " Please select a different task from the task list.");
-        doCancelTask();
-      }
-      @Override public void onSuccess(      TaskProxy response){
-        if (isDead) {
-          return;
-        }
-        if (response == null) {
-          Window.alert("The task with id '" + taskId + "' could not be found."+ " Please select a different task from the task list.");
+    if (task == null) {
+      view.setLocked(true);
+      clientFactory.getRequestFactory().taskRequest().findTask(this.taskId).fire(new Receiver<TaskProxy>(){
+        @Override public void onFailure(        ServerFailure error){
+          Window.alert("An error occurred on the server while loading this task." + " Please select a different task from the task list.");
           doCancelTask();
-          return;
         }
-        task=response;
-        view.getEditorDriver().edit(response,clientFactory.getRequestFactory().taskRequest());
-        view.setLocked(false);
+        @Override public void onSuccess(        TaskProxy response){
+          if (isDead) {
+            return;
+          }
+          if (response == null) {
+            Window.alert("The task with id '" + taskId + "' could not be found."+ " Please select a different task from the task list.");
+            doCancelTask();
+            return;
+          }
+          task=response;
+          view.getEditorDriver().edit(response,clientFactory.getRequestFactory().taskRequest());
+          view.setLocked(false);
+        }
       }
-    }
 );
+    }
+ else {
+      view.getEditorDriver().edit(task,clientFactory.getRequestFactory().taskRequest());
+    }
   }
   container.setWidget(view.asWidget());
 }
