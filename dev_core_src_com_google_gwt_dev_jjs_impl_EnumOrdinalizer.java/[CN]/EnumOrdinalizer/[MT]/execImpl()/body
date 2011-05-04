@@ -7,15 +7,12 @@
   CannotBeOrdinalAnalyzer ordinalAnalyzer=new CannotBeOrdinalAnalyzer(program);
   ordinalAnalyzer.accept(program);
   ordinalAnalyzer.afterVisitor();
-  if (tracker != null) {
-    for (    JEnumType type : enumsVisited.values()) {
-      tracker.addVisited(type.getName());
-      if (!ordinalizationBlackList.contains(type)) {
-        tracker.addOrdinalized(type.getName());
+  if (enumsVisited.size() == ordinalizationBlackList.size()) {
+    if (tracker != null) {
+      for (      JEnumType type : enumsVisited.values()) {
+        tracker.addVisited(type.getName());
       }
     }
-  }
-  if (enumsVisited.size() == ordinalizationBlackList.size()) {
     return stats;
   }
   ReplaceEnumTypesWithInteger replaceEnums=new ReplaceEnumTypesWithInteger();
@@ -29,6 +26,17 @@
   stats.recordModified(replaceOrdinalRefs.getNumMods());
   if (tracker != null) {
     tracker.maybeDumpAST(program,2);
+  }
+  for (  JEnumType type : enumsVisited.values()) {
+    if (tracker != null) {
+      tracker.addVisited(type.getName());
+    }
+    if (!ordinalizationBlackList.contains(type)) {
+      if (tracker != null) {
+        tracker.addOrdinalized(type.getName());
+      }
+      type.setOrdinalized();
+    }
   }
   return stats;
 }
