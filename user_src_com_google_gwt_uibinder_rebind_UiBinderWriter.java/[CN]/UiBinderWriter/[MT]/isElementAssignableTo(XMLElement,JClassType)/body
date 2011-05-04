@@ -1,0 +1,21 @@
+{
+  JTypeParameter typeParameter=possibleSupertype.isTypeParameter();
+  if (typeParameter != null) {
+    JClassType[] bounds=typeParameter.getBounds();
+    for (    JClassType bound : bounds) {
+      if (!isElementAssignableTo(elem,bound)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  JParameterizedType parameterized=possibleSupertype.isParameterized();
+  if (parameterized != null) {
+    return isElementAssignableTo(elem,parameterized.getRawType());
+  }
+  JClassType fieldtype=findFieldType(elem);
+  if (fieldtype == null) {
+    return false;
+  }
+  return fieldtype.isAssignableTo(possibleSupertype);
+}

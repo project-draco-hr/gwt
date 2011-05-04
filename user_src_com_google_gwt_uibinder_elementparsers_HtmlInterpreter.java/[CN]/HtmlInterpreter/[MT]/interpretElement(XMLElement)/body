@@ -1,6 +1,10 @@
 {
-  if (writer.isWidgetElement(elem)) {
-    writer.die(elem,"Found widget in an HTML context");
+  if (writer.useLazyWidgetBuilders() && writer.isElementAssignableTo(elem,SafeHtml.class)) {
+    String childFieldName=writer.parseElementToField(elem);
+    return writer.tokenForSafeHtmlExpression(childFieldName);
+  }
+  if (writer.isImportedElement(elem)) {
+    writer.die(elem,"Not allowed in an HTML context");
   }
   return pipe.interpretElement(elem);
 }

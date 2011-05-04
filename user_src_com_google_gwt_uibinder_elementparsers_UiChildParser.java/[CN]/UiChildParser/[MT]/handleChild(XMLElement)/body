@@ -8,8 +8,12 @@
     return;
   }
   XMLElement toAdd=children.next();
-  if (!writer.isWidgetElement(toAdd)) {
-    writer.die(child,"Expecting only widgets in %s",child);
+  if (!writer.isImportedElement(toAdd)) {
+    writer.die(child,"Expected child from a urn:import namespace, found %s",toAdd);
+  }
+  JClassType paramClass=getFirstParamType(method);
+  if (!writer.isElementAssignableTo(toAdd,paramClass)) {
+    writer.die(child,"Expected child of type %s in %s, found %s",paramClass.getSimpleSourceName(),child,toAdd);
   }
   if (children.hasNext()) {
     writer.die(toAdd,"Can only have one element per @UiChild parser tag.");
