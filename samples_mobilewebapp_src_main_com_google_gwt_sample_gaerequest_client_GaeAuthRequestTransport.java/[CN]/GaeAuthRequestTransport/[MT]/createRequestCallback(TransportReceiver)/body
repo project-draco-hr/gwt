@@ -1,0 +1,21 @@
+{
+  final RequestCallback superCallback=super.createRequestCallback(receiver);
+  return new RequestCallback(){
+    public void onError(    Request request,    Throwable exception){
+      superCallback.onError(request,exception);
+    }
+    public void onResponseReceived(    Request request,    Response response){
+      if (Response.SC_UNAUTHORIZED == response.getStatusCode()) {
+        String loginUrl=response.getHeader("login");
+        if (loginUrl != null) {
+          loginUrl=loginUrl.replace(GaeHelper.REDIRECT_URL_TOKEN,Window.Location.getHref());
+          receiver.onTransportFailure(new ServerFailure("Unauthenticated user",null,null,false));
+          eventBus.fireEvent(new GaeAuthenticationFailureEvent(loginUrl));
+          return;
+        }
+      }
+      superCallback.onResponseReceived(request,response);
+    }
+  }
+;
+}

@@ -1,0 +1,11 @@
+{
+  UserService userService=UserServiceFactory.getUserService();
+  HttpServletRequest request=(HttpServletRequest)servletRequest;
+  HttpServletResponse response=(HttpServletResponse)servletResponse;
+  if (!userService.isUserLoggedIn()) {
+    response.setHeader("login",userService.createLoginURL(GaeHelper.REDIRECT_URL_TOKEN));
+    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+    return;
+  }
+  filterChain.doFilter(request,response);
+}
