@@ -1,0 +1,38 @@
+{
+  StringBuilder publicSourcesSb=new StringBuilder();
+  StringBuilder staticResoucesSb=new StringBuilder();
+  if (artifacts != null) {
+    for (    @SuppressWarnings("rawtypes") Artifact artifact : artifacts) {
+      if (artifact instanceof EmittedArtifact) {
+        EmittedArtifact ea=(EmittedArtifact)artifact;
+        String pathName=ea.getPartialPath();
+        if (pathName.endsWith("symbolMap") || pathName.endsWith(".xml.gz") || pathName.endsWith("rpc.log")|| pathName.endsWith("gwt.rpc")|| pathName.endsWith("manifest.txt")|| pathName.startsWith("rpcPolicyManifest")) {
+        }
+ else {
+          publicSourcesSb.append(pathName + "\n");
+        }
+      }
+    }
+    String[] cacheExtraFiles=getCacheExtraFiles();
+    for (int i=0; i < cacheExtraFiles.length; i++) {
+      staticResoucesSb.append(cacheExtraFiles[i]);
+      staticResoucesSb.append("\n");
+    }
+  }
+  StringBuilder sb=new StringBuilder();
+  sb.append("CACHE MANIFEST\n");
+  sb.append("# Unique id #" + (new Date()).getTime() + "."+ Math.random()+ "\n");
+  sb.append("# Note: must change this every time for cache to invalidate\n");
+  sb.append("\n");
+  sb.append("CACHE:\n");
+  sb.append("# Static app files\n");
+  sb.append(staticResoucesSb.toString());
+  sb.append("\n# Generated app files\n");
+  sb.append(publicSourcesSb.toString());
+  sb.append("\n\n");
+  sb.append("# All other resources require the user to be online.\n");
+  sb.append("NETWORK:\n");
+  sb.append("*\n");
+  logger.log(TreeLogger.INFO,"Make sure you have the following" + " attribute added to your landing page's <html> tag: <html manifest=\"" + context.getModuleFunctionName() + "/"+ MANIFEST+ "\">");
+  return emitString(logger,sb.toString(),MANIFEST);
+}
