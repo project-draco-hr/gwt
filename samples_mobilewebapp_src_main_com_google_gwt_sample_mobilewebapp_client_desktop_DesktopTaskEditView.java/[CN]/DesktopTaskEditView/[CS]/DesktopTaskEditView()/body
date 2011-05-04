@@ -1,7 +1,13 @@
 {
+  resources=GWT.create(Resources.class);
+  resources.style().ensureInjected();
+  templateList=createTaskTemplateList();
   initWidget(uiBinder.createAndBindUi(this));
   nameEditor=EditorDecorator.create(nameField.asEditor(),nameViolation);
   driver.initialize(this);
+  if (!DragDropEventBase.isSupported()) {
+    dockLayoutPanel.setWidgetSize(templateListContainer,0);
+  }
   saveButton.addClickHandler(new ClickHandler(){
     public void onClick(    ClickEvent event){
       if (presenter != null) {
@@ -18,4 +24,42 @@
     }
   }
 );
+  editForm.addDomHandler(new DragOverHandler(){
+    public void onDragOver(    DragOverEvent event){
+      nameField.getElement().getStyle().setBackgroundColor("#ffa");
+      notesEditor.getElement().getStyle().setBackgroundColor("#ffa");
+    }
+  }
+,DragOverEvent.getType());
+  editForm.addDomHandler(new DragLeaveHandler(){
+    public void onDragLeave(    DragLeaveEvent event){
+      EventTarget eventTarget=event.getNativeEvent().getEventTarget();
+      if (!Element.is(eventTarget)) {
+        return;
+      }
+      Element target=Element.as(eventTarget);
+      if (target == editForm.getElement()) {
+        nameField.getElement().getStyle().clearBackgroundColor();
+        notesEditor.getElement().getStyle().clearBackgroundColor();
+      }
+    }
+  }
+,DragLeaveEvent.getType());
+  editForm.addDomHandler(new DropHandler(){
+    public void onDrop(    DropEvent event){
+      event.preventDefault();
+      nameField.getElement().getStyle().clearBackgroundColor();
+      notesEditor.getElement().getStyle().clearBackgroundColor();
+      try {
+        DataTransfer dataTransfer=event.getNativeEvent().getDataTransfer();
+        int templateIndex=Integer.parseInt(dataTransfer.getData("text"));
+        TaskProxy template=templateList.getVisibleItem(templateIndex);
+        nameField.setValue(template.getName());
+        notesEditor.setValue(template.getNotes());
+      }
+ catch (      NumberFormatException e) {
+      }
+    }
+  }
+,DropEvent.getType());
 }
