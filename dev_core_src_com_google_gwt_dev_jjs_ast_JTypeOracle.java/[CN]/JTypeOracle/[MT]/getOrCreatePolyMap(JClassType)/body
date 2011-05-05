@@ -1,0 +1,18 @@
+{
+  Map<String,JMethod> polyMap=polyMethodMap.get(classType);
+  if (polyMap == null) {
+    if (classType.getSuperClass() == null) {
+      polyMap=new HashMap<String,JMethod>();
+    }
+ else {
+      polyMap=new HashMap<String,JMethod>(getOrCreatePolyMap(classType.getSuperClass()));
+    }
+    for (    JMethod method : classType.getMethods()) {
+      if (method.canBePolymorphic()) {
+        polyMap.put(method.getSignature(),method);
+      }
+    }
+    polyMethodMap.put(classType,polyMap);
+  }
+  return polyMap;
+}

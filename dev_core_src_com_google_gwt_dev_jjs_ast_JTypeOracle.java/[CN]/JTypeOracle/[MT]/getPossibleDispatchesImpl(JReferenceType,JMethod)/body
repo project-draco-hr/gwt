@@ -1,0 +1,51 @@
+{
+  if (type instanceof JNullType) {
+    return Lists.create(method);
+  }
+  type=type.getUnderlyingType();
+  if (type instanceof JArrayType) {
+    type=baseArrayType;
+  }
+  JDeclaredType strongerType;
+  JDeclaredType intersectionType=null;
+  JDeclaredType enclosingType=method.getEnclosingType();
+  if (type == enclosingType || canTriviallyCast(type,enclosingType)) {
+    strongerType=(JDeclaredType)type;
+  }
+ else   if (canTriviallyCast(method.getEnclosingType(),type)) {
+    strongerType=method.getEnclosingType();
+  }
+ else {
+    strongerType=(JDeclaredType)type;
+    intersectionType=method.getEnclosingType();
+  }
+  String signature=method.getSignature();
+  List<JMethod> results=new ArrayList<JMethod>();
+  Set<JClassType> subTypes;
+  if (strongerType instanceof JInterfaceType) {
+    subTypes=get(isImplementedMap,(JInterfaceType)strongerType);
+  }
+ else {
+    JClassType classType=(JClassType)strongerType;
+    if (classType.isFinal()) {
+      return Lists.create(findMethodMatching((JClassType)strongerType,signature));
+    }
+    if (intersectionType == null || canTriviallyCast(classType,intersectionType)) {
+      maybeAddPossibleDispatch(classType,signature,results);
+    }
+    subTypes=get(subClassMap,classType);
+  }
+  if (intersectionType == null) {
+    for (    JClassType candidate : subTypes) {
+      maybeAddPossibleDispatch(candidate,signature,results);
+    }
+  }
+ else {
+    for (    JClassType candidate : subTypes) {
+      if (canTriviallyCast(candidate,intersectionType)) {
+        maybeAddPossibleDispatch(candidate,signature,results);
+      }
+    }
+  }
+  return results;
+}

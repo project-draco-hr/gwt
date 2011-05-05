@@ -1,2 +1,32 @@
 {
+  SourceInfo info=implmeth.getSourceInfo().makeChild();
+  JMethod bridgeMethod=program.createMethod(info,String.valueOf(jdtBridgeMethod.selector),clazz,(JType)typeMap.get(jdtBridgeMethod.returnType.erasure()),false,false,implmeth.isFinal(),false,false);
+  bridgeMethod.setSynthetic();
+  int paramIdx=0;
+  List<JParameter> implParams=implmeth.getParams();
+  for (  TypeBinding jdtParamType : jdtBridgeMethod.parameters) {
+    JParameter param=implParams.get(paramIdx++);
+    JType paramType=(JType)typeMap.get(jdtParamType.erasure());
+    JParameter newParam=new JParameter(info.makeChild(param.getSourceInfo().getOrigin()),param.getName(),paramType,true,false,bridgeMethod);
+    bridgeMethod.addParam(newParam);
+  }
+  addThrownExceptions(jdtBridgeMethod,bridgeMethod);
+  bridgeMethod.freezeParamTypes();
+  info.addCorrelation(info.getCorrelator().by(bridgeMethod));
+  JMethodCall call=new JMethodCall(info,new JThisRef(info,clazz),implmeth);
+  for (int i=0; i < bridgeMethod.getParams().size(); i++) {
+    JParameter param=bridgeMethod.getParams().get(i);
+    JParameterRef paramRef=new JParameterRef(info,param);
+    call.addArg(maybeCast(implParams.get(i).getType(),paramRef));
+  }
+  JStatement callOrReturn;
+  if (bridgeMethod.getType() == program.getTypeVoid()) {
+    callOrReturn=call.makeStatement();
+  }
+ else {
+    callOrReturn=new JReturnStatement(info,call);
+  }
+  JMethodBody body=(JMethodBody)bridgeMethod.getBody();
+  body.getBlock().addStmt(callOrReturn);
+  findUpRef(bridgeMethod);
 }
