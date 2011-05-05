@@ -1,2 +1,47 @@
 {
+  if (!(x.getType() instanceof JReferenceType)) {
+    return;
+  }
+  JReferenceType refType=(JReferenceType)x.getType();
+  if (refType == typeNull) {
+    return;
+  }
+  if (!program.typeOracle.isInstantiatedType(refType)) {
+    x.setType(typeNull);
+    madeChanges();
+    return;
+  }
+  JReferenceType concreteType=getSingleConcreteType(x.getType());
+  if (concreteType != null) {
+    x.setType(concreteType);
+    madeChanges();
+  }
+  if (x.isNative()) {
+    return;
+  }
+  List<JReferenceType> typeList=new ArrayList<JReferenceType>();
+  Set<JExpression> myReturns=returns.get(x);
+  if (myReturns != null) {
+    for (    JExpression expr : myReturns) {
+      typeList.add((JReferenceType)expr.getType());
+    }
+  }
+  Set<JMethod> myOverriders=overriders.get(x);
+  if (myOverriders != null) {
+    for (    JMethod method : myOverriders) {
+      typeList.add((JReferenceType)method.getType());
+    }
+  }
+  JReferenceType resultType;
+  if (typeList.isEmpty()) {
+    resultType=typeNull;
+  }
+ else {
+    resultType=program.generalizeTypes(typeList);
+  }
+  resultType=program.strongerType(refType,resultType);
+  if (refType != resultType) {
+    x.setType(resultType);
+    madeChanges();
+  }
 }

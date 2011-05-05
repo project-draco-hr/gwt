@@ -1,22 +1,11 @@
 {
-  List<JMethod> dispatches=program.typeOracle.getPossibleDispatches(call);
-  JMethod originalTarget=call.getTarget();
-  for (  JMethod method : dispatches) {
-    if (method == originalTarget) {
-      originalTarget=null;
-    }
-    if (method.isStatic() || program.isJavaScriptObject(method.getEnclosingType()) || instantiatedTypes.contains(method.getEnclosingType())) {
-      rescue(method);
-    }
- else {
-      if (!liveFieldsAndMethods.contains(method)) {
-        methodsLiveExceptForInstantiability.add(method);
-      }
-    }
+  JMethod method=call.getTarget();
+  if (method.isStatic() || program.isJavaScriptObject(method.getEnclosingType()) || instantiatedTypes.contains(method.getEnclosingType())) {
+    rescue(method);
   }
-  if (originalTarget != null) {
-    if (!liveFieldsAndMethods.contains(originalTarget)) {
-      methodsReferencedButNotExecuted.add(originalTarget);
+ else {
+    if (!liveFieldsAndMethods.contains(method)) {
+      methodsLiveExceptForInstantiability.add(method);
     }
   }
   return true;

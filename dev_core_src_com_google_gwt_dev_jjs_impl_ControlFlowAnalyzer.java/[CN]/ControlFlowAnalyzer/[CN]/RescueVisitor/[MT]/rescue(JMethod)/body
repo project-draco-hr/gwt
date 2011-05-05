@@ -3,7 +3,6 @@
     if (!liveFieldsAndMethods.contains(method)) {
       liveFieldsAndMethods.add(method);
       methodsLiveExceptForInstantiability.remove(method);
-      methodsReferencedButNotExecuted.remove(method);
       if (dependencyRecorder != null) {
         curMethodStack.add(method);
         dependencyRecorder.methodIsLiveBecause(method,curMethodStack);
@@ -15,6 +14,7 @@
       if (method.isNative()) {
         maybeRescueJavaScriptObjectPassingIntoJava(method.getType());
       }
+      rescueOverridingMethods(method);
       return true;
     }
   }

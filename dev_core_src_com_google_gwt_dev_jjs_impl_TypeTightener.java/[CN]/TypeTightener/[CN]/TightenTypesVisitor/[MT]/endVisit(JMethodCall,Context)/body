@@ -1,2 +1,27 @@
 {
+  JMethod target=x.getTarget();
+  JMethod concreteMethod=getSingleConcreteMethod(target);
+  if (concreteMethod != null) {
+    JMethodCall newCall=new JMethodCall(x.getSourceInfo(),x.getInstance(),concreteMethod);
+    newCall.addArgs(x.getArgs());
+    ctx.replaceMe(newCall);
+    target=concreteMethod;
+    x=newCall;
+  }
+  if (x.canBePolymorphic()) {
+    JExpression instance=x.getInstance();
+    assert(instance != null);
+    JReferenceType instanceType=(JReferenceType)instance.getType();
+    Set<JMethod> myOverriders=overriders.get(target);
+    if (myOverriders != null) {
+      for (      JMethod override : myOverriders) {
+        JReferenceType overrideType=override.getEnclosingType();
+        if (program.typeOracle.canTheoreticallyCast(instanceType,overrideType)) {
+          return;
+        }
+      }
+    }
+    x.setCannotBePolymorphic();
+    madeChanges();
+  }
 }
