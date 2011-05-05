@@ -1,0 +1,37 @@
+{
+  TypeOracle typeOracle=context.getTypeOracle();
+  JClassType targetClass;
+  try {
+    targetClass=typeOracle.getType(typeName);
+  }
+ catch (  NotFoundException e) {
+    logger.log(TreeLogger.ERROR,"No such type",e);
+    throw new UnableToCompleteException();
+  }
+  String generatedClass=AbstractLocalizableImplCreator.generateConstantOrMessageClass(logger,context,locale,targetClass);
+  if (generatedClass != null) {
+    return generatedClass;
+  }
+  Set<GwtLocale> runtimeLocales=localeUtils.getRuntimeLocales();
+  String returnedClass=linkageCreator.linkWithImplClass(logger,targetClass,locale);
+  if (!runtimeLocales.isEmpty()) {
+    Map<String,Set<GwtLocale>> localeMap=new TreeMap<String,Set<GwtLocale>>();
+    Set<GwtLocale> localeSet=new TreeSet<GwtLocale>();
+    localeSet.add(locale);
+    localeMap.put(returnedClass,localeSet);
+    for (    GwtLocale rtLocale : runtimeLocales) {
+      String rtClass=linkageCreator.linkWithImplClass(logger,targetClass,rtLocale);
+      localeSet=localeMap.get(rtClass);
+      if (localeSet == null) {
+        localeSet=new TreeSet<GwtLocale>();
+        localeMap.put(rtClass,localeSet);
+      }
+      localeSet.add(rtLocale);
+    }
+    if (localeMap.size() > 1) {
+      CodeGenContext genCtx=new GwtCodeGenContext(logger,context);
+      returnedClass=generateRuntimeSelection(genCtx,targetClass,returnedClass,locale,localeMap);
+    }
+  }
+  return returnedClass;
+}

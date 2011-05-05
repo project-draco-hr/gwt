@@ -1,0 +1,67 @@
+{
+  boolean isInterface=targetClass.isInterface() != null;
+  if (isInterface) {
+    builder.addImplementedInterface(targetClass.getQualifiedSourceName());
+  }
+ else {
+    builder.setSuperclass(targetClass.getQualifiedSourceName());
+  }
+  SourceWriter writer=builder.createSourceWriter();
+  writer.println();
+  writer.println("private " + targetClass.getQualifiedSourceName() + " instance;");
+  for (  JMethod method : collectOverridableMethods(targetClass)) {
+    writer.println();
+    if (!isInterface) {
+      writer.println("@Override");
+    }
+    writer.println(method.getReadableDeclaration(false,true,true,true,true) + " {");
+    writer.indent();
+    writer.println("ensureInstance();");
+    if (method.getReturnType() != JPrimitiveType.VOID) {
+      writer.print("return ");
+    }
+    writer.print("instance." + method.getName() + '(');
+    boolean first=true;
+    for (    JParameter param : method.getParameters()) {
+      if (first) {
+        first=false;
+      }
+ else {
+        writer.print(", ");
+      }
+      writer.print(param.getName());
+    }
+    writer.println(");");
+    writer.outdent();
+    writer.println("}");
+  }
+  writer.println();
+  writer.println("private void ensureInstance() {");
+  writer.indent();
+  writer.println("if (instance != null) {");
+  writer.indentln("return;");
+  writer.println("}");
+  writer.println("String locale = " + LocaleInfo.class.getCanonicalName() + ".getCurrentLocale().getLocaleName();");
+  String targetClassName=targetClass.getQualifiedSourceName() + '_' + locale.getAsString();
+  for (  Map.Entry<String,Set<GwtLocale>> entry : localeMap.entrySet()) {
+    String implClassName=entry.getKey();
+    if (defaultClass.equals(implClassName) || targetClassName.equals(implClassName)) {
+      continue;
+    }
+    String prefix="if (";
+    for (    GwtLocale match : entry.getValue()) {
+      writer.print(prefix + CodeGenUtils.asStringLiteral(match.toString()) + ".equals(locale)");
+      prefix="\n    || ";
+    }
+    writer.println(") {");
+    writer.indent();
+    writer.println("instance = new " + implClassName + "();");
+    writer.println("return;");
+    writer.outdent();
+    writer.println("}");
+  }
+  writer.println("instance = new " + defaultClass + "();");
+  writer.outdent();
+  writer.println("}");
+  writer.close();
+}

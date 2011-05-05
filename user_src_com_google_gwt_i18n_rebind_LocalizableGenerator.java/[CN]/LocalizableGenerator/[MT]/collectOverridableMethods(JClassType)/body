@@ -1,0 +1,36 @@
+{
+  TreeSet<JMethod> overrides=new TreeSet<JMethod>(new JMethodComparator());
+  Set<String> seenSignatures=new HashSet<String>();
+  for (JClassType clazz=targetClass; clazz != null; clazz=clazz.getSuperclass()) {
+    if ("java.lang.Object".equals(clazz.getQualifiedSourceName())) {
+      break;
+    }
+    for (    JMethod method : clazz.getMethods()) {
+      String signature=getSignature(method);
+      if (!seenSignatures.contains(signature)) {
+        seenSignatures.add(signature);
+        if (!method.isPrivate() && !method.isFinal() && !method.isStatic()) {
+          overrides.add(method);
+        }
+      }
+    }
+  }
+  ArrayList<JClassType> todo=new ArrayList<JClassType>();
+  todo.addAll(Arrays.asList(targetClass.getImplementedInterfaces()));
+  while (!todo.isEmpty()) {
+    JClassType clazz=todo.remove(0);
+    for (    JMethod method : clazz.getMethods()) {
+      String signature=getSignature(method);
+      if (!seenSignatures.contains(signature)) {
+        seenSignatures.add(signature);
+        if (!method.isPrivate() && !method.isFinal() && !method.isStatic()) {
+          overrides.add(method);
+        }
+      }
+    }
+    if (!"Localizable".equals(clazz.getSimpleSourceName())) {
+      todo.addAll(Arrays.asList(clazz.getImplementedInterfaces()));
+    }
+  }
+  return overrides;
+}

@@ -92,9 +92,7 @@ catch (    IOException e) {
           displayName=displayNames.getProperty(localeName);
         }
         if (displayName != null && displayName.length() != 0) {
-          localeName=quoteQuotes(localeName);
-          displayName=quoteQuotes(displayName);
-          writer.println("      nativeDisplayNamesJava.put(\"" + localeName + "\", \""+ displayName+ "\");");
+          writer.println("      nativeDisplayNamesJava.put(" + CodeGenUtils.asStringLiteral(localeName) + ", "+ CodeGenUtils.asStringLiteral(displayName)+ ");");
         }
       }
     }
@@ -122,12 +120,10 @@ catch (    IOException e) {
           displayName=displayNames.getProperty(localeName);
         }
         if (displayName != null && displayName.length() != 0) {
-          localeName=quoteQuotes(localeName);
-          displayName=quoteQuotes(displayName);
           if (needComma) {
             writer.println(",");
           }
-          writer.print("    \"" + localeName + "\": \""+ displayName+ "\"");
+          writer.print("    " + CodeGenUtils.asStringLiteral(localeName) + ": "+ CodeGenUtils.asStringLiteral(displayName));
           needComma=true;
         }
       }
@@ -171,7 +167,7 @@ catch (    IOException e) {
     if (queryParam != null) {
       writer.println("@Override");
       writer.println("public String getLocaleQueryParam() {");
-      writer.println("  return \"" + quoteQuotes(queryParam) + "\";");
+      writer.println("  return " + CodeGenUtils.asStringLiteral(queryParam) + ";");
       writer.println("}");
       writer.println();
     }
@@ -179,7 +175,7 @@ catch (    IOException e) {
     if (cookie != null) {
       writer.println("@Override");
       writer.println("public String getLocaleCookieName() {");
-      writer.println("  return \"" + quoteQuotes(cookie) + "\";");
+      writer.println("  return " + CodeGenUtils.asStringLiteral(cookie) + ";");
       writer.println("}");
       writer.println();
     }
@@ -187,12 +183,12 @@ catch (    IOException e) {
     writer.println("public DateTimeFormatInfo getDateTimeFormatInfo() {");
     LocalizableGenerator localizableGenerator=new LocalizableGenerator();
     GeneratorContext subContext=new CachedGeneratorContext(context);
-    generateConstantsLookup(logger,subContext,writer,localizableGenerator,runtimeLocales,locale,"com.google.gwt.i18n.client.impl.cldr.DateTimeFormatInfoImpl");
+    generateConstantsLookup(logger,subContext,writer,localizableGenerator,runtimeLocales,localeUtils,locale,"com.google.gwt.i18n.client.impl.cldr.DateTimeFormatInfoImpl");
     writer.println("}");
     writer.println();
     writer.println("@Override");
     writer.println("public NumberConstants getNumberConstants() {");
-    generateConstantsLookup(logger,subContext,writer,localizableGenerator,runtimeLocales,locale,"com.google.gwt.i18n.client.constants.NumberConstantsImpl");
+    generateConstantsLookup(logger,subContext,writer,localizableGenerator,runtimeLocales,localeUtils,locale,"com.google.gwt.i18n.client.constants.NumberConstantsImpl");
     writer.println("}");
     writer.commit(logger);
   }

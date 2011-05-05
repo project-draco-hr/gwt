@@ -1,0 +1,40 @@
+{
+  LocalizableGenerator gen=new LocalizableGenerator();
+  GwtLocale en=factory.fromString("en");
+  GwtLocale en_US=factory.fromString("en_US");
+  GwtLocale en_US_POSIX=factory.fromString("en_US_POSIX");
+  GwtLocale en_GB=factory.fromString("en_GB");
+  GwtLocale en_PK=factory.fromString("en_PK");
+  Map<String,Set<GwtLocale>> localeMap=new TreeMap<String,Set<GwtLocale>>();
+  localeMap.put("foo.Test_en_US",new TreeSet<GwtLocale>(Arrays.asList(en_US,en_US_POSIX)));
+  localeMap.put("foo.Test_en_GB",new TreeSet<GwtLocale>(Arrays.asList(en_GB)));
+  localeMap.put("foo.Test_en",new TreeSet<GwtLocale>(Arrays.asList(en_PK)));
+  String genClass=gen.generateRuntimeSelection(ctx,test,test.getQualifiedSourceName(),en,localeMap);
+  assertEquals("foo.Test_en_runtimeSelection",genClass);
+  StringWriter buf=bufs.get("Test_en_runtimeSelection");
+  String genText=buf.toString();
+  String ensureStartString="void ensureInstance() {\n";
+  int ensurePos=genText.indexOf(ensureStartString);
+  assertTrue("Did not find ensureInstance",ensurePos >= 0);
+  ensurePos+=ensureStartString.length();
+  String ensureEndString="  }\n}\n";
+  int ensureEndPos=genText.length() - ensureEndString.length();
+  assertEquals(ensureEndString,genText.substring(ensureEndPos));
+  String ensureBody=genText.substring(ensurePos,ensureEndPos);
+  BufferedReader reader=new BufferedReader(new StringReader(ensureBody));
+  String line=reader.readLine();
+  while (!line.contains("getLocaleName()")) {
+    line=reader.readLine();
+  }
+  assertEquals("if (\"en_GB\".equals(locale)) {",reader.readLine().trim());
+  assertEquals("instance = new foo.Test_en_GB();",reader.readLine().trim());
+  assertEquals("return;",reader.readLine().trim());
+  assertEquals("}",reader.readLine().trim());
+  assertEquals("if (\"en_US\".equals(locale)",reader.readLine().trim());
+  assertEquals("|| \"en_US_POSIX\".equals(locale)) {",reader.readLine().trim());
+  assertEquals("instance = new foo.Test_en_US();",reader.readLine().trim());
+  assertEquals("return;",reader.readLine().trim());
+  assertEquals("}",reader.readLine().trim());
+  assertEquals("instance = new foo.Test();",reader.readLine().trim());
+  assertNull(reader.readLine());
+}
