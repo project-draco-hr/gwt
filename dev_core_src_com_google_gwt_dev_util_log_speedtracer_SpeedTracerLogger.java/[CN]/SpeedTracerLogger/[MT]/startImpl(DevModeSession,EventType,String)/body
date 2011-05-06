@@ -1,0 +1,23 @@
+{
+  if (!enabled) {
+    return dummyEvent;
+  }
+  if (data.length % 2 == 1) {
+    throw new IllegalArgumentException("Unmatched data argument");
+  }
+  Stack<Event> threadPendingEvents=pendingEvents.get();
+  Event parent=null;
+  if (!threadPendingEvents.isEmpty()) {
+    parent=threadPendingEvents.peek();
+  }
+ else {
+    threadCpuTimeKeeper.resetTimeBase();
+  }
+  Event newEvent=new Event(session,parent,type,data);
+  if (threadPendingEvents.size() == 0) {
+    long baseTime=logProcessCpuTime ? processCpuTimeKeeper.zeroTimeMillis() : (logThreadCpuTime ? threadCpuTimeKeeper.zeroTimeMillis() : elapsedTimeKeeper.zeroTimeMillis());
+    newEvent.addData("baseTime","" + baseTime);
+  }
+  threadPendingEvents.push(newEvent);
+  return newEvent;
+}

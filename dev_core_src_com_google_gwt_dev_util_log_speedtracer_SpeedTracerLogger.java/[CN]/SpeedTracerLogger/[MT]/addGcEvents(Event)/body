@@ -1,5 +1,8 @@
 {
-  for (  java.lang.management.GarbageCollectorMXBean gcMXBean : gcMXBeans) {
+  if (!fileLoggingEnabled) {
+    return;
+  }
+  for (  GarbageCollectorMXBean gcMXBean : gcMXBeans) {
     String gcName=gcMXBean.getName();
     Long lastGcTime=lastGcTimes.get(gcName);
     long currGcTime=gcMXBean.getCollectionTime();
@@ -8,9 +11,7 @@
     }
     if (currGcTime > lastGcTime) {
       long gcDurationNanos=(currGcTime - lastGcTime) * 1000000L;
-      long gcStartTimeNanos=refEvent.startTimeNanos + refEvent.durationNanos - gcDurationNanos;
-      Event gcEvent=new Event(gcStartTimeNanos,null,SpeedTracerEventType.GC,"Collector Type",gcName,"Cummulative Collection Count",Long.toString(gcMXBean.getCollectionCount()));
-      gcEvent.durationNanos=gcDurationNanos;
+      Event gcEvent=new GcEvent(refEvent,gcName,gcMXBean.getCollectionCount(),gcDurationNanos);
       eventsToWrite.add(gcEvent);
       lastGcTimes.put(gcName,currGcTime);
     }

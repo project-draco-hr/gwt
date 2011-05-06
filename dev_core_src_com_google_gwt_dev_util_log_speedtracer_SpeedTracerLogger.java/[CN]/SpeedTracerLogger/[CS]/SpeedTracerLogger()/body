@@ -1,42 +1,27 @@
 {
-  this.enabled=logFile != null;
+  fileLoggingEnabled=logFile != null;
+  enabled=fileLoggingEnabled || DashboardNotifierFactory.areNotificationsEnabled();
   if (enabled) {
-    Format format=Format.HTML;
-    if (defaultFormatString != null) {
-      for (      Format value : Format.values()) {
-        if (value.name().toLowerCase().equals(defaultFormatString.toLowerCase())) {
-          format=value;
-          break;
+    if (fileLoggingEnabled) {
+      Format format=Format.HTML;
+      if (defaultFormatString != null) {
+        for (        Format value : Format.values()) {
+          if (value.name().toLowerCase().equals(defaultFormatString.toLowerCase())) {
+            format=value;
+            break;
+          }
         }
       }
+      outputFormat=format;
+      eventsToWrite=openDefaultLogWriter();
+      shutDownSentinel=new DummyEvent();
+      flushSentinel=new DummyEvent();
+      shutDownLatch=new CountDownLatch(1);
     }
-    outputFormat=format;
-    eventsToWrite=openDefaultLogWriter();
-    pendingEvents=initPendingEvents();
-    timeKeeper=initTimeKeeper();
     if (logGcTime) {
       gcMXBeans=ManagementFactory.getGarbageCollectorMXBeans();
       lastGcTimes=new ConcurrentHashMap<String,Long>();
     }
- else {
-      gcMXBeans=null;
-      lastGcTimes=null;
-    }
-    shutDownSentinel=new DummyEvent();
-    flushSentinel=new DummyEvent();
-    shutDownLatch=new CountDownLatch(1);
-    dummyEvent=null;
-  }
- else {
-    outputFormat=null;
-    eventsToWrite=null;
-    pendingEvents=null;
-    timeKeeper=null;
-    gcMXBeans=null;
-    lastGcTimes=null;
-    shutDownSentinel=null;
-    flushSentinel=null;
-    shutDownLatch=null;
-    dummyEvent=new DummyEvent();
+    pendingEvents=initPendingEvents();
   }
 }

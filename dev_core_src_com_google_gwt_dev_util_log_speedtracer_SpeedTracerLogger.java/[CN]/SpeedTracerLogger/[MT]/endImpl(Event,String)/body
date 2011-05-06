@@ -2,7 +2,6 @@
   if (!enabled) {
     return;
   }
-  long endTimeNanos=timeKeeper.normalizedTimeNanos();
   if (data.length % 2 == 1) {
     throw new IllegalArgumentException("Unmatched data argument");
   }
@@ -11,13 +10,11 @@
     throw new IllegalStateException("Tried to end an event that never started!");
   }
   Event currentEvent=threadPendingEvents.pop();
-  assert(endTimeNanos >= currentEvent.startTimeNanos);
-  currentEvent.durationNanos=endTimeNanos - currentEvent.startTimeNanos;
+  currentEvent.updateDuration();
   while (currentEvent != event && !threadPendingEvents.isEmpty()) {
     currentEvent.addData("Missed","This event was closed without an explicit call to Event.end()");
     currentEvent=threadPendingEvents.pop();
-    assert(endTimeNanos >= currentEvent.startTimeNanos);
-    currentEvent.durationNanos=endTimeNanos - currentEvent.startTimeNanos;
+    currentEvent.updateDuration();
   }
   if (threadPendingEvents.isEmpty() && currentEvent != event) {
     currentEvent.addData("Missed","Fell off the end of the threadPending events");
@@ -30,6 +27,9 @@
     addOverheadEvent(currentEvent);
   }
   if (threadPendingEvents.isEmpty()) {
-    eventsToWrite.add(currentEvent);
+    if (fileLoggingEnabled) {
+      eventsToWrite.add(currentEvent);
+    }
+    DashboardNotifierFactory.getNotifier().devModeEvent(currentEvent.getDevModeSession(),currentEvent);
   }
 }
