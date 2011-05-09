@@ -1,21 +1,20 @@
 {
+  this.container=container;
   SoundEffects.get().prefetchError();
   clientFactory.getShell().setAddButtonHandler(null);
-  final TaskEditView view=clientFactory.getTaskEditView();
-  view.setPresenter(this);
-  view.setNameViolation(null);
+  final TaskEditView editView=clientFactory.getTaskEditView();
+  editView.setPresenter(this);
+  editView.setNameViolation(null);
+  final TaskReadView readView=clientFactory.getTaskReadView();
+  readView.setPresenter(this);
   if (taskId == null) {
-    isEditing=false;
-    view.setEditing(false);
-    TaskRequest request=clientFactory.getRequestFactory().taskRequest();
-    task=request.create(TaskProxy.class);
-    view.getEditorDriver().edit(task,request);
+    editTask();
+    return;
   }
  else {
     isEditing=true;
-    view.setEditing(true);
-    if (task == null) {
-      view.setLocked(true);
+    editView.setEditing(true);
+    if (readOnlyTask == null) {
       clientFactory.getRequestFactory().taskRequest().findTask(this.taskId).fire(new Receiver<TaskProxy>(){
         @Override public void onFailure(        ServerFailure error){
           Window.alert("An error occurred on the server while loading this task." + " Please select a different task from the task list.");
@@ -30,16 +29,15 @@
             doCancelTask();
             return;
           }
-          task=response;
-          view.getEditorDriver().edit(response,clientFactory.getRequestFactory().taskRequest());
-          view.setLocked(false);
+          readOnlyTask=response;
+          readView.getEditorDriver().edit(response);
         }
       }
 );
     }
  else {
-      view.getEditorDriver().edit(task,clientFactory.getRequestFactory().taskRequest());
+      readView.getEditorDriver().edit(readOnlyTask);
     }
   }
-  container.setWidget(view.asWidget());
+  container.setWidget(readView);
 }

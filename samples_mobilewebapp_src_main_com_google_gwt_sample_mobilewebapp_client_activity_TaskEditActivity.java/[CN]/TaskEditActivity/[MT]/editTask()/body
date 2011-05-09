@@ -1,0 +1,34 @@
+{
+  final TaskEditView editView=clientFactory.getTaskEditView();
+  if (taskId == null) {
+    isEditing=false;
+    editView.setEditing(false);
+    TaskRequest request=clientFactory.getRequestFactory().taskRequest();
+    editTask=request.create(TaskProxy.class);
+    editView.getEditorDriver().edit(editTask,request);
+  }
+ else {
+    editView.setLocked(true);
+    clientFactory.getRequestFactory().taskRequest().findTask(this.taskId).fire(new Receiver<TaskProxy>(){
+      @Override public void onFailure(      ServerFailure error){
+        Window.alert("An error occurred on the server while loading this task." + " Please select a different task from the task list.");
+        doCancelTask();
+      }
+      @Override public void onSuccess(      TaskProxy response){
+        if (isDead) {
+          return;
+        }
+        if (response == null) {
+          Window.alert("The task with id '" + taskId + "' could not be found."+ " Please select a different task from the task list.");
+          doCancelTask();
+          return;
+        }
+        editTask=response;
+        editView.getEditorDriver().edit(response,clientFactory.getRequestFactory().taskRequest());
+        editView.setLocked(false);
+      }
+    }
+);
+  }
+  container.setWidget(editView);
+}
