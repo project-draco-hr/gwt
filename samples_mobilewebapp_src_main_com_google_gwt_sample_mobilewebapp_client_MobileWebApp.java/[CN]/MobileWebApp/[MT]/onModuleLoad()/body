@@ -1,36 +1,5 @@
 {
   ClientFactory clientFactory=GWT.create(ClientFactory.class);
-  EventBus eventBus=clientFactory.getEventBus();
-  PlaceController placeController=clientFactory.getPlaceController();
-  new ReloadOnAuthenticationFailure().register(eventBus);
-  MobileWebAppShell shell=clientFactory.getShell();
-  RootLayoutPanel.get().add(shell);
-  ActivityMapper activityMapper=new AppActivityMapper(clientFactory);
-  ActivityManager activityManager=new ActivityManager(activityMapper,eventBus);
-  activityManager.setDisplay(shell);
-  final AppPlaceHistoryMapper historyMapper=GWT.create(AppPlaceHistoryMapper.class);
-  Historian historian=(Historian)GWT.create(DefaultHistorian.class);
-  PlaceHistoryHandler historyHandler=new PlaceHistoryHandler(historyMapper,historian);
-  Place savedPlace=null;
-  if (storage != null) {
-    try {
-      savedPlace=historyMapper.getPlace(storage.getItem(HISTORY_SAVE_KEY));
-    }
- catch (    Throwable t) {
-    }
-  }
-  if (savedPlace == null) {
-    savedPlace=new TaskListPlace(true);
-  }
-  historyHandler.register(placeController,eventBus,savedPlace);
-  historyHandler.handleCurrentHistory();
-  eventBus.addHandler(PlaceChangeEvent.TYPE,new PlaceChangeEvent.Handler(){
-    public void onPlaceChange(    PlaceChangeEvent event){
-      Place newPlace=event.getNewPlace();
-      if (storage != null) {
-        storage.setItem(HISTORY_SAVE_KEY,historyMapper.getToken(newPlace));
-      }
-    }
-  }
-);
+  clientFactory.init();
+  clientFactory.getApp().run(RootLayoutPanel.get());
 }

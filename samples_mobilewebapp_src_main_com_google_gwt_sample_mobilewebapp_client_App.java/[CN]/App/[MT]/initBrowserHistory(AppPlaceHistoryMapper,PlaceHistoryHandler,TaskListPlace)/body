@@ -1,0 +1,20 @@
+{
+  Place savedPlace=defaultPlace;
+  if (storage != null) {
+    try {
+      savedPlace=historyMapper.getPlace(storage.getItem(HISTORY_SAVE_KEY));
+    }
+ catch (    Throwable t) {
+    }
+  }
+  historyHandler.register(placeController,eventBus,savedPlace);
+  historyHandler.handleCurrentHistory();
+  if (storage != null) {
+    eventBus.addHandler(PlaceChangeEvent.TYPE,new PlaceChangeEvent.Handler(){
+      public void onPlaceChange(      PlaceChangeEvent event){
+        storage.setItem(HISTORY_SAVE_KEY,historyMapper.getToken(event.getNewPlace()));
+      }
+    }
+);
+  }
+}
