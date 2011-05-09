@@ -1,5 +1,15 @@
 {
   parentView.add(shell);
+  GWT.setUncaughtExceptionHandler(new UncaughtExceptionHandler(){
+    @Override public void onUncaughtException(    Throwable e){
+      while (e instanceof UmbrellaException) {
+        e=((UmbrellaException)e).getCauses().iterator().next();
+      }
+      Window.alert("An unexpected error occurred: " + e.getMessage());
+      placeController.goTo(new TaskListPlace(false));
+    }
+  }
+);
   reloadOnAuthenticationFailure.register(eventBus);
   initBrowserHistory(historyMapper,historyHandler,new TaskListPlace(true));
 }
