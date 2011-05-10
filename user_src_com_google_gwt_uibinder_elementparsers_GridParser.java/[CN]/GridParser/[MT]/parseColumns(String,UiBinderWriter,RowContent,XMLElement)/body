@@ -6,14 +6,15 @@
       writer.die("Grid's row tag in %s may only contain %s or %s element.",fieldName,CELL_TAG,CUSTOMCELL_TAG);
     }
     CellContent newColumn=null;
+    String styleName=cell.consumeStringAttribute(STYLE_NAME_ATTRIBUTE,null);
     if (tagName.equals(CELL_TAG)) {
       HtmlInterpreter htmlInt=HtmlInterpreter.newInterpreterForUiObject(writer,fieldName);
       String html=cell.consumeInnerHtml(htmlInt);
-      newColumn=new CellContent(tagName,html);
+      newColumn=new CellContent(tagName,html,styleName);
     }
     if (tagName.equals(CUSTOMCELL_TAG)) {
-      newColumn=new CellContent(tagName,writer.parseElementToField(cell.consumeSingleChildElement()));
+      newColumn=new CellContent(tagName,writer.parseElementToField(cell.consumeSingleChildElement()),styleName);
     }
-    matrix.get(matrix.size() - 1).add(newColumn);
+    row.addColumn(newColumn);
   }
 }

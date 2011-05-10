@@ -1,16 +1,22 @@
 {
-  List<List<CellContent>> matrix=new ArrayList<List<CellContent>>();
+  List<RowContent> matrix=new ArrayList<RowContent>();
   parseRows(elem,fieldName,writer,matrix);
   Size size=getMatrixSize(matrix);
   if (size.getRows() > 0 || size.getColumns() > 0) {
     writer.addStatement("%s.resize(%s, %s);",fieldName,Integer.toString(size.getRows()),Integer.toString(size.getColumns()));
-    for (    List<CellContent> row : matrix) {
-      for (      CellContent column : row) {
+    for (    RowContent row : matrix) {
+      if ((row.getStyleName() != null) && (!row.getStyleName().isEmpty())) {
+        writer.addStatement("%s.getRowFormatter().setStyleName(%s, %s);",fieldName,matrix.indexOf(row),row.getStyleName());
+      }
+      for (      CellContent column : row.getColumns()) {
         if (column.getTagName().equals(CELL_TAG)) {
-          writer.addStatement("%s.setHTML(%s, %s, %s);",fieldName,Integer.toString(matrix.indexOf(row)),Integer.toString(row.indexOf(column)),writer.declareTemplateCall(column.getConent()));
+          writer.addStatement("%s.setHTML(%s, %s, %s);",fieldName,Integer.toString(matrix.indexOf(row)),Integer.toString(row.getColumns().indexOf(column)),writer.declareTemplateCall(column.getContent()));
         }
         if (column.getTagName().equals(CUSTOMCELL_TAG)) {
-          writer.addStatement("%s.setWidget(%s, %s, %s);",fieldName,Integer.toString(matrix.indexOf(row)),Integer.toString(row.indexOf(column)),column.getConent());
+          writer.addStatement("%s.setWidget(%s, %s, %s);",fieldName,Integer.toString(matrix.indexOf(row)),Integer.toString(row.getColumns().indexOf(column)),column.getContent());
+        }
+        if ((column.getStyleName() != null) && (!column.getStyleName().isEmpty())) {
+          writer.addStatement("%s.getCellFormatter().setStyleName(%s, %s, %s);",fieldName,matrix.indexOf(row),row.getColumns().indexOf(column),column.getStyleName());
         }
       }
     }
