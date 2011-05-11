@@ -1,0 +1,49 @@
+{
+  if (!expectedLogRecord.getLevel().toString().equals(value.getLevel().toString())) {
+    return false;
+  }
+  if (!expectedLogRecord.getMessage().equals(value.getMessage())) {
+    return false;
+  }
+  if (expectedLogRecord.getMillis() != value.getMillis()) {
+    return false;
+  }
+  if (!expectedLogRecord.getLoggerName().equals(value.getLoggerName())) {
+    return false;
+  }
+  Throwable expectedCause=expectedLogRecord.getThrown();
+  Throwable valueCause=value.getThrown();
+  while (expectedCause != null) {
+    if (valueCause == null) {
+      return false;
+    }
+    if (!expectedCause.getMessage().equals(valueCause.getMessage())) {
+      return false;
+    }
+    if (compareTrace) {
+      StackTraceElement[] expectedTrace=expectedCause.getStackTrace();
+      StackTraceElement[] valueTrace=valueCause.getStackTrace();
+      if ((expectedTrace == null) != (valueTrace == null)) {
+        return false;
+      }
+      if (expectedTrace != null) {
+        if (expectedTrace.length != valueTrace.length) {
+          return false;
+        }
+        for (int i=0; i < expectedTrace.length; ++i) {
+          StackTraceElement expectedElement=expectedTrace[i];
+          StackTraceElement valueElement=valueTrace[i];
+          if (!expectedElement.equals(valueElement)) {
+            return false;
+          }
+        }
+      }
+    }
+    expectedCause=expectedCause.getCause();
+    valueCause=valueCause.getCause();
+  }
+  if (valueCause != null) {
+    return false;
+  }
+  return true;
+}
