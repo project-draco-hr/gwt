@@ -8,12 +8,12 @@
     CompilationUnit cachedUnit=unitCache.find(resource.getPathPrefix() + resource.getPath());
     if (cachedUnit != null && cachedUnit.getLastModified() != resource.getLastModified()) {
       unitCache.remove(cachedUnit);
-      if (!cachedUnit.getContentId().equals(builder.getContentId())) {
-        cachedUnit=null;
+      if (cachedUnit instanceof CachedCompilationUnit && cachedUnit.getContentId().equals(builder.getContentId())) {
+        CachedCompilationUnit updatedUnit=new CachedCompilationUnit((CachedCompilationUnit)cachedUnit,resource.getLastModified(),resource.getLocation());
+        unitCache.add(updatedUnit);
       }
  else {
-        CachedCompilationUnit updatedUnit=new CachedCompilationUnit(cachedUnit.asCachedCompilationUnit(),resource.getLastModified(),resource.getLocation());
-        unitCache.add(updatedUnit);
+        cachedUnit=null;
       }
     }
     if (cachedUnit != null) {
