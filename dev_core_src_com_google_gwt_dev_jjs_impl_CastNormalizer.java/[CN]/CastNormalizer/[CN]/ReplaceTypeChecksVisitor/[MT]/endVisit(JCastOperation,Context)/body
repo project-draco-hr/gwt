@@ -5,9 +5,10 @@
   if (disableCastChecking && toType instanceof JReferenceType) {
     return;
   }
+  SourceInfo info=x.getSourceInfo();
   if (toType instanceof JNullType) {
     JMethod method=program.getIndexedMethod("Cast.throwClassCastExceptionUnlessNull");
-    JMethodCall call=new JMethodCall(x.getSourceInfo(),null,method,toType);
+    JMethodCall call=new JMethodCall(info,null,method,toType);
     call.addArg(expr);
     replaceExpr=call;
   }
@@ -30,11 +31,10 @@
  else {
         method=program.getIndexedMethod("Cast.dynamicCast");
       }
-      JMethodCall call=new JMethodCall(x.getSourceInfo(),null,method,toType);
+      JMethodCall call=new JMethodCall(info,null,method,toType);
       call.addArg(curExpr);
       if (!isJsoCast) {
-        JIntLiteral qId=program.getLiteralInt(queryIds.get(refType));
-        call.addArg(qId);
+        call.addArg(new JsQueryType(info,refType,queryIdsByType.get(refType)));
       }
       replaceExpr=call;
     }
@@ -52,7 +52,7 @@
     if (tLong == fromType && tLong != toType) {
       if (tByte == toType || tShort == toType || tChar == toType) {
         JMethod castMethod=program.getIndexedMethod("LongLib.toInt");
-        JMethodCall call=new JMethodCall(x.getSourceInfo(),null,castMethod);
+        JMethodCall call=new JMethodCall(info,null,castMethod);
         call.addArg(expr);
         expr=call;
         fromType=tInt;
@@ -99,7 +99,7 @@
     }
     if (methodName != null) {
       JMethod castMethod=program.getIndexedMethod(methodName);
-      JMethodCall call=new JMethodCall(x.getSourceInfo(),null,castMethod,toType);
+      JMethodCall call=new JMethodCall(info,null,castMethod,toType);
       call.addArg(expr);
       replaceExpr=call;
     }

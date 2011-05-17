@@ -1,6 +1,8 @@
 {
+  List<JReferenceType> sortedQueryTypes=sortQueryTypes();
+  queryIdsByType=assignQueryIds(sortedQueryTypes);
   computeSourceType(program.getTypeJavaLangString());
-  assert(castableTypeMaps.size() == 2);
+  assert(castableTypesMap.size() == 2);
   for (  JReferenceType type : program.getDeclaredTypes()) {
     if (type instanceof JClassType) {
       computeSourceType(type);
@@ -9,10 +11,6 @@
   for (  JArrayType type : program.getAllArrayTypes()) {
     computeSourceType(type);
   }
-  program.initTypeInfo(castableTypeMaps);
-  JClassType jsoType=program.getJavaScriptObject();
-  if (jsoType != null) {
-    queryIds.put(jsoType,-1);
-  }
-  program.recordQueryIds(queryIds);
+  program.initTypeInfo(castableTypesMap);
+  program.recordQueryIds(queryIdsByType,sortedQueryTypes);
 }

@@ -1,17 +1,16 @@
 {
-  JsonObject castableTypeMap=program.getCastableTypeMap(x);
-  if (castableTypeMap != null) {
+  JsCastMap castMap=program.getCastMap(x);
+  if (castMap != null) {
     JField castableTypeMapField=program.getIndexedField("Object.castableTypeMap");
     JsName castableTypeMapName=names.get(castableTypeMapField);
     if (castableTypeMapName == null) {
       return;
     }
     SourceInfo sourceInfo=jsProgram.createSourceInfoSynthetic(GenerateJavaScriptAST.class);
-    accept(castableTypeMap);
-    JsExpression objExpr=pop();
     JsNameRef fieldRef=castableTypeMapName.makeRef(sourceInfo);
     fieldRef.setQualifier(globalTemp.makeRef(sourceInfo));
-    JsExpression asg=createAssignment(fieldRef,objExpr);
+    accept(castMap);
+    JsExpression asg=createAssignment(fieldRef,(JsExpression)pop());
     JsExprStmt asgStmt=asg.makeStmt();
     globalStmts.add(asgStmt);
     typeForStatMap.put(asgStmt,x);

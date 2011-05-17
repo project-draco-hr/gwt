@@ -10,38 +10,23 @@
   if (!program.typeOracle.isInstantiatedType(type) || program.isJavaScriptObject(type)) {
     return;
   }
-  Set<JReferenceType> yesSet=null;
+  Set<JsQueryType> castableTypes=new TreeSet<JsQueryType>(JSQUERY_COMPARATOR);
   for (  JReferenceType qType : queriedTypes.keySet()) {
     Set<JReferenceType> querySet=queriedTypes.get(qType);
     if (canTriviallyCastJsoSemantics(type,qType)) {
       for (      JReferenceType argType : querySet) {
         if (canTriviallyCastJsoSemantics(type,argType) || program.isJavaScriptObject(qType)) {
-          if (yesSet == null) {
-            yesSet=new HashSet<JReferenceType>();
+          int queryId=queryIdsByType.get(qType);
+          if (queryId > 0) {
+            castableTypes.add(new JsQueryType(SourceOrigin.UNKNOWN,qType,queryId));
           }
-          yesSet.add(qType);
           break;
         }
       }
     }
   }
-  JReferenceType[] yesArray=new JReferenceType[nextQueryId];
-  if (yesSet != null) {
-    for (    JReferenceType yesType : yesSet) {
-      yesArray[queryIds.get(yesType)]=yesType;
-    }
-  }
-  SourceInfo sourceInfo=program.createSourceInfoSynthetic(AssignTypeCastabilityVisitor.class);
-  JsonObject jsonObject=new JsonObject(sourceInfo,program.getJavaScriptObject());
-  for (int i=1; i < nextQueryId; ++i) {
-    if (yesArray[i] != null) {
-      JIntLiteral labelExpr=program.getLiteralInt(i);
-      JIntLiteral valueExpr=program.getLiteralInt(1);
-      jsonObject.propInits.add(new JsonPropInit(sourceInfo,labelExpr,valueExpr));
-    }
-  }
-  if (jsonObject.propInits.isEmpty() && type != program.getTypeJavaLangObject() && type != program.getTypeJavaLangString()) {
+  if (castableTypes.isEmpty() && type != program.getTypeJavaLangObject() && type != program.getTypeJavaLangString()) {
     return;
   }
-  castableTypeMaps.put(type,jsonObject);
+  castableTypesMap.put(type,new JsCastMap(SourceOrigin.UNKNOWN,Lists.create(castableTypes),program.getJavaScriptObject()));
 }
