@@ -2,21 +2,23 @@
   String permutationId=getPermutationId();
   PrintWriter outFile=new PrintWriter(getOutFile("SoycDashboard" + "-" + getPermutationId() + "-index.html"));
   addStandardHtmlProlog(outFile,"Compile report: Permutation " + permutationId,"Compile report: Permutation " + permutationId,"");
+  NumberFormat bytesFormatter=NumberFormat.getInstance();
+  bytesFormatter.setGroupingUsed(true);
   outFile.println("<div id=\"bd\">");
   outFile.println("<div id=\"soyc-summary\" class=\"g-section\">");
   outFile.println("<dl>");
   outFile.println("<dt>Full code size</dt>");
-  outFile.println("<dd class=\"value\">" + globalInformation.getTotalCodeBreakdown().sizeAllCode + " Bytes</dd>");
+  outFile.println("<dd class=\"value\">" + bytesFormatter.format(globalInformation.getTotalCodeBreakdown().sizeAllCode) + " Bytes</dd>");
   outFile.println("<dd class=\"report\"><a href=\"total-" + permutationId + "-overallBreakdown.html\">Report</a></dd>");
   outFile.println("</dl>");
   outFile.println("<dl>");
   outFile.println("<dt>Initial download size</dt>");
-  outFile.println("<dd class=\"value\">" + globalInformation.getInitialCodeBreakdown().sizeAllCode + " Bytes</dd>");
+  outFile.println("<dd class=\"value\">" + bytesFormatter.format(globalInformation.getInitialCodeBreakdown().sizeAllCode) + " Bytes</dd>");
   outFile.println("<dd class=\"report\"><a href=\"initial-" + permutationId + "-overallBreakdown.html\">Report</a></dd>");
   outFile.println("</dl>");
   outFile.println("<dl>");
   outFile.println("<dt>Left over code</dt>");
-  outFile.println("<dd class=\"value\">" + globalInformation.getLeftoversBreakdown().sizeAllCode + " Bytes</dd>");
+  outFile.println("<dd class=\"value\">" + bytesFormatter.format(globalInformation.getLeftoversBreakdown().sizeAllCode) + " Bytes</dd>");
   outFile.println("<dd class=\"report\"><a href=\"leftovers-" + permutationId + "-overallBreakdown.html\">Report</a></dd>");
   outFile.println("</dl>");
   outFile.println("</div>");
@@ -32,9 +34,16 @@
   outFile.println("<thead>");
   outFile.println("<th>#</th>");
   outFile.println("<th>Location</th>");
-  outFile.println("<th>Size <span class=\"soyc-th-units\">(Bytes)</span></th>");
+  outFile.println("<th></th>");
+  outFile.println("<th class=\"soyc-numerical-col-header\">");
+  outFile.println("Size <span class=\"soyc-th-units\">(Bytes)</span>");
+  outFile.println("</th>");
+  outFile.println("<th class=\"soyc-numerical-col-header\">% of total</th>");
   outFile.println("</thead>");
   outFile.println("<tbody>");
+  NumberFormat percentFormatter=NumberFormat.getPercentInstance();
+  percentFormatter.setMinimumFractionDigits(1);
+  percentFormatter.setMaximumFractionDigits(1);
   if (globalInformation.getSplitPointToLocation().size() >= 1) {
     int numSplitPoints=globalInformation.getSplitPointToLocation().size();
     int maxSize=globalInformation.getTotalCodeBreakdown().sizeAllCode;
@@ -55,17 +64,19 @@
       String drillDownFileName=shellFileName(breakdown,getPermutationId());
       String splitPointDescription=globalInformation.getSplitPointToLocation().get(i);
       int size=breakdown.sizeAllCode;
-      float perc;
-      perc=((float)size / (float)maxSize) * 100;
+      float perc=(float)size / (float)maxSize;
       outFile.println("<tr>");
       outFile.println("<td>" + i + "</td>");
       outFile.println("<td><a href=\"" + drillDownFileName + "\">"+ splitPointDescription+ "</a></td>");
-      outFile.println("<td>");
+      outFile.println("<td class=\"soyc-bargraph-col\">");
       outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
       outFile.println("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
       outFile.println("</div>");
-      outFile.println(size + " Bytes (" + formatNumber(perc)+ "%)");
       outFile.println("</td>");
+      outFile.println("<td class=\"soyc-numerical-col\">");
+      outFile.println(bytesFormatter.format(size));
+      outFile.println("</td>");
+      outFile.println("<td class=\"soyc-percent-col\">" + percentFormatter.format(perc) + "</td>");
       outFile.println("</tr>");
     }
   }

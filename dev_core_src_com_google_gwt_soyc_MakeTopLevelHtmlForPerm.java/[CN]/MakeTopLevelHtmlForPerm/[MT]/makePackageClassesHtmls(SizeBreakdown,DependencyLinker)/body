@@ -36,13 +36,22 @@
       outFile.println("</colgroup>");
       outFile.print("<thead>");
       outFile.print("<a name=\"" + hashedFilenameFragment(packageName) + "\"></a><th>Package: "+ packageName+ "</th>");
-      outFile.print("<th>Size <span class=\"soyc-th-units\">(Bytes)</span></th>");
+      outFile.println("<th></th>");
+      outFile.println("<th class=\"soyc-numerical-col-header\">");
+      outFile.println("Size <span class=\"soyc-th-units\">(Bytes)</span>");
+      outFile.println("</th>");
+      outFile.println("<th class=\"soyc-numerical-col-header\">% of total</th>");
       outFile.print("</thead>");
+      NumberFormat bytesFormatter=NumberFormat.getInstance();
+      bytesFormatter.setGroupingUsed(true);
+      NumberFormat percentFormatter=NumberFormat.getPercentInstance();
+      percentFormatter.setMinimumFractionDigits(1);
+      percentFormatter.setMaximumFractionDigits(1);
       for (      Integer size : sortedClasses.keySet()) {
         Set<String> classNames=sortedClasses.get(size);
         for (        String className : classNames) {
           String drillDownFileName=depLinker.dependencyLinkForClass(className);
-          float perc=((float)size / (float)sumSize) * 100;
+          float perc=(float)size / (float)sumSize;
           outFile.println("<tr>");
           if (drillDownFileName == null) {
             outFile.println("<td>" + className + "</td>");
@@ -50,12 +59,15 @@
  else {
             outFile.println("<td><a href=\"" + drillDownFileName + "\" target=\"_top\">"+ className+ "</a></td>");
           }
-          outFile.print("<td>");
-          outFile.print("<div class=\"soyc-bar-graph goog-inline-block\">");
-          outFile.print("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
-          outFile.print("</div>");
-          outFile.print(size + " (" + formatNumber(perc)+ "%)");
-          outFile.print("</td>");
+          outFile.println("<td class=\"soyc-bargraph-col\">");
+          outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
+          outFile.println("<div style=\"width:" + perc + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");
+          outFile.println("</div>");
+          outFile.println("</td>");
+          outFile.println("<td class=\"soyc-numerical-col\">");
+          outFile.println(bytesFormatter.format(size));
+          outFile.println("</td>");
+          outFile.println("<td class=\"soyc-percent-col\">" + percentFormatter.format(perc) + "</td>");
           outFile.println("</tr>");
         }
       }
