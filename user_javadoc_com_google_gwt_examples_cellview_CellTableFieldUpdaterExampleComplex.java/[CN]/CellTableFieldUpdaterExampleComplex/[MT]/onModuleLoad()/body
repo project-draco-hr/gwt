@@ -1,0 +1,51 @@
+{
+  final CellTable<Contact> table=new CellTable<Contact>(KEY_PROVIDER);
+  table.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.ENABLED);
+  final TextInputCell nameCell=new TextInputCell();
+  Column<Contact,String> nameColumn=new Column<Contact,String>(nameCell){
+    @Override public String getValue(    Contact object){
+      return object.name;
+    }
+  }
+;
+  table.addColumn(nameColumn,"Name");
+  nameColumn.setFieldUpdater(new FieldUpdater<Contact,String>(){
+    @Override public void update(    int index,    Contact object,    String value){
+      if (value.length() < 3) {
+        Window.alert("Names must be at least three characters long.");
+        nameCell.clearViewData(KEY_PROVIDER.getKey(object));
+        table.redraw();
+        return;
+      }
+      Window.alert("You changed the name of " + object.name + " to "+ value);
+      object.name=value;
+      table.redraw();
+    }
+  }
+);
+  Column<Contact,Date> dateColumn=new Column<Contact,Date>(new DatePickerCell()){
+    @Override public Date getValue(    Contact object){
+      return object.birthday;
+    }
+  }
+;
+  table.addColumn(dateColumn,"Birthday");
+  dateColumn.setFieldUpdater(new FieldUpdater<Contact,Date>(){
+    @Override public void update(    int index,    Contact object,    Date value){
+      Window.alert("You changed the birthday of " + object.name + " to "+ DateTimeFormat.getFormat(PredefinedFormat.DATE_LONG).format(value));
+      object.birthday=value;
+      table.redraw();
+    }
+  }
+);
+  TextColumn<Contact> addressColumn=new TextColumn<Contact>(){
+    @Override public String getValue(    Contact object){
+      return object.address;
+    }
+  }
+;
+  table.addColumn(addressColumn,"Address");
+  table.setRowCount(CONTACTS.size(),true);
+  table.setRowData(0,CONTACTS);
+  RootPanel.get().add(table);
+}
