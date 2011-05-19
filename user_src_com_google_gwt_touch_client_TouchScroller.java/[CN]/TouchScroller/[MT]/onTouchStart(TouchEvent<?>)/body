@@ -1,15 +1,19 @@
 {
+  recentScrollTriggeringTouchPosition.setTemporalPoint(null,0);
   if (touching) {
     return;
   }
-  setBustNextClick(isMomentumActive());
-  cancelAll();
-  touching=true;
   Touch touch=getTouchFromEvent(event);
   startTouchPosition=new Point(touch.getPageX(),touch.getPageY());
   double startTouchTime=Duration.currentTimeMillis();
   recentTouchPosition.setTemporalPoint(startTouchPosition,startTouchTime);
   lastTouchPosition.setTemporalPoint(startTouchPosition,startTouchTime);
   recentTouchPositionOnDeck=null;
+  if (isMomentumActive()) {
+    touchPositionsDuringMomentum.add(new TemporalPoint(startTouchPosition,startTouchTime));
+    Scheduler.get().scheduleFixedDelay(momentumTouchRemovalCommand,TIME_THRESHOLD);
+  }
   startScrollPosition=getWidgetScrollPosition();
+  cancelAll();
+  touching=true;
 }

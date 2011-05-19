@@ -3,35 +3,48 @@
     return;
   }
   cancelAll();
-  setBustNextClick(false);
-  if (this.widget != null) {
-    for (    HandlerRegistration reg : handlerRegs) {
-      reg.removeHandler();
-    }
-    handlerRegs.clear();
+  for (  HandlerRegistration reg : handlerRegs) {
+    reg.removeHandler();
   }
+  handlerRegs.clear();
+  removeAttachHandler();
+  removeBustClickHandler();
   this.widget=widget;
   if (widget != null) {
+    if (widget.asWidget().isAttached()) {
+      setupBustClickHandler();
+    }
+    attachHandlerReg=widget.asWidget().addAttachHandler(new AttachEvent.Handler(){
+      @Override public void onAttachOrDetach(      AttachEvent event){
+        if (event.isAttached()) {
+          setupBustClickHandler();
+        }
+ else {
+          removeBustClickHandler();
+        }
+      }
+    }
+);
     handlerRegs.add(widget.asWidget().addDomHandler(new TouchStartHandler(){
-      public void onTouchStart(      TouchStartEvent event){
+      @Override public void onTouchStart(      TouchStartEvent event){
         TouchScroller.this.onTouchStart(event);
       }
     }
 ,TouchStartEvent.getType()));
     handlerRegs.add(widget.asWidget().addDomHandler(new TouchMoveHandler(){
-      public void onTouchMove(      TouchMoveEvent event){
+      @Override public void onTouchMove(      TouchMoveEvent event){
         TouchScroller.this.onTouchMove(event);
       }
     }
 ,TouchMoveEvent.getType()));
     handlerRegs.add(widget.asWidget().addDomHandler(new TouchEndHandler(){
-      public void onTouchEnd(      TouchEndEvent event){
+      @Override public void onTouchEnd(      TouchEndEvent event){
         TouchScroller.this.onTouchEnd(event);
       }
     }
 ,TouchEndEvent.getType()));
     handlerRegs.add(widget.asWidget().addDomHandler(new TouchCancelHandler(){
-      public void onTouchCancel(      TouchCancelEvent event){
+      @Override public void onTouchCancel(      TouchCancelEvent event){
         TouchScroller.this.onTouchCancel(event);
       }
     }
