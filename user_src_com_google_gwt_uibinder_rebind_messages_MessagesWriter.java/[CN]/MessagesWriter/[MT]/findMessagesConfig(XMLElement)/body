@@ -2,6 +2,24 @@
   String prefix=elem.lookupPrefix(getMessagesUri());
   if (prefix != null) {
     messagesPrefix=prefix;
+    String baseInterfaceAttr=elem.consumeRawAttribute(getMessagesPrefix() + ":baseInterface");
+    if (baseInterfaceAttr != null) {
+      JClassType baseInterfaceType=oracle.findType(baseInterfaceAttr);
+      if (baseInterfaceType == null) {
+        logger.die(elem,"Could not find class %s",baseInterfaceAttr);
+      }
+      if (baseInterfaceType.isInterface() == null) {
+        logger.die(elem,"%s must be an interface",baseInterfaceAttr);
+      }
+      JClassType msgType=oracle.findType(Messages.class.getCanonicalName());
+      if (msgType == null) {
+        throw new RuntimeException("Internal Error: Messages interface not found");
+      }
+      if (!msgType.isAssignableFrom(baseInterfaceType)) {
+        logger.die(elem,"Interface %s must extend Messages",baseInterfaceAttr);
+      }
+      baseInterface=baseInterfaceAttr;
+    }
     defaultLocale=consumeMessageAttribute("defaultLocale",elem);
     generateKeys=consumeMessageAttribute("generateKeys",elem);
     generate=new GenerateAnnotationWriter(getMessageAttributeStringArray("generateFormat",elem),consumeMessageAttribute("generateFilename",elem),getMessageAttributeStringArray("generateLocales",elem));
