@@ -1,23 +1,22 @@
 {
   OptimizerStats stats=new OptimizerStats(NAME);
-  while (true) {
-    ControlFlowAnalyzer livenessAnalyzer=new ControlFlowAnalyzer(program);
-    if (saveCodeGenTypes) {
-      traverseFromCodeGenTypes(livenessAnalyzer);
-    }
-    for (    JMethod method : program.getAllEntryMethods()) {
-      livenessAnalyzer.traverseFrom(method);
-    }
-    livenessAnalyzer.traverseFromLeftoversFragmentHasLoaded();
-    program.typeOracle.setInstantiatedTypes(livenessAnalyzer.getInstantiatedTypes());
-    PruneVisitor pruner=new PruneVisitor(livenessAnalyzer.getReferencedTypes(),livenessAnalyzer.getLiveFieldsAndMethods());
-    pruner.accept(program);
-    stats.recordModified(pruner.getNumMods());
-    if (!pruner.didChange()) {
-      break;
-    }
-    CleanupRefsVisitor cleaner=new CleanupRefsVisitor(livenessAnalyzer.getLiveFieldsAndMethods(),pruner.getMethodToOriginalParamsMap());
-    cleaner.accept(program.getDeclaredTypes());
+  ControlFlowAnalyzer livenessAnalyzer=new ControlFlowAnalyzer(program);
+  livenessAnalyzer.setForPruning();
+  if (saveCodeGenTypes) {
+    traverseFromCodeGenTypes(livenessAnalyzer);
   }
+  for (  JMethod method : program.getAllEntryMethods()) {
+    livenessAnalyzer.traverseFrom(method);
+  }
+  livenessAnalyzer.traverseFromLeftoversFragmentHasLoaded();
+  program.typeOracle.setInstantiatedTypes(livenessAnalyzer.getInstantiatedTypes());
+  PruneVisitor pruner=new PruneVisitor(livenessAnalyzer.getReferencedTypes(),livenessAnalyzer.getLiveFieldsAndMethods());
+  pruner.accept(program);
+  stats.recordModified(pruner.getNumMods());
+  if (!pruner.didChange()) {
+    return stats;
+  }
+  CleanupRefsVisitor cleaner=new CleanupRefsVisitor(livenessAnalyzer.getLiveFieldsAndMethods(),pruner.getMethodToOriginalParamsMap());
+  cleaner.accept(program.getDeclaredTypes());
   return stats;
 }

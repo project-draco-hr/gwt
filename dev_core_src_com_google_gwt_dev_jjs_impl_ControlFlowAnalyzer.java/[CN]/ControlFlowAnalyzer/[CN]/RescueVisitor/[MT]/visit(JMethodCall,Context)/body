@@ -5,8 +5,14 @@
   }
  else {
     if (!liveFieldsAndMethods.contains(method)) {
-      methodsLiveExceptForInstantiability.add(method);
+      membersToRescueIfTypeIsInstantiated.add(method);
     }
   }
-  return true;
+  if (argsToRescueIfParameterRead == null || method.canBePolymorphic() || call instanceof JsniMethodRef) {
+    return true;
+  }
+  if (program.staticImplFor(method) != null) {
+    return true;
+  }
+  return rescueArgumentsIfParametersCanBeRead(call,method);
 }

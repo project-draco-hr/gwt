@@ -1,6 +1,7 @@
 {
   if (var != null) {
     if (liveFieldsAndMethods.add(var)) {
+      membersToRescueIfTypeIsInstantiated.remove(var);
       if (isStaticFieldInitializedToLiteral(var)) {
         accept(((JField)var).getLiteralInitializer());
       }
@@ -9,6 +10,14 @@
         accept(field.getInitializer());
         referencedTypes.add(field.getEnclosingType());
         liveFieldsAndMethods.add(field.getEnclosingType().getMethods().get(0));
+      }
+ else       if (argsToRescueIfParameterRead != null && var instanceof JParameter) {
+        List<JExpression> list=argsToRescueIfParameterRead.remove(var);
+        if (list != null) {
+          for (          JExpression arg : list) {
+            this.accept(arg);
+          }
+        }
       }
     }
   }

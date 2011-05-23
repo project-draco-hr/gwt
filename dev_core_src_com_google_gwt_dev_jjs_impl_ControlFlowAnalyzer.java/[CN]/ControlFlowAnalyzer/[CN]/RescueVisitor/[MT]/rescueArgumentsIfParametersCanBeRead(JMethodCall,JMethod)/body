@@ -1,0 +1,27 @@
+{
+  if (call.getInstance() != null) {
+    this.accept(call.getInstance());
+  }
+  List<JExpression> args=call.getArgs();
+  List<JParameter> params=method.getParams();
+  int i=0;
+  for (int c=params.size(); i < c; ++i) {
+    JExpression arg=args.get(i);
+    JParameter param=params.get(i);
+    if (arg.hasSideEffects() || liveFieldsAndMethods.contains(param)) {
+      this.accept(arg);
+      continue;
+    }
+    List<JExpression> list=argsToRescueIfParameterRead.get(param);
+    if (list == null) {
+      argsToRescueIfParameterRead.put(param,Lists.create(arg));
+    }
+ else {
+      argsToRescueIfParameterRead.put(param,Lists.add(list,arg));
+    }
+  }
+  for (int c=args.size(); i < c; ++i) {
+    this.accept(args.get(i));
+  }
+  return false;
+}
