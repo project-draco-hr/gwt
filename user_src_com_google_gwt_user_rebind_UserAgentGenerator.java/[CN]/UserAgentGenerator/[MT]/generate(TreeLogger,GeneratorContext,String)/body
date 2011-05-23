@@ -5,19 +5,14 @@
     userType=typeOracle.getType(typeName);
   }
  catch (  NotFoundException e) {
-    logger.log(TreeLogger.ERROR,"OOPS",e);
+    logger.log(TreeLogger.ERROR,"Unable to find metadata for type: " + typeName,e);
     throw new UnableToCompleteException();
   }
   String packageName=userType.getPackage().getName();
   String className=userType.getName();
   className=className.replace('.','_');
-  JClassType remoteService=typeOracle.findType(typeName);
-  if (remoteService == null) {
-    logger.log(TreeLogger.ERROR,"Unable to find metadata for type '" + typeName + "'",null);
-    throw new UnableToCompleteException();
-  }
-  if (remoteService.isInterface() == null) {
-    logger.log(TreeLogger.ERROR,remoteService.getQualifiedSourceName() + " is not an interface",null);
+  if (userType.isInterface() == null) {
+    logger.log(TreeLogger.ERROR,userType.getQualifiedSourceName() + " is not an interface",null);
     throw new UnableToCompleteException();
   }
   PropertyOracle propertyOracle=context.getPropertyOracle();
@@ -42,7 +37,7 @@
   String userAgentValueInitialCap=userAgentValue.substring(0,1).toUpperCase() + userAgentValue.substring(1);
   className=className + "Impl" + userAgentValueInitialCap;
   ClassSourceFileComposerFactory composerFactory=new ClassSourceFileComposerFactory(packageName,className);
-  composerFactory.addImplementedInterface(remoteService.getQualifiedSourceName());
+  composerFactory.addImplementedInterface(userType.getQualifiedSourceName());
   PrintWriter pw=context.tryCreate(logger,packageName,className);
   if (pw != null) {
     SourceWriter sw=composerFactory.createSourceWriter(context,pw);

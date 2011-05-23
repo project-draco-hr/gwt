@@ -1,0 +1,25 @@
+{
+  DocumentModeProperty impl=GWT.create(DocumentModeProperty.class);
+  Severity severity=impl.getDocumentModeSeverity();
+  if (severity == Severity.IGNORE) {
+    return;
+  }
+  String currentMode=Document.get().getCompatMode();
+  String[] allowedModes=impl.getAllowedDocumentModes();
+  for (int i=0; i < allowedModes.length; i++) {
+    if (allowedModes[i].equals(currentMode)) {
+      return;
+    }
+  }
+  String message;
+  if (allowedModes.length == 1 && STANDARDS_MODE_CSS1_COMPAT.equals(allowedModes[0]) && QUIRKS_MODE_BACK_COMPAT.equals(currentMode)) {
+    message="GWT no longer supports Quirks Mode (document.compatMode=' " + QUIRKS_MODE_BACK_COMPAT + "').<br>Make sure your application's host HTML page has a Standards Mode "+ "(document.compatMode=' "+ STANDARDS_MODE_CSS1_COMPAT+ "') doctype,<br>e.g. by using &lt;!doctype html&gt; at the start of your application's HTML "+ "page.<br><br>To continue using this unsupported rendering mode and risk layout problems, "+ "suppress this message by adding<br>the following line to your*.gwt.xml module file:<br>"+ "&nbsp;&nbsp;&lt;extend-configuration-property name=\"document.compatMode\" value=\""+ currentMode+ "\"/&gt;";
+  }
+ else {
+    message="Your *.gwt.xml module configuration prohibits the use of the current doucment " + "rendering mode (document.compatMode=' " + currentMode + "').<br>Modify your application's host HTML page doctype, or update your custom "+ "'document.compatMode' configuration property settings.";
+  }
+  if (severity == Severity.ERROR) {
+    throw new RuntimeException(message);
+  }
+  GWT.log(message);
+}
