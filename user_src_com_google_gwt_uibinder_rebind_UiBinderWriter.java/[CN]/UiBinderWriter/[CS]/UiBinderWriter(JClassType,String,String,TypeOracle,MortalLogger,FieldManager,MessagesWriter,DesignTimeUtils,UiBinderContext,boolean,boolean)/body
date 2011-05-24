@@ -20,31 +20,11 @@
   }
   JClassType uiBinderType=uiBinderTypes[0];
   JClassType[] typeArgs=uiBinderType.isParameterized().getTypeArgs();
-  String binderType=uiBinderType.getName();
-  JClassType safeHtmlRendererClass=getOracle().findType(SafeHtmlRenderer.class.getName());
-  if (uiBinderType.isAssignableTo(uibinderItself)) {
-    if (typeArgs.length < 2) {
-      throw new RuntimeException("Root and owner type parameters are required for type %s" + binderType);
-    }
-    uiRootType=typeArgs[0];
-    uiOwnerType=typeArgs[1];
-    isRenderer=false;
+  if (typeArgs.length < 2) {
+    throw new RuntimeException("Root and owner type parameters are required for type %s" + uiBinderType.getName());
   }
- else   if (uiBinderType.isAssignableTo(safeHtmlRendererClass)) {
-    if (typeArgs.length < 1) {
-      throw new RuntimeException("Owner type parameter is required for type %s" + binderType);
-    }
-    if (!useSafeHtmlTemplates) {
-      die("Configuration property UiBinder.useSafeHtmlTemplates\n" + "  must be set to true to generate a SafeHtmlRenderer");
-    }
-    uiOwnerType=typeArgs[0];
-    uiRootType=null;
-    isRenderer=true;
-  }
- else {
-    die(baseClass.getName() + " must implement UiBinder or SafeHtmlRenderer");
-    throw new UnableToCompleteException();
-  }
+  uiRootType=typeArgs[0];
+  uiOwnerType=typeArgs[1];
   isRenderableClassType=oracle.findType(IsRenderable.class.getCanonicalName());
   lazyDomElementClass=oracle.findType(LazyDomElement.class.getCanonicalName());
   ownerClass=new OwnerClass(uiOwnerType,logger,uiBinderCtx);
