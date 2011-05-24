@@ -12,16 +12,15 @@
     }
   }
   allFields.addAll(everything.getFieldsWritten());
-  for (  JRunAsync runAsync : jprogram.getRunAsyncs()) {
-    int splitPoint=runAsync.getSplitPoint();
-    if (isInitial(splitPoint)) {
+  for (int entry=1; entry < numEntries; entry++) {
+    if (isInitial(entry)) {
       continue;
     }
-    ControlFlowAnalyzer allButOne=allButOnes.get(splitPoint - 1);
+    ControlFlowAnalyzer allButOne=allButOnes.get(entry - 1);
     Set<JNode> allLiveNodes=union(allButOne.getLiveFieldsAndMethods(),allButOne.getFieldsWritten());
-    updateMap(splitPoint,fragmentMap.fields,allLiveNodes,allFields);
-    updateMap(splitPoint,fragmentMap.methods,allButOne.getLiveFieldsAndMethods(),allMethods);
-    updateMap(splitPoint,fragmentMap.strings,allButOne.getLiveStrings(),everything.getLiveStrings());
-    updateMap(splitPoint,fragmentMap.types,declaredTypesIn(allButOne.getInstantiatedTypes()),declaredTypesIn(everything.getInstantiatedTypes()));
+    updateMap(entry,fragmentMap.fields,allLiveNodes,allFields);
+    updateMap(entry,fragmentMap.methods,allButOne.getLiveFieldsAndMethods(),allMethods);
+    updateMap(entry,fragmentMap.strings,allButOne.getLiveStrings(),everything.getLiveStrings());
+    updateMap(entry,fragmentMap.types,declaredTypesIn(allButOne.getInstantiatedTypes()),declaredTypesIn(everything.getInstantiatedTypes()));
   }
 }

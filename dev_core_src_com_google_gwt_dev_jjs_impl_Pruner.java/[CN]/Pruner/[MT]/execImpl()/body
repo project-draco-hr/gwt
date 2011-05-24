@@ -5,8 +5,10 @@
   if (saveCodeGenTypes) {
     traverseFromCodeGenTypes(livenessAnalyzer);
   }
-  livenessAnalyzer.traverseEntryMethods();
-  livenessAnalyzer.traverseFromRunAsyncs();
+  for (  JMethod method : program.getAllEntryMethods()) {
+    livenessAnalyzer.traverseFrom(method);
+  }
+  livenessAnalyzer.traverseFromLeftoversFragmentHasLoaded();
   program.typeOracle.setInstantiatedTypes(livenessAnalyzer.getInstantiatedTypes());
   PruneVisitor pruner=new PruneVisitor(livenessAnalyzer.getReferencedTypes(),livenessAnalyzer.getLiveFieldsAndMethods());
   pruner.accept(program);

@@ -1,24 +1,16 @@
 {
   String dependencyGraphNameAfterInitialSequence=dependencyGraphNameAfterInitialSequence();
-  List<ControlFlowAnalyzer> allButOnes=new ArrayList<ControlFlowAnalyzer>();
-  for (  JRunAsync runAsync : jprogram.getRunAsyncs()) {
-    int splitPoint=runAsync.getSplitPoint();
-    if (isInitial(splitPoint)) {
+  List<ControlFlowAnalyzer> allButOnes=new ArrayList<ControlFlowAnalyzer>(numEntries - 1);
+  for (int entry=1; entry < numEntries; entry++) {
+    if (isInitial(entry)) {
       allButOnes.add(null);
       continue;
     }
-    dependencyRecorder.startDependencyGraph("sp" + splitPoint,dependencyGraphNameAfterInitialSequence);
+    dependencyRecorder.startDependencyGraph("sp" + entry,dependencyGraphNameAfterInitialSequence);
     ControlFlowAnalyzer cfa=new ControlFlowAnalyzer(liveAfterInitialSequence);
     cfa.setDependencyRecorder(dependencyRecorder);
-    for (    JRunAsync otherRunAsync : jprogram.getRunAsyncs()) {
-      if (isInitial(otherRunAsync.getSplitPoint())) {
-        continue;
-      }
-      if (otherRunAsync == runAsync) {
-        continue;
-      }
-      cfa.traverseFromRunAsync(otherRunAsync);
-    }
+    traverseAllButEntry(cfa,entry);
+    cfa.traverseFromLeftoversFragmentHasLoaded();
     dependencyRecorder.endDependencyGraph();
     allButOnes.add(cfa);
   }

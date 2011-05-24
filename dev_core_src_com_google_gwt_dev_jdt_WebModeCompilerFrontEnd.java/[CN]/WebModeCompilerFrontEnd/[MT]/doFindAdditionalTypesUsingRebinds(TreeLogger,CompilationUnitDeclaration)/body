@@ -19,6 +19,17 @@
       rebindAnswers.put(reqType,new String[0]);
     }
   }
+  for (  MessageSendSite site : v.getRunAsyncSites()) {
+    String resultType;
+    try {
+      resultType=fragmentLoaderCreator.create(logger);
+      dependentTypeNames.add(resultType);
+      doFinish=true;
+    }
+ catch (    UnableToCompleteException e) {
+      FindDeferredBindingSitesVisitor.reportRebindProblem(site,"Failed to create a runAsync fragment loader");
+    }
+  }
   if (doFinish) {
     rebindPermOracle.getGeneratorContext().finish(logger);
   }
