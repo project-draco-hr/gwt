@@ -1,0 +1,36 @@
+{
+  this.baseClass=baseClass;
+  this.implClassName=implClassName;
+  this.oracle=oracle;
+  this.logger=logger;
+  this.templatePath=templatePath;
+  this.fieldManager=fieldManager;
+  this.messages=messagesWriter;
+  this.designTime=designTime;
+  this.uiBinderCtx=uiBinderCtx;
+  this.useSafeHtmlTemplates=useSafeHtmlTemplates;
+  this.useLazyWidgetBuilders=useLazyWidgetBuilders;
+  this.binderUri=binderUri;
+  JClassType uibinderItself=oracle.findType(UiBinder.class.getCanonicalName());
+  if (uibinderItself.equals(baseClass)) {
+    die("You must use a subtype of UiBinder in GWT.create(). E.g.,\n" + "  interface Binder extends UiBinder<Widget, MyClass> {}\n" + "  GWT.create(Binder.class);");
+  }
+  JClassType[] uiBinderTypes=baseClass.getImplementedInterfaces();
+  if (uiBinderTypes.length == 0) {
+    throw new RuntimeException("No implemented interfaces for " + baseClass.getName());
+  }
+  JClassType uiBinderType=uiBinderTypes[0];
+  JClassType[] typeArgs=uiBinderType.isParameterized().getTypeArgs();
+  if (typeArgs.length < 2) {
+    throw new RuntimeException("Root and owner type parameters are required for type %s" + uiBinderType.getName());
+  }
+  uiRootType=typeArgs[0];
+  uiOwnerType=typeArgs[1];
+  isRenderableClassType=oracle.findType(IsRenderable.class.getCanonicalName());
+  lazyDomElementClass=oracle.findType(LazyDomElement.class.getCanonicalName());
+  ownerClass=new OwnerClass(uiOwnerType,logger,uiBinderCtx);
+  bundleClass=new ImplicitClientBundle(baseClass.getPackage().getName(),this.implClassName,CLIENT_BUNDLE_FIELD,logger);
+  handlerEvaluator=new HandlerEvaluator(ownerClass,logger,oracle,useLazyWidgetBuilders);
+  attributeParsers=new AttributeParsers(oracle,fieldManager,logger);
+  bundleParsers=new BundleAttributeParsers(oracle,logger,getOwnerClass(),templatePath,uiOwnerType);
+}

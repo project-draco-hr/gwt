@@ -1,9 +1,14 @@
 {
-  if (BINDER_URI.equals(elem.getNamespaceUri()) && LOCAL_NAME.equals(elem.getLocalName())) {
-    String fieldRef=elem.consumeStringAttribute("from");
-    if (fieldRef == null) {
+  if (writer.isBinderElement(elem) && getLocalName().equals(elem.getLocalName())) {
+    if (!elem.hasAttribute("from")) {
       logger.die(elem,"Attribute 'from' not found.");
     }
+    if (!elem.getAttribute("from").hasComputedValue()) {
+      logger.die(elem,"Attribute 'from' does not have a computed value");
+    }
+    computedAttributeInterpreter.interpretElement(elem);
+    String fieldRef=elem.consumeStringAttribute("from");
+    elem.assertNoAttributes();
     return "\" + " + fieldRef + " + \"";
   }
   return null;
