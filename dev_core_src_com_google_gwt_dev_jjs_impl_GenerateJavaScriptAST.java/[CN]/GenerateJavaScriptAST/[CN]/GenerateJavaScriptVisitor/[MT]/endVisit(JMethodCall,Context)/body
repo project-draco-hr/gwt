@@ -2,6 +2,20 @@
   JMethod method=x.getTarget();
   JsInvocation jsInvocation=new JsInvocation(x.getSourceInfo());
   popList(jsInvocation.getArguments(),x.getArgs().size());
+  if (JProgram.isClinit(method)) {
+    JDeclaredType type=method.getEnclosingType();
+    JDeclaredType clinitTarget=type.getClinitTarget();
+    if (clinitTarget == null) {
+      if (x.getInstance() != null) {
+        pop();
+      }
+      push(JsNullLiteral.INSTANCE);
+      return;
+    }
+ else     if (type != clinitTarget) {
+      method=clinitTarget.getMethods().get(0);
+    }
+  }
   JsNameRef qualifier;
   JsExpression unnecessaryQualifier=null;
   if (method.isStatic()) {
