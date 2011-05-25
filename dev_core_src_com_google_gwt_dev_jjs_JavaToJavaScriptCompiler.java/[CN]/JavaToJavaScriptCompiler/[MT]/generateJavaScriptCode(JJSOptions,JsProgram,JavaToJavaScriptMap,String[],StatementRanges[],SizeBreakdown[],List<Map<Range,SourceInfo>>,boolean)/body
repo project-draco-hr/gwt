@@ -9,23 +9,33 @@
       v=new JsSourceGenerationVisitorWithSizeBreakdown(out,jjsMap);
     }
     v.accept(jsProgram.getFragmentBlock(i));
+    StatementRanges statementRanges=v.getStatementRanges();
+    String code=out.toString();
+    Map<Range,SourceInfo> infoMap=(sourceInfoMaps != null) ? v.getSourceInfoMap() : null;
+    JsAbstractTextTransformer transformer=new JsAbstractTextTransformer(code,statementRanges,infoMap){
+      @Override public void exec(){
+      }
+      @Override protected void updateSourceInfoMap(){
+      }
+    }
+;
     Event functionClusterEvent=SpeedTracerLogger.start(CompilerEventType.FUNCTION_CLUSTER);
-    JsFunctionClusterer clusterer=new JsFunctionClusterer(out.toString(),v.getStatementRanges());
     if (options.isAggressivelyOptimize() && options.getOutput() == JsOutputOption.OBFUSCATED) {
-      clusterer.exec();
+      transformer=new JsFunctionClusterer(transformer);
+      transformer.exec();
     }
     functionClusterEvent.end();
-    JsIEBlockTextTransformer ieXformer=new JsIEBlockTextTransformer(clusterer);
     if (splitBlocks) {
-      ieXformer.exec();
+      transformer=new JsIEBlockTextTransformer(transformer);
+      transformer.exec();
     }
-    js[i]=ieXformer.getJs();
+    js[i]=transformer.getJs();
+    ranges[i]=transformer.getStatementRanges();
     if (sizeBreakdowns != null) {
       sizeBreakdowns[i]=v.getSizeBreakdown();
     }
     if (sourceInfoMaps != null) {
-      sourceInfoMaps.add(((JsReportGenerationVisitor)v).getSourceInfoMap());
+      sourceInfoMaps.add(transformer.getSourceInfoMap());
     }
-    ranges[i]=ieXformer.getStatementRanges();
   }
 }
