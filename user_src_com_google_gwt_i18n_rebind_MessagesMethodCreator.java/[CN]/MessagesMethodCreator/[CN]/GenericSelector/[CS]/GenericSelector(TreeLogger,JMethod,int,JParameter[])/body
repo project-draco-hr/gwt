@@ -3,11 +3,15 @@
   JPrimitiveType primType=argType.isPrimitive();
   JClassType classType=argType.isClass();
   JEnumType tempEnumType=null;
+  boolean tempIsBoolean=false;
   boolean tempIsString=false;
+  boolean tempNeedsIf=false;
   if (primType != null) {
     if (primType == JPrimitiveType.DOUBLE || primType == JPrimitiveType.FLOAT) {
       throw error(logger,m.getName() + ": @Select arguments may only be" + " integral primitives, boolean, enums, or String");
     }
+    tempIsBoolean=(primType == JPrimitiveType.BOOLEAN);
+    tempNeedsIf=tempIsBoolean || (primType == JPrimitiveType.LONG);
   }
  else   if (classType != null) {
     tempEnumType=classType.isEnum();
@@ -19,6 +23,9 @@
  else {
     throw error(logger,m.getName() + ": @Select arguments may only be" + " integral primitives, boolean, enums, or String");
   }
+  tempNeedsIf|=tempIsString;
   enumType=tempEnumType;
+  isBoolean=tempIsBoolean;
   isString=tempIsString;
+  needsIf=tempNeedsIf;
 }

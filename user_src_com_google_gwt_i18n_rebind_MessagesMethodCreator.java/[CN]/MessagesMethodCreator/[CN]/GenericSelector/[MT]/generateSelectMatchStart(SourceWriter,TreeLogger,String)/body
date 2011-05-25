@@ -1,5 +1,5 @@
 {
-  if (isString) {
+  if (needsIf) {
     if (startedIfChain) {
       out.print("} else ");
     }
@@ -10,8 +10,24 @@
       out.println("{  // other");
     }
  else {
-      value=value.replace("\"","\\\"");
-      out.println("if (\"" + value + "\".equals(arg"+ argNumber+ ")) {");
+      if (isString) {
+        value=value.replace("\"","\\\"");
+        out.println("if (\"" + value + "\".equals(arg"+ argNumber+ ")) {");
+      }
+ else       if (isBoolean) {
+        boolean isTrue=Boolean.parseBoolean(value);
+        out.println("if (" + (isTrue ? "" : "!") + "arg"+ argNumber+ ") {");
+      }
+ else {
+        long longVal;
+        try {
+          longVal=Long.parseLong(value);
+        }
+ catch (        NumberFormatException e) {
+          throw error(logger,"'" + value + "' is not a valid long value",e);
+        }
+        out.println("if (" + longVal + " == arg"+ argNumber+ ") {");
+      }
     }
   }
  else {
@@ -30,14 +46,14 @@
       out.println("case " + enumConstant.getOrdinal() + ":  // "+ value);
     }
  else {
-      long longVal;
+      int intVal;
       try {
-        longVal=Long.parseLong(value);
+        intVal=Integer.parseInt(value);
       }
  catch (      NumberFormatException e) {
-        throw error(logger,"'" + value + "' is not a valid numeric value",e);
+        throw error(logger,"'" + value + "' is not a valid integral value",e);
       }
-      out.println("case " + longVal + ":");
+      out.println("case " + intVal + ":");
     }
   }
   out.indent();
