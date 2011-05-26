@@ -1,22 +1,7 @@
 {
-  super(Document.get().createTableElement(),pageSize,keyProvider);
-  if (TABLE_IMPL == null) {
-    TABLE_IMPL=GWT.create(Impl.class);
-  }
-  if (template == null) {
-    template=GWT.create(Template.class);
-  }
-  this.resources=resources;
+  super(Document.get().createTableElement(),pageSize,new ResourcesAdapter(resources),keyProvider);
   this.style=resources.cellTableStyle();
   this.style.ensureInjected();
-  sortList=new ColumnSortList(new ColumnSortList.Delegate(){
-    @Override public void onModification(){
-      if (!updatingSortList) {
-        createHeaders(false);
-      }
-    }
-  }
-);
   table=getElement().cast();
   table.setCellSpacing(0);
   colgroup=Document.get().createColGroupElement();
@@ -31,7 +16,7 @@
   }
   table.appendChild(tbodyLoading=Document.get().createTBodyElement());
   tfoot=table.createTFoot();
-  setStyleName(this.style.cellTableWidget());
+  setStyleName(resources.cellTableStyle().cellTableWidget());
 {
     tbodyLoadingCell=Document.get().createTDElement();
     TableRowElement tr=Document.get().createTRElement();

@@ -4,10 +4,13 @@
     return;
   }
   com.google.gwt.user.client.Element target=eventTarget.cast();
+  String typeName=event.getType();
   EventListener listener=DOM.getEventListener(target);
   while (target != null && listener == null) {
     target=target.getParentElement().cast();
-    listener=(target == null) ? null : DOM.getEventListener(target);
+    if (target != null && isNonBubblingEventHandled(target,typeName)) {
+      listener=DOM.getEventListener(target);
+    }
   }
   if (listener != null) {
     dispatchEvent(event,target,listener);

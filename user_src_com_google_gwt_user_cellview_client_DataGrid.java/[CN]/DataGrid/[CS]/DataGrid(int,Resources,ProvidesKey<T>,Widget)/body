@@ -1,0 +1,44 @@
+{
+  super(new HeaderPanel(),pageSize,new ResourcesAdapter(resources),keyProvider);
+  headerPanel=(HeaderPanel)getWidget();
+  this.style=resources.dataGridStyle();
+  this.style.ensureInjected();
+  tableHeader=new TableWidget();
+  tableHeader.section=tableHeader.tableElem.createTHead();
+  tableFooter=new TableWidget();
+  tableFooter.section=tableFooter.tableElem.createTFoot();
+  tableHeaderContainer=new SimplePanel(tableHeader);
+  tableFooterContainer=new SimplePanel(tableFooter);
+  headerPanel.setHeaderWidget(tableHeaderContainer);
+  tableHeaderScroller=tableHeaderContainer.getElement().getParentElement();
+  headerPanel.setFooterWidget(tableFooterContainer);
+  tableFooterScroller=tableFooterContainer.getElement().getParentElement();
+  tableHeaderScroller.getStyle().setOverflow(Overflow.HIDDEN);
+  tableFooterScroller.getStyle().setOverflow(Overflow.HIDDEN);
+  tableData=new TableWidget();
+  if (tableData.tableElem.getTBodies().getLength() > 0) {
+    tableData.section=tableData.tableElem.getTBodies().getItem(0);
+  }
+ else {
+    tableData.section=Document.get().createTBodyElement();
+    tableData.tableElem.appendChild(tableData.section);
+  }
+  tableDataScroller=new CustomScrollPanel(tableData);
+  tableDataScroller.setHeight("100%");
+  headerPanel.setContentWidget(tableDataScroller);
+  tableDataContainer=tableData.getElement().getParentElement();
+  tableDataContainer.getStyle().setDisplay(Display.BLOCK);
+  emptyTableWidgetContainer=new FlexTable();
+  emptyTableWidgetContainer.getElement().setAttribute("align","center");
+  loadingIndicatorContainer=new FlexTable();
+  loadingIndicatorContainer.getElement().setAttribute("align","center");
+  setLoadingIndicator(loadingIndicator);
+  tableDataScroller.addScrollHandler(new ScrollHandler(){
+    @Override public void onScroll(    ScrollEvent event){
+      int scrollLeft=tableDataScroller.getHorizontalScrollPosition();
+      tableHeaderScroller.setScrollLeft(scrollLeft);
+      tableFooterScroller.setScrollLeft(scrollLeft);
+    }
+  }
+);
+}

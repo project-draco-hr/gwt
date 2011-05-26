@@ -1,16 +1,17 @@
 {
   Images images=GWT.create(Images.class);
   editableCells=new ArrayList<AbstractEditableCell<?,?>>();
-  cellTable=new CellTable<ContactInfo>(6,ContactInfo.KEY_PROVIDER);
-  ContactDatabase.get().addDataDisplay(cellTable);
+  contactList=new DataGrid<ContactInfo>(25,ContactInfo.KEY_PROVIDER);
+  contactList.setMinimumTableWidth(140,Unit.EM);
+  ContactDatabase.get().addDataDisplay(contactList);
   final Category[] categories=ContactDatabase.get().queryCategories();
   addColumn(new CheckboxCell(),"Checkbox",new GetValue<Boolean>(){
-    public Boolean getValue(    ContactInfo contact){
+    @Override public Boolean getValue(    ContactInfo contact){
       return contact.getCategory() == categories[0];
     }
   }
 ,new FieldUpdater<ContactInfo,Boolean>(){
-    public void update(    int index,    ContactInfo object,    Boolean value){
+    @Override public void update(    int index,    ContactInfo object,    Boolean value){
       if (value) {
         pendingChanges.add(new CategoryChange(object,categories[0]));
       }
@@ -21,99 +22,101 @@
   }
 );
   addColumn(new TextCell(),"Text",new GetValue<String>(){
-    public String getValue(    ContactInfo contact){
+    @Override public String getValue(    ContactInfo contact){
       return contact.getFullName();
     }
   }
 ,null);
-  addColumn(new EditTextCell(),"EditText",new GetValue<String>(){
-    public String getValue(    ContactInfo contact){
+  Column<ContactInfo,String> editTextColumn=addColumn(new EditTextCell(),"EditText",new GetValue<String>(){
+    @Override public String getValue(    ContactInfo contact){
       return contact.getFirstName();
     }
   }
 ,new FieldUpdater<ContactInfo,String>(){
-    public void update(    int index,    ContactInfo object,    String value){
+    @Override public void update(    int index,    ContactInfo object,    String value){
       pendingChanges.add(new FirstNameChange(object,value));
     }
   }
 );
-  addColumn(new TextInputCell(),"TextInput",new GetValue<String>(){
-    public String getValue(    ContactInfo contact){
+  contactList.setColumnWidth(editTextColumn,16.0,Unit.EM);
+  Column<ContactInfo,String> textInputColumn=addColumn(new TextInputCell(),"TextInput",new GetValue<String>(){
+    @Override public String getValue(    ContactInfo contact){
       return contact.getLastName();
     }
   }
 ,new FieldUpdater<ContactInfo,String>(){
-    public void update(    int index,    ContactInfo object,    String value){
+    @Override public void update(    int index,    ContactInfo object,    String value){
       pendingChanges.add(new LastNameChange(object,value));
     }
   }
 );
+  contactList.setColumnWidth(textInputColumn,16.0,Unit.EM);
   addColumn(new ClickableTextCell(),"ClickableText",new GetValue<String>(){
-    public String getValue(    ContactInfo contact){
+    @Override public String getValue(    ContactInfo contact){
       return "Click " + contact.getFirstName();
     }
   }
 ,new FieldUpdater<ContactInfo,String>(){
-    public void update(    int index,    ContactInfo object,    String value){
+    @Override public void update(    int index,    ContactInfo object,    String value){
       Window.alert("You clicked " + object.getFullName());
     }
   }
 );
   addColumn(new ActionCell<ContactInfo>("Click Me",new ActionCell.Delegate<ContactInfo>(){
-    public void execute(    ContactInfo contact){
+    @Override public void execute(    ContactInfo contact){
       Window.alert("You clicked " + contact.getFullName());
     }
   }
 ),"Action",new GetValue<ContactInfo>(){
-    public ContactInfo getValue(    ContactInfo contact){
+    @Override public ContactInfo getValue(    ContactInfo contact){
       return contact;
     }
   }
 ,null);
   addColumn(new ButtonCell(),"Button",new GetValue<String>(){
-    public String getValue(    ContactInfo contact){
+    @Override public String getValue(    ContactInfo contact){
       return "Click " + contact.getFirstName();
     }
   }
 ,new FieldUpdater<ContactInfo,String>(){
-    public void update(    int index,    ContactInfo object,    String value){
+    @Override public void update(    int index,    ContactInfo object,    String value){
       Window.alert("You clicked " + object.getFullName());
     }
   }
 );
   DateTimeFormat dateFormat=DateTimeFormat.getFormat(PredefinedFormat.DATE_MEDIUM);
   addColumn(new DateCell(dateFormat),"Date",new GetValue<Date>(){
-    public Date getValue(    ContactInfo contact){
+    @Override public Date getValue(    ContactInfo contact){
       return contact.getBirthday();
     }
   }
 ,null);
   addColumn(new DatePickerCell(dateFormat),"DatePicker",new GetValue<Date>(){
-    public Date getValue(    ContactInfo contact){
+    @Override public Date getValue(    ContactInfo contact){
       return contact.getBirthday();
     }
   }
 ,new FieldUpdater<ContactInfo,Date>(){
-    public void update(    int index,    ContactInfo object,    Date value){
+    @Override public void update(    int index,    ContactInfo object,    Date value){
       pendingChanges.add(new BirthdayChange(object,value));
     }
   }
 );
   Column<ContactInfo,Number> numberColumn=addColumn(new NumberCell(),"Number",new GetValue<Number>(){
-    public Number getValue(    ContactInfo contact){
+    @Override public Number getValue(    ContactInfo contact){
       return contact.getAge();
     }
   }
 ,null);
   numberColumn.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_LOCALE_END);
   addColumn(new IconCellDecorator<String>(images.contactsGroup(),new TextCell()),"Icon",new GetValue<String>(){
-    public String getValue(    ContactInfo contact){
+    @Override public String getValue(    ContactInfo contact){
       return contact.getCategory().getDisplayName();
     }
   }
 ,null);
   addColumn(new ImageCell(),"Image",new GetValue<String>(){
-    public String getValue(    ContactInfo contact){
+    @Override public String getValue(    ContactInfo contact){
       return "contact.jpg";
     }
   }
@@ -123,12 +126,12 @@
     options.add(category.getDisplayName());
   }
   addColumn(new SelectionCell(options),"Selection",new GetValue<String>(){
-    public String getValue(    ContactInfo contact){
+    @Override public String getValue(    ContactInfo contact){
       return contact.getCategory().getDisplayName();
     }
   }
 ,new FieldUpdater<ContactInfo,String>(){
-    public void update(    int index,    ContactInfo object,    String value){
+    @Override public void update(    int index,    ContactInfo object,    String value){
       for (      Category category : categories) {
         if (category.getDisplayName().equals(value)) {
           pendingChanges.add(new CategoryChange(object,category));
@@ -141,13 +144,13 @@
   Binder uiBinder=GWT.create(Binder.class);
   Widget widget=uiBinder.createAndBindUi(this);
   redrawButton.addClickHandler(new ClickHandler(){
-    public void onClick(    ClickEvent event){
-      cellTable.redraw();
+    @Override public void onClick(    ClickEvent event){
+      contactList.redraw();
     }
   }
 );
   commitButton.addClickHandler(new ClickHandler(){
-    public void onClick(    ClickEvent event){
+    @Override public void onClick(    ClickEvent event){
       for (      PendingChange<?> pendingChange : pendingChanges) {
         pendingChange.commit();
       }

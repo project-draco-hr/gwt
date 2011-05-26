@@ -1,0 +1,28 @@
+{
+  final List<LoadingState> loadingStates=new ArrayList<LoadingState>();
+  T table=createAbstractHasData();
+  table.setPageSize(10);
+  table.addLoadingStateChangeHandler(new LoadingStateChangeEvent.Handler(){
+    @Override public void onLoadingStateChanged(    LoadingStateChangeEvent event){
+      if (LoadingState.LOADED == event.getLoadingState()) {
+        loadingStates.add(event.getLoadingState());
+      }
+    }
+  }
+);
+  table.addColumn(new Column<String,String>(new TextCell()){
+    @Override public String getValue(    String object){
+      return object + "-3";
+    }
+  }
+);
+  table.addColumn(new Column<String,String>(new TextCell()){
+    @Override public String getValue(    String object){
+      return object + "-4";
+    }
+  }
+);
+  table.setRowData(0,createData(0,10));
+  table.getPresenter().flush();
+  assertEquals(1,loadingStates.size());
+}
