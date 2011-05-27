@@ -1,0 +1,36 @@
+{
+  delayTestFinish(TEST_DELAY);
+  List<String> ids=Arrays.asList("1L","999L");
+  final List<SimpleBarProxy> proxies=new ArrayList<SimpleBarProxy>();
+  SimpleBarRequest ctx=req.simpleBarRequest();
+  for (  String id : ids) {
+    ctx.findSimpleBarById(id).to(new Receiver<SimpleBarProxy>(){
+      @Override public void onSuccess(      SimpleBarProxy response){
+        proxies.add(response);
+      }
+    }
+);
+  }
+  ctx.fire(new Receiver<Void>(){
+    @Override public void onSuccess(    Void response){
+      final List<SimpleBarProxy> reloaded=new ArrayList<SimpleBarProxy>();
+      SimpleBarRequest ctx=req.simpleBarRequest();
+      for (      SimpleBarProxy proxy : proxies) {
+        ctx.find(proxy.stableId()).to(new Receiver<SimpleBarProxy>(){
+          @Override public void onSuccess(          SimpleBarProxy response){
+            reloaded.add(response);
+          }
+        }
+);
+      }
+      ctx.fire(new Receiver<Void>(){
+        @Override public void onSuccess(        Void response){
+          assertEquals(proxies,reloaded);
+          finishTest();
+        }
+      }
+);
+    }
+  }
+);
+}
