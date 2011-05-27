@@ -1,7 +1,6 @@
 {
   Event codeSplitterEvent=SpeedTracerLogger.start(CompilerEventType.CODE_SPLITTER,"phase","findSplitPoint");
-  Map<JMethod,List<Integer>> methodToSplitPoint=reverseByEnclosingMethod(program.getRunAsyncReplacements());
-  Map<String,List<Integer>> nameToSplitPoint=reverseByName(program.getRunAsyncReplacements());
+  Map<String,List<Integer>> nameToSplitPoint=reverseByName(program.getRunAsyncs());
   if (refString.startsWith("@")) {
     JsniRef jsniRef=JsniRef.parse(refString);
     if (jsniRef == null) {
@@ -25,7 +24,8 @@
       throw new UnableToCompleteException();
     }
     JMethod method=(JMethod)referent;
-    List<Integer> splitPoints=methodToSplitPoint.get(method);
+    String canonicalName=ReplaceRunAsyncs.getImplicitName(method);
+    List<Integer> splitPoints=nameToSplitPoint.get(canonicalName);
     if (splitPoints == null) {
       branch.log(TreeLogger.ERROR,"Method does not enclose a runAsync call: " + jsniRef);
       throw new UnableToCompleteException();
