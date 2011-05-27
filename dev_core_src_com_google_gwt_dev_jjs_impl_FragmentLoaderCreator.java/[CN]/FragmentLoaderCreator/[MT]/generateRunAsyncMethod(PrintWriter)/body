@@ -1,0 +1,25 @@
+{
+  srcWriter.println("public static void " + LOADER_METHOD_RUN_ASYNC + "(RunAsyncCallback callback) {");
+  srcWriter.println(getCallbackListSimpleName() + " newCallback = new " + getCallbackListSimpleName()+ "();");
+  srcWriter.println("newCallback.callback = callback;");
+  srcWriter.println("if (callbacksTail != null) {");
+  srcWriter.println("  callbacksTail.next = newCallback;");
+  srcWriter.println("}");
+  srcWriter.println("callbacksTail = newCallback;");
+  srcWriter.println("if (callbacksHead == null) {");
+  srcWriter.println("  callbacksHead = newCallback;");
+  srcWriter.println("}");
+  srcWriter.println("if (instance != null) {");
+  srcWriter.println("  instance." + RUN_CALLBACKS + "();");
+  srcWriter.println("  return;");
+  srcWriter.println("}");
+  srcWriter.println("if (!" + BROWSER_LOADER + ".isLoading("+ entryNumber+ ")) {");
+  srcWriter.println("  " + BROWSER_LOADER + ".inject("+ entryNumber+ ",");
+  srcWriter.println("  new AsyncFragmentLoader.LoadTerminatedHandler() {");
+  srcWriter.println("    public void loadTerminated(Throwable reason) {");
+  srcWriter.println("      runCallbackOnFailures(reason);");
+  srcWriter.println("    }");
+  srcWriter.println("  });");
+  srcWriter.println("}");
+  srcWriter.println("}");
+}

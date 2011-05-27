@@ -1,2 +1,44 @@
 {
+  List<JsStatement> extractedStats=new ArrayList<JsStatement>();
+  JClassType currentVtableType=null;
+  for (int frag=0; frag < jsprogram.getFragmentCount(); frag++) {
+    List<JsStatement> stats=jsprogram.getFragmentBlock(frag).getStatements();
+    for (    JsStatement stat : stats) {
+      if (isEntryCall(stat)) {
+        continue;
+      }
+      boolean keepIt;
+      JClassType vtableTypeAssigned=vtableTypeAssigned(stat);
+      if (vtableTypeAssigned != null && livenessPredicate.isLive(vtableTypeAssigned)) {
+        JsExprStmt result=extractPrototypeSetup(livenessPredicate,alreadyLoadedPredicate,stat,vtableTypeAssigned);
+        if (result != null) {
+          stat=result;
+          keepIt=true;
+        }
+ else {
+          keepIt=false;
+        }
+      }
+ else       if (containsRemovableVars(stat)) {
+        stat=removeSomeVars((JsVars)stat,livenessPredicate,alreadyLoadedPredicate);
+        keepIt=!(stat instanceof JsEmpty);
+      }
+ else {
+        keepIt=isLive(stat,livenessPredicate) && !isLive(stat,alreadyLoadedPredicate);
+      }
+      statementLogger.logStatement(stat,keepIt);
+      if (keepIt) {
+        if (vtableTypeAssigned != null) {
+          currentVtableType=vtableTypeAssigned;
+        }
+        JClassType vtableType=vtableTypeNeeded(stat);
+        if (vtableType != null && vtableType != currentVtableType) {
+          extractedStats.add(vtableStatFor(vtableType));
+          currentVtableType=vtableType;
+        }
+        extractedStats.add(stat);
+      }
+    }
+  }
+  return extractedStats;
 }
