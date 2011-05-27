@@ -1,0 +1,41 @@
+{
+  CountingReceiver c1=new CountingReceiver();
+  c1.setExplode(true);
+  CountingReceiver c2=new CountingReceiver();
+  FanoutReceiver<Integer> fan=new FanoutReceiver<Integer>();
+  fan.add(c1);
+  fan.add(c2);
+  try {
+    fan.onConstraintViolation(null);
+    fail("Expected UmbrellaException");
+  }
+ catch (  UmbrellaException ex) {
+    assertEquals(1,ex.getCauses().size());
+    assertEquals(MESSAGE,ex.getCause().getMessage());
+  }
+  try {
+    fan.onFailure(null);
+    fail("Expected UmbrellaException");
+  }
+ catch (  UmbrellaException ex) {
+    assertEquals(1,ex.getCauses().size());
+    assertEquals(MESSAGE,ex.getCause().getMessage());
+  }
+  try {
+    fan.onSuccess(EXPECTED_VALUE);
+    fail("Expected UmbrellaException");
+  }
+ catch (  UmbrellaException ex) {
+    assertEquals(1,ex.getCauses().size());
+    assertEquals(MESSAGE,ex.getCause().getMessage());
+  }
+  try {
+    fan.onViolation(null);
+    fail("Expected UmbrellaException");
+  }
+ catch (  UmbrellaException ex) {
+    assertEquals(1,ex.getCauses().size());
+    assertEquals(MESSAGE,ex.getCause().getMessage());
+  }
+  c2.check();
+}

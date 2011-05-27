@@ -1,14 +1,33 @@
 {
+  final Receiver<Void> finalReceiver;
+  if (state.fireDisabled) {
+    if (receiver != null) {
+      if (state.fanout == null) {
+        state.fanout=new FanoutReceiver<Void>();
+      }
+      state.fanout.add(receiver);
+    }
+    return;
+  }
+ else   if (state.fanout != null) {
+    if (receiver != null) {
+      state.fanout.add(receiver);
+    }
+    finalReceiver=state.fanout;
+  }
+ else {
+    finalReceiver=receiver;
+  }
   checkLocked();
   state.locked=true;
   freezeEntities(true);
   String payload=state.dialect.makePayload();
   state.requestFactory.getRequestTransport().send(payload,new TransportReceiver(){
     public void onTransportFailure(    ServerFailure failure){
-      fail(receiver,failure);
+      fail(finalReceiver,failure);
     }
     public void onTransportSuccess(    String payload){
-      state.dialect.processPayload(receiver,payload);
+      state.dialect.processPayload(finalReceiver,payload);
     }
   }
 );

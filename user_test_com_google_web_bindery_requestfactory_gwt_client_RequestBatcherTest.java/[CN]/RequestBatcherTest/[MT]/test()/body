@@ -1,0 +1,33 @@
+{
+  delayTestFinish(TEST_DELAY);
+  final List<Boolean> ok=new ArrayList<Boolean>();
+  MyBatcher batcher=new MyBatcher();
+  batcher.get().add(3,5).to(new Receiver<Integer>(){
+    @Override public void onSuccess(    Integer response){
+      assertEquals(8,response.intValue());
+      ok.add(true);
+    }
+  }
+);
+  batcher.simpleBarRequest().countSimpleBar().fire(new Receiver<Long>(){
+    @Override public void onSuccess(    Long response){
+      assertEquals(2,response.longValue());
+      ok.add(true);
+    }
+  }
+);
+  batcher.get().fire(new Receiver<Void>(){
+    @Override public void onSuccess(    Void response){
+      ok.add(true);
+    }
+  }
+);
+  batcher.get(new Receiver<Void>(){
+    @Override public void onSuccess(    Void response){
+      assertEquals(3,ok.size());
+      finishTestAndReset();
+    }
+  }
+);
+  assertFalse(((AbstractRequestContext)batcher.get()).isLocked());
+}
