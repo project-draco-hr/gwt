@@ -2,7 +2,13 @@
   String prefix=elem.lookupPrefix(getMessagesUri());
   if (prefix != null) {
     messagesPrefix=prefix;
-    String baseInterfaceAttr=elem.consumeRawAttribute(getMessagesPrefix() + ":baseInterface");
+    String baseInterfaceAttr=consumeMessageAttribute("baseMessagesInterface",elem,null);
+    if (baseInterfaceAttr == null) {
+      baseInterfaceAttr=consumeMessageAttribute("baseInterface",elem,null);
+      if (baseInterfaceAttr != null) {
+        logger.warn(elem,"baseInterface is deprecated, use baseMessagesInterface instead");
+      }
+    }
     if (baseInterfaceAttr != null) {
       JClassType baseInterfaceType=oracle.findType(baseInterfaceAttr);
       if (baseInterfaceType == null) {
