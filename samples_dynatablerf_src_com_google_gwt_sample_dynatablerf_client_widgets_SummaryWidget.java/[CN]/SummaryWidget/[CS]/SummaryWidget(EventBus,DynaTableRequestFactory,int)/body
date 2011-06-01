@@ -2,9 +2,8 @@
   this.eventBus=eventBus;
   this.requestFactory=requestFactory;
   this.numRows=numRows;
-  table=new CellTable<PersonProxy>(numRows,GWT.<TableResources>create(TableResources.class));
+  table=new DataGrid<PersonProxy>(numRows,GWT.<TableResources>create(TableResources.class));
   initWidget(GWT.<Binder>create(Binder.class).createAndBindUi(this));
-  dock.getWidgetContainerElement(table).getStyle().setProperty("overflowY","visible");
   Column<PersonProxy,String> nameColumn=new NameColumn();
   table.addColumn(nameColumn,"Name");
   table.setColumnWidth(nameColumn,"25ex");
@@ -16,18 +15,18 @@
   table.setSelectionModel(selectionModel);
   table.setKeyboardSelectionPolicy(KeyboardSelectionPolicy.DISABLED);
   EntityProxyChange.registerForProxyType(eventBus,PersonProxy.class,new EntityProxyChange.Handler<PersonProxy>(){
-    public void onProxyChange(    EntityProxyChange<PersonProxy> event){
+    @Override public void onProxyChange(    EntityProxyChange<PersonProxy> event){
       SummaryWidget.this.onPersonChanged(event);
     }
   }
 );
   FilterChangeEvent.register(eventBus,new FilterChangeEvent.Handler(){
-    public void onFilterChanged(    FilterChangeEvent e){
+    @Override public void onFilterChanged(    FilterChangeEvent e){
       filter.set(e.getDay(),e.isSelected());
       if (!pending) {
         pending=true;
         Scheduler.get().scheduleFinally(new ScheduledCommand(){
-          public void execute(){
+          @Override public void execute(){
             pending=false;
             fetch(0);
           }
@@ -38,7 +37,7 @@
   }
 );
   selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler(){
-    public void onSelectionChange(    SelectionChangeEvent event){
+    @Override public void onSelectionChange(    SelectionChangeEvent event){
       SummaryWidget.this.refreshSelection();
     }
   }
