@@ -1,19 +1,23 @@
 {
+  final int curRunId=runId;
   boolean finished=curTime >= startTime + duration;
-  if (started && !finished) {
+  if (isStarted && !finished) {
     double progress=(curTime - startTime) / duration;
     onUpdate(interpolate(progress));
-    return false;
+    return isRunning(curRunId);
   }
-  if (!started && curTime >= startTime) {
-    started=true;
+  if (!isStarted && curTime >= startTime) {
+    isStarted=true;
     onStart();
+    if (!isRunning(curRunId)) {
+      return false;
+    }
   }
   if (finished) {
+    isRunning=false;
+    isStarted=false;
     onComplete();
-    started=false;
-    running=false;
-    return true;
+    return false;
   }
-  return false;
+  return true;
 }

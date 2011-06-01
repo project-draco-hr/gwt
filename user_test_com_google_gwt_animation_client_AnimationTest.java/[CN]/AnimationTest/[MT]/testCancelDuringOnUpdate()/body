@@ -1,0 +1,28 @@
+{
+  final TestAnimation anim=new TestAnimation(){
+    @Override protected void onUpdate(    double progress){
+      super.onUpdate(progress);
+      assertStarted(false);
+      assertUpdated(true);
+      assertCompleted(false);
+      assertCancelled(false);
+      reset();
+      cancel();
+    }
+  }
+;
+  anim.run(10 * DELAY_MULTIPLIER);
+  anim.assertStarted(true);
+  anim.assertUpdated(false);
+  anim.assertCompleted(false);
+  anim.assertCancelled(false);
+  anim.assertProgress(-1.0);
+  anim.reset();
+  executeLastCallbackAt(curTime + DELAY_MULTIPLIER);
+  anim.assertStarted(false);
+  anim.assertUpdated(false);
+  anim.assertCompleted(false);
+  anim.assertCancelled(true);
+  anim.assertProgress(-1.0);
+  assertEquals(0,callbacks.size());
+}
