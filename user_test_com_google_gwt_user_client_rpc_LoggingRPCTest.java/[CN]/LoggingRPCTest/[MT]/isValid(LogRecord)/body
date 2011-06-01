@@ -1,0 +1,30 @@
+{
+  if (!expectedLogRecord.getLevel().toString().equals(value.getLevel().toString())) {
+    return false;
+  }
+  if (!expectedLogRecord.getMessage().equals(value.getMessage())) {
+    return false;
+  }
+  if (expectedLogRecord.getMillis() != value.getMillis()) {
+    return false;
+  }
+  if (!expectedLogRecord.getLoggerName().equals(value.getLoggerName())) {
+    return false;
+  }
+  Throwable expectedCause=expectedLogRecord.getThrown();
+  Throwable valueCause=value.getThrown();
+  while (expectedCause != null) {
+    if (valueCause == null) {
+      return false;
+    }
+    if (!expectedCause.getMessage().equals(valueCause.getMessage())) {
+      return false;
+    }
+    expectedCause=expectedCause.getCause();
+    valueCause=valueCause.getCause();
+  }
+  if (valueCause != null) {
+    return false;
+  }
+  return true;
+}
