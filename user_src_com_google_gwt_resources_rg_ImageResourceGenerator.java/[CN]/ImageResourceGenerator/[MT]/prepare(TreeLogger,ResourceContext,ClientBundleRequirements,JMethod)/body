@@ -9,10 +9,13 @@
   LocalizedImage localizedImage;
   ImageRect rect;
   try {
-    BundledImage bundledImage=(BundledImage)getImage(context,image);
+    BundledImage bundledImage=(BundledImage)getImage(image);
     localizedImage=bundledImage.addImage(logger,context,image);
     rect=bundledImage.getImageRect(image);
     displayed=bundledImage;
+    if (image.isPreventInlining()) {
+      cannotBundle=true;
+    }
   }
  catch (  CannotBundleImageException e) {
     cannotBundle=true;
@@ -40,7 +43,7 @@
       }
     }
     ExternalImage externalImage=new ExternalImage(image,localizedImage,rect);
-    shared.externalImages.put(new BundleKey(image),externalImage);
+    shared.externalImages.put(new BundleKey(image,true),externalImage);
     displayed=externalImage;
   }
   if (image.isFlipRtl()) {
