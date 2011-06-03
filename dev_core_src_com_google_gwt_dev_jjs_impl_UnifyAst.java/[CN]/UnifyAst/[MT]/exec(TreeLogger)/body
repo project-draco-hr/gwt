@@ -1,0 +1,74 @@
+{
+  this.logger=logger;
+  for (  JMethod entryMethod : program.getEntryMethods()) {
+    flowInto(entryMethod);
+  }
+  for (  JClassType type : program.codeGenTypes) {
+    for (    JMethod method : type.getMethods()) {
+      flowInto(method);
+    }
+  }
+  instantiate(program.getTypeJavaLangString());
+  flowInto(program.getIndexedMethod("Object.toString"));
+  mapApi(program.getTypeJavaLangString());
+  flowInto(methodMap.get("java.lang.String.valueOf(C)Ljava/lang/String;"));
+  flowInto(program.getIndexedMethod("Enum.obfuscatedName"));
+  AutoboxUtils autoboxUtils=new AutoboxUtils(program);
+  for (  JMethod method : autoboxUtils.getBoxMethods()) {
+    flowInto(method);
+  }
+  for (  JMethod method : autoboxUtils.getUnboxMethods()) {
+    flowInto(method);
+  }
+  if (options.isRunAsyncEnabled()) {
+    flowInto(program.getIndexedMethod("AsyncFragmentLoader.onLoad"));
+    flowInto(program.getIndexedMethod("AsyncFragmentLoader.runAsync"));
+  }
+  staticInitialize(program.getTypeClassLiteralHolder());
+  for (  JMethod method : program.getTypeJavaLangClass().getMethods()) {
+    if (method.isStatic() && method.getName().startsWith("createFor")) {
+      flowInto(method);
+    }
+  }
+  UnifyVisitor visitor=new UnifyVisitor();
+  while (!todo.isEmpty()) {
+    visitor.accept(todo.poll());
+  }
+  for (Iterator<JDeclaredType> it=program.getDeclaredTypes().iterator(); it.hasNext(); ) {
+    JDeclaredType type=it.next();
+    boolean isInstantiated=instantiatedTypes.contains(type);
+    for (int i=0; i < type.getFields().size(); ++i) {
+      JField field=type.getFields().get(i);
+      if (!liveFieldsAndMethods.contains(field) || (!field.isStatic() && !isInstantiated)) {
+        type.removeField(i);
+        --i;
+      }
+    }
+    JMethod clinit=type.getMethods().get(0);
+    if (!liveFieldsAndMethods.contains(clinit)) {
+      clinit.setBody(new JMethodBody(SourceOrigin.UNKNOWN));
+    }
+    for (int i=1; i < type.getMethods().size(); ++i) {
+      JMethod method=type.getMethods().get(i);
+      if (!liveFieldsAndMethods.contains(method) || (!method.isStatic() && !isInstantiated)) {
+        type.removeMethod(i);
+        --i;
+      }
+    }
+  }
+  for (  JDeclaredType type : program.getDeclaredTypes()) {
+    Map<String,Set<JMethod>> collected=new HashMap<String,Set<JMethod>>();
+    for (    JMethod method : type.getMethods()) {
+      if (method.canBePolymorphic()) {
+        collected.put(method.getSignature(),new LinkedHashSet<JMethod>());
+      }
+    }
+    collectUpRefsInSupers(type,collected);
+    for (    JMethod method : type.getMethods()) {
+      if (method.canBePolymorphic()) {
+        Set<JMethod> uprefs=collected.get(method.getSignature());
+        method.addOverrides(Lists.create(uprefs));
+      }
+    }
+  }
+}
