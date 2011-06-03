@@ -1,6 +1,7 @@
 {
   Activity nextActivity=getNextActivity(event);
   Throwable caughtOnStop=null;
+  Throwable caughtOnCancel=null;
   Throwable caughtOnStart=null;
   if (nextActivity == null) {
     nextActivity=NULL_ACTIVITY;
@@ -9,39 +10,30 @@
     return;
   }
   if (startingNext) {
-    currentActivity.onCancel();
+    caughtOnCancel=tryStopOrCancel(false);
     currentActivity=NULL_ACTIVITY;
     startingNext=false;
   }
  else   if (!currentActivity.equals(NULL_ACTIVITY)) {
     showWidget(null);
     stopperedEventBus.removeHandlers();
-    try {
-      currentActivity.onStop();
-    }
- catch (    Throwable t) {
-      caughtOnStop=t;
-    }
- finally {
-      stopperedEventBus.removeHandlers();
-    }
+    caughtOnStop=tryStopOrCancel(true);
   }
   currentActivity=nextActivity;
   if (currentActivity.equals(NULL_ACTIVITY)) {
     showWidget(null);
-    return;
   }
-  startingNext=true;
-  try {
-    currentActivity.start(new ProtectedDisplay(currentActivity),stopperedEventBus);
+ else {
+    startingNext=true;
+    caughtOnStart=tryStart();
   }
- catch (  Throwable t) {
-    caughtOnStart=t;
-  }
-  if (caughtOnStart != null || caughtOnStop != null) {
+  if (caughtOnStart != null || caughtOnCancel != null || caughtOnStop != null) {
     Set<Throwable> causes=new LinkedHashSet<Throwable>();
     if (caughtOnStop != null) {
       causes.add(caughtOnStop);
+    }
+    if (caughtOnCancel != null) {
+      causes.add(caughtOnCancel);
     }
     if (caughtOnStart != null) {
       causes.add(caughtOnStart);

@@ -1,13 +1,13 @@
 {
-  activity1=new SyncActivity(null){
+  activity1=new AsyncActivity(null){
     @Override public void start(    AcceptsOneWidget panel,    EventBus eventBus){
       super.start(panel,eventBus);
       bus.addHandler(Event.TYPE,new Handler());
     }
-    @Override public void onStop(){
-      super.onStop();
+    @Override public void onCancel(){
+      super.onCancel();
       bus.addHandler(Event.TYPE,new Handler());
-      throw new UnsupportedOperationException("Exception on stop");
+      throw new UnsupportedOperationException("Exception on cancel");
     }
   }
 ;
@@ -32,7 +32,7 @@
     UmbrellaException nested=(UmbrellaException)e.getCause();
     assertEquals(2,nested.getCauses().size());
   }
-  assertTrue(activity1.stopped);
+  assertTrue(activity1.canceled);
   assertNotNull(activity2.display);
   assertEquals(0,eventBus.getCount(Event.TYPE));
 }
