@@ -1,14 +1,16 @@
 {
   String expression=formalParameterName;
-  if (isSafeStyles(parameterType)) {
+  if (isSafeUri(parameterType) || isSafeStyles(parameterType)) {
     expression=expression + ".asString()";
   }
- else   if (!JAVA_LANG_STRING_FQCN.equals(parameterType.getQualifiedSourceName())) {
-    expression="String.valueOf(" + expression + ")";
+ else {
+    if (!JAVA_LANG_STRING_FQCN.equals(parameterType.getQualifiedSourceName())) {
+      expression="String.valueOf(" + expression + ")";
+    }
+    if ((htmlContext.getType() == HtmlContext.Type.URL_ATTRIBUTE_START) || (htmlContext.getType() == HtmlContext.Type.URL_ATTRIBUTE_ENTIRE)) {
+      expression=URI_UTILS_FQCN + ".sanitizeUri(" + expression+ ")";
+    }
   }
-  if ((htmlContext.getType() == HtmlContext.Type.URL_ATTRIBUTE_START) || (htmlContext.getType() == HtmlContext.Type.URL_ATTRIBUTE_ENTIRE)) {
-    expression=URI_UTILS_FQCN + ".sanitizeUri(" + expression+ ")";
-  }
-  expression=ESCAPE_UTILS_FQCN + ".htmlEscape(" + expression+ ")";
+  expression=SAFE_HTML_UTILS_FQCN + ".htmlEscape(" + expression+ ")";
   print(expression);
 }

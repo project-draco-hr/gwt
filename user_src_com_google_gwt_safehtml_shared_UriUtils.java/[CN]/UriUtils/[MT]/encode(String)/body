@@ -1,0 +1,36 @@
+{
+  if (GWT.isScript()) {
+    uri=URL.encode(uri);
+    if (uri.indexOf("%5B") != -1) {
+      uri=ESCAPED_LBRACKET_RE.replace(uri,"[");
+    }
+    if (uri.indexOf("%5D") != -1) {
+      uri=ESCAPED_RBRACKET_RE.replace(uri,"]");
+    }
+    return uri;
+  }
+ else {
+    StringBuilder sb=new StringBuilder();
+    byte[] utf8bytes;
+    try {
+      utf8bytes=uri.getBytes("UTF-8");
+    }
+ catch (    UnsupportedEncodingException e) {
+      return null;
+    }
+    for (    byte b : utf8bytes) {
+      int c=b & 0xFF;
+      if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9')|| DONT_NEED_ENCODING.indexOf(c) != -1) {
+        sb.append((char)c);
+      }
+ else {
+        String hexByte=Integer.toHexString(c).toUpperCase();
+        if (hexByte.length() == 1) {
+          hexByte="0" + hexByte;
+        }
+        sb.append('%').append(hexByte);
+      }
+    }
+    return sb.toString();
+  }
+}

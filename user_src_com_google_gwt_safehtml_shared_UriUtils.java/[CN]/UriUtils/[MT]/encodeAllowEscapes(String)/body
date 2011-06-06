@@ -1,0 +1,19 @@
+{
+  StringBuilder escaped=new StringBuilder();
+  boolean firstSegment=true;
+  for (  String segment : uri.split("%",-1)) {
+    if (firstSegment) {
+      firstSegment=false;
+      escaped.append(encode(segment));
+      continue;
+    }
+    if (segment.length() >= 2 && segment.substring(0,2).matches("[0-9a-fA-F]{2}")) {
+      escaped.append("%").append(segment.substring(0,2));
+      escaped.append(encode(segment.substring(2)));
+    }
+ else {
+      escaped.append("%25").append(encode(segment));
+    }
+  }
+  return escaped.toString();
+}

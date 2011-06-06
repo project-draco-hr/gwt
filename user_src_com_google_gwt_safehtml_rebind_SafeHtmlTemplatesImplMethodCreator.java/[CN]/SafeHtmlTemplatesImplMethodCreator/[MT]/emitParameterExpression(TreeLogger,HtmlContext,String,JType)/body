@@ -11,6 +11,14 @@
       throw error(logger,SAFE_STYLES_CN + " used in a non-CSS attribute context. Did you mean to use " + JAVA_LANG_STRING_FQCN+ " or "+ SAFE_HTML_CN+ " instead?");
     }
   }
+ else   if (isSafeUri(parameterType) && HtmlContext.Type.URL_ATTRIBUTE_ENTIRE != contextType) {
+    if (HtmlContext.Type.URL_ATTRIBUTE_START == contextType) {
+      throw error(logger,SAFE_URI_CN + " cannot be used in a URL attribute if it isn't the " + "entire attribute value.");
+    }
+ else {
+      throw error(logger,SAFE_URI_CN + " can only be used as the entire value of a URL " + "attribute. Did you mean to use "+ JAVA_LANG_STRING_FQCN+ " or "+ SAFE_HTML_CN+ " instead?");
+    }
+  }
   print("sb.append(");
 switch (contextType) {
 case CSS:
@@ -29,6 +37,11 @@ emitAttributeContextParameterExpression(logger,htmlContext,formalParameterName,p
 break;
 case URL_ATTRIBUTE_START:
 case URL_ATTRIBUTE_ENTIRE:
+if (!isSafeUri(parameterType)) {
+logger.log(TreeLogger.WARN,"Template with variable in URL attribute context: The template code generator cannot" + " guarantee HTML-safety of the template -- please inspect manually or use " + SAFE_URI_CN + " to specify arguments in a URL attribute context");
+}
+emitAttributeContextParameterExpression(logger,htmlContext,formalParameterName,parameterType);
+break;
 case ATTRIBUTE_VALUE:
 emitAttributeContextParameterExpression(logger,htmlContext,formalParameterName,parameterType);
 break;

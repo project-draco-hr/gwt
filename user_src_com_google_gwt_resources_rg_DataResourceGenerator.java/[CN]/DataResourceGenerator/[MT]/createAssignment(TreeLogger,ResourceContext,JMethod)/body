@@ -11,20 +11,12 @@
   URL resource=resources[0];
   String outputUrlExpression=context.deploy(resource,mimeType,forceExternal);
   SourceWriter sw=new StringSourceWriter();
-  sw.println("new " + DataResource.class.getName() + "() {");
-  sw.indent();
   sw.println("// " + resource.toExternalForm());
-  sw.println("public String getUrl() {");
+  sw.println("new " + DataResourcePrototype.class.getName() + "(");
   sw.indent();
-  sw.println("return " + outputUrlExpression + ";");
+  sw.println('"' + method.getName() + "\",");
+  sw.println(UriUtils.class.getName() + ".fromTrustedString(" + outputUrlExpression+ ")");
   sw.outdent();
-  sw.println("}");
-  sw.println("public String getName() {");
-  sw.indent();
-  sw.println("return \"" + method.getName() + "\";");
-  sw.outdent();
-  sw.println("}");
-  sw.outdent();
-  sw.println("}");
+  sw.print(")");
   return sw.toString();
 }

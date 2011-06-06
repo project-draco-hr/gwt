@@ -1,21 +1,17 @@
 {
   boolean parameterIsPrimitiveType=(parameterType.isPrimitive() != null);
   boolean parameterIsNotStringTyped=!(JAVA_LANG_STRING_FQCN.equals(parameterType.getQualifiedSourceName()));
-  if (SAFE_HTML_FQCN.equals(parameterType.getQualifiedSourceName())) {
+  if (isSafeHtml(parameterType)) {
     print(formalParameterName + ".asString()");
   }
  else   if (parameterIsPrimitiveType) {
     print(formalParameterName);
   }
  else {
-    print(ESCAPE_UTILS_FQCN + ".htmlEscape(");
+    String expression=formalParameterName;
     if (parameterIsNotStringTyped) {
-      print("String.valueOf(");
+      expression="String.valueOf(" + expression + ")";
     }
-    print(formalParameterName);
-    if (parameterIsNotStringTyped) {
-      print(")");
-    }
-    print(")");
+    print(SAFE_HTML_UTILS_FQCN + ".htmlEscape(" + expression+ ")");
   }
 }
