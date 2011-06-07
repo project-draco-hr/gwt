@@ -9,51 +9,66 @@
       continue;
     }
     boolean lastPart=i == j - 1;
-    String getterName=camelCase("get",parts[i]);
-    for (    JClassType search : lookingAt.getFlattenedSupertypeHierarchy()) {
-      if (i == j - 1 && setterName == null) {
-        for (        JMethod maybeSetter : search.getOverloads(camelCase("set",parts[i]))) {
-          if (maybeSetter.getReturnType().equals(JPrimitiveType.VOID) && maybeSetter.getParameters().length == 1) {
-            JType setterParamType=maybeSetter.getParameters()[0].getType();
-            if (setterParamType.isPrimitive() != null) {
-              setterParamType=oracle.findType(setterParamType.isPrimitive().getQualifiedBoxedSourceName());
-            }
-            boolean matches=setterParamType.isClassOrInterface().isAssignableFrom(propertyType);
-            if (matches) {
-              setterName=maybeSetter.getName();
-              break;
-            }
+    boolean foundGetterForPart=false;
+    for (    JMethod maybeSetter : lookingAt.getInheritableMethods()) {
+      JBeanMethod which=JBeanMethod.which(maybeSetter);
+      if (JBeanMethod.CALL.equals(which)) {
+        continue;
+      }
+      if (!which.inferName(maybeSetter).equals(parts[i])) {
+        continue;
+      }
+switch (which) {
+case GET:
+{
+          JType returnType=maybeSetter.getReturnType();
+          lookingAt=returnType.isClassOrInterface();
+          if (!lastPart && lookingAt == null) {
+            poison(foundPrimitiveMessage(returnType,interstitialGetters.toString(),path));
+            return;
+          }
+          interstitialGetters.append(".").append(maybeSetter.getName()).append("()");
+          interstitialGuard.append(" && %1$s").append(interstitialGetters).append(" != null");
+          builder.propertyOwnerType(maybeSetter.getEnclosingType());
+          foundGetterForPart=true;
+          if (!lastPart) {
+            continue part;
+          }
+          break;
+        }
+case SET:
+case SET_BUILDER:
+{
+        if (lastPart && setterName == null) {
+          JType setterParamType=maybeSetter.getParameters()[0].getType();
+          if (setterParamType.isPrimitive() != null) {
+            setterParamType=oracle.findType(setterParamType.isPrimitive().getQualifiedBoxedSourceName());
+          }
+          boolean matches=setterParamType.isClassOrInterface().isAssignableFrom(propertyType);
+          if (matches) {
+            setterName=maybeSetter.getName();
           }
         }
+        break;
       }
-      JMethod getter=search.findMethod(getterName,new JType[0]);
-      if (getter != null) {
-        JType returnType=getter.getReturnType();
-        lookingAt=returnType.isClassOrInterface();
-        if (!lastPart && lookingAt == null) {
-          poison(foundPrimitiveMessage(returnType,interstitialGetters.toString(),path));
-          return;
-        }
-        interstitialGetters.append(".").append(getterName).append("()");
-        interstitialGuard.append(" && %1$s").append(interstitialGetters).append(" != null");
-        builder.propertyOwnerType(search);
-        continue part;
-      }
-    }
-    poison(noGetterMessage(path,proxyType));
-    return;
   }
-  int idx=interstitialGetters.lastIndexOf(".");
-  builder.beanOwnerExpression(idx <= 0 ? "" : interstitialGetters.substring(0,idx));
-  if (parts.length > 1) {
-    interstitialGuard.delete(interstitialGuard.lastIndexOf(" &&"),interstitialGuard.length());
-    builder.beanOwnerGuard(interstitialGuard.substring(8));
-  }
-  if (interstitialGetters.length() > 0) {
-    builder.getterExpression("." + interstitialGetters.substring(idx + 1,interstitialGetters.length() - 2) + "()");
-  }
+}
+if (!foundGetterForPart) {
+  poison(noGetterMessage(path,proxyType));
+  return;
+}
+}
+int idx=interstitialGetters.lastIndexOf(".");
+builder.beanOwnerExpression(idx <= 0 ? "" : interstitialGetters.substring(0,idx));
+if (parts.length > 1) {
+interstitialGuard.delete(interstitialGuard.lastIndexOf(" &&"),interstitialGuard.length());
+builder.beanOwnerGuard(interstitialGuard.substring(8));
+}
+if (interstitialGetters.length() > 0) {
+builder.getterExpression("." + interstitialGetters.substring(idx + 1,interstitialGetters.length() - 2) + "()");
+}
  else {
-    builder.getterExpression("");
-  }
-  builder.setterName(setterName);
+builder.getterExpression("");
+}
+builder.setterName(setterName);
 }
