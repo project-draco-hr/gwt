@@ -2,8 +2,15 @@
   if (this.widget != null) {
     throw new IllegalStateException("Composite.initWidget() may only be " + "called once.");
   }
+  if (widget instanceof IsRenderable) {
+    this.renderable=(IsRenderable)widget;
+  }
   widget.removeFromParent();
-  setElement(widget.getElement());
+  Element elem=widget.getElement();
+  setElement(elem);
+  if (PotentialElement.isPotential(elem)) {
+    PotentialElement.as(elem).setResolver(this);
+  }
   this.widget=widget;
   widget.setParent(this);
 }
