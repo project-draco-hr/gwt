@@ -1,0 +1,81 @@
+{
+  for (  String moduleToCompile : options.getModuleNames()) {
+    ModuleDef module;
+    try {
+      module=ModuleDefLoader.loadFromClassPath(logger,moduleToCompile,false);
+    }
+ catch (    Throwable e) {
+      CompilationProblemReporter.logAndTranslateException(logger,e);
+      return false;
+    }
+    Set<String> archivedResourcePaths=new HashSet<String>();
+    SpeedTracerLogger.Event loadAllArchives=SpeedTracerLogger.start(CompilerEventType.LOAD_ARCHIVE,"module",moduleToCompile);
+    try {
+      Collection<URL> archiveURLs=module.getAllCompilationUnitArchiveURLs();
+      if (logger.isLoggable(TreeLogger.TRACE) && archiveURLs != null) {
+        for (        URL archiveURL : archiveURLs) {
+          logger.log(TreeLogger.TRACE,"Found archive: " + archiveURL);
+        }
+      }
+      for (      URL archiveURL : archiveURLs) {
+        SpeedTracerLogger.Event loadArchive=SpeedTracerLogger.start(CompilerEventType.LOAD_ARCHIVE,"dependentModule",archiveURL.toString());
+        try {
+          CompilationUnitArchive archive=CompilationUnitArchive.createFromURL(archiveURL);
+          CompilationStateBuilder.addArchive(archive);
+          if (!archive.getTopModuleName().equals(moduleToCompile)) {
+            for (            CompilationUnit unit : archive.getUnits().values()) {
+              archivedResourcePaths.add(unit.getResourcePath());
+            }
+          }
+        }
+ catch (        IOException ex) {
+          logger.log(TreeLogger.WARN,"Unable to read: " + archiveURL + ". Skipping: "+ ex);
+        }
+catch (        ClassNotFoundException ex) {
+          logger.log(TreeLogger.WARN,"Incompatible archive: " + archiveURL + ". Skipping: "+ ex);
+        }
+ finally {
+          loadArchive.end();
+        }
+      }
+    }
+  finally {
+      loadAllArchives.end();
+    }
+    CompilationState compilationState;
+    try {
+      compilationState=module.getCompilationState(logger,!options.isStrict());
+    }
+ catch (    Throwable e) {
+      CompilationProblemReporter.logAndTranslateException(logger,e);
+      return false;
+    }
+    if (options.isStrict() && compilationState.hasErrors()) {
+      logger.log(TreeLogger.ERROR,"Failed to compile " + moduleToCompile);
+      return false;
+    }
+    CompilationUnitArchive outputModule=new CompilationUnitArchive(moduleToCompile);
+    for (    CompilationUnit unit : compilationState.getCompilationUnits()) {
+      if (!archivedResourcePaths.contains(unit.getResourcePath())) {
+        outputModule.addUnit(unit);
+      }
+    }
+    File outputDir=options.getOutDir();
+    if (!outputDir.isDirectory() && !outputDir.mkdirs()) {
+      logger.log(Type.ERROR,"Error creating directories for ouptut: " + outputDir.getAbsolutePath());
+      throw new UnableToCompleteException();
+    }
+    String slashedModuleName=module.getName().replace('.','/') + ModuleDefLoader.COMPILATION_UNIT_ARCHIVE_SUFFIX;
+    File outputFile=new File(outputDir,slashedModuleName);
+    outputFile.getParentFile().mkdirs();
+    logger.log(TreeLogger.INFO,"Writing " + outputModule.getUnits().size() + " units to "+ outputFile.getAbsolutePath());
+    try {
+      outputModule.writeToFile(outputFile);
+    }
+ catch (    IOException ex) {
+      logger.log(Type.ERROR,"Error writing module file: " + outputFile.getAbsolutePath() + ": "+ ex);
+      throw new UnableToCompleteException();
+    }
+  }
+  return true;
+}

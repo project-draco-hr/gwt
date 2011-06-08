@@ -1,0 +1,26 @@
+{
+  SpeedTracerLogger.Event loadArchive=SpeedTracerLogger.start(CompilerEventType.LOAD_ARCHIVE);
+  try {
+    Collection<URL> archiveURLs=module.getAllCompilationUnitArchiveURLs();
+    if (logger.isLoggable(TreeLogger.TRACE) && archiveURLs != null) {
+      for (      URL archiveURL : archiveURLs) {
+        logger.log(TreeLogger.TRACE,"Found archived module: " + archiveURL);
+      }
+    }
+    for (    URL archiveURL : archiveURLs) {
+      try {
+        CompilationUnitArchive archive=CompilationUnitArchive.createFromURL(archiveURL);
+        CompilationStateBuilder.addArchive(archive);
+      }
+ catch (      IOException ex) {
+        logger.log(TreeLogger.WARN,"Unable to read: " + archiveURL + ". Skipping: "+ ex);
+      }
+catch (      ClassNotFoundException ex) {
+        logger.log(TreeLogger.WARN,"Incompatible archived module: " + archiveURL + ". Skipping: "+ ex);
+      }
+    }
+  }
+  finally {
+    loadArchive.end();
+  }
+}

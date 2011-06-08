@@ -1,0 +1,28 @@
+{
+  int numMockTypes=100;
+  CompilationUnit mockUnits[]=new CompilationUnit[numMockTypes];
+  for (int i=0; i < numMockTypes; i++) {
+    mockUnits[i]=new MockCompilationUnit("com.example.MockType" + i,"Dummy Source " + i);
+  }
+  File tmpDir=Utility.makeTemporaryDirectory(null,"cgmt-");
+  int numLoops=100;
+  String lastStrongName=null;
+  for (int i=0; i < numLoops; i++) {
+    File tmpFile=new File(tmpDir,"module" + i + ".ser");
+    tmpFile.deleteOnExit();
+    scrambleArray(mockUnits);
+    CompilationUnitArchive archive=new CompilationUnitArchive("com.example.Module");
+    for (int j=0; j < numMockTypes; j++) {
+      archive.addUnit(mockUnits[j]);
+    }
+    archive.writeToFile(tmpFile);
+    byte[] bytes=Util.readFileAsBytes(tmpFile);
+    tmpFile.delete();
+    String thisStrongName=Util.computeStrongName(bytes);
+    if (lastStrongName != null) {
+      assertEquals("loop " + i,thisStrongName,lastStrongName);
+    }
+    lastStrongName=thisStrongName;
+  }
+  tmpDir.delete();
+}
