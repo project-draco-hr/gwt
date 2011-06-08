@@ -1,0 +1,80 @@
+{
+  if (args == null) {
+    args=new Object[]{null};
+  }
+  if (obj != null) {
+    if (!obj.getClass().getName().equals(JSO_IMPL_CLASS)) {
+      throw new RuntimeException(obj + " is not a JavaScriptObject.");
+    }
+  }
+  Method[] methods=Object.class.getMethods();
+  nextMethod:   for (  Method m : methods) {
+    if (m.getName().equals(methodName)) {
+      Class[] types=m.getParameterTypes();
+      if (types.length != args.length) {
+        continue;
+      }
+      for (int i=0, j=0; i < args.length; ++i, ++j) {
+        if (!isAssignable(types[i],args[j])) {
+          continue nextMethod;
+        }
+      }
+      return m.invoke(obj,args);
+    }
+  }
+  ClassLoader ccl=getCompilingClassLoader(klass,obj);
+  boolean isJso=isJso(ccl,klass);
+  boolean isStaticifiedDispatch=isJso && obj != null;
+  int actualNumArgs=isStaticifiedDispatch ? args.length + 1 : args.length;
+  ArrayList<Method> matchingMethods=new ArrayList<Method>(Arrays.asList(isJso ? getSisterJsoImpl(klass,ccl).getMethods() : getJsoImplClass(ccl).getMethods()));
+  String mangledMethodName=mangleMethod(klass,methodName,isJso,isStaticifiedDispatch);
+  for (Iterator<Method> it=matchingMethods.iterator(); it.hasNext(); ) {
+    Method m=it.next();
+    if (!m.getName().equalsIgnoreCase(mangledMethodName)) {
+      it.remove();
+    }
+  }
+  if (matchingMethods.isEmpty()) {
+    throw new RuntimeException("No methods by the name, " + methodName + ", could be found in "+ klass);
+  }
+  ArrayList<Method> candidates=new ArrayList<Method>(matchingMethods);
+  for (Iterator<Method> it=matchingMethods.iterator(); it.hasNext(); ) {
+    Method m=it.next();
+    if (m.getParameterTypes().length != actualNumArgs) {
+      it.remove();
+    }
+  }
+  if (matchingMethods.isEmpty()) {
+    throw new RuntimeException("No methods by the name, " + methodName + ", in "+ klass+ " accept "+ args.length+ " parameters. Candidates are:\n"+ candidates);
+  }
+  candidates=new ArrayList<Method>(matchingMethods);
+  nextMethod:   for (Iterator<Method> it=matchingMethods.iterator(); it.hasNext(); ) {
+    Method m=it.next();
+    Class[] methodTypes=m.getParameterTypes();
+    for (int i=isStaticifiedDispatch ? 1 : 0, j=0; i < methodTypes.length; ++i, ++j) {
+      if (!isAssignable(methodTypes[i],args[j])) {
+        it.remove();
+        continue nextMethod;
+      }
+    }
+  }
+  if (matchingMethods.isEmpty()) {
+    throw new RuntimeException("No methods accepting " + Arrays.asList(args) + " were found for, "+ methodName+ ", in "+ klass+ ". Candidates:\n"+ candidates);
+  }
+  candidates=new ArrayList<Method>(matchingMethods);
+  if (matchingMethods.size() > 1) {
+    for (Iterator<Method> it=matchingMethods.iterator(); it.hasNext(); ) {
+      Method m=it.next();
+      if (!m.getName().equals(mangledMethodName)) {
+        it.remove();
+      }
+    }
+  }
+  if (matchingMethods.isEmpty()) {
+    throw new RuntimeException("Multiple methods with a case-insensitive match were found for, " + methodName + ", in "+ klass+ ". Candidates:\n"+ candidates);
+  }
+  if (matchingMethods.size() > 1) {
+    throw new RuntimeException("Found more than one matching method. Please specify the types of the parameters. " + "Candidates:\n" + matchingMethods);
+  }
+  return invoke(klass,obj,matchingMethods.get(0),args);
+}

@@ -1,0 +1,34 @@
+{
+  if (obj != null) {
+    if (!obj.getClass().getName().equals(JSO_IMPL_CLASS)) {
+      throw new RuntimeException(obj + " is not a JavaScriptObject.");
+    }
+  }
+  Method[] methods=Object.class.getMethods();
+  for (  Method m : methods) {
+    if (m.getName().equals(methodName) && Arrays.equals(m.getParameterTypes(),types)) {
+      return m;
+    }
+  }
+  ClassLoader ccl=getCompilingClassLoader(klass,obj);
+  boolean isJso=isJso(ccl,klass);
+  boolean isStaticifiedDispatch=isJso && obj != null;
+  String mangledMethod=mangleMethod(klass,methodName,isJso,isStaticifiedDispatch);
+  if (!isJso) {
+    Class jsoImplClass=getJsoImplClass(ccl);
+    try {
+      return jsoImplClass.getMethod(mangledMethod,types);
+    }
+ catch (    NoSuchMethodException e) {
+      throw new RuntimeException("Unable to find the interface method, " + methodName + ". Is there a JSO that implements it?",e);
+    }
+  }
+  Class jsoImplSubclass=getSisterJsoImpl(klass,ccl);
+  if (obj != null) {
+    Class[] newTypes=new Class[types.length + 1];
+    newTypes[0]=klass;
+    System.arraycopy(types,0,newTypes,1,types.length);
+    types=newTypes;
+  }
+  return jsoImplSubclass.getMethod(mangledMethod,types);
+}
