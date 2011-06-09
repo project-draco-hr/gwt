@@ -30,10 +30,7 @@
       flowInto(method);
     }
   }
-  UnifyVisitor visitor=new UnifyVisitor();
-  while (!todo.isEmpty()) {
-    visitor.accept(todo.poll());
-  }
+  mainLoop();
   for (Iterator<JDeclaredType> it=program.getDeclaredTypes().iterator(); it.hasNext(); ) {
     JDeclaredType type=it.next();
     boolean isInstantiated=instantiatedTypes.contains(type);
@@ -56,19 +53,8 @@
       }
     }
   }
-  for (  JDeclaredType type : program.getDeclaredTypes()) {
-    Map<String,Set<JMethod>> collected=new HashMap<String,Set<JMethod>>();
-    for (    JMethod method : type.getMethods()) {
-      if (method.canBePolymorphic()) {
-        collected.put(method.getSignature(),new LinkedHashSet<JMethod>());
-      }
-    }
-    collectUpRefsInSupers(type,collected);
-    for (    JMethod method : type.getMethods()) {
-      if (method.canBePolymorphic()) {
-        Set<JMethod> uprefs=collected.get(method.getSignature());
-        method.addOverrides(Lists.create(uprefs));
-      }
-    }
+  computeOverrides();
+  if (errorsFound) {
+    throw new UnableToCompleteException();
   }
 }

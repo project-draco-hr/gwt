@@ -1,3 +1,14 @@
 {
-  return construct(logger,state,TypeLinker.NULL_TYPE_LINKER,entryPoints);
+  JJSOptionsImpl options=new JJSOptionsImpl();
+  options.setEnableAssertions(true);
+  JProgram jprogram=AstConstructor.construct(logger,state,options);
+  for (  String entryPoint : entryPoints) {
+    JDeclaredType entryType=jprogram.getFromTypeMap(entryPoint);
+    for (    JMethod method : entryType.getMethods()) {
+      if (method.isStatic() && JProgram.isClinit(method)) {
+        jprogram.addEntryMethod(method);
+      }
+    }
+  }
+  return jprogram;
 }

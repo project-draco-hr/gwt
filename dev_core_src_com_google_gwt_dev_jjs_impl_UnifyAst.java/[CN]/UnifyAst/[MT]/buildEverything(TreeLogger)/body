@@ -1,0 +1,21 @@
+{
+  this.logger=logger;
+  for (  String internalName : classFileMap.keySet()) {
+    String typeName=InternalName.toBinaryName(internalName);
+    searchForType(typeName);
+  }
+  for (  JDeclaredType type : program.getDeclaredTypes()) {
+    instantiate(type);
+    for (    JField field : type.getFields()) {
+      flowInto(field);
+    }
+    for (    JMethod method : type.getMethods()) {
+      flowInto(method);
+    }
+  }
+  mainLoop();
+  computeOverrides();
+  if (errorsFound) {
+    throw new UnableToCompleteException();
+  }
+}
