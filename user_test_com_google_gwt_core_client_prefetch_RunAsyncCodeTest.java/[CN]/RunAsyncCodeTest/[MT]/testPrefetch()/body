@@ -1,0 +1,32 @@
+{
+  cancelPrefetchTest=false;
+  if (!GWT.isScript()) {
+    return;
+  }
+  delayTestFinish(ASYNC_DELAY_MSEC);
+  final RunAsyncCode prefetchSplitPoint=RunAsyncCode.runAsyncCode(TestPrefetchMarker.class);
+  Prefetcher.prefetch(prefetchSplitPoint);
+  assertFalse(prefetchSplitPoint.isLoaded());
+  Prefetcher.start();
+  Scheduler.get().scheduleFixedDelay(new RepeatingCommand(){
+    @Override public boolean execute(){
+      if (cancelPrefetchTest) {
+        return false;
+      }
+      if (prefetchSplitPoint.isLoaded()) {
+        GWT.runAsync(TestPrefetchMarker.class,new RunAsyncCallback(){
+          @Override public void onFailure(          Throwable reason){
+            fail("runAsync call failed.");
+          }
+          @Override public void onSuccess(){
+            finishTest();
+          }
+        }
+);
+        return false;
+      }
+      return true;
+    }
+  }
+,50);
+}
