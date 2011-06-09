@@ -6,11 +6,14 @@
   sw.println("static {");
   sw.indent();
   for (  EntityProxyModel type : model.getAllProxyModels()) {
-    sw.println("tokensToTypes.put(\"%s\", %s.class);",type.getQualifiedBinaryName(),type.getQualifiedSourceName());
-    sw.println("typesToTokens.put(%s.class, \"%s\");",type.getQualifiedSourceName(),type.getQualifiedBinaryName());
+    sw.println("tokensToTypes.put(\"%s\", %s.class);",OperationKey.hash(type.getQualifiedBinaryName()),type.getQualifiedSourceName());
+    sw.println("typesToTokens.put(%s.class, \"%s\");",type.getQualifiedSourceName(),OperationKey.hash(type.getQualifiedBinaryName()));
     sw.println("%s.add(%s.class);",type.getType().equals(Type.ENTITY) ? "entityProxyTypes" : "valueProxyTypes",type.getQualifiedSourceName());
   }
   sw.outdent();
+  sw.println("}");
+  sw.println("@Override public String getFactoryTypeToken() {");
+  sw.indentln("return \"%s\";",model.getFactoryType().getQualifiedBinaryName());
   sw.println("}");
   sw.println("@Override protected Class getTypeFromToken(String typeToken) {");
   sw.indentln("return tokensToTypes.get(typeToken);");

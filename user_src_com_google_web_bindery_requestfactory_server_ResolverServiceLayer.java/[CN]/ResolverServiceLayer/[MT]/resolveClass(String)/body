@@ -1,14 +1,10 @@
 {
-  Class<?> found=forName(typeToken);
-  if (!EntityProxy.class.isAssignableFrom(found) && !ValueProxy.class.isAssignableFrom(found)) {
-    die(null,"The requested type %s is not assignable to %s or %s",typeToken,EntityProxy.class.getCanonicalName(),ValueProxy.class.getCanonicalName());
-  }
+  String deobfuscated;
 synchronized (validator) {
-    validator.antidote();
-    validator.validateProxy(found.getName());
-    if (validator.isPoisoned()) {
-      die(null,"The type %s did not pass RequestFactory validation",found.getCanonicalName());
-    }
+    deobfuscated=deobfuscator.getTypeFromToken(typeToken);
   }
-  return found.asSubclass(BaseProxy.class);
+  if (deobfuscated == null) {
+    die(null,"No type for token %s",typeToken);
+  }
+  return forName(deobfuscated).asSubclass(BaseProxy.class);
 }

@@ -1,0 +1,28 @@
+{
+  log("RequestFactory processing a round");
+  if (builder == null) {
+    builder=new TypeTokenResolver.Builder();
+    try {
+      FileObject resource=filer.getResource(StandardLocation.CLASS_OUTPUT,"",TOKEN_MANIFEST);
+      builder.load(resource.openInputStream());
+      log("Reusing old data");
+    }
+ catch (    IOException e) {
+      log("Not reusing existing manifest file: " + e.getMessage());
+    }
+  }
+  new Finder().scan(ElementFilter.typesIn(roundEnv.getRootElements()),null);
+  if (roundEnv.processingOver()) {
+    TypeTokenResolver d=builder.build();
+    builder=null;
+    try {
+      FileObject res=filer.createResource(StandardLocation.CLASS_OUTPUT,"",TOKEN_MANIFEST);
+      d.store(res.openOutputStream());
+    }
+ catch (    IOException e) {
+      error("Could not write output: " + e.getMessage());
+    }
+    log("Finished!");
+  }
+  return false;
+}

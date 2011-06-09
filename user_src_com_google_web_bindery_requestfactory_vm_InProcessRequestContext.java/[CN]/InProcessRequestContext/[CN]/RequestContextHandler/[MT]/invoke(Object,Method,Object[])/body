@@ -34,8 +34,13 @@
   Class<?> elementType=Collection.class.isAssignableFrom(returnType) ? TypeUtils.ensureBaseType(TypeUtils.getSingleParameterization(Collection.class,returnGenericType)) : null;
   final RequestData data;
   if (dialect.equals(Dialect.STANDARD)) {
-    String operation=method.getDeclaringClass().getName() + "::" + method.getName();
-    data=new RequestData(operation,actualArgs,returnType,elementType);
+    StringBuilder descriptor=new StringBuilder("(");
+    for (    Class<?> param : method.getParameterTypes()) {
+      descriptor.append(com.google.gwt.dev.asm.Type.getDescriptor(param));
+    }
+    descriptor.append(")V");
+    OperationKey operation=new OperationKey(context.getName(),method.getName(),descriptor.toString());
+    data=new RequestData(operation.get(),actualArgs,returnType,elementType);
   }
  else {
     JsonRpcWireName wireInfo=method.getReturnType().getAnnotation(JsonRpcWireName.class);

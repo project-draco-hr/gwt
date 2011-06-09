@@ -1,0 +1,24 @@
+{
+  String domainDescriptor;
+synchronized (validator) {
+    domainDescriptor=deobfuscator.getDomainMethodDescriptor(operation);
+  }
+  if (domainDescriptor == null) {
+    return die(null,"No domain method descriptor is mapped to operation %s",operation);
+  }
+  Class<?>[] domainArgs=getArgumentTypes(domainDescriptor);
+  Class<? extends RequestContext> requestContext=getTop().resolveRequestContext(operation);
+  Class<?> serviceImplementation=getTop().resolveServiceClass(requestContext);
+  Method requestContextMethod=getTop().resolveRequestContextMethod(operation);
+  Throwable ex;
+  try {
+    return serviceImplementation.getMethod(requestContextMethod.getName(),domainArgs);
+  }
+ catch (  SecurityException e) {
+    ex=e;
+  }
+catch (  NoSuchMethodException e) {
+    ex=e;
+  }
+  return die(ex,"Could not find method in implementation %s matching descriptor %s for operation %s",serviceImplementation.getCanonicalName(),domainDescriptor,operation);
+}

@@ -1,0 +1,17 @@
+{
+  toReturn.declarationMethod=declarationMethod;
+  JClassType returnClass=declarationMethod.getReturnType().isClassOrInterface();
+  JsonRpcWireName annotation=returnClass == null ? null : returnClass.getAnnotation(JsonRpcWireName.class);
+  if (annotation == null) {
+    StringBuilder sb=new StringBuilder("(");
+    for (    JType type : declarationMethod.getParameterTypes()) {
+      sb.append(type.getJNISignature());
+    }
+    sb.append(")V");
+    toReturn.operation=new OperationKey(contextType.getQualifiedBinaryName(),declarationMethod.getName(),sb.toString()).get();
+  }
+ else {
+    toReturn.operation=annotation.value();
+    toReturn.apiVersion=annotation.version();
+  }
+}

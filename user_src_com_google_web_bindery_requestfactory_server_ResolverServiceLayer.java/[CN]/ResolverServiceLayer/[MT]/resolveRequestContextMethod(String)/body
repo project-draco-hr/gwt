@@ -1,0 +1,16 @@
+{
+  Class<?> searchIn=getTop().resolveRequestContext(operation);
+  String methodName;
+  String descriptor;
+synchronized (validator) {
+    methodName=deobfuscator.getRequestContextMethodName(operation);
+    descriptor=deobfuscator.getRequestContextMethodDescriptor(operation);
+  }
+  Class<?>[] params=getArgumentTypes(descriptor);
+  try {
+    return searchIn.getMethod(methodName,params);
+  }
+ catch (  NoSuchMethodException ex) {
+    return report("Could not locate %s operation %s",RequestContext.class.getSimpleName(),operation);
+  }
+}
