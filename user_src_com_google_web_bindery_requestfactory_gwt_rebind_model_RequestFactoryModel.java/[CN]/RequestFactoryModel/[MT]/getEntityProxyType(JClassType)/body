@@ -10,6 +10,13 @@
   if (toReturn == null) {
     EntityProxyModel.Builder builder=new EntityProxyModel.Builder();
     peerBuilders.put(entityProxyType,builder);
+    for (    JClassType supertype : entityProxyType.getFlattenedSupertypeHierarchy()) {
+      List<EntityProxyModel> superTypes=new ArrayList<EntityProxyModel>();
+      if (supertype != entityProxyType && shouldAttemptProxyValidation(supertype)) {
+        superTypes.add(getEntityProxyType(supertype));
+      }
+      builder.setSuperProxyTypes(superTypes);
+    }
     builder.setQualifiedBinaryName(ModelUtils.getQualifiedBaseBinaryName(entityProxyType));
     builder.setQualifiedSourceName(ModelUtils.getQualifiedBaseSourceName(entityProxyType));
     if (entityProxyInterface.isAssignableFrom(entityProxyType)) {
@@ -63,7 +70,7 @@
       RequestMethod requestMethod=methodBuilder.build();
       requestMethods.add(requestMethod);
     }
-    builder.setRequestMethods(requestMethods);
+    builder.setExtraTypes(checkExtraTypes(entityProxyType,false)).setRequestMethods(requestMethods);
     toReturn=builder.build();
     peers.put(entityProxyType,toReturn);
     peerBuilders.remove(entityProxyType);

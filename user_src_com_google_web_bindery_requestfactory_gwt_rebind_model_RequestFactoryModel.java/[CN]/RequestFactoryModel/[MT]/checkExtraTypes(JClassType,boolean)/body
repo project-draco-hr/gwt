@@ -1,0 +1,24 @@
+{
+  Set<EntityProxyModel> toReturn=new LinkedHashSet<EntityProxyModel>();
+  if (addModelExtraTypes && extraTypes != null) {
+    toReturn.addAll(extraTypes);
+  }
+  for (  JClassType toExamine : type.getFlattenedSupertypeHierarchy()) {
+    ExtraTypes proxyExtraTypes=toExamine.getAnnotation(ExtraTypes.class);
+    if (proxyExtraTypes != null) {
+      for (      Class<? extends BaseProxy> clazz : proxyExtraTypes.value()) {
+        JClassType proxy=oracle.findType(clazz.getCanonicalName());
+        if (proxy == null) {
+          poison("Unknown class %s in @%s",clazz.getCanonicalName(),ExtraTypes.class.getSimpleName());
+        }
+ else {
+          toReturn.add(getEntityProxyType(proxy));
+        }
+      }
+    }
+  }
+  if (toReturn.isEmpty()) {
+    return Collections.emptyList();
+  }
+  return new ArrayList<EntityProxyModel>(toReturn);
+}

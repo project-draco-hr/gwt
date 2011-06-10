@@ -1,0 +1,35 @@
+{
+  Type domainType=clientToDomainType.get(clientType);
+  if (domainType != null) {
+    return domainType;
+  }
+  if (isValueType(logger,clientType) || isCollectionType(logger,clientType)) {
+    domainType=clientType;
+  }
+ else   if (entityProxyIntf.equals(clientType) || valueProxyIntf.equals(clientType)) {
+    domainType=objectType;
+  }
+ else {
+    logger=logger.setType(clientType);
+    DomainMapper pv=new DomainMapper(logger);
+    visit(logger,clientType.getInternalName(),pv);
+    if (pv.getDomainInternalName() == null) {
+      if (requireMapping) {
+        logger.poison("%s has no mapping to a domain type (e.g. @%s or @%s)",print(clientType),ProxyFor.class.getSimpleName(),Service.class.getSimpleName());
+      }
+      domainType=errorType;
+    }
+ else {
+      domainType=Type.getObjectType(pv.getDomainInternalName());
+    }
+    if (pv.getLocatorInternalName() != null) {
+      Type locatorType=Type.getObjectType(pv.getLocatorInternalName());
+      clientToLocatorMap.put(clientType,locatorType);
+    }
+  }
+  addToDomainMap(logger,domainType,clientType);
+  if (domainType != errorType) {
+    maybeCheckProxyType(logger,clientType);
+  }
+  return domainType;
+}

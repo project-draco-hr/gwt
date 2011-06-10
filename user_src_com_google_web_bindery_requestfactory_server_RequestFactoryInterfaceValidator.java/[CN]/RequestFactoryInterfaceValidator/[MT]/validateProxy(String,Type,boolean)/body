@@ -9,7 +9,12 @@
     parentLogger.poison("%s is not a %s",print(proxyType),print(expectedType));
     return;
   }
-  Type domainType=getDomainType(logger,proxyType);
+  for (  Type supertype : getSupertypes(logger,proxyType)) {
+    if (shouldAttemptProxyValidation(logger,supertype)) {
+      maybeCheckProxyType(logger,supertype);
+    }
+  }
+  Type domainType=getDomainType(logger,proxyType,false);
   if (domainType == errorType) {
     logger.poison("The type %s must be annotated with a @%s or @%s annotation",BinaryName.toSourceName(binaryName),ProxyFor.class.getSimpleName(),ProxyForName.class.getSimpleName());
     return;
@@ -28,4 +33,5 @@
     checkPropertyMethod(logger,clientPropertyMethod,domainType);
     maybeCheckReferredProxies(logger,clientPropertyMethod);
   }
+  maybeCheckExtraTypes(logger,proxyType);
 }
