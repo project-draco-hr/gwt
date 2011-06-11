@@ -1,11 +1,4 @@
 {
-  String name;
-synchronized (validator) {
-    name=validator.getEntityProxyTypeName(domainClass.getName(),clientClass.getName());
-  }
-  if (name != null) {
-    return forName(name).asSubclass(clientClass);
-  }
   if (List.class.isAssignableFrom(domainClass)) {
     return List.class.asSubclass(clientClass);
   }
@@ -14,6 +7,19 @@ synchronized (validator) {
   }
   if (TypeUtils.isValueType(domainClass)) {
     return domainClass.asSubclass(clientClass);
+  }
+  Class<?> toSearch=domainClass;
+  while (toSearch != null) {
+    List<String> clientTypes=deobfuscator.getClientProxies(toSearch.getName());
+    if (clientTypes != null) {
+      for (      String clientType : clientTypes) {
+        Class<?> proxy=forName(clientType);
+        if (clientClass.isAssignableFrom(proxy)) {
+          return proxy.asSubclass(clientClass);
+        }
+      }
+    }
+    toSearch=toSearch.getSuperclass();
   }
   if (required) {
     die(null,"The domain type %s cannot be sent to the client",domainClass.getCanonicalName());

@@ -1,0 +1,21 @@
+{
+  while (domainType != null) {
+    List<String> types=deobfuscator.getClientProxies(domainType.getName());
+    if (types != null) {
+      for (      String type : types) {
+        Class<?> clientType=Class.forName(type);
+        if (declaredReturnType.isAssignableFrom(clientType)) {
+          if (expectedClientType == null) {
+            fail("Should not have found any matches");
+          }
+          assertEquals(expectedClientType,clientType);
+          return;
+        }
+      }
+    }
+    domainType=domainType.getSuperclass();
+  }
+  if (expectedClientType != null) {
+    fail("Expecting to find " + expectedClientType.getCanonicalName());
+  }
+}
