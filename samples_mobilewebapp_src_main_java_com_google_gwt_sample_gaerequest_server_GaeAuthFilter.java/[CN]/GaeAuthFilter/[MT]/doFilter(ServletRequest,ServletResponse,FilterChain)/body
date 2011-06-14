@@ -3,7 +3,11 @@
   HttpServletRequest request=(HttpServletRequest)servletRequest;
   HttpServletResponse response=(HttpServletResponse)servletResponse;
   if (!userService.isUserLoggedIn()) {
-    response.setHeader("login",userService.createLoginURL(GaeHelper.REDIRECT_URL_TOKEN));
+    String redirectUrl=request.getHeader(GaeHelper.REDIRECT_URL_HTTP_HEADER_NAME);
+    if (redirectUrl == null || redirectUrl.length() == 0) {
+      redirectUrl="/";
+    }
+    response.setHeader("login",userService.createLoginURL(redirectUrl));
     response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
     return;
   }
