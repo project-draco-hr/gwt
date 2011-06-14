@@ -9,8 +9,11 @@
       return;
     }
     assert(type.isClass() != null || type.isArray() != null);
-    if (findCacheableFieldSerializerAndMarkForReuseIfAvailable(ctx,type)) {
-      return;
+    if (ctx.isGeneratorResultCachingEnabled()) {
+      typeLastModifiedTimeMap.put(type.getQualifiedSourceName(),getLastModifiedTime(type));
+      if (findCacheableFieldSerializerAndMarkForReuseIfAvailable(logger,ctx,type)) {
+        return;
+      }
     }
     JClassType customFieldSerializer=SerializableTypeOracleBuilder.findCustomFieldSerializer(typeOracle,type);
     FieldSerializerCreator creator=new FieldSerializerCreator(context,serializationOracle,deserializationOracle,(JClassType)type,customFieldSerializer);

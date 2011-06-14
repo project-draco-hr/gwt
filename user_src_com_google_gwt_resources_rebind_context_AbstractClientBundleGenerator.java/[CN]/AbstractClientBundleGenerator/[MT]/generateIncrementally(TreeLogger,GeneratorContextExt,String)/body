@@ -1,5 +1,21 @@
 {
-  if (checkPropertyCacheability(logger,generatorContext) && checkSourceTypeCacheability(generatorContext) && checkDependentResourceCacheability(logger,generatorContext,null)) {
+  boolean useCache=false;
+  if (checkPropertyCacheability(logger,generatorContext) && checkSourceTypeCacheability(logger,generatorContext) && checkDependentResourceCacheability(logger,generatorContext,null)) {
+    useCache=true;
+  }
+  if (logger.isLoggable(TreeLogger.TRACE)) {
+    if (generatorContext.isGeneratorResultCachingEnabled()) {
+      String msg;
+      if (useCache) {
+        msg="Reusing cached client bundle for " + typeName;
+      }
+ else {
+        msg="Can't use cached client bundle for " + typeName;
+      }
+      logger.log(TreeLogger.TRACE,msg);
+    }
+  }
+  if (useCache) {
     return new RebindResult(RebindStatus.USE_ALL_CACHED,typeName);
   }
   TypeOracle typeOracle=generatorContext.getTypeOracle();
@@ -47,7 +63,7 @@
   doFinish(logger);
   if (canBeCacheable) {
     CachedPropertyInformation cpi=new CachedPropertyInformation(logger,generatorContext.getPropertyOracle(),requirements.getPermutationAxes(),requirements.getConfigurationPropertyNames());
-    Map<String,String> cti=requirements.getTypeSignatures();
+    Map<String,Long> cti=requirements.getTypeLastModifiedTimes();
     Map<String,URL> cri=requirements.getResolvedResources();
     CachedClientDataMap data=new CachedClientDataMap();
     data.put(CACHED_PROPERTY_INFORMATION,cpi);
