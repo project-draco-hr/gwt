@@ -1,0 +1,14 @@
+{
+  Validator validator=TestUtil.getValidatorUnderTest();
+  FutureDummyEntity dummy=new FutureDummyEntity();
+  Set<ConstraintViolation<FutureDummyEntity>> constraintViolations=validator.validate(dummy);
+  assertCorrectNumberOfViolations(constraintViolations,0);
+  Date now=new Date();
+  dummy.date=new Date(now.getTime() - DAYS_IN_MILLIS);
+  constraintViolations=validator.validate(dummy);
+  assertCorrectNumberOfViolations(constraintViolations,1);
+  assertCorrectPropertyPaths(constraintViolations,"date");
+  dummy.date=new Date(now.getTime() + DAYS_IN_MILLIS);
+  constraintViolations=validator.validate(dummy);
+  assertCorrectNumberOfViolations(constraintViolations,0);
+}

@@ -1,0 +1,25 @@
+{
+  Validator validator=TestUtil.getValidatorUnderTest();
+  SizeDummyEntity dummy=new SizeDummyEntity();
+  Set<ConstraintViolation<SizeDummyEntity>> constraintViolations=validator.validate(dummy);
+  assertCorrectNumberOfViolations(constraintViolations,0);
+  dummy.collection=new HashSet<String>();
+  dummy.collection.add("foo");
+  dummy.collection.add("bar");
+  dummy.string="";
+  dummy.map=new HashMap<String,String>();
+  dummy.map.put("key1","value1");
+  dummy.map.put("key2","value2");
+  dummy.integerArray=new Integer[0];
+  dummy.intArray=new int[0];
+  constraintViolations=validator.validate(dummy);
+  assertCorrectNumberOfViolations(constraintViolations,5);
+  assertCorrectPropertyPaths(constraintViolations,"collection","map","string","integerArray","intArray");
+  dummy.collection.remove("bar");
+  dummy.string="a";
+  dummy.integerArray=new Integer[1];
+  dummy.intArray=new int[1];
+  dummy.map.remove("key1");
+  constraintViolations=validator.validate(dummy);
+  assertCorrectNumberOfViolations(constraintViolations,0);
+}

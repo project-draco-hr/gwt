@@ -1,0 +1,28 @@
+{
+  Validator validator=TestUtil.getValidatorUnderTest();
+  MinDummyEntity dummy=new MinDummyEntity();
+  Set<ConstraintViolation<MinDummyEntity>> constraintViolations=validator.validate(dummy);
+  assertCorrectNumberOfViolations(constraintViolations,4);
+  assertCorrectPropertyPaths(constraintViolations,"bytePrimitive","intPrimitive","longPrimitive","shortPrimitive");
+  dummy.intPrimitive=101;
+  dummy.longPrimitive=1001;
+  dummy.bytePrimitive=111;
+  dummy.shortPrimitive=142;
+  dummy.intObject=Integer.valueOf("100");
+  dummy.longObject=Long.valueOf("0");
+  dummy.byteObject=Byte.parseByte("-1");
+  dummy.shortObject=Short.parseShort("3");
+  dummy.bigDecimal=BigDecimal.valueOf(100.9);
+  dummy.bigInteger=BigInteger.valueOf(100);
+  constraintViolations=validator.validate(dummy);
+  assertCorrectNumberOfViolations(constraintViolations,6);
+  assertCorrectPropertyPaths(constraintViolations,"byteObject","intObject","longObject","shortObject","bigDecimal","bigInteger");
+  dummy.intObject=Integer.valueOf("101");
+  dummy.longObject=Long.valueOf("12345");
+  dummy.byteObject=Byte.parseByte("102");
+  dummy.shortObject=Short.parseShort("111");
+  dummy.bigDecimal=BigDecimal.valueOf(101.1);
+  dummy.bigInteger=BigInteger.valueOf(101);
+  constraintViolations=validator.validate(dummy);
+  assertCorrectNumberOfViolations(constraintViolations,0);
+}
