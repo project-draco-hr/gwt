@@ -1,22 +1,6 @@
 {
   JDeclaredType enclosingType=(JDeclaredType)get(binding.declaringClass);
-  boolean isCompileTimeConstant=binding.isStatic() && (binding.isFinal()) && (binding.constant() != Constant.NotAConstant)&& (binding.type.isBaseType());
-  assert(get(binding.type) instanceof JPrimitiveType || !isCompileTimeConstant);
-  assert(!binding.isFinal() || !binding.isVolatile());
-  Disposition disposition;
-  if (isCompileTimeConstant) {
-    disposition=Disposition.COMPILE_TIME_CONSTANT;
-  }
- else   if (binding.isFinal()) {
-    disposition=Disposition.FINAL;
-  }
- else   if (binding.isVolatile()) {
-    disposition=Disposition.VOLATILE;
-  }
- else {
-    disposition=Disposition.NONE;
-  }
-  JField field=new JField(SourceOrigin.UNKNOWN,intern(binding.name),enclosingType,get(binding.type),binding.isStatic(),disposition);
+  JField field=new JField(SourceOrigin.UNKNOWN,intern(binding.name),enclosingType,get(binding.type),binding.isStatic(),GwtAstBuilder.getFieldDisposition(binding));
   enclosingType.addField(field);
   return field;
 }

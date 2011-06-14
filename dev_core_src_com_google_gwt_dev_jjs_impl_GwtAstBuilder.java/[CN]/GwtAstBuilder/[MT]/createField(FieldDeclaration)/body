@@ -11,23 +11,7 @@
     field=new JEnumField(info,intern(binding.name),binding.original().id,(JEnumType)enclosingType,(JClassType)type);
   }
  else {
-    boolean isCompileTimeConstant=binding.isStatic() && (binding.isFinal()) && (binding.constant() != Constant.NotAConstant)&& (binding.type.isBaseType());
-    assert(type instanceof JPrimitiveType || !isCompileTimeConstant);
-    assert(!binding.isFinal() || !binding.isVolatile());
-    Disposition disposition;
-    if (isCompileTimeConstant) {
-      disposition=Disposition.COMPILE_TIME_CONSTANT;
-    }
- else     if (binding.isFinal()) {
-      disposition=Disposition.FINAL;
-    }
- else     if (binding.isVolatile()) {
-      disposition=Disposition.VOLATILE;
-    }
- else {
-      disposition=Disposition.NONE;
-    }
-    field=new JField(info,intern(binding.name),enclosingType,type,binding.isStatic(),disposition);
+    field=new JField(info,intern(binding.name),enclosingType,type,binding.isStatic(),getFieldDisposition(binding));
   }
   enclosingType.addField(field);
   typeMap.setField(binding,field);
