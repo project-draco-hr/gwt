@@ -19,9 +19,14 @@
           bis=new BufferedInputStream(fis);
           inputStream=new ObjectInputStream(bis);
           while (true) {
-            CompilationUnit unit=(CompilationUnit)inputStream.readObject();
+            CachedCompilationUnit unit=(CachedCompilationUnit)inputStream.readObject();
             if (unit == null) {
               break;
+            }
+            if (GwtAstBuilder.ENABLED) {
+              if (unit.getTypesSerializedVersion() != GwtAstBuilder.getSerializationVersion()) {
+                continue;
+              }
             }
             UnitCacheEntry entry=new UnitCacheEntry(unit,UnitOrigin.PERSISTENT);
             UnitCacheEntry oldEntry=unitMap.get(unit.getResourcePath());
