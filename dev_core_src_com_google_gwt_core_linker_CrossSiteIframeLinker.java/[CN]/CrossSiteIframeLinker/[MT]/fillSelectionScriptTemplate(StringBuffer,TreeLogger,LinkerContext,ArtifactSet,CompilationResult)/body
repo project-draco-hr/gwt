@@ -1,4 +1,12 @@
 {
+  if (shouldUseSelfForWindowAndDocument(context)) {
+    replaceAll(ss,"__WINDOW_DEF__","self");
+    replaceAll(ss,"__DOCUMENT_DEF__","self");
+  }
+ else {
+    replaceAll(ss,"__WINDOW_DEF__","window");
+    replaceAll(ss,"__DOCUMENT_DEF__","document");
+  }
   includeJs(ss,logger,getJsInstallScript(context),"__INSTALL_SCRIPT__");
   includeJs(ss,logger,getJsInstallLocation(context),"__INSTALL_LOCATION__");
   includeJs(ss,logger,getJsWaitForBodyLoaded(context),"__WAIT_FOR_BODY_LOADED__");
@@ -49,6 +57,19 @@
  else {
     replaceAll(ss,"__START_OBFUSCATED_ONLY__","/*");
     replaceAll(ss,"__END_OBFUSCATED_ONLY__","*/");
+  }
+  String jsModuleFunctionErrorCatch=getJsModuleFunctionErrorCatch(context);
+  if (jsModuleFunctionErrorCatch != null) {
+    replaceAll(ss,"__BEGIN_TRY_BLOCK__","try {");
+    replaceAll(ss,"__END_TRY_BLOCK_AND_START_CATCH__","} catch (moduleError) {");
+    includeJs(ss,logger,jsModuleFunctionErrorCatch,"__MODULE_FUNC_ERROR_CATCH__");
+    replaceAll(ss,"__END_CATCH_BLOCK__","}");
+  }
+ else {
+    replaceAll(ss,"__BEGIN_TRY_BLOCK__","");
+    replaceAll(ss,"__END_TRY_BLOCK_AND_START_CATCH__","");
+    replaceAll(ss,"__MODULE_FUNC_ERROR_CATCH__","");
+    replaceAll(ss,"__END_CATCH_BLOCK__","");
   }
   return ss.toString();
 }
