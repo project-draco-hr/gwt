@@ -1,0 +1,20 @@
+{
+  Server server=new Server();
+  SocketConnector connector=new SocketConnector();
+  connector.setPort(9999);
+  server.addConnector(connector);
+  Context ctx=new Context();
+  ctx.addServlet(RequestFactoryServlet.class,"/gwtRequest");
+  ctx.addFilter(GzipFilter.class,"*",Handler.DEFAULT);
+  SessionHandler sessionHandler=new SessionHandler();
+  sessionHandler.getSessionManager().setMaxInactiveInterval(5);
+  ctx.setSessionHandler(sessionHandler);
+  server.addHandler(ctx);
+  try {
+    server.start();
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    System.exit(-1);
+  }
+}
