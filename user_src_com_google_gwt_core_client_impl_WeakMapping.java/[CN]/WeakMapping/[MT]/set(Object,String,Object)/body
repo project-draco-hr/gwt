@@ -6,8 +6,14 @@
   IdentityWeakReference ref=new IdentityWeakReference(instance,queue);
   Map<String,Object> m=map.get(ref);
   if (m == null) {
-    m=new HashMap<String,Object>();
-    map.put(ref,m);
+    m=new ConcurrentHashMap<String,Object>();
+    map.putIfAbsent(ref,m);
+    m=map.get(ref);
   }
-  m.put(key,value);
+  if (value == null) {
+    m.remove(key);
+  }
+ else {
+    m.put(key,value);
+  }
 }

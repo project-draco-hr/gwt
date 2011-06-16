@@ -1,6 +1,9 @@
 {
-  Reference<? extends Object> ref;
-  while ((ref=queue.poll()) != null) {
-    map.remove(ref);
+  if (cleanupLock.tryLock()) {
+    Reference<? extends Object> ref;
+    while ((ref=queue.poll()) != null) {
+      map.remove(ref);
+    }
+    cleanupLock.unlock();
   }
 }
