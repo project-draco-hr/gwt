@@ -2,32 +2,28 @@
   if (domainValue == null) {
     return null;
   }
-  boolean anyType=returnType == null;
+  boolean anyType=clientType == null;
   if (anyType) {
-    returnType=Object.class;
+    clientType=Object.class;
   }
-  Class<?> assignableTo=TypeUtils.ensureBaseType(returnType);
-  ResolutionKey key=new ResolutionKey(domainValue,returnType);
-  Object previous=resolved.get(key);
-  if (previous != null && assignableTo.isInstance(previous)) {
-    return assignableTo.cast(previous);
+  Class<?> assignableTo=TypeUtils.ensureBaseType(clientType);
+  ResolutionKey key=new ResolutionKey(domainValue,clientType);
+  Resolution previous=resolved.get(key);
+  if (previous != null && assignableTo.isInstance(previous.getClientObject())) {
+    return previous;
   }
   Class<?> returnClass=service.resolveClientType(domainValue.getClass(),assignableTo,true);
   if (anyType) {
     assignableTo=returnClass;
   }
   if (ValueCodex.canDecode(returnClass)) {
-    return assignableTo.cast(domainValue);
+    return makeResolution(domainValue);
   }
   boolean isProxy=BaseProxy.class.isAssignableFrom(returnClass);
   boolean isId=EntityProxyId.class.isAssignableFrom(returnClass);
   if (isProxy || isId) {
     Class<? extends BaseProxy> proxyClass=returnClass.asSubclass(BaseProxy.class);
-    BaseProxy entity=resolveClientProxy(domainValue,proxyClass,propertyRefs,key,prefix);
-    if (isId) {
-      return assignableTo.cast(((EntityProxy)entity).stableId());
-    }
-    return assignableTo.cast(entity);
+    return resolveClientProxy(domainValue,proxyClass,key);
   }
   if (Collection.class.isAssignableFrom(returnClass)) {
     Collection<Object> accumulator;
@@ -40,12 +36,11 @@
  else {
       throw new ReportableException("Unsupported collection type" + returnClass.getName());
     }
-    resolved.put(key,accumulator);
-    Type elementType=TypeUtils.getSingleParameterization(Collection.class,returnType);
+    Type elementType=TypeUtils.getSingleParameterization(Collection.class,clientType);
     for (    Object o : (Collection<?>)domainValue) {
-      accumulator.add(resolveClientValue(o,elementType,propertyRefs,prefix));
+      accumulator.add(resolveClientValue(o,elementType).getClientObject());
     }
-    return assignableTo.cast(accumulator);
+    return makeResolution(accumulator);
   }
   throw new ReportableException("Unsupported domain type " + returnClass.getCanonicalName());
 }

@@ -1,0 +1,16 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  SimpleFooRequest request=simpleFooRequest();
+  request.findSimpleFooById(1L);
+  request.findAll().with("barField").to(new Receiver<List<SimpleFooProxy>>(){
+    @Override public void onSuccess(    List<SimpleFooProxy> response){
+      for (      SimpleFooProxy proxy : response) {
+        proxy=checkSerialization(proxy);
+        assertNotNull("barField has not been retrieved on id=" + proxy.getId(),proxy.getBarField());
+      }
+      finishTestAndReset();
+    }
+  }
+);
+  request.fire();
+}

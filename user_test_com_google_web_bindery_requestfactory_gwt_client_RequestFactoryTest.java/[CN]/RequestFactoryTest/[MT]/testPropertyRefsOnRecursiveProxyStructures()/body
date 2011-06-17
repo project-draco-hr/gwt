@@ -1,0 +1,17 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  simpleFooRequest().getFlattenedTripletReference().with("selfOneToManyField").fire(new Receiver<List<SimpleFooProxy>>(){
+    @Override public void onSuccess(    List<SimpleFooProxy> response){
+      for (int i=0; i < response.size(); i++) {
+        SimpleFooProxy proxy=response.get(i);
+        checkSerialization(proxy);
+        assertNotNull("Missing selfOneToManyField for item at index " + i,proxy.getSelfOneToManyField());
+        assertEquals(1,proxy.getSelfOneToManyField().size());
+        SimpleFooProxy next=response.get(Math.min(i + 1,response.size() - 1));
+        assertSame("Item at index " + i + " does not link the following item in its selfOneToManyField",proxy.getSelfOneToManyField().get(0),next);
+      }
+      finishTestAndReset();
+    }
+  }
+);
+}

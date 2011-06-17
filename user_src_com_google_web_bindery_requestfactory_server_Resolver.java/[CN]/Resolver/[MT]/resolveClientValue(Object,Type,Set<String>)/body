@@ -1,3 +1,18 @@
 {
-  return resolveClientValue(domainValue,assignableTo,getPropertyRefs(propertyRefs),"");
+  Resolution toReturn=resolveClientValue(domainValue,assignableTo);
+  if (toReturn == null) {
+    return null;
+  }
+  addPathsToResolution(toReturn,"",expandPropertyRefs(propertyRefs));
+  while (!toProcess.isEmpty()) {
+    List<Resolution> working=new ArrayList<Resolution>(toProcess);
+    toProcess.clear();
+    for (    Resolution resolution : working) {
+      if (resolution.hasWork()) {
+        AutoBean<BaseProxy> bean=AutoBeanUtils.getAutoBean((BaseProxy)resolution.getClientObject());
+        bean.accept(new PropertyResolver(resolution));
+      }
+    }
+  }
+  return toReturn.getClientObject();
 }

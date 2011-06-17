@@ -1,0 +1,22 @@
+{
+  Class<?> elementType=ctx instanceof CollectionPropertyContext ? ((CollectionPropertyContext)ctx).getElementType() : null;
+  boolean shouldSend=isOwnerValueProxy || matchesPropertyRef(propertyRefs,propertyName) || elementType != null && ValueCodex.canDecode(elementType);
+  if (!shouldSend) {
+    return false;
+  }
+  Object domainValue=service.getProperty(domainEntity,propertyName);
+  if (domainValue == null) {
+    return false;
+  }
+  Type type;
+  if (elementType == null) {
+    type=ctx.getType();
+  }
+ else {
+    type=new CollectionType(ctx.getType(),elementType);
+  }
+  Resolution resolution=resolveClientValue(domainValue,type);
+  addPathsToResolution(resolution,propertyName,propertyRefs);
+  ctx.set(resolution.getClientObject());
+  return false;
+}

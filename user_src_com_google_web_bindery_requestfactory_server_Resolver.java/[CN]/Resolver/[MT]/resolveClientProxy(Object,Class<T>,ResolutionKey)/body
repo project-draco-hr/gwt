@@ -1,0 +1,46 @@
+{
+  if (domainEntity == null) {
+    return null;
+  }
+  SimpleProxyId<? extends BaseProxy> id=state.getStableId(domainEntity);
+  boolean isEntityProxy=state.isEntityType(proxyType);
+  Object domainVersion;
+  if (id == null || id.isEphemeral()) {
+    Object domainId;
+    if (isEntityProxy) {
+      domainId=service.getId(domainEntity);
+      domainVersion=service.getVersion(domainEntity);
+    }
+ else {
+      domainId=null;
+      domainVersion=null;
+    }
+    if (id == null) {
+      if (domainId == null) {
+        id=state.getIdFactory().allocateSyntheticId(proxyType,++syntheticId);
+      }
+ else {
+        Splittable flatValue=state.flatten(domainId);
+        id=state.getIdFactory().getId(proxyType,flatValue.getPayload(),0);
+      }
+    }
+ else     if (domainId != null) {
+      Splittable flatValue=state.flatten(domainId);
+      id.setServerId(flatValue.getPayload());
+    }
+  }
+ else   if (isEntityProxy) {
+    domainVersion=service.getVersion(domainEntity);
+  }
+ else {
+    domainVersion=null;
+  }
+  @SuppressWarnings("unchecked") AutoBean<T> bean=(AutoBean<T>)state.getBeanForPayload(id,domainEntity);
+  bean.setTag(Constants.IN_RESPONSE,true);
+  if (domainVersion != null) {
+    Splittable flatVersion=state.flatten(domainVersion);
+    bean.setTag(Constants.VERSION_PROPERTY_B64,SimpleRequestProcessor.toBase64(flatVersion.getPayload()));
+  }
+  T clientObject=bean.as();
+  return makeResolution(key,clientObject);
+}
