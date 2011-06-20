@@ -1,20 +1,16 @@
 {
   if (alreadyLoadedModules.contains(moduleName)) {
-    if (logger.isLoggable(TreeLogger.TRACE)) {
-      logger.log(TreeLogger.TRACE,"Module '" + moduleName + "' has already been loaded and will be skipped",null);
-    }
     return;
   }
- else {
-    alreadyLoadedModules.add(moduleName);
-  }
+  TreeLogger logger=parentLogger.branch(TreeLogger.DEBUG,"Loading inherited module '" + moduleName + "'",null);
+  alreadyLoadedModules.add(moduleName);
   String slashedModuleName=moduleName.replace('.','/');
   String resName=slashedModuleName + ModuleDefLoader.GWT_MODULE_XML_SUFFIX;
   URL moduleURL=classLoader.getResource(resName);
   if (moduleURL != null) {
     String externalForm=moduleURL.toExternalForm();
-    if (logger.isLoggable(TreeLogger.TRACE)) {
-      logger.log(TreeLogger.TRACE,"Module location: " + externalForm,null);
+    if (logger.isLoggable(TreeLogger.DEBUG)) {
+      logger.log(TreeLogger.DEBUG,"Module location: " + externalForm,null);
     }
     try {
       if ((!(externalForm.startsWith("jar:file"))) && (!(externalForm.startsWith("zip:file"))) && (!(externalForm.startsWith("http://")))&& (!(externalForm.startsWith("ftp://")))) {
@@ -33,8 +29,7 @@
     }
   }
   if (moduleURL == null) {
-    String msg="Unable to find '" + resName + "' on your classpath; could be a typo, or maybe you forgot to include a classpath entry for source?";
-    logger.log(TreeLogger.ERROR,msg,null);
+    logger.log(TreeLogger.ERROR,"Unable to find '" + resName + "' on your classpath; "+ "could be a typo, or maybe you forgot to include a classpath entry for source?");
     throw new UnableToCompleteException();
   }
   String moduleDir="";

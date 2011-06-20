@@ -1,10 +1,10 @@
 {
+  long lastModified=0L;
   try {
     if (url.getProtocol().equals(JAR_PROTOCOL)) {
       JarURLConnection jarConn=(JarURLConnection)url.openConnection();
       url=jarConn.getJarFileURL();
     }
-    long lastModified;
     if (url.getProtocol().equals(FILE_PROTOCOL)) {
       File file;
       try {
@@ -15,18 +15,10 @@
       }
       lastModified=file.lastModified();
     }
- else {
-      return false;
-    }
-    if (lastModified == 0L || lastModified > referenceTime) {
-      return false;
-    }
   }
- catch (  IOException ioEx) {
-    return false;
+ catch (  IOException ignored) {
   }
-catch (  RuntimeException ruEx) {
-    return false;
+catch (  RuntimeException ignored) {
   }
-  return true;
+  return lastModified;
 }

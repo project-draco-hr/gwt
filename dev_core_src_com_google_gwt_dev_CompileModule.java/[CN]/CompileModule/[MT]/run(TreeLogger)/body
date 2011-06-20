@@ -1,4 +1,5 @@
 {
+  Set<String> alreadyLoadedArchives=new HashSet<String>();
   for (  String moduleToCompile : options.getModuleNames()) {
     ModuleDef module;
     try {
@@ -18,6 +19,11 @@
         }
       }
       for (      URL archiveURL : archiveURLs) {
+        String archiveURLstring=archiveURL.toString();
+        if (alreadyLoadedArchives.contains(archiveURLstring)) {
+          continue;
+        }
+        alreadyLoadedArchives.add(archiveURLstring);
         SpeedTracerLogger.Event loadArchive=SpeedTracerLogger.start(CompilerEventType.LOAD_ARCHIVE,"dependentModule",archiveURL.toString());
         try {
           CompilationUnitArchive archive=CompilationUnitArchive.createFromURL(archiveURL);
