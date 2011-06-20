@@ -1,0 +1,80 @@
+{
+  if (value == null || value.length() == 0) {
+    return "Style property values cannot be null or empty";
+  }
+  final HashMap<Character,Character> pairs=new HashMap<Character,Character>();
+  pairs.put('(',')');
+  pairs.put('[',']');
+  pairs.put('{','}');
+  final Stack<Character> pairsStack=new Stack<Character>();
+  final Stack<Integer> pairsPos=new Stack<Integer>();
+  Character inQuote=null;
+  int inQuotePos=-1;
+  boolean inUrl=false;
+  boolean ignoreNext=false;
+  for (int i=0; i < value.length(); i++) {
+    if (ignoreNext) {
+      ignoreNext=false;
+      continue;
+    }
+    char ch=value.charAt(i);
+    if (ch == '\\') {
+      ignoreNext=true;
+      continue;
+    }
+    if (inUrl) {
+      if (ch == ')') {
+        inUrl=false;
+      }
+ else       if (ch == '(') {
+        return "Unescaped parentheses within a url at index " + i + ": "+ value;
+      }
+      continue;
+    }
+    if (inQuote != null) {
+      if (ch == inQuote) {
+        inQuote=null;
+      }
+      continue;
+    }
+    if (ch == '"' || ch == '\'') {
+      inQuote=ch;
+      inQuotePos=i;
+    }
+ else     if ((ch == 'u' || ch == 'U') && value.length() >= i + 3 && value.substring(i,i + 4).equalsIgnoreCase("url(")) {
+      inUrl=true;
+      i=i + 3;
+    }
+ else     if (pairs.containsKey(ch)) {
+      pairsStack.push(ch);
+      pairsPos.push(i);
+    }
+ else     if (pairs.values().contains(ch)) {
+      if (pairsStack.isEmpty() || pairs.get(pairsStack.pop()) != ch) {
+        return "Style property value contains unpaired '" + ch + "' at index "+ i+ ": "+ value;
+      }
+      pairsPos.pop();
+    }
+ else     if (ch == ';') {
+      return "Style property values cannot contain a semi-colon (except within quotes): " + value;
+    }
+ else     if (ch == ':') {
+      return "Style property values cannot contain a colon (except within quotes): " + value;
+    }
+  }
+  if (inQuote != null) {
+    return "Style property value contains unpaired open quote at index " + inQuotePos + ": "+ value;
+  }
+  if (inUrl) {
+    return "Style property value contains an unterminated url: " + value;
+  }
+  if (!pairsStack.isEmpty()) {
+    char openToken=pairsStack.pop();
+    int index=pairsPos.pop();
+    return "Style property value contains unpaired '" + openToken + "' at index "+ index+ ": "+ value;
+  }
+  if (ignoreNext) {
+    return "Style property values cannot end in an escape character: " + value;
+  }
+  return null;
+}
