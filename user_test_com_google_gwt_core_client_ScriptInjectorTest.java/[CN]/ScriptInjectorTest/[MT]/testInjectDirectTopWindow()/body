@@ -1,0 +1,12 @@
+{
+  String scriptBody="__ti2_var__ = 2;";
+  assertFalse(nativeTest2Worked());
+  ScriptInjector.fromString(scriptBody).setWindow(ScriptInjector.TOP_WINDOW).inject();
+  boolean worked=nativeTest2Worked();
+  JavaScriptObject scriptElement=findScriptTextInTopWindow(scriptBody);
+  if (!isIE()) {
+    cleanupTopWindow("__ti2_var__",scriptElement);
+    assertTrue("__ti2_var not set in top window",worked);
+  }
+  assertNull("script element 2 not removed by injection",scriptElement);
+}

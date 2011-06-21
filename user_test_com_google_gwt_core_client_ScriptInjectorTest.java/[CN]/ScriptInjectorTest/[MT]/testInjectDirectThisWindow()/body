@@ -1,0 +1,15 @@
+{
+  delayTestFinish(TEST_DELAY);
+  String scriptBody="__ti1_var__ = 1;";
+  assertFalse(nativeTest1Worked());
+  new FromString(scriptBody).inject();
+  boolean worked=nativeTest1Worked();
+  JavaScriptObject scriptElement=findScriptTextInThisWindow(scriptBody);
+  if (!isIE()) {
+    cleanupThisWindow("__ti1_var__",scriptElement);
+    assertFalse("cleanup failed",nativeTest1Worked());
+  }
+  assertTrue("__ti1_var not set in this window",worked);
+  assertNull("script element 1 not removed by injection",scriptElement);
+  finishTest();
+}
