@@ -1,3 +1,11 @@
 {
-  return DataflowOptimizer.exec(program,method).didChange();
+  boolean didChange=false;
+  if (runDCE) {
+    didChange=DeadCodeElimination.exec(program).didChange() || didChange;
+  }
+  if (runMethodInliner) {
+    didChange=MethodInliner.exec(program).didChange() || didChange;
+  }
+  didChange=DataflowOptimizer.exec(program,method).didChange() || didChange;
+  return didChange;
 }

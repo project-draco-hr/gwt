@@ -1,0 +1,8 @@
+{
+  runDCE=true;
+  runMethodInliner=true;
+  addSnippetClassDecl("static void fail() {" + "  throw new RuntimeException();" + "}");
+  addSnippetClassDecl("static Integer x;");
+  addSnippetClassDecl("static boolean copy(Number n) {" + "  x = (Integer) n;" + "  return true;"+ "}");
+  optimize("int","Integer n = new Integer(1);","if (!copy(n)) {","  fail();","}","return x;").intoString("Integer n = new Integer(1);","((EntryPoint.x = n, true)) || EntryPoint.fail();","return EntryPoint.x.intValue();");
+}
