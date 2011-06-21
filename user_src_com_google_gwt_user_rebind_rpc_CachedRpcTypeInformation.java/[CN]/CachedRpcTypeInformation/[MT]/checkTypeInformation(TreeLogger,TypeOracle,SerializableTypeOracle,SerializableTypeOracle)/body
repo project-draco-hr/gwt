@@ -1,0 +1,40 @@
+{
+  JType[] typesFrom=typesFromBrowser.getSerializableTypes();
+  if (typesFrom.length != serializableFromBrowser.size()) {
+    if (logger.isLoggable(TreeLogger.TRACE)) {
+      logger.log(TreeLogger.TRACE,"The number of serializable types sent from the browser has changed");
+      logDifferencesBetweenCurrentAndCachedTypes(logger,typesFrom,serializableFromBrowser);
+    }
+    return false;
+  }
+  JType[] typesTo=typesToBrowser.getSerializableTypes();
+  if (typesTo.length != serializableToBrowser.size()) {
+    if (logger.isLoggable(TreeLogger.TRACE)) {
+      logger.log(TreeLogger.TRACE,"The number of serializable types sent to the browser has changed");
+      logDifferencesBetweenCurrentAndCachedTypes(logger,typesTo,serializableToBrowser);
+    }
+    return false;
+  }
+  if (!checkTypes(logger,serializableFromBrowser,instantiableFromBrowser,typesFromBrowser) || !checkTypes(logger,serializableToBrowser,instantiableToBrowser,typesToBrowser)) {
+    return false;
+  }
+  for (  String customSerializerType : customSerializerTypes) {
+    JType currType=typeOracle.findType(customSerializerType);
+    if (currType == null) {
+      logger.log(TreeLogger.TRACE,"Custom serializer no longer available: " + customSerializerType);
+      return false;
+    }
+    if (!checkLastModifiedTime(currType)) {
+      logger.log(TreeLogger.TRACE,"A change was detected in custom serializer: " + customSerializerType);
+      return false;
+    }
+  }
+  for (  String sourceName : typesNotUsingCustomSerializer) {
+    String fieldSerializerName=SerializableTypeOracleBuilder.getCustomFieldSerializerName(sourceName);
+    if (SerializableTypeOracleBuilder.findCustomFieldSerializer(typeOracle,fieldSerializerName) != null) {
+      logger.log(TreeLogger.TRACE,"A new custom serializer is available " + sourceName);
+      return false;
+    }
+  }
+  return true;
+}

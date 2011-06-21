@@ -6,20 +6,49 @@
     RemoteServiceAsyncValidator.logValidAsyncInterfaceDeclaration(logger,serviceIntf);
     throw new UnableToCompleteException();
   }
-  SourceWriter srcWriter=getSourceWriter(logger,context,serviceAsync);
-  if (srcWriter == null) {
-    return getProxyQualifiedName();
+  if (checkAlreadyGenerated(typeOracle,serviceIntf)) {
+    return new RebindResult(RebindStatus.USE_EXISTING,getProxyQualifiedName());
   }
   RemoteServiceAsyncValidator rsav=new RemoteServiceAsyncValidator(logger,typeOracle);
   Map<JMethod,JMethod> syncMethToAsyncMethMap=rsav.validate(logger,serviceIntf,serviceAsync);
   final PropertyOracle propertyOracle=context.getPropertyOracle();
   TypeFilter blacklistTypeFilter=new BlacklistTypeFilter(logger,propertyOracle);
   Event event=SpeedTracerLogger.start(CompilerEventType.GENERATOR_RPC_STOB);
-  SerializableTypeOracleBuilder typesSentFromBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,context);
-  typesSentFromBrowserBuilder.setTypeFilter(blacklistTypeFilter);
-  SerializableTypeOracleBuilder typesSentToBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,context);
-  typesSentToBrowserBuilder.setTypeFilter(blacklistTypeFilter);
-  addRoots(logger,typeOracle,typesSentFromBrowserBuilder,typesSentToBrowserBuilder);
+  SerializableTypeOracle typesSentFromBrowser;
+  SerializableTypeOracle typesSentToBrowser;
+  String rpcLog;
+  try {
+    SerializableTypeOracleBuilder typesSentFromBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,context);
+    typesSentFromBrowserBuilder.setTypeFilter(blacklistTypeFilter);
+    SerializableTypeOracleBuilder typesSentToBrowserBuilder=new SerializableTypeOracleBuilder(logger,propertyOracle,context);
+    typesSentToBrowserBuilder.setTypeFilter(blacklistTypeFilter);
+    addRoots(logger,typeOracle,typesSentFromBrowserBuilder,typesSentToBrowserBuilder);
+{
+      StringWriter stringWriter=new StringWriter();
+      PrintWriter writer=new PrintWriter(stringWriter);
+      typesSentFromBrowserBuilder.setLogOutputWriter(writer);
+      typesSentToBrowserBuilder.setLogOutputWriter(writer);
+      writer.write("====================================\n");
+      writer.write("Types potentially sent from browser:\n");
+      writer.write("====================================\n\n");
+      writer.flush();
+      typesSentFromBrowser=typesSentFromBrowserBuilder.build(logger);
+      writer.write("===================================\n");
+      writer.write("Types potentially sent from server:\n");
+      writer.write("===================================\n\n");
+      writer.flush();
+      typesSentToBrowser=typesSentToBrowserBuilder.build(logger);
+      writer.close();
+      rpcLog=stringWriter.toString();
+    }
+  }
+  finally {
+    event.end();
+  }
+  if (checkGeneratorResultCacheability(logger,context,typesSentFromBrowser,typesSentToBrowser)) {
+    logger.log(TreeLogger.TRACE,"Reusing all cached artifacts for " + getProxyQualifiedName());
+    return new RebindResult(RebindStatus.USE_ALL_CACHED,getProxyQualifiedName());
+  }
   try {
     ConfigurationProperty prop=context.getPropertyOracle().getConfigurationProperty(TypeSerializerCreator.GWT_ELIDE_TYPE_NAMES_FROM_RPC);
     elideTypeNames=Boolean.parseBoolean(prop.getValues().get(0));
@@ -28,28 +57,10 @@
     logger.log(TreeLogger.ERROR,"Configuration property " + TypeSerializerCreator.GWT_ELIDE_TYPE_NAMES_FROM_RPC + " is not defined. Is RemoteService.gwt.xml inherited?");
     throw new UnableToCompleteException();
   }
-  SerializableTypeOracle typesSentFromBrowser;
-  SerializableTypeOracle typesSentToBrowser;
-  String rpcLog;
-{
-    StringWriter stringWriter=new StringWriter();
-    PrintWriter writer=new PrintWriter(stringWriter);
-    typesSentFromBrowserBuilder.setLogOutputWriter(writer);
-    typesSentToBrowserBuilder.setLogOutputWriter(writer);
-    writer.write("====================================\n");
-    writer.write("Types potentially sent from browser:\n");
-    writer.write("====================================\n\n");
-    writer.flush();
-    typesSentFromBrowser=typesSentFromBrowserBuilder.build(logger);
-    writer.write("===================================\n");
-    writer.write("Types potentially sent from server:\n");
-    writer.write("===================================\n\n");
-    writer.flush();
-    typesSentToBrowser=typesSentToBrowserBuilder.build(logger);
-    writer.close();
-    rpcLog=stringWriter.toString();
+  SourceWriter srcWriter=getSourceWriter(logger,context,serviceAsync);
+  if (srcWriter == null) {
+    return new RebindResult(RebindStatus.USE_EXISTING,getProxyQualifiedName());
   }
-  event.end();
   generateTypeHandlers(logger,context,typesSentFromBrowser,typesSentToBrowser);
   String serializationPolicyStrongName=writeSerializationPolicyFile(logger,context,typesSentFromBrowser,typesSentToBrowser);
   String remoteServiceInterfaceName=elideTypeNames ? TypeNameObfuscator.SERVICE_INTERFACE_ID : SerializationUtils.getRpcTypeName(serviceIntf);
@@ -62,5 +73,15 @@
   if (context.isProdMode() || logger.isLoggable(TreeLogger.DEBUG)) {
     context.commitArtifact(logger,new RpcLogArtifact(serviceIntf.getQualifiedSourceName(),serializationPolicyStrongName,rpcLog));
   }
-  return getProxyQualifiedName();
+  if (context.isGeneratorResultCachingEnabled()) {
+    CachedClientDataMap clientData=new CachedClientDataMap();
+    CachedRpcTypeInformation cti=new CachedRpcTypeInformation(typesSentFromBrowser,typesSentToBrowser,customSerializersUsed,typesNotUsingCustomSerializers);
+    clientData.put(CACHED_TYPE_INFO_KEY,cti);
+    CachedPropertyInformation cpi=new CachedPropertyInformation(logger,context.getPropertyOracle(),selectionPropsToCheck,configPropsToCheck);
+    clientData.put(CACHED_PROPERTY_INFO_KEY,cpi);
+    return new RebindResult(RebindStatus.USE_PARTIAL_CACHED,getProxyQualifiedName(),clientData);
+  }
+ else {
+    return new RebindResult(RebindStatus.USE_ALL_NEW_WITH_NO_CACHING,getProxyQualifiedName());
+  }
 }

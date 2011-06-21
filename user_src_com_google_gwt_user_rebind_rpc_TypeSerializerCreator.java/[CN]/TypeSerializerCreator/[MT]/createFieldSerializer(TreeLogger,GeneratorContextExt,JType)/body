@@ -9,13 +9,18 @@
       return;
     }
     assert(type.isClass() != null || type.isArray() != null);
+    JClassType customFieldSerializer=SerializableTypeOracleBuilder.findCustomFieldSerializer(typeOracle,type);
     if (ctx.isGeneratorResultCachingEnabled()) {
-      typeLastModifiedTimeMap.put(type.getQualifiedSourceName(),getLastModifiedTime(type));
-      if (findCacheableFieldSerializerAndMarkForReuseIfAvailable(logger,ctx,type)) {
+      if (customFieldSerializer != null) {
+        customFieldSerializersUsed.add(customFieldSerializer);
+      }
+ else {
+        typesNotUsingCustomFieldSerializers.add(type);
+      }
+      if (findCacheableFieldSerializerAndMarkForReuseIfAvailable(logger,ctx,type,customFieldSerializer)) {
         return;
       }
     }
-    JClassType customFieldSerializer=SerializableTypeOracleBuilder.findCustomFieldSerializer(typeOracle,type);
     FieldSerializerCreator creator=new FieldSerializerCreator(context,serializationOracle,deserializationOracle,(JClassType)type,customFieldSerializer);
     creator.realize(logger,ctx);
   }
