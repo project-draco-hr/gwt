@@ -1,32 +1,33 @@
 {
+  activityManager.setDisplay(shell);
   parentView.add(shell);
-  eventBus.addHandler(AddTaskEvent.TYPE,new AddTaskEvent.Handler(){
-    @Override public void onAddTask(    AddTaskEvent event){
-      placeController.goTo(TaskEditPlace.getTaskCreatePlace());
+  ActionEvent.register(eventBus,ActionNames.ADD_TASK,new ActionEvent.Handler(){
+    @Override public void onAction(    ActionEvent event){
+      placeController.goTo(TaskPlace.getTaskCreatePlace());
     }
   }
 );
   eventBus.addHandler(ShowTaskEvent.TYPE,new ShowTaskEvent.Handler(){
     @Override public void onShowTask(    ShowTaskEvent event){
       TaskProxy task=event.getTask();
-      placeController.goTo(TaskEditPlace.createTaskEditPlace(task.getId(),task));
+      placeController.goTo(TaskPlace.createTaskEditPlace(task.getId(),task));
     }
   }
 );
-  eventBus.addHandler(GoHomeEvent.TYPE,new GoHomeEvent.Handler(){
-    @Override public void onGoHome(    GoHomeEvent event){
+  ActionEvent.register(eventBus,ActionNames.GO_HOME,new ActionEvent.Handler(){
+    @Override public void onAction(    ActionEvent event){
       placeController.goTo(new TaskListPlace(false));
     }
   }
 );
-  eventBus.addHandler(TaskSavedEvent.TYPE,new TaskSavedEvent.Handler(){
-    @Override public void onTaskSaved(    TaskSavedEvent event){
+  ActionEvent.register(eventBus,ActionNames.TASK_SAVED,new ActionEvent.Handler(){
+    @Override public void onAction(    ActionEvent event){
       placeController.goTo(new TaskListPlace(true));
     }
   }
 );
-  eventBus.addHandler(EditingCanceledEvent.TYPE,new EditingCanceledEvent.Handler(){
-    @Override public void onEditCanceled(    EditingCanceledEvent event){
+  ActionEvent.register(eventBus,ActionNames.EDITING_CANCELED,new ActionEvent.Handler(){
+    @Override public void onAction(    ActionEvent event){
       placeController.goTo(new TaskListPlace(false));
     }
   }
@@ -36,8 +37,12 @@
       while (e instanceof UmbrellaException) {
         e=((UmbrellaException)e).getCauses().iterator().next();
       }
-      Window.alert("An unexpected error occurred: " + e.getMessage());
-      placeController.goTo(new TaskListPlace(false));
+      String message=e.getMessage();
+      if (message == null) {
+        message=e.toString();
+      }
+      log.log(Level.SEVERE,"Uncaught exception",e);
+      Window.alert("An unexpected error occurred: " + message);
     }
   }
 );

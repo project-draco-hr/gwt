@@ -1,0 +1,18 @@
+{
+  clientFactory.getRequestFactory().taskRequest().findAllTasks().fire(new Receiver<List<TaskProxy>>(){
+    @Override public void onFailure(    ServerFailure error){
+    }
+    @Override public void onSuccess(    List<TaskProxy> response){
+      if (eventBus == null) {
+        return;
+      }
+      if (response == null) {
+        response=Collections.<TaskProxy>emptyList();
+      }
+      setTasks(response);
+      clientFactory.getTaskProxyLocalStorage().setTasks(response);
+      refreshTimer.schedule(REFRESH_DELAY);
+    }
+  }
+);
+}

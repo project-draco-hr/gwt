@@ -1,0 +1,17 @@
+{
+  TaskRequest context=(TaskRequest)clientFactory.getTaskEditView().getEditorDriver().flush();
+  if (taskPersistRequest == null) {
+    taskPersistRequest=context.persist().using(editTask);
+  }
+  taskPersistRequest.fire(new Receiver<Void>(){
+    @Override public void onConstraintViolation(    Set<ConstraintViolation<?>> violations){
+      handleConstraintViolations(violations);
+    }
+    @Override public void onSuccess(    Void response){
+      editTask=null;
+      TaskEditPresenter.this.notify("Task Saved");
+      ActionEvent.fire(eventBus,ActionNames.TASK_SAVED);
+    }
+  }
+);
+}

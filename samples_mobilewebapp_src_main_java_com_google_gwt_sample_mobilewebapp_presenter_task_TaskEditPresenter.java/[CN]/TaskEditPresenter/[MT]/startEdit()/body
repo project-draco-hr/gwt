@@ -1,0 +1,30 @@
+{
+  isEditing=true;
+  getView().setEditing(true);
+  getView().setLocked(true);
+  clientFactory.getRequestFactory().taskRequest().findTask(this.taskId).fire(new Receiver<TaskProxy>(){
+    @Override public void onConstraintViolation(    Set<ConstraintViolation<?>> violations){
+      getView().setLocked(false);
+      getView().getEditorDriver().setConstraintViolations(violations);
+    }
+    @Override public void onFailure(    ServerFailure error){
+      getView().setLocked(false);
+      doCancelTask();
+      super.onFailure(error);
+    }
+    @Override public void onSuccess(    TaskProxy response){
+      if (eventBus == null) {
+        return;
+      }
+      if (response == null) {
+        Window.alert("The task with id '" + taskId + "' could not be found."+ " Please select a different task from the task list.");
+        doCancelTask();
+        return;
+      }
+      editTask=response;
+      getView().getEditorDriver().edit(response,clientFactory.getRequestFactory().taskRequest());
+      getView().setLocked(false);
+    }
+  }
+);
+}

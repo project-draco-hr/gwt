@@ -1,11 +1,16 @@
 {
   if (place instanceof TaskListPlace) {
-    if (!isTaskListIncluded.get()) {
-      return new TaskListActivity(clientFactory,(TaskListPlace)place);
+    return new AbstractActivity(){
+      @Override public void start(      AcceptsOneWidget panel,      EventBus eventBus){
+        TaskListPresenter presenter=new TaskListPresenter(clientFactory,(TaskListPlace)place);
+        presenter.start(eventBus);
+        panel.setWidget(presenter);
+      }
     }
+;
   }
- else   if (place instanceof TaskEditPlace) {
-    return new TaskEditActivity(clientFactory,(TaskEditPlace)place);
+  if (place instanceof TaskPlace) {
+    return new TaskActivity(clientFactory,(TaskPlace)place);
   }
   return null;
 }
