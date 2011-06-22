@@ -1,0 +1,45 @@
+{
+  final AbstractCell<Integer> intCell=new AbstractCell<Integer>(){
+    @Override public void render(    Context context,    Integer value,    SafeHtmlBuilder sb){
+      sb.append(value % 10);
+    }
+  }
+;
+  final ListDataProvider<Integer> root=new ListDataProvider<Integer>();
+  for (int i=0; i < 9; i++) {
+    root.getList().add(i);
+  }
+  TreeViewModel model=new TreeViewModel(){
+    @Override public NodeInfo<?> getNodeInfo(    Object value){
+      if (value == null) {
+        return new DefaultNodeInfo<Integer>(root,intCell);
+      }
+ else {
+        return new DefaultNodeInfo<String>(new ListDataProvider<String>(),new TextCell());
+      }
+    }
+    @Override public boolean isLeaf(    Object value){
+      return false;
+    }
+  }
+;
+  CellTree tree=createAbstractCellTree(model,null);
+  RootPanel.get().add(tree);
+  tree.rootNode.listView.presenter.flush();
+  TreeNode rootNode=tree.getRootTreeNode();
+  assertEquals(1,rootNode.getChildValue(1));
+  TreeNode child1=rootNode.setChildOpen(1,true);
+  assertFalse(child1.isDestroyed());
+  assertTrue(rootNode.isChildOpen(1));
+  List<Integer> oldData=root.getList();
+  List<Integer> newData=new ArrayList<Integer>();
+  for (  int l : oldData) {
+    newData.add(l + 100);
+  }
+  root.setList(newData);
+  root.flush();
+  tree.rootNode.listView.presenter.flush();
+  assertFalse(rootNode.isChildOpen(1));
+  assertTrue(child1.isDestroyed());
+  RootPanel.get().remove(tree);
+}
