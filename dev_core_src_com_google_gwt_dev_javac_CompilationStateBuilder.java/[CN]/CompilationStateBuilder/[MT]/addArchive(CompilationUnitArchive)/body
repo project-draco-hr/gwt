@@ -1,9 +1,12 @@
 {
   UnitCache unitCache=instance.unitCache;
-  for (  CompilationUnit unit : module.getUnits().values()) {
-    CompilationUnit cachedCompilationUnit=unitCache.find(unit.getResourcePath());
-    if (cachedCompilationUnit == null || cachedCompilationUnit.getLastModified() < unit.getLastModified()) {
-      unitCache.addArchivedUnit(unit);
+  for (  CachedCompilationUnit archivedUnit : module.getUnits().values()) {
+    if (archivedUnit.getTypesSerializedVersion() != GwtAstBuilder.getSerializationVersion()) {
+      continue;
+    }
+    CompilationUnit cachedCompilationUnit=unitCache.find(archivedUnit.getResourcePath());
+    if (cachedCompilationUnit == null || cachedCompilationUnit.getLastModified() < archivedUnit.getLastModified()) {
+      unitCache.addArchivedUnit(archivedUnit);
     }
   }
 }
