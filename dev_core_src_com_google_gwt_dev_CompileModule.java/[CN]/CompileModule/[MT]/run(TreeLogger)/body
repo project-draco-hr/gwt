@@ -1,7 +1,13 @@
 {
-  Set<String> alreadyLoadedArchives=new HashSet<String>();
+  Map<String,Set<String>> unitsInArchives=new HashMap<String,Set<String>>();
+  File outputDir=options.getOutDir();
+  if (!outputDir.isDirectory() && !outputDir.mkdirs()) {
+    logger.log(Type.ERROR,"Error creating directories for ouptut: " + outputDir.getAbsolutePath());
+    return false;
+  }
   for (  String moduleToCompile : options.getModuleNames()) {
     ModuleDef module;
+    Set<String> currentModuleArchivedUnits=new HashSet<String>();
     try {
       module=ModuleDefLoader.loadFromClassPath(logger,moduleToCompile,false);
     }
@@ -9,7 +15,6 @@
       CompilationProblemReporter.logAndTranslateException(logger,e);
       return false;
     }
-    Set<String> archivedResourcePaths=new HashSet<String>();
     SpeedTracerLogger.Event loadAllArchives=SpeedTracerLogger.start(CompilerEventType.LOAD_ARCHIVE,"module",moduleToCompile);
     try {
       Collection<URL> archiveURLs=module.getAllCompilationUnitArchiveURLs();
@@ -19,19 +24,23 @@
         }
       }
       for (      URL archiveURL : archiveURLs) {
-        String archiveURLstring=archiveURL.toString();
-        if (alreadyLoadedArchives.contains(archiveURLstring)) {
+        String archiveURLString=archiveURL.toString();
+        Set<String> unitPaths=unitsInArchives.get(archiveURLString);
+        if (unitPaths != null) {
+          currentModuleArchivedUnits.addAll(unitPaths);
           continue;
         }
-        alreadyLoadedArchives.add(archiveURLstring);
         SpeedTracerLogger.Event loadArchive=SpeedTracerLogger.start(CompilerEventType.LOAD_ARCHIVE,"dependentModule",archiveURL.toString());
         try {
           CompilationUnitArchive archive=CompilationUnitArchive.createFromURL(archiveURL);
           CompilationStateBuilder.addArchive(archive);
           if (!archive.getTopModuleName().equals(moduleToCompile)) {
+            Set<String> archivedUnits=new HashSet<String>();
+            unitsInArchives.put(archiveURLString,archivedUnits);
             for (            CompilationUnit unit : archive.getUnits().values()) {
-              archivedResourcePaths.add(unit.getResourcePath());
+              archivedUnits.add(unit.getResourcePath());
             }
+            currentModuleArchivedUnits.addAll(archivedUnits);
           }
         }
  catch (        IOException ex) {
@@ -60,27 +69,22 @@ catch (        ClassNotFoundException ex) {
       logger.log(TreeLogger.ERROR,"Failed to compile " + moduleToCompile);
       return false;
     }
-    CompilationUnitArchive outputModule=new CompilationUnitArchive(moduleToCompile);
+    CompilationUnitArchive outputArchive=new CompilationUnitArchive(moduleToCompile);
     for (    CompilationUnit unit : compilationState.getCompilationUnits()) {
-      if (!archivedResourcePaths.contains(unit.getResourcePath())) {
-        outputModule.addUnit(unit);
+      if (!currentModuleArchivedUnits.contains(unit.getResourcePath())) {
+        outputArchive.addUnit(unit);
       }
-    }
-    File outputDir=options.getOutDir();
-    if (!outputDir.isDirectory() && !outputDir.mkdirs()) {
-      logger.log(Type.ERROR,"Error creating directories for ouptut: " + outputDir.getAbsolutePath());
-      throw new UnableToCompleteException();
     }
     String slashedModuleName=module.getName().replace('.','/') + ModuleDefLoader.COMPILATION_UNIT_ARCHIVE_SUFFIX;
     File outputFile=new File(outputDir,slashedModuleName);
     outputFile.getParentFile().mkdirs();
-    logger.log(TreeLogger.INFO,"Writing " + outputModule.getUnits().size() + " units to "+ outputFile.getAbsolutePath());
+    logger.log(TreeLogger.INFO,"Writing " + outputArchive.getUnits().size() + " units to "+ outputFile.getAbsolutePath());
     try {
-      outputModule.writeToFile(outputFile);
+      outputArchive.writeToFile(outputFile);
     }
  catch (    IOException ex) {
       logger.log(Type.ERROR,"Error writing module file: " + outputFile.getAbsolutePath() + ": "+ ex);
-      throw new UnableToCompleteException();
+      return false;
     }
   }
   return true;
