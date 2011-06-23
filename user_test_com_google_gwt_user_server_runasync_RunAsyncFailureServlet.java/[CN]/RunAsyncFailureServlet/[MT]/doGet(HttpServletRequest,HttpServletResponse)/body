@@ -4,28 +4,30 @@
   String uri=originalUri.replace("/runAsyncFailure","");
   int response=getDesiredResponse(uri);
   String fragment=uri.substring(uri.lastIndexOf('/') + 1);
-  if (!errorFragments.contains(fragment) || response == HttpServletResponse.SC_OK) {
-    String host=req.getLocalName();
-    int port=req.getLocalPort();
-    String realUrl="http://" + host + ":"+ port+ uri;
-    debug("Fetching: " + realUrl);
+  if (!downloadErrorFragments.contains(fragment) || response == HttpServletResponse.SC_OK) {
     int bytes=0;
-    try {
-      URL url=new URL(realUrl);
-      InputStream is=url.openStream();
-      OutputStream os=resp.getOutputStream();
-      byte[] data=new byte[8192];
-      int nbytes;
-      while ((nbytes=is.read(data)) != -1) {
-        os.write(data,0,nbytes);
-        bytes+=nbytes;
+    if (!installErrorFragments.contains(fragment)) {
+      String host=req.getLocalName();
+      int port=req.getLocalPort();
+      String realUrl="http://" + host + ":"+ port+ uri;
+      debug("Fetching: " + realUrl);
+      try {
+        URL url=new URL(realUrl);
+        InputStream is=url.openStream();
+        OutputStream os=resp.getOutputStream();
+        byte[] data=new byte[8192];
+        int nbytes;
+        while ((nbytes=is.read(data)) != -1) {
+          os.write(data,0,nbytes);
+          bytes+=nbytes;
+        }
+        is.close();
+        os.close();
       }
-      is.close();
-      os.close();
-    }
- catch (    IOException e) {
-      debug("IOException fetching real data: " + e);
-      throw e;
+ catch (      IOException e) {
+        debug("IOException fetching real data: " + e);
+        throw e;
+      }
     }
     resp.setContentType("text/javascript");
     resp.setHeader("Cache-Control","no-cache");

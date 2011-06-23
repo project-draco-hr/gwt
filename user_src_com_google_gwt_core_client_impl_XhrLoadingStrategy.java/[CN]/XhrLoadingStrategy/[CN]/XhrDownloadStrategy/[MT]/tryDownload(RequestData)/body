@@ -1,0 +1,19 @@
+{
+  final XMLHttpRequest xhr=XMLHttpRequest.create();
+  xhr.open(HTTP_GET,request.getUrl());
+  xhr.setOnReadyStateChange(new ReadyStateChangeHandler(){
+    public void onReadyStateChange(    XMLHttpRequest ignored){
+      if (xhr.getReadyState() == XMLHttpRequest.DONE) {
+        xhr.clearOnReadyStateChange();
+        if ((xhr.getStatus() == HTTP_STATUS_OK || xhr.getStatus() == HTTP_STATUS_NON_HTTP) && xhr.getResponseText() != null && xhr.getResponseText().length() != 0) {
+          request.tryInstall(xhr.getResponseText());
+        }
+ else {
+          request.onLoadError(new HttpDownloadFailure(request.getUrl(),xhr.getStatus(),xhr.getStatusText()),true);
+        }
+      }
+    }
+  }
+);
+  xhr.send();
+}
