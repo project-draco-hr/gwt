@@ -1,6 +1,27 @@
 {
+  if (toReplace == widget.getElement()) {
+    return;
+  }
   widget.removeFromParent();
+  Widget toRemove=null;
+  Iterator<Widget> children=getChildren().iterator();
+  while (children.hasNext()) {
+    Widget next=children.next();
+    if (toReplace.isOrHasChild(next.getElement())) {
+      if (next.getElement() == toReplace) {
+        toRemove=next;
+        break;
+      }
+      children.remove();
+    }
+  }
   getChildren().add(widget);
-  toReplace.getParentNode().replaceChild(widget.getElement(),toReplace);
+  if (toRemove == null) {
+    toReplace.getParentNode().replaceChild(widget.getElement(),toReplace);
+  }
+ else {
+    toReplace.getParentNode().insertBefore(widget.getElement(),toReplace);
+    remove(toRemove);
+  }
   adopt(widget);
 }
