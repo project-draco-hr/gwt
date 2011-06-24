@@ -45,7 +45,7 @@
   finally {
     event.end();
   }
-  if (checkGeneratorResultCacheability(logger,context,typesSentFromBrowser,typesSentToBrowser)) {
+  if (checkCachedGeneratorResultValid(logger,context,typesSentFromBrowser,typesSentToBrowser)) {
     logger.log(TreeLogger.TRACE,"Reusing all cached artifacts for " + getProxyQualifiedName());
     return new RebindResult(RebindStatus.USE_ALL_CACHED,getProxyQualifiedName());
   }
@@ -73,7 +73,7 @@
   if (context.isProdMode() || logger.isLoggable(TreeLogger.DEBUG)) {
     context.commitArtifact(logger,new RpcLogArtifact(serviceIntf.getQualifiedSourceName(),serializationPolicyStrongName,rpcLog));
   }
-  if (context.isGeneratorResultCachingEnabled()) {
+  if (checkGeneratorResultCacheability(context)) {
     CachedClientDataMap clientData=new CachedClientDataMap();
     CachedRpcTypeInformation cti=new CachedRpcTypeInformation(typesSentFromBrowser,typesSentToBrowser,customSerializersUsed,typesNotUsingCustomSerializers);
     clientData.put(CACHED_TYPE_INFO_KEY,cti);
