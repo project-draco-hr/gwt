@@ -3,6 +3,11 @@
   if (url == null) {
     return;
   }
-  RequestData request=new RequestData(url,loadErrorHandler,fragment,downloadStrategy,getMaxRetryCount());
+  int manualRetry=getManualRetryNum(fragment);
+  if (manualRetry > 0) {
+    char connector=url.contains("?") ? '&' : '?';
+    url+=connector + "manualRetry=" + manualRetry;
+  }
+  RequestData request=new RequestData(url,loadErrorHandler,fragment,downloadStrategy,getMaxAutoRetryCount());
   request.tryDownload();
 }

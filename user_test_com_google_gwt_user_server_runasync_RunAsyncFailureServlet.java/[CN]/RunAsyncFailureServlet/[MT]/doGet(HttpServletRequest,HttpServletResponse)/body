@@ -3,15 +3,14 @@
   debug("doGet Original: " + originalUri);
   String uri=originalUri.replace("/runAsyncFailure","");
   int response=getDesiredResponse(uri);
-  RealContents rc=this.getRealContents(req,uri);
-  String realContentsAsString=new String(rc.bytes);
+  String realContents=getRealContents(req,uri);
   String fragment=uri.substring(uri.lastIndexOf('/') + 1);
-  if (!realContentsAsString.contains("DOWNLOAD_FAILURE_TEST") || response == HttpServletResponse.SC_OK) {
+  if (!realContents.contains("DOWNLOAD_FAILURE_TEST") || response == HttpServletResponse.SC_OK) {
     int bytes=0;
-    if (!realContentsAsString.contains("INSTALL_FAILURE_TEST")) {
+    if (!realContents.contains("INSTALL_FAILURE_TEST")) {
       OutputStream os=resp.getOutputStream();
-      os.write(rc.bytes,0,rc.numBytes);
-      bytes=rc.numBytes;
+      os.write(realContents.getBytes());
+      bytes=realContents.getBytes().length;
       os.close();
     }
     resp.setContentType("text/javascript");
