@@ -9,7 +9,15 @@
     resource=map.get(pathBase + systemId);
   }
   if (resource != null) {
-    String content=Util.readStreamAsString(resource.openContents());
+    String content;
+    try {
+      InputStream resourceStream=resource.openContents();
+      content=Util.readStreamAsString(resourceStream);
+    }
+ catch (    IOException ex) {
+      logger.log(TreeLogger.ERROR,"Error reading resource: " + resource.getLocation());
+      throw new RuntimeException(ex);
+    }
     InputSource inputSource=new InputSource(new StringReader(content));
     inputSource.setPublicId(publicId);
     inputSource.setSystemId(resource.getPath());

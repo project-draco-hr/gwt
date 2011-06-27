@@ -15,7 +15,15 @@
       resource=resourceMap.get(path);
     }
     if (resource != null) {
-      AbstractResource found=element.load(resource.openContents(),locale);
+      InputStream resourceStream=null;
+      try {
+        resourceStream=resource.openContents();
+      }
+ catch (      IOException ex) {
+        logger.log(TreeLogger.ERROR,"Error opening resource: " + resource.getLocation());
+        throw new RuntimeException(ex);
+      }
+      AbstractResource found=element.load(resourceStream,locale);
       found.setPath(path);
       resources.add(found);
     }

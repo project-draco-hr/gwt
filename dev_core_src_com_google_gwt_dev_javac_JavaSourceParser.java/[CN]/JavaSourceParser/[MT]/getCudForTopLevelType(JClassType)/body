@@ -10,8 +10,13 @@
     Resource classSource=classSources.get(topType);
     String source=null;
     if (classSource != null) {
-      InputStream stream=classSource.openContents();
-      source=Util.readStreamAsString(stream);
+      try {
+        InputStream stream=classSource.openContents();
+        source=Util.readStreamAsString(stream);
+      }
+ catch (      IOException ex) {
+        throw new InternalCompilerException("Problem reading resource: " + classSource.getLocation(),ex);
+      }
     }
     if (source == null) {
       cudCache.put(topType,null);
