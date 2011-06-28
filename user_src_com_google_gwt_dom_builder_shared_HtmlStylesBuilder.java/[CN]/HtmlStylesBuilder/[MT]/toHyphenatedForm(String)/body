@@ -1,0 +1,29 @@
+{
+  if (camelCaseWord == null) {
+    camelCaseMap=new HashMap<String,String>();
+    camelCaseWord=RegExp.compile("([A-Za-z])([^A-Z]*)","g");
+    caseWord=RegExp.compile("[A-Z]([^A-Z]*)");
+  }
+  if (name.contains("-")) {
+    return name;
+  }
+  String hyphenated=camelCaseMap.get(name);
+  if (hyphenated == null) {
+    hyphenated="";
+    MatchResult matches;
+    while ((matches=camelCaseWord.exec(name)) != null) {
+      String word=matches.getGroup(0);
+      if (caseWord.exec(word) == null) {
+        hyphenated+=word;
+      }
+ else {
+        hyphenated+="-" + matches.getGroup(1).toLowerCase();
+        if (matches.getGroupCount() > 1) {
+          hyphenated+=matches.getGroup(2);
+        }
+      }
+    }
+    camelCaseMap.put(name,hyphenated);
+  }
+  return hyphenated;
+}

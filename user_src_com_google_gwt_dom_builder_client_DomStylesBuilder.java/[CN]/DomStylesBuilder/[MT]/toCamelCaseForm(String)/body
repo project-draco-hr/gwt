@@ -1,0 +1,31 @@
+{
+  if (hyphenatedMap == null) {
+    hyphenatedMap=new HashMap<String,String>();
+    maybeHyphenatedWord=RegExp.compile("([-]?)([a-z])([a-z0-9]*)","g");
+  }
+  if (!name.contains("-")) {
+    return name;
+  }
+  String camelCase=hyphenatedMap.get(name);
+  if (camelCase == null) {
+    if (name.startsWith("-") && name.length() > 1) {
+      name=name.substring(1);
+    }
+    camelCase="";
+    MatchResult matches;
+    while ((matches=maybeHyphenatedWord.exec(name)) != null) {
+      String word=matches.getGroup(0);
+      if (!word.startsWith("-")) {
+        camelCase+=word;
+      }
+ else {
+        camelCase+=matches.getGroup(2).toUpperCase();
+        if (matches.getGroupCount() > 2) {
+          camelCase+=matches.getGroup(3);
+        }
+      }
+    }
+    hyphenatedMap.put(name,camelCase);
+  }
+  return camelCase;
+}
