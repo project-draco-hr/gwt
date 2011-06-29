@@ -4,7 +4,13 @@
   if (elementType instanceof JReferenceType) {
     JReferenceType elementRefType=(JReferenceType)elementType;
     elementType=elementRefType.getUnderlyingType();
+    if (program.typeOracle.isEffectivelyJavaScriptObject(elementRefType)) {
+      elementRefType=program.getJavaScriptObject();
+    }
     elementQueryId=program.getQueryId(elementRefType);
+    if (program.typeOracle.isDualJsoInterface(elementRefType)) {
+      elementQueryId*=-1;
+    }
   }
   return new JsQueryType(sourceInfo,elementType,elementQueryId);
 }
