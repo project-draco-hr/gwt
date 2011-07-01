@@ -1,0 +1,17 @@
+{
+  JsExpression expr=invoke.getQualifier();
+  if (!(expr instanceof JsNameRef)) {
+    return super.visit(invoke,ctx);
+  }
+  JsNameRef name=(JsNameRef)expr;
+  if (!name.getIdent().equals("concat")) {
+    return super.visit(invoke,ctx);
+  }
+  JsArrayLiteral headElements=(JsArrayLiteral)name.getQualifier();
+  for (  JsExpression ex : invoke.getArguments()) {
+    JsArrayLiteral arg=(JsArrayLiteral)ex;
+    headElements.getExpressions().addAll(arg.getExpressions());
+  }
+  ctx.replaceMe(headElements);
+  return true;
+}

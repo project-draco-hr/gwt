@@ -1,6 +1,15 @@
 {
-  results=eval(encoded);
-  index=getLength(results);
+  try {
+    List<JsStatement> stmts=JsParser.parse(SourceOrigin.UNKNOWN,JsRootScope.INSTANCE,new StringReader(encoded));
+    ConcatEvaler concatEvaler=new ConcatEvaler();
+    concatEvaler.acceptList(stmts);
+    decoder=new RpcDecoder();
+    decoder.acceptList(stmts);
+  }
+ catch (  Exception e) {
+    throw new SerializationException("Failed to parse RPC payload",e);
+  }
+  index=decoder.getValues().size();
   super.prepareToRead(encoded);
   if (getVersion() != SERIALIZATION_STREAM_VERSION) {
     throw new IncompatibleRemoteServiceException("Expecting version " + SERIALIZATION_STREAM_VERSION + " from server, got "+ getVersion()+ ".");
@@ -8,5 +17,4 @@
   if (!areFlagsValid()) {
     throw new IncompatibleRemoteServiceException("Got an unknown flag from " + "server: " + getFlags());
   }
-  stringTable=readJavaScriptObject();
 }
