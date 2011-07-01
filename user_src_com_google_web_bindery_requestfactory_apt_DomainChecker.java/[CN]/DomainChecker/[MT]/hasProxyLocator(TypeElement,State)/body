@@ -1,0 +1,15 @@
+{
+  ProxyFor proxyFor=x.getAnnotation(ProxyFor.class);
+  if (proxyFor != null) {
+    try {
+      proxyFor.locator();
+      throw new RuntimeException("Should not reach here");
+    }
+ catch (    MirroredTypeException expected) {
+      TypeMirror locatorType=expected.getTypeMirror();
+      return !state.types.asElement(locatorType).equals(state.locatorType.asElement());
+    }
+  }
+  ProxyForName proxyForName=x.getAnnotation(ProxyForName.class);
+  return proxyForName != null && !proxyForName.locator().isEmpty();
+}

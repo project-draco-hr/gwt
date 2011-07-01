@@ -1,0 +1,34 @@
+{
+  if (x.asElement().getKind().equals(ElementKind.ENUM)) {
+    return x;
+  }
+  if (state.types.isAssignable(x,state.entityProxyType) || state.types.isAssignable(x,state.valueProxyType)) {
+    TypeElement domainType=state.getClientToDomainMap().get(state.types.asElement(x));
+    if (domainType == null) {
+      return defaultAction(x,state);
+    }
+    return domainType.asType();
+  }
+  if (state.types.isAssignable(x,state.entityProxyIdType)) {
+    return convertSingleParamType(x,state.entityProxyIdType,0,state);
+  }
+  if (state.types.isAssignable(x,state.requestType)) {
+    return convertSingleParamType(x,state.requestType,0,state);
+  }
+  if (state.types.isAssignable(x,state.instanceRequestType)) {
+    return convertSingleParamType(x,state.instanceRequestType,1,state);
+  }
+  for (  Class<?> clazz : ValueCodex.getAllValueTypes()) {
+    if (clazz.isPrimitive()) {
+      continue;
+    }
+    if (state.types.isAssignable(x,state.findType(clazz))) {
+      return x;
+    }
+  }
+  if (state.types.isAssignable(x,state.findType(List.class)) || state.types.isAssignable(x,state.findType(Set.class))) {
+    TypeMirror param=convertSingleParamType(x,state.findType(Collection.class),0,state);
+    return state.types.getDeclaredType((TypeElement)state.types.asElement(x),param);
+  }
+  return defaultAction(x,state);
+}

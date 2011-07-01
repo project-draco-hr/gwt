@@ -1,0 +1,27 @@
+{
+  ProxyFor proxyFor=x.getAnnotation(ProxyFor.class);
+  ProxyForName proxyForName=x.getAnnotation(ProxyForName.class);
+  JsonRpcProxy jsonRpcProxy=x.getAnnotation(JsonRpcProxy.class);
+  if (proxyFor != null) {
+    poisonIfAnnotationPresent(state,x,proxyForName,jsonRpcProxy);
+    try {
+      proxyFor.value();
+      throw new RuntimeException("Should not reach here");
+    }
+ catch (    MirroredTypeException expected) {
+      TypeMirror type=expected.getTypeMirror();
+      state.addMapping(x,(TypeElement)state.types.asElement(type));
+    }
+  }
+  if (proxyForName != null) {
+    poisonIfAnnotationPresent(state,x,jsonRpcProxy);
+    TypeElement domain=state.elements.getTypeElement(BinaryName.toSourceName(proxyForName.value()));
+    if (domain == null) {
+      state.warn(x,"Cannot fully validate proxy since type %s is not available",proxyForName.value());
+    }
+    state.addMapping(x,domain);
+  }
+  scanAllInheritedMethods(x,state);
+  state.checkExtraTypes(x);
+  return null;
+}

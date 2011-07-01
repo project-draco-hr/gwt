@@ -1,0 +1,17 @@
+{
+  String name=x.getSimpleName().toString();
+  TypeMirror returnType=x.getReturnType();
+  if (!x.getParameters().isEmpty()) {
+    return false;
+  }
+  if (name.startsWith("get")) {
+    return true;
+  }
+  if (name.startsWith("is") || name.startsWith("has")) {
+    TypeMirror javaLangBoolean=state.types.boxedClass(state.types.getPrimitiveType(TypeKind.BOOLEAN)).asType();
+    if (returnType.getKind().equals(TypeKind.BOOLEAN) || state.types.isSameType(returnType,javaLangBoolean)) {
+      return true;
+    }
+  }
+  return false;
+}

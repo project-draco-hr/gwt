@@ -1,0 +1,16 @@
+{
+  if (state == null) {
+    state=new State(processingEnv);
+  }
+  try {
+    new Finder().scan(ElementFilter.typesIn(roundEnv.getRootElements()),state);
+    state.executeJobs();
+    if (roundEnv.processingOver()) {
+      new DomainChecker().scan(state.getClientToDomainMap().keySet(),state);
+      state=null;
+    }
+  }
+ catch (  HaltException ignored) {
+  }
+  return false;
+}

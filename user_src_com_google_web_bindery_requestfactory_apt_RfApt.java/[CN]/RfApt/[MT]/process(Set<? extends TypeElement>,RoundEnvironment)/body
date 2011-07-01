@@ -12,6 +12,29 @@
     }
   }
   new Finder().scan(ElementFilter.typesIn(roundEnv.getRootElements()),null);
+  try {
+    String packageName=TypeTokenResolver.class.getPackage().getName();
+    String simpleName=TypeTokenResolver.class.getSimpleName() + "BuilderImpl";
+    JavaFileObject classfile=filer.createSourceFile(packageName + "." + simpleName);
+    PrintWriter pw=new PrintWriter(classfile.openWriter());
+    pw.println("package " + packageName + ";");
+    pw.println("public class " + simpleName + " extends "+ TypeTokenResolver.Builder.class.getCanonicalName()+ " {");
+    pw.println("public " + simpleName + "() {");
+    for (    Map.Entry<String,String> entry : builder.peek().getAllTypeTokens().entrySet()) {
+      if (elements.getTypeElement(entry.getValue()) != null) {
+        pw.println("addTypeToken(\"" + entry.getKey() + "\", \""+ entry.getValue()+ "\");");
+      }
+    }
+    pw.println("}");
+    pw.println("}");
+    pw.close();
+  }
+ catch (  FilerException e) {
+    log("Ignoring exception: %s",e.getMessage());
+  }
+catch (  IOException e) {
+    error("Could not write BuilderImpl: " + e.getMessage());
+  }
   if (roundEnv.processingOver()) {
     TypeTokenResolver d=builder.build();
     builder=null;
@@ -22,30 +45,7 @@
  catch (    IOException e) {
       error("Could not write output: " + e.getMessage());
     }
-    try {
-      String packageName=TypeTokenResolver.class.getPackage().getName();
-      String simpleName=TypeTokenResolver.class.getSimpleName() + "BuilderImpl";
-      JavaFileObject classfile=filer.createSourceFile(packageName + "." + simpleName);
-      PrintWriter pw=new PrintWriter(classfile.openWriter());
-      pw.println("package " + packageName + ";");
-      pw.println("public class " + simpleName + " extends "+ TypeTokenResolver.Builder.class.getCanonicalName()+ " {");
-      pw.println("public " + simpleName + "() {");
-      for (      Map.Entry<String,String> entry : d.getAllTypeTokens().entrySet()) {
-        if (elements.getTypeElement(entry.getValue()) != null) {
-          pw.println("addTypeToken(\"" + entry.getKey() + "\", "+ entry.getValue()+ ".class.getName());");
-        }
-      }
-      pw.println("}");
-      pw.println("}");
-      pw.close();
-    }
- catch (    FilerException e) {
-      log("Ignoring exception: %s",e.getMessage());
-    }
-catch (    IOException e) {
-      error("Could not write BuilderImpl: " + e.getMessage());
-    }
-    log("Finished!");
   }
+  log("Finished!");
   return false;
 }

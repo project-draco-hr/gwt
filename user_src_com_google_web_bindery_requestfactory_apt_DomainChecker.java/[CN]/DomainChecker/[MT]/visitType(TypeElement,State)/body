@@ -1,0 +1,28 @@
+{
+  TypeMirror clientType=clientTypeElement.asType();
+  checkedType=clientTypeElement;
+  boolean isEntityProxy=state.types.isAssignable(clientType,state.entityProxyType);
+  currentTypeIsProxy=isEntityProxy || state.types.isAssignable(clientType,state.valueProxyType);
+  domainType=state.getClientToDomainMap().get(clientTypeElement);
+  if (domainType == null) {
+    return null;
+  }
+  requireInstanceDomainMethods=false;
+  requireStaticDomainMethods=false;
+  if (currentTypeIsProxy) {
+    requireInstanceDomainMethods=true;
+    if (!hasProxyLocator(clientTypeElement,state)) {
+      if (!hasNoArgConstructor(domainType)) {
+        state.warn(clientTypeElement,"The domain type %s has no default constructor." + " Calling %s.create(%s.class) will cause a server error.",domainType,state.requestContextType.asElement().getSimpleName(),clientTypeElement.getSimpleName());
+      }
+      if (isEntityProxy && !state.types.isSameType(clientType,state.entityProxyType)) {
+        checkDomainEntityMethods(state);
+      }
+    }
+  }
+ else   if (!hasServiceLocator(clientTypeElement,state)) {
+    requireStaticDomainMethods=true;
+  }
+  scanAllInheritedMethods(clientTypeElement,state);
+  return null;
+}

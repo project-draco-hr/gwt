@@ -1,0 +1,40 @@
+{
+  if (shouldIgnore(x,state)) {
+    return null;
+  }
+  TypeMirror returnType=x.getReturnType();
+  if (state.types.isAssignable(returnType,state.requestType)) {
+    DeclaredType asRequest=(DeclaredType)State.viewAs(state.requestType,returnType,state);
+    if (asRequest.getTypeArguments().isEmpty()) {
+      state.poison(x,"A raw return type may not be used here");
+    }
+ else {
+      TypeMirror requestReturn=asRequest.getTypeArguments().get(0);
+      if (!state.isTransportableType(requestReturn)) {
+        state.poison(x,"The type %s cannot be used as a return value",requestReturn.toString());
+      }
+    }
+  }
+ else   if (state.types.isAssignable(returnType,state.instanceRequestType)) {
+    DeclaredType asInstanceRequest=(DeclaredType)State.viewAs(state.instanceRequestType,returnType,state);
+    if (asInstanceRequest.getTypeArguments().isEmpty()) {
+      state.poison(x,"A raw return type may not be used here");
+    }
+ else {
+      TypeMirror instanceType=asInstanceRequest.getTypeArguments().get(0);
+      if (!state.isTransportableType(instanceType)) {
+        state.poison(x,"The type %s cannot be used as an invocation target",instanceType.toString());
+      }
+      TypeMirror requestReturn=asInstanceRequest.getTypeArguments().get(1);
+      if (!state.isTransportableType(requestReturn)) {
+        state.poison(x,"The type %s cannot be used as a return value",requestReturn.toString());
+      }
+    }
+  }
+ else   if (isSetter(x,state)) {
+  }
+ else {
+    state.poison(x,"The return type must be a %s or %s",state.requestType.asElement().getSimpleName(),state.instanceRequestType.asElement().getSimpleName());
+  }
+  return super.visitExecutable(x,state);
+}

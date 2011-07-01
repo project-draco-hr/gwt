@@ -1,0 +1,29 @@
+{
+  if (!desiredType.getTypeArguments().isEmpty()) {
+    throw new IllegalArgumentException("Expecting raw type, received " + desiredType.toString());
+  }
+  Element searchElement=state.types.asElement(searchFrom);
+switch (searchElement.getKind()) {
+case CLASS:
+case INTERFACE:
+case ENUM:
+{
+      TypeMirror rawSearchFrom=state.types.getDeclaredType((TypeElement)searchElement);
+      if (state.types.isSameType(desiredType,rawSearchFrom)) {
+        return searchFrom;
+      }
+      for (      TypeMirror s : state.types.directSupertypes(searchFrom)) {
+        TypeMirror maybe=viewAs(desiredType,s,state);
+        if (maybe != null) {
+          return maybe;
+        }
+      }
+      break;
+    }
+case TYPE_PARAMETER:
+{
+    return viewAs(desiredType,((TypeVariable)searchElement).getUpperBound(),state);
+  }
+}
+return null;
+}

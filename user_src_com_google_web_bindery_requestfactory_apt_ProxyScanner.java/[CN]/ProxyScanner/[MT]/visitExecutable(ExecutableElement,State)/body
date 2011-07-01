@@ -1,0 +1,15 @@
+{
+  if (shouldIgnore(x,state)) {
+    return null;
+  }
+  if (isGetter(x,state)) {
+    TypeMirror returnType=x.getReturnType();
+    if (!state.isTransportableType(returnType)) {
+      state.poison(x,"The return type %s cannot be used here",returnType.toString());
+    }
+  }
+ else   if (!isSetter(x,state)) {
+    state.poison(x,"Only getters and setters allowed");
+  }
+  return super.visitExecutable(x,state);
+}

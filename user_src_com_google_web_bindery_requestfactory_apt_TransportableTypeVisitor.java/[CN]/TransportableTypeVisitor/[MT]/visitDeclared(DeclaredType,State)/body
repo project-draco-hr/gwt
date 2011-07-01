@@ -1,0 +1,38 @@
+{
+  if (t.asElement().getKind().equals(ElementKind.ENUM)) {
+    return true;
+  }
+  if (state.types.isAssignable(t,state.entityProxyType) || state.types.isAssignable(t,state.valueProxyType)) {
+    TypeElement proxyElement=(TypeElement)t.asElement();
+    state.maybeScanProxy(proxyElement);
+    state.requireMapping(proxyElement);
+    return true;
+  }
+  if (state.types.isAssignable(t,state.entityProxyIdType)) {
+    DeclaredType asId=(DeclaredType)State.viewAs(state.entityProxyIdType,t,state);
+    if (asId.getTypeArguments().isEmpty()) {
+      return false;
+    }
+    return asId.getTypeArguments().get(0).accept(this,state);
+  }
+  for (  Class<?> clazz : ValueCodex.getAllValueTypes()) {
+    if (clazz.isPrimitive()) {
+      continue;
+    }
+    if (state.types.isAssignable(t,state.findType(clazz))) {
+      return true;
+    }
+  }
+  if (state.types.isAssignable(t,state.findType(List.class)) || state.types.isAssignable(t,state.findType(Set.class))) {
+    if (!allowNestedParameterization) {
+      return false;
+    }
+    allowNestedParameterization=false;
+    DeclaredType asCollection=(DeclaredType)State.viewAs(state.findType(Collection.class),t,state);
+    if (asCollection.getTypeArguments().isEmpty()) {
+      return false;
+    }
+    return t.getTypeArguments().get(0).accept(this,state);
+  }
+  return false;
+}

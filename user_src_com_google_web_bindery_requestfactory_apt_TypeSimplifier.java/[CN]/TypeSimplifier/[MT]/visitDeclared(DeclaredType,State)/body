@@ -1,0 +1,15 @@
+{
+  if (x.getTypeArguments().isEmpty()) {
+    return x;
+  }
+  List<TypeMirror> newArgs=new ArrayList<TypeMirror>(x.getTypeArguments().size());
+  for (  TypeMirror original : x.getTypeArguments()) {
+    if (original.getKind().equals(TypeKind.TYPEVAR) && state.types.isAssignable(original,x)) {
+      return state.types.getDeclaredType((TypeElement)x.asElement());
+    }
+ else {
+      newArgs.add(original.accept(this,state));
+    }
+  }
+  return state.types.getDeclaredType((TypeElement)x.asElement(),newArgs.toArray(new TypeMirror[newArgs.size()]));
+}

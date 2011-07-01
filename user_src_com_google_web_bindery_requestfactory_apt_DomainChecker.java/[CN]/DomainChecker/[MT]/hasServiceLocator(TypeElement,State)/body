@@ -1,0 +1,15 @@
+{
+  Service service=x.getAnnotation(Service.class);
+  if (service != null) {
+    try {
+      service.locator();
+      throw new RuntimeException("Should not reach here");
+    }
+ catch (    MirroredTypeException expected) {
+      TypeMirror locatorType=expected.getTypeMirror();
+      return !state.types.asElement(locatorType).equals(state.serviceLocatorType.asElement());
+    }
+  }
+  ServiceName serviceName=x.getAnnotation(ServiceName.class);
+  return serviceName != null && !serviceName.locator().isEmpty();
+}

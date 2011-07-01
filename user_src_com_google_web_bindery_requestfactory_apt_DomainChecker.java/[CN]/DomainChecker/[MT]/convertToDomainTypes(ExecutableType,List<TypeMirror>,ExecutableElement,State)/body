@@ -1,0 +1,26 @@
+{
+  boolean error=false;
+  TypeMirror returnType;
+  try {
+    returnType=clientMethod.getReturnType().accept(new ClientToDomainMapper(),state);
+  }
+ catch (  UnmappedTypeException e) {
+    error=true;
+    returnType=null;
+    state.warn(warnTo,"Cannot validate this method because the domain mapping for the" + " return type (%s) could not be resolved to a domain type",e.getClientType());
+  }
+  for (  TypeMirror param : clientMethod.getParameterTypes()) {
+    try {
+      parameterAccumulator.add(param.accept(new ClientToDomainMapper(),state));
+    }
+ catch (    UnmappedTypeException e) {
+      parameterAccumulator.add(null);
+      error=true;
+      state.warn(warnTo,"Cannot validate this method because the domain mapping for a" + " parameter of type (%s) could not be resolved to a domain type",e.getClientType());
+    }
+  }
+  if (error) {
+    throw new UnmappedTypeException();
+  }
+  return returnType;
+}
