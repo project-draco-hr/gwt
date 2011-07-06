@@ -9,8 +9,11 @@
     collectUpRefsInSupers(type,collected);
     for (    JMethod method : type.getMethods()) {
       if (method.canBePolymorphic()) {
-        Set<JMethod> uprefs=collected.get(method.getSignature());
-        method.addOverrides(Lists.create(uprefs));
+        for (        JMethod upref : collected.get(method.getSignature())) {
+          if (canAccessSuperMethod(type,upref)) {
+            method.addOverride(upref);
+          }
+        }
       }
     }
   }
