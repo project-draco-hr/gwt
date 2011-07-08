@@ -1,22 +1,29 @@
 {
-  T builder=createElementBuilder();
-  builder.text("Hello World");
-  try {
-    builder.text("moretext");
-    fail("Expected IllegalStateException: setting text twice");
+  if (!isInnerTextSupported) {
+    return;
   }
- catch (  IllegalStateException e) {
-  }
-  try {
-    builder.html(SafeHtmlUtils.fromString("morehtml"));
-    fail("Expected IllegalStateException: setting html after setting text");
-  }
- catch (  IllegalStateException e) {
-  }
-  try {
-    builder.startDiv();
-    fail("Expected IllegalStateException: appending a div after setting text");
-  }
- catch (  IllegalStateException e) {
+  for (  ElementBuilderFactory factory : getFactories()) {
+    T builder=createElementBuilder(factory);
+    builder.text("Hello World");
+    try {
+      builder.text("moretext");
+      fail("Expected IllegalStateException: setting text twice");
+    }
+ catch (    IllegalStateException e) {
+    }
+    if (isInnerHtmlSupported) {
+      try {
+        builder.html(SafeHtmlUtils.fromString("morehtml"));
+        fail("Expected IllegalStateException: setting html after setting text");
+      }
+ catch (      IllegalStateException e) {
+      }
+    }
+    try {
+      builder.startDiv();
+      fail("Expected IllegalStateException: appending a div after setting text");
+    }
+ catch (    IllegalStateException e) {
+    }
   }
 }

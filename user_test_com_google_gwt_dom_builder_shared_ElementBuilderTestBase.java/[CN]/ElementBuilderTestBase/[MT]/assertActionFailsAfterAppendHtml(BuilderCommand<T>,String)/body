@@ -1,10 +1,15 @@
 {
-  T builder=createElementBuilder();
-  builder.html(SafeHtmlUtils.EMPTY_SAFE_HTML);
-  try {
-    action.execute(builder);
-    fail("Expected IllegalStateException: " + message);
+  if (!isInnerHtmlSupported) {
+    return;
   }
- catch (  IllegalStateException e) {
+  for (  ElementBuilderFactory factory : getFactories()) {
+    T builder=createElementBuilder(factory);
+    builder.html(SafeHtmlUtils.EMPTY_SAFE_HTML);
+    try {
+      action.execute(builder);
+      fail("Expected IllegalStateException: " + message);
+    }
+ catch (    IllegalStateException e) {
+    }
   }
 }

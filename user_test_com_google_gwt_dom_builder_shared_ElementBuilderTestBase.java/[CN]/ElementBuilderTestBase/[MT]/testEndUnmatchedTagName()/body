@@ -1,10 +1,15 @@
 {
-  T builder=createElementBuilder();
-  builder.startDiv();
-  try {
-    builder.end("span");
-    fail("Expected IllegalStateException: Started div but ended span");
+  if (!isChildElementSupported) {
+    return;
   }
- catch (  IllegalStateException e) {
+  for (  ElementBuilderFactory factory : getFactories()) {
+    T builder=createElementBuilder(factory);
+    T child=startElement(builder);
+    try {
+      child.end("notamatch");
+      fail("Expected IllegalStateException: end tag does not match start tag");
+    }
+ catch (    IllegalStateException e) {
+    }
   }
 }
