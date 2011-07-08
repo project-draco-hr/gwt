@@ -1,0 +1,17 @@
+{
+  List<JMethod> getters=findGetterNames(owner);
+  for (  JMethod getter : getters) {
+    w.write("%s {",getter.getReadableDeclaration(false,false,false,false,true));
+    w.indent();
+    String elementParameter=getter.getParameters()[0].getName();
+    String getterFieldName=getterToFieldName(getter.getName());
+    if (!getterFieldName.equals(rootFieldName)) {
+      w.write("return (%s) UiRendererUtilsImpl.findInnerField(%s, \"%s\", RENDERED_ATTRIBUTE);",getter.getReturnType().getErasedType().getQualifiedSourceName(),elementParameter,getterFieldName);
+    }
+ else {
+      w.write("return (%s) UiRendererUtilsImpl.findRootElement(%s, RENDERED_ATTRIBUTE);",getter.getReturnType().getErasedType().getQualifiedSourceName(),elementParameter);
+    }
+    w.outdent();
+    w.write("}");
+  }
+}

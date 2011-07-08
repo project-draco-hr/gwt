@@ -1,0 +1,21 @@
+{
+  Element root=findRootElement(parent,attribute);
+  if (parent != root && !isRenderedElementSingleChild(root)) {
+    throw new IllegalArgumentException("Parent Element of previously rendered element contains more than one child" + " while getting \"" + fieldName + "\"");
+  }
+  String uiId=root.getAttribute(attribute);
+  String renderedId=buildInnerId(fieldName,uiId);
+  Element elementById=Document.get().getElementById(renderedId);
+  if (elementById == null) {
+    if (!isAttachedToDom(root)) {
+      throw new RuntimeException("UiRendered element is not attached to DOM while getting \"" + fieldName + "\"");
+    }
+ else     if (!GWT.isProdMode()) {
+      throw new IllegalStateException("\"" + fieldName + "\" not found within rendered element");
+    }
+ else {
+      throw new IllegalArgumentException("UiRendered element is not attached to DOM, or \"" + fieldName + "\" not found within rendered element");
+    }
+  }
+  return elementById;
+}

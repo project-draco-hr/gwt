@@ -1,0 +1,20 @@
+{
+  JMethod[] methods=owner.getMethods();
+  JMethod renderMethod=null;
+  for (  JMethod jMethod : methods) {
+    if (jMethod.getName().equals("render")) {
+      if (renderMethod == null) {
+        renderMethod=jMethod;
+      }
+ else {
+        die("%s declares more than one method named render",baseClass.getQualifiedSourceName());
+      }
+    }
+  }
+  if (renderMethod == null || renderMethod.getParameterTypes().length < 1 || !renderMethod.getParameterTypes()[0].getErasedType().getQualifiedSourceName().equals(SafeHtmlBuilder.class.getCanonicalName())) {
+    die("%s does not declare a render(SafeHtmlBuilder ...) method",baseClass.getQualifiedSourceName());
+  }
+  if (!JPrimitiveType.VOID.equals(renderMethod.getReturnType())) {
+    die("%s#render(SafeHtmlBuilder ...) does not return void",baseClass.getQualifiedSourceName());
+  }
+}

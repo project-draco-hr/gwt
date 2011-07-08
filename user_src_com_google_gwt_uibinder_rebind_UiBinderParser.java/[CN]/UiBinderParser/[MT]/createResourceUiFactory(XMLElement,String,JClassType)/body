@@ -1,0 +1,18 @@
+{
+  FieldWriter fieldWriter;
+  JMethod factoryMethod=writer.getOwnerClass().getUiFactoryMethod(resourceType);
+  JClassType methodReturnType=factoryMethod.getReturnType().getErasedType().isClassOrInterface();
+  if (!resourceType.getErasedType().equals(methodReturnType)) {
+    writer.die(elem,"Type must match %s.",methodReturnType);
+  }
+  String initializer;
+  if (writer.getDesignTime().isDesignTime()) {
+    String typeName=factoryMethod.getReturnType().getQualifiedSourceName();
+    initializer=writer.getDesignTime().getProvidedFactory(typeName,factoryMethod.getName(),"");
+  }
+ else {
+    initializer=String.format("owner.%s()",factoryMethod.getName());
+  }
+  fieldWriter=fieldManager.registerField(FieldWriterType.IMPORTED,resourceType,resourceName);
+  fieldWriter.setInitializer(initializer);
+}

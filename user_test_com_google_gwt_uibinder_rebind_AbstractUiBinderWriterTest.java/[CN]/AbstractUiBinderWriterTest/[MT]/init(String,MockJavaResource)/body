@@ -1,0 +1,26 @@
+{
+  resources.add(RENDERABLE_PANEL);
+  resources.add(CLIENT_BUNDLE);
+  resources.add(DIV_ELEMENT);
+  resources.add(SPAN_ELEMENT);
+  resources.add(FOO);
+  resources.add(rendererClass);
+  CompilationState state=CompilationStateBuilder.buildFrom(createCompileLogger(),resources);
+  types=state.getTypeOracle();
+  logger=new MockMortalLogger();
+  JClassType ownerType=types.findType(RENDERER_OWNER_CLASS_NAME);
+  UiBinderContext uiBinderCtx=new UiBinderContext();
+  attributeParsers=new BundleAttributeParsers(types,logger,new OwnerClass(ownerType,logger,uiBinderCtx),"templatePath",ownerType);
+  fieldManager=new FieldManager(types,logger,true);
+  String baseClass=RENDERER_BASE_CLASS_NAME;
+  DesignTimeUtils designTime=DesignTimeUtilsStub.EMPTY;
+  elemProvider=new XMLElementProviderImpl(new AttributeParsers(types,fieldManager,logger),attributeParsers,types,logger,designTime);
+  doc=docHelper.documentFor(domString,rendererClass.getPath());
+  item=(Element)doc.getDocumentElement().getChildNodes().item(0);
+  elm=elemProvider.get(item);
+  JClassType aClass=types.findType(baseClass);
+  MessagesWriter messages=new MessagesWriter(types,BINDER_URI,logger,rendererClass.getPath(),"rendererPackage","rendererClassName");
+  writer=new UiBinderWriter(aClass,"foo","",types,logger,fieldManager,messages,DesignTimeUtilsStub.EMPTY,uiBinderCtx,true,true,BINDER_URI);
+  parser=new UiBinderParser(writer,messages,fieldManager,types,null,BINDER_URI);
+  designTime.rememberPathForElements(doc);
+}

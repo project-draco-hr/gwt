@@ -1,0 +1,64 @@
+{
+  assertFalse(renderer.isParentOrRenderer(null));
+  try {
+    renderer.getRoot(null);
+    fail("Expected NPE");
+  }
+ catch (  NullPointerException e) {
+  }
+  try {
+    renderer.getNameSpan(null);
+    fail("Expected NPE");
+  }
+ catch (  NullPointerException e) {
+  }
+  DivElement root=renderer.getRoot(docDiv);
+  SpanElement nameSpan=renderer.getNameSpan(docDiv);
+  nameSpan.removeFromParent();
+  try {
+    renderer.getNameSpan(docDiv);
+    fail("Expected IllegalStateException because nameSpan was removed");
+  }
+ catch (  IllegalStateException e) {
+    assertFalse(GWT.isProdMode());
+  }
+catch (  IllegalArgumentException e) {
+    assertTrue(GWT.isProdMode());
+  }
+  SpanElement spanElement=Document.get().createSpanElement();
+  docDiv.appendChild(spanElement);
+  root.removeFromParent();
+  assertFalse(renderer.isParentOrRenderer(docDiv));
+  if (GWT.isProdMode()) {
+    assertTrue(renderer.isParentOrRenderer(root));
+  }
+ else {
+    assertFalse(renderer.isParentOrRenderer(root));
+  }
+  try {
+    renderer.getRoot(docDiv);
+    fail("Expected an IllegalArgumentException to fail because parent does not contain the root");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+  try {
+    renderer.getNameSpan(docDiv);
+    fail("Expected an IllegalArgumentException to fail because parent does not contain the root");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+  spanElement.removeFromParent();
+  assertFalse(renderer.isParentOrRenderer(docDiv));
+  try {
+    renderer.getRoot(docDiv);
+    fail("Expected an IllegalArgumentException to fail because parent does not contain the root");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+  try {
+    renderer.getNameSpan(docDiv);
+    fail("Expected an IllegalArgumentException to fail because parent does not contain the root");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+}
