@@ -1,10 +1,10 @@
 {
   TypeMirror clientType=clientTypeElement.asType();
-  checkedType=clientTypeElement;
-  boolean isEntityProxy=state.types.isAssignable(clientType,state.entityProxyType);
-  currentTypeIsProxy=isEntityProxy || state.types.isAssignable(clientType,state.valueProxyType);
-  domainType=state.getClientToDomainMap().get(clientTypeElement);
-  if (domainType == null) {
+  checkedElement=clientTypeElement;
+  boolean isEntityProxy=state.types.isSubtype(clientType,state.entityProxyType);
+  currentTypeIsProxy=isEntityProxy || state.types.isSubtype(clientType,state.valueProxyType);
+  domainElement=state.getClientToDomainMap().get(clientTypeElement);
+  if (domainElement == null) {
     return null;
   }
   requireInstanceDomainMethods=false;
@@ -12,8 +12,8 @@
   if (currentTypeIsProxy) {
     requireInstanceDomainMethods=true;
     if (!hasProxyLocator(clientTypeElement,state)) {
-      if (!hasNoArgConstructor(domainType)) {
-        state.warn(clientTypeElement,"The domain type %s has no default constructor." + " Calling %s.create(%s.class) will cause a server error.",domainType,state.requestContextType.asElement().getSimpleName(),clientTypeElement.getSimpleName());
+      if (!hasNoArgConstructor(domainElement)) {
+        state.warn(clientTypeElement,Messages.domainNoDefaultConstructor(domainElement.getSimpleName(),clientTypeElement.getSimpleName(),state.requestContextType.asElement().getSimpleName()));
       }
       if (isEntityProxy && !state.types.isSameType(clientType,state.entityProxyType)) {
         checkDomainEntityMethods(state);

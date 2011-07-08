@@ -1,0 +1,25 @@
+{
+  if (suppressWarnings) {
+    return;
+  }
+  if (squelchMessage(elt,message)) {
+    return;
+  }
+  if (respectAnnotations()) {
+    SuppressWarnings suppress;
+    Element check=elt;
+    while (check != null) {
+      if (check.getAnnotation(SkipInterfaceValidation.class) != null) {
+        return;
+      }
+      suppress=check.getAnnotation(SuppressWarnings.class);
+      if (suppress != null) {
+        if (Arrays.asList(suppress.value()).contains("requestfactory")) {
+          return;
+        }
+      }
+      check=check.getEnclosingElement();
+    }
+  }
+  messager.printMessage(Kind.WARNING,message + Messages.warnSuffix(),elt);
+}

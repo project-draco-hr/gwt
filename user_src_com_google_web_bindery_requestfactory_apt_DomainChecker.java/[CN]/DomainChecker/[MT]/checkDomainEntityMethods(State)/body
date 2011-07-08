@@ -1,25 +1,25 @@
 {
-  ExecutableElement getId=new MethodFinder("getId",null,Collections.<TypeMirror>emptyList(),state).scan(domainType,state);
+  ExecutableElement getId=new MethodFinder("getId",null,Collections.<TypeMirror>emptyList(),false,state).scan(domainElement,state);
   if (getId == null) {
-    state.poison(checkedType,"Domain type %s does not have a getId() method",domainType.asType());
+    state.poison(checkedElement,Messages.domainNoGetId(domainElement.asType()));
   }
  else {
     if (getId.getModifiers().contains(Modifier.STATIC)) {
-      state.poison(checkedType,"The domain type's getId() method must not be static");
+      state.poison(checkedElement,Messages.domainGetIdStatic());
     }
-    ExecutableElement find=new MethodFinder("find" + domainType.getSimpleName(),domainType.asType(),Collections.singletonList(getId.getReturnType()),state).scan(domainType,state);
+    ExecutableElement find=new MethodFinder("find" + domainElement.getSimpleName(),domainElement.asType(),Collections.singletonList(getId.getReturnType()),false,state).scan(domainElement,state);
     if (find == null) {
-      state.warn(checkedType,"The domain type %s has no %s find%s(%s) method. " + "Attempting to send a %s to the server will result in a server error.",domainType.asType(),domainType.getSimpleName(),domainType.getSimpleName(),getId.getReturnType(),checkedType.getSimpleName());
+      state.warn(checkedElement,Messages.domainMissingFind(domainElement.asType(),domainElement.getSimpleName(),getId.getReturnType(),checkedElement.getSimpleName()));
     }
  else     if (!find.getModifiers().contains(Modifier.STATIC)) {
-      state.poison(checkedType,"The domain object's find%s() method is not static",domainType.getSimpleName());
+      state.poison(checkedElement,Messages.domainFindNotStatic(domainElement.getSimpleName()));
     }
   }
-  ExecutableElement getVersion=new MethodFinder("getVersion",null,Collections.<TypeMirror>emptyList(),state).scan(domainType,state);
+  ExecutableElement getVersion=new MethodFinder("getVersion",null,Collections.<TypeMirror>emptyList(),false,state).scan(domainElement,state);
   if (getVersion == null) {
-    state.poison(checkedType,"Domain type %s does not have a getVersion() method",domainType.asType());
+    state.poison(checkedElement,Messages.domainNoGetVersion(domainElement.asType()));
   }
  else   if (getVersion.getModifiers().contains(Modifier.STATIC)) {
-    state.poison(checkedType,"The domain type's getVersion() method must not be static");
+    state.poison(checkedElement,Messages.domainGetVersionStatic());
   }
 }

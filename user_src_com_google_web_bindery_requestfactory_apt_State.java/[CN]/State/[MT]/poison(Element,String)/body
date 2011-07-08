@@ -1,0 +1,23 @@
+{
+  if (suppressErrors) {
+    return;
+  }
+  if (squelchMessage(elt,message)) {
+    return;
+  }
+  if (respectAnnotations()) {
+    Element check=elt;
+    while (check != null) {
+      if (check.getAnnotation(SkipInterfaceValidation.class) != null) {
+        return;
+      }
+      check=check.getEnclosingElement();
+    }
+  }
+  if (elt == null) {
+    messager.printMessage(Kind.ERROR,message);
+  }
+ else {
+    messager.printMessage(Kind.ERROR,message,elt);
+  }
+}

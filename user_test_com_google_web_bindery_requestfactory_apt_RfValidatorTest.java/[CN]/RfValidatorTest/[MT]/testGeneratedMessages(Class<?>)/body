@@ -1,0 +1,24 @@
+{
+  JavaCompiler compiler=ToolProvider.getSystemJavaCompiler();
+  List<JavaFileObject> files=new ArrayList<JavaFileObject>(classes.length);
+  for (  Class<?> clazz : classes) {
+    JavaFileObject obj=UriJavaFileObject.create(clazz);
+    files.add(obj);
+  }
+  StringWriter errorWriter=new StringWriter();
+  RfValidator rfValidator=new RfValidator();
+  rfValidator.setForceErrors(true);
+  DiagnosticCollector<JavaFileObject> expectedCollector=new DiagnosticCollector<JavaFileObject>();
+  CompilationTask expectedTask=compiler.getTask(errorWriter,null,expectedCollector,Arrays.asList("-proc:only"),null,files);
+  expectedTask.setProcessors(Arrays.asList(new ExpectCollector()));
+  expectedTask.call();
+  DiagnosticCollector<JavaFileObject> actualCollector=new DiagnosticCollector<JavaFileObject>();
+  CompilationTask actualTask=compiler.getTask(errorWriter,null,actualCollector,Arrays.asList("-proc:only"),null,files);
+  actualTask.setProcessors(Arrays.asList(rfValidator));
+  actualTask.call();
+  TreeSet<Diagnostic<? extends JavaFileObject>> expected=new TreeSet<Diagnostic<? extends JavaFileObject>>(new DiagnosticComparator());
+  expected.addAll(expectedCollector.getDiagnostics());
+  TreeSet<Diagnostic<? extends JavaFileObject>> actual=new TreeSet<Diagnostic<? extends JavaFileObject>>(new DiagnosticComparator());
+  actual.addAll(actualCollector.getDiagnostics());
+  assertEquals(expected,actual);
+}

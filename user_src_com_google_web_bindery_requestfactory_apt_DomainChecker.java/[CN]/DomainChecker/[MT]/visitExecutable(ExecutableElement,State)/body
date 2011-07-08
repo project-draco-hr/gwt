@@ -6,7 +6,7 @@
   if (currentTypeIsProxy && name.contentEquals("stableId") && clientMethodElement.getParameters().isEmpty()) {
     return null;
   }
-  ExecutableType clientMethod=viewIn(checkedType,clientMethodElement,state);
+  ExecutableType clientMethod=viewIn(checkedElement,clientMethodElement,state);
   List<TypeMirror> lookFor=new ArrayList<TypeMirror>();
   TypeMirror returnType;
   try {
@@ -17,13 +17,13 @@
   }
   ExecutableElement domainMethod;
   if (currentTypeIsProxy && isSetter(clientMethodElement,state)) {
-    domainMethod=new MethodFinder(name,state.types.getNoType(TypeKind.VOID),lookFor,state).scan(domainType,state);
+    domainMethod=new MethodFinder(name,state.types.getNoType(TypeKind.VOID),lookFor,false,state).scan(domainElement,state);
     if (domainMethod == null) {
-      domainMethod=new MethodFinder(name,domainType.asType(),lookFor,state).scan(domainType,state);
+      domainMethod=new MethodFinder(name,domainElement.asType(),lookFor,false,state).scan(domainElement,state);
     }
   }
  else {
-    domainMethod=new MethodFinder(name,returnType,lookFor,state).scan(domainType,state);
+    domainMethod=new MethodFinder(name,returnType,lookFor,!currentTypeIsProxy,state).scan(domainElement,state);
   }
   if (domainMethod == null) {
     StringBuilder sb=new StringBuilder();
@@ -32,18 +32,16 @@
       sb.append(param);
     }
     sb.append(")");
-    state.poison(clientMethodElement,"Could not find domain method similar to %s",sb);
+    state.poison(clientMethodElement,Messages.domainMissingMethod(sb));
     return null;
   }
-  boolean isInstanceRequest=state.types.isAssignable(clientMethod.getReturnType(),state.instanceRequestType);
+  boolean isInstanceRequest=state.types.isSubtype(clientMethod.getReturnType(),state.instanceRequestType);
   if ((isInstanceRequest || requireInstanceDomainMethods) && domainMethod.getModifiers().contains(Modifier.STATIC)) {
-    state.poison(checkedType,"Found static domain method %s when instance method required",domainMethod.getSimpleName());
+    state.poison(checkedElement,Messages.domainMethodWrongModifier(false,domainMethod.getSimpleName()));
   }
   if (!isInstanceRequest && requireStaticDomainMethods && !domainMethod.getModifiers().contains(Modifier.STATIC)) {
-    state.poison(checkedType,"Found instance domain method %s when static method required",domainMethod.getSimpleName());
+    state.poison(checkedElement,Messages.domainMethodWrongModifier(true,domainMethod.getSimpleName()));
   }
-  if (state.verbose) {
-    state.warn(clientMethodElement,"Found domain method %s",domainMethod.toString());
-  }
+  state.debug(clientMethodElement,"Found domain method %s",domainMethod.toString());
   return null;
 }

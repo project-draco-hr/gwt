@@ -1,0 +1,42 @@
+{
+  Method toInvoke=null;
+  for (  Method m : Messages.class.getDeclaredMethods()) {
+    if (m.getName().equals(expect.method())) {
+      toInvoke=m;
+      break;
+    }
+  }
+  if (toInvoke == null) {
+    throw new RuntimeException("No method named " + expect.method());
+  }
+  String[] originalArgs=expect.args();
+  Object[] args=new Object[originalArgs.length];
+  for (int i=0, j=args.length; i < j; i++) {
+    if (boolean.class.equals(toInvoke.getParameterTypes()[i])) {
+      args[i]=Boolean.valueOf(originalArgs[i]);
+    }
+ else {
+      args[i]=originalArgs[i];
+    }
+  }
+  String message;
+  Throwable ex;
+  try {
+    message=(String)toInvoke.invoke(null,args);
+    if (expect.warning()) {
+      message+=Messages.warnSuffix();
+    }
+    messager.printMessage(expect.warning() ? Kind.WARNING : Kind.ERROR,message,accumulator);
+    return;
+  }
+ catch (  IllegalArgumentException e) {
+    ex=e;
+  }
+catch (  IllegalAccessException e) {
+    ex=e;
+  }
+catch (  InvocationTargetException e) {
+    ex=e.getCause();
+  }
+  throw new RuntimeException("Could not get test message",ex);
+}

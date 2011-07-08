@@ -3,7 +3,7 @@
   ServiceName serviceName=x.getAnnotation(ServiceName.class);
   JsonRpcService jsonRpcService=x.getAnnotation(JsonRpcService.class);
   if (service == null && serviceName == null && jsonRpcService == null) {
-    state.poison(x,"A %s must be annotated with %s, %s, or %s",state.types.asElement(state.requestContextType).getSimpleName(),Service.class.getSimpleName(),ServiceName.class.getSimpleName(),JsonRpcService.class.getSimpleName());
+    state.poison(x,Messages.contextMustBeAnnotated(state.requestContextType.asElement().getSimpleName()));
   }
   if (service != null) {
     poisonIfAnnotationPresent(state,x,serviceName,jsonRpcService);
@@ -20,7 +20,7 @@
     poisonIfAnnotationPresent(state,x,jsonRpcService);
     TypeElement domain=state.elements.getTypeElement(BinaryName.toSourceName(serviceName.value()));
     if (domain == null) {
-      state.warn(x,"Cannot fully validate context since type %s is not available",serviceName.value());
+      state.warn(x,Messages.contextMissingDomainType(serviceName.value()));
     }
  else {
       state.addMapping(x,domain);
