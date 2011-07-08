@@ -8,16 +8,17 @@
   }
   List<JsExpression> hoisted=new ArrayList<JsExpression>(statements.size());
   JsExpression thisExpr=((JsNameRef)x.getQualifier()).getQualifier();
-  List<JsName> localVariableNames=new ArrayList<JsName>();
+  HoistedNameVisitor hoistedNameVisitor=new HoistedNameVisitor(callerFunction.getScope(),invokedFunction.getScope());
   boolean sawReturnStatement=false;
   for (  JsStatement statement : statements) {
     if (sawReturnStatement) {
       return x;
     }
-    JsExpression h=hoistedExpression(statement,localVariableNames);
+    JsExpression h=hoistedExpression(statement);
     if (h == null) {
       return x;
     }
+    hoistedNameVisitor.accept(statement);
     if (isReturnStatement(statement)) {
       sawReturnStatement=true;
       hoisted.add(h);
@@ -26,6 +27,7 @@
       hoisted.add(h);
     }
   }
+  List<JsName> hoistedNames=hoistedNameVisitor.getHoistedNames();
   if (!sawReturnStatement) {
     hoisted.add(new JsNameRef(x.getSourceInfo(),JsRootScope.INSTANCE.getUndefined()));
   }
@@ -43,7 +45,7 @@
     return x;
   }
   NameRefReplacerVisitor v=new NameRefReplacerVisitor(thisExpr,x.getArguments(),invokedFunction.getParameters());
-  for (ListIterator<JsName> nameIterator=localVariableNames.listIterator(); nameIterator.hasNext(); ) {
+  for (ListIterator<JsName> nameIterator=hoistedNames.listIterator(); nameIterator.hasNext(); ) {
     JsName name=nameIterator.next();
     String ident;
     String base=invokedFunction.getName() + "_" + name.getIdent();
@@ -65,17 +67,17 @@
     nameIterator.set(newName);
   }
   op=v.accept(op);
-  op=(new CommaNormalizer(localVariableNames)).accept(op);
+  op=(new CommaNormalizer(hoistedNames)).accept(op);
   int originalComplexity=complexity(x);
   int inlinedComplexity=complexity(op);
   double ratio=((double)inlinedComplexity) / originalComplexity;
   if (ratio > MAX_COMPLEXITY_INCREASE && isInvokedMoreThanOnce(invokedFunction)) {
     return x;
   }
-  if (callerFunction == programFunction && localVariableNames.size() > 0) {
+  if (callerFunction == programFunction && hoistedNames.size() > 0) {
     return x;
   }
-  newLocalVariableStack.peek().addAll(localVariableNames);
+  newLocalVariableStack.peek().addAll(hoistedNames);
   invocationCountingVisitor.removeCountsFor(x);
   invocationCountingVisitor.accept(op);
   return op;
