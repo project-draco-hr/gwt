@@ -5,56 +5,65 @@
   if (className.equals("com.google.gwt.core.ext.debug.JsoEval")) {
     return ClassLoader.getSystemClassLoader().loadClass(className);
   }
-  if (scriptOnlyClasses.contains(className)) {
-    throw new ClassNotFoundException();
-  }
-  if (BRIDGE_CLASS_NAMES.containsKey(className)) {
-    return BRIDGE_CLASS_NAMES.get(className);
-  }
-  byte[] classBytes=findClassBytes(className);
-  if (classBytes == null) {
-    throw new ClassNotFoundException(className);
-  }
-  if (HasAnnotation.hasAnnotation(classBytes,GwtScriptOnly.class)) {
-    scriptOnlyClasses.add(className);
-    maybeInitializeScriptOnlyClassLoader();
-    return Class.forName(className,true,scriptOnlyClassLoader);
-  }
-  boolean localInjection;
-  if (!isInjectingClass) {
-    localInjection=isInjectingClass=true;
-  }
- else {
-    localInjection=false;
-  }
-  Class<?> newClass=defineClass(className,classBytes,0,classBytes.length);
-  if (className.equals(JavaScriptHost.class.getName())) {
-    javaScriptHostClass=newClass;
-    updateJavaScriptHost();
-  }
-  if (!classRewriter.isJsoIntf(className)) {
-    CompilationUnit unit=getUnitForClassName(canonicalizeClassName(className));
-    if (unit != null) {
-      toInject.push(unit);
+  loadLock.lock();
+  try {
+    if (scriptOnlyClasses.contains(className)) {
+      throw new ClassNotFoundException();
     }
-  }
-  if (localInjection) {
-    try {
-      while (toInject.size() > 0) {
-        CompilationUnit unit=toInject.remove(0);
-        if (!alreadyInjected.contains(unit)) {
-          injectJsniMethods(unit);
-          alreadyInjected.add(unit);
-        }
+    if (BRIDGE_CLASS_NAMES.containsKey(className)) {
+      return BRIDGE_CLASS_NAMES.get(className);
+    }
+    byte[] classBytes=findClassBytes(className);
+    if (classBytes == null) {
+      throw new ClassNotFoundException(className);
+    }
+    if (HasAnnotation.hasAnnotation(classBytes,GwtScriptOnly.class)) {
+      scriptOnlyClasses.add(className);
+      maybeInitializeScriptOnlyClassLoader();
+      loadLock.unlock();
+      return Class.forName(className,false,scriptOnlyClassLoader);
+    }
+    boolean localInjection;
+    if (!isInjectingClass) {
+      localInjection=isInjectingClass=true;
+    }
+ else {
+      localInjection=false;
+    }
+    Class<?> newClass=defineClass(className,classBytes,0,classBytes.length);
+    if (className.equals(JavaScriptHost.class.getName())) {
+      javaScriptHostClass=newClass;
+      updateJavaScriptHost();
+    }
+    if (!classRewriter.isJsoIntf(className)) {
+      CompilationUnit unit=getUnitForClassName(canonicalizeClassName(className));
+      if (unit != null) {
+        toInject.push(unit);
       }
     }
+    if (localInjection) {
+      try {
+        while (toInject.size() > 0) {
+          CompilationUnit unit=toInject.remove(0);
+          if (!alreadyInjected.contains(unit)) {
+            injectJsniMethods(unit);
+            alreadyInjected.add(unit);
+          }
+        }
+      }
   finally {
-      isInjectingClass=false;
+        isInjectingClass=false;
+      }
+    }
+    if (className.equals("com.google.gwt.core.client.GWT")) {
+      gwtClass=newClass;
+      updateGwtClass();
+    }
+    return newClass;
+  }
+  finally {
+    if (loadLock.isLocked()) {
+      loadLock.unlock();
     }
   }
-  if (className.equals("com.google.gwt.core.client.GWT")) {
-    gwtClass=newClass;
-    updateGwtClass();
-  }
-  return newClass;
 }
