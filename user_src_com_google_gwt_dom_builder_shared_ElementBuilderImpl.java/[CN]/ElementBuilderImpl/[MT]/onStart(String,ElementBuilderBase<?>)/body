@@ -2,12 +2,12 @@
   if (isEmpty) {
     isEmpty=false;
   }
- else   if (stackTags.size() == 0) {
+ else   if (stack.isEmpty()) {
     throw new IllegalStateException("You can only build one top level element.");
   }
  else {
-    assertEndTagNotForbidden(getCurrentTagName() + " does not support child elements.");
-    if (!builder.isChildElementSupported()) {
+    assertEndTagNotForbidden("child elements");
+    if (!getCurrentBuilder().isChildElementSupported()) {
       throw new UnsupportedOperationException(getCurrentTagName() + " does not support child elements.");
     }
   }
@@ -16,8 +16,7 @@
   }
   assertValidTagName(tagName);
   maybeCloseStartTag();
-  stackTags.add(tagName);
-  stackBuilders.add(builder);
+  stack.push(builder,tagName);
   isStartTagOpen=true;
   isStyleOpen=false;
   isStyleClosed=false;
