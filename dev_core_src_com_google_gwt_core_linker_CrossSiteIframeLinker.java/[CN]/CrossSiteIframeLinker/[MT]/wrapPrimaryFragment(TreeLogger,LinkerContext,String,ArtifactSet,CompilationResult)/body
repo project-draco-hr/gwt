@@ -5,9 +5,17 @@
   }
   if (shouldInstallCode(context)) {
     out.append(context.getModuleFunctionName());
-    out.append(".onScriptDownloaded(");
-    out.append(JsToStringGenerationVisitor.javaScriptString(script));
-    out.append(")");
+    out.append(".onScriptDownloaded([");
+    String[] chunks=script.split(getScriptChunkSeparator(logger,context));
+    boolean first=true;
+    for (    String chunk : chunks) {
+      if (!first) {
+        out.append(", ");
+      }
+      out.append(JsToStringGenerationVisitor.javaScriptString(chunk));
+      first=false;
+    }
+    out.append("])");
   }
  else {
     out.append(script);
