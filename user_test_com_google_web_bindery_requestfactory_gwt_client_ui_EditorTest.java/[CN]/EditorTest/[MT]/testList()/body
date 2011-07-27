@@ -1,0 +1,27 @@
+{
+  delayTestFinish(TEST_TIMEOUT);
+  final SimpleFooEditorWithList editor=new SimpleFooEditorWithList();
+  final SimpleFooEditorWithListDriver driver=GWT.create(SimpleFooEditorWithListDriver.class);
+  driver.initialize(req,editor);
+  final String[] paths=driver.getPaths();
+  assertEquals(Arrays.asList("selfOneToManyField","selfOneToManyField.barField"),Arrays.asList(paths));
+  req.simpleFooRequest().getSimpleFooWithSubPropertyCollection().with(paths).fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy response){
+      SimpleFooRequest context=req.simpleFooRequest();
+      driver.edit(response,context);
+      SimpleFooBarNameOnlyEditor subeditor=editor.selfOneToManyField.getEditors().get(0);
+      assertSame(context,subeditor.ctx);
+      context.persistAndReturnSelf().using(response).with(paths).to(new Receiver<SimpleFooProxy>(){
+        @Override public void onSuccess(        SimpleFooProxy response){
+          assertEquals("EditorBarTest",response.getSelfOneToManyField().get(0).getBarField().getUserName());
+          finishTestAndReset();
+        }
+      }
+);
+      assertEquals("FOO",subeditor.barName.getValue());
+      subeditor.barName.setValue("EditorBarTest");
+      driver.flush().fire();
+    }
+  }
+);
+}
