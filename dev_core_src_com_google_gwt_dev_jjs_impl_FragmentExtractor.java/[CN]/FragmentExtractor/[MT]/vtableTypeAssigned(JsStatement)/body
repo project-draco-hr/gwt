@@ -1,2 +1,41 @@
 {
+  if (!(stat instanceof JsExprStmt)) {
+    return null;
+  }
+  JsExprStmt expr=(JsExprStmt)stat;
+  if (!(expr.getExpression() instanceof JsBinaryOperation)) {
+    return null;
+  }
+  JsBinaryOperation binExpr=(JsBinaryOperation)expr.getExpression();
+  if (binExpr.getOperator() != JsBinaryOperator.ASG) {
+    return null;
+  }
+  if (!(binExpr.getArg1() instanceof JsNameRef)) {
+    return null;
+  }
+  JsNameRef lhs=(JsNameRef)binExpr.getArg1();
+  if (lhs.getQualifier() != null) {
+    return null;
+  }
+  if (lhs.getName() == null) {
+    return null;
+  }
+  if (!lhs.getName().getShortIdent().equals("_")) {
+    return null;
+  }
+  if (!(binExpr.getArg2() instanceof JsBinaryOperation)) {
+    return null;
+  }
+  JsBinaryOperation binExprRhs=(JsBinaryOperation)binExpr.getArg2();
+  if (binExprRhs.getOperator() != JsBinaryOperator.ASG) {
+    return null;
+  }
+  if (!(binExprRhs.getArg1() instanceof JsNameRef)) {
+    return null;
+  }
+  JsNameRef middleNameRef=(JsNameRef)binExprRhs.getArg1();
+  if (!middleNameRef.getName().getShortIdent().equals("prototype")) {
+    return null;
+  }
+  return map.typeForStatement(stat);
 }
