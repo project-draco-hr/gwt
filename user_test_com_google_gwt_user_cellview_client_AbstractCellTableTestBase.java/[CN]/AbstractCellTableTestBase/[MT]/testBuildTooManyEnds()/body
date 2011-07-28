@@ -1,0 +1,25 @@
+{
+  final List<Integer> builtRows=new ArrayList<Integer>();
+  T table=createAbstractHasData(new TextCell());
+  CellTableBuilder<String> builder=new AbstractCellTable.DefaultCellTableBuilder<String>(table){
+    @Override public void buildRow(    String rowValue,    int absRowIndex,    CellTableBuilder.Utility<String> utility){
+      builtRows.add(absRowIndex);
+      TableRowBuilder tr=utility.startRow();
+      tr.endTR();
+      tr.end();
+      try {
+        utility.startRow();
+        fail("Expected IllegalStateException: tbody is already ended");
+      }
+ catch (      IllegalStateException e) {
+      }
+    }
+  }
+;
+  table.setTableBuilder(builder);
+  table.setVisibleRange(0,1);
+  populateData(table);
+  table.getPresenter().flush();
+  assertEquals(1,builtRows.size());
+  assertEquals(0,builtRows.get(0).intValue());
+}

@@ -1,0 +1,38 @@
+{
+  if (!table.isAttached()) {
+    DOM.setEventListener(table.getElement(),table);
+  }
+  Element parent=section.getParentElement();
+  Element nextSection=section.getNextSiblingElement();
+  detachSectionElement(section);
+  final int absEndIndex=table.getPageStart() + startIndex + childCount;
+  boolean done=false;
+  Element insertBefore=table.getChildElement(startIndex);
+  if (table.legacyRenderRowValues) {
+    int count=0;
+    while (insertBefore != null && count < childCount) {
+      Element next=insertBefore.getNextSiblingElement();
+      section.removeChild(insertBefore);
+      insertBefore=next;
+      count++;
+    }
+  }
+ else {
+    while (insertBefore != null && table.getRowValueIndex(insertBefore.<TableRowElement>cast()) < absEndIndex) {
+      Element next=insertBefore.getNextSiblingElement();
+      section.removeChild(insertBefore);
+      insertBefore=next;
+    }
+  }
+  TableSectionElement newSection=convertToSectionElement(table,section.getTagName(),html);
+  Element newChild=newSection.getFirstChildElement();
+  while (newChild != null) {
+    Element next=newChild.getNextSiblingElement();
+    section.insertBefore(newChild,insertBefore);
+    newChild=next;
+  }
+  reattachSectionElement(parent,section,nextSection);
+  if (!table.isAttached()) {
+    DOM.setEventListener(table.getElement(),null);
+  }
+}

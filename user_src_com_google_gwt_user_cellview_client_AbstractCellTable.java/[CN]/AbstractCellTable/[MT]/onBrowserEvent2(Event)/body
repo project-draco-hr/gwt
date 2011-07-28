@@ -4,82 +4,99 @@
     return;
   }
   final Element target=event.getEventTarget().cast();
-  String eventType=event.getType();
-  if ("keydown".equals(eventType) && !isKeyboardNavigationSuppressed() && KeyboardSelectionPolicy.DISABLED != getKeyboardSelectionPolicy()) {
-    if (handleKey(event)) {
-      return;
+  TableSectionElement tbody=getTableBodyElement();
+  TableSectionElement tfoot=getTableFootElement();
+  TableSectionElement thead=getTableHeadElement();
+  TableSectionElement targetTableSection=null;
+  TableCellElement targetTableCell=null;
+  Element cellParent=null;
+  String cellId=null;
+{
+    Element maybeTableCell=null;
+    Element cur=target;
+    while (cur != null && targetTableSection == null) {
+      if (cur == tbody || cur == tfoot || cur == thead) {
+        targetTableSection=cur.cast();
+        if (maybeTableCell != null) {
+          targetTableCell=maybeTableCell.cast();
+          break;
+        }
+      }
+      String tagName=cur.getTagName();
+      if (TableCellElement.TAG_TD.equalsIgnoreCase(tagName) || TableCellElement.TAG_TH.equalsIgnoreCase(tagName)) {
+        maybeTableCell=cur;
+      }
+      String curCellId=isCellParent(cur);
+      if (cellParent == null && curCellId != null) {
+        cellId=curCellId;
+        cellParent=cur;
+      }
+      cur=cur.getParentElement();
     }
   }
-  TableCellElement tableCell=findNearestParentCell(target);
-  if (tableCell == null) {
+  if (targetTableCell == null) {
     return;
   }
-  Element trElem=tableCell.getParentElement();
-  if (trElem == null) {
-    return;
+  if (legacyRenderRowValues) {
+    cellParent=targetTableCell.getFirstChildElement();
   }
-  TableRowElement tr=TableRowElement.as(trElem);
-  Element sectionElem=tr.getParentElement();
-  if (sectionElem == null) {
-    return;
-  }
-  TableSectionElement section=TableSectionElement.as(sectionElem);
+  TableRowElement targetTableRow=targetTableCell.getParentElement().cast();
+  String eventType=event.getType();
   boolean isClick="click".equals(eventType);
-  int col=tableCell.getCellIndex();
-  if (section == getTableHeadElement()) {
+  int col=targetTableCell.getCellIndex();
+  if (targetTableSection == thead) {
     Header<?> header=headers.get(col);
     if (header != null) {
       if (cellConsumesEventType(header.getCell(),eventType)) {
         Context context=new Context(0,col,header.getKey());
-        header.onBrowserEvent(context,tableCell,event);
+        header.onBrowserEvent(context,targetTableCell,event);
       }
-      Column<T,?> column=columns.get(col);
-      if (isClick && column.isSortable()) {
-        updatingSortList=true;
-        sortList.push(column);
-        updatingSortList=false;
-        ColumnSortEvent.fire(this,sortList);
+      if (isClick) {
+        Column<T,?> column=col < columns.size() ? columns.get(col) : null;
+        if (column != null && column.isSortable()) {
+          updatingSortList=true;
+          sortList.push(column);
+          updatingSortList=false;
+          ColumnSortEvent.fire(this,sortList);
+        }
       }
     }
   }
- else   if (section == getTableFootElement()) {
+ else   if (targetTableSection == tfoot) {
     Header<?> footer=footers.get(col);
     if (footer != null && cellConsumesEventType(footer.getCell(),eventType)) {
       Context context=new Context(0,col,footer.getKey());
-      footer.onBrowserEvent(context,tableCell,event);
+      footer.onBrowserEvent(context,targetTableCell,event);
     }
   }
- else   if (section == getTableBodyElement()) {
-    int row=tr.getSectionRowIndex();
+ else   if (targetTableSection == tbody) {
+    int absRow=getRowValueIndex(targetTableRow);
+    int relRow=absRow - getPageStart();
+    int subrow=getSubrowValueIndex(targetTableRow);
     if ("mouseover".equals(eventType)) {
       if (hoveringRow != null && getTableBodyElement().isOrHasChild(hoveringRow)) {
         setRowStyleName(hoveringRow,style.hoveredRow(),style.hoveredRowCell(),false);
       }
-      hoveringRow=tr;
+      hoveringRow=targetTableRow;
       setRowStyleName(hoveringRow,style.hoveredRow(),style.hoveredRowCell(),true);
     }
  else     if ("mouseout".equals(eventType) && hoveringRow != null) {
       setRowStyleName(hoveringRow,style.hoveredRow(),style.hoveredRowCell(),false);
       hoveringRow=null;
     }
- else     if (isClick && ((getPresenter().getKeyboardSelectedRowInView() != row) || (keyboardSelectedColumn != col))) {
-      boolean isFocusable=CellBasedWidgetImpl.get().isFocusable(target);
-      isFocused=isFocused || isFocusable;
-      keyboardSelectedColumn=col;
-      getPresenter().setKeyboardSelectedRow(row,!isFocusable,true);
-    }
-    if (!isRowWithinBounds(row)) {
+    if (!isRowWithinBounds(relRow)) {
       return;
     }
     boolean isSelectionHandled=handlesSelection || KeyboardSelectionPolicy.BOUND_TO_SELECTION == getKeyboardSelectionPolicy();
-    T value=getVisibleItem(row);
-    Context context=new Context(row + getPageStart(),col,getValueKey(value));
+    T value=getVisibleItem(relRow);
+    Context context=new Context(absRow,col,getValueKey(value),subrow);
     CellPreviewEvent<T> previewEvent=CellPreviewEvent.fire(this,event,this,context,value,cellIsEditing,isSelectionHandled);
-    if (isClick && !cellIsEditing && !isSelectionHandled) {
-      doSelection(event,value,row,col);
-    }
-    if (!previewEvent.isCanceled()) {
-      fireEventToCell(event,eventType,tableCell,value,context,columns.get(col));
+    if (cellParent != null && !previewEvent.isCanceled()) {
+      HasCell<T,?> column=idToCellMap.get(cellId);
+      if (legacyRenderRowValues) {
+        column=columns.get(col);
+      }
+      fireEventToCell(event,eventType,cellParent,value,context,column);
     }
   }
 }

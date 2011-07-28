@@ -1,0 +1,51 @@
+{
+  NativeEvent nativeEvent=event.getNativeEvent();
+  String eventType=event.getNativeEvent().getType();
+  if ("keydown".equals(eventType) && !event.isCellEditing()) {
+switch (nativeEvent.getKeyCode()) {
+case KeyCodes.KEY_DOWN:
+      nextRow();
+    handledEvent(event);
+  return;
+case KeyCodes.KEY_UP:
+prevRow();
+handledEvent(event);
+return;
+case KeyCodes.KEY_PAGEDOWN:
+nextPage();
+handledEvent(event);
+return;
+case KeyCodes.KEY_PAGEUP:
+prevPage();
+handledEvent(event);
+return;
+case KeyCodes.KEY_HOME:
+home();
+handledEvent(event);
+return;
+case KeyCodes.KEY_END:
+end();
+handledEvent(event);
+return;
+case 32:
+handledEvent(event);
+return;
+}
+}
+ else if ("click".equals(eventType)) {
+int relRow=event.getIndex() - display.getPageStart();
+if (display.getKeyboardSelectedRow() != relRow) {
+boolean isFocusable=false;
+Element target=Element.as(event.getNativeEvent().getEventTarget());
+isFocusable=CellBasedWidgetImpl.get().isFocusable(target);
+display.setKeyboardSelectedRow(relRow,!isFocusable);
+}
+}
+ else if ("focus".equals(eventType)) {
+int relRow=event.getIndex() - display.getPageStart();
+if (display.getKeyboardSelectedRow() != relRow) {
+display.setKeyboardSelectedRow(event.getIndex(),false);
+return;
+}
+}
+}

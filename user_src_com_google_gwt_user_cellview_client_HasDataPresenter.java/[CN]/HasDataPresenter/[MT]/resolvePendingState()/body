@@ -13,7 +13,7 @@
     throw new IllegalStateException("The Cell Widget is attempting to render itself within the render " + "loop. This usually happens when your render code modifies the " + "state of the Cell Widget then accesses data or elements "+ "within the Widget.");
   }
   isResolvingState=true;
-  TreeSet<Integer> modifiedRows=new TreeSet<Integer>();
+  JsArrayInteger modifiedRows=JavaScriptObject.createArray().cast();
   State<T> oldState=state;
   PendingState<T> pending=pendingState;
   int pageStart=pending.getPageStart();
@@ -70,11 +70,11 @@
     if (isSelected) {
       pending.selectedRows.add(i);
       if (!wasSelected) {
-        modifiedRows.add(i);
+        modifiedRows.push(i);
       }
     }
  else     if (wasSelected) {
-      modifiedRows.add(i);
+      modifiedRows.push(i);
     }
   }
   if (pendingStateCommand != null) {
@@ -92,12 +92,12 @@
       replacedEmptyRange=true;
     }
     for (int i=start; i < start + length; i++) {
-      modifiedRows.add(i);
+      modifiedRows.push(i);
     }
   }
-  if (modifiedRows.size() > 0 && keyboardRowChanged) {
-    modifiedRows.add(oldState.getKeyboardSelectedRow());
-    modifiedRows.add(pending.keyboardSelectedRow);
+  if (modifiedRows.length() > 0 && keyboardRowChanged) {
+    modifiedRows.push(oldState.getKeyboardSelectedRow());
+    modifiedRows.push(pending.keyboardSelectedRow);
   }
   List<Range> modifiedRanges=calculateModifiedRanges(modifiedRows,pageStart,pageEnd);
   Range range0=modifiedRanges.size() > 0 ? modifiedRanges.get(0) : null;
@@ -129,30 +129,23 @@
   try {
     if (redrawRequired) {
       SafeHtmlBuilder sb=new SafeHtmlBuilder();
-      view.render(sb,pending.rowData,pending.pageStart,selectionModel);
-      SafeHtml newContents=sb.toSafeHtml();
-      boolean contentChanged=!newContents.equals(lastContents);
-      lastContents=newContents;
-      view.replaceAllChildren(pending.rowData,newContents,pending.keyboardStealFocus,contentChanged);
+      view.replaceAllChildren(pending.rowData,selectionModel,pending.keyboardStealFocus);
       view.resetFocus();
     }
  else     if (range0 != null) {
-      lastContents=null;
 {
         int absStart=range0.getStart();
         int relStart=absStart - pageStart;
         SafeHtmlBuilder sb=new SafeHtmlBuilder();
         List<T> replaceValues=pending.rowData.subList(relStart,relStart + range0.getLength());
-        view.render(sb,replaceValues,absStart,selectionModel);
-        view.replaceChildren(replaceValues,relStart,sb.toSafeHtml(),pending.keyboardStealFocus);
+        view.replaceChildren(replaceValues,relStart,selectionModel,pending.keyboardStealFocus);
       }
       if (range1 != null) {
         int absStart=range1.getStart();
         int relStart=absStart - pageStart;
         SafeHtmlBuilder sb=new SafeHtmlBuilder();
         List<T> replaceValues=pending.rowData.subList(relStart,relStart + range1.getLength());
-        view.render(sb,replaceValues,absStart,selectionModel);
-        view.replaceChildren(replaceValues,relStart,sb.toSafeHtml(),pending.keyboardStealFocus);
+        view.replaceChildren(replaceValues,relStart,selectionModel,pending.keyboardStealFocus);
       }
       view.resetFocus();
     }

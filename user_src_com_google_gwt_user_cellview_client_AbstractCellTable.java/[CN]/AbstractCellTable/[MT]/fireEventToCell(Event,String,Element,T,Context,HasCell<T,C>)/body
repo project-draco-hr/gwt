@@ -1,0 +1,26 @@
+{
+  Cell<C> cell=column.getCell();
+  if (!cellConsumesEventType(cell,eventType)) {
+    return;
+  }
+  final FieldUpdater<T,C> fieldUpdater=column.getFieldUpdater();
+  final int index=context.getIndex();
+  ValueUpdater<C> valueUpdater=(fieldUpdater == null) ? null : new ValueUpdater<C>(){
+    @Override public void update(    C value){
+      fieldUpdater.update(index,rowValue,value);
+    }
+  }
+;
+  C cellValue=column.getValue(rowValue);
+  boolean cellWasEditing=cell.isEditing(context,parentElem,cellValue);
+  cell.onBrowserEvent(context,parentElem,column.getValue(rowValue),event,valueUpdater);
+  cellIsEditing=cell.isEditing(context,parentElem,cellValue);
+  if (cellWasEditing && !cellIsEditing) {
+    CellBasedWidgetImpl.get().resetFocus(new Scheduler.ScheduledCommand(){
+      @Override public void execute(){
+        setFocus(true);
+      }
+    }
+);
+  }
+}

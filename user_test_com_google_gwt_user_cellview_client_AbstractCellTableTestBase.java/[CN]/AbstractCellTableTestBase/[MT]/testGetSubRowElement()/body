@@ -1,0 +1,35 @@
+{
+  T table=createAbstractHasData(new TextCell());
+  CellTableBuilder<String> builder=new AbstractCellTable.DefaultCellTableBuilder<String>(table){
+    @Override public void buildRow(    String rowValue,    int absRowIndex,    CellTableBuilder.Utility<String> utility){
+      super.buildRow(rowValue,absRowIndex,utility);
+      for (int i=0; i < 4; i++) {
+        TableRowBuilder tr=utility.startRow();
+        tr.startTD().colSpan(2).text("child " + absRowIndex + ":"+ i).endTD();
+        tr.endTR();
+      }
+    }
+  }
+;
+  table.setTableBuilder(builder);
+  table.setVisibleRange(0,5);
+  populateData(table);
+  table.getPresenter().flush();
+  TableSectionElement tbody=table.getTableBodyElement();
+  assertEquals(25,tbody.getChildCount());
+  assertEquals(0,table.getSubRowElement(0,0).getSectionRowIndex());
+  assertEquals(1,table.getSubRowElement(0,1).getSectionRowIndex());
+  assertEquals(4,table.getSubRowElement(0,4).getSectionRowIndex());
+  assertEquals(5,table.getSubRowElement(1,0).getSectionRowIndex());
+  assertEquals(8,table.getSubRowElement(1,3).getSectionRowIndex());
+  assertEquals(20,table.getSubRowElement(4,0).getSectionRowIndex());
+  assertEquals(24,table.getSubRowElement(4,4).getSectionRowIndex());
+  assertNull(table.getSubRowElement(0,5));
+  assertNull(table.getSubRowElement(4,5));
+  try {
+    assertNull(table.getSubRowElement(5,0));
+    fail("Expected IndexOutOfBoundsException: row index is out of bounds");
+  }
+ catch (  IndexOutOfBoundsException e) {
+  }
+}

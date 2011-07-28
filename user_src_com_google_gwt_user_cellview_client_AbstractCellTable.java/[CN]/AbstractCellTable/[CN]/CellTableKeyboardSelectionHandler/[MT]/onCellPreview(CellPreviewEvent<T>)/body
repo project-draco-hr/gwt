@@ -1,0 +1,60 @@
+{
+  NativeEvent nativeEvent=event.getNativeEvent();
+  String eventType=event.getNativeEvent().getType();
+  if ("keydown".equals(eventType) && !event.isCellEditing()) {
+    int oldRow=table.getKeyboardSelectedRow();
+    int oldColumn=table.getKeyboardSelectedColumn();
+    boolean isRtl=LocaleInfo.getCurrentLocale().isRTL();
+    int keyCodeLineEnd=isRtl ? KeyCodes.KEY_LEFT : KeyCodes.KEY_RIGHT;
+    int keyCodeLineStart=isRtl ? KeyCodes.KEY_RIGHT : KeyCodes.KEY_LEFT;
+    int keyCode=nativeEvent.getKeyCode();
+    if (keyCode == keyCodeLineEnd) {
+      int nextColumn=findInteractiveColumn(oldColumn,false);
+      if (nextColumn <= oldColumn) {
+        table.setKeyboardSelectedRow(oldRow + 1);
+        if (table.getKeyboardSelectedRow() != oldRow) {
+          table.setKeyboardSelectedColumn(nextColumn);
+          handledEvent(event);
+          return;
+        }
+      }
+ else {
+        table.setKeyboardSelectedColumn(nextColumn);
+        handledEvent(event);
+        return;
+      }
+    }
+ else     if (keyCode == keyCodeLineStart) {
+      int prevColumn=findInteractiveColumn(oldColumn,true);
+      if (prevColumn >= oldColumn) {
+        table.setKeyboardSelectedRow(oldRow - 1);
+        if (table.getKeyboardSelectedRow() != oldRow) {
+          table.setKeyboardSelectedColumn(prevColumn);
+          handledEvent(event);
+          return;
+        }
+      }
+ else {
+        table.setKeyboardSelectedColumn(prevColumn);
+        handledEvent(event);
+        return;
+      }
+    }
+  }
+ else   if ("click".equals(eventType) || "focus".equals(eventType)) {
+    int col=event.getColumn();
+    int relRow=event.getIndex() - table.getPageStart();
+    int subrow=event.getContext().getSubIndex();
+    if ((table.getKeyboardSelectedColumn() != col) || (table.getKeyboardSelectedRow() != relRow) || (table.getKeyboardSelectedSubRow() != subrow)) {
+      boolean stealFocus=false;
+      if ("click".equals(eventType)) {
+        Element target=Element.as(event.getNativeEvent().getEventTarget());
+        stealFocus=!CellBasedWidgetImpl.get().isFocusable(target);
+      }
+      table.setKeyboardSelectedRow(relRow,subrow,stealFocus);
+      table.setKeyboardSelectedColumn(col,stealFocus);
+    }
+    return;
+  }
+  super.onCellPreview(event);
+}

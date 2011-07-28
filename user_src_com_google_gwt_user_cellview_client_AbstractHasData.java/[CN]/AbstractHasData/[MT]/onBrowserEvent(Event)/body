@@ -4,7 +4,11 @@
     return;
   }
   EventTarget eventTarget=event.getEventTarget();
-  if (!Element.is(eventTarget) || !getElement().isOrHasChild(Element.as(eventTarget))) {
+  if (!Element.is(eventTarget)) {
+    return;
+  }
+  Element target=Element.as(eventTarget);
+  if (!getElement().isOrHasChild(Element.as(eventTarget))) {
     return;
   }
   super.onBrowserEvent(event);
@@ -17,38 +21,11 @@
     isFocused=false;
     onBlur();
   }
- else   if ("keydown".equals(eventType) && !isKeyboardNavigationSuppressed()) {
+ else   if ("keydown".equals(eventType)) {
     isFocused=true;
-    int keyCode=event.getKeyCode();
-switch (keyCode) {
-case KeyCodes.KEY_DOWN:
-      presenter.keyboardNext();
-    event.preventDefault();
-  return;
-case KeyCodes.KEY_UP:
-presenter.keyboardPrev();
-event.preventDefault();
-return;
-case KeyCodes.KEY_PAGEDOWN:
-presenter.keyboardNextPage();
-event.preventDefault();
-return;
-case KeyCodes.KEY_PAGEUP:
-presenter.keyboardPrevPage();
-event.preventDefault();
-return;
-case KeyCodes.KEY_HOME:
-presenter.keyboardHome();
-event.preventDefault();
-return;
-case KeyCodes.KEY_END:
-presenter.keyboardEnd();
-event.preventDefault();
-return;
-case 32:
-event.preventDefault();
-return;
-}
-}
-onBrowserEvent2(event);
+  }
+ else   if ("mousedown".equals(eventType) && CellBasedWidgetImpl.get().isFocusable(Element.as(target))) {
+    isFocused=true;
+  }
+  onBrowserEvent2(event);
 }

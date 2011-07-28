@@ -1,26 +1,34 @@
 {
-  if (KeyboardSelectionPolicy.DISABLED == getKeyboardSelectionPolicy() || !isRowWithinBounds(index) || columns.size() == 0) {
+  if (KeyboardSelectionPolicy.DISABLED == getKeyboardSelectionPolicy() || !isRowWithinBounds(index)) {
     return;
   }
-  TableRowElement tr=getRowElement(index);
+  int subrow=lastKeyboardSelectedSubrow;
+  if (selected) {
+    subrow=keyboardSelectedSubrow;
+    lastKeyboardSelectedSubrow=keyboardSelectedSubrow;
+  }
+  TableRowElement tr=getSubRowElement(index + getPageStart(),subrow);
+  if (tr == null) {
+    return;
+  }
   String cellStyle=style.keyboardSelectedCell();
   boolean updatedSelection=!selected || isFocused || stealFocus;
   setRowStyleName(tr,style.keyboardSelectedRow(),style.keyboardSelectedRowCell(),selected);
   NodeList<TableCellElement> cells=tr.getCells();
+  int keyboardColumn=Math.min(getKeyboardSelectedColumn(),cells.getLength() - 1);
   for (int i=0; i < cells.getLength(); i++) {
     TableCellElement td=cells.getItem(i);
-    setStyleName(td,cellStyle,updatedSelection && selected && i == keyboardSelectedColumn);
-    final com.google.gwt.user.client.Element cellParent=getCellParent(td).cast();
-    setFocusable(cellParent,selected && i == keyboardSelectedColumn);
-  }
-  if (selected && stealFocus && !cellIsEditing) {
-    TableCellElement td=tr.getCells().getItem(keyboardSelectedColumn);
-    final com.google.gwt.user.client.Element cellParent=getCellParent(td).cast();
-    CellBasedWidgetImpl.get().resetFocus(new Scheduler.ScheduledCommand(){
-      @Override public void execute(){
-        cellParent.focus();
+    boolean isKeyboardSelected=(i == keyboardColumn);
+    setStyleName(td,cellStyle,updatedSelection && selected && isKeyboardSelected);
+    final Element focusable=getKeyboardSelectedElement(td);
+    setFocusable(focusable,selected && isKeyboardSelected);
+    if (selected && stealFocus && !cellIsEditing&& isKeyboardSelected) {
+      CellBasedWidgetImpl.get().resetFocus(new Scheduler.ScheduledCommand(){
+        @Override public void execute(){
+          focusable.focus();
+        }
       }
-    }
 );
+    }
   }
 }

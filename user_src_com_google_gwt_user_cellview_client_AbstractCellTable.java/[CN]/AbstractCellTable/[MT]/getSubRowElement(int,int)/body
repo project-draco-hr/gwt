@@ -1,0 +1,39 @@
+{
+  int relRow=absRow - getPageStart();
+  checkRowBounds(relRow);
+  NodeList<TableRowElement> rows=getTableBodyElement().getRows();
+  int rowCount=rows.getLength();
+  if (rowCount == 0) {
+    return null;
+  }
+  int frameStart=0;
+  int frameEnd=rowCount - 1;
+  int domIndex=Math.min(relRow,frameEnd);
+  while (domIndex >= frameStart && domIndex <= frameEnd) {
+    TableRowElement curRow=rows.getItem(domIndex);
+    int rowValueIndex=getRowValueIndex(curRow);
+    if (rowValueIndex == absRow) {
+      int subrowValueIndex=getSubrowValueIndex(curRow);
+      if (subrow != subrowValueIndex) {
+        int offset=subrow - subrowValueIndex;
+        int subrowIndex=domIndex + offset;
+        if (subrowIndex >= rows.getLength()) {
+          return null;
+        }
+        curRow=rows.getItem(subrowIndex);
+        if (getRowValueIndex(curRow) != absRow) {
+          return null;
+        }
+      }
+      return curRow;
+    }
+ else     if (rowValueIndex > absRow) {
+      frameEnd=domIndex - 1;
+    }
+ else {
+      frameStart=domIndex + 1;
+    }
+    domIndex=(frameStart + frameEnd) / 2;
+  }
+  return null;
+}

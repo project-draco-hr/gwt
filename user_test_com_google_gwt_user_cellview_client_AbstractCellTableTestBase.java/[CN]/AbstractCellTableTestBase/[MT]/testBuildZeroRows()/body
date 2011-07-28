@@ -1,0 +1,22 @@
+{
+  T table=createAbstractHasData(new TextCell());
+  CellTableBuilder<String> builder=new AbstractCellTable.DefaultCellTableBuilder<String>(table){
+    @Override public void buildRow(    String rowValue,    int absRowIndex,    CellTableBuilder.Utility<String> utility){
+      if (absRowIndex != 5) {
+        super.buildRow(rowValue,absRowIndex,utility);
+      }
+    }
+  }
+;
+  table.setTableBuilder(builder);
+  table.setVisibleRange(0,10);
+  populateData(table);
+  table.getPresenter().flush();
+  TableSectionElement tbody=table.getTableBodyElement();
+  assertEquals(9,tbody.getChildCount());
+  assertEquals("test 5",table.getVisibleItem(5));
+  assertEquals("test 9",table.getVisibleItem(9));
+  assertEquals(4,table.getChildElement(4).getSectionRowIndex());
+  assertNull(table.getChildElement(5));
+  assertEquals(5,table.getChildElement(6).getSectionRowIndex());
+}
