@@ -15,7 +15,7 @@ case GET:
         String castType;
         if (returnType.isPrimitive() != null) {
           castType=returnType.isPrimitive().getQualifiedBoxedSourceName();
-          sw.println("%s toReturn = getOrReify(\"%s\");",castType,method.getPropertyName());
+          sw.println("%s toReturn = %s.this.getOrReify(\"%s\");",castType,type.getSimpleSourceName(),method.getPropertyName());
           sw.println("return toReturn == null ? %s : toReturn;",returnType.isPrimitive().getUninitializedFieldExpression());
         }
  else         if (returnType.equals(context.getTypeOracle().findType(Splittable.class.getCanonicalName()))) {
@@ -23,7 +23,7 @@ case GET:
         }
  else {
           castType=ModelUtils.getQualifiedBaseSourceName(returnType);
-          sw.println("return (%s) getOrReify(\"%s\");",castType,method.getPropertyName());
+          sw.println("return (%s) %s.this.getOrReify(\"%s\");",castType,type.getSimpleSourceName(),method.getPropertyName());
         }
       }
     break;
@@ -31,7 +31,7 @@ case SET:
 case SET_BUILDER:
 {
     JParameter param=jmethod.getParameters()[0];
-    sw.println("setProperty(\"%s\", %s);",method.getPropertyName(),param.getName());
+    sw.println("%s.this.setProperty(\"%s\", %s);",type.getSimpleSourceName(),method.getPropertyName(),param.getName());
     if (JBeanMethod.SET_BUILDER.equals(method.getAction())) {
       sw.println("return this;");
     }
