@@ -1,0 +1,16 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  RequestTransport transport=req.getRequestTransport();
+  transport.send("{}",new TransportReceiver(){
+    @Override public void onTransportFailure(    ServerFailure failure){
+      fail();
+    }
+    @Override public void onTransportSuccess(    String payload){
+      ResponseMessage resp=AutoBeanCodex.decode(MessageFactoryHolder.FACTORY,ResponseMessage.class,payload).as();
+      ServerFailureMessage failure=resp.getGeneralFailure();
+      assertNotNull(failure);
+      finishTestAndReset();
+    }
+  }
+);
+}
