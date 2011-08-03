@@ -20,51 +20,25 @@
     allRootTypes.add(typeOracle.getSingleJsoImpl(singleJsoIntf).getQualifiedSourceName());
   }
   Memory.maybeDumpMemory("CompStateBuilt");
-  CorrelationFactory correlator=options.isSoycExtra() ? RealCorrelationFactory.INSTANCE : DummyCorrelationFactory.INSTANCE;
-  JProgram jprogram=new JProgram(correlator);
-  JsProgram jsProgram=new JsProgram(correlator);
+  JProgram jprogram=new JProgram();
+  JsProgram jsProgram=new JsProgram();
   try {
-    if (GwtAstBuilder.ENABLED) {
-      UnifyAst unifyAst=new UnifyAst(jprogram,jsProgram,options,rpo);
-      unifyAst.addRootTypes(allRootTypes);
-      findEntryPoints(logger,rpo,declEntryPts,jprogram);
-      unifyAst.exec(logger);
-      List<String> finalTypeOracleTypes=Lists.create();
-      if (precompilationMetrics != null) {
-        for (        com.google.gwt.core.ext.typeinfo.JClassType type : typeOracle.getTypes()) {
-          finalTypeOracleTypes=Lists.add(finalTypeOracleTypes,type.getPackage().getName() + "." + type.getName());
-        }
-        precompilationMetrics.setFinalTypeOracleTypes(finalTypeOracleTypes);
+    UnifyAst unifyAst=new UnifyAst(jprogram,jsProgram,options,rpo);
+    unifyAst.addRootTypes(allRootTypes);
+    findEntryPoints(logger,rpo,declEntryPts,jprogram);
+    unifyAst.exec(logger);
+    List<String> finalTypeOracleTypes=Lists.create();
+    if (precompilationMetrics != null) {
+      for (      com.google.gwt.core.ext.typeinfo.JClassType type : typeOracle.getTypes()) {
+        finalTypeOracleTypes=Lists.add(finalTypeOracleTypes,type.getPackage().getName() + "." + type.getName());
       }
-      rpo.clear();
-      if (options.isSoycEnabled()) {
-        SourceInfoCorrelator.exec(jprogram);
-      }
-      jprogram.typeOracle.computeBeforeAST();
+      precompilationMetrics.setFinalTypeOracleTypes(finalTypeOracleTypes);
     }
- else {
-      CompilationUnitDeclaration[] goldenCuds=WebModeCompilerFrontEnd.getCompilationUnitDeclarations(logger,allRootTypes.toArray(new String[allRootTypes.size()]),rpo,TypeLinker.NULL_TYPE_LINKER).compiledUnits;
-      List<String> finalTypeOracleTypes=Lists.create();
-      if (precompilationMetrics != null) {
-        for (        com.google.gwt.core.ext.typeinfo.JClassType type : typeOracle.getTypes()) {
-          finalTypeOracleTypes=Lists.add(finalTypeOracleTypes,type.getPackage().getName() + "." + type.getName());
-        }
-        precompilationMetrics.setFinalTypeOracleTypes(finalTypeOracleTypes);
-      }
-      rpo.clear();
-      Memory.maybeDumpMemory("GoldenCudsBuilt");
-      checkForErrors(logger,goldenCuds,false);
-      TypeMap typeMap=new TypeMap(jprogram);
-      TypeDeclaration[] allTypeDeclarations=BuildTypeMap.exec(typeMap,goldenCuds,jsProgram);
-      checkForErrors(logger,goldenCuds,true);
-      jprogram.typeOracle.computeBeforeAST();
-      GenerateJavaAST.exec(allTypeDeclarations,typeMap,jprogram,options);
-      checkForErrors(logger,goldenCuds,true);
-      Memory.maybeDumpMemory("AstBuilt");
-      goldenCuds=null;
-      typeMap=null;
-      allTypeDeclarations=null;
+    rpo.clear();
+    if (options.isSoycEnabled()) {
+      SourceInfoCorrelator.exec(jprogram);
     }
+    jprogram.typeOracle.computeBeforeAST();
     Memory.maybeDumpMemory("AstOnly");
     AstDumper.maybeDumpAST(jprogram);
     if (module != null) {
@@ -80,15 +54,9 @@
  else {
       AssertionRemover.exec(jprogram);
     }
-    if (!GwtAstBuilder.ENABLED) {
-      ReplaceRebinds.exec(logger,jprogram,rpo);
-    }
     if (module != null && options.isRunAsyncEnabled()) {
       ReplaceRunAsyncs.exec(logger,jprogram);
       CodeSplitter.pickInitialLoadSequence(logger,jprogram,module.getProperties());
-    }
-    if (!GwtAstBuilder.ENABLED) {
-      findEntryPoints(logger,rpo,declEntryPts,jprogram);
     }
     ImplementClassLiteralsAsFields.exec(jprogram);
     if (options.getOptimizationLevel() > OptionOptimize.OPTIMIZE_LEVEL_DRAFT && !singlePermutation) {
