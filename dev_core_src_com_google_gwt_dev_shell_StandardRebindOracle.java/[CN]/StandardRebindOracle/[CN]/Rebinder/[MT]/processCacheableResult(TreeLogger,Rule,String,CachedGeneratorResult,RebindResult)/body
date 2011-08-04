@@ -1,0 +1,30 @@
+{
+  String resultTypeName=newResult.getResultTypeName();
+  if (!genCtx.isGeneratorResultCachingEnabled()) {
+    return resultTypeName;
+  }
+  RebindMode mode=newResult.getRebindMode();
+switch (mode) {
+case USE_EXISTING:
+    break;
+case USE_ALL_NEW_WITH_NO_CACHING:
+  break;
+case USE_ALL_NEW:
+cachedResult=new CachedGeneratorResultImpl(newResult.getResultTypeName(),genCtx.getArtifacts(),genCtx.getGeneratedUnitMap(),System.currentTimeMillis(),newResult.getClientDataMap());
+rebindCachePut(rule,typeName,cachedResult);
+break;
+case USE_ALL_CACHED:
+assert(cachedResult != null);
+genCtx.commitArtifactsFromCache(logger);
+genCtx.addGeneratedUnitsFromCache();
+resultTypeName=cachedResult.getResultTypeName();
+break;
+case USE_PARTIAL_CACHED:
+genCtx.addGeneratedUnitsMarkedForReuseFromCache();
+cachedResult=new CachedGeneratorResultImpl(newResult.getResultTypeName(),genCtx.getArtifacts(),genCtx.getGeneratedUnitMap(),System.currentTimeMillis(),newResult.getClientDataMap());
+rebindCachePut(rule,typeName,cachedResult);
+break;
+}
+genCtx.setCachedGeneratorResult(null);
+return resultTypeName;
+}

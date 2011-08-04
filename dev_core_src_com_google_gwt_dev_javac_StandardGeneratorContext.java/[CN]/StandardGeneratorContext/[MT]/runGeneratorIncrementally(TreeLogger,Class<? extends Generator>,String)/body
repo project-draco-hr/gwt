@@ -22,24 +22,27 @@
   }
   Event generatorEvent=SpeedTracerLogger.start(type,"class",generatorClassName,"type",typeName);
   try {
-    GeneratorExt generatorExt;
-    if (generator instanceof GeneratorExt) {
-      generatorExt=(GeneratorExt)generator;
-    }
- else {
-      generatorExt=GeneratorExtWrapper.newInstance(generator);
-    }
     RebindResult result;
-    result=generatorExt.generateIncrementally(logger,this,typeName);
-    if (loggable) {
-      if (result.getResultStatus() == RebindStatus.USE_EXISTING) {
-        msg="Generator did not return a new class, type will be used as is";
+    if (generator instanceof IncrementalGenerator) {
+      IncrementalGenerator incGenerator=(IncrementalGenerator)generator;
+      if (cachedRebindResult != null) {
+        Long cachedVersionId=(Long)cachedRebindResult.getClientData(GENERATOR_VERSION_ID_KEY);
+        if (cachedVersionId != null && cachedVersionId != incGenerator.getVersionId()) {
+          if (logger.isLoggable(TreeLogger.TRACE)) {
+            logger.log(TreeLogger.TRACE,"Got version mismatch with cached generator result for " + typeName + ", invalidating cached result");
+          }
+          cachedRebindResult=null;
+        }
       }
+      result=incGenerator.generateIncrementally(logger,this,typeName);
+      result.putClientData(GENERATOR_VERSION_ID_KEY,incGenerator.getVersionId());
+    }
  else {
-        msg="Generator returned class '" + result.getReturnedTypeName() + "'";
-      }
+      result=IncrementalGenerator.generateNonIncrementally(logger,generator,this,typeName);
+    }
+    if (loggable) {
       long after=System.currentTimeMillis();
-      msg+="; in " + (after - before) + " ms";
+      msg="Generator returned type '" + result.getResultTypeName() + "; mode "+ result.getRebindMode()+ "; in "+ (after - before)+ " ms";
       logger.log(TreeLogger.DEBUG,msg,null);
     }
     return result;

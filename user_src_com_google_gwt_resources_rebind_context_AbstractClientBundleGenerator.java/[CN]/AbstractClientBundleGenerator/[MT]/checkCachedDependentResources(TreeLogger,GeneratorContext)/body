@@ -1,0 +1,35 @@
+{
+  CachedGeneratorResult lastRebindResult=genContext.getCachedGeneratorResult();
+  if (lastRebindResult == null || !genContext.isGeneratorResultCachingEnabled()) {
+    return false;
+  }
+  long lastTimeGenerated=lastRebindResult.getTimeGenerated();
+  @SuppressWarnings("unchecked") Map<String,URL> cachedResolvedResources=(Map<String,URL>)lastRebindResult.getClientData(CACHED_RESOURCE_INFORMATION);
+  if (cachedResolvedResources == null) {
+    return false;
+  }
+  for (  Entry<String,URL> entry : cachedResolvedResources.entrySet()) {
+    String resourceName=entry.getKey();
+    URL resolvedUrl=entry.getValue();
+    URL currentUrl=ResourceGeneratorUtil.tryFindResource(logger,genContext,null,resourceName);
+    if (resolvedUrl == null) {
+      if (currentUrl == null) {
+        continue;
+      }
+ else {
+        logger.log(TreeLogger.TRACE,"Found newly available dependent resource: " + resourceName);
+        return false;
+      }
+    }
+ else     if (currentUrl == null || !resolvedUrl.toExternalForm().equals(currentUrl.toExternalForm())) {
+      logger.log(TreeLogger.TRACE,"Found dependent resource that has moved or no longer exists: " + resourceName);
+      return false;
+    }
+    long modifiedTime=Util.getResourceModifiedTime(resolvedUrl);
+    if (modifiedTime == 0L || modifiedTime > lastTimeGenerated) {
+      logger.log(TreeLogger.TRACE,"Found dependent resource that has changed: " + resourceName);
+      return false;
+    }
+  }
+  return true;
+}
