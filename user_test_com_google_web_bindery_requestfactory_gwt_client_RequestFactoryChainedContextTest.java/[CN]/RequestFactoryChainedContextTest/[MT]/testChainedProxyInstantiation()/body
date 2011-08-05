@@ -1,0 +1,27 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  Factory f=createChainedFactory();
+  ACtx aCtx=f.a();
+  checkReachableTypes(aCtx,AProxy.class,BProxy.class);
+  RequestContext ctx=aCtx.a().to(new Receiver<AProxy>(){
+    @Override public void onSuccess(    AProxy response){
+      assertNotNull(response);
+    }
+  }
+);
+  BCtx bCtx=ctx.append(f.b());
+  checkReachableTypes(aCtx,AProxy.class,BProxy.class);
+  checkReachableTypes(bCtx,BProxy.class,AProxy.class);
+  bCtx.b().to(new Receiver<BProxy>(){
+    @Override public void onSuccess(    BProxy response){
+      assertNotNull(response);
+    }
+  }
+);
+  ctx.fire(new Receiver<Void>(){
+    @Override public void onSuccess(    Void response){
+      finishTest();
+    }
+  }
+);
+}
