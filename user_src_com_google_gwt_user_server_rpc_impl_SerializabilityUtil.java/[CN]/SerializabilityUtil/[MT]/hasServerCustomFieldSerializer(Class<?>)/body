@@ -1,0 +1,18 @@
+{
+  assert(instanceType != null);
+  if (instanceType.isArray()) {
+    return null;
+  }
+  Class<?> result;
+synchronized (classServerCustomSerializerCache) {
+    result=classServerCustomSerializerCache.get(instanceType);
+    if (result == null) {
+      result=computeHasCustomFieldSerializer(instanceType,true);
+      if (result == null) {
+        result=instanceType;
+      }
+      classServerCustomSerializerCache.put(instanceType,result);
+    }
+  }
+  return (result == instanceType) ? null : result;
+}

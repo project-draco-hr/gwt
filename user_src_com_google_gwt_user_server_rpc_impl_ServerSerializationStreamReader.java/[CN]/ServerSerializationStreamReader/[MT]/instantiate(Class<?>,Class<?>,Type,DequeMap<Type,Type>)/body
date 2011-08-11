@@ -1,0 +1,35 @@
+{
+  if (customSerializer != null) {
+    CustomFieldSerializer<?> customFieldSerializer=SerializabilityUtil.loadCustomFieldSerializer(customSerializer);
+    if (customFieldSerializer == null) {
+      Object result=instantiateWithCustomFieldInstantiator(customSerializer,instanceClass,resolvedTypes);
+      if (result != null) {
+        return result;
+      }
+    }
+ else     if (customFieldSerializer.hasCustomInstantiateInstance()) {
+      if (expectedType != null && (customFieldSerializer instanceof ServerCustomFieldSerializer)) {
+        ServerCustomFieldSerializer<?> serverCFS=(ServerCustomFieldSerializer<?>)customFieldSerializer;
+        return serverCFS.instantiateInstance(this,instanceClass,resolvedTypes);
+      }
+ else {
+        return customFieldSerializer.instantiateInstance(this);
+      }
+    }
+  }
+  if (instanceClass.isArray()) {
+    int length=readInt();
+    return new BoundedList<Object>(instanceClass.getComponentType(),length);
+  }
+ else   if (instanceClass.isEnum()) {
+    Enum<?>[] enumConstants=(Enum[])instanceClass.getEnumConstants();
+    int ordinal=readInt();
+    assert(ordinal >= 0 && ordinal < enumConstants.length);
+    return enumConstants[ordinal];
+  }
+ else {
+    Constructor<?> constructor=instanceClass.getDeclaredConstructor();
+    constructor.setAccessible(true);
+    return constructor.newInstance();
+  }
+}

@@ -1,0 +1,27 @@
+{
+  Field[] fields=clazz.getDeclaredFields();
+  try {
+    for (    Field field : fields) {
+      Type type=field.getGenericType();
+      if (type == int.class) {
+        write(field.getInt(object));
+      }
+ else {
+        Object value=field.get(object);
+        writeCollectionElement(value);
+      }
+    }
+    Class<?> superClass=clazz.getSuperclass();
+    if (superClass == Object.class) {
+      return;
+    }
+ else     if (superClass == LinkedList.class) {
+      writeListBody((List<?>)object);
+      return;
+    }
+    writeClass(object,superClass);
+  }
+ catch (  Exception e) {
+    throw new SerializationException(e);
+  }
+}

@@ -1,0 +1,38 @@
+{
+  try {
+    RPC.decodeRequest(generateIClassValid());
+  }
+ catch (  Exception e) {
+    fail("Unexpected assertion from testComplexGenerics (1a): " + e.getMessage());
+  }
+  try {
+    RPC.decodeRequest(generateIClassRaw());
+  }
+ catch (  Exception e) {
+    fail("Unexpected assertion from testComplexGenerics (1b): " + e.getMessage());
+  }
+  try {
+    RPC.decodeRequest(generateIClassSpoofingA());
+    fail("Expected IncompatibleRemoteServiceException from testComplexGenerics (2)");
+  }
+ catch (  IncompatibleRemoteServiceException e) {
+    assertEquals(SerializedTypeViolationException.class,e.getCause().getClass());
+    assertTrue(e.getCause().getMessage().matches(".*LinkedList.*? extends T.*"));
+  }
+  try {
+    RPC.decodeRequest(generateIClassSpoofingB());
+    fail("Expected IncompatibleRemoteServiceException from testComplexGenerics (3)");
+  }
+ catch (  IncompatibleRemoteServiceException e) {
+    assertEquals(SerializedTypeViolationException.class,e.getCause().getClass());
+    assertTrue(e.getCause().getMessage().matches(".*HashSet.*? super .*GEClass.*"));
+  }
+  try {
+    RPC.decodeRequest(generateIClassSpoofingC());
+    fail("Expected IncompatibleRemoteServiceException from testComplexGenerics (4)");
+  }
+ catch (  IncompatibleRemoteServiceException e) {
+    assertEquals(SerializedTypeViolationException.class,e.getCause().getClass());
+    assertTrue(e.getCause().getMessage().matches(".*HashSet.*Integer.*"));
+  }
+}

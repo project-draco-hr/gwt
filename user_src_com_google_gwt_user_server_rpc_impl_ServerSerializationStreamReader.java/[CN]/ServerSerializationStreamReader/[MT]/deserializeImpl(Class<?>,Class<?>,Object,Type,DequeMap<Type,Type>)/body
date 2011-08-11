@@ -1,0 +1,35 @@
+{
+  if (customSerializer != null) {
+    @SuppressWarnings("unchecked") CustomFieldSerializer<Object> customFieldSerializer=(CustomFieldSerializer<Object>)SerializabilityUtil.loadCustomFieldSerializer(customSerializer);
+    if (customFieldSerializer == null) {
+      deserializeWithCustomFieldDeserializer(customSerializer,instanceClass,instance,resolvedTypes);
+    }
+ else     if (customFieldSerializer instanceof ServerCustomFieldSerializer) {
+      ServerCustomFieldSerializer<Object> serverCFS=(ServerCustomFieldSerializer<Object>)customFieldSerializer;
+      serverCFS.deserializeInstance(this,instance,instanceClass,resolvedTypes);
+    }
+ else {
+      customFieldSerializer.deserializeInstance(this,instance);
+    }
+  }
+ else   if (instanceClass.isArray()) {
+    if (expectedType == null) {
+      return deserializeArray(instanceClass,instance);
+    }
+    Type actualExpectedType=SerializabilityUtil.findActualType(expectedType,resolvedTypes);
+    if (actualExpectedType instanceof GenericArrayType) {
+      Type arrayType=((GenericArrayType)actualExpectedType).getGenericComponentType();
+      return deserializeArray(instanceClass,instance,arrayType,resolvedTypes);
+    }
+ else     if (((Class<?>)actualExpectedType).getComponentType() != null) {
+      Class<?> arrayType=((Class<?>)actualExpectedType).getComponentType();
+      return deserializeArray(instanceClass,instance,arrayType,resolvedTypes);
+    }
+  }
+ else   if (instanceClass.isEnum()) {
+  }
+ else {
+    deserializeClass(instanceClass,instance,expectedType,resolvedTypes);
+  }
+  return instance;
+}

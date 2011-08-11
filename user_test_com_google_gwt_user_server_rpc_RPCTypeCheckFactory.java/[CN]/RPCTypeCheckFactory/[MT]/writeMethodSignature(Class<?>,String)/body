@@ -1,0 +1,20 @@
+{
+  writeStringFromTable(testMethodClass.getName());
+  writeStringFromTable(testMethodName);
+  Method[] testMethods=testMethodClass.getDeclaredMethods();
+  Method targetMethod=null;
+  for (  Method method : testMethods) {
+    if (method.getName().equals(testMethodName)) {
+      targetMethod=method;
+      break;
+    }
+  }
+  if (targetMethod == null) {
+    throw new NoSuchMethodException("Could not find " + testMethodName + " in "+ testMethodClass.getName());
+  }
+  Class<?>[] parameterClasses=targetMethod.getParameterTypes();
+  bodyString+=Integer.toString(parameterClasses.length) + RPC_SEPARATOR_CHAR;
+  for (  Class<?> parameter : parameterClasses) {
+    writeStringFromTable(generateSerializedClassString(parameter));
+  }
+}

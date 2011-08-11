@@ -1,0 +1,23 @@
+{
+  if (getEncodedIndex(map)) {
+    return;
+  }
+  writeStringFromTable(generateSerializedClassString(map.getClass()));
+  if (map instanceof LinkedHashMap) {
+    bodyString+="0" + RPC_SEPARATOR_CHAR;
+  }
+  if (map instanceof TreeMap) {
+    Comparator<?> comp=((TreeMap<?,?>)map).comparator();
+    if (comp == null) {
+      bodyString+="0" + RPC_SEPARATOR_CHAR;
+    }
+ else {
+      writeStringFromTable(generateSerializedClassString(comp.getClass()));
+    }
+  }
+  bodyString+=Integer.toString(map.size()) + RPC_SEPARATOR_CHAR;
+  for (  Map.Entry<?,?> entry : map.entrySet()) {
+    writeCollectionElement(entry.getKey());
+    writeCollectionElement(entry.getValue());
+  }
+}

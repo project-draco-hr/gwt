@@ -24,7 +24,7 @@
     try {
       serviceIntf=getClassFromSerializedName(serviceIntfName,classLoader);
       if (!RemoteService.class.isAssignableFrom(serviceIntf)) {
-        throw new IncompatibleRemoteServiceException("Blocked attempt to access interface '" + printTypeName(serviceIntf) + "', which doesn't extend RemoteService; this is either misconfiguration or a hack attempt");
+        throw new IncompatibleRemoteServiceException("Blocked attempt to access interface '" + printTypeName(serviceIntf) + "', which doesn't extend RemoteService; this is either "+ "misconfiguration or a hack attempt");
       }
     }
  catch (    ClassNotFoundException e) {
@@ -47,9 +47,15 @@
     }
     try {
       Method method=serviceIntf.getMethod(serviceMethodName,parameterTypes);
+      Type[] methodParameterTypes=method.getGenericParameterTypes();
+      DequeMap<Type,Type> resolvedTypes=new DequeMap<Type,Type>();
+      TypeVariable<Method>[] methodTypes=method.getTypeParameters();
+      for (      TypeVariable<Method> methodType : methodTypes) {
+        SerializabilityUtil.resolveTypes(methodType,resolvedTypes);
+      }
       Object[] parameterValues=new Object[parameterTypes.length];
       for (int i=0; i < parameterValues.length; i++) {
-        parameterValues[i]=streamReader.deserializeValue(parameterTypes[i]);
+        parameterValues[i]=streamReader.deserializeValue(parameterTypes[i],methodParameterTypes[i],resolvedTypes);
       }
       return new RPCRequest(method,parameterValues,rpcToken,serializationPolicy,streamReader.getFlags());
     }

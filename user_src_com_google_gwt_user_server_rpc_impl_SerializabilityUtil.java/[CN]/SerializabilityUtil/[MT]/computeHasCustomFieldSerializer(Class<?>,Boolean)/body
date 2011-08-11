@@ -1,0 +1,27 @@
+{
+  assert(instanceType != null);
+  String qualifiedTypeName=instanceType.getName();
+  ClassLoader classLoader=GWT.isClient() ? SerializabilityUtil.class.getClassLoader() : Thread.currentThread().getContextClassLoader();
+  if (typeChecked) {
+    String serverSerializerName=qualifiedTypeName + "_ServerCustomFieldSerializer";
+    serverSerializerName=serverSerializerName.replaceFirst("client","server");
+    Class<?> serverCustomSerializer=getCustomFieldSerializer(classLoader,serverSerializerName);
+    if (serverCustomSerializer != null) {
+      return serverCustomSerializer;
+    }
+    serverCustomSerializer=getCustomFieldSerializer(classLoader,JRE_SERVER_SERIALIZER_PACKAGE + "." + serverSerializerName);
+    if (serverCustomSerializer != null) {
+      return serverCustomSerializer;
+    }
+  }
+  String simpleSerializerName=qualifiedTypeName + "_CustomFieldSerializer";
+  Class<?> customSerializer=getCustomFieldSerializer(classLoader,simpleSerializerName);
+  if (customSerializer != null) {
+    return customSerializer;
+  }
+  customSerializer=getCustomFieldSerializer(classLoader,JRE_SERIALIZER_PACKAGE + "." + simpleSerializerName);
+  if (customSerializer != null) {
+    return customSerializer;
+  }
+  return null;
+}

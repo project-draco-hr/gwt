@@ -1,0 +1,46 @@
+{
+  if (instanceType instanceof GenericArrayType) {
+    return findInstanceParameter(foundParameter,((GenericArrayType)instanceType).getGenericComponentType(),resolvedTypes);
+  }
+ else   if (instanceType instanceof ParameterizedType) {
+    ParameterizedType paramType=(ParameterizedType)instanceType;
+    Type rawType=paramType.getRawType();
+    if (rawType instanceof Class) {
+      Class<?> rawClass=(Class<?>)rawType;
+      TypeVariable<?>[] classGenericTypes=rawClass.getTypeParameters();
+      Type[] actualTypes=paramType.getActualTypeArguments();
+      for (int i=0; i < actualTypes.length; ++i) {
+        if (actualTypes[i] == foundParameter) {
+          Type capturedType=findActualType(classGenericTypes[i],resolvedTypes);
+          if (capturedType != classGenericTypes[i]) {
+            return capturedType;
+          }
+          if (rawClass.getGenericSuperclass() != null) {
+            Type superParameter=findInstanceParameter(classGenericTypes[i],rawClass.getGenericSuperclass(),resolvedTypes);
+            if (!(superParameter instanceof TypeVariable)) {
+              return superParameter;
+            }
+          }
+          Type[] rawInterfaces=rawClass.getGenericInterfaces();
+          for (          Type interfaceType : rawInterfaces) {
+            Type interfaceParameter=findInstanceParameter(classGenericTypes[i],interfaceType,resolvedTypes);
+            if (!(interfaceParameter instanceof TypeVariable)) {
+              return interfaceParameter;
+            }
+          }
+        }
+      }
+    }
+  }
+ else   if (instanceType instanceof WildcardType) {
+    WildcardType wildcardType=(WildcardType)instanceType;
+    Type[] upperBounds=wildcardType.getUpperBounds();
+    for (    Type boundType : upperBounds) {
+      Type wildcardParameter=findInstanceParameter(foundParameter,boundType,resolvedTypes);
+      if (!(wildcardParameter instanceof TypeVariable)) {
+        return wildcardParameter;
+      }
+    }
+  }
+  return foundParameter;
+}

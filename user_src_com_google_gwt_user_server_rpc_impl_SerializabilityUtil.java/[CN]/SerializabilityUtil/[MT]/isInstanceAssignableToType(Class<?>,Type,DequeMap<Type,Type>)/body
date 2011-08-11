@@ -1,0 +1,38 @@
+{
+  if (expectedType == null) {
+    return true;
+  }
+  Type actualType=findActualType(expectedType,resolvedTypes);
+  if (actualType instanceof TypeVariable) {
+    Type[] typeVariableBounds=((TypeVariable<?>)actualType).getBounds();
+    for (    Type boundType : typeVariableBounds) {
+      if (!isInstanceAssignableToType(instanceClass,boundType,resolvedTypes)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  if (actualType instanceof ParameterizedType) {
+    ParameterizedType paramType=(ParameterizedType)actualType;
+    if (!((Class<?>)paramType.getRawType()).isAssignableFrom(instanceClass)) {
+      return false;
+    }
+  }
+ else   if (actualType instanceof GenericArrayType) {
+    if (!(instanceClass.isArray())) {
+      return false;
+    }
+    Type expectedComponentType=((GenericArrayType)actualType).getGenericComponentType();
+    Class<?> instanceComponentClass=instanceClass.getComponentType();
+    return isInstanceAssignableToType(instanceComponentClass,expectedComponentType,resolvedTypes);
+  }
+ else   if (actualType instanceof WildcardType) {
+    if (!isInstanceAssignableToWildcard(instanceClass,(WildcardType)actualType,resolvedTypes)) {
+      return false;
+    }
+  }
+ else   if (!((Class<?>)actualType).isAssignableFrom(instanceClass)) {
+    return false;
+  }
+  return true;
+}

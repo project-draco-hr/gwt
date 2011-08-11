@@ -1,0 +1,24 @@
+{
+  try {
+    RPC.decodeRequest(generateIntArraySpoofingInt());
+    fail("Expected ArrayIndexOutOfBoundsException from testArraysSpoofingPrimitives (1)");
+  }
+ catch (  Exception e) {
+    assertTrue(e instanceof ArrayIndexOutOfBoundsException);
+  }
+  try {
+    RPCRequest result=RPC.decodeRequest(generateStringArraySpoofingString());
+    assertTrue(result.getParameters()[1].toString().matches(".*\\[Ljava.lang.String.*"));
+  }
+ catch (  Exception e) {
+    fail("Unexpected Exception from testArraysSpoofingPrimitives (2)");
+  }
+  try {
+    RPC.decodeRequest(generateStringArraySpoofingClass());
+    fail("Expected IncompatibleRemoteServiceException from testArraysSpoofingPrimitives (3)");
+  }
+ catch (  IncompatibleRemoteServiceException e) {
+    assertEquals(SerializedTypeViolationException.class,e.getCause().getClass());
+    assertTrue(e.getCause().getMessage().matches(".*\\[Ljava.lang.String.*AClass.*"));
+  }
+}
