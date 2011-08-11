@@ -1,0 +1,24 @@
+{
+  if (in == null) {
+    return null;
+  }
+  CompiledClass[] orig=new CompiledClass[in.size()];
+  List<CompiledClass> copy=new ArrayList<CompiledClass>();
+  Map<CompiledClass,CompiledClass> enclosingClassMap=new HashMap<CompiledClass,CompiledClass>();
+  for (  CompiledClass cc : in) {
+    CompiledClass copyCc=new CompiledClass(cc,newUnit);
+    copy.add(copyCc);
+    enclosingClassMap.put(cc,copyCc);
+  }
+  for (  CompiledClass copyCc : copy) {
+    if (copyCc.enclosingClass == null) {
+      continue;
+    }
+    CompiledClass newRef=enclosingClassMap.get(copyCc.enclosingClass);
+    if (null == newRef) {
+      throw new InternalCompilerException("Enclosing type not found for " + copyCc.sourceName);
+    }
+    copyCc.enclosingClass=newRef;
+  }
+  return Collections.unmodifiableCollection(copy);
+}
