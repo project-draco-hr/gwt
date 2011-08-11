@@ -1,5 +1,6 @@
 {
   Map<String,Set<String>> unitsInArchives=new HashMap<String,Set<String>>();
+  Map<String,Set<String>> newlyCompiledModules=new HashMap<String,Set<String>>();
   File outputDir=options.getOutDir();
   if (!outputDir.isDirectory() && !outputDir.mkdirs()) {
     logger.log(Type.ERROR,"Error creating directories for ouptut: " + outputDir.getAbsolutePath());
@@ -21,6 +22,11 @@
       if (logger.isLoggable(TreeLogger.TRACE) && archiveURLs != null) {
         for (        URL archiveURL : archiveURLs) {
           logger.log(TreeLogger.TRACE,"Found archive: " + archiveURL);
+        }
+      }
+      for (      String compiledModuleName : newlyCompiledModules.keySet()) {
+        if (module.isInherited(compiledModuleName)) {
+          currentModuleArchivedUnits.addAll(newlyCompiledModules.get(compiledModuleName));
         }
       }
       for (      URL archiveURL : archiveURLs) {
@@ -69,12 +75,15 @@ catch (        ClassNotFoundException ex) {
       logger.log(TreeLogger.ERROR,"Failed to compile " + moduleToCompile);
       return false;
     }
+    Set<String> compiledUnits=Sets.newHashSet();
     CompilationUnitArchive outputArchive=new CompilationUnitArchive(moduleToCompile);
     for (    CompilationUnit unit : compilationState.getCompilationUnits()) {
       if (!currentModuleArchivedUnits.contains(unit.getResourcePath())) {
         outputArchive.addUnit(unit);
+        compiledUnits.add(unit.getResourcePath());
       }
     }
+    newlyCompiledModules.put(moduleToCompile,compiledUnits);
     String slashedModuleName=module.getName().replace('.','/') + ModuleDefLoader.COMPILATION_UNIT_ARCHIVE_SUFFIX;
     File outputFile=new File(outputDir,slashedModuleName);
     outputFile.getParentFile().mkdirs();
