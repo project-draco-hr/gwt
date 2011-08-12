@@ -1,0 +1,67 @@
+{
+  AbstractCellTable<String> table=createAbstractHasData();
+  assertFalse(table.isAutoHeaderRefreshDisabled());
+  assertFalse(table.isAutoFooterRefreshDisabled());
+  table.setAutoHeaderRefreshDisabled(true);
+  assertTrue(table.isAutoHeaderRefreshDisabled());
+  assertFalse(table.isAutoFooterRefreshDisabled());
+  final List<String> log=new ArrayList<String>();
+  Column<String,?> col0=new MockColumn<String,String>();
+  TextHeader header0=new TextHeader("header0"){
+    @Override public void render(    Context context,    SafeHtmlBuilder sb){
+      super.render(context,sb);
+      log.add("header0 rendered");
+    }
+  }
+;
+  TextHeader footer0=new TextHeader("footer0"){
+    @Override public void render(    Context context,    SafeHtmlBuilder sb){
+      super.render(context,sb);
+      log.add("footer0 rendered");
+    }
+  }
+;
+  table.addColumn(col0,header0,footer0);
+  assertEquals(0,log.size());
+  table.getPresenter().flush();
+  assertEquals("header0 rendered",log.remove(0));
+  assertEquals("footer0 rendered",log.remove(0));
+  assertEquals(0,log.size());
+  Column<String,?> col1=new MockColumn<String,String>();
+  TextHeader header1=new TextHeader("header1"){
+    @Override public void render(    Context context,    SafeHtmlBuilder sb){
+      super.render(context,sb);
+      log.add("header1 rendered");
+    }
+  }
+;
+  TextHeader footer1=new TextHeader("footer1"){
+    @Override public void render(    Context context,    SafeHtmlBuilder sb){
+      super.render(context,sb);
+      log.add("footer1 rendered");
+    }
+  }
+;
+  table.addColumn(col1,header1,footer1);
+  assertEquals(0,log.size());
+  table.getPresenter().flush();
+  assertEquals("header0 rendered",log.remove(0));
+  assertEquals("header1 rendered",log.remove(0));
+  assertEquals("footer0 rendered",log.remove(0));
+  assertEquals("footer1 rendered",log.remove(0));
+  assertEquals(0,log.size());
+  table.removeColumn(col0);
+  assertEquals(0,log.size());
+  table.getPresenter().flush();
+  assertEquals("header1 rendered",log.remove(0));
+  assertEquals("footer1 rendered",log.remove(0));
+  assertEquals(0,log.size());
+  populateData(table);
+  assertEquals(0,log.size());
+  table.getPresenter().flush();
+  assertEquals("footer1 rendered",log.remove(0));
+  assertEquals(0,log.size());
+  table.getColumnSortList().push(col1);
+  assertEquals("header1 rendered",log.remove(0));
+  assertEquals(0,log.size());
+}
