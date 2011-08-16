@@ -1,0 +1,41 @@
+{
+  RootPanel root=RootPanel.get();
+  FlowPanel largeWidget=null;
+  if (includeLargeWidget.getValue()) {
+    largeWidget=new FlowPanel();
+    TestWidgetBinder.Maker widgetMaker=new TestWidgetBinder.Maker();
+    for (int i=0; i < 100; i++) {
+      largeWidget.add(widgetMaker.make());
+    }
+    root.add(largeWidget);
+  }
+  int nanosCount=nanos.size();
+  double[] times=new double[nanosCount];
+  int column=grid.getColumnCount();
+  grid.resizeColumns(column + 1);
+  grid.setText(0,column,"Run " + (column - 3));
+  final int instances=getInstances();
+  boolean forward=false;
+  for (int i=0; i < instances; ++i) {
+    forward=!forward;
+    for (int m=0; m < nanosCount; m++) {
+      NanoTest nano=nanos.get(forward ? m : (nanosCount - 1 - m));
+      nano.setup();
+      log(i + ": " + nano.name);
+      double start=Duration.currentTimeMillis();
+      nano.runTest();
+      double thisTime=Duration.currentTimeMillis() - start;
+      times[m]+=thisTime;
+      nano.teardown();
+    }
+  }
+  double allTimes=0;
+  for (int m=0; m < nanosCount; ++m) {
+    record(m + 1,times[m]);
+    allTimes+=times[m];
+  }
+  grid.setText(grid.getRowCount() - 1,grid.getColumnCount() - 1,Util.format(allTimes));
+  if (largeWidget != null) {
+    root.remove(largeWidget);
+  }
+}

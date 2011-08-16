@@ -1,18 +1,18 @@
 {
-  List<Maker> widgetMakers=new ArrayList<Maker>();
-  widgetMakers.add(new Maker("SimplePanel"){
+  List<NanoTest> widgetMakers=new ArrayList<NanoTest>();
+  widgetMakers.add(new WidgetMaker("SimplePanel"){
     @Override public Widget make(){
       return new SimplePanel();
     }
   }
 );
-  widgetMakers.add(new Maker("FlowPanel"){
+  widgetMakers.add(new WidgetMaker("FlowPanel"){
     @Override public Widget make(){
       return new FlowPanel();
     }
   }
 );
-  widgetMakers.add(new Maker("HTMLPanel"){
+  widgetMakers.add(new WidgetMaker("HTMLPanel"){
     @Override public Widget make(){
       return new HTMLPanel("");
     }
@@ -34,12 +34,22 @@
   widgetMakers.add(new TestFlows.Maker());
   widgetMakers.add(new TestManualHTMLPanel.Maker());
   widgetMakers.add(new TestWidgetBinder.Maker());
-  List<Maker> tableMakers=new ArrayList<Maker>();
+  List<NanoTest> tableMakers=new ArrayList<NanoTest>();
   tableMakers.add(new TestCreateTableInnerHtml.Maker());
   tableMakers.add(new TestCreateTablePrecreatedInnerHtml.Maker());
   tableMakers.add(new TestCreateTableDom.Maker());
   tableMakers.add(new TestCreateTableDomWithEvents.Maker());
-  benchmarks=new Microbenchmark[2];
-  benchmarks[0]=new WidgetCreation("Widget Creation Survey",widgetMakers);
-  benchmarks[1]=new WidgetCreation("Table Creation Survey",tableMakers);
+  List<NanoTest> tableUpdaters=new ArrayList<NanoTest>();
+  tableUpdaters.add(new TestCreateTableInnerHtml.Updater());
+  tableUpdaters.add(new TestCreateTablePrecreatedInnerHtml.Updater());
+  tableUpdaters.add(new TestCreateTableDom.Updater());
+  tableUpdaters.add(new TestCreateTableDomWithEvents.Updater());
+  List<NanoTest> allTableTests=new ArrayList<MicrobenchmarkSurvey.NanoTest>();
+  allTableTests.addAll(tableMakers);
+  allTableTests.addAll(tableUpdaters);
+  benchmarks=new Microbenchmark[4];
+  benchmarks[0]=new MicrobenchmarkSurvey("Widget Creation Survey",widgetMakers);
+  benchmarks[1]=new MicrobenchmarkSurvey("Table Creation and Update Survey",allTableTests);
+  benchmarks[2]=new MicrobenchmarkSurvey("Table Creation Survey",tableMakers);
+  benchmarks[3]=new MicrobenchmarkSurvey("Table Update Survey",tableUpdaters);
 }

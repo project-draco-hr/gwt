@@ -1,0 +1,50 @@
+{
+  this.name=name;
+  this.nanos=Collections.unmodifiableList(nanos);
+  int instances=DEFAULT_INSTANCES;
+  try {
+    instances=Integer.parseInt(Cookies.getCookie(COOKIE));
+  }
+ catch (  NumberFormatException ignored) {
+  }
+  grid=new Grid(nanos.size() + 2,3);
+  grid.setText(0,0,"median");
+  grid.setText(0,1,"mean");
+  int row=1;
+  for (  final NanoTest nano : nanos) {
+    grid.setText(row,0,"0");
+    grid.setText(row,1,"0");
+    InlineLabel a=new InlineLabel();
+    a.setText(nano.getName());
+    a.addClickHandler(new ClickHandler(){
+      public void onClick(      ClickEvent event){
+        Widget toDisplay=nano.getPopup();
+        if (toDisplay != null) {
+          PopupPanel popup=new PopupPanel(true,true);
+          ScrollPanel container=new ScrollPanel(toDisplay);
+          container.setPixelSize(500,500);
+          popup.setWidget(container);
+          popup.center();
+        }
+      }
+    }
+);
+    grid.setWidget(row,2,a);
+    row++;
+  }
+  root=BINDER.createAndBindUi(this);
+  number.setVisibleLength(7);
+  number.setValue("" + instances);
+  number.addBlurHandler(new BlurHandler(){
+    public void onBlur(    BlurEvent event){
+      saveInstances();
+    }
+  }
+);
+  Window.addWindowClosingHandler(new ClosingHandler(){
+    public void onWindowClosing(    ClosingEvent event){
+      saveInstances();
+    }
+  }
+);
+}
