@@ -1,17 +1,11 @@
 {
-  EntityManager em=entityManager();
-  try {
-    Query query=em.createQuery("select o from Task o where o.userId=:userId");
-    query.setParameter("userId",UserServiceWrapper.get().getCurrentUserId());
-    List<Task> list=query.getResultList();
-    if (list.size() == 0) {
-      populateDatastore();
-      list=query.getResultList();
-      list.size();
-    }
-    return list;
+  EMF emf=EMF.get();
+  Query<Task> q=emf.ofy().query(Task.class).filter("userId",currentUserId());
+  List<Task> list=q.list();
+  if (list.size() == 0) {
+    populateDatastore();
+    q=emf.ofy().query(Task.class).filter("userId",currentUserId());
+    list=q.list();
   }
-  finally {
-    em.close();
-  }
+  return list;
 }

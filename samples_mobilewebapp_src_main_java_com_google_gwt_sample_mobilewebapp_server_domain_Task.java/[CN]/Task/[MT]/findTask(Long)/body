@@ -2,15 +2,12 @@
   if (id == null) {
     return null;
   }
-  EntityManager em=entityManager();
-  try {
-    Task task=em.find(Task.class,id);
-    if (task != null && UserServiceWrapper.get().getCurrentUserId().equals(task.userId)) {
-      return task;
-    }
-    return null;
+  EMF emf=EMF.get();
+  Task task=emf.ofy().find(Task.class,id);
+  if (task != null && task.userId.equals(currentUserId())) {
+    return task;
   }
-  finally {
-    em.close();
+ else {
+    return null;
   }
 }
