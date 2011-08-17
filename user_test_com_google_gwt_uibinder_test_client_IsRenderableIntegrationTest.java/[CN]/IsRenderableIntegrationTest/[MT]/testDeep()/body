@@ -1,0 +1,37 @@
+{
+  Deep deep=new Deep();
+  assertTrue(PotentialElement.isPotential(deep.top.getElement()));
+  assertTrue(PotentialElement.isPotential(deep.outerRenderable.getElement()));
+  assertTrue(PotentialElement.isPotential(deep.innerRenderable.getElement()));
+  assertNull(deep.outerI18nImage);
+  assertNull(deep.innerI18nImage);
+  assertNull(deep.outerLabel);
+  assertNull(deep.innerLabel);
+  assertNull(deep.innerLabel);
+  assertNull(deep.outerDiv);
+  assertNull(deep.innerDiv);
+  assertNotNull(deep.outerComposite);
+  assertNotNull(deep.innerComposite);
+  assertTrue(PotentialElement.isPotential(deep.outerComposite.getWidget().getElement()));
+  assertTrue(PotentialElement.isPotential(deep.innerComposite.getWidget().getElement()));
+  try {
+    RootPanel.get().add(deep.top);
+    assertEquals("Outer div",deep.outerDiv.getInnerText());
+    assertEquals("Inner div",deep.innerDiv.getInnerText());
+    assertEquals("[string built]Outer renderable",deep.outerRenderable.getElement().getInnerText());
+    assertEquals("[string built]Inner renderable",deep.innerRenderable.getElement().getInnerText());
+    assertNotNull(deep.outerI18nImage);
+    assertNotNull(deep.innerI18nImage);
+    assertEquals("Outer label",deep.outerLabel.getText());
+    assertEquals("Inner label",deep.innerLabel.getText());
+    assertEquals("[string built]Renderable",deep.outerComposite.getWidget().getElement().getInnerText());
+    assertEquals("[string built]Renderable",deep.innerComposite.getWidget().getElement().getInnerText());
+    deep.outerRenderable.setValue("foo");
+    assertEquals("foo",deep.receivedValue);
+    deep.outerRenderable.setText("fnord");
+    assertEquals("[updated]fnord",deep.outerRenderable.getElement().getInnerText());
+  }
+  finally {
+    deep.top.removeFromParent();
+  }
+}
