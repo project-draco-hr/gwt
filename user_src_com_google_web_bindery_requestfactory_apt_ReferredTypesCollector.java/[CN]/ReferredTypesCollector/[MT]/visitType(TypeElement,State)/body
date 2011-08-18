@@ -1,0 +1,25 @@
+{
+  boolean isContext=state.types.isAssignable(x.asType(),state.requestContextType);
+  boolean isFactory=state.types.isAssignable(x.asType(),state.requestFactoryType);
+  boolean isProxy=state.types.isAssignable(x.asType(),state.baseProxyType);
+  if (isProxy || isFactory || isContext) {
+    currentType.push(x);
+    try {
+      if ((isContext || isProxy) && !seen.add(x)) {
+        return null;
+      }
+      if (isProxy) {
+        x.getSuperclass().accept(new ElementFinder(),state);
+        for (        TypeMirror intf : x.getInterfaces()) {
+          intf.accept(new ElementFinder(),state);
+        }
+      }
+      scanAllInheritedMethods(x,state);
+      checkForAnnotation(x,state);
+    }
+  finally {
+      currentType.pop();
+    }
+  }
+  return null;
+}

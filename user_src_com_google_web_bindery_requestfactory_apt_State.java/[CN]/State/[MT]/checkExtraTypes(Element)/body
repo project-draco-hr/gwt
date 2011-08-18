@@ -1,31 +1,15 @@
 {
-  (new ScannerBase<Void>(){
+  (new ExtraTypesScanner<Void>(){
     @Override public Void visitExecutable(    ExecutableElement x,    State state){
-      checkForAnnotation(x);
+      checkForAnnotation(x,state);
       return null;
     }
     @Override public Void visitType(    TypeElement x,    State state){
-      checkForAnnotation(x);
-      if (!x.getSuperclass().getKind().equals(TypeKind.NONE)) {
-        scan(state.types.asElement(x.getSuperclass()),state);
-      }
-      for (      TypeMirror intf : x.getInterfaces()) {
-        scan(state.types.asElement(intf),state);
-      }
+      checkForAnnotation(x,state);
       return null;
     }
-    private void checkForAnnotation(    Element x){
-      for (      AnnotationMirror mirror : x.getAnnotationMirrors()) {
-        if (!types.isSameType(mirror.getAnnotationType(),extraTypesAnnotation)) {
-          continue;
-        }
-        AnnotationValue value=mirror.getElementValues().values().iterator().next();
-        @SuppressWarnings("unchecked") List<? extends AnnotationValue> valueList=(List<? extends AnnotationValue>)value.getValue();
-        for (        AnnotationValue clazz : valueList) {
-          TypeMirror type=(TypeMirror)clazz.getValue();
-          maybeScanProxy((TypeElement)types.asElement(type));
-        }
-      }
+    @Override protected void scanExtraType(    TypeElement extraType){
+      maybeScanProxy(extraType);
     }
   }
 ).scan(x,this);

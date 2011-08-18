@@ -1,0 +1,41 @@
+{
+  TypeComparator comparator=new TypeComparator(state);
+  Map<TypeElement,SortedSet<TypeElement>> domainToClientMappings=new TreeMap<TypeElement,SortedSet<TypeElement>>(comparator);
+  Map<Element,Element> clientToDomainMap=state.getClientToDomainMap();
+  Set<TypeElement> referredTypes=ReferredTypesCollector.collect(requestFactoryElement,state);
+  for (  TypeElement clientType : referredTypes) {
+    if (!state.types.isAssignable(clientType.asType(),state.baseProxyType)) {
+      continue;
+    }
+    String binaryName=state.elements.getBinaryName(clientType).toString();
+    println("withRawTypeToken(\"%s\", \"%s\");",OperationKey.hash(binaryName),binaryName);
+    TypeElement domainType=(TypeElement)clientToDomainMap.get(clientType);
+    if (domainType == null) {
+      if (state.mustResolveAllAnnotations() && state.isMappingRequired(domainType)) {
+        state.poison(clientType,Messages.deobfuscatorMissingProxy(clientType.getSimpleName()));
+      }
+      continue;
+    }
+    SortedSet<TypeElement> clientTypes=domainToClientMappings.get(domainType);
+    if (clientTypes == null) {
+      clientTypes=new TreeSet<TypeElement>(comparator);
+      domainToClientMappings.put(domainType,clientTypes);
+    }
+    clientTypes.add(clientType);
+  }
+  for (  Map.Entry<TypeElement,SortedSet<TypeElement>> entry : domainToClientMappings.entrySet()) {
+    StringBuilder list=new StringBuilder("Arrays.asList(");
+    boolean needsComma=false;
+    for (    TypeElement elt : entry.getValue()) {
+      if (needsComma) {
+        list.append(", ");
+      }
+ else {
+        needsComma=true;
+      }
+      list.append('"').append(state.elements.getBinaryName(elt)).append('"');
+    }
+    list.append(")");
+    println("withClientToDomainMappings(\"%s\", %s);",state.elements.getBinaryName(entry.getKey()),list);
+  }
+}

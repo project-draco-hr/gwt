@@ -1,0 +1,31 @@
+{
+  requestFactoryElement=x;
+  String simpleName=computeSimpleName(x,state);
+  String packageName=state.elements.getPackageOf(x).getQualifiedName().toString();
+  println("// Automatically Generated -- DO NOT EDIT");
+  println("// %s",state.elements.getBinaryName(x));
+  println("package %s;",packageName);
+  println("import %s;",Arrays.class.getCanonicalName());
+  println("import %s;",OperationData.class.getCanonicalName());
+  println("import %s;",OperationKey.class.getCanonicalName());
+  println("public final class %s extends %s {",simpleName,Deobfuscator.Builder.class.getCanonicalName());
+  println("{");
+  scanAllInheritedMethods(x,state);
+  writeTypeAndTokenMap(state);
+  println("}}");
+  if (state.isPoisoned()) {
+    return null;
+  }
+  try {
+    JavaFileObject obj=state.filer.createSourceFile(packageName + "." + simpleName,x);
+    Writer w=obj.openWriter();
+    w.write(sb.toString());
+    w.close();
+  }
+ catch (  Exception e) {
+    StringWriter sw=new StringWriter();
+    e.printStackTrace(new PrintWriter(sw));
+    state.poison(x,sw.toString());
+  }
+  return null;
+}

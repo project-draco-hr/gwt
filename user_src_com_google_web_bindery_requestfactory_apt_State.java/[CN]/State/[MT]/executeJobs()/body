@@ -1,6 +1,7 @@
 {
   while (!jobs.isEmpty()) {
-    Job job=jobs.remove(0);
+    Job job=jobs.first();
+    jobs.remove(job);
     debug(job.element,"Scanning");
     try {
       job.scanner.scan(job.element,this);
@@ -13,9 +14,17 @@ catch (    Throwable e) {
       poison(job.element,sw.toString());
     }
   }
-  for (  TypeElement proxyElement : proxiesRequiringMapping) {
-    if (!getClientToDomainMap().containsKey(proxyElement)) {
-      poison(proxyElement,Messages.proxyMustBeAnnotated());
+  if (clientOnly) {
+    return;
+  }
+  for (  TypeElement element : typesRequiringMapping) {
+    if (!getClientToDomainMap().containsKey(element)) {
+      if (types.isAssignable(element.asType(),requestContextType)) {
+        poison(element,Messages.contextMustBeAnnotated(element.getSimpleName()));
+      }
+ else {
+        poison(element,Messages.proxyMustBeAnnotated(element.getSimpleName()));
+      }
     }
   }
 }

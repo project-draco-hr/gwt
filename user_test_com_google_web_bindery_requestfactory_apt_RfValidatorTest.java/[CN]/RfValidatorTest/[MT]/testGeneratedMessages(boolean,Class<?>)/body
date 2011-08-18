@@ -1,0 +1,31 @@
+{
+  JavaCompiler compiler=ToolProvider.getSystemJavaCompiler();
+  if (compiler == null) {
+    return;
+  }
+  File tempFile=File.createTempFile(RfValidatorTest.class.getSimpleName(),".jar");
+  tempFile.deleteOnExit();
+  JavaFileManager fileManager=new ValidationTool.JarOrDirectoryOutputFileManager(tempFile,compiler.getStandardFileManager(null,null,null));
+  List<JavaFileObject> files=new ArrayList<JavaFileObject>(classes.length);
+  for (  Class<?> clazz : classes) {
+    JavaFileObject obj=UriJavaFileObject.create(clazz);
+    files.add(obj);
+  }
+  StringWriter errorWriter=new StringWriter();
+  RfValidator rfValidator=new RfValidator();
+  rfValidator.setForceErrors(true);
+  rfValidator.setClientOnly(clientOnly);
+  DiagnosticCollector<JavaFileObject> expectedCollector=new DiagnosticCollector<JavaFileObject>();
+  CompilationTask expectedTask=compiler.getTask(errorWriter,fileManager,expectedCollector,Arrays.asList("-proc:only"),null,files);
+  expectedTask.setProcessors(Arrays.asList(new ExpectCollector()));
+  expectedTask.call();
+  DiagnosticCollector<JavaFileObject> actualCollector=new DiagnosticCollector<JavaFileObject>();
+  CompilationTask actualTask=compiler.getTask(errorWriter,fileManager,actualCollector,Arrays.asList("-proc:only"),null,files);
+  actualTask.setProcessors(Arrays.asList(rfValidator));
+  actualTask.call();
+  TreeSet<Diagnostic<? extends JavaFileObject>> expected=new TreeSet<Diagnostic<? extends JavaFileObject>>(new DiagnosticComparator());
+  expected.addAll(expectedCollector.getDiagnostics());
+  TreeSet<Diagnostic<? extends JavaFileObject>> actual=new TreeSet<Diagnostic<? extends JavaFileObject>>(new DiagnosticComparator());
+  actual.addAll(actualCollector.getDiagnostics());
+  assertEquals(expected,actual);
+}

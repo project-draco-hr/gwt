@@ -1,0 +1,45 @@
+{
+  if (shouldIgnore(x,state)) {
+    return null;
+  }
+  final TypeElement requestContextElement=(TypeElement)state.types.asElement(x.getReturnType());
+  new ScannerBase<Void>(){
+    /** 
+ * Scan a method within a RequestContext.
+ */
+    @Override public Void visitExecutable(    ExecutableElement x,    State state){
+      if (shouldIgnore(x,state)) {
+        return null;
+      }
+      String requestContextBinaryName=state.elements.getBinaryName(requestContextElement).toString();
+      String clientMethodDescriptor=x.asType().accept(new DescriptorBuilder(),state);
+      ExecutableElement domainElement=(ExecutableElement)state.getClientToDomainMap().get(x);
+      if (domainElement == null) {
+        if (state.mustResolveAllAnnotations()) {
+          state.poison(requestContextElement,Messages.deobfuscatorMissingContext(requestContextElement.getSimpleName()));
+        }
+        return super.visitExecutable(x,state);
+      }
+      String domainMethodDescriptor=domainElement.asType().accept(new DescriptorBuilder(),state);
+      String methodName=x.getSimpleName().toString();
+      OperationKey key=new OperationKey(requestContextBinaryName,methodName,clientMethodDescriptor);
+      println("withOperation(new OperationKey(\"%s\"),",key.get());
+      println("  new OperationData.Builder()");
+      println("  .withClientMethodDescriptor(\"%s\")",clientMethodDescriptor);
+      println("  .withDomainMethodDescriptor(\"%s\")",domainMethodDescriptor);
+      println("  .withMethodName(\"%s\")",methodName);
+      println("  .withRequestContext(\"%s\")",requestContextBinaryName);
+      println("  .build());");
+      return super.visitExecutable(x,state);
+    }
+    /** 
+ * Scan a RequestContext.
+ */
+    @Override public Void visitType(    TypeElement x,    State state){
+      scanAllInheritedMethods(x,state);
+      return null;
+    }
+  }
+.scan(requestContextElement,state);
+  return null;
+}

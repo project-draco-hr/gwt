@@ -1,14 +1,19 @@
 {
+  if (roundEnv.processingOver()) {
+    state=null;
+    return false;
+  }
   if (state == null) {
     state=forceErrors ? new State.ForTesting(processingEnv) : new State(processingEnv);
+    if (state.isPoisoned()) {
+      return false;
+    }
+    state.setClientOnly(clientOnly);
+    state.setMustResolveAllMappings(mustResolveAllMappings);
   }
   try {
-    new Finder().scan(ElementFilter.typesIn(roundEnv.getRootElements()),state);
+    new Finder().scan(getTypesToProcess(state,roundEnv),state);
     state.executeJobs();
-    if (roundEnv.processingOver()) {
-      new DomainChecker().scan(state.getClientToDomainMap().keySet(),state);
-      state=null;
-    }
   }
  catch (  HaltException ignored) {
   }
