@@ -1,0 +1,26 @@
+{
+  if (argumentsResolved) {
+    return;
+  }
+  if (tokenator != null) {
+    List<ValueAndInfo> valuesAndSources=tokenator.getOrderedValues(html);
+    for (    ValueAndInfo valueAndSource : valuesAndSources) {
+      XMLElement source=(XMLElement)valueAndSource.info;
+      String expression=valueAndSource.value;
+      if (templates.isSafeConstant(expression)) {
+        methodArgs.add(new Argument(source,ArgumentType.HTML,expression));
+      }
+ else       if (templates.isUri(expression)) {
+        methodArgs.add(new Argument(source,ArgumentType.URI,expression));
+      }
+ else {
+        String guts=expression.substring(4,expression.length() - 4);
+        methodArgs.add(new Argument(source,ArgumentType.STRING,guts));
+      }
+    }
+  }
+  strings.add("@Template(\"" + addTemplatePlaceholders(html) + "\")");
+  strings.add("SafeHtml " + methodName + "("+ addTemplateParameters()+ ");");
+  strings.add(" ");
+  argumentsResolved=true;
+}

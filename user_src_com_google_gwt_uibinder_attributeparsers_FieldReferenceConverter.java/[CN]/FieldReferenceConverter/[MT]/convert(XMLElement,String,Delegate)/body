@@ -1,0 +1,24 @@
+{
+  StringBuilder b=new StringBuilder();
+  int nextFindStart=0;
+  int lastMatchEnd=0;
+  Matcher m=BRACES.matcher(in);
+  while (m.find(nextFindStart)) {
+    String fieldReference=m.group(1);
+    if (!legalFirstCharacter(fieldReference)) {
+      nextFindStart=m.start() + 2;
+      continue;
+    }
+    String precedingFragment=in.substring(lastMatchEnd,m.start());
+    precedingFragment=handleFragment(precedingFragment,delegate);
+    b.append(precedingFragment);
+    if (fieldManager != null) {
+      fieldManager.registerFieldReference(source,fieldReference,delegate.getTypes());
+    }
+    fieldReference=expandDots(fieldReference);
+    b.append(delegate.handleReference(fieldReference));
+    nextFindStart=lastMatchEnd=m.end();
+  }
+  b.append(handleFragment(in.substring(lastMatchEnd),delegate));
+  return b.toString();
+}

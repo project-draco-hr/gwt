@@ -3,6 +3,12 @@
     return '"' + html + '"';
   }
   FieldWriter w=fieldManager.lookup(fieldName);
-  w.setHtml(htmlTemplates.addSafeHtmlTemplate(html,tokenator));
+  HtmlTemplateMethodWriter templateMethod=htmlTemplates.addSafeHtmlTemplate(html,tokenator);
+  if (useLazyWidgetBuilders) {
+    w.setHtml(templateMethod.getIndirectTemplateCall());
+  }
+ else {
+    w.setHtml(templateMethod.getDirectTemplateCall());
+  }
   return w.getHtml();
 }

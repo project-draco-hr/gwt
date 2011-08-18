@@ -1,17 +1,9 @@
 {
-  XMLAttribute attribute=getAttribute(name);
-  if (attribute == null) {
+  if (!hasAttribute(name)) {
     failRequired(name);
   }
-  AttributeParser parser=getParser(types);
-  String rawValue=consumeRequiredRawAttribute(name);
-  try {
-    String value=parser.parse(rawValue);
-    designTime.putAttribute(this,name,value);
-    return value;
-  }
- catch (  UnableToCompleteException e) {
-    logger.die(this,"Cannot parse attribute \"%s\"",name);
-    throw e;
-  }
+  AttributeParser parser=attributeParsers.getParser(types);
+  String value=parser.parse(this,consumeRequiredRawAttribute(name));
+  designTime.putAttribute(this,name,value);
+  return value;
 }
