@@ -3,13 +3,15 @@
   if (elem == null) {
     return false;
   }
-  String cellId=isCellParent(elem);
-  if (cellId == null) {
+  int row=getKeyboardSelectedRow();
+  int col=getKeyboardSelectedColumn();
+  T value=getVisibleItem(row);
+  Object key=getValueKey(value);
+  Context context=new Context(row + getPageStart(),col,key);
+  HasCell<T,?> column=tableBuilder.getColumn(context,value,elem);
+  if (column == null) {
     return false;
   }
-  HasCell<T,?> column=idToCellMap.get(cellId);
-  if (column != null) {
-    resetFocusOnCellImpl(getKeyboardSelectedRow(),getKeyboardSelectedColumn(),column,elem);
-  }
+  resetFocusOnCellImpl(context,value,column,elem);
   return false;
 }

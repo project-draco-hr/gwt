@@ -10,7 +10,6 @@
   TableSectionElement targetTableSection=null;
   TableCellElement targetTableCell=null;
   Element cellParent=null;
-  String cellId=null;
 {
     Element maybeTableCell=null;
     Element cur=target;
@@ -26,9 +25,8 @@
       if (TableCellElement.TAG_TD.equalsIgnoreCase(tagName) || TableCellElement.TAG_TH.equalsIgnoreCase(tagName)) {
         maybeTableCell=cur;
       }
-      String curCellId=isCellParent(cur);
-      if (cellParent == null && curCellId != null) {
-        cellId=curCellId;
+      boolean isColumn=tableBuilder.isColumn(cur);
+      if (cellParent == null && isColumn) {
         cellParent=cur;
       }
       cur=cur.getParentElement();
@@ -71,9 +69,9 @@
     }
   }
  else   if (targetTableSection == tbody) {
-    int absRow=getRowValueIndex(targetTableRow);
+    int absRow=tableBuilder.getRowValueIndex(targetTableRow);
     int relRow=absRow - getPageStart();
-    int subrow=getSubrowValueIndex(targetTableRow);
+    int subrow=tableBuilder.getSubrowValueIndex(targetTableRow);
     if ("mouseover".equals(eventType)) {
       if (hoveringRow != null && getTableBodyElement().isOrHasChild(hoveringRow)) {
         setRowStyleName(hoveringRow,style.hoveredRow(),style.hoveredRowCell(),false);
@@ -93,11 +91,16 @@
     Context context=new Context(absRow,col,getValueKey(value),subrow);
     CellPreviewEvent<T> previewEvent=CellPreviewEvent.fire(this,event,this,context,value,cellIsEditing,isSelectionHandled);
     if (cellParent != null && !previewEvent.isCanceled()) {
-      HasCell<T,?> column=idToCellMap.get(cellId);
+      HasCell<T,?> column;
       if (legacyRenderRowValues) {
         column=columns.get(col);
       }
-      fireEventToCell(event,eventType,cellParent,value,context,column);
+ else {
+        column=tableBuilder.getColumn(context,value,cellParent);
+      }
+      if (column != null) {
+        fireEventToCell(event,eventType,cellParent,value,context,column);
+      }
     }
   }
 }
