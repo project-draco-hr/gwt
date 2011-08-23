@@ -1,0 +1,16 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  final Request<SimpleFooProxy> fooReq=req.simpleFooRequest().getNullInEntityList().with("selfOneToManyField.*.fooField");
+  fooReq.fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy foo0){
+      List<SimpleFooProxy> manyFoos=foo0.getSelfOneToManyField();
+      assertEquals(3,manyFoos.size());
+      assertSame(foo0,manyFoos.get(0).getSelfOneToManyField().get(0));
+      assertNull(manyFoos.get(1));
+      assertSame(foo0,manyFoos.get(2).getSelfOneToManyField().get(0));
+      assertSame(foo0,manyFoos.get(2).getFooField().getFooField());
+      finishTestAndReset();
+    }
+  }
+);
+}

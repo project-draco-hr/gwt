@@ -1,0 +1,14 @@
+{
+  delayTestFinish(TEST_DELAY);
+  Context ctx=factory.ctx();
+  ctx.CasA().with("*.*").fire(new Receiver<AProxy>(){
+    @Override public void onSuccess(    AProxy response){
+      new CastAndCheckReceiver(AProxy.class).onSuccess(response.getNextA().getNextA());
+      C1Proxy cast=(C1Proxy)response;
+      new CastAndCheckReceiver(C1Proxy.class).onSuccess(cast.getNextC().getNextC());
+      assertNull(cast.getNextC().getNextC().getNextC());
+      finishTest();
+    }
+  }
+);
+}
