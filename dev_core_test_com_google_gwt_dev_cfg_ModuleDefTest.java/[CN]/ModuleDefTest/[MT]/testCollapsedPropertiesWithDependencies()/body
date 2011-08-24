@@ -1,0 +1,43 @@
+{
+  ModuleDef def=new ModuleDef("fake");
+  Properties p=def.getProperties();
+  BindingProperty p1=p.createBinding("p1");
+  p1.addDefinedValue(p1.getRootCondition(),"a");
+  p1.addDefinedValue(p1.getRootCondition(),"b");
+  p1.addDefinedValue(p1.getRootCondition(),"c");
+  p1.addCollapsedValues("b","c");
+  BindingProperty p2=p.createBinding("p2");
+  p2.addDefinedValue(p2.getRootCondition(),"d");
+  p2.addDefinedValue(p2.getRootCondition(),"e");
+  p2.addDefinedValue(p2.getRootCondition(),"f");
+  p2.setAllowedValues(new ConditionWhenPropertyIs("p1","c"),"e","f");
+  p1.normalizeCollapsedValues();
+  p2.normalizeCollapsedValues();
+  PropertyPermutations perms=new PropertyPermutations(p,Collections.<String>emptySet());
+  List<PropertyPermutations> hardPerms=perms.collapseProperties();
+  assertEquals(4,hardPerms.size());
+{
+    PropertyPermutations perm=hardPerms.get(0);
+    assertEquals(1,perm.size());
+    assertEquals(Arrays.asList("a","d"),Arrays.asList(perm.getOrderedPropertyValues(0)));
+  }
+{
+    PropertyPermutations perm=hardPerms.get(1);
+    assertEquals(2,perm.size());
+    assertEquals(Arrays.asList("a","e"),Arrays.asList(perm.getOrderedPropertyValues(0)));
+    assertEquals(Arrays.asList("a","f"),Arrays.asList(perm.getOrderedPropertyValues(1)));
+  }
+{
+    PropertyPermutations perm=hardPerms.get(2);
+    assertEquals(1,perm.size());
+    assertEquals(Arrays.asList("b","d"),Arrays.asList(perm.getOrderedPropertyValues(0)));
+  }
+{
+    PropertyPermutations perm=hardPerms.get(3);
+    assertEquals(4,perm.size());
+    assertEquals(Arrays.asList("b","e"),Arrays.asList(perm.getOrderedPropertyValues(0)));
+    assertEquals(Arrays.asList("b","f"),Arrays.asList(perm.getOrderedPropertyValues(1)));
+    assertEquals(Arrays.asList("c","e"),Arrays.asList(perm.getOrderedPropertyValues(2)));
+    assertEquals(Arrays.asList("c","f"),Arrays.asList(perm.getOrderedPropertyValues(3)));
+  }
+}
