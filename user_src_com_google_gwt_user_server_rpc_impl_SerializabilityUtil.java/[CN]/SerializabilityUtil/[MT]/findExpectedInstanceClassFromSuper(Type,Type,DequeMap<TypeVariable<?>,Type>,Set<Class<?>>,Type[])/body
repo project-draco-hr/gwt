@@ -1,0 +1,35 @@
+{
+  if (superType instanceof GenericArrayType) {
+    return false;
+  }
+ else   if (superType instanceof Class) {
+    return findExpectedInstanceClass((Class<?>)superType,expectedType,resolvedTypes,expectedInstanceClasses,expectedParameterTypes);
+  }
+ else   if (superType instanceof ParameterizedType) {
+    ParameterizedType paramType=(ParameterizedType)superType;
+    Type rawType=paramType.getRawType();
+    if (rawType instanceof Class) {
+      Class<?> rawClass=(Class<?>)rawType;
+      TypeVariable<?>[] classGenericTypes=rawClass.getTypeParameters();
+      Type[] actualTypes=paramType.getActualTypeArguments();
+      for (int i=0; i < actualTypes.length; ++i) {
+        for (int j=0; j < expectedParameterTypes.length; ++j) {
+          if (actualTypes[i] == expectedParameterTypes[j]) {
+            expectedParameterTypes[j]=classGenericTypes[i];
+          }
+        }
+      }
+      return findExpectedInstanceClass(rawClass,expectedType,resolvedTypes,expectedInstanceClasses,expectedParameterTypes);
+    }
+  }
+ else   if (superType instanceof WildcardType) {
+    WildcardType wildcardType=(WildcardType)superType;
+    Type[] upperBounds=wildcardType.getUpperBounds();
+    for (    Type boundType : upperBounds) {
+      if (findExpectedInstanceClassFromSuper(boundType,expectedType,resolvedTypes,expectedInstanceClasses,expectedParameterTypes)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}

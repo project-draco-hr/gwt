@@ -1,0 +1,22 @@
+{
+  TypeVariable<?>[] instanceTypes=instanceClass.getTypeParameters();
+  Type[] expectedParameterTypes=Arrays.copyOf(instanceTypes,instanceTypes.length,Type[].class);
+  if (expectedType == null) {
+    if (resolvedTypes != null) {
+      findInstanceParameters(instanceClass,resolvedTypes,expectedParameterTypes);
+    }
+  }
+ else {
+    Type actualType=findActualType(expectedType,resolvedTypes);
+    Set<Class<?>> expectedInstanceClasses=new HashSet<Class<?>>();
+    if (!findExpectedInstanceClass(instanceClass,actualType,resolvedTypes,expectedInstanceClasses,expectedParameterTypes)) {
+      return null;
+    }
+    if (resolvedTypes != null) {
+      for (      Class<?> expectedClass : expectedInstanceClasses) {
+        findInstanceParameters(expectedClass,resolvedTypes,expectedParameterTypes);
+      }
+    }
+  }
+  return expectedParameterTypes;
+}

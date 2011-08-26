@@ -1,0 +1,81 @@
+{
+  if (expectedType instanceof TypeVariable) {
+    Type[] typeVariableBounds=((TypeVariable<?>)expectedType).getBounds();
+    for (    Type boundType : typeVariableBounds) {
+      if (!findExpectedInstanceClass(instanceClass,boundType,resolvedTypes,expectedInstanceClasses,expectedParameterTypes)) {
+        return false;
+      }
+    }
+    return true;
+  }
+ else   if (expectedType instanceof ParameterizedType) {
+    ParameterizedType paramType=(ParameterizedType)expectedType;
+    if (paramType.getRawType() == instanceClass) {
+      expectedInstanceClasses.add(instanceClass);
+      return true;
+    }
+  }
+ else   if (expectedType instanceof GenericArrayType) {
+    if (instanceClass.isArray()) {
+      expectedInstanceClasses.add(instanceClass);
+      return true;
+    }
+  }
+ else   if (expectedType instanceof WildcardType) {
+    WildcardType wildcardType=(WildcardType)expectedType;
+    Type[] lowerBounds=wildcardType.getLowerBounds();
+    for (    Type type : lowerBounds) {
+      Class<?> boundClass=getClassFromType(type,resolvedTypes);
+      while (boundClass != null) {
+        if (instanceClass == boundClass) {
+          expectedInstanceClasses.add(boundClass);
+          break;
+        }
+        boundClass=boundClass.getSuperclass();
+      }
+      if (boundClass == null) {
+        return false;
+      }
+    }
+    Type[] upperBounds=wildcardType.getUpperBounds();
+    for (    Type type : upperBounds) {
+      if (!findExpectedInstanceClass(instanceClass,type,resolvedTypes,expectedInstanceClasses,expectedParameterTypes)) {
+        return false;
+      }
+    }
+    return true;
+  }
+ else   if (((Class<?>)expectedType).getComponentType() != null) {
+    if (((Class<?>)expectedType).isAssignableFrom(instanceClass)) {
+      expectedInstanceClasses.add(instanceClass);
+      return true;
+    }
+ else {
+      return false;
+    }
+  }
+ else   if (((Class<?>)expectedType) == instanceClass) {
+    expectedInstanceClasses.add(instanceClass);
+    return true;
+  }
+  if (instanceClass.getGenericSuperclass() != null) {
+    Type[] localTypes=expectedParameterTypes.clone();
+    if (findExpectedInstanceClassFromSuper(instanceClass.getGenericSuperclass(),expectedType,resolvedTypes,expectedInstanceClasses,localTypes)) {
+      for (int i=0; i < expectedParameterTypes.length; ++i) {
+        expectedParameterTypes[i]=localTypes[i];
+      }
+      return true;
+    }
+  }
+  Type[] interfaces=instanceClass.getGenericInterfaces();
+  for (  Type interfaceType : interfaces) {
+    Type[] localTypes=expectedParameterTypes.clone();
+    if (findExpectedInstanceClassFromSuper(interfaceType,expectedType,resolvedTypes,expectedInstanceClasses,localTypes)) {
+      for (int i=0; i < expectedParameterTypes.length; ++i) {
+        expectedParameterTypes[i]=localTypes[i];
+      }
+      return true;
+    }
+  }
+  return false;
+}

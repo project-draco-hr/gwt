@@ -1,0 +1,36 @@
+{
+  TypeVariable<?>[] instanceTypes=instanceClass.getTypeParameters();
+  for (int i=0; i < expectedParameterTypes.length; ++i) {
+    if (!(expectedParameterTypes[i] instanceof TypeVariable)) {
+      continue;
+    }
+    boolean haveMatch=false;
+    for (int j=0; !haveMatch && j < instanceTypes.length; ++j) {
+      if (expectedParameterTypes[i] == instanceTypes[j]) {
+        Type capturedType=findActualType(instanceTypes[j],resolvedTypes);
+        if (!(capturedType instanceof TypeVariable)) {
+          expectedParameterTypes[i]=capturedType;
+          haveMatch=true;
+        }
+      }
+    }
+    if (haveMatch) {
+      continue;
+    }
+    if (instanceClass.getGenericSuperclass() != null) {
+      Type superParameter=findInstanceParameter(expectedParameterTypes[i],instanceClass.getGenericSuperclass(),resolvedTypes);
+      if (!(superParameter instanceof TypeVariable)) {
+        expectedParameterTypes[i]=superParameter;
+        continue;
+      }
+    }
+    Type[] interfaceTypes=instanceClass.getGenericInterfaces();
+    for (    Type interfaceType : interfaceTypes) {
+      Type interfaceParameter=findInstanceParameter(expectedParameterTypes[i],interfaceType,resolvedTypes);
+      if (!(interfaceParameter instanceof TypeVariable)) {
+        expectedParameterTypes[i]=interfaceParameter;
+        break;
+      }
+    }
+  }
+}
