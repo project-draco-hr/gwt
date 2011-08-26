@@ -1,94 +1,16 @@
 {
-  List<Header<?>> theHeaders=isFooter ? footers : headers;
-  TableSectionElement section=isFooter ? getTableFootElement() : getTableHeadElement();
-  String className=isFooter ? style.footer() : style.header();
-  String firstColumnStyle=" " + (isFooter ? style.firstColumnFooter() : style.firstColumnHeader());
-  String lastColumnStyle=" " + (isFooter ? style.lastColumnFooter() : style.lastColumnHeader());
-  String sortableStyle=" " + style.sortableHeader();
-  String sortedAscStyle=" " + style.sortedHeaderAscending();
-  String sortedDescStyle=" " + style.sortedHeaderDescending();
-  boolean hasHeader=false;
-  SafeHtmlBuilder sb=new SafeHtmlBuilder();
-  sb.appendHtmlConstant("<tr>");
-  int columnCount=columns.size();
-  if (columnCount > 0) {
-    ColumnSortInfo sortedInfo=(sortList.size() == 0) ? null : sortList.get(0);
-    Column<?,?> sortedColumn=(sortedInfo == null) ? null : sortedInfo.getColumn();
-    boolean isSortAscending=(sortedInfo == null) ? false : sortedInfo.isAscending();
-    Header<?> prevHeader=theHeaders.get(0);
-    Column<T,?> column=columns.get(0);
-    int prevColspan=1;
-    boolean isSortable=false;
-    boolean isSorted=false;
-    StringBuilder classesBuilder=new StringBuilder(className);
-    classesBuilder.append(firstColumnStyle);
-    if (!isFooter && column.isSortable()) {
-      isSortable=true;
-      isSorted=(column == sortedColumn);
-    }
-    int curColumn;
-    for (curColumn=1; curColumn < columnCount; curColumn++) {
-      Header<?> header=theHeaders.get(curColumn);
-      if (header != prevHeader) {
-        SafeHtml headerHtml=SafeHtmlUtils.EMPTY_SAFE_HTML;
-        if (prevHeader != null) {
-          hasHeader=true;
-          SafeHtmlBuilder headerBuilder=new SafeHtmlBuilder();
-          Context context=new Context(0,curColumn - prevColspan,prevHeader.getKey());
-          prevHeader.render(context,headerBuilder);
-          if (isSorted) {
-            SafeHtml unwrappedHeader=headerBuilder.toSafeHtml();
-            headerBuilder=new SafeHtmlBuilder();
-            getSortDecorator(isSortAscending).render(null,unwrappedHeader,headerBuilder);
-          }
-          headerHtml=headerBuilder.toSafeHtml();
-        }
-        if (isSortable) {
-          classesBuilder.append(sortableStyle);
-        }
-        if (isSorted) {
-          classesBuilder.append(isSortAscending ? sortedAscStyle : sortedDescStyle);
-        }
-        sb.append(template.th(prevColspan,classesBuilder.toString(),headerHtml));
-        prevHeader=header;
-        prevColspan=1;
-        classesBuilder=new StringBuilder(className);
-        isSortable=false;
-        isSorted=false;
-      }
- else {
-        prevColspan++;
-      }
-      column=columns.get(curColumn);
-      if (!isFooter && column.isSortable()) {
-        isSortable=true;
-        isSorted=(column == sortedColumn);
-      }
-    }
-    SafeHtml headerHtml=SafeHtmlUtils.EMPTY_SAFE_HTML;
-    if (prevHeader != null) {
-      hasHeader=true;
-      SafeHtmlBuilder headerBuilder=new SafeHtmlBuilder();
-      Context context=new Context(0,curColumn - prevColspan,prevHeader.getKey());
-      prevHeader.render(context,headerBuilder);
-      if (isSorted) {
-        SafeHtml unwrappedHeader=headerBuilder.toSafeHtml();
-        headerBuilder=new SafeHtmlBuilder();
-        getSortDecorator(isSortAscending).render(null,unwrappedHeader,headerBuilder);
-      }
-      headerHtml=headerBuilder.toSafeHtml();
-    }
-    if (isSortable) {
-      classesBuilder.append(sortableStyle);
-    }
-    if (isSorted) {
-      classesBuilder.append(isSortAscending ? sortedAscStyle : sortedDescStyle);
-    }
-    classesBuilder.append(" ");
-    classesBuilder.append(lastColumnStyle);
-    sb.append(template.th(prevColspan,classesBuilder.toString(),headerHtml));
+  HeaderHelperImpl helper=new HeaderHelperImpl(this,isFooter);
+  if (isFooter) {
+    idToFooterMap.clear();
+    idToFooterColumnMap.clear();
+    footerCreator.buildHeader(helper);
+    TABLE_IMPL.replaceAllRows(this,getTableFootElement(),helper.asSafeHtml());
   }
-  sb.appendHtmlConstant("</tr>");
-  TABLE_IMPL.replaceAllRows(this,section,sb.toSafeHtml());
-  doSetHeaderVisible(isFooter,hasHeader);
+ else {
+    idToHeaderMap.clear();
+    idToHeaderColumnMap.clear();
+    headerCreator.buildHeader(helper);
+    TABLE_IMPL.replaceAllRows(this,getTableHeadElement(),helper.asSafeHtml());
+  }
+  doSetHeaderVisible(isFooter,!helper.isEmpty());
 }

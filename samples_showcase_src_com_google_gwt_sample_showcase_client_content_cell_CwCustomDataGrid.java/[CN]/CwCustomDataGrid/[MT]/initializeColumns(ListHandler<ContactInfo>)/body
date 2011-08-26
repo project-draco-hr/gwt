@@ -1,0 +1,135 @@
+{
+  checkboxColumn=new Column<ContactInfo,Boolean>(new CheckboxCell(true,false)){
+    @Override public Boolean getValue(    ContactInfo object){
+      return dataGrid.getSelectionModel().isSelected(object);
+    }
+  }
+;
+  dataGrid.setColumnWidth(0,40,Unit.PX);
+  SafeHtmlRenderer<String> anchorRenderer=new AbstractSafeHtmlRenderer<String>(){
+    @Override public SafeHtml render(    String object){
+      SafeHtmlBuilder sb=new SafeHtmlBuilder();
+      sb.appendHtmlConstant("(<a href=\"javascript:;\">").appendEscaped(object).appendHtmlConstant("</a>)");
+      return sb.toSafeHtml();
+    }
+  }
+;
+  viewFriendsColumn=new Column<ContactInfo,String>(new ClickableTextCell(anchorRenderer)){
+    @Override public String getValue(    ContactInfo object){
+      if (showingFriends.contains(object.getId())) {
+        return "hide friends";
+      }
+ else {
+        return "show friends";
+      }
+    }
+  }
+;
+  viewFriendsColumn.setFieldUpdater(new FieldUpdater<ContactInfo,String>(){
+    @Override public void update(    int index,    ContactInfo object,    String value){
+      if (showingFriends.contains(object.getId())) {
+        showingFriends.remove(object.getId());
+      }
+ else {
+        showingFriends.add(object.getId());
+      }
+      dataGrid.redrawRow(index);
+    }
+  }
+);
+  dataGrid.setColumnWidth(1,10,Unit.EM);
+  firstNameColumn=new Column<ContactInfo,String>(new EditTextCell()){
+    @Override public String getValue(    ContactInfo object){
+      return object.getFirstName();
+    }
+  }
+;
+  firstNameColumn.setSortable(true);
+  sortHandler.setComparator(firstNameColumn,new Comparator<ContactInfo>(){
+    @Override public int compare(    ContactInfo o1,    ContactInfo o2){
+      return o1.getFirstName().compareTo(o2.getFirstName());
+    }
+  }
+);
+  firstNameColumn.setFieldUpdater(new FieldUpdater<ContactInfo,String>(){
+    @Override public void update(    int index,    ContactInfo object,    String value){
+      object.setFirstName(value);
+      ContactDatabase.get().refreshDisplays();
+    }
+  }
+);
+  dataGrid.setColumnWidth(2,20,Unit.PCT);
+  lastNameColumn=new Column<ContactInfo,String>(new EditTextCell()){
+    @Override public String getValue(    ContactInfo object){
+      return object.getLastName();
+    }
+  }
+;
+  lastNameColumn.setSortable(true);
+  sortHandler.setComparator(lastNameColumn,new Comparator<ContactInfo>(){
+    @Override public int compare(    ContactInfo o1,    ContactInfo o2){
+      return o1.getLastName().compareTo(o2.getLastName());
+    }
+  }
+);
+  lastNameColumn.setFieldUpdater(new FieldUpdater<ContactInfo,String>(){
+    @Override public void update(    int index,    ContactInfo object,    String value){
+      object.setLastName(value);
+      ContactDatabase.get().refreshDisplays();
+    }
+  }
+);
+  dataGrid.setColumnWidth(3,20,Unit.PCT);
+  ageColumn=new Column<ContactInfo,Number>(new NumberCell()){
+    @Override public Number getValue(    ContactInfo object){
+      return object.getAge();
+    }
+  }
+;
+  ageColumn.setSortable(true);
+  sortHandler.setComparator(ageColumn,new Comparator<ContactInfo>(){
+    @Override public int compare(    ContactInfo o1,    ContactInfo o2){
+      return o1.getAge() - o2.getAge();
+    }
+  }
+);
+  dataGrid.setColumnWidth(4,7,Unit.EM);
+  final Category[] categories=ContactDatabase.get().queryCategories();
+  List<String> categoryNames=new ArrayList<String>();
+  for (  Category category : categories) {
+    categoryNames.add(category.getDisplayName());
+  }
+  SelectionCell categoryCell=new SelectionCell(categoryNames);
+  categoryColumn=new Column<ContactInfo,String>(categoryCell){
+    @Override public String getValue(    ContactInfo object){
+      return object.getCategory().getDisplayName();
+    }
+  }
+;
+  categoryColumn.setFieldUpdater(new FieldUpdater<ContactInfo,String>(){
+    @Override public void update(    int index,    ContactInfo object,    String value){
+      for (      Category category : categories) {
+        if (category.getDisplayName().equals(value)) {
+          object.setCategory(category);
+        }
+      }
+      ContactDatabase.get().refreshDisplays();
+    }
+  }
+);
+  dataGrid.setColumnWidth(5,130,Unit.PX);
+  addressColumn=new Column<ContactInfo,String>(new TextCell()){
+    @Override public String getValue(    ContactInfo object){
+      return object.getAddress();
+    }
+  }
+;
+  addressColumn.setSortable(true);
+  sortHandler.setComparator(addressColumn,new Comparator<ContactInfo>(){
+    @Override public int compare(    ContactInfo o1,    ContactInfo o2){
+      return o1.getAddress().compareTo(o2.getAddress());
+    }
+  }
+);
+  dataGrid.setColumnWidth(6,60,Unit.PCT);
+}

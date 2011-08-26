@@ -1,0 +1,83 @@
+{
+  int columnCount=table.getColumnCount();
+  if (columnCount == 0) {
+    return;
+  }
+  boolean hasHeader=false;
+  for (int i=0; i < columnCount; i++) {
+    if (getHeader(i) != null) {
+      hasHeader=true;
+      break;
+    }
+  }
+  if (hasHeader == false) {
+    return;
+  }
+  ColumnSortList sortList=table.getColumnSortList();
+  ColumnSortInfo sortedInfo=(sortList.size() == 0) ? null : sortList.get(0);
+  Column<?,?> sortedColumn=(sortedInfo == null) ? null : sortedInfo.getColumn();
+  boolean isSortAscending=(sortedInfo == null) ? false : sortedInfo.isAscending();
+  Style style=table.getResources().style();
+  String className=isFooter ? style.footer() : style.header();
+  String sortableStyle=" " + style.sortableHeader();
+  String sortedStyle=" " + (isSortAscending ? style.sortedHeaderAscending() : style.sortedHeaderDescending());
+  Header<?> prevHeader=getHeader(0);
+  Column<T,?> column=table.getColumn(0);
+  int prevColspan=1;
+  boolean isSortable=false;
+  boolean isSorted=false;
+  StringBuilder classesBuilder=new StringBuilder(className);
+  classesBuilder.append(" " + (isFooter ? style.firstColumnFooter() : style.firstColumnHeader()));
+  if (!isFooter && column.isSortable()) {
+    isSortable=true;
+    isSorted=(column == sortedColumn);
+  }
+  TableRowBuilder tr=utility.startRow();
+  int curColumn;
+  for (curColumn=1; curColumn < columnCount; curColumn++) {
+    Header<?> header=getHeader(curColumn);
+    if (header != prevHeader) {
+      if (isSortable) {
+        classesBuilder.append(sortableStyle);
+      }
+      if (isSorted) {
+        classesBuilder.append(sortedStyle);
+      }
+      TableCellBuilder th=tr.startTH().colSpan(prevColspan).className(classesBuilder.toString());
+      utility.enableColumnHandlers(th,column);
+      if (prevHeader != null) {
+        Context context=new Context(0,curColumn - prevColspan,prevHeader.getKey());
+        renderHeader(th,context,prevHeader,utility,isSorted,isSortAscending);
+      }
+      th.endTH();
+      prevHeader=header;
+      prevColspan=1;
+      classesBuilder=new StringBuilder(className);
+      isSortable=false;
+      isSorted=false;
+    }
+ else {
+      prevColspan++;
+    }
+    column=table.getColumn(curColumn);
+    if (!isFooter && column.isSortable()) {
+      isSortable=true;
+      isSorted=(column == sortedColumn);
+    }
+  }
+  if (isSortable) {
+    classesBuilder.append(sortableStyle);
+  }
+  if (isSorted) {
+    classesBuilder.append(sortedStyle);
+  }
+  classesBuilder.append(" ").append(isFooter ? style.lastColumnFooter() : style.lastColumnHeader());
+  TableCellBuilder th=tr.startTH().colSpan(prevColspan).className(classesBuilder.toString());
+  utility.enableColumnHandlers(th,column);
+  if (prevHeader != null) {
+    Context context=new Context(0,curColumn - prevColspan,prevHeader.getKey());
+    renderHeader(th,context,prevHeader,utility,isSorted,isSortAscending);
+  }
+  th.endTH();
+  tr.endTR();
+}
