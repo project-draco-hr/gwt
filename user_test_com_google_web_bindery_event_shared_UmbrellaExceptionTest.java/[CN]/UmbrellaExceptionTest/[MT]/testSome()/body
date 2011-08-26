@@ -1,0 +1,23 @@
+{
+  Set<Throwable> causes=new HashSet<Throwable>();
+  String oneMessage="one";
+  RuntimeException oneException=new RuntimeException(oneMessage);
+  causes.add(oneException);
+  String twoMessage="two";
+  RuntimeException twoException=new RuntimeException(twoMessage);
+  causes.add(twoException);
+  try {
+    throw new UmbrellaException(causes);
+  }
+ catch (  UmbrellaException e) {
+    if (e.getCause() == oneException) {
+      assertCauseMatchesFirstMessage(e,oneMessage,twoMessage);
+    }
+ else     if (e.getCause() == twoException) {
+      assertCauseMatchesFirstMessage(e,twoMessage,oneMessage);
+    }
+ else {
+      fail("Expected one of the causes and its message");
+    }
+  }
+}
