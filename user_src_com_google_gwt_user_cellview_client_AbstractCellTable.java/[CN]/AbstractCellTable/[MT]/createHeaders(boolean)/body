@@ -1,16 +1,10 @@
 {
-  HeaderHelperImpl helper=new HeaderHelperImpl(this,isFooter);
-  if (isFooter) {
-    idToFooterMap.clear();
-    idToFooterColumnMap.clear();
-    footerCreator.buildHeader(helper);
-    TABLE_IMPL.replaceAllRows(this,getTableFootElement(),helper.asSafeHtml());
+  TableSectionBuilder section=isFooter ? footerBuilder.buildFooter() : headerBuilder.buildHeader();
+  if (section != null) {
+    TABLE_IMPL.replaceAllRows(this,isFooter ? getTableFootElement() : getTableHeadElement(),tableSectionToSafeHtml(section,isFooter ? "tfoot" : "thead"));
+    doSetHeaderVisible(isFooter,true);
   }
  else {
-    idToHeaderMap.clear();
-    idToHeaderColumnMap.clear();
-    headerCreator.buildHeader(helper);
-    TABLE_IMPL.replaceAllRows(this,getTableHeadElement(),helper.asSafeHtml());
+    doSetHeaderVisible(isFooter,false);
   }
-  doSetHeaderVisible(isFooter,!helper.isEmpty());
 }

@@ -1,0 +1,35 @@
+{
+  ElementBuilderBase<?> headerContainer=out;
+  isSorted=isSorted && !isFooter;
+  if (isSorted) {
+    boolean posRight=LocaleInfo.getCurrentLocale().isRTL() ? isSortIconStartOfLine : !isSortIconStartOfLine;
+    int iconWidth=isSortAscending ? sortAscIconWidth : sortDescIconWidth;
+    int halfHeight=isSortAscending ? sortAscIconHalfHeight : sortDescIconHalfHeight;
+    DivBuilder outerDiv=out.startDiv();
+    StylesBuilder style=outerDiv.style().position(Position.RELATIVE).trustedProperty("zoom","1");
+    if (posRight) {
+      style.paddingRight(iconWidth,Unit.PX);
+    }
+ else {
+      style.paddingLeft(iconWidth,Unit.PX);
+    }
+    style.endStyle();
+    DivBuilder imageHolder=outerDiv.startDiv();
+    style=outerDiv.style().position(Position.ABSOLUTE).top(50.0,Unit.PCT).lineHeight(0.0,Unit.PX).marginTop(-halfHeight,Unit.PX);
+    if (posRight) {
+      style.right(0,Unit.PX);
+    }
+ else {
+      style.left(0,Unit.PX);
+    }
+    style.endStyle();
+    imageHolder.html(getSortIcon(isSortAscending));
+    imageHolder.endDiv();
+    headerContainer=outerDiv.startDiv();
+  }
+  renderHeader(headerContainer,context,header);
+  if (isSorted) {
+    headerContainer.endDiv();
+    headerContainer.endDiv();
+  }
+}

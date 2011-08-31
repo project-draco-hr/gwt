@@ -7,21 +7,21 @@
   detachSectionElement(section);
   final int absEndIndex=table.getPageStart() + startIndex + childCount;
   boolean done=false;
-  Element insertBefore=table.getChildElement(startIndex);
+  TableRowElement insertBefore=table.getChildElement(startIndex).cast();
   if (table.legacyRenderRowValues) {
     int count=0;
     while (insertBefore != null && count < childCount) {
       Element next=insertBefore.getNextSiblingElement();
       section.removeChild(insertBefore);
-      insertBefore=next;
+      insertBefore=(next == null) ? null : next.<TableRowElement>cast();
       count++;
     }
   }
  else {
-    while (insertBefore != null && table.tableBuilder.getRowValueIndex(insertBefore.<TableRowElement>cast()) < absEndIndex) {
+    while (insertBefore != null && table.tableBuilder.getRowValueIndex(insertBefore) < absEndIndex) {
       Element next=insertBefore.getNextSiblingElement();
       section.removeChild(insertBefore);
-      insertBefore=next;
+      insertBefore=(next == null) ? null : next.<TableRowElement>cast();
     }
   }
   TableSectionElement newSection=convertToSectionElement(table,section.getTagName(),html);

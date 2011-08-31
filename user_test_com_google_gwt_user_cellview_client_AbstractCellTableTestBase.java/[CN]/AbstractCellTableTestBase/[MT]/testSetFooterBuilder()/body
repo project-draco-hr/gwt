@@ -1,0 +1,24 @@
+{
+  T table=createAbstractHasData();
+  FooterBuilder<String> footerBuilder=new AbstractHeaderOrFooterBuilder<String>(table,true){
+    @Override protected boolean buildHeaderOrFooterImpl(){
+      TableRowBuilder tr=startRow();
+      tr.startTH().text("Col 0").endTH();
+      tr.startTH().text("Col 1").endTH();
+      tr.startTH().text("Col 2").endTH();
+      tr.endTR();
+      return true;
+    }
+  }
+;
+  table.setFooterBuilder(footerBuilder);
+  assertEquals(footerBuilder,table.getFooterBuilder());
+  table.getPresenter().flush();
+  NodeList<TableRowElement> rows=table.getTableFootElement().getRows();
+  assertEquals(1,rows.getLength());
+  NodeList<TableCellElement> cells=rows.getItem(0).getCells();
+  assertEquals(3,cells.getLength());
+  assertEquals("Col 0",cells.getItem(0).getInnerText());
+  assertEquals("Col 1",cells.getItem(1).getInnerText());
+  assertEquals("Col 2",cells.getItem(2).getInnerText());
+}

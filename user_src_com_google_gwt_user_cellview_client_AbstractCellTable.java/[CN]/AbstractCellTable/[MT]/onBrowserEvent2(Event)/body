@@ -10,8 +10,10 @@
   TableSectionElement targetTableSection=null;
   TableCellElement targetTableCell=null;
   Element cellParent=null;
-  String columnId=null;
-  String headerId=null;
+  Element headerParent=null;
+  Element headerColumnParent=null;
+  Element footerParent=null;
+  Element footerColumnParent=null;
 {
     Element maybeTableCell=null;
     Element cur=target;
@@ -27,21 +29,20 @@
       if (TableCellElement.TAG_TD.equalsIgnoreCase(tagName) || TableCellElement.TAG_TH.equalsIgnoreCase(tagName)) {
         maybeTableCell=cur;
       }
-      if (columnId == null) {
-        String curColumnId=cur.getAttribute(COLUMN_ATTRIBUTE);
-        if (curColumnId != null && curColumnId.length() > 0) {
-          columnId=curColumnId;
-        }
+      if (cellParent == null && tableBuilder.isColumn(cur)) {
+        cellParent=cur;
       }
-      if (cellParent == null) {
-        if (tableBuilder.isColumn(cur)) {
-          cellParent=cur;
-        }
-        String curHeaderId=isHeaderParent(cur);
-        if (curHeaderId != null) {
-          headerId=curHeaderId;
-          cellParent=cur;
-        }
+      if (headerParent == null && headerBuilder.isHeader(cur)) {
+        headerParent=cur;
+      }
+      if (footerParent == null && footerBuilder.isHeader(cur)) {
+        footerParent=cur;
+      }
+      if (headerColumnParent == null && headerBuilder.isColumn(cur)) {
+        headerColumnParent=cur;
+      }
+      if (footerColumnParent == null && footerBuilder.isColumn(cur)) {
+        footerColumnParent=cur;
       }
       cur=cur.getParentElement();
     }
@@ -58,17 +59,17 @@
   int col=targetTableCell.getCellIndex();
   if (targetTableSection == thead || targetTableSection == tfoot) {
     boolean isHeader=(targetTableSection == thead);
-    TwoWayHashMap<String,Header<?>> headerMap=isHeader ? idToHeaderMap : idToFooterMap;
-    if (headerId != null) {
-      Header<?> header=headerMap.getValue(headerId);
+    headerParent=isHeader ? headerParent : footerParent;
+    Element columnParent=isHeader ? headerColumnParent : footerColumnParent;
+    if (headerParent != null) {
+      Header<?> header=isHeader ? headerBuilder.getHeader(headerParent) : footerBuilder.getHeader(footerParent);
       if (header != null && cellConsumesEventType(header.getCell(),eventType)) {
         Context context=new Context(0,col,header.getKey());
         header.onBrowserEvent(context,cellParent,event);
       }
     }
-    Map<String,Column<T,?>> columnMap=isHeader ? idToHeaderColumnMap : idToFooterColumnMap;
-    if (isClick) {
-      Column<T,?> column=columnMap.get(columnId);
+    if (isClick && columnParent != null) {
+      Column<T,?> column=isHeader ? headerBuilder.getColumn(columnParent) : footerBuilder.getColumn(columnParent);
       if (column != null && column.isSortable()) {
         headersDirty=true;
         updatingSortList=true;

@@ -1,0 +1,39 @@
+{
+  DataGrid<String> table=createAbstractHasData();
+  RootPanel.get().add(table);
+  HeaderBuilder<String> emptyHeader=new AbstractHeaderOrFooterBuilder<String>(table,false){
+    @Override protected boolean buildHeaderOrFooterImpl(){
+      return false;
+    }
+  }
+;
+  HeaderBuilder<String> notEmptyHeader=new AbstractHeaderOrFooterBuilder<String>(table,false){
+    @Override protected boolean buildHeaderOrFooterImpl(){
+      return true;
+    }
+  }
+;
+  FooterBuilder<String> emptyFooter=new AbstractHeaderOrFooterBuilder<String>(table,true){
+    @Override protected boolean buildHeaderOrFooterImpl(){
+      return false;
+    }
+  }
+;
+  FooterBuilder<String> notEmptyFooter=new AbstractHeaderOrFooterBuilder<String>(table,true){
+    @Override protected boolean buildHeaderOrFooterImpl(){
+      return true;
+    }
+  }
+;
+  table.setHeaderBuilder(emptyHeader);
+  table.setFooterBuilder(notEmptyFooter);
+  table.getPresenter().flush();
+  assertFalse(table.tableHeader.isAttached());
+  assertTrue(table.tableFooter.isAttached());
+  table.setHeaderBuilder(notEmptyHeader);
+  table.setFooterBuilder(emptyFooter);
+  table.getPresenter().flush();
+  assertTrue(table.tableHeader.isAttached());
+  assertFalse(table.tableFooter.isAttached());
+  RootPanel.get().remove(table);
+}
