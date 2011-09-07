@@ -21,7 +21,7 @@
     throw new RuntimeException("No implemented interfaces for " + baseClass.getName());
   }
   JClassType uiBinderType=uiBinderTypes[0];
-  JClassType[] typeArgs=uiBinderType.isParameterized().getTypeArgs();
+  JClassType[] typeArgs=uiBinderType.isParameterized() == null ? new JClassType[0] : uiBinderType.isParameterized().getTypeArgs();
   String binderType=uiBinderType.getName();
   JClassType uiRendererClass=getOracle().findType(UiRenderer.class.getName());
   if (uiBinderType.isAssignableTo(uibinderItself)) {
@@ -33,8 +33,8 @@
     isRenderer=false;
   }
  else   if (uiBinderType.isAssignableTo(uiRendererClass)) {
-    if (typeArgs.length < 1) {
-      throw new RuntimeException("Owner type parameter is required for type %s" + binderType);
+    if (typeArgs.length >= 1) {
+      throw new RuntimeException("UiRenderer is not a parameterizable type in " + binderType);
     }
     if (!useSafeHtmlTemplates) {
       die("Configuration property UiBinder.useSafeHtmlTemplates\n" + "  must be set to true to generate a UiRenderer");
@@ -42,7 +42,7 @@
     if (!useLazyWidgetBuilders) {
       die("Configuration property UiBinder.useLazyWidgetBuilders\n" + "  must be set to true to generate a UiRenderer");
     }
-    uiOwnerType=typeArgs[0];
+    uiOwnerType=uiBinderType;
     uiRootType=null;
     isRenderer=true;
   }

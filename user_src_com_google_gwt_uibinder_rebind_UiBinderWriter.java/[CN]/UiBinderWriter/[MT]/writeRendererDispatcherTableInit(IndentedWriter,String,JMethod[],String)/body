@@ -1,0 +1,55 @@
+{
+  ArrayList<String> keys=new ArrayList<String>();
+  ArrayList<Integer> values=new ArrayList<Integer>();
+  for (int i=0; i < uiHandlerMethods.length; i++) {
+    JMethod jMethod=uiHandlerMethods[i];
+    String eventType=findEventTypeName(jMethod);
+    String[] fieldNames=jMethod.getAnnotation(UiHandler.class).value();
+    for (    String fieldName : fieldNames) {
+      if (rootFieldName.equals(fieldName)) {
+        fieldName=AbstractUiRenderer.ROOT_FAKE_NAME;
+      }
+      keys.add(eventType + AbstractUiRenderer.UI_ID_SEPARATOR + fieldName);
+      values.add(i);
+    }
+  }
+  w.write("private static String[] %s_keys;",SAFE_VAR_PREFIX);
+  w.write("private static Integer[] %s_values;",SAFE_VAR_PREFIX);
+  w.write("static {");
+  w.indent();
+  w.write("%s_keys = new String[] {",SAFE_VAR_PREFIX);
+  w.indent();
+  for (  String key : keys) {
+    w.write("\"%s\",",key);
+  }
+  w.outdent();
+  w.write("};");
+  w.newline();
+  w.write("%s_values = new Integer[] {",SAFE_VAR_PREFIX);
+  w.indent();
+  StringBuffer commaSeparatedValues=new StringBuffer();
+  for (  Integer value : values) {
+    commaSeparatedValues.append(value);
+    commaSeparatedValues.append(",");
+  }
+  w.write("%s",commaSeparatedValues.toString());
+  w.outdent();
+  w.write("};");
+  w.newline();
+  w.outdent();
+  w.write("}");
+  w.newline();
+  w.write("public %s() {",dispatcherName);
+  w.indent();
+  w.write("initDispatchTable(%s_keys, %s_values);",SAFE_VAR_PREFIX,SAFE_VAR_PREFIX);
+  HashSet<String> eventTypes=new HashSet<String>();
+  for (  JMethod uiMethod : uiHandlerMethods) {
+    eventTypes.add(uiMethod.getParameterTypes()[0].getQualifiedSourceName());
+  }
+  for (  String eventType : eventTypes) {
+    w.write("%s.getType();",eventType);
+  }
+  w.outdent();
+  w.write("}");
+  w.newline();
+}

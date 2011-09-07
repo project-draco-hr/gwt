@@ -1,0 +1,35 @@
+{
+  for (  JMethod jMethod : eventMethods) {
+    JClassType eventTargetType=jMethod.getParameterTypes()[0].isClassOrInterface();
+    String eventTargetSimpleName=eventTargetType.getSimpleSourceName();
+    String dispatcherClassName=UI_RENDERER_DISPATCHER_PREFIX + eventTargetSimpleName;
+    JMethod[] uiHandlerMethods=findUiHandlerMethods(eventTargetType);
+    w.write("@Override");
+    w.write("public %s {",jMethod.getReadableDeclaration(true,true,true,true,true));
+    if (uiHandlerMethods.length != 0) {
+      w.indent();
+      w.write("if (singleton%s == null) {",dispatcherClassName);
+      w.indent();
+      w.write("singleton%s = new %s();",dispatcherClassName,dispatcherClassName);
+      w.outdent();
+      w.write("}");
+      StringBuffer sb=new StringBuffer();
+      JParameter[] parameters=jMethod.getParameters();
+      for (int i=0; i < parameters.length; i++) {
+        JParameter callParam=parameters[i];
+        if (i != 0) {
+          sb.append(", ");
+        }
+        sb.append(callParam.getName());
+      }
+      w.write("singleton%s.fire(%s);",dispatcherClassName,sb.toString());
+      w.outdent();
+    }
+    w.write("}");
+    w.newline();
+    if (uiHandlerMethods.length != 0) {
+      w.write("private static %s singleton%s;",dispatcherClassName,dispatcherClassName);
+      writeRendererDispatcher(w,dispatcherClassName,eventTargetType,rootField,uiHandlerMethods,jMethod);
+    }
+  }
+}

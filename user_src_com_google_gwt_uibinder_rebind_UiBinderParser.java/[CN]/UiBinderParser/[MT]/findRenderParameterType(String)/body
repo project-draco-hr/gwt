@@ -1,9 +1,14 @@
 {
   JMethod renderMethod=null;
-  for (  JMethod method : writer.getBaseClass().getMethods()) {
+  JClassType baseClass=writer.getBaseClass();
+  for (  JMethod method : baseClass.getInheritableMethods()) {
     if (method.getName().equals("render")) {
-      renderMethod=method;
-      break;
+      if (renderMethod == null) {
+        renderMethod=method;
+      }
+ else {
+        writer.die("%s declares more than one method named render",baseClass.getQualifiedSourceName());
+      }
     }
   }
   if (renderMethod == null) {

@@ -1,0 +1,21 @@
+{
+  JParameter[] parameters=eventMethod.getParameters();
+  if (parameters.length < 3) {
+    die("Too few parameters in %s",formatMethodError(eventMethod));
+  }
+  String nativeEventName=NativeEvent.class.getCanonicalName();
+  JClassType nativeEventType=oracle.findType(nativeEventName);
+  if (!nativeEventType.equals(parameters[1].getType())) {
+    die("Second parameter must be of type %s in %s",nativeEventName,formatMethodError(eventMethod));
+  }
+  String elementName=com.google.gwt.dom.client.Element.class.getCanonicalName();
+  JClassType elementType=oracle.findType(elementName);
+  if (!elementType.equals(parameters[2].getType())) {
+    die("Third parameter must be of type %s in %s",elementName,formatMethodError(eventMethod));
+  }
+  if (parameters[0].getType().isClassOrInterface() == null) {
+    die("First parameter must be a class or interface in %s",formatMethodError(eventMethod));
+  }
+  JClassType eventReceiver=parameters[0].getType().isClassOrInterface();
+  validateEventReceiver(parameters,eventReceiver,eventMethod);
+}

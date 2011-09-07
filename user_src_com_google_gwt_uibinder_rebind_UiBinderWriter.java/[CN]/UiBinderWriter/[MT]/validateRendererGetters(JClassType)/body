@@ -1,24 +1,24 @@
 {
-  for (  JMethod jMethod : owner.getMethods()) {
+  for (  JMethod jMethod : owner.getInheritableMethods()) {
     String getterName=jMethod.getName();
     if (getterName.startsWith("get")) {
       if (jMethod.getParameterTypes().length != 1) {
-        die("Getter %s must have exactly one parameter",getterName);
+        die("Getter %s must have exactly one parameter in %s",getterName,owner.getQualifiedSourceName());
       }
       String elementClassName=com.google.gwt.dom.client.Element.class.getCanonicalName();
       JClassType elementType=oracle.findType(elementClassName);
       JClassType getterParamType=jMethod.getParameterTypes()[0].getErasedType().isClassOrInterface();
       if (!elementType.isAssignableFrom(getterParamType)) {
-        die("Getter %s must have exactly one parameter of type assignable to %s",getterName,elementClassName);
+        die("Getter %s must have exactly one parameter of type assignable to %s in %s",getterName,elementClassName,owner.getQualifiedSourceName());
       }
       String fieldName=getterToFieldName(getterName);
       FieldWriter field=fieldManager.lookup(fieldName);
       if (field == null || !FieldWriterType.DEFAULT.equals(field.getFieldType())) {
-        die("%s does not match a \"ui:field='%s'\" declaration",getterName,fieldName);
+        die("%s does not match a \"ui:field='%s'\" declaration in %s",getterName,fieldName,owner.getQualifiedSourceName());
       }
     }
- else     if (!getterName.equals("render")) {
-      die("Unexpected method \"%s\" found",getterName);
+ else     if (!getterName.equals("render") && !getterName.equals("onBrowserEvent") && !getterName.equals("isParentOrRenderer")) {
+      die("Unexpected method \"%s\" found in %s",getterName,owner.getQualifiedSourceName());
     }
   }
 }

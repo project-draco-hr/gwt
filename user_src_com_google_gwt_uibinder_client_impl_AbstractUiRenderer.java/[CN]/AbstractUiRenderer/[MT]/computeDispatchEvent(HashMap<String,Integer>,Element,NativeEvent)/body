@@ -1,0 +1,27 @@
+{
+  String uiId=root.getAttribute(RENDERED_ATTRIBUTE);
+  EventTarget eventTarget=event.getEventTarget();
+  if (!Element.is(eventTarget)) {
+    return NO_HANDLER_FOUND;
+  }
+  Element cursor=Element.as(eventTarget);
+  while (cursor != null && cursor != root && cursor.getNodeType() != Element.DOCUMENT_NODE) {
+    String fieldName=getFieldName(uiId,cursor);
+    if (fieldName == null) {
+      cursor=cursor.getParentElement();
+      continue;
+    }
+    String key=event.getType() + UI_ID_SEPARATOR + fieldName;
+    if (table.containsKey(key)) {
+      return table.get(key);
+    }
+    cursor=cursor.getParentElement();
+  }
+  if (cursor == root) {
+    String key=event.getType() + UI_ID_SEPARATOR + ROOT_FAKE_NAME;
+    if (table.containsKey(key)) {
+      return table.get(key);
+    }
+  }
+  return NO_HANDLER_FOUND;
+}

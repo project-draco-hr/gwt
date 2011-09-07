@@ -1,6 +1,10 @@
 {
   validateRendererGetters(baseClass);
   validateRenderParameters(baseClass);
+  JMethod[] eventMethods=findEventMethods(baseClass);
+  for (  JMethod jMethod : eventMethods) {
+    validateEventMethod(jMethod);
+  }
   writePackage(w);
   writeImports(w);
   w.newline();
@@ -24,12 +28,13 @@
   w.newline();
   String rootFieldName=rootField.substring(4,rootField.length() - 2);
   String safeHtml=fieldManager.lookup(rootFieldName).getSafeHtml();
-  w.write("sb.append(UiRendererUtilsImpl.stampUiRendererAttribute(%s, RENDERED_ATTRIBUTE, uiId));",safeHtml);
+  w.write("sb.append(stampUiRendererAttribute(%s, RENDERED_ATTRIBUTE, uiId));",safeHtml);
   w.outdent();
   w.write("}");
   w.newline();
   fieldManager.writeFieldDefinitions(w,getOracle(),getOwnerClass(),getDesignTime());
   writeRendererGetters(w,baseClass,rootFieldName);
+  writeRendererEventMethods(w,eventMethods,rootFieldName);
   w.outdent();
   w.write("}");
 }

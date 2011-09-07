@@ -1,0 +1,38 @@
+{
+  JType[] onBrowserEventParamTypes=new JType[onBrowserEventParameters.length - 2];
+  onBrowserEventParamTypes[0]=oracle.findType(com.google.gwt.dom.client.Element.class.getCanonicalName());
+  for (int i=3; i < onBrowserEventParameters.length; i++) {
+    onBrowserEventParamTypes[i - 2]=onBrowserEventParameters[i].getType();
+  }
+  for (  JMethod jMethod : eventReceiver.getInheritableMethods()) {
+    Class<UiHandler> annotationClass=UiHandler.class;
+    UiHandler annotation=jMethod.getAnnotation(annotationClass);
+    if (annotation == null) {
+      continue;
+    }
+    String[] fields=annotation.value();
+    if (fields == null) {
+      die("@UiHandler returns null from its value in %s",formatMethodError(jMethod));
+    }
+    for (    String fieldName : fields) {
+      FieldWriter field=fieldManager.lookup(fieldName);
+      if (field == null) {
+        die("\"%s\" is not a known field name as listed in the @UiHandler annotation in %s",fieldName,formatMethodError(jMethod));
+      }
+    }
+    JParameter[] eventHandlerParameters=jMethod.getParameters();
+    JClassType domEventType=oracle.findType(DomEvent.class.getCanonicalName());
+    JClassType firstParamType=eventHandlerParameters[0].getType().isClassOrInterface();
+    if (firstParamType == null || !firstParamType.isAssignableTo(domEventType)) {
+      die("First parameter must be assignable to com.google.gwt.dom.client.DomEvent in %s",formatMethodError(jMethod));
+    }
+    if (onBrowserEventParamTypes.length < eventHandlerParameters.length - 1) {
+      die("Too many parameters in %s",formatMethodError(jMethod));
+    }
+    for (int i=1; i < eventHandlerParameters.length; i++) {
+      if (!eventHandlerParameters[i].getType().equals(onBrowserEventParamTypes[i - 1])) {
+        die("Parameter %s in %s is not of the same type as parameter %s in %s",eventHandlerParameters[i].getName(),formatMethodError(jMethod),onBrowserEventParameters[i + 1].getName(),formatMethodError(sourceMethod));
+      }
+    }
+  }
+}

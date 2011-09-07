@@ -1,0 +1,43 @@
+{
+  w.write("static class %s extends UiRendererDispatcher<%s> {",dispatcherName,targetType.getQualifiedSourceName());
+  w.indent();
+  writeRendererDispatcherTableInit(w,rootFieldName,uiHandlerMethods,dispatcherName);
+  writeRendererDispatcherExtraParameters(w,sourceMethod);
+  writeRendererDispatcherFire(w,sourceMethod);
+  w.write("@SuppressWarnings(\"rawtypes\")");
+  w.write("@Override");
+  w.write("public void fireEvent(com.google.gwt.event.shared.GwtEvent<?> %sEvent) {",SAFE_VAR_PREFIX);
+  w.indent();
+  w.write("switch (getMethodIndex()) {");
+  w.indent();
+  for (int j=0; j < uiHandlerMethods.length; j++) {
+    JMethod uiMethod=uiHandlerMethods[j];
+    w.write("case %s:",j);
+    w.indent();
+    StringBuffer sb=new StringBuffer();
+    JParameter[] sourceParameters=sourceMethod.getParameters();
+    JType[] uiHandlerParameterTypes=uiMethod.getParameterTypes();
+    if (uiHandlerParameterTypes.length >= 2) {
+      sb.append(", getRoot()");
+    }
+    for (int k=2; k < uiHandlerParameterTypes.length; k++) {
+      JParameter sourceParam=sourceParameters[k + 1];
+      sb.append(", ");
+      sb.append(sourceParam.getName());
+    }
+    w.write("getEventTarget().%s((%s) %sEvent%s);",uiMethod.getName(),uiHandlerParameterTypes[0].getQualifiedSourceName(),SAFE_VAR_PREFIX,sb.toString());
+    w.write("break;");
+    w.newline();
+    w.outdent();
+  }
+  w.write("default:");
+  w.indent();
+  w.write("break;");
+  w.outdent();
+  w.outdent();
+  w.write("}");
+  w.outdent();
+  w.write("}");
+  w.outdent();
+  w.write("}");
+}
