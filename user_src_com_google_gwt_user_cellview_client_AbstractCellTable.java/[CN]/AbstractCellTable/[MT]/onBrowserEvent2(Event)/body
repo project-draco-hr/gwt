@@ -85,14 +85,24 @@
     int subrow=tableBuilder.getSubrowValueIndex(targetTableRow);
     if ("mouseover".equals(eventType)) {
       if (hoveringRow != null && getTableBodyElement().isOrHasChild(hoveringRow)) {
-        setRowHover(hoveringRow,false);
+        setRowHover(hoveringRow,event,false);
       }
       hoveringRow=targetTableRow;
-      setRowHover(hoveringRow,true);
+      setRowHover(hoveringRow,event,true);
     }
  else     if ("mouseout".equals(eventType) && hoveringRow != null) {
-      setRowHover(hoveringRow,false);
-      hoveringRow=null;
+      int clientX=event.getClientX() + Window.getScrollLeft();
+      int clientY=event.getClientY() + Window.getScrollTop();
+      int rowLeft=hoveringRow.getAbsoluteLeft();
+      int rowTop=hoveringRow.getAbsoluteTop();
+      int rowWidth=hoveringRow.getOffsetWidth();
+      int rowHeight=hoveringRow.getOffsetHeight();
+      int rowBottom=rowTop + rowHeight;
+      int rowRight=rowLeft + rowWidth;
+      if (clientX < rowLeft || clientX > rowRight || clientY < rowTop || clientY > rowBottom) {
+        setRowHover(hoveringRow,event,false);
+        hoveringRow=null;
+      }
     }
     if (!isRowWithinBounds(relRow)) {
       return;
