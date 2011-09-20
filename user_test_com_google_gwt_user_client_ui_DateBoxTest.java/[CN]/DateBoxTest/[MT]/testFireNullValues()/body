@@ -1,0 +1,28 @@
+{
+  DateBox db=new DateBox();
+  db.setFireNullValues(true);
+  assertTrue(db.getFireNullValues());
+  RootPanel.get().add(db);
+  @SuppressWarnings("unchecked") final ValueChangeEvent<Date>[] eventHolder=new ValueChangeEvent[1];
+  final boolean[] wasCalled=new boolean[1];
+  db.addValueChangeHandler(new ValueChangeHandler<Date>(){
+    @Override public void onValueChange(    ValueChangeEvent<Date> event){
+      wasCalled[0]=true;
+      eventHolder[0]=event;
+    }
+  }
+);
+  db.setValue(new Date(1976,1,20));
+  db.getTextBox().setText("");
+  NativeEvent e=Document.get().createBlurEvent();
+  db.getTextBox().getElement().dispatchEvent(e);
+  assertTrue(wasCalled[0]);
+  assertNull(eventHolder[0].getValue());
+  db.setValue(new Date(1976,1,20));
+  db.getTextBox().setText("abcd");
+  e=Document.get().createBlurEvent();
+  db.getTextBox().getElement().dispatchEvent(e);
+  assertTrue(wasCalled[0]);
+  assertNull(eventHolder[0].getValue());
+  assertEquals("abcd",db.getTextBox().getText());
+}
