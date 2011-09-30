@@ -1,0 +1,46 @@
+{
+  super(Document.get().createTableElement(),pageSize,new ResourcesAdapter(resources),keyProvider);
+  this.style=resources.cellTableStyle();
+  this.style.ensureInjected();
+  this.colGroupEnabled=enableColGroup;
+  table=getElement().cast();
+  table.setCellSpacing(0);
+  if (enableColGroup) {
+    colgroup=Document.get().createColGroupElement();
+    table.appendChild(colgroup);
+  }
+ else {
+    colgroup=null;
+  }
+  thead=table.createTHead();
+  if (table.getTBodies().getLength() > 0) {
+    tbody=table.getTBodies().getItem(0);
+  }
+ else {
+    tbody=Document.get().createTBodyElement();
+    table.appendChild(tbody);
+  }
+  tbodyLoading=Document.get().createTBodyElement();
+  if (attachLoadingPanel) {
+    table.appendChild(tbodyLoading);
+  }
+  tfoot=table.createTFoot();
+  setStyleName(resources.cellTableStyle().cellTableWidget());
+{
+    tbodyLoadingCell=Document.get().createTDElement();
+    TableRowElement tr=Document.get().createTRElement();
+    tbodyLoading.appendChild(tr);
+    tr.appendChild(tbodyLoadingCell);
+    tbodyLoadingCell.setAlign("center");
+    tbodyLoadingCell.appendChild(messagesPanel.getElement());
+    adopt(messagesPanel);
+    messagesPanel.add(emptyTableWidgetContainer);
+    messagesPanel.add(loadingIndicatorContainer);
+    loadingIndicatorContainer.setStyleName(style.cellTableLoading());
+  }
+  setLoadingIndicator(loadingIndicator);
+  Set<String> eventTypes=new HashSet<String>();
+  eventTypes.add(BrowserEvents.MOUSEOVER);
+  eventTypes.add(BrowserEvents.MOUSEOUT);
+  CellBasedWidgetImpl.get().sinkEvents(this,eventTypes);
+}
