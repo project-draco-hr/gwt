@@ -1,0 +1,19 @@
+{
+  UnitTestTreeLogger.Builder builder=new UnitTestTreeLogger.Builder();
+  builder.expectError("Created resource is null: cssResource/test-file3.cssmap",null);
+  UnitTestTreeLogger testLogger=builder.createLogger();
+  ResourceContext mockResourceContext=EasyMock.createMock(ResourceContext.class);
+  Map<JMethod,String> testMap=new HashMap<JMethod,String>();
+  OutputStream mockOutputStream=EasyMock.createMock(OutputStream.class);
+  GeneratorContext mockGeneratorContext=EasyMock.createMock(GeneratorContext.class);
+  GeneratedResource mockGeneratedResource=EasyMock.createMock(GeneratedResource.class);
+  EasyMock.expect(mockResourceContext.getGeneratorContext()).andReturn(mockGeneratorContext);
+  EasyMock.expect(mockGeneratorContext.tryCreateResource(testLogger,"cssResource/test-file3.cssmap")).andReturn(null);
+  EasyMock.replay(mockResourceContext);
+  EasyMock.replay(mockGeneratorContext);
+  CssResourceGenerator crg=new CssResourceGenerator();
+  crg.outputCssMapArtifact(testLogger,mockResourceContext,testMap,"test-file3");
+  testLogger.assertCorrectLogEntries();
+  EasyMock.verify(mockResourceContext);
+  EasyMock.verify(mockGeneratorContext);
+}

@@ -1,0 +1,21 @@
+{
+  UnitTestTreeLogger.Builder builder=new UnitTestTreeLogger.Builder();
+  builder.expectError("Error trying to commit artifact: cssResource/test-file4.cssmap",null);
+  UnitTestTreeLogger testLogger=builder.createLogger();
+  ResourceContext mockResourceContext=EasyMock.createMock(ResourceContext.class);
+  Map<JMethod,String> testMap=new HashMap<JMethod,String>();
+  OutputStream mockOutputStream=EasyMock.createMock(OutputStream.class);
+  GeneratorContext mockGeneratorContext=EasyMock.createMock(GeneratorContext.class);
+  GeneratedResource mockGeneratedResource=EasyMock.createMock(GeneratedResource.class);
+  EasyMock.expect(mockResourceContext.getGeneratorContext()).andReturn(mockGeneratorContext);
+  EasyMock.expectLastCall().times(2);
+  EasyMock.expect(mockGeneratorContext.tryCreateResource(testLogger,"cssResource/test-file4.cssmap")).andReturn(mockOutputStream);
+  EasyMock.expect(mockGeneratorContext.commitResource(testLogger,mockOutputStream)).andThrow(new UnableToCompleteException());
+  EasyMock.replay(mockResourceContext);
+  EasyMock.replay(mockGeneratorContext);
+  CssResourceGenerator crg=new CssResourceGenerator();
+  crg.outputCssMapArtifact(testLogger,mockResourceContext,testMap,"test-file4");
+  testLogger.assertCorrectLogEntries();
+  EasyMock.verify(mockResourceContext);
+  EasyMock.verify(mockGeneratorContext);
+}
