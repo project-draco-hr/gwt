@@ -37,4 +37,15 @@
  else {
     writer.die(elem,"Could not infer type for field %s.",resourceName);
   }
+  boolean attributesChildFound=false;
+  for (  XMLElement child : elem.consumeChildElements(new SimpleInterpeter<Boolean>(true))) {
+    if (attributesChildFound) {
+      writer.die(child,"<ui:with> can only contain a single <ui:attributes> child Element.");
+    }
+    attributesChildFound=true;
+    if (!elem.getNamespaceUri().equals(child.getNamespaceUri()) || !"attributes".equals(child.getLocalName())) {
+      writer.die(child,"Found unknown child element.");
+    }
+    new BeanParser(uiBinderContext).parse(child,resourceName,resourceType,writer);
+  }
 }
