@@ -13,12 +13,12 @@
     if (!writer.isWidgetElement(children.body)) {
       writer.die(children.body,"Must be a widget");
     }
-    String childFieldName=writer.parseElementToField(children.body);
+    FieldWriter childField=writer.parseElementToField(children.body);
     if (children.header != null) {
       HtmlInterpreter htmlInt=HtmlInterpreter.newInterpreterForUiObject(writer,fieldName);
       String size=children.header.consumeRequiredDoubleAttribute("size");
       String html=children.header.consumeInnerHtml(htmlInt);
-      writer.addStatement("%s.add(%s, %s, true, %s);",fieldName,childFieldName,writer.declareTemplateCall(html,fieldName),size);
+      writer.addStatement("%s.add(%s, %s, true, %s);",fieldName,childField.getNextReference(),writer.declareTemplateCall(html,fieldName),size);
     }
  else     if (children.customHeader != null) {
       XMLElement headerElement=children.customHeader.consumeSingleChildElement();
@@ -26,8 +26,8 @@
       if (!writer.isWidgetElement(headerElement)) {
         writer.die(headerElement,"Is not a widget");
       }
-      String headerField=writer.parseElementToField(headerElement);
-      writer.addStatement("%s.add(%s, %s, %s);",fieldName,childFieldName,headerField,size);
+      FieldWriter headerField=writer.parseElementToField(headerElement);
+      writer.addStatement("%s.add(%s, %s, %s);",fieldName,childField.getNextReference(),headerField.getNextReference(),size);
     }
  else {
       writer.die(stackElem,"Requires either a <%1$s:%2$s> or <%1$s:%3$s>",stackElem.getPrefix(),HEADER,CUSTOM);

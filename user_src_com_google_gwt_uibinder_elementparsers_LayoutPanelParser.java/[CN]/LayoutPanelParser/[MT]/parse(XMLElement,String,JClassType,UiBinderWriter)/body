@@ -3,8 +3,8 @@
     if (!isElementType(elem,layerElem,LAYER)) {
       writer.die(layerElem,"Only <%s:%s> children are allowed.",elem.getPrefix(),LAYER);
     }
-    String childFieldName=writer.parseElementToField(layerElem.consumeSingleChildElement());
-    writer.addStatement("%1$s.add(%2$s);",fieldName,childFieldName);
+    FieldWriter childField=writer.parseElementToField(layerElem.consumeSingleChildElement());
+    writer.addStatement("%1$s.add(%2$s);",fieldName,childField.getNextReference());
     String left=layerElem.consumeLengthAttribute("left");
     String right=layerElem.consumeLengthAttribute("right");
     String width=layerElem.consumeLengthAttribute("width");
@@ -16,10 +16,10 @@
         if (width != null) {
           writer.die(layerElem,ERR_TOO_MANY,"horizontal");
         }
-        generateConstraint(fieldName,childFieldName,"LeftRight",left,right,writer);
+        generateConstraint(fieldName,childField.getNextReference(),"LeftRight",left,right,writer);
       }
  else       if (width != null) {
-        generateConstraint(fieldName,childFieldName,"LeftWidth",left,width,writer);
+        generateConstraint(fieldName,childField.getNextReference(),"LeftWidth",left,width,writer);
       }
  else {
         writer.die(layerElem,ERR_PAIRING,"left","right","width");
@@ -27,7 +27,7 @@
     }
  else     if (right != null) {
       if (width != null) {
-        generateConstraint(fieldName,childFieldName,"RightWidth",right,width,writer);
+        generateConstraint(fieldName,childField.getNextReference(),"RightWidth",right,width,writer);
       }
  else {
         writer.die(layerElem,ERR_PAIRING,"right","left","width");
@@ -44,10 +44,10 @@
         if (height != null) {
           writer.die(layerElem,ERR_TOO_MANY,"vertical");
         }
-        generateConstraint(fieldName,childFieldName,"TopBottom",top,bottom,writer);
+        generateConstraint(fieldName,childField.getNextReference(),"TopBottom",top,bottom,writer);
       }
  else       if (height != null) {
-        generateConstraint(fieldName,childFieldName,"TopHeight",top,height,writer);
+        generateConstraint(fieldName,childField.getNextReference(),"TopHeight",top,height,writer);
       }
  else {
         writer.die(layerElem,ERR_PAIRING,"top","bottom","height");
@@ -55,7 +55,7 @@
     }
  else     if (bottom != null) {
       if (height != null) {
-        generateConstraint(fieldName,childFieldName,"BottomHeight",bottom,height,writer);
+        generateConstraint(fieldName,childField.getNextReference(),"BottomHeight",bottom,height,writer);
       }
  else {
         writer.die(layerElem,ERR_PAIRING,"bottom","top","height");

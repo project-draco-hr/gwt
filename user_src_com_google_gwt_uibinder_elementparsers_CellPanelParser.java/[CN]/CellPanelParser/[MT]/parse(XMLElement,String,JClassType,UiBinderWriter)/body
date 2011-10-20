@@ -4,16 +4,16 @@
     String tagName=child.getLocalName();
     if (ns != null && ns.equals(elem.getNamespaceUri()) && localTagNameIsCell(tagName)) {
       XMLElement widget=child.consumeSingleChildElement();
-      String childFieldName=writer.parseElementToField(widget);
-      writer.addStatement("%1$s.add(%2$s);",fieldName,childFieldName);
-      parseCellAttributes(child,fieldName,childFieldName,writer);
+      FieldWriter childField=writer.parseElementToField(widget);
+      writer.addStatement("%1$s.add(%2$s);",fieldName,childField.getNextReference());
+      parseCellAttributes(child,fieldName,childField,writer);
     }
  else {
       if (!writer.isWidgetElement(child)) {
         writer.die(elem,"Expected a widget or <%s:%s>, found %s",elem.getPrefix(),CELL_TAG.toLowerCase(),child);
       }
-      String childFieldName=writer.parseElementToField(child);
-      writer.addStatement("%1$s.add(%2$s);",fieldName,childFieldName);
+      FieldWriter childField=writer.parseElementToField(child);
+      writer.addStatement("%1$s.add(%2$s);",fieldName,childField.getNextReference());
     }
   }
 }

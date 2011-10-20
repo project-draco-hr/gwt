@@ -1,4 +1,13 @@
 {
-  FieldWriter field=parseElementToFieldWriter(elem);
-  return fieldManager.convertFieldToGetter(field.getName());
+  if (elementParsers.isEmpty()) {
+    registerParsers();
+  }
+  JClassType type=findFieldType(elem);
+  FieldWriter field=declareField(elem,type.getQualifiedSourceName());
+  fieldManager.push(elem,field);
+  for (  ElementParser parser : getParsersForClass(type)) {
+    parser.parse(elem,field.getName(),type,this);
+  }
+  fieldManager.pop();
+  return field;
 }
