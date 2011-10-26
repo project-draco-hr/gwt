@@ -45,15 +45,20 @@
       Object oldKey=getRowValueKey(oldValue);
       T newValue=rowDataCount > 0 ? pending.getRowDataValue(pending.getKeyboardSelectedRow()) : null;
       Object newKey=getRowValueKey(newValue);
-      if (newKey != null && !newKey.equals(oldKey)) {
+      if (newKey != null) {
         boolean oldValueWasSelected=(oldValue == null) ? false : selectionModel.isSelected(oldValue);
         boolean newValueWasSelected=(newValue == null) ? false : selectionModel.isSelected(newValue);
-        if (oldValueWasSelected) {
-          selectionModel.setSelected(oldValue,false);
+        if (!newKey.equals(oldKey)) {
+          if (oldValueWasSelected) {
+            selectionModel.setSelected(oldValue,false);
+          }
+          pending.selectedValue=newValue;
+          if (newValue != null && !newValueWasSelected) {
+            selectionModel.setSelected(newValue,true);
+          }
         }
-        pending.selectedValue=newValue;
-        if (newValue != null && !newValueWasSelected) {
-          selectionModel.setSelected(newValue,true);
+ else         if (!newValueWasSelected) {
+          pending.selectedValue=null;
         }
       }
     }
