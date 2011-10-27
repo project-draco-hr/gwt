@@ -1,21 +1,27 @@
 {
   pendingStateCommand=null;
+  if (isResolvingState) {
+    return false;
+  }
+  isResolvingState=true;
   if (pendingState == null) {
+    isResolvingState=false;
     pendingStateLoop=0;
-    return;
+    return false;
   }
   pendingStateLoop++;
   if (pendingStateLoop > LOOP_MAXIMUM) {
+    isResolvingState=false;
     pendingStateLoop=0;
     throw new IllegalStateException("A possible infinite loop has been detected in a Cell Widget. This " + "usually happens when your SelectionModel triggers a " + "SelectionChangeEvent when SelectionModel.isSelection() is "+ "called, which causes the table to redraw continuously.");
   }
-  if (isResolvingState) {
-    throw new IllegalStateException("The Cell Widget is attempting to render itself within the render " + "loop. This usually happens when your render code modifies the " + "state of the Cell Widget then accesses data or elements "+ "within the Widget.");
-  }
-  isResolvingState=true;
-  JsArrayInteger modifiedRows=JavaScriptObject.createArray().cast();
   State<T> oldState=state;
   PendingState<T> pending=pendingState;
+  state=pendingState;
+  pendingState=null;
+  if (modifiedRows == null) {
+    modifiedRows=JavaScriptObject.createArray().cast();
+  }
   int pageStart=pending.getPageStart();
   int pageSize=pending.getPageSize();
   int pageEnd=pageStart + pageSize;
@@ -61,34 +67,47 @@
           pending.selectedValue=null;
         }
       }
+      if (pendingState != null) {
+        pendingState.selectedValue=pending.selectedValue;
+      }
     }
   }
  catch (  RuntimeException e) {
     isResolvingState=false;
+    pendingStateLoop=0;
     throw e;
   }
   boolean keyboardRowChanged=pending.keyboardSelectedRowChanged || (oldState.getKeyboardSelectedRow() != pending.keyboardSelectedRow) || (oldState.getKeyboardSelectedRowValue() == null && pending.keyboardSelectedRowValue != null);
-  for (int i=pageStart; i < pageStart + rowDataCount; i++) {
-    T rowValue=pending.getRowDataValue(i - pageStart);
-    boolean isSelected=(rowValue != null && selectionModel != null && selectionModel.isSelected(rowValue));
-    boolean wasSelected=oldState.isRowSelected(i);
-    if (isSelected) {
-      pending.selectedRows.add(i);
-      if (!wasSelected) {
+  try {
+    for (int i=pageStart; i < pageStart + rowDataCount; i++) {
+      T rowValue=pending.getRowDataValue(i - pageStart);
+      boolean isSelected=(rowValue != null && selectionModel != null && selectionModel.isSelected(rowValue));
+      boolean wasSelected=oldState.isRowSelected(i);
+      if (isSelected) {
+        pending.selectedRows.add(i);
+        if (pendingState != null) {
+          pendingState.selectedRows.add(i);
+        }
+        if (!wasSelected) {
+          modifiedRows.push(i);
+        }
+      }
+ else       if (wasSelected) {
         modifiedRows.push(i);
       }
     }
- else     if (wasSelected) {
-      modifiedRows.push(i);
+  }
+ catch (  RuntimeException e) {
+    isResolvingState=false;
+    pendingStateLoop=0;
+    throw e;
+  }
+  if (pendingState != null) {
+    isResolvingState=false;
+    if (resolvePendingState(modifiedRows)) {
+      return true;
     }
   }
-  if (pendingStateCommand != null) {
-    isResolvingState=false;
-    return;
-  }
-  pendingStateLoop=0;
-  state=pendingState;
-  pendingState=null;
   boolean replacedEmptyRange=false;
   for (  Range replacedRange : pending.replacedRanges) {
     int start=replacedRange.getStart();
@@ -171,4 +190,6 @@
  finally {
     isResolvingState=false;
   }
+  resolvePendingState(null);
+  return true;
 }
