@@ -102,12 +102,6 @@
     pendingStateLoop=0;
     throw e;
   }
-  if (pendingState != null) {
-    isResolvingState=false;
-    if (resolvePendingState(modifiedRows)) {
-      return true;
-    }
-  }
   boolean replacedEmptyRange=false;
   for (  Range replacedRange : pending.replacedRanges) {
     int start=replacedRange.getStart();
@@ -122,6 +116,14 @@
   if (modifiedRows.length() > 0 && keyboardRowChanged) {
     modifiedRows.push(oldState.getKeyboardSelectedRow());
     modifiedRows.push(pending.keyboardSelectedRow);
+  }
+  if (pendingState != null) {
+    isResolvingState=false;
+    modifiedRows.push(oldState.getKeyboardSelectedRow());
+    modifiedRows.push(pending.keyboardSelectedRow);
+    if (resolvePendingState(modifiedRows)) {
+      return true;
+    }
   }
   List<Range> modifiedRanges=calculateModifiedRanges(modifiedRows,pageStart,pageEnd);
   Range range0=modifiedRanges.size() > 0 ? modifiedRanges.get(0) : null;
