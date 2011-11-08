@@ -1,0 +1,18 @@
+{
+  addMockIntrinsic();
+  sourceOracle.addOrReplace(new MockJavaResource("test.EntryPoint"){
+    @Override public CharSequence getContent(){
+      return code;
+    }
+  }
+);
+  addBuiltinClasses(sourceOracle);
+  CompilationState state=CompilationStateBuilder.buildFrom(logger,sourceOracle.getResources(),getAdditionalTypeProviderDelegate());
+  jProgram=JavaAstConstructor.construct(logger,state,"test.EntryPoint","com.google.gwt.lang.Exceptions");
+  jProgram.addEntryMethod(findMethod(jProgram,"onModuleLoad"));
+  CastNormalizer.exec(jProgram,false);
+  ArrayNormalizer.exec(jProgram);
+  Map<StandardSymbolData,JsName> symbolTable=new TreeMap<StandardSymbolData,JsName>(new SymbolData.ClassIdentComparator());
+  JavaToJavaScriptMap map=GenerateJavaScriptAST.exec(jProgram,jsProgram,JsOutputOption.PRETTY,symbolTable,new PropertyOracle[]{new StaticPropertyOracle(orderedProps,orderedPropValues,configProps)});
+  CodeSplitter2.exec(logger,jProgram,jsProgram,map,null);
+}

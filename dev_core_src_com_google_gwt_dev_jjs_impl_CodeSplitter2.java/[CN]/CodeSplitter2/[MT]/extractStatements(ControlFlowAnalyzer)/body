@@ -1,0 +1,86 @@
+{
+  Map<Integer,List<JsStatement>> fragmentStats=new LinkedHashMap<Integer,List<JsStatement>>();
+{
+    LivenessPredicate alreadyLoaded=new NothingAlivePredicate();
+    LivenessPredicate liveNow=new CfaLivenessPredicate(initiallyLive);
+    List<JsStatement> noStats=new ArrayList<JsStatement>();
+    addFragment(0,alreadyLoaded,liveNow,noStats,fragmentStats);
+  }
+  final List<Predicate<BitSet>> exclusivePredicates=new LinkedList<Predicate<BitSet>>();
+  LivenessPredicate alreadyLoaded=new LiveSplitPointsPredicate(liveness,new Predicate<BitSet>(){
+    @Override public boolean apply(    BitSet value){
+      if (value.get(0)) {
+        return true;
+      }
+ else {
+        for (        int sp : initialLoadSequence) {
+          if (value.get(sp)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+  }
+);
+  for (int i=1; i < splitPointToFragmentMap.length; i++) {
+    if (splitPointToFragmentMap[i] != i) {
+      continue;
+    }
+    if (initialLoadSequence.contains(i)) {
+      continue;
+    }
+    final BitSet mask=new BitSet(splitPointToFragmentMap.length);
+    mask.set(i);
+    for (int j=i + 1; j < splitPointToFragmentMap.length; j++) {
+      if (initialLoadSequence.contains(j)) {
+        continue;
+      }
+      if (splitPointToFragmentMap[j] == i) {
+        mask.set(j);
+      }
+    }
+    final Predicate<BitSet> pred=new Predicate<BitSet>(){
+      @Override public boolean apply(      BitSet value){
+        if (value.get(0)) {
+          return true;
+        }
+        for (        int sp : initialLoadSequence) {
+          if (value.get(sp)) {
+            return true;
+          }
+        }
+        BitSet valueOrMask=(BitSet)value.clone();
+        valueOrMask.or(mask);
+        return value.intersects(mask) && valueOrMask.cardinality() <= mask.cardinality();
+      }
+    }
+;
+    exclusivePredicates.add(pred);
+    LivenessPredicate liveNow=new LiveSplitPointsPredicate(liveness,pred);
+    List<JsStatement> statsToAppend=fragmentExtractor.createOnLoadedCall(i);
+    addFragment(i,alreadyLoaded,liveNow,statsToAppend,fragmentStats);
+  }
+{
+    LivenessPredicate liveNow=new LiveSplitPointsPredicate(liveness,new Predicate<BitSet>(){
+      @Override public boolean apply(      BitSet value){
+        for (        Predicate<BitSet> p : exclusivePredicates) {
+          if (p.apply(value)) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }
+);
+    List<JsStatement> statsToAppend=fragmentExtractor.createOnLoadedCall(splitPointToFragmentMap.length);
+    addFragment(splitPointToFragmentMap.length,alreadyLoaded,liveNow,statsToAppend,fragmentStats);
+  }
+  jsprogram.setFragmentCount(fragmentStats.size());
+  int count=0;
+  for (  int i : fragmentStats.keySet()) {
+    JsBlock fragBlock=jsprogram.getFragmentBlock(count++);
+    fragBlock.getStatements().clear();
+    fragBlock.getStatements().addAll(fragmentStats.get(i));
+  }
+}

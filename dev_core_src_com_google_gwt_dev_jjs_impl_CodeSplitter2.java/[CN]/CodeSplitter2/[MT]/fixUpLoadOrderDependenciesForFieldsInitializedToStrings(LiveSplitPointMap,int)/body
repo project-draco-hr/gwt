@@ -1,0 +1,16 @@
+{
+  int numFixups=0;
+  int numFieldStrings=0;
+  for (  JField field : fragmentMap.fields.keySet()) {
+    if (field.getInitializer() instanceof JStringLiteral) {
+      numFieldStrings++;
+      String string=((JStringLiteral)field.getInitializer()).getValue();
+      int fieldFrag=getOrZero(fragmentMap.fields,field);
+      int stringFrag=getOrZero(fragmentMap.strings,string);
+      if (fieldFrag != stringFrag && stringFrag != 0) {
+        numFixups++;
+        fragmentMap.setLive(string,0);
+      }
+    }
+  }
+}

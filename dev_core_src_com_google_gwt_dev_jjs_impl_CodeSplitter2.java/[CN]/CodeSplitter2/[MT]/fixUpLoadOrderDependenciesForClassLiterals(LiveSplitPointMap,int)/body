@@ -1,0 +1,23 @@
+{
+  int numClassLitStrings=0;
+  int numFixups=0;
+  for (  JField field : fragmentMap.fields.keySet()) {
+    JClassLiteral classLit=fieldToLiteralOfClass.get(field);
+    if (classLit != null) {
+      BitSet value=fragmentMap.fields.get(field);
+      int classLitFrag=0;
+      for (int i=0; i < value.cardinality(); i++) {
+        classLitFrag=value.nextSetBit(classLitFrag);
+        for (        String string : stringsIn(field.getInitializer())) {
+          numClassLitStrings++;
+          int stringFrag=getOrZero(fragmentMap.strings,string);
+          if (stringFrag != classLitFrag && stringFrag != 0) {
+            numFixups++;
+            fragmentMap.setLive(string,0);
+          }
+        }
+        classLitFrag++;
+      }
+    }
+  }
+}

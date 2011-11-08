@@ -1,0 +1,51 @@
+{
+  Event codeSplitterEvent=SpeedTracerLogger.start(CompilerEventType.CODE_SPLITTER,"phase","findSplitPoint");
+  Map<String,List<Integer>> nameToSplitPoint=reverseByName(program.getRunAsyncs());
+  if (refString.startsWith("@")) {
+    JsniRef jsniRef=JsniRef.parse(refString);
+    if (jsniRef == null) {
+      branch.log(TreeLogger.ERROR,"Badly formatted JSNI reference in " + PROP_INITIAL_SEQUENCE + ": "+ refString);
+      throw new UnableToCompleteException();
+    }
+    final String lookupErrorHolder[]=new String[1];
+    JNode referent=JsniRefLookup.findJsniRefTarget(jsniRef,program,new JsniRefLookup.ErrorReporter(){
+      public void reportError(      String error){
+        lookupErrorHolder[0]=error;
+      }
+    }
+);
+    if (referent == null) {
+      TreeLogger resolveLogger=branch.branch(TreeLogger.ERROR,"Could not resolve JSNI reference: " + jsniRef);
+      resolveLogger.log(TreeLogger.ERROR,lookupErrorHolder[0]);
+      throw new UnableToCompleteException();
+    }
+    if (!(referent instanceof JMethod)) {
+      branch.log(TreeLogger.ERROR,"Not a method: " + referent);
+      throw new UnableToCompleteException();
+    }
+    JMethod method=(JMethod)referent;
+    String canonicalName=ReplaceRunAsyncs.getImplicitName(method);
+    List<Integer> splitPoints=nameToSplitPoint.get(canonicalName);
+    if (splitPoints == null) {
+      branch.log(TreeLogger.ERROR,"Method does not enclose a runAsync call: " + jsniRef);
+      throw new UnableToCompleteException();
+    }
+    if (splitPoints.size() > 1) {
+      branch.log(TreeLogger.ERROR,"Method includes multiple runAsync calls, " + "so it's ambiguous which one is meant: " + jsniRef);
+      throw new UnableToCompleteException();
+    }
+    return splitPoints.get(0);
+  }
+  List<Integer> splitPoints=nameToSplitPoint.get(refString);
+  if (splitPoints == null || splitPoints.size() == 0) {
+    branch.log(TreeLogger.ERROR,"No runAsync call is labelled with class " + refString);
+    throw new UnableToCompleteException();
+  }
+  if (splitPoints.size() > 1) {
+    branch.log(TreeLogger.ERROR,"More than one runAsync call is labelled with class " + refString);
+    throw new UnableToCompleteException();
+  }
+  int result=splitPoints.get(0);
+  codeSplitterEvent.end();
+  return result;
+}
