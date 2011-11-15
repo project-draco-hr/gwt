@@ -48,13 +48,22 @@
  while (webWindow != webWindow.getTopWindow());
       }
     }
-    result=jsEngine.callFunction(htmlPage,jsFunction,jsContext,window,jsThis,jsArgs);
+    result=jsEngine.callFunction(htmlPage,jsFunction,window,jsThis,jsArgs);
   }
- catch (  JavaScriptException ex) {
-    if (logger.isLoggable(TreeLogger.INFO)) {
-      logger.log(TreeLogger.INFO,"INVOKE: JavaScriptException " + ex + ", message: "+ ex.getMessage()+ " when invoking "+ methodName);
+ catch (  ScriptException se) {
+    if (se.getCause() instanceof JavaScriptException) {
+      JavaScriptException ex=(JavaScriptException)se.getCause();
+      if (logger.isLoggable(TreeLogger.INFO)) {
+        logger.log(TreeLogger.INFO,"INVOKE: JavaScriptException " + ex + ", message: "+ ex.getMessage()+ " when invoking "+ methodName);
+      }
+      return new ExceptionOrReturnValue(true,makeValueFromJsval(jsContext,ex.getValue()));
     }
-    return new ExceptionOrReturnValue(true,makeValueFromJsval(jsContext,ex.getValue()));
+ else {
+      if (logger.isLoggable(TreeLogger.INFO)) {
+        logger.log(TreeLogger.INFO,"INVOKE: exception " + se + ", message: "+ se.getMessage()+ " when invoking "+ methodName);
+      }
+      return new ExceptionOrReturnValue(true,makeValueFromJsval(jsContext,Undefined.instance));
+    }
   }
 catch (  Exception ex) {
     if (logger.isLoggable(TreeLogger.INFO)) {
