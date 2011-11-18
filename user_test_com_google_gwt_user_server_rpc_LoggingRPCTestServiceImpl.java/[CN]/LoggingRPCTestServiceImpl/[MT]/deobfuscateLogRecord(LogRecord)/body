@@ -1,0 +1,33 @@
+{
+  if ("HostedMode".equals(getPermutationStrongName())) {
+    return value;
+  }
+  StackTraceDeobfuscator deobf=new StackTraceDeobfuscator(getSymbolMapsDir()){
+    @Override protected InputStream getSourceMapInputStream(    String permutationStrongName,    int fragmentNumber) throws IOException {
+      if (symbolMapsDirectory.exists()) {
+        return super.getSourceMapInputStream(permutationStrongName,fragmentNumber);
+      }
+ else {
+        return getServletContext().getResourceAsStream(getModule() + File.separatorChar + JUnitSymbolMapsLinker.SYMBOL_MAP_DIR+ permutationStrongName+ "_sourceMap"+ fragmentNumber+ ".json");
+      }
+    }
+    @Override protected InputStream getSymbolMapInputStream(    String permutationStrongName) throws IOException {
+      if (symbolMapsDirectory.exists()) {
+        return super.getSymbolMapInputStream(permutationStrongName);
+      }
+ else {
+        String name=getModule() + File.separatorChar + JUnitSymbolMapsLinker.SYMBOL_MAP_DIR+ permutationStrongName+ ".symbolMap";
+        return getServletContext().getResourceAsStream(name);
+      }
+    }
+  }
+;
+  HttpServletRequest threadLocalRequest=getThreadLocalRequest();
+  String strongName=null;
+  if (threadLocalRequest != null) {
+    strongName=threadLocalRequest.getHeader(RpcRequestBuilder.STRONG_NAME_HEADER);
+  }
+  LogRecord newRecord=deobf.deobfuscateLogRecord(value,strongName);
+  Logger.getLogger(value.getLoggerName()).log(newRecord);
+  return newRecord;
+}
