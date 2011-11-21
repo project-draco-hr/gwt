@@ -1,53 +1,13 @@
 {
   if (onePermutation) {
     artifacts=new ArtifactSet(artifacts);
-    Map<Integer,String> permMap=new HashMap<Integer,String>();
     ByteArrayOutputStream out=new ByteArrayOutputStream();
     for (    CompilationResult result : artifacts.find(CompilationResult.class)) {
       PrintWriter pw=new PrintWriter(out);
-      permMap.put(result.getPermutationId(),result.getStrongName());
       doWriteSymbolMap(logger,result,pw);
       pw.close();
       doEmitSymbolMap(logger,artifacts,result,out);
       out.reset();
-    }
-    for (    SourceMapArtifact se : artifacts.find(SourceMapArtifact.class)) {
-      String sourceMapString=Util.readStreamAsString(se.getContents(logger));
-      String strongName=permMap.get(se.getPermutationId());
-      String partialPath=strongName + "_sourceMap" + se.getFragment()+ ".json";
-      int fragment=se.getFragment();
-      ScriptFragmentEditsArtifact editArtifact=null;
-      for (      ScriptFragmentEditsArtifact mp : artifacts.find(ScriptFragmentEditsArtifact.class)) {
-        if (mp.getStrongName().equals(strongName) && mp.getFragment() == fragment) {
-          editArtifact=mp;
-          artifacts.remove(editArtifact);
-          break;
-        }
-      }
-      SyntheticArtifact emArt=null;
-      if (editArtifact == null) {
-        emArt=emitSourceMapString(logger,sourceMapString,partialPath);
-      }
- else {
-        SourceMapGeneratorV3 sourceMapGenerator=new SourceMapGeneratorV3();
-        try {
-          int totalPrefixLines=0;
-          for (          ScriptFragmentEditsArtifact.EditOperation op : editArtifact.editOperations) {
-            if (op.getOp() == ScriptFragmentEditsArtifact.Edit.PREFIX) {
-              totalPrefixLines+=op.getNumLines();
-            }
-          }
-          sourceMapGenerator.mergeMapSection(totalPrefixLines,0,sourceMapString);
-          StringWriter stringWriter=new StringWriter();
-          sourceMapGenerator.appendTo(stringWriter,"sourceMap");
-          emArt=emitSourceMapString(logger,stringWriter.toString(),partialPath);
-        }
- catch (        Exception e) {
-          logger.log(TreeLogger.Type.WARN,"Can't write source map " + partialPath,e);
-        }
-      }
-      artifacts.add(emArt);
-      artifacts.remove(se);
     }
   }
   return artifacts;

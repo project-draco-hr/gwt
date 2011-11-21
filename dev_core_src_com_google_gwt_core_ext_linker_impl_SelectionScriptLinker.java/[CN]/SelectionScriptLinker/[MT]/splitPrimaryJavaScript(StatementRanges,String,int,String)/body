@@ -1,0 +1,28 @@
+{
+  if (charsPerChunk < 0 || ranges == null) {
+    return js;
+  }
+  StringBuilder sb=new StringBuilder();
+  int bytesInCurrentChunk=0;
+  for (int i=0; i < ranges.numStatements(); i++) {
+    int start=ranges.start(i);
+    int end=ranges.end(i);
+    int length=end - start;
+    if (bytesInCurrentChunk > 0 && bytesInCurrentChunk + length > charsPerChunk) {
+      if (lastChar(sb) != '\n') {
+        sb.append('\n');
+      }
+      sb.append(scriptChunkSeparator);
+      bytesInCurrentChunk=0;
+    }
+    if (bytesInCurrentChunk > 0) {
+      char lastChar=lastChar(sb);
+      if (lastChar != '\n' && lastChar != ';' && lastChar != '}') {
+        sb.append(";");
+      }
+    }
+    sb.append(js,start,end);
+    bytesInCurrentChunk+=length;
+  }
+  return sb.toString();
+}

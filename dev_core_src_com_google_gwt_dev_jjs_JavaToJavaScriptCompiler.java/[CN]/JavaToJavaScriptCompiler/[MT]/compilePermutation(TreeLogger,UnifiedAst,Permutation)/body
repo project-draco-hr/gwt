@@ -61,8 +61,20 @@
         dependencies=new SyntheticArtifact(SoycReportLinker.class,"dependencies" + permutationId + ".xml.gz",baos.toByteArray());
       }
     }
-    boolean isIE6orUnknown=findBooleanProperty(propertyOracles,logger,"user.agent","ie6",true,false,true);
-    boolean isSourceMapsEnabled=findBooleanProperty(propertyOracles,logger,"compiler.useSourceMaps","true",true,false,false);
+    boolean isIE6orUnknown=false;
+    for (    PropertyOracle oracle : propertyOracles) {
+      try {
+        SelectionProperty userAgentProperty=oracle.getSelectionProperty(logger,"user.agent");
+        if ("ie6".equals(userAgentProperty.getCurrentValue())) {
+          isIE6orUnknown=true;
+          break;
+        }
+      }
+ catch (      BadPropertyValueException e) {
+        isIE6orUnknown=true;
+        break;
+      }
+    }
     Map<JsName,String> obfuscateMap=Maps.create();
 switch (options.getOutput()) {
 case OBFUSCATED:
@@ -100,9 +112,9 @@ JsBreakUpLargeVarStatements.exec(jsProgram,propertyOracles);
 String[] js=new String[jsProgram.getFragmentCount()];
 StatementRanges[] ranges=new StatementRanges[js.length];
 SizeBreakdown[] sizeBreakdowns=options.isSoycEnabled() || options.isCompilerMetricsEnabled() ? new SizeBreakdown[js.length] : null;
-List<Map<Range,SourceInfo>> sourceInfoMaps=new ArrayList<Map<Range,SourceInfo>>();
-generateJavaScriptCode(options,jsProgram,jjsmap,js,ranges,sizeBreakdowns,sourceInfoMaps,splitBlocks,isSourceMapsEnabled);
-PermutationResult toReturn=new PermutationResultImpl(js,permutation,makeSymbolMap(symbolTable,jsProgram),ranges);
+List<Map<Range,SourceInfo>> sourceInfoMaps=options.isSoycExtra() ? new ArrayList<Map<Range,SourceInfo>>() : null;
+generateJavaScriptCode(options,jsProgram,jjsmap,js,ranges,sizeBreakdowns,sourceInfoMaps,splitBlocks);
+PermutationResult toReturn=new PermutationResultImpl(js,permutation,makeSymbolMap(symbolTable),ranges);
 CompilationMetricsArtifact compilationMetrics=null;
 if (options.isCompilerMetricsEnabled()) {
 compilationMetrics=new CompilationMetricsArtifact(permutation.getId());
@@ -112,11 +124,7 @@ compilationMetrics.setJsSize(sizeBreakdowns);
 compilationMetrics.setPermutationDescription(permutation.prettyPrint());
 toReturn.addArtifacts(Lists.create(unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics));
 }
-toReturn.addArtifacts(makeSoycArtifacts(logger,permutationId,jprogram,js,sizeBreakdowns,options.isSoycExtra() ? sourceInfoMaps : null,dependencies,jjsmap,obfuscateMap,unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics,options.isSoycHtmlDisabled()));
-if (isSourceMapsEnabled) {
-logger.log(TreeLogger.INFO,"Source Maps Enabled");
-toReturn.addArtifacts(SourceMapRecorder.makeSourceMapArtifacts(sourceInfoMaps,permutationId));
-}
+toReturn.addArtifacts(makeSoycArtifacts(logger,permutationId,jprogram,js,sizeBreakdowns,sourceInfoMaps,dependencies,jjsmap,obfuscateMap,unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics,options.isSoycHtmlDisabled()));
 logTrackingStats(logger);
 if (logger.isLoggable(TreeLogger.TRACE)) {
 logger.log(TreeLogger.TRACE,"Permutation took " + (System.currentTimeMillis() - permStart) + " ms");
