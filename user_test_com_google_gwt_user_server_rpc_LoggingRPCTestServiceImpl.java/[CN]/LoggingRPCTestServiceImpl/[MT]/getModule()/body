@@ -1,0 +1,21 @@
+{
+  try {
+    String header=getThreadLocalRequest().getHeader(MODULE_BASE_HEADER);
+    if (header == null) {
+      return null;
+    }
+    String path=new URL(header).getPath();
+    String contextPath=getThreadLocalRequest().getContextPath();
+    if (!path.startsWith(contextPath)) {
+      return null;
+    }
+    path=path.substring(contextPath.length());
+    if (path.endsWith("/")) {
+      path=path.substring(0,path.length() - 1);
+    }
+    return path;
+  }
+ catch (  MalformedURLException e) {
+    return null;
+  }
+}

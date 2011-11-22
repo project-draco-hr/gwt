@@ -1,0 +1,41 @@
+{
+  for (int i=0; i < js.length; i++) {
+    DefaultTextOutput out=new DefaultTextOutput(options.getOutput().shouldMinimize());
+    JsSourceGenerationVisitorWithSizeBreakdown v;
+    if (sourceInfoMaps != null) {
+      v=new JsReportGenerationVisitor(out,jjsMap);
+    }
+ else {
+      v=new JsSourceGenerationVisitorWithSizeBreakdown(out,jjsMap);
+    }
+    v.accept(jsProgram.getFragmentBlock(i));
+    StatementRanges statementRanges=v.getStatementRanges();
+    String code=out.toString();
+    Map<Range,SourceInfo> infoMap=(sourceInfoMaps != null) ? v.getSourceInfoMap() : null;
+    JsAbstractTextTransformer transformer=new JsAbstractTextTransformer(code,statementRanges,infoMap){
+      @Override public void exec(){
+      }
+      @Override protected void updateSourceInfoMap(){
+      }
+    }
+;
+    Event functionClusterEvent=SpeedTracerLogger.start(CompilerEventType.FUNCTION_CLUSTER);
+    if (!sourceMapsEnabled && options.isAggressivelyOptimize() && options.getOutput() == JsOutputOption.OBFUSCATED) {
+      transformer=new JsFunctionClusterer(transformer);
+      transformer.exec();
+    }
+    functionClusterEvent.end();
+    if (!sourceMapsEnabled && splitBlocks) {
+      transformer=new JsIEBlockTextTransformer(transformer);
+      transformer.exec();
+    }
+    js[i]=transformer.getJs();
+    ranges[i]=transformer.getStatementRanges();
+    if (sizeBreakdowns != null) {
+      sizeBreakdowns[i]=v.getSizeBreakdown();
+    }
+    if (sourceInfoMaps != null) {
+      sourceInfoMaps.add(transformer.getSourceInfoMap());
+    }
+  }
+}

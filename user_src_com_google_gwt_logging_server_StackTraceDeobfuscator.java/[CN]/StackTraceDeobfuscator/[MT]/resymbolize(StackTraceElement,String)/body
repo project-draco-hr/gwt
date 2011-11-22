@@ -1,12 +1,16 @@
 {
+  String declaringClass=null;
+  String methodName=null;
+  String filename=null;
+  int lineNumber=-1;
+  int fragmentId=-1;
+  String steFilename=ste.getFileName();
   SymbolMap map=loadSymbolMap(strongName);
   String symbolData=map == null ? null : map.get(ste.getMethodName());
   if (symbolData != null) {
     String[] parts=symbolData.split(",");
-    if (parts.length == 5) {
+    if (parts.length == 6) {
       String[] ref=parse(parts[0].substring(0,parts[0].lastIndexOf(')') + 1));
-      String declaringClass;
-      String methodName;
       if (ref != null) {
         declaringClass=ref[0];
         methodName=ref[1];
@@ -15,13 +19,50 @@
         declaringClass=ste.getClassName();
         methodName=ste.getMethodName();
       }
-      String filename="Unknown".equals(parts[3]) ? null : parts[3].substring(parts[3].lastIndexOf('/') + 1);
-      int lineNumber=ste.getLineNumber();
+      filename="Unknown".equals(parts[3]) ? null : parts[3].substring(parts[3].lastIndexOf('/') + 1);
+      lineNumber=ste.getLineNumber();
       if (lineNumber == LINE_NUMBER_UNKNOWN) {
         lineNumber=Integer.parseInt(parts[4]);
       }
-      return new StackTraceElement(declaringClass,methodName,filename,lineNumber);
+      fragmentId=Integer.parseInt(parts[5]);
     }
+  }
+  if (fragmentId == -1 && steFilename != null) {
+    Matcher matcher=fragmentIdPattern.matcher(steFilename);
+    if (matcher.matches()) {
+      String fragment=matcher.group(1);
+      try {
+        fragmentId=Integer.parseInt(fragment);
+      }
+ catch (      Exception e) {
+      }
+    }
+ else     if (steFilename.contains(strongName)) {
+      fragmentId=0;
+    }
+  }
+  if (fragmentId != -1) {
+    SourceMapping sourceMapping=loadSourceMap(strongName,fragmentId);
+    if (sourceMapping != null && ste.getLineNumber() > -1) {
+      int column=1;
+      int jsLineNumber=ste.getLineNumber();
+      if (jsLineNumber > StackTraceCreator.MAX_LINE_NUMBER) {
+        column=jsLineNumber / StackTraceCreator.MAX_LINE_NUMBER;
+        jsLineNumber=jsLineNumber % StackTraceCreator.MAX_LINE_NUMBER;
+      }
+      Mapping.OriginalMapping mappingForLine=sourceMapping.getMappingForLine(jsLineNumber,column);
+      if (mappingForLine != null) {
+        if (declaringClass == null || declaringClass.equals(ste.getClassName())) {
+          declaringClass=mappingForLine.getOriginalFile();
+          methodName=mappingForLine.getIdentifier();
+        }
+        filename=mappingForLine.getOriginalFile();
+        lineNumber=mappingForLine.getLineNumber() - 1;
+      }
+    }
+  }
+  if (declaringClass != null) {
+    return new StackTraceElement(declaringClass,methodName,filename,lineNumber);
   }
   return ste;
 }
