@@ -1,10 +1,14 @@
 {
   if (isLoggable(record.getLevel())) {
-    for (    Handler h : handlers) {
-      h.publish(record);
+    for (    Handler handler : getHandlers()) {
+      handler.publish(record);
     }
-    if (useParentHandlers && parent != null) {
-      parent.log(record);
+    Logger logger=getUseParentHandlers() ? getParent() : null;
+    while (logger != null) {
+      for (      Handler handler : logger.getHandlers()) {
+        handler.publish(record);
+      }
+      logger=logger.getUseParentHandlers() ? logger.getParent() : null;
     }
   }
 }
