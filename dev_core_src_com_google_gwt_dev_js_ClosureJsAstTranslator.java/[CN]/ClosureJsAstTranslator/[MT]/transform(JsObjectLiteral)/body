@@ -1,0 +1,20 @@
+{
+  Node n=IR.objectlit();
+  for (  Object element : x.getPropertyInitializers()) {
+    JsPropertyInitializer propInit=(JsPropertyInitializer)element;
+    Node key;
+    if (propInit.getLabelExpr().getKind() == NodeKind.NUMBER) {
+      key=transformNumberAsString((JsNumberLiteral)propInit.getLabelExpr());
+      key.putBooleanProp(Node.QUOTED_PROP,true);
+    }
+ else     if (propInit.getLabelExpr().getKind() == NodeKind.NAME_REF) {
+      key=transformNameAsString(((JsNameRef)propInit.getLabelExpr()).getShortIdent(),propInit.getLabelExpr());
+    }
+ else {
+      key=transform(propInit.getLabelExpr());
+    }
+    Preconditions.checkState(key.isString(),key);
+    n.addChildToBack(IR.propdef(key,transform(propInit.getValueExpr())));
+  }
+  return applySourceInfo(n,x);
+}

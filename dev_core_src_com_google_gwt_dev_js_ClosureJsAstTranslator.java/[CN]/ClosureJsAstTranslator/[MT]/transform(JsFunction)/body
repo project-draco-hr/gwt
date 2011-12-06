@@ -1,0 +1,24 @@
+{
+  Node name;
+  if (x.getName() != null) {
+    name=getNameNodeFor(x);
+  }
+ else {
+    name=IR.name("");
+  }
+  applySourceInfo(name,x);
+  Node params=IR.paramList();
+  for (  Object element : x.getParameters()) {
+    JsParameter param=(JsParameter)element;
+    params.addChildToBack(transform(param));
+  }
+  applySourceInfo(params,x);
+  Node n=IR.function(name,params,transform(x.getBody()));
+  if (name.getString().isEmpty()) {
+    n.putProp(Node.ORIGINALNAME_PROP,"");
+  }
+ else {
+    applyOriginalName(n,x);
+  }
+  return applySourceInfo(n,x);
+}

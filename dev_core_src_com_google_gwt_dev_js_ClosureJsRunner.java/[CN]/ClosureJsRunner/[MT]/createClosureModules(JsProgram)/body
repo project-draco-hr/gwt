@@ -1,0 +1,18 @@
+{
+  int fragments=program.getFragmentCount();
+  JSModule[] modules=new JSModule[fragments];
+  for (int i=0; i < fragments; i++) {
+    modules[mapFragmentIndexToModuleIndex(fragments,i)]=createClosureModule(program,program.getFragment(i),"module" + i);
+  }
+  if (fragments > 1) {
+    JSModule init=modules[0];
+    JSModule leftovers=modules[1];
+    leftovers.addDependency(init);
+    for (int i=2; i < modules.length; i++) {
+      Preconditions.checkNotNull(modules[i],"Module: ",i);
+      modules[i].addDependency(leftovers);
+    }
+  }
+  modules[0].add(JSSourceFile.fromCode("hack","window['gwtOnLoad'] = gwtOnLoad;\n"));
+  return Arrays.asList(modules);
+}

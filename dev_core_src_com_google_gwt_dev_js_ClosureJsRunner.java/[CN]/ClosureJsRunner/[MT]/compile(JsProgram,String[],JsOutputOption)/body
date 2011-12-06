@@ -1,0 +1,21 @@
+{
+  CompilerOptions options=getClosureCompilerOptions(jsOutputOption);
+  Logger.getLogger("com.google.gwt.thirdparty.javascript.jscomp").setLevel(Level.OFF);
+  compiler=new Compiler();
+  List<JSModule> modules=createClosureModules(program);
+  List<JSSourceFile> externs=getClosureCompilerExterns();
+  Result result=compiler.compileModules(externs,modules,options);
+  if (result.success) {
+    int fragments=program.getFragmentCount();
+    for (int i=0; i < fragments; i++) {
+      int module=mapFragmentIndexToModuleIndex(fragments,i);
+      js[i]=compiler.toSource(modules.get(module));
+    }
+  }
+ else {
+    for (    JSError error : result.errors) {
+      System.err.println("error optimizing:" + error.toString());
+      throw new RuntimeException(error.description);
+    }
+  }
+}
