@@ -4,15 +4,13 @@
     return null;
   }
   Class<?> result;
-synchronized (classCustomSerializerCache) {
-    result=classCustomSerializerCache.get(instanceType);
+  result=classCustomSerializerCache.get(instanceType);
+  if (result == null) {
+    result=computeHasCustomFieldSerializer(instanceType,false);
     if (result == null) {
-      result=computeHasCustomFieldSerializer(instanceType,false);
-      if (result == null) {
-        result=instanceType;
-      }
-      classCustomSerializerCache.put(instanceType,result);
+      result=instanceType;
     }
+    classCustomSerializerCache.put(instanceType,result);
   }
   return (result == instanceType) ? null : result;
 }
