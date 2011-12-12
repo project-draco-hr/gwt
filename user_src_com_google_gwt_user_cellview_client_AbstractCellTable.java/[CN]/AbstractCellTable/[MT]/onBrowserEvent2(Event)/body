@@ -61,15 +61,21 @@
     boolean isHeader=(targetTableSection == thead);
     headerParent=isHeader ? headerParent : footerParent;
     Element columnParent=isHeader ? headerColumnParent : footerColumnParent;
+    boolean shouldSortColumn=true;
     if (headerParent != null) {
       Header<?> header=isHeader ? headerBuilder.getHeader(headerParent) : footerBuilder.getHeader(footerParent);
-      if (header != null && cellConsumesEventType(header.getCell(),eventType)) {
+      if (header != null) {
         int headerIndex=isHeader ? headerBuilder.getRowIndex(targetTableRow) : footerBuilder.getRowIndex(targetTableRow);
         Context context=new Context(headerIndex,col,header.getKey());
-        header.onBrowserEvent(context,headerParent,event);
+        if (cellConsumesEventType(header.getCell(),eventType)) {
+          header.onBrowserEvent(context,headerParent,event);
+        }
+        if (isClick) {
+          shouldSortColumn=header.onPreviewColumnSortEvent(context,headerParent,event);
+        }
       }
     }
-    if (isClick && columnParent != null) {
+    if (isClick && shouldSortColumn && columnParent != null) {
       Column<T,?> column=isHeader ? headerBuilder.getColumn(columnParent) : footerBuilder.getColumn(columnParent);
       if (column != null && column.isSortable()) {
         headersDirty=true;
