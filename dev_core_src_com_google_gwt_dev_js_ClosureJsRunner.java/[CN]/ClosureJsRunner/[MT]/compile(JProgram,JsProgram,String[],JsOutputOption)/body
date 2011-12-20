@@ -2,13 +2,14 @@
   CompilerOptions options=getClosureCompilerOptions(jsOutputOption);
   Logger.getLogger("com.google.gwt.thirdparty.javascript.jscomp").setLevel(Level.OFF);
   compiler=new Compiler();
+  computeFragmentMap(jprogram,program);
   List<JSModule> modules=createClosureModules(program);
   List<JSSourceFile> externs=getClosureCompilerExterns();
   Result result=compiler.compileModules(externs,modules,options);
   if (result.success) {
     int fragments=program.getFragmentCount();
     for (int i=0; i < fragments; i++) {
-      int module=mapFragmentIndexToModuleIndex(fragments,i);
+      int module=mapFragmentIndexToModuleIndex(i);
       js[i]=compiler.toSource(modules.get(module));
     }
   }
