@@ -1,0 +1,16 @@
+{
+  if (obj instanceof Collection) {
+    throw new RuntimeException("Unable to encode request as JSON payload; Request methods must have parameters of the form List<T> or Set<T>, where T is a scalar (non-collection) type.");
+  }
+  Splittable value;
+  if (obj instanceof Enum && getAutoBeanFactory() instanceof EnumMap) {
+    value=ValueCodex.encode(((EnumMap)getAutoBeanFactory()).getToken((Enum<?>)obj));
+  }
+ else   if (ValueCodex.canDecode(obj.getClass())) {
+    value=ValueCodex.encode(obj);
+  }
+ else {
+    value=AutoBeanCodex.encode(AutoBeanUtils.getAutoBean(obj));
+  }
+  return value;
+}
