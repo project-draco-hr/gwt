@@ -3,14 +3,30 @@
   JsArrayLiteral arrayLit=(JsArrayLiteral)pop();
   SourceInfo sourceInfo=x.getSourceInfo();
   if (namesByQueryId == null || x.getExprs().size() == 0) {
-    JsObjectLiteral objLit=new JsObjectLiteral(sourceInfo);
-    List<JsPropertyInitializer> props=objLit.getPropertyInitializers();
-    JsNumberLiteral one=new JsNumberLiteral(sourceInfo,1);
-    for (    JsExpression expr : arrayLit.getExpressions()) {
-      JsPropertyInitializer prop=new JsPropertyInitializer(sourceInfo,expr,one);
-      props.add(prop);
+    String stringMap=castMapToString(x);
+    if (namesByCastMap.containsKey(stringMap)) {
+      push(namesByCastMap.get(stringMap).makeRef(x.getSourceInfo()));
     }
-    push(objLit);
+ else     if (internedCastMap.contains(stringMap)) {
+      String internName="CM$";
+      boolean first=true;
+      for (      JExpression expr : x.getExprs()) {
+        if (first) {
+          first=false;
+        }
+ else {
+          internName+="_";
+        }
+        internName+=((JsQueryType)expr).getQueryId();
+      }
+      JsName internedCastMapName=topScope.declareName(internName,internName);
+      namesByCastMap.put(stringMap,internedCastMapName);
+      castMapByString.put(stringMap,castMapToObjectLiteral(arrayLit,sourceInfo));
+      push(internedCastMapName.makeRef(x.getSourceInfo()));
+    }
+ else {
+      push(castMapToObjectLiteral(arrayLit,sourceInfo));
+    }
   }
  else {
     JsInvocation inv=new JsInvocation(sourceInfo);
