@@ -1,0 +1,14 @@
+{
+  if (!(node instanceof HasSourceInfo)) {
+    return super.generateAndBill(node,nameToBillTo);
+  }
+  int beforePosition=out.getPosition();
+  int beforeLine=out.getLine();
+  int beforeColumn=out.getColumn();
+  T toReturn=super.generateAndBill(node,nameToBillTo);
+  Range javaScriptRange=new Range(beforePosition,out.getPosition(),beforeLine,beforeColumn,out.getLine(),out.getColumn());
+  SourceInfo defaultTarget=((HasSourceInfo)node).getSourceInfo();
+  SourceInfo newTarget=findTarget(nameToBillTo,defaultTarget);
+  sourceInfoMap.put(javaScriptRange,newTarget);
+  return toReturn;
+}
