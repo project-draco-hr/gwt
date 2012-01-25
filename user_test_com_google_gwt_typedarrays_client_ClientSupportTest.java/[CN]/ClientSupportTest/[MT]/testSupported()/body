@@ -1,0 +1,28 @@
+{
+  boolean isSupported=TypedArrays.isSupported();
+  String ua=getUserAgent();
+  if (ua.contains("msie")) {
+    assertEquals("IE10+ should support typed arrays",getIeDocumentMode() >= 10,isSupported);
+    return;
+  }
+  if (ua.contains("firefox/")) {
+    int idx=ua.indexOf("firefox/") + 8;
+    int endIdx=idx;
+    int len=ua.length();
+    while (endIdx < len && Character.isDigit(ua.charAt(endIdx))) {
+      endIdx++;
+    }
+    int majorVers=Integer.parseInt(ua.substring(idx,endIdx),10);
+    assertEquals("FF" + majorVers,majorVers >= 4,isSupported);
+    return;
+  }
+  if (ua.contains("opera")) {
+    assertTrue(isSupported);
+    return;
+  }
+  if (ua.contains("webkit")) {
+    assertTrue(isSupported);
+    return;
+  }
+  assertFalse("Unknown browser (" + ua + ") assumed not to support typed arrays",isSupported);
+}

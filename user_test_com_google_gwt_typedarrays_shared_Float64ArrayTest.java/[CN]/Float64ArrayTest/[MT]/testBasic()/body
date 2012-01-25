@@ -1,0 +1,36 @@
+{
+  if (!isSupported()) {
+    return;
+  }
+  int byteLen=40;
+  ArrayBuffer buf=TypedArrays.createArrayBuffer(byteLen);
+  assertEquals(byteLen,buf.byteLength());
+  DataView view=TypedArrays.createDataView(buf);
+  Float64Array array=TypedArrays.createFloat64Array(buf);
+  assertSame(buf,array.buffer());
+  assertEquals(byteLen,array.byteLength());
+  assertEquals(0,array.byteOffset());
+  int len=byteLen / BYTES_PER_ELEMENT;
+  assertEquals(len,array.length());
+  for (int i=0; i < len; ++i) {
+    assertEquals(0.0,array.get(i));
+  }
+  for (int i=0; i < len; ++i) {
+    array.set(i,1 << (i + 1));
+  }
+  for (int i=0; i < len; ++i) {
+    assertEquals("Byte " + i + ":0",0,view.getUint8(i * BYTES_PER_ELEMENT));
+    assertEquals("Byte " + i + ":1",0,view.getUint8(i * BYTES_PER_ELEMENT + 1));
+    assertEquals("Byte " + i + ":2",0,view.getUint8(i * BYTES_PER_ELEMENT + 2));
+    assertEquals("Byte " + i + ":3",0,view.getUint8(i * BYTES_PER_ELEMENT + 3));
+    assertEquals("Byte " + i + ":4",0,view.getUint8(i * BYTES_PER_ELEMENT + 4));
+    assertEquals("Byte " + i + ":5",0,view.getUint8(i * BYTES_PER_ELEMENT + 5));
+    assertEquals("Byte " + i + ":6",(i & 15) << 4,view.getUint8(i * BYTES_PER_ELEMENT + 6));
+    assertEquals("Byte " + i + ":7",64 + (i >> 4),view.getUint8(i * BYTES_PER_ELEMENT + 7));
+  }
+  view.setFloat64(0,-256,true);
+  view.setInt32(12,0x0000F03F);
+  view.setInt32(8,0);
+  assertEquals(-256.0,array.get(0));
+  assertEquals(1.0,array.get(1));
+}

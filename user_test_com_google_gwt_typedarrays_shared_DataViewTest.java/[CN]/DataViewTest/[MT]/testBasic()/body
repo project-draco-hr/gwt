@@ -1,0 +1,39 @@
+{
+  if (!TypedArrays.isSupported()) {
+    return;
+  }
+  int len=40;
+  ArrayBuffer buf=TypedArrays.createArrayBuffer(len);
+  assertEquals(len,buf.byteLength());
+  DataView view=TypedArrays.createDataView(buf);
+  assertSame(buf,view.buffer());
+  assertEquals(len,view.byteLength());
+  assertEquals(0,view.byteOffset());
+  for (int i=0; i < len; ++i) {
+    assertEquals(0,view.getUint8(i));
+  }
+  view.setUint8(0,0x01);
+  view.setUint8(1,0x20);
+  view.setUint8(2,0x04);
+  view.setUint8(3,0x80);
+  assertEquals(0x01,view.getUint8(0));
+  assertEquals(0x20,view.getUint8(1));
+  assertEquals(0x04,view.getUint8(2));
+  assertEquals(0x80,view.getUint8(3));
+  assertEquals(0x01,view.getInt8(0));
+  assertEquals(0x20,view.getInt8(1));
+  assertEquals(0x04,view.getInt8(2));
+  assertEquals(-128,view.getInt8(3));
+  assertEquals(0x0120,view.getUint16(0));
+  assertEquals(0x0480,view.getUint16(2));
+  assertEquals(0x2001,view.getUint16(0,true));
+  assertEquals(0x8004,view.getUint16(2,true));
+  assertEquals(0x0120,view.getInt16(0));
+  assertEquals(0x0480,view.getInt16(2));
+  assertEquals(0x2001,view.getInt16(0,true));
+  assertEquals((short)0x8004,view.getInt16(2,true));
+  assertEquals(0x01200480L,view.getUint32(0));
+  assertEquals(0x80042001L,view.getUint32(0,true));
+  assertEquals(0x01200480,view.getInt32(0));
+  assertEquals(0x80042001,view.getInt32(0,true));
+}

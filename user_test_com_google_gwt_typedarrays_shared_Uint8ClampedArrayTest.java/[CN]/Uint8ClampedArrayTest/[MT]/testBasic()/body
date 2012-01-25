@@ -1,0 +1,28 @@
+{
+  if (!TypedArrays.isSupported()) {
+    return;
+  }
+  int byteLen=40;
+  ArrayBuffer buf=TypedArrays.createArrayBuffer(byteLen);
+  assertEquals(byteLen,buf.byteLength());
+  DataView view=TypedArrays.createDataView(buf);
+  Uint8ClampedArray array=TypedArrays.createUint8ClampedArray(buf);
+  assertSame(buf,array.buffer());
+  assertEquals(byteLen,array.byteLength());
+  assertEquals(0,array.byteOffset());
+  int len=byteLen / BYTES_PER_ELEMENT;
+  assertEquals(len,array.length());
+  for (int i=0; i < len; ++i) {
+    assertEquals(0,array.get(i));
+  }
+  for (int i=0; i < len; ++i) {
+    array.set(i,0x20 + i);
+  }
+  for (int i=0; i < len; ++i) {
+    assertEquals(0x20 + i,view.getUint8(i));
+  }
+  array.set(0,-1);
+  array.set(1,256);
+  assertEquals(0,view.getInt8(0));
+  assertEquals(-1,view.getInt8(1));
+}
