@@ -1,0 +1,49 @@
+{
+  long ihi=(long)(bits >> 32);
+  long ilo=(long)(bits & 0xffffffffL);
+  if (ihi < 0) {
+    ihi+=0x100000000L;
+  }
+  if (ilo < 0) {
+    ilo+=0x100000000L;
+  }
+  boolean negative=(ihi & 0x80000000) != 0;
+  int exp=(int)((ihi >> 20) & 0x7ff);
+  ihi&=0xfffff;
+  if (exp == 0x0) {
+    double d=(ihi * POWER_MINUS_20) + (ilo * POWER_MINUS_52);
+    d*=POWER_MINUS_1022;
+    return negative ? (d == 0.0 ? -0.0 : -d) : d;
+  }
+ else   if (exp == 0x7ff) {
+    if (ihi == 0 && ilo == 0) {
+      return negative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
+    }
+ else {
+      return Double.NaN;
+    }
+  }
+  exp-=1023;
+  double d=1.0 + (ihi * POWER_MINUS_20) + (ilo * POWER_MINUS_52);
+  if (exp > 0) {
+    int bit=512;
+    for (int i=0; i < 10; i++, bit>>=1) {
+      if (exp >= bit) {
+        d*=powers[i];
+        exp-=bit;
+      }
+    }
+  }
+ else   if (exp < 0) {
+    while (exp < 0) {
+      int bit=512;
+      for (int i=0; i < 10; i++, bit>>=1) {
+        if (exp <= -bit) {
+          d*=invPowers[i];
+          exp+=bit;
+        }
+      }
+    }
+  }
+  return negative ? -d : d;
+}

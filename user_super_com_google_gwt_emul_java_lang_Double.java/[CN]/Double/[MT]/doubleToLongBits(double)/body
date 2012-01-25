@@ -1,0 +1,63 @@
+{
+  if (isNaN(value)) {
+    return 0x7ff8000000000000L;
+  }
+  boolean negative=false;
+  if (value == 0.0) {
+    if (1.0 / value == NEGATIVE_INFINITY) {
+      return 0x8000000000000000L;
+    }
+ else {
+      return 0x0L;
+    }
+  }
+  if (value < 0.0) {
+    negative=true;
+    value=-value;
+  }
+  if (isInfinite(value)) {
+    if (negative) {
+      return 0xfff0000000000000L;
+    }
+ else {
+      return 0x7ff0000000000000L;
+    }
+  }
+  int exp=0;
+  if (value < 1.0) {
+    int bit=512;
+    for (int i=0; i < 10; i++, bit>>=1) {
+      if (value < invPowers[i] && exp - bit >= -1023) {
+        value*=powers[i];
+        exp-=bit;
+      }
+    }
+    if (value < 1.0 && exp - 1 >= -1023) {
+      value*=2.0;
+      exp--;
+    }
+  }
+ else   if (value >= 2.0) {
+    int bit=512;
+    for (int i=0; i < 10; i++, bit>>=1) {
+      if (value >= powers[i]) {
+        value*=invPowers[i];
+        exp+=bit;
+      }
+    }
+  }
+  if (exp > -1023) {
+    value-=1.0;
+  }
+ else {
+    value*=0.5;
+  }
+  long ihi=(long)(value * POWER_20);
+  value-=ihi * POWER_MINUS_20;
+  long ilo=(long)(value * POWER_52);
+  ihi|=(exp + 1023) << 20;
+  if (negative) {
+    ihi|=0x80000000L;
+  }
+  return (ihi << 32) | ilo;
+}

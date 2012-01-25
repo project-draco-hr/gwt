@@ -1,0 +1,37 @@
+{
+  if (isNaN(value)) {
+    return 0x7fc00000;
+  }
+  if (value == 0.0f) {
+    if (1.0 / value == NEGATIVE_INFINITY) {
+      return 0x80000000;
+    }
+ else {
+      return 0x0;
+    }
+  }
+  boolean negative=false;
+  if (value < 0.0) {
+    negative=true;
+    value=-value;
+  }
+  if (isInfinite(value)) {
+    if (negative) {
+      return 0xff800000;
+    }
+ else {
+      return 0x7f800000;
+    }
+  }
+  long l=Double.doubleToLongBits((double)value);
+  int exp=(int)(((l >> 52) & 0x7ff) - 1023);
+  int mantissa=(int)((l & 0xfffffffffffffL) >> 29);
+  if (exp <= -127) {
+    mantissa=(0x800000 | mantissa) >> (-127 - exp + 1);
+    exp=-127;
+  }
+  long bits=negative ? POWER_31_INT : 0x0L;
+  bits|=(exp + 127) << 23;
+  bits|=mantissa;
+  return (int)bits;
+}
