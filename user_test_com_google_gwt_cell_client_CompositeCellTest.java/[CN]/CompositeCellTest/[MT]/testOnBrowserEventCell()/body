@@ -2,26 +2,30 @@
   final com.google.gwt.user.client.Element parent=Document.get().createDivElement().cast();
   parent.setInnerHTML(getExpectedInnerHtml());
   Document.get().getBody().appendChild(parent);
-  List<HasCell<String,?>> cells=createHasCells(3);
+  List<HasCell<String,?>> cells=createHasCells(2);
+  MockCell<String> innerCell=new MockCell<String>(false,"fromCell2","click");
+  addCell(innerCell,cells);
   final CompositeCell<String> cell=new CompositeCell<String>(cells);
-  MockCell<String> innerCell=(MockCell<String>)cells.get(1).getCell();
   EventListener listener=new EventListener(){
     public void onBrowserEvent(    Event event){
       Context context=new Context(3,4,"key");
-      cell.onBrowserEvent(context,parent,"test",event,null);
+      cell.onBrowserEvent(context,parent,"test-x",event,null);
     }
   }
 ;
   DOM.sinkEvents(parent,Event.ONCLICK);
   DOM.setEventListener(parent,listener);
   NativeEvent event=Document.get().createClickEvent(0,0,0,0,0,false,false,false,false);
-  Element.as(parent.getChild(1)).dispatchEvent(event);
-  innerCell.assertLastEventValue("test-1");
-  innerCell.assertLastParentElement(Element.as(parent.getChild(1)));
+  Element.as(parent.getChild(2)).dispatchEvent(event);
+  innerCell.assertLastEventValue("test-x");
+  innerCell.assertLastParentElement(Element.as(parent.getChild(2)));
   Context innerContext=innerCell.getLastContext();
   assertEquals("key",innerContext.getKey());
   assertEquals(3,innerContext.getIndex());
   assertEquals(4,innerContext.getColumn());
+  MockCell<String> innerCell2=(MockCell<String>)cells.get(1).getCell();
+  Element.as(parent.getChild(1)).dispatchEvent(event);
+  innerCell2.assertLastEventValue(null);
   DOM.setEventListener(parent,null);
   Document.get().getBody().removeChild(parent);
 }
