@@ -7,6 +7,20 @@
   String steFilename=ste.getFileName();
   SymbolMap map=loadSymbolMap(strongName);
   String symbolData=map == null ? null : map.get(ste.getMethodName());
+  boolean sourceMapCapable=false;
+  int column=1;
+  if (steFilename != null) {
+    int columnMarkerIndex=steFilename.indexOf("@");
+    if (columnMarkerIndex != -1) {
+      try {
+        column=Integer.parseInt(steFilename.substring(columnMarkerIndex + 1));
+        sourceMapCapable=true;
+      }
+ catch (      NumberFormatException nfe) {
+      }
+      steFilename=steFilename.substring(0,columnMarkerIndex);
+    }
+  }
   if (symbolData != null) {
     String[] parts=symbolData.split(",");
     if (parts.length == 6) {
@@ -21,22 +35,10 @@
       }
       filename="Unknown".equals(parts[3]) ? null : parts[3].substring(parts[3].lastIndexOf('/') + 1);
       lineNumber=ste.getLineNumber();
-      if (lineNumber == LINE_NUMBER_UNKNOWN) {
+      if (lineNumber == LINE_NUMBER_UNKNOWN || (sourceMapCapable && column == -1)) {
         lineNumber=Integer.parseInt(parts[4]);
       }
       fragmentId=Integer.parseInt(parts[5]);
-    }
-  }
-  int column=1;
-  if (steFilename != null) {
-    int columnMarkerIndex=steFilename.indexOf("@");
-    if (columnMarkerIndex != -1) {
-      try {
-        column=Integer.parseInt(steFilename.substring(columnMarkerIndex + 1));
-      }
- catch (      NumberFormatException nfe) {
-      }
-      steFilename=steFilename.substring(0,columnMarkerIndex);
     }
   }
   if (fragmentId == -1 && steFilename != null) {
@@ -54,7 +56,7 @@
     }
   }
   int jsLineNumber=ste.getLineNumber();
-  if (fragmentId != -1) {
+  if (sourceMapCapable && fragmentId != -1 && column != -1) {
     SourceMapping sourceMapping=loadSourceMap(strongName,fragmentId);
     if (sourceMapping != null && ste.getLineNumber() > -1) {
       Mapping.OriginalMapping mappingForLine=sourceMapping.getMappingForLine(jsLineNumber,column);
