@@ -90,25 +90,31 @@
     int absRow=tableBuilder.getRowValueIndex(targetTableRow);
     int relRow=absRow - getPageStart();
     int subrow=tableBuilder.getSubrowValueIndex(targetTableRow);
-    if (BrowserEvents.MOUSEOVER.equals(eventType)) {
-      if (hoveringRow != null && getTableBodyElement().isOrHasChild(hoveringRow)) {
-        setRowHover(hoveringRow,event,false);
+    if (!skipRowHoverCheck && hoveringRow != targetTableRow) {
+      if (BrowserEvents.MOUSEOVER.equals(eventType)) {
+        if (hoveringRow != null && getTableBodyElement().isOrHasChild(hoveringRow)) {
+          setRowHover(hoveringRow,event,false);
+        }
+        hoveringRow=targetTableRow;
+        setRowHover(hoveringRow,event,true);
       }
-      hoveringRow=targetTableRow;
-      setRowHover(hoveringRow,event,true);
-    }
- else     if (BrowserEvents.MOUSEOUT.equals(eventType) && hoveringRow != null) {
-      int clientX=event.getClientX() + Window.getScrollLeft();
-      int clientY=event.getClientY() + Window.getScrollTop();
-      int rowLeft=hoveringRow.getAbsoluteLeft();
-      int rowTop=hoveringRow.getAbsoluteTop();
-      int rowWidth=hoveringRow.getOffsetWidth();
-      int rowHeight=hoveringRow.getOffsetHeight();
-      int rowBottom=rowTop + rowHeight;
-      int rowRight=rowLeft + rowWidth;
-      if (clientX < rowLeft || clientX > rowRight || clientY < rowTop || clientY > rowBottom) {
-        setRowHover(hoveringRow,event,false);
-        hoveringRow=null;
+ else       if (BrowserEvents.MOUSEOUT.equals(eventType) && hoveringRow != null) {
+        boolean unhover=true;
+        if (!skipRowHoverFloatElementCheck) {
+          int clientX=event.getClientX() + Window.getScrollLeft();
+          int clientY=event.getClientY() + Window.getScrollTop();
+          int rowLeft=hoveringRow.getAbsoluteLeft();
+          int rowTop=hoveringRow.getAbsoluteTop();
+          int rowWidth=hoveringRow.getOffsetWidth();
+          int rowHeight=hoveringRow.getOffsetHeight();
+          int rowBottom=rowTop + rowHeight;
+          int rowRight=rowLeft + rowWidth;
+          unhover=clientX < rowLeft || clientX > rowRight || clientY < rowTop || clientY > rowBottom;
+        }
+        if (unhover) {
+          setRowHover(hoveringRow,event,false);
+          hoveringRow=null;
+        }
       }
     }
     if (!isRowWithinBounds(relRow)) {
