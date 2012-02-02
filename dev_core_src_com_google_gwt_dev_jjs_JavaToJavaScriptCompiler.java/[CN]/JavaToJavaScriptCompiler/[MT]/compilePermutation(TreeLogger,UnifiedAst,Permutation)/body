@@ -53,7 +53,13 @@
     SyntheticArtifact dependencies=null;
     if (options.isRunAsyncEnabled()) {
       ByteArrayOutputStream baos=new ByteArrayOutputStream();
-      CodeSplitter.exec(logger,jprogram,jsProgram,jjsmap,chooseDependencyRecorder(options.isSoycEnabled(),baos));
+      int fragmentsMerge=options.getFragmentsMerge();
+      if (fragmentsMerge > 0) {
+        CodeSplitter2.exec(logger,jprogram,jsProgram,jjsmap,fragmentsMerge,chooseDependencyRecorder(options.isSoycEnabled(),baos));
+      }
+ else {
+        CodeSplitter.exec(logger,jprogram,jsProgram,jjsmap,chooseDependencyRecorder(options.isSoycEnabled(),baos));
+      }
       if (baos.size() == 0 && options.isSoycEnabled()) {
         recordNonSplitDependencies(jprogram,baos);
       }
