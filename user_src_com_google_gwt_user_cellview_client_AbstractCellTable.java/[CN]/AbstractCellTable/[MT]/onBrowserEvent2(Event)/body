@@ -90,13 +90,14 @@
     int absRow=tableBuilder.getRowValueIndex(targetTableRow);
     int relRow=absRow - getPageStart();
     int subrow=tableBuilder.getSubrowValueIndex(targetTableRow);
-    if (!skipRowHoverCheck && hoveringRow != targetTableRow) {
+    if (!skipRowHoverCheck) {
+      boolean isRowChange=hoveringRow != targetTableRow;
       if (BrowserEvents.MOUSEOVER.equals(eventType)) {
         if (hoveringRow != null && getTableBodyElement().isOrHasChild(hoveringRow)) {
-          setRowHover(hoveringRow,event,false);
+          setRowHover(hoveringRow,event,false,isRowChange);
         }
         hoveringRow=targetTableRow;
-        setRowHover(hoveringRow,event,true);
+        setRowHover(hoveringRow,event,true,isRowChange);
       }
  else       if (BrowserEvents.MOUSEOUT.equals(eventType) && hoveringRow != null) {
         boolean unhover=true;
@@ -112,7 +113,7 @@
           unhover=clientX < rowLeft || clientX > rowRight || clientY < rowTop || clientY > rowBottom;
         }
         if (unhover) {
-          setRowHover(hoveringRow,event,false);
+          setRowHover(hoveringRow,event,false,isRowChange);
           hoveringRow=null;
         }
       }
