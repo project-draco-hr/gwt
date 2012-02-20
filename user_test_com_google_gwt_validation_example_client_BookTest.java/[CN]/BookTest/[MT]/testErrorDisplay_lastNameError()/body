@@ -1,0 +1,16 @@
+{
+  initValidBook();
+  driver.initialize(bookWidget);
+  driver.edit(book);
+  bookWidget.author.lastName.asEditor().setValue("");
+  driver.flush();
+  assertEquals(null,author.getLastName());
+  Set<ConstraintViolation<Book>> violations=validator.validate(book);
+  assertEquals(1,violations.size());
+  driver.setConstraintViolations(doHorribleCast(violations));
+  List<EditorError> errors=bookWidget.author.errors;
+  assertEquals(2,errors.size());
+  EditorError error=errors.get(0);
+  assertEquals(bookWidget.author.lastName.asEditor(),error.getEditor());
+  assertEquals("author.lastName",error.getAbsolutePath());
+}
