@@ -1,8 +1,20 @@
 {
+  int candidateCount=0;
+  Class<?> result=null;
   for (  Method method : constraintClass.getMethods()) {
     if (method.getName().equals("isValid") && method.getParameterTypes().length == 2 && method.getReturnType().isAssignableFrom(Boolean.TYPE)) {
-      return method.getParameterTypes()[0];
+      Class<?> firstArgType=method.getParameterTypes()[0];
+      if (result == null || result.isAssignableFrom(firstArgType)) {
+        result=firstArgType;
+      }
+      candidateCount++;
     }
   }
-  throw new IllegalStateException("ConstraintValidators must have a isValid method");
+  if (candidateCount == 0) {
+    throw new IllegalStateException("ConstraintValidators must have a isValid method");
+  }
+ else   if (candidateCount > 2) {
+    throw new IllegalStateException("ConstraintValidators must have no more than two isValid methods");
+  }
+  return result;
 }
