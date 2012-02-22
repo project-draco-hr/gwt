@@ -1,0 +1,27 @@
+{
+  char[] input=toEscape.toCharArray();
+  int capacityIncrement=Math.max(input.length,16);
+  CharVector charVector=new CharVector(capacityIncrement * 2,capacityIncrement);
+  int i=0;
+  int length=input.length;
+  charVector.add(JS_QUOTE_CHAR);
+  while (i < length) {
+    int maxSegmentVectorSize=splitNodes ? (charVector.getSize() + MAX_STRING_NODE_LENGTH - 5) : Integer.MAX_VALUE;
+    while (i < length && charVector.getSize() < maxSegmentVectorSize) {
+      char c=input[i++];
+      if (needsUnicodeEscape(c)) {
+        unicodeEscape(c,charVector);
+      }
+ else {
+        charVector.add(c);
+      }
+    }
+    if (splitNodes && i < length) {
+      charVector.add(JS_QUOTE_CHAR);
+      charVector.add('+');
+      charVector.add(JS_QUOTE_CHAR);
+    }
+  }
+  charVector.add(JS_QUOTE_CHAR);
+  return String.valueOf(charVector.asArray(),0,charVector.getSize());
+}
