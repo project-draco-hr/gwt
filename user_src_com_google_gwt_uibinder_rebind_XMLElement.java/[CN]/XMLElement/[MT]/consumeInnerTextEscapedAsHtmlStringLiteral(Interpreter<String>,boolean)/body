@@ -1,0 +1,19 @@
+{
+  if (interpreter == null) {
+    throw new NullPointerException("interpreter must not be null");
+  }
+  StringBuffer buf=new StringBuffer();
+  if (escapeHtmlEntities) {
+    GetInnerTextVisitor.getHtmlEscapedInnerText(elem,buf,interpreter,provider);
+  }
+ else {
+    GetInnerTextVisitor.getEscapedInnerText(elem,buf,interpreter,provider);
+  }
+  for (  XMLElement child : consumeChildElementsNoEmptyCheck()) {
+    if (child.hasChildNodes() || child.getAttributeCount() > 0) {
+      logger.die(this,"Illegal child %s in a text-only context. " + "Perhaps you are trying to use unescaped HTML " + "where text is required, as in a HasText widget?",child);
+    }
+  }
+  clearChildren(elem);
+  return buf.toString().trim();
+}
