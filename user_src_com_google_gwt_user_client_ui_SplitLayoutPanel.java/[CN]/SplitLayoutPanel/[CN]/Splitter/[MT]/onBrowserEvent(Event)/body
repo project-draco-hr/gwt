@@ -14,6 +14,21 @@ break;
 case Event.ONMOUSEUP:
 mouseDown=false;
 glassElem.removeFromParent();
+if (this.toggleDisplayAllowed) {
+double now=Duration.currentTimeMillis();
+if (now - this.lastClick < DOUBLE_CLICK_TIMEOUT) {
+now=0;
+LayoutData layout=(LayoutData)target.getLayoutData();
+if (layout.size == 0) {
+setAssociatedWidgetSize(layout.oldSize);
+}
+ else {
+layout.oldSize=layout.size;
+setAssociatedWidgetSize(0);
+}
+}
+this.lastClick=now;
+}
 Event.releaseCapture(getElement());
 event.preventDefault();
 break;
@@ -26,6 +41,7 @@ size=getTargetPosition() + getTargetSize() - getEventPosition(event) - offset;
  else {
 size=getEventPosition(event) - getTargetPosition() - offset;
 }
+((LayoutData)target.getLayoutData()).hidden=false;
 setAssociatedWidgetSize(size);
 event.preventDefault();
 }
