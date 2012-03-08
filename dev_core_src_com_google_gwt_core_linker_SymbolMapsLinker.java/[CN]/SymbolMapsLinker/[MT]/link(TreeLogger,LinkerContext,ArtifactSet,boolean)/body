@@ -4,12 +4,22 @@
     Map<Integer,String> permMap=new HashMap<Integer,String>();
     ByteArrayOutputStream out=new ByteArrayOutputStream();
     for (    CompilationResult result : artifacts.find(CompilationResult.class)) {
-      PrintWriter pw=new PrintWriter(out);
-      permMap.put(result.getPermutationId(),result.getStrongName());
-      doWriteSymbolMap(logger,result,pw);
-      pw.close();
-      doEmitSymbolMap(logger,artifacts,result,out);
-      out.reset();
+      boolean makeSymbolMaps=true;
+      for (      SoftPermutation perm : result.getSoftPermutations()) {
+        for (        Entry<SelectionProperty,String> propMapEntry : perm.getPropertyMap().entrySet()) {
+          if (propMapEntry.getKey().getName().equals(MAKE_SYMBOL_MAPS)) {
+            makeSymbolMaps=Boolean.valueOf(propMapEntry.getValue());
+          }
+        }
+      }
+      if (makeSymbolMaps) {
+        PrintWriter pw=new PrintWriter(out);
+        permMap.put(result.getPermutationId(),result.getStrongName());
+        doWriteSymbolMap(logger,result,pw);
+        pw.close();
+        doEmitSymbolMap(logger,artifacts,result,out);
+        out.reset();
+      }
     }
     for (    SourceMapArtifact se : artifacts.find(SourceMapArtifact.class)) {
       String sourceMapString=Util.readStreamAsString(se.getContents(logger));
