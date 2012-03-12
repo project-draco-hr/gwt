@@ -1,23 +1,43 @@
 {
-  if (logger.isLoggable(TreeLogger.TRACE)) {
-    logger.log(TreeLogger.TRACE,"Added " + addCount.intValue() + " units to persistent cache.");
-  }
-  addCount.set(0);
-  if (cleanupHasRun) {
+  awaitUnitCacheMapLoad();
+  if (backgroundService.isShutdown()) {
     return;
   }
-  cleanupHasRun=true;
-  unitCacheMapLoader.await();
-  File[] cacheFiles=getCacheFiles();
-  if (cacheFiles.length < CACHE_FILE_THRESHOLD) {
-    return;
-  }
-synchronized (unitMap) {
-    for (    UnitCacheEntry unitCacheEntry : unitMap.values()) {
-      if (unitCacheEntry.getOrigin() == UnitOrigin.PERSISTENT) {
-        unitWriteQueue.add(new UnitWriteMessage(unitCacheEntry));
+  boolean shouldRotate=addedSinceLastCleanup > 0;
+  logger.log(TreeLogger.TRACE,"Added " + addedSinceLastCleanup + " units to cache since last cleanup.");
+  addedSinceLastCleanup=0;
+  try {
+    File[] cacheFiles=getCacheFiles(cacheDirectory);
+    if (cacheFiles.length < CACHE_FILE_THRESHOLD) {
+      if (shouldRotate) {
+        backgroundService.execute(rotateCacheFilesTask);
+      }
+      return;
+    }
+    boolean inProgress=purgeInProgress.getAndSet(true);
+    if (inProgress) {
+      try {
+        purgeTaskStatus.get(0,TimeUnit.NANOSECONDS);
+      }
+ catch (      InterruptedException ex) {
+        Thread.currentThread().interrupt();
+      }
+catch (      TimeoutException ex) {
+        return;
       }
     }
+synchronized (unitMap) {
+      for (      UnitCacheEntry unitCacheEntry : unitMap.values()) {
+        if (unitCacheEntry.getOrigin() == UnitOrigin.PERSISTENT) {
+          addImpl(unitCacheEntry);
+        }
+      }
+    }
+    purgeTaskStatus=backgroundService.submit(purgeOldCacheFilesTask,Boolean.TRUE);
   }
-  unitWriteQueue.add(UnitWriteMessage.DELETE_OLD_CACHE_FILES);
+ catch (  ExecutionException ex) {
+    throw new InternalCompilerException("Error purging cache",ex);
+  }
+catch (  RejectedExecutionException ex) {
+  }
 }

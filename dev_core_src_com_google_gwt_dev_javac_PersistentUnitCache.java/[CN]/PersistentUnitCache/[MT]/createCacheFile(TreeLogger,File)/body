@@ -1,0 +1,19 @@
+{
+  File newFile=null;
+  long timestamp=System.currentTimeMillis();
+  try {
+    do {
+      newFile=new File(cacheDirectory,CACHE_FILE_PREFIX + String.format("%016X",timestamp++));
+    }
+ while (!newFile.createNewFile());
+  }
+ catch (  IOException ex) {
+    logger.log(TreeLogger.WARN,"Unable to create new cache log file " + (newFile == null ? "<not created>" : newFile.getAbsolutePath()) + ".",ex);
+    throw new UnableToCompleteException();
+  }
+  if (!newFile.canWrite()) {
+    logger.log(TreeLogger.WARN,"Unable to write to new cache log file " + newFile.getAbsolutePath() + ".");
+    throw new UnableToCompleteException();
+  }
+  return newFile;
+}
