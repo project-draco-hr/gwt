@@ -6,25 +6,25 @@
     tempItem=tempItem.getParentItem();
     ++curSelectionLevel;
   }
-  Accessibility.setState(curSelectionContentElem,Accessibility.STATE_LEVEL,String.valueOf(curSelectionLevel + 1));
+  Roles.getTreeitemRole().setAriaLevelProperty(curSelectionContentElem,curSelectionLevel + 1);
   TreeItem curSelectionParent=curSelection.getParentItem();
   if (curSelectionParent == null) {
     curSelectionParent=root;
   }
-  Accessibility.setState(curSelectionContentElem,Accessibility.STATE_SETSIZE,String.valueOf(curSelectionParent.getChildCount()));
+  Roles.getTreeitemRole().setAriaSetsizeProperty(curSelectionContentElem,curSelectionParent.getChildCount());
   int curSelectionIndex=curSelectionParent.getChildIndex(curSelection);
-  Accessibility.setState(curSelectionContentElem,Accessibility.STATE_POSINSET,String.valueOf(curSelectionIndex + 1));
+  Roles.getTreeitemRole().setAriaPosinsetProperty(curSelectionContentElem,curSelectionIndex + 1);
   if (curSelection.getChildCount() == 0) {
-    Accessibility.removeState(curSelectionContentElem,Accessibility.STATE_EXPANDED);
+    Roles.getTreeitemRole().removeAriaExpandedState(curSelectionContentElem);
   }
  else {
     if (curSelection.getState()) {
-      Accessibility.setState(curSelectionContentElem,Accessibility.STATE_EXPANDED,"true");
+      Roles.getTreeitemRole().setAriaExpandedState(curSelectionContentElem,BooleanAndUndefined.of(true));
     }
  else {
-      Accessibility.setState(curSelectionContentElem,Accessibility.STATE_EXPANDED,"false");
+      Roles.getTreeitemRole().setAriaExpandedState(curSelectionContentElem,BooleanAndUndefined.of(false));
     }
   }
-  Accessibility.setState(curSelectionContentElem,Accessibility.STATE_SELECTED,"true");
-  Accessibility.setState(focusable,Accessibility.STATE_ACTIVEDESCENDANT,DOM.getElementAttribute(curSelectionContentElem,"id"));
+  Roles.getTreeitemRole().setAriaSelectedState(curSelectionContentElem,BooleanAndUndefined.of(true));
+  Roles.getTreeRole().setAriaActivedescendantProperty(focusable,IdReference.of(DOM.getElementAttribute(curSelectionContentElem,"id")));
 }
