@@ -1,0 +1,42 @@
+{
+  for (  GwtLocale locale : allLocales.keySet()) {
+    if (locale.getRegion() != null || locale.getLanguage() == null) {
+      continue;
+    }
+    String language=locale.getAsString();
+    Map<String,Double> valueMap=new HashMap<String,Double>();
+    for (    RegionLanguageData.RegionPopulation langData : regionLanguageData.getRegions(language)) {
+      String region=langData.getRegion();
+      GwtLocale regionLocale=localeFactory.fromString(language + "_" + region);
+      String value=getTerritoryData(regionLocale,values);
+      if (value != null) {
+        Double pop=valueMap.get(value);
+        if (pop == null) {
+          pop=0.0;
+        }
+        pop+=langData.getLiteratePopulation();
+        valueMap.put(value,pop);
+      }
+    }
+    double max=0;
+    String maxValue=null;
+    for (    Map.Entry<String,Double> entry : valueMap.entrySet()) {
+      if (entry.getValue() > max) {
+        max=entry.getValue();
+        maxValue=entry.getKey();
+      }
+    }
+    if (maxValue != null) {
+      addEntry(category,locale,key,maxValue);
+    }
+  }
+  for (  GwtLocale locale : allLocales.keySet()) {
+    if (getEntry(category,locale,key) != null) {
+      continue;
+    }
+    String value=getTerritoryData(locale,values);
+    if (value != null) {
+      addEntry(category,locale,key,value);
+    }
+  }
+}

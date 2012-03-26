@@ -1,0 +1,23 @@
+{
+  for (  GwtLocale locale : allLocales.keySet()) {
+    Map<String,String> map=getMap("version",locale);
+    CLDRFile cldr=cldrFactory.make(allLocales.get(locale),true);
+    XPathParts parts=new XPathParts();
+    Iterator<String> iterator=cldr.iterator("//ldml/identity");
+    while (iterator.hasNext()) {
+      String path=iterator.next();
+      String fullXPath=cldr.getFullXPath(path);
+      if (fullXPath == null) {
+        fullXPath=path;
+      }
+      parts.set(fullXPath);
+      Map<String,String> attr=parts.getAttributes(2);
+      if (attr == null) {
+        continue;
+      }
+      for (      Map.Entry<String,String> entry : attr.entrySet()) {
+        map.put(entry.getKey(),entry.getValue());
+      }
+    }
+  }
+}

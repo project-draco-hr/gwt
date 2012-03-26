@@ -10,8 +10,11 @@
   Iterator<String> iterator=cldr.iterator("//ldml/numbers/currencies");
   while (iterator.hasNext()) {
     String path=iterator.next();
-    path=cldr.getFullXPath(path);
-    parts.set(path);
+    String fullPath=cldr.getFullXPath(path);
+    if (fullPath == null) {
+      fullPath=path;
+    }
+    parts.set(fullPath);
     Map<String,String> attr=parts.findAttributes("currency");
     if (attr == null) {
       continue;
@@ -28,9 +31,13 @@
       }
       currency.setInUse(stillInUse.contains(currencyCode));
       tempMap.put(currencyCode,currency);
+      Integer roundingMult=rounding.get(currencyCode);
+      if (roundingMult != null) {
+        currency.setRounding(roundingMult);
+      }
     }
     String field=parts.getElement(4);
-    String value=cldr.getStringValue(path);
+    String value=cldr.getStringValue(fullPath);
     attr=parts.findAttributes(field);
     if (attr == null) {
       attr=Collections.emptyMap();

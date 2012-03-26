@@ -1,5 +1,5 @@
 {
-  CLDRFile supp=cldrFactory.make("supplementalData",true);
+  CLDRFile supp=cldrFactory.getSupplementalData();
   Map<String,String> map=new HashMap<String,String>();
   XPathParts parts=new XPathParts();
   Iterator<String> iterator=supp.iterator(prefix);
@@ -20,45 +20,6 @@
     }
   }
   if (regionLanguageData != null) {
-    for (    GwtLocale locale : allLocales.keySet()) {
-      if (locale.getRegion() != null || locale.getLanguage() == null) {
-        continue;
-      }
-      String language=locale.getAsString();
-      Map<String,Double> langMap=new HashMap<String,Double>();
-      for (      RegionLanguageData.RegionPopulation langData : regionLanguageData.getRegions(language)) {
-        String region=langData.getRegion();
-        GwtLocale regionLocale=localeFactory.fromString(language + "_" + region);
-        String day=getTerritoryData(regionLocale,map);
-        if (day != null) {
-          Double pop=langMap.get(day);
-          if (pop == null) {
-            pop=0.0;
-          }
-          pop+=langData.getLiteratePopulation();
-          langMap.put(day,pop);
-        }
-      }
-      double max=0;
-      String maxDay=null;
-      for (      Map.Entry<String,Double> entry : langMap.entrySet()) {
-        if (entry.getValue() > max) {
-          max=entry.getValue();
-          maxDay=entry.getKey();
-        }
-      }
-      if (maxDay != null) {
-        addEntry(category,locale,tag,maxDay);
-      }
-    }
-  }
-  for (  GwtLocale locale : allLocales.keySet()) {
-    if (getEntry(category,locale,tag) != null) {
-      continue;
-    }
-    String day=getTerritoryData(locale,map);
-    if (day != null) {
-      addEntry(category,locale,tag,day);
-    }
+    summarizeTerritoryEntries(category,regionLanguageData,tag,map);
   }
 }

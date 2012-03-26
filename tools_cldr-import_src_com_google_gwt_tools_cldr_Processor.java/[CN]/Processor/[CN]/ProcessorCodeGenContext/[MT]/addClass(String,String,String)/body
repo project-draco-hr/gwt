@@ -1,0 +1,22 @@
+{
+  String pkgPath=superPkg == null ? pkgName : superPkg + '/' + pkgName;
+  if (pkgPath.length() > 0) {
+    pkgPath=pkgPath.replace('.','/') + '/';
+  }
+  String classPath=className.replace('.','_');
+  String fileName=pkgPath + classPath + ".java";
+  try {
+    PrintWriter pw=createOutputFile("",fileName);
+    AbortablePrintWriter apw=new AbortablePrintWriter(pw);
+    printHeader(apw);
+    return new JavaSourceWriterBuilder(apw,pkgName,className);
+  }
+ catch (  FileNotFoundException e) {
+    error("Unable to create " + fileName,e);
+    return null;
+  }
+catch (  IOException e) {
+    error("Unable to create " + fileName,e);
+    return null;
+  }
+}

@@ -1,0 +1,89 @@
+{
+  String myClass;
+  String pathSuffix;
+  if (locale.isDefault()) {
+    if ("client".equals(clientShared)) {
+      return;
+    }
+    myClass="DefaultDateTimeFormatInfo";
+    pathSuffix="/";
+  }
+ else {
+    myClass="DateTimeFormatInfoImpl" + localeSuffix(locale);
+    pathSuffix="/impl/cldr/";
+  }
+  GwtLocale parent=localeData.inheritsFrom(locale);
+  PrintWriter pw=createOutputFile(clientShared + pathSuffix + myClass+ ".java");
+  printHeader(pw);
+  pw.print("package com.google.gwt.i18n." + clientShared);
+  setOverrides(true);
+  if (!locale.isDefault()) {
+    pw.print(".impl.cldr");
+  }
+  pw.println(";");
+  pw.println();
+  pw.println("// DO NOT EDIT - GENERATED FROM CLDR AND ICU DATA");
+  Map<String,String> map=localeData.getEntries("version",locale);
+  for (  Map.Entry<String,String> entry : map.entrySet()) {
+    pw.println("//  " + entry.getKey() + "="+ entry.getValue());
+  }
+  pw.println();
+  if (locale.isDefault()) {
+    pw.println("/**");
+    pw.println(" * Default implementation of DateTimeFormatInfo interface, " + "using values from");
+    pw.println(" * the CLDR root locale.");
+    pw.println(" * <p>");
+    pw.println(" * Users who need to create their own DateTimeFormatInfo " + "implementation are");
+    pw.println(" * encouraged to extend this class so their implementation " + "won't break when   ");
+    pw.println(" * new methods are added.");
+    pw.println(" */");
+  }
+ else {
+    pw.println("/**");
+    pw.println(" * Implementation of DateTimeFormatInfo for the \"" + locale + "\" locale.");
+    pw.println(" */");
+  }
+  pw.print("public class " + myClass);
+  if (locale.isDefault()) {
+    pw.print(" implements " + DateTimeFormatInfo.class.getSimpleName());
+  }
+ else {
+    pw.print(" extends ");
+    pw.print(DateTimeFormatInfoImpl.class.getSimpleName());
+    if (!parent.isDefault()) {
+      pw.print('_');
+      pw.print(parent.getAsString());
+    }
+  }
+  pw.println(" {");
+  generateStringList(pw,"dayPeriod-abbrev",null,locale,"ampms","am","pm");
+  generateArgMethod(pw,"date",locale,"dateFormat");
+  generateStringMethod(pw,"date",locale,"full","dateFormatFull");
+  generateStringMethod(pw,"date",locale,"long","dateFormatLong");
+  generateStringMethod(pw,"date",locale,"medium","dateFormatMedium");
+  generateStringMethod(pw,"date",locale,"short","dateFormatShort");
+  generateArgMethod(pw,"dateTime",locale,"dateTime","timePattern","datePattern");
+  generateArgMethodRedirect(pw,"dateTime",locale,"full","dateTimeFull","timePattern","datePattern");
+  generateArgMethodRedirect(pw,"dateTime",locale,"long","dateTimeLong","timePattern","datePattern");
+  generateArgMethodRedirect(pw,"dateTime",locale,"medium","dateTimeMedium","timePattern","datePattern");
+  generateArgMethodRedirect(pw,"dateTime",locale,"short","dateTimeShort","timePattern","datePattern");
+  generateStringList(pw,"era-wide",null,locale,"erasFull","0","1");
+  generateStringList(pw,"era-abbrev",null,locale,"erasShort","0","1");
+  generateDayNumber(pw,locale,"firstDay","firstDayOfTheWeek");
+  for (  Map.Entry<String,String> entry : FORMAT_BY_METHOD.entrySet()) {
+    generateFormat(locale,pw,entry.getValue(),entry.getKey());
+  }
+  generateFullStringList(pw,"month",locale,"months","1","2","3","4","5","6","7","8","9","10","11","12");
+  generateStringList(pw,"quarter-wide",null,locale,"quartersFull","1","2","3","4");
+  generateStringList(pw,"quarter-abbrev",null,locale,"quartersShort","1","2","3","4");
+  generateArgMethod(pw,"time",locale,"timeFormat");
+  generateStringMethod(pw,"time",locale,"full","timeFormatFull");
+  generateStringMethod(pw,"time",locale,"long","timeFormatLong");
+  generateStringMethod(pw,"time",locale,"medium","timeFormatMedium");
+  generateStringMethod(pw,"time",locale,"short","timeFormatShort");
+  generateFullStringList(pw,"day",locale,"weekdays",DAYS);
+  generateDayNumber(pw,locale,"weekendEnd","weekendEnd");
+  generateDayNumber(pw,locale,"weekendStart","weekendStart");
+  pw.println("}");
+  pw.close();
+}
