@@ -1,4 +1,10 @@
 {
+  Set<Script> results=artifacts.find(Script.class);
+  if (results.size() != 1) {
+    logger.log(TreeLogger.ERROR,"The module must have exactly one distinct" + " permutation when using the " + getDescription() + " Linker; found "+ results.size(),null);
+    throw new UnableToCompleteException();
+  }
+  Script result=results.iterator().next();
   DefaultTextOutput out=new DefaultTextOutput(true);
   String bootstrap=generateSelectionScript(logger,context,artifacts);
   bootstrap=context.optimizeJavaScript(logger,bootstrap);
@@ -16,20 +22,9 @@
   out.newlineOpt();
   out.print("var $stats = $wnd.__gwtStatsEvent ? function(a) {$wnd.__gwtStatsEvent(a)} : null;");
   out.newlineOpt();
-  Set<CompilationResult> results=artifacts.find(CompilationResult.class);
-  if (results.size() != 1) {
-    logger.log(TreeLogger.ERROR,"The module must have exactly one distinct" + " permutation when using the " + getDescription() + " Linker.",null);
-    throw new UnableToCompleteException();
-  }
-  CompilationResult result=results.iterator().next();
   out.print("var $strongName = '" + result.getStrongName() + "';");
   out.newlineOpt();
-  String[] js=result.getJavaScript();
-  if (js.length != 1) {
-    logger.log(TreeLogger.ERROR,"The module must not have multiple fragments when using the " + getDescription() + " Linker.",null);
-    throw new UnableToCompleteException();
-  }
-  out.print(js[0]);
+  out.print(result.getJavaScript());
   out.newlineOpt();
   out.print("if (" + context.getModuleFunctionName() + ") "+ context.getModuleFunctionName()+ ".onScriptLoad(gwtOnLoad);");
   out.newlineOpt();

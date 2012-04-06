@@ -1,7 +1,11 @@
 {
-  if (result.getJavaScript().length != 1) {
+  String[] js=result.getJavaScript();
+  if (js.length != 1) {
     logger.branch(TreeLogger.ERROR,"The module must not have multiple fragments when using the " + getDescription() + " Linker.",null);
     throw new UnableToCompleteException();
   }
-  return super.doEmitCompilation(logger,context,result,artifacts);
+  Collection<Artifact<?>> toReturn=new ArrayList<Artifact<?>>();
+  toReturn.add(new Script(result.getStrongName(),js[0]));
+  toReturn.addAll(emitSelectionInformation(result.getStrongName(),result));
+  return toReturn;
 }
