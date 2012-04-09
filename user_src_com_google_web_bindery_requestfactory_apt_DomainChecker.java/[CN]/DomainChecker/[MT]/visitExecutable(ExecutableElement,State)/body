@@ -35,12 +35,15 @@
     state.poison(clientMethodElement,Messages.domainMissingMethod(sb));
     return null;
   }
+  if (!domainMethod.getModifiers().contains(Modifier.PUBLIC)) {
+    state.poison(clientMethodElement,Messages.domainMethodNotPublic(domainMethod.getSimpleName()));
+  }
   boolean isInstanceRequest=state.types.isSubtype(clientMethod.getReturnType(),state.instanceRequestType);
   if ((isInstanceRequest || requireInstanceDomainMethods) && domainMethod.getModifiers().contains(Modifier.STATIC)) {
-    state.poison(checkedElement,Messages.domainMethodWrongModifier(false,domainMethod.getSimpleName()));
+    state.poison(clientMethodElement,Messages.domainMethodWrongModifier(false,domainMethod.getSimpleName()));
   }
   if (!isInstanceRequest && requireStaticDomainMethods && !domainMethod.getModifiers().contains(Modifier.STATIC)) {
-    state.poison(checkedElement,Messages.domainMethodWrongModifier(true,domainMethod.getSimpleName()));
+    state.poison(clientMethodElement,Messages.domainMethodWrongModifier(true,domainMethod.getSimpleName()));
   }
   state.addMapping(clientMethodElement,domainMethod);
   return null;
