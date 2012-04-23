@@ -1,0 +1,34 @@
+{
+synchronized (instantiatorsLock) {
+    Node node=root;
+    boolean found;
+    do {
+      found=false;
+      for (      Node child : node.children) {
+        if (child.type.isAssignableFrom(baseClass)) {
+          found=true;
+          node=child;
+        }
+      }
+    }
+ while (found);
+    Node nodeToAdd=node;
+    if (node.type != baseClass) {
+      nodeToAdd=new Node(baseClass);
+      boolean needsAdd=true;
+      for (      Node child : node.children) {
+        if (baseClass.isAssignableFrom(child.type)) {
+          nodeToAdd.children.add(child);
+          int childPosition=node.children.indexOf(child);
+          node.children.set(childPosition,nodeToAdd);
+          needsAdd=false;
+          break;
+        }
+      }
+      if (needsAdd) {
+        node.children.add(nodeToAdd);
+      }
+    }
+    nodeToAdd.instantiators.add(0,instantiator);
+  }
+}
