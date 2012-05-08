@@ -1,0 +1,37 @@
+{
+  Logger logger=Logger.getLogger(ServerGwtBridge.class.getName());
+  logger.setLevel(Level.INFO);
+  logger.setUseParentHandlers(false);
+  for (  Handler handler : logger.getHandlers()) {
+    logger.removeHandler(handler);
+  }
+  ByteArrayOutputStream baos=new ByteArrayOutputStream();
+  StreamHandler handler=new StreamHandler(baos,new Formatter(){
+    private String lineSeparator=System.getProperty("line.separator","\n");
+    @Override public synchronized String format(    LogRecord record){
+      StringBuffer buf=new StringBuffer();
+      String msg=formatMessage(record);
+      buf.append(record.getLevel().getName()).append(": ").append(msg).append(lineSeparator);
+      if (record.getThrown() != null) {
+        StringWriter sw=new StringWriter();
+        PrintWriter pw=new PrintWriter(sw);
+        record.getThrown().printStackTrace(pw);
+        pw.close();
+        buf.append(sw.toString());
+      }
+      return buf.toString();
+    }
+  }
+);
+  logger.addHandler(handler);
+  GWT.log("msg1");
+  Throwable t=new RuntimeException("foo");
+  t.fillInStackTrace();
+  GWT.log("msg2",t);
+  handler.flush();
+  BufferedReader reader=new BufferedReader(new InputStreamReader(new ByteArrayInputStream(baos.toByteArray())));
+  assertEquals("INFO: msg1",reader.readLine());
+  assertEquals("INFO: msg2",reader.readLine());
+  assertEquals(RuntimeException.class.getName() + ": foo",reader.readLine());
+  assertTrue(reader.readLine().startsWith("\tat " + ServerGwtBridgeTest.class.getName()));
+}

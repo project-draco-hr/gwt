@@ -1,0 +1,29 @@
+{
+synchronized (instantiatorsLock) {
+    Stack<Node> stack=new Stack<Node>();
+    stack.push(root);
+    boolean found;
+    do {
+      found=false;
+      Node node=stack.peek();
+      for (      Node child : node.children) {
+        if (child.type.isAssignableFrom(classLiteral)) {
+          found=true;
+          stack.push(child);
+          break;
+        }
+      }
+    }
+ while (found);
+    while (!stack.isEmpty()) {
+      Node node=stack.pop();
+      for (      ClassInstantiator inst : node.instantiators) {
+        T obj=inst.create(classLiteral,properties);
+        if (obj != null) {
+          return obj;
+        }
+      }
+    }
+    throw new RuntimeException("No instantiator created " + classLiteral.getCanonicalName());
+  }
+}
