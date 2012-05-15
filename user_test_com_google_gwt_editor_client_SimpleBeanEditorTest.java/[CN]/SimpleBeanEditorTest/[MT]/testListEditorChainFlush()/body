@@ -18,9 +18,14 @@
  catch (  IllegalStateException expected) {
   }
   driver.edit(person);
-  AddressEditor addressEditor=personEditor.addressesEditor.getEditors().get(1);
+  ValueAwareAddressEditor addressEditor=personEditor.addressesEditor.getEditors().get(1);
+  assertEquals(1,addressEditor.setValueCalled);
   assertEquals("a2City",addressEditor.city.getValue());
   addressEditor.city.setValue("edited");
   driver.flush();
   assertEquals("edited",person.addresses.get(1).getCity());
+  addressEditor.setValueCalled=0;
+  driver.edit(person);
+  assertSame(addressEditor,personEditor.addressesEditor.getEditors().get(1));
+  assertEquals(1,addressEditor.setValueCalled);
 }
