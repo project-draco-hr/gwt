@@ -26,7 +26,15 @@
       AbstractImagePrototype proto=AbstractImagePrototype.create(icon);
       SafeHtml iconOnly=SafeHtmlUtils.fromTrustedString(proto.getHTML());
       int halfHeight=(int)Math.round(icon.getHeight() / 2.0);
-      iconSafeHtml=template.iconWrapper(iconDirection,halfHeight,iconOnly);
+      SafeStylesBuilder styles=new SafeStylesBuilder();
+      styles.marginTop(-halfHeight,Unit.PX);
+      if (LocaleInfo.getCurrentLocale().isRTL()) {
+        styles.right(0,Unit.PX);
+      }
+ else {
+        styles.left(0,Unit.PX);
+      }
+      iconSafeHtml=template.iconWrapper(styles.toSafeStyles(),iconOnly);
     }
   }
   char accessKey=cell.getAccessKey();
@@ -38,9 +46,17 @@
     attributes.append("accessKey=\"").append(SafeHtmlUtils.htmlEscape("" + accessKey));
     attributes.append("\" ");
   }
+  SafeStylesBuilder styles=new SafeStylesBuilder();
   int iconWidth=(icon == null) ? 0 : icon.getWidth();
+  int iconPadding=iconWidth + DEFAULT_ICON_PADDING;
+  if (LocaleInfo.getCurrentLocale().isRTL()) {
+    styles.paddingRight(iconPadding,Unit.PX);
+  }
+ else {
+    styles.paddingLeft(iconPadding,Unit.PX);
+  }
   SafeHtml safeValue=renderer.render(value);
-  SafeHtml content=template.iconContentLayout(CommonResources.getInlineBlockStyle(),iconDirection,iconWidth + DEFAULT_ICON_PADDING,iconSafeHtml,safeValue);
+  SafeHtml content=template.iconContentLayout(CommonResources.getInlineBlockStyle(),styles.toSafeStyles(),iconSafeHtml,safeValue);
   int tabIndex=cell.getTabIndex();
   StringBuilder openTag=new StringBuilder();
   openTag.append("<button type=\"button\"");
