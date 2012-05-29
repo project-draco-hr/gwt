@@ -11,16 +11,22 @@
   person.addresses.add(a2);
   PersonWithListEditor personEditor=new PersonWithListEditor();
   driver.initialize(personEditor);
-  try {
-    personEditor.addressesEditor.getEditors();
-    fail();
-  }
- catch (  IllegalStateException expected) {
-  }
+  assertEquals(Collections.emptyList(),personEditor.addressesEditor.getEditors());
   driver.edit(person);
-  AddressEditor addressEditor=personEditor.addressesEditor.getEditors().get(1);
+  ValueAwareAddressEditor addressEditor=personEditor.addressesEditor.getEditors().get(1);
+  assertEquals(1,addressEditor.setValueCalled);
   assertEquals("a2City",addressEditor.city.getValue());
   addressEditor.city.setValue("edited");
   driver.flush();
   assertEquals("edited",person.addresses.get(1).getCity());
+  addressEditor.setValueCalled=0;
+  driver.edit(person);
+  assertSame(addressEditor,personEditor.addressesEditor.getEditors().get(1));
+  assertEquals(1,addressEditor.setValueCalled);
+  person.addresses=null;
+  driver.edit(person);
+  assertNull(personEditor.addressesEditor.getList());
+  assertEquals(Collections.emptyList(),personEditor.addressesEditor.getEditors());
+  driver.flush();
+  assertNull(person.addresses);
 }
