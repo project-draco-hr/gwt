@@ -1,0 +1,25 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  simpleFooRequest().findSimpleFooById(1L).with("barField","oneToManyField").fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy foo){
+      foo=checkSerialization(foo);
+      SimpleFooRequest context=simpleFooRequest();
+      foo=context.edit(foo);
+      assertFalse(context.isChanged());
+      List<Integer> oldNumberListField=foo.getNumberListField();
+      List<Integer> newOneToManuField=new ArrayList<Integer>(oldNumberListField);
+      foo.setNumberListField(newOneToManuField);
+      assertFalse(context.isChanged());
+      foo.getNumberListField().set(0,43);
+      assertTrue(context.isChanged());
+      foo.getNumberListField().set(0,oldNumberListField.get(0));
+      assertFalse(context.isChanged());
+      foo.getNumberListField().remove(0);
+      assertTrue(context.isChanged());
+      foo.setNumberListField(oldNumberListField);
+      assertFalse(context.isChanged());
+      finishTestAndReset();
+    }
+  }
+);
+}

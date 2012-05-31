@@ -1,0 +1,63 @@
+{
+  delayTestFinish(5000);
+  SimpleFooRequest context=factory.simpleFooRequest();
+  context.findSimpleFooById(1L).with("barField","oneToManyField").fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    final SimpleFooProxy response){
+      SimpleFooRequest context=factory.simpleFooRequest();
+      final SimpleFooProxy foo=context.edit(response);
+      final AbstractRequestFactory abstractRequestFactory=AutoBeanUtils.getAutoBean(foo).<AbstractRequestContext.State>getTag(Constants.REQUEST_CONTEXT_STATE).requestFactory;
+      final String fooTypeToken=abstractRequestFactory.getTypeToken(SimpleFooProxy.class);
+      final String valueTypeToken=abstractRequestFactory.getTypeToken(SimpleValueProxy.class);
+      final SimpleValueProxy created=context.create(SimpleValueProxy.class);
+      created.setNumber(42);
+      created.setString("Hello world!");
+      created.setSimpleFoo(foo);
+      created.setSimpleValue(Arrays.asList(created));
+      foo.setSimpleValue(created);
+      foo.setSimpleValues(Collections.singletonList(created));
+      context.persistAndReturnSelf().using(foo).with("barField","oneToManyField","oneToManySetField","simpleValue","simpleValues").fire(new Receiver<SimpleFooProxy>(){
+        @Override public void onSuccess(        SimpleFooProxy response){
+          RequestMessage requestMessage=AutoBeanCodex.decode(MessageFactoryHolder.FACTORY,RequestMessage.class,transport.lastRequestPayload).as();
+          int seenFoos=0;
+          int seenValues=0;
+          for (          OperationMessage operationMessage : requestMessage.getOperations()) {
+            if (fooTypeToken.equals(operationMessage.getTypeToken())) {
+              seenFoos++;
+              SimpleProxyId<?> id=(SimpleProxyId<?>)foo.stableId();
+              assertEquals(id.getServerId(),operationMessage.getServerId());
+              assertEquals(2,operationMessage.getPropertyMap().size());
+              assertTrue(operationMessage.getPropertyMap().containsKey("simpleValue"));
+              assertTrue(operationMessage.getPropertyMap().containsKey("simpleValues"));
+            }
+ else             if (valueTypeToken.equals(operationMessage.getTypeToken())) {
+              seenValues++;
+              AutoBean<SimpleValueProxy> bean=AutoBeanUtils.getAutoBean(created);
+              SimpleProxyId<?> id=BaseProxyCategory.stableId(bean);
+              assertEquals(id.getClientId(),operationMessage.getClientId());
+              assertEquals(AutoBeanUtils.getAllProperties(bean).keySet(),operationMessage.getPropertyMap().keySet());
+            }
+          }
+          assertTrue(seenFoos > 0);
+          assertTrue(seenValues > 0);
+          factory.simpleFooRequest().persistAndReturnSelf().using(response).fire(new Receiver<SimpleFooProxy>(){
+            @Override public void onSuccess(            SimpleFooProxy response){
+              RequestMessage requestMessage=AutoBeanCodex.decode(MessageFactoryHolder.FACTORY,RequestMessage.class,transport.lastRequestPayload).as();
+              int seenFoos=0;
+              for (              OperationMessage operationMessage : requestMessage.getOperations()) {
+                if (fooTypeToken.equals(operationMessage.getTypeToken())) {
+                  seenFoos++;
+                  assertNull(operationMessage.getPropertyMap());
+                }
+              }
+              assertTrue(seenFoos > 0);
+              finishTest();
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}

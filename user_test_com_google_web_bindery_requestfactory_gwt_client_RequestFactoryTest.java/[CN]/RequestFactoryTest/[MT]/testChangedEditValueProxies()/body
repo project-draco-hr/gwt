@@ -1,0 +1,43 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  simpleFooRequest().findSimpleFooById(1L).with("barField","oneToManyField").fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy foo){
+      foo=checkSerialization(foo);
+      SimpleFooRequest context=simpleFooRequest();
+      foo=context.edit(foo);
+      SimpleValueProxy created=context.create(SimpleValueProxy.class);
+      created.setNumber(42);
+      created.setString("Hello world!");
+      created.setSimpleFoo(foo);
+      SimpleValueProxy other=context.create(SimpleValueProxy.class);
+      other.setNumber(42);
+      other.setString("Hello world!");
+      other.setSimpleFoo(foo);
+      created.setSimpleValue(Arrays.asList(created,other));
+      other.setSimpleValue(Arrays.asList(created,other));
+      foo.setSimpleValue(created);
+      foo.setSimpleValues(Collections.singletonList(created));
+      context.persistAndReturnSelf().using(foo).with("simpleValue.simpleFoo","simpleValue.simpleValue").fire(new Receiver<SimpleFooProxy>(){
+        @Override public void onSuccess(        SimpleFooProxy foo){
+          foo=checkSerialization(foo);
+          SimpleFooRequest context=simpleFooRequest();
+          foo=context.edit(foo);
+          assertFalse(context.isChanged());
+          foo.getSimpleValue().setNumber(43);
+          assertTrue(context.isChanged());
+          foo.getSimpleValue().setNumber(42);
+          assertFalse(context.isChanged());
+          SimpleValueProxy old=foo.getSimpleValue();
+          SimpleValueProxy created=context.create(SimpleValueProxy.class);
+          foo.setSimpleValue(created);
+          assertTrue(context.isChanged());
+          foo.setSimpleValue(old.getSimpleValue().get(1));
+          assertFalse(context.isChanged());
+          finishTestAndReset();
+        }
+      }
+);
+    }
+  }
+);
+}

@@ -1,0 +1,27 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  simpleFooRequest().findSimpleFooById(1L).with("barField","oneToManyField").fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy foo){
+      foo=checkSerialization(foo);
+      SimpleFooRequest context=simpleFooRequest();
+      foo=context.edit(foo);
+      assertFalse(context.isChanged());
+      List<SimpleBarProxy> oldOneToManyField=foo.getOneToManyField();
+      List<SimpleBarProxy> newOneToManyField=new ArrayList<SimpleBarProxy>(oldOneToManyField);
+      foo.setOneToManyField(newOneToManyField);
+      assertFalse(context.isChanged());
+      foo.getOneToManyField().set(0,context.edit(foo.getOneToManyField().get(0)));
+      assertFalse(context.isChanged());
+      foo.getOneToManyField().set(0,context.create(SimpleBarProxy.class));
+      assertTrue(context.isChanged());
+      foo.getOneToManyField().set(0,oldOneToManyField.get(0));
+      assertFalse(context.isChanged());
+      foo.getOneToManyField().remove(0);
+      assertTrue(context.isChanged());
+      foo.setOneToManyField(oldOneToManyField);
+      assertFalse(context.isChanged());
+      finishTestAndReset();
+    }
+  }
+);
+}
