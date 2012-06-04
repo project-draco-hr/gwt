@@ -7,14 +7,19 @@
     addFragment(0,alreadyLoaded,liveNow,noStats,fragmentStats);
   }
   ControlFlowAnalyzer liveAfterInitialSequence=new ControlFlowAnalyzer(initiallyLive);
+  String extendsCfa="initial";
   int cacheIndex=1;
 {
     for (    final int sp : initialLoadSequence) {
       splitPointToCodeIndexMap[sp]=cacheIndex;
+      String depGraphName="sp" + cacheIndex;
+      dependencyRecorder.startDependencyGraph(depGraphName,extendsCfa);
+      extendsCfa=depGraphName;
       LivenessPredicate alreadyLoaded=new CfaLivenessPredicate(liveAfterInitialSequence);
       ControlFlowAnalyzer liveAfterSp=new ControlFlowAnalyzer(liveAfterInitialSequence);
       JRunAsync runAsync=jprogram.getRunAsyncs().get(sp - 1);
       liveAfterSp.traverseFromRunAsync(runAsync);
+      dependencyRecorder.endDependencyGraph();
       LivenessPredicate liveNow=new CfaLivenessPredicate(liveAfterSp);
       List<JsStatement> statsToAppend=fragmentExtractor.createOnLoadedCall(cacheIndex);
       addFragment(sp,alreadyLoaded,liveNow,statsToAppend,fragmentStats);
@@ -53,7 +58,7 @@
         splitPoints.add(j);
       }
     }
-    ControlFlowAnalyzer allButOne=computeAllButNCfas(liveAfterInitialSequence,splitPoints);
+    ControlFlowAnalyzer allButOne=computeAllButNCfas(liveAfterInitialSequence,splitPoints,cacheIndex,extendsCfa);
     Set<JNode> allLiveNodes=union(allButOne.getLiveFieldsAndMethods(),allButOne.getFieldsWritten());
     updateReverseMap(i,fragmentMap.fields,allLiveNodes,allFields);
     updateReverseMap(i,fragmentMap.methods,allButOne.getLiveFieldsAndMethods(),allMethods);
