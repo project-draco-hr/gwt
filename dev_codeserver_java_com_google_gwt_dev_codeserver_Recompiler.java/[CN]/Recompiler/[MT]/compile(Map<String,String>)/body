@@ -1,0 +1,23 @@
+{
+  if (compilesDone == 0) {
+    System.setProperty("java.awt.headless","true");
+    System.setProperty("gwt.speedtracerlog",appSpace.getSpeedTracerLogFile().getAbsolutePath());
+    CompilationStateBuilder.init(logger,appSpace.getUnitCacheDir());
+  }
+  long startTime=System.currentTimeMillis();
+  CompileDir compileDir=makeCompileDir(++compilesDone);
+  TreeLogger compileLogger=makeCompileLogger(compileDir);
+  ModuleDef module=loadModule(compileLogger,bindingProperties);
+  String newModuleName=module.getName();
+  moduleName.set(newModuleName);
+  CompilerOptions options=new CompilerOptionsImpl(compileDir,newModuleName);
+  boolean success=new Compiler(options).run(compileLogger,module);
+  lastBuild.set(compileDir);
+  if (!success) {
+    compileLogger.log(TreeLogger.Type.ERROR,"Compiler returned " + success);
+    throw new UnableToCompleteException();
+  }
+  long elapsedTime=System.currentTimeMillis() - startTime;
+  compileLogger.log(TreeLogger.Type.INFO,"Compile completed in " + elapsedTime + " ms");
+  return compileDir;
+}

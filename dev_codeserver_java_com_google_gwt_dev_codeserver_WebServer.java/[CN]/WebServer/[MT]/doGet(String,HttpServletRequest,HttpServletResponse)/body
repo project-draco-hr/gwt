@@ -1,0 +1,56 @@
+{
+  if (target.equals("/")) {
+    setHandled(request);
+    JsonObject config=makeConfig();
+    sendJsonAndHtmlPage("config",config,"frontpage.html",response);
+    return;
+  }
+  if (target.equals("/dev_mode_on.js")) {
+    setHandled(request);
+    JsonObject config=makeConfig();
+    sendJsonAndJavaScriptPage("__gwt_codeserver_config",config,"dev_mode_on.js",response);
+    return;
+  }
+  if (target.startsWith("/recompile/")) {
+    setHandled(request);
+    String moduleName=target.substring("/recompile/".length());
+    ModuleState moduleState=modules.get(moduleName);
+    if (moduleState == null) {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND);
+      logger.log(TreeLogger.WARN,"not found: " + target);
+      return;
+    }
+    boolean ok=moduleState.recompile(getBindingProperties(request));
+    JsonObject config=makeConfig();
+    config.put("status",ok ? "ok" : "failed");
+    sendJsonpPage(config,request,response);
+    return;
+  }
+  if (target.startsWith("/log/")) {
+    setHandled(request);
+    String moduleName=target.substring("/log/".length());
+    File file=modules.get(moduleName).getCompileLog();
+    sendLogPage(moduleName,file,response);
+    return;
+  }
+  if (target.equals("/favicon.ico")) {
+    return;
+  }
+  Matcher matcher=SAFE_MODULE_PATH.matcher(target);
+  if (matcher.matches()) {
+    setHandled(request);
+    sendModulePage(matcher.group(1),response);
+    return;
+  }
+  matcher=SAFE_FILE_PATH.matcher(target);
+  if (matcher.matches()) {
+    setHandled(request);
+    if (handler.isSourceMapRequest(target)) {
+      handler.handle(target,request,response);
+      return;
+    }
+    sendOutputFile(target,response);
+    return;
+  }
+  logger.log(TreeLogger.WARN,"ignored get request: " + target);
+}

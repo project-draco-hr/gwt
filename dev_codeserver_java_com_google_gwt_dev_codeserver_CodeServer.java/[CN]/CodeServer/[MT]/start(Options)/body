@@ -1,0 +1,19 @@
+{
+  if (options.getModuleNames().isEmpty()) {
+    throw new IllegalArgumentException("Usage: at least one module must be supplied");
+  }
+  PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
+  logger.setMaxDetail(TreeLogger.Type.INFO);
+  Modules modules=new Modules();
+  File workDir=ensureWorkDir(options);
+  System.out.println("workDir: " + workDir);
+  for (  String moduleName : options.getModuleNames()) {
+    AppSpace appSpace=AppSpace.create(new File(workDir,moduleName));
+    Recompiler recompiler=new Recompiler(appSpace,moduleName,options.getSourcePath(),logger);
+    modules.addModuleState(new ModuleState(recompiler,logger));
+  }
+  SourceHandler sourceHandler=new SourceHandler(modules,logger);
+  WebServer webServer=new WebServer(sourceHandler,modules,options.getPort(),logger);
+  webServer.start();
+  return webServer;
+}

@@ -1,0 +1,19 @@
+{
+  String path=removePrefix(target,"/sourcemaps/" + moduleName + "/");
+  ModuleState moduleState=modules.get(moduleName);
+  if (path.startsWith("gen/")) {
+    File fileInGenDir=new File(moduleState.getGenDir(),removePrefix(path,"gen/"));
+    if (!fileInGenDir.isFile()) {
+      sendNotFound(response,target);
+      return;
+    }
+    WebServer.sendPage("text/plain",fileInGenDir,response);
+    return;
+  }
+  InputStream pageBytes=moduleState.openSourceFile(path);
+  if (pageBytes == null) {
+    sendNotFound(response,target);
+    return;
+  }
+  WebServer.sendPage("text/plain",pageBytes,response);
+}
