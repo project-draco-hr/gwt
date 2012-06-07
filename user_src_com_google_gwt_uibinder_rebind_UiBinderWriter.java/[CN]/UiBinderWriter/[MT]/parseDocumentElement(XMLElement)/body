@@ -5,14 +5,11 @@
   StringWriter stringWriter=new StringWriter();
   IndentedWriter niceWriter=new IndentedWriter(new PrintWriter(stringWriter));
   if (isRenderer) {
+    ensureInjectedCssFields();
     writeRenderer(niceWriter,rootField);
   }
  else   if (useLazyWidgetBuilders) {
-    for (    ImplicitCssResource css : bundleClass.getCssMethods()) {
-      String fieldName=css.getName();
-      FieldWriter cssField=fieldManager.require(fieldName);
-      cssField.addStatement("%s.ensureInjected();",fieldName);
-    }
+    ensureInjectedCssFields();
     writeBinderForRenderableStrategy(niceWriter,rootField);
   }
  else {

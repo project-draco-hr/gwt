@@ -3,13 +3,19 @@
   for (  JMethod getter : getters) {
     w.write("%s {",getter.getReadableDeclaration(false,false,false,false,true));
     w.indent();
-    String elementParameter=getter.getParameters()[0].getName();
     String getterFieldName=getterToFieldName(getter.getName());
-    if (!getterFieldName.equals(rootFieldName)) {
-      w.write("return (%s) findInnerField(%s, \"%s\", RENDERED_ATTRIBUTE);",getter.getReturnType().getErasedType().getQualifiedSourceName(),elementParameter,getterFieldName);
+    FieldWriter fieldWriter=fieldManager.lookup(getterFieldName);
+    if (FieldWriterType.GENERATED_CSS.equals(fieldWriter.getFieldType())) {
+      w.write("return (%s) %s;",getter.getReturnType().getErasedType().getQualifiedSourceName(),FieldManager.getFieldGetter(getterFieldName));
     }
  else {
-      w.write("return (%s) findRootElement(%s, RENDERED_ATTRIBUTE);",getter.getReturnType().getErasedType().getQualifiedSourceName(),elementParameter);
+      String elementParameter=getter.getParameters()[0].getName();
+      if (!getterFieldName.equals(rootFieldName)) {
+        w.write("return (%s) findInnerField(%s, \"%s\", RENDERED_ATTRIBUTE);",getter.getReturnType().getErasedType().getQualifiedSourceName(),elementParameter,getterFieldName);
+      }
+ else {
+        w.write("return (%s) findRootElement(%s, RENDERED_ATTRIBUTE);",getter.getReturnType().getErasedType().getQualifiedSourceName(),elementParameter);
+      }
     }
     w.outdent();
     w.write("}");

@@ -2,19 +2,24 @@
   for (  JMethod jMethod : owner.getInheritableMethods()) {
     String getterName=jMethod.getName();
     if (getterName.startsWith("get")) {
-      if (jMethod.getParameterTypes().length != 1) {
-        die("Getter %s must have exactly one parameter in %s",getterName,owner.getQualifiedSourceName());
-      }
-      String elementClassName=com.google.gwt.dom.client.Element.class.getCanonicalName();
-      JClassType elementType=oracle.findType(elementClassName);
-      JClassType getterParamType=jMethod.getParameterTypes()[0].getErasedType().isClassOrInterface();
-      if (!elementType.isAssignableFrom(getterParamType)) {
-        die("Getter %s must have exactly one parameter of type assignable to %s in %s",getterName,elementClassName,owner.getQualifiedSourceName());
-      }
       String fieldName=getterToFieldName(getterName);
       FieldWriter field=fieldManager.lookup(fieldName);
-      if (field == null || !FieldWriterType.DEFAULT.equals(field.getFieldType())) {
-        die("%s does not match a \"ui:field='%s'\" declaration in %s",getterName,fieldName,owner.getQualifiedSourceName());
+      if (field == null || (!FieldWriterType.DEFAULT.equals(field.getFieldType()) && !FieldWriterType.GENERATED_CSS.equals(field.getFieldType()))) {
+        die("%s does not match a \"ui:field='%s'\" declaration in %s, " + "or '%s' refers to something other than a ui:style" + " or an HTML element in the template",getterName,fieldName,owner.getQualifiedSourceName(),fieldName);
+      }
+      if (FieldWriterType.DEFAULT.equals(field.getFieldType()) && jMethod.getParameterTypes().length != 1) {
+        die("Field getter %s must have exactly one parameter in %s",getterName,owner.getQualifiedSourceName());
+      }
+ else       if (FieldWriterType.GENERATED_CSS.equals(field.getFieldType()) && jMethod.getParameterTypes().length != 0) {
+        die("Style getter %s must have no parameters in %s",getterName,owner.getQualifiedSourceName());
+      }
+ else       if (jMethod.getParameterTypes().length == 1) {
+        String elementClassName=com.google.gwt.dom.client.Element.class.getCanonicalName();
+        JClassType elementType=oracle.findType(elementClassName);
+        JClassType getterParamType=jMethod.getParameterTypes()[0].getErasedType().isClassOrInterface();
+        if (!elementType.isAssignableFrom(getterParamType)) {
+          die("Getter %s must have exactly one parameter of type assignable to %s in %s",getterName,elementClassName,owner.getQualifiedSourceName());
+        }
       }
     }
  else     if (!getterName.equals("render") && !getterName.equals("onBrowserEvent") && !getterName.equals("isParentOrRenderer")) {
