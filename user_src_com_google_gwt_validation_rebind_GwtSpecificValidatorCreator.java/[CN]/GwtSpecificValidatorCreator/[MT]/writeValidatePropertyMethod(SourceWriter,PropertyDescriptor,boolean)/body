@@ -17,24 +17,23 @@
   sw.print("final ");
   sw.print(elementType.getParameterizedQualifiedSourceName());
   sw.println(" value,");
+  sw.println("boolean honorValid,");
   sw.println("Class<?>... groups) {");
   sw.outdent();
   sw.print("final GwtValidationContext<T> myContext = context.append(\"");
   sw.print(p.getPropertyName());
   sw.println("\");");
   if (p.isCascaded() && hasValid(p,useField)) {
-    sw.println("if(value != null) {");
+    sw.println("if(honorValid && value != null) {");
     sw.indent();
     if (isIterableOrMap(elementClass)) {
-      if (hasValid(p,useField)) {
-        JClassType associationType=beanHelper.getAssociationType(p,useField);
-        createBeanHelper(associationType);
-        if (Map.class.isAssignableFrom(elementClass)) {
-          writeValidateMap(sw,p);
-        }
+      JClassType associationType=beanHelper.getAssociationType(p,useField);
+      createBeanHelper(associationType);
+      if (Map.class.isAssignableFrom(elementClass)) {
+        writeValidateMap(sw,p);
+      }
  else {
-          writeValidateIterable(sw,p);
-        }
+        writeValidateIterable(sw,p);
       }
     }
  else {
