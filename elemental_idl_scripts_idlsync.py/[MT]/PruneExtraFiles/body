@@ -1,0 +1,11 @@
+def PruneExtraFiles():
+    'Removes all files that do not match the whitelist.'
+    pattern = re.compile(reduce((lambda x, y: ('%s|%s' % (x, y))), map((lambda z: ('(%s)' % z)), WHITELIST)))
+    for (root, dirs, files) in os.walk(IDL_PATH, topdown=False):
+        for f in files:
+            if (not pattern.match(f)):
+                os.remove(os.path.join(root, f))
+        for d in dirs:
+            dirpath = os.path.join(root, d)
+            if (not os.listdir(dirpath)):
+                shutil.rmtree(dirpath)

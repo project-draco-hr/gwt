@@ -1,0 +1,33 @@
+def _merge_interfaces(self, old_interface, new_interface, import_options):
+    'Merges the new_interface into the old_interface, annotating the\n    interface with the sources of each change.'
+    changed = False
+    source = import_options.source
+    if (source and (source not in old_interface.annotations) and (source in new_interface.annotations) and (not new_interface.is_supplemental)):
+        old_interface.annotations[source] = new_interface.annotations[source]
+        changed = True
+
+    def merge_list(what):
+        old_list = old_interface.__dict__[what]
+        new_list = new_interface.__dict__[what]
+        if ((what != 'parents') and (old_interface.id != new_interface.id)):
+            for node in new_list:
+                node.ext_attrs['ImplementedBy'] = new_interface.id
+        changed = self._merge_nodes(old_list, new_list, import_options)
+        if (changed and import_options.obsolete_old_declarations):
+
+            def has_annotations(idl_node):
+                return len(idl_node.annotations)
+            old_interface.__dict__[what] = filter(has_annotations, old_list)
+        return changed
+    if merge_list('parents'):
+        changed = True
+    if merge_list('constants'):
+        changed = True
+    if merge_list('attributes'):
+        changed = True
+    if merge_list('operations'):
+        changed = True
+    if self._merge_ext_attrs(old_interface.ext_attrs, new_interface.ext_attrs):
+        changed = True
+    _logger.info(('merged interface %s (changed=%s, supplemental=%s)' % (old_interface.id, changed, new_interface.is_supplemental)))
+    return changed

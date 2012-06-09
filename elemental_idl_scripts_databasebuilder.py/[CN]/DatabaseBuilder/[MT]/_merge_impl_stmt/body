@@ -1,0 +1,20 @@
+def _merge_impl_stmt(self, impl_stmt, import_options):
+    'Applies "X implements Y" statemetns on the proper places in the\n    database'
+    implementor_name = impl_stmt.implementor.id
+    implemented_name = impl_stmt.implemented.id
+    _logger.info(('merging impl stmt %s implements %s' % (implementor_name, implemented_name)))
+    source = import_options.source
+    if self._database.HasInterface(implementor_name):
+        interface = self._database.GetInterface(implementor_name)
+        if (interface.parents is None):
+            interface.parents = []
+        for parent in interface.parents:
+            if (parent.type.id == implemented_name):
+                if (source and (source not in parent.annotations)):
+                    parent.annotations[source] = IDLAnnotation(import_options.source_attributes)
+                return
+        parent = IDLParentInterface(None)
+        parent.type = IDLType(implemented_name)
+        if source:
+            parent.annotations[source] = IDLAnnotation(import_options.source_attributes)
+        interface.parents.append(parent)

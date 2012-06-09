@@ -1,0 +1,12 @@
+def _IsCompoundType(self, database, type_name):
+    if IsPrimitiveType(type_name):
+        return True
+    striped_type_name = self._StripModules(type_name)
+    if database.HasInterface(striped_type_name):
+        return True
+    dart_template_match = self._dart_templates_re.match(type_name)
+    if dart_template_match:
+        parent_type_name = type_name[0:(dart_template_match.start(1) - 1)]
+        sub_type_name = dart_template_match.group(1)
+        return (self._IsCompoundType(database, parent_type_name) and self._IsCompoundType(database, sub_type_name))
+    return False

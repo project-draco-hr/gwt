@@ -1,0 +1,39 @@
+{
+  final ArrayOfInt histogram=model.histogram();
+  final int padding=2;
+  final int topPadding=50;
+  final double dx=xAxisScale;
+  final double dy=(double)css.rootHeight() / histogram.get(histogram.length() - 1);
+  final double halfDx=dx / 2.0;
+  for (int i=0, n=histogram.length(); i < n; ++i) {
+    final int value=histogram.get(i);
+    if (value == 0)     continue;
+    final int x=(int)(dx * i) + padding;
+    final int h=(int)(dy * value) - topPadding;
+    final int w=(int)dx - padding * 2;
+    final Element bar=div(css.bar());
+    final CSSStyleDeclaration barStyle=bar.getStyle();
+    barStyle.setLeft(x,Unit.PX);
+    barStyle.setBottom("0");
+    barStyle.setHeight(h,Unit.PX);
+    barStyle.setWidth(w,Unit.PX);
+    final Element count=div(css.count());
+    count.setTextContent("" + value);
+    bar.appendChild(count);
+    root.appendChild(bar);
+  }
+  for (int i=0, n=histogram.length(); i <= n; ++i) {
+    final int x=(int)(dx * i);
+    final int w=(int)dx;
+    final String time=secondsToTime(i * Model.SECONDS_PER_HISTOGRAM_BUCKET,false);
+    final Element label=div(css.label());
+    label.setTextContent(time);
+    final CSSStyleDeclaration labelStyle=label.getStyle();
+    labelStyle.setLeft(x - dx,Unit.PX);
+    labelStyle.setWidth(w,Unit.PX);
+    root.appendChild(label);
+    final Element tick=div(time.charAt(time.length() - 1) == '0' && time.charAt(time.length() - 2) == '0' ? css.tickMajor() : css.tickMinor());
+    tick.getStyle().setLeft(x,Unit.PX);
+    root.appendChild(tick);
+  }
+}

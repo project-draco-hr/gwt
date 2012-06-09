@@ -1,0 +1,30 @@
+{
+  final ButtonElement btn=getDocument().createButtonElement();
+  btn.setInnerHTML("w00t?");
+  btn.getStyle().setColor("red");
+  getDocument().getBody().appendChild(btn);
+  final DivElement div=getDocument().createDivElement();
+  getDocument().getBody().appendChild(div);
+  EventListener listener=new EventListener(){
+    public void handleEvent(    Event evt){
+      final XMLHttpRequest xhr=getWindow().newXMLHttpRequest();
+      xhr.setOnLoad(new EventListener(){
+        @Override public void handleEvent(        Event evt){
+          div.setInnerHTML(xhr.getResponseText());
+        }
+      }
+);
+      xhr.open("GET","/snippet.html");
+      xhr.send();
+      getWindow().setTimeout(new Window.TimerCallback(){
+        @Override public void fire(){
+          getWindow().alert("timeout fired");
+        }
+      }
+,1000);
+      btn.removeEventListener(Event.CLICK,this,false);
+    }
+  }
+;
+  btn.addEventListener(Event.CLICK,listener,false);
+}

@@ -1,0 +1,18 @@
+def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
+    if ('Callback' in idl_node.ext_attrs):
+        if ('RequiredCppParameter' in idl_node.ext_attrs):
+            flag = 'DartUtilities::ConvertNullToDefaultValue'
+        else:
+            flag = 'DartUtilities::ConvertNone'
+        emitter.Emit('\n        RefPtr<$TYPE> $NAME = Dart$IDL_TYPE::create($HANDLE, $FLAG, exception);\n        if (exception)\n            goto fail;\n', TYPE=self.native_type(), NAME=name, IDL_TYPE=self.idl_type(), HANDLE=handle, FLAG=flag)
+        return name
+    argument = name
+    if self.custom_to_native():
+        type = ('RefPtr<%s>' % self.native_type())
+        argument = ('%s.get()' % name)
+    else:
+        type = ('%s*' % self.native_type())
+        if (isinstance(self, SVGTearOffIDLTypeInfo) and (not interface_name.endswith('List'))):
+            argument = ('%s->propertyReference()' % name)
+    emitter.Emit('\n        $TYPE $NAME = Dart$IDL_TYPE::toNative($HANDLE, exception);\n        if (exception)\n            goto fail;\n', TYPE=type, NAME=name, IDL_TYPE=self.idl_type(), HANDLE=handle)
+    return argument

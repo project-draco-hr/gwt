@@ -1,0 +1,19 @@
+def normalize_annotations(self, sources):
+    'Makes the IDLs less verbose by removing annotation attributes\n    that are identical to the ones defined at the interface level.\n\n    Args:\n      sources -- list of source names to normalize.'
+    for interface in self._database.GetInterfaces():
+        _logger.debug(('normalizing annotations for %s' % interface.id))
+        for source in sources:
+            if ((source not in interface.annotations) or (not interface.annotations[source])):
+                continue
+            top_level_annotation = interface.annotations[source]
+
+            def normalize(idl_node):
+                if ((source in idl_node.annotations) and idl_node.annotations[source]):
+                    annotation = idl_node.annotations[source]
+                    for (name, value) in annotation.items():
+                        if ((name in top_level_annotation) and (value == top_level_annotation[name])):
+                            del annotation[name]
+            map(normalize, interface.parents)
+            map(normalize, interface.constants)
+            map(normalize, interface.attributes)
+            map(normalize, interface.operations)

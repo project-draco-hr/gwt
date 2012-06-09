@@ -1,0 +1,44 @@
+def parse(self, text, start_pos=0):
+    'Parses the given text input\n    Args:\n      text -- data to parse.\n      start_pos -- the offset to start parsing at.\n\n    Returns:\n      An abstract syntax tree, with nodes being pairs of the format\n      (label, value), where label is a string or a function, and value\n      is a string, a pair or a list of pairs.\n    '
+
+    def calculate_line_number_and_offset(globalOffset):
+        'Calculates the line number and in-line offset'
+        i = 0
+        lineNumber = 1
+        lineOffset = 0
+        lineData = []
+        while ((i < globalOffset) and (i < len(text))):
+            if (text[i] == '\n'):
+                lineNumber += 1
+                lineOffset = 0
+                lineData = []
+            else:
+                lineData.append(text[i])
+                lineOffset += 1
+            i += 1
+        while ((i < len(text)) and (text[i] != '\n')):
+            lineData.append(text[i])
+            i += 1
+        return (lineNumber, lineOffset, ''.join(lineData))
+
+    def analyze_result(state, pos, ast):
+        'Analyze match output'
+        if (pos is not None):
+            pos = _skip_whitespace(state, pos)
+        if (pos == len(state.text)):
+            return ast
+        (lineNumber, lineOffset, lineData) = calculate_line_number_and_offset(state.max_pos)
+        message = 'unexpected error'
+        if state.max_rule:
+            set = {}
+            map(set.__setitem__, state.max_rule, [])
+
+            def to_str(item):
+                return item.__str__()
+            expected = ' or '.join(map(to_str, set.keys()))
+            found = state.text[state.max_pos:(state.max_pos + 1)]
+            message = ('Expected %s but "%s" found: "%s"' % (expected, found, lineData))
+        raise SyntaxError(('At line %s offset %s: %s' % (lineNumber, lineOffset, message)))
+    state = _PegParserState(text, whitespace_rule=self._whitespace_rule, strings_are_tokens=self._strings_are_tokens)
+    (pos, ast) = self._root_rule.match(state, start_pos)
+    return analyze_result(state, pos, ast)

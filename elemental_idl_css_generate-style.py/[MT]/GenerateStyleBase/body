@@ -1,0 +1,46 @@
+def GenerateStyleBase(input_stream, output_intf_stream, output_impl_stream):
+    'Generate the StyleBase.java file.\n\n  Args:\n    input_stream: A stream containing the configuration input (usually\n        styles.txt)\n    output_stream: A stream to write the output to\n  '
+    wintf = output_intf_stream.write
+    wimpl = output_impl_stream.write
+    wintf('\npackage $PACKAGE;\nimport elemental.dom.*;\nimport elemental.html.*;\n\n/**\n  * $CLASS_JAVADOC\n  */\npublic interface $ID$EXTENDS {\n$!MEMBERS\n')
+    wimpl('package $PACKAGE;\n$IMPORTS\nimport com.google.gwt.core.client.GWT;\nimport com.google.gwt.core.client.JavaScriptObject;\n\nimport elemental.events.*;\nimport elemental.util.*;\nimport elemental.dom.*;\nimport elemental.html.*;\nimport elemental.css.*;\nimport elemental.js.stylesheets.*;\nimport elemental.js.events.*;\nimport elemental.js.util.*;\nimport elemental.js.dom.*;\nimport elemental.js.html.*;\nimport elemental.js.css.*;\nimport elemental.js.stylesheets.*;\n\nimport java.util.Date;\n\npublic class $ID$EXTENDS $IMPLEMENTS {\n  protected $ID() {}\n$!MEMBERS\n')
+    wintf('public interface Unit {\n')
+    wintf('  public static final String PX = "px";\n')
+    wintf('  public static final String PCT = "%";\n')
+    wintf('  public static final String EM = "em";\n')
+    wintf('  public static final String EX = "ex";\n')
+    wintf('  public static final String PT = "pt";\n')
+    wintf('  public static final String PC = "pc";\n')
+    wintf('  public static final String IN = "in";\n')
+    wintf('  public static final String CM = "cm";\n')
+    wintf('  public static final String MM = "mm";\n')
+    wintf('}\n\n')
+    for line in input_stream:
+        line = re.sub('#.*$', '', line).strip()
+        if ((not line) or line.startswith('//')):
+            continue
+        (prop, output_mode, value_type, params) = ParseLine(line)
+        method_suffix = PropToCapsCase(prop)
+        js_prop = (method_suffix[0].lower() + method_suffix[1:])
+        if (js_prop == 'float'):
+            js_prop = "this['float']"
+        else:
+            js_prop = ('this.' + js_prop)
+        if (output_mode == 'enum'):
+            wintf(('\npublic interface %s {\n' % method_suffix))
+            for p in params:
+                wintf(((((CONST_PREFIX + PropToConstant(p)) + ' = "') + p) + '";\n'))
+            wintf('}\n\n')
+        wintf(('%s get%s();\n' % (value_type, method_suffix)))
+        wimpl(('public final native %s get%s() /*-{ return %s; }-*/;\n' % (value_type, method_suffix, js_prop)))
+        wintf(('void set%s(%s value);\n' % (method_suffix, value_type)))
+        wintf(('void clear%s();\n' % method_suffix))
+        wimpl(('public final native void set%s(%s value) /*-{ %s = value; }-*/;\n' % (method_suffix, value_type, js_prop)))
+        wimpl(('public final native void clear%s() /*-{ %s = ""; }-*/;\n' % (method_suffix, js_prop)))
+        if (output_mode == 'dim'):
+            wintf(('void set%s(double value, String unit);\n' % method_suffix))
+            wimpl(('public final native void set%s(double value, String unit) /*-{ %s = value + unit; }-*/;\n' % (method_suffix, js_prop)))
+    wintf('}')
+    wimpl('}')
+    output_intf_stream.close()
+    output_impl_stream.close()

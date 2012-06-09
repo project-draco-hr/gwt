@@ -1,0 +1,13 @@
+def AnalyzeOperation(interface, operations):
+    'Makes operation calling convention decision for a set of overloads.\n\n  Returns: An OperationInfo object.\n  '
+    args = map((lambda *args: _DartArg(args, interface)), *(op.arguments for op in operations))
+    info = OperationInfo()
+    info.interface = interface
+    info.overloads = operations
+    info.declared_name = operations[0].id
+    info.name = operations[0].ext_attrs.get('DartName', info.declared_name)
+    info.js_name = info.declared_name
+    info.type_name = DartType(operations[0].type.id)
+    info.param_infos = args
+    info.arguments = operations[0].arguments
+    return info

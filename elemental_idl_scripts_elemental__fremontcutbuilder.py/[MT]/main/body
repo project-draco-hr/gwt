@@ -1,0 +1,20 @@
+def main():
+    current_dir = os.path.dirname(__file__)
+    webkit_dirs = ['css', 'dom', 'fileapi', 'html', 'html/canvas', 'inspector', 'loader', 'loader/appcache', 'Modules/battery', 'Modules/filesystem', 'Modules/geolocation', 'Modules/indexeddb', 'Modules/mediastream', 'Modules/speech', 'Modules/webaudio', 'Modules/webdatabase', 'Modules/websockets', 'notifications', 'page', 'plugins', 'storage', 'svg', 'workers', 'xml']
+    ignored_idls = ['AbstractView.idl']
+    idl_files = []
+    webcore_dir = os.path.join(current_dir, '..', 'third_party', 'WebCore')
+    if (not os.path.exists(webcore_dir)):
+        raise RuntimeError(('directory not found: %s' % webcore_dir))
+
+    def visitor(arg, dir_name, names):
+        for name in names:
+            file_name = os.path.join(dir_name, name)
+            (interface, ext) = os.path.splitext(file_name)
+            if ((ext == '.idl') and (name not in ignored_idls)):
+                idl_files.append(file_name)
+    for dir_name in webkit_dirs:
+        dir_path = os.path.join(webcore_dir, dir_name)
+        os.path.walk(dir_path, visitor, None)
+    database_dir = os.path.join(current_dir, '..', 'database')
+    return build_database(idl_files, database_dir)

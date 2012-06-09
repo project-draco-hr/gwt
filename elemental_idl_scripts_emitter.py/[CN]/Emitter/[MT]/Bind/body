@@ -1,0 +1,10 @@
+def Bind(self, var, template_source, **parameters):
+    'Adds a binding for var to this emitter.'
+    template = self._ParseTemplate(template_source)
+    if template._holes:
+        raise RuntimeError('Cannot have holes in Emitter.Bind')
+    bindings = self._bindings.Extend(parameters)
+    value = Emitter(bindings)
+    value._ApplyTemplate(template, bindings)
+    self._bindings = self._bindings.Extend({var: value._items, })
+    return value

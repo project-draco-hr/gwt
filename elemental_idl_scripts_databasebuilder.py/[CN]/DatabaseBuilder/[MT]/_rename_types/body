@@ -1,0 +1,22 @@
+def _rename_types(self, idl_file, import_options):
+    'Rename interface and type names with names provided in the\n    options. Also clears scopes from scoped names'
+
+    def rename(name):
+        name_parts = name.split('::')
+        name = name_parts[(-1)]
+        if (name in import_options.type_rename_map):
+            name = import_options.type_rename_map[name]
+        return name
+
+    def rename_node(idl_node):
+        idl_node.id = rename(idl_node.id)
+
+    def rename_ext_attrs(ext_attrs_node):
+        for type_valued_attribute_name in ['Supplemental']:
+            if (type_valued_attribute_name in ext_attrs_node):
+                value = ext_attrs_node[type_valued_attribute_name]
+                if isinstance(value, str):
+                    ext_attrs_node[type_valued_attribute_name] = rename(value)
+    map(rename_node, idl_file.all(IDLInterface))
+    map(rename_node, idl_file.all(IDLType))
+    map(rename_ext_attrs, idl_file.all(IDLExtAttrs))

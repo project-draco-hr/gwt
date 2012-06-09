@@ -1,0 +1,18 @@
+def NameOrEntry(param, database):
+    'Returns either the name of the param, or a $entry wrapper'
+    if (param.type_id.endswith('Callback') or param.type_id.endswith('Handler')):
+        argtype = database.GetInterface(param.type_id)
+        op = argtype.operations[0]
+        jsniArgs = []
+        for arg in op.arguments:
+            if database.HasInterface(arg.type.id):
+                argface = database.GetInterface(arg.type.id)
+                if ((param.type_id == 'DatabaseCallback') and ((argface.id == 'Database') or (argface.id == 'DatabaseSync'))):
+                    jsniArgs.append('Ljava/lang/Object;')
+                else:
+                    jsniArgs.append(('Lelemental/%s/%s;' % (getModule(argface.annotations), DartType(arg.type.id))))
+            else:
+                jsniArgs.append(primitives[DartType(arg.type.id)])
+        return ('$entry(%s.@elemental.%s.%s::on%s(%s)).bind(%s)' % (param.name, getModule(argtype.annotations), argtype.id, argtype.id, ''.join(jsniArgs), param.name))
+    else:
+        return param.name

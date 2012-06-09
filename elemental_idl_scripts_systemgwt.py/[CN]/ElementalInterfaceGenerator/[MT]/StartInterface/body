@@ -1,0 +1,40 @@
+def StartInterface(self):
+    if self._super_interface:
+        typename = self._super_interface
+    else:
+        typename = self._interface.id
+    extends = []
+    suppressed_extends = []
+    imports = {}
+    implements_raw = {}
+    for attr in self._interface.attributes:
+        self.addImport(imports, attr.type.id)
+    for oper in self._interface.operations:
+        self.addImport(imports, oper.type.id)
+        for arg in oper.arguments:
+            self.addImport(imports, arg.type.id)
+    alreadyImplemented = {}
+    if (len(self._interface.parents) > 0):
+        self.getImplements(alreadyImplemented, self._interface.parents[0])
+    for parent in self._interface.parents:
+        if ((not (parent.type.id in alreadyImplemented)) or (parent.type.id == 'ElementalMixinBase')):
+            self.addImport(imports, parent.type.id)
+            rawtype = DartType(parent.type.id).split('<')[0]
+            if (MatchSourceFilter(self._source_filter, parent) and (DartType(parent.type.id) != 'Object') and (rawtype not in implements_raw)):
+                extends.append(DartType(parent.type.id))
+                implements_raw[rawtype] = 1
+    if self._interface.parents:
+        rawtype = DartType(self._interface.parents[0].type.id).split('<')[0]
+        if (rawtype not in implements_raw):
+            extends.insert(0, DartType(self._interface.parents[0].type.id))
+            self.addImport(imports, self._interface.parents[0].type.id)
+    comment = ' extends'
+    extends_str = ''
+    if extends:
+        extends_str += (' extends ' + ', '.join(extends))
+        comment = ','
+    if suppressed_extends:
+        extends_str += (' /*%s %s */' % (comment, ', '.join(suppressed_extends)))
+    factory_provider = None
+    constructor_info = AnalyzeConstructor(self._interface)
+    (self._members_emitter, self._top_level_emitter) = self._emitter.Emit((self._template + '$!TOP_LEVEL'), ID=typename, EXTENDS=extends_str, PACKAGE=('elemental.' + self._module), CLASSJAVADOC=self._GetJavaDoc(self._interface), IMPORTS=''.join(imports.keys()))

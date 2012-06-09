@@ -1,0 +1,24 @@
+def fix_displacements(self, source):
+    "E.g. In W3C, something is declared on HTMLDocument but in WebKit\n    its on Document, so we need to mark that something in HTMLDocument\n    with @WebKit(via=Document). The 'via' attribute specifies the\n    parent interface that has the declaration."
+    for interface in self._database.GetInterfaces():
+        changed = False
+        _logger.info(('fixing displacements in %s' % interface.id))
+        for parent_interface in self._get_parent_interfaces(interface):
+            _logger.info(('scanning parent %s of %s' % (parent_interface.id, interface.id)))
+
+            def fix_nodes(local_list, parent_list):
+                changed = False
+                parent_signatures_map = self._build_signatures_map(parent_list)
+                for idl_node in local_list:
+                    sig = self._sign(idl_node)
+                    if (sig in parent_signatures_map):
+                        parent_member = parent_signatures_map[sig]
+                        if ((source in parent_member.annotations) and (source not in idl_node.annotations) and (_VIA_ANNOTATION_ATTR_NAME not in parent_member.annotations[source])):
+                            idl_node.annotations[source] = IDLAnnotation({_VIA_ANNOTATION_ATTR_NAME: parent_interface.id, })
+                            changed = True
+                return changed
+            changed = (fix_nodes(interface.constants, parent_interface.constants) or changed)
+            changed = (fix_nodes(interface.attributes, parent_interface.attributes) or changed)
+            changed = (fix_nodes(interface.operations, parent_interface.operations) or changed)
+        if changed:
+            _logger.info(('fixed displaced declarations in %s' % interface.id))

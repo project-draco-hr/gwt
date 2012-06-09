@@ -1,0 +1,14 @@
+def _find_all(self, ast, label, max_results=sys.maxint):
+    'Searches the AST for tuples with a given label. The PegParser\n    output is composed of lists and tuples, where the tuple 1st argument\n    is a label. If ast root is a list, will search recursively inside each\n    member in the list.\n\n    Args:\n      ast -- the AST to search.\n      label -- the label to look for.\n      res -- results are put into this list.\n      max_results -- maximum number of results.\n    '
+    res = []
+    if (max_results <= 0):
+        return res
+    if isinstance(ast, list):
+        for childAst in ast:
+            sub_res = self._find_all(childAst, label, (max_results - len(res)))
+            res.extend(sub_res)
+    elif isinstance(ast, tuple):
+        (nodeLabel, value) = ast
+        if (nodeLabel == label):
+            res.append(value)
+    return res

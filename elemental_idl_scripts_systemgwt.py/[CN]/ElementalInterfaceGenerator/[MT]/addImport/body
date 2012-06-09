@@ -1,0 +1,12 @@
+def addImport(self, imports, typeid):
+    etype = DartType(typeid)
+    if (('<' not in typeid) and etype[0].isupper()):
+        rawtype = etype.split('<')[0]
+        if (rawtype in ['Indexable', 'Settable', 'Mappable']):
+            pmodule = 'util'
+            imports[('import elemental.%s.%s;\n' % (pmodule, rawtype))] = 1
+        elif ((etype not in java_lang) and self._database.HasInterface(typeid)):
+            pinterface = self._database.GetInterface(typeid)
+            pmodule = getModule(pinterface.annotations)
+            if (pmodule != self._module):
+                imports[('import elemental.%s.%s;\n' % (pmodule, rawtype))] = 1

@@ -1,0 +1,16 @@
+def _is_node_enabled(self, node, idl_defines):
+    if (not ('Conditional' in node.ext_attrs)):
+        return True
+
+    def enabled(condition):
+        return (('ENABLE_%s' % condition) in idl_defines)
+    conditional = node.ext_attrs['Conditional']
+    if (conditional.find('&') != (-1)):
+        for condition in conditional.split('&'):
+            if (not enabled(condition)):
+                return False
+        return True
+    for condition in conditional.split('|'):
+        if enabled(condition):
+            return True
+    return False

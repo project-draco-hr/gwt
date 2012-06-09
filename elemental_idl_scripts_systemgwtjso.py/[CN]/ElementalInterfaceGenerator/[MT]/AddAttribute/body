@@ -1,0 +1,20 @@
+def AddAttribute(self, getter, setter, inheritedGetter, inheritedSetter):
+    if (getter and (not inheritedGetter)):
+        if (getter.type.id == 'EventListener'):
+            self._members_emitter.Emit('\n  public final native $TYPE $NAME() /*-{\n    return @elemental.js.dom.JsElementalMixinBase::getListenerFor(Lcom/google/gwt/core/client/JavaScriptObject;)(this.$FIELD);\n  }-*/;\n', NAME=getterName(getter), TYPE=TypeOrVar(DartType(getter.type.id), getter.type.id), FIELD=getter.id)
+        else:
+            field = 'this.$FIELD'
+            if (getter.id in self.reserved_keywords):
+                field_template = "this['$FIELD']"
+            else:
+                field_template = 'this.$FIELD'
+            self._members_emitter.Emit(('\n  public final native $TYPE $NAME() /*-{\n    return %s;\n  }-*/;\n' % field_template), NAME=getterName(getter), TYPE=JsoTypeOrVar(DartType(getter.type.id), self._mixins), FIELD=getter.id)
+    if (setter and (not inheritedSetter)):
+        if (setter.type.id == 'EventListener'):
+            self._members_emitter.Emit('\n  public final native void $NAME($TYPE listener) /*-{\n    this.$FIELD = @elemental.js.dom.JsElementalMixinBase::getHandlerFor(Lelemental/events/EventListener;)(listener);\n  }-*/;', NAME=setterName(setter), TYPE=TypeOrVar(DartType(setter.type.id), setter.type.id), FIELD=setter.type.id)
+        else:
+            if (setter.id in self.reserved_keywords):
+                field_template = "this['$FIELD']"
+            else:
+                field_template = 'this.$FIELD'
+            self._members_emitter.Emit(('\n  public final native void $NAME($TYPE param_$FIELD) /*-{\n    %s = param_$FIELD;\n  }-*/;\n' % field_template), NAME=setterName(setter), TYPE=TypeOrVar(DartType(setter.type.id)), FIELD=setter.id)

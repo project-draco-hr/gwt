@@ -1,0 +1,32 @@
+def _ComputeMixins(self, interfaces):
+    implementors = {}
+    mixins = {}
+    parents = {}
+    for interface in interfaces:
+        if interface.parents:
+            parent = interface.parents[0]
+            if (not (interface.id in parents)):
+                parents[interface.id] = []
+                parents[interface.id].append(parent)
+                if (parent.type.id in parents):
+                    parents[interface.id].extend(parents[parent.type.id])
+    implemented_by = None
+    for interface in interfaces:
+        for secondary in interface.parents[1:]:
+            if (secondary.type.id in implementors):
+                implemented_by = implementors[secondary.type.id]
+                if (not (implemented_by in parents[interface.id])):
+                    mixins[secondary.type.id] = implemented_by
+                    print ('Mixin detected %s, previously implemented by %s, but also implemented by %s' % (secondary.type.id, implemented_by, interface.id))
+                    superparents = []
+                    superiface = secondary.type.id
+                    if self._database.HasInterface(superiface):
+                        self.getParents(self._database.GetInterface(superiface), superparents)
+                    for parent in superparents:
+                        mixins[parent.id] = implemented_by
+                        print ('Super Mixin detected %s, previously implemented by %s, but also implemented by %s' % (parent.id, implemented_by, interface.id))
+            else:
+                implementors[secondary.type.id] = interface.id
+    mixins['ElementTimeControl'] = 1
+    mixins['ElementTraversal'] = 1
+    return mixins.keys()

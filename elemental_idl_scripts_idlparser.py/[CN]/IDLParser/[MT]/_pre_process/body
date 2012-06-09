@@ -1,0 +1,10 @@
+def _pre_process(self, content, defines, includePaths):
+    'Pre-processes the content using gcc.\n\n    WebKit IDLs require pre-processing by gcc. This is done by invoking\n    gcc in a sub-process and capturing the results.\n\n    Returns:\n      The result of running gcc on the content.\n\n    Args:\n      content -- text to process.\n      defines -- an array of pre-processor defines.\n      includePaths -- an array of path strings.\n    '
+    gcc = 'gcc'
+    cmd = [gcc, '-E', '-P', '-C', '-x', 'c++']
+    for define in defines:
+        cmd.append(('-D%s' % define))
+    cmd.append('-')
+    pipe = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (content, stderr) = pipe.communicate(content)
+    return content

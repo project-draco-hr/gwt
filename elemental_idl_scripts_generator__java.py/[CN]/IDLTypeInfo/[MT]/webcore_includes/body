@@ -1,0 +1,13 @@
+def webcore_includes(self):
+    WTF_INCLUDES = ['ArrayBuffer', 'ArrayBufferView', 'Float32Array', 'Float64Array', 'Int8Array', 'Int16Array', 'Int32Array', 'Uint8Array', 'Uint16Array', 'Uint32Array', 'Uint8ClampedArray']
+    if (self._idl_type in WTF_INCLUDES):
+        return [('<wtf/%s.h>' % self.native_type())]
+    if (not self._idl_type.startswith('SVG')):
+        return [('"%s.h"' % self.native_type())]
+    if (self._idl_type in ['SVGNumber', 'SVGPoint']):
+        return ['"SVGPropertyTearOff.h"']
+    if self._idl_type.startswith('SVGPathSeg'):
+        include = self._idl_type.replace('Abs', '').replace('Rel', '')
+    else:
+        include = self._idl_type
+    return ([('"%s.h"' % include)] + _svg_supplemental_includes)

@@ -1,0 +1,36 @@
+{
+  final ArrayOf<TestItem> array=Collections.arrayOf(TestItem.class);
+  final TestItem[] items=new TestItem[]{new TestItem(0),new TestItem(1),new TestItem(2)};
+  for (int i=0, n=items.length; i < n; ++i) {
+    array.push(items[i]);
+  }
+  assertEquals(items.length,array.length());
+  for (int i=0, n=items.length; i < n; ++i) {
+    assertEquals(items[i],array.get(i));
+  }
+  final TestItem[] newItems=new TestItem[]{new TestItem(3),new TestItem(4),new TestItem(5)};
+  for (int i=0, n=items.length; i < n; ++i) {
+    array.set(i,newItems[i]);
+    assertEquals(newItems[i],array.get(i));
+  }
+  assertEquals(newItems[0],array.shift());
+  assertEquals(newItems.length - 1,array.length());
+  array.unshift(newItems[0]);
+  assertEquals(newItems[0],array.get(0));
+  assertEquals(newItems.length,array.length());
+  assertEquals("item3$item4$item5",array.join("$"));
+  for (int i=0, n=items.length; i < n; ++i) {
+    assertEquals(i,array.indexOf(newItems[i]));
+    assertTrue(array.contains(newItems[i]));
+  }
+  final TestItem imposter=new TestItem(100);
+  assertEquals(-1,array.indexOf(imposter));
+  assertFalse(array.contains(imposter));
+  final TestItem[] itemsA=new TestItem[]{new TestItem(12),new TestItem(13)};
+  final TestItem[] itemsB=new TestItem[]{new TestItem(14),new TestItem(15)};
+  final ArrayOf<TestItem> a=arrayFrom(itemsA);
+  final ArrayOf<TestItem> b=arrayFrom(itemsB);
+  assertSamelitude(new TestItem[]{itemsA[0],itemsA[1],itemsB[0],itemsB[1]},a.concat(b));
+  assertSamelitude(itemsA,a);
+  assertSamelitude(itemsB,b);
+}

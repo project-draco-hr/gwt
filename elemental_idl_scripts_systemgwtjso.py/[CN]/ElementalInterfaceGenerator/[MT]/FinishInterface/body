@@ -1,0 +1,25 @@
+def FinishInterface(self):
+    if (self._interface.id == 'Document'):
+        for iface in self._database.GetInterfaces():
+            if iface.id.endswith('Element'):
+                elementName = iface.id
+                elementName = elementName[0:(len(elementName) - len('Element'))].lower()
+                if (elementName == 'tablecaption'):
+                    elementName = 'caption'
+                if elementName.startswith('svg'):
+                    elementName = elementName[3:]
+                    if (elementName != ''):
+                        callName = DartType(iface.id)
+                        if (elementName == 'svg'):
+                            callName = 'SVGElement'
+                        self._members_emitter.Emit('\n  public final Js$TYPE create$CALL() {\n    return createSvgElement("$ELEMENT").cast();\n  }\n', TYPE=DartType(iface.id), CALL=callName, ELEMENT=elementName)
+                elif (elementName != ''):
+                    self._members_emitter.Emit('\n  public final Js$TYPE create$TYPE() {\n    return createElement("$ELEMENT").cast();\n  }\n', TYPE=DartType(iface.id), ELEMENT=elementName)
+    if (self._interface.id == 'Window'):
+        for iface in self._database.GetInterfaces():
+            element_type = MaybeTypedArrayElementType(iface)
+            if element_type:
+                self._members_emitter.Emit('\n  public final native Js$TYPE new$CTOR(int length) /*-{ return new $TYPE(length); }-*/;\n\n  public final native Js$TYPE new$CTOR(IndexableNumber list) /*-{ return new $TYPE(list); }-*/;\n\n  public final native Js$TYPE new$CTOR(ArrayBuffer buffer, int byteOffset, int length) /*-{ return new $TYPE(buffer, byteOffset, length); }-*/;\n', CTOR=iface.id, TYPE=iface.id)
+            constructor_info = AnalyzeConstructor(iface)
+            if constructor_info:
+                self._members_emitter.Emit('\n  public final native Js$TYPE new$CTOR($PARAMS) /*-{ return new $TYPE($ARGS); }-*/;\n', TYPE=iface.id, CTOR=iface.id, PARAMS=constructor_info.ParametersInterfaceDeclaration(), ARGS=constructor_info.ParametersAsArgumentList(self._database))

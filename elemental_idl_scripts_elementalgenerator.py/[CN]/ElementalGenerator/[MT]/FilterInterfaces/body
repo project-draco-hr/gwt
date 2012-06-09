@@ -1,0 +1,29 @@
+def FilterInterfaces(self, database, and_annotations=[], or_annotations=[], exclude_displaced=[], exclude_suppressed=[]):
+    "Filters a database to remove interfaces and members that are missing\n    annotations.\n\n    The FremontCut IDLs use annotations to specify implementation\n    status in various platforms. For example, if a member is annotated\n    with @WebKit, this means that the member is supported by WebKit.\n\n    Args:\n      database -- the database to filter\n      all_annotations -- a list of annotation names a member has to\n        have or it will be filtered.\n      or_annotations -- if a member has one of these annotations, it\n        won't be filtered even if it is missing some of the\n        all_annotations.\n      exclude_displaced -- if a member has this annotation and it\n        is marked as displaced it will always be filtered.\n      exclude_suppressed -- if a member has this annotation and it\n        is marked as suppressed it will always be filtered.\n    "
+    for interface in database.GetInterfaces():
+
+        def HasAnnotations(idl_node):
+            'Utility for determining if an IDLNode has all\n        the required annotations'
+            for a in exclude_displaced:
+                if ((a in idl_node.annotations) and ('via' in idl_node.annotations[a])):
+                    return False
+            for a in exclude_suppressed:
+                if ((a in idl_node.annotations) and ('suppressed' in idl_node.annotations[a])):
+                    return False
+            for a in or_annotations:
+                if (a in idl_node.annotations):
+                    return True
+            if (and_annotations == []):
+                return False
+            for a in and_annotations:
+                if (a not in idl_node.annotations):
+                    return False
+            return True
+        if HasAnnotations(interface):
+            interface.constants = filter(HasAnnotations, interface.constants)
+            interface.attributes = filter(HasAnnotations, interface.attributes)
+            interface.operations = filter(HasAnnotations, interface.operations)
+            interface.parents = filter(HasAnnotations, interface.parents)
+        else:
+            database.DeleteInterface(interface.id)
+    self.FilterMembersWithUnidentifiedTypes(database)

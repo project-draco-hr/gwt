@@ -1,0 +1,6 @@
+def test_supplemental(self):
+    file_name = self._create_input('input1.idl', '\n      module M {\n        interface I {\n          readonly attribute int a;\n        };\n        [Supplemental] interface I {\n          readonly attribute int b;\n        };\n      };')
+    self._builder.import_idl_file(file_name, DatabaseBuilderOptions(source='Src'))
+    self._builder.merge_imported_interfaces([])
+    self._db.Save()
+    self._assert_content_equals('I.idl', '\n      @Src(module=M) [Supplemental] interface I {\n        /* Attributes */\n        @Src getter attribute int a;\n        @Src getter attribute int b;\n      };')
