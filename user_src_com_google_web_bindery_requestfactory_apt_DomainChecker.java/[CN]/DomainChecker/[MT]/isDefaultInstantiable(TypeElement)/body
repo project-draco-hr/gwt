@@ -1,0 +1,21 @@
+{
+  if (x.getKind() != ElementKind.CLASS) {
+    return false;
+  }
+  if (x.getModifiers().contains(Modifier.ABSTRACT)) {
+    return false;
+  }
+  if (x.getNestingKind() == NestingKind.ANONYMOUS || x.getNestingKind() == NestingKind.LOCAL || (x.getNestingKind() == NestingKind.MEMBER && !x.getModifiers().contains(Modifier.STATIC))) {
+    return false;
+  }
+  List<ExecutableElement> constructors=ElementFilter.constructorsIn(x.getEnclosedElements());
+  if (constructors.isEmpty()) {
+    return true;
+  }
+  for (  ExecutableElement constructor : constructors) {
+    if (constructor.getParameters().isEmpty()) {
+      return true;
+    }
+  }
+  return false;
+}
