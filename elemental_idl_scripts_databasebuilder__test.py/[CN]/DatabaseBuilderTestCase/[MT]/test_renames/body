@@ -1,0 +1,7 @@
+def test_renames(self):
+    file_name = self._create_input('input.idl', '\n      module M {\n        [Constructor(in T x)] interface I {\n          T op(T x);\n          readonly attribute N::T attr;\n        };\n      };')
+    options = DatabaseBuilderOptions(type_rename_map={'I': 'i', 'T': 't', })
+    self._builder.import_idl_file(file_name, options)
+    self._builder.merge_imported_interfaces([])
+    self._db.Save()
+    self._assert_content_equals('i.idl', '\n      [Constructor(in t x)] interface i {\n        /* Attributes */\n        getter attribute t attr;\n        /* Operations */\n        t op(in t x);\n      };')

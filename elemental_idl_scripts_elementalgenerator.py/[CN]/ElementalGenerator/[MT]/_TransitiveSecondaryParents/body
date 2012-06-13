@@ -1,0 +1,15 @@
+def _TransitiveSecondaryParents(self, interface):
+    'Returns a list of all non-primary parents.\n\n    The list contains the interface objects for interfaces defined in the\n    database, and the name for undefined interfaces.\n    '
+
+    def walk(parents):
+        for parent in parents:
+            if IsDartCollectionType(parent.type.id):
+                result.append(parent.type.id)
+                continue
+            if self._database.HasInterface(parent.type.id):
+                parent_interface = self._database.GetInterface(parent.type.id)
+                result.append(parent_interface)
+                walk(parent_interface.parents)
+    result = []
+    walk(interface.parents[1:])
+    return result

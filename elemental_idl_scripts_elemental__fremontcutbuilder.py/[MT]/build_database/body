@@ -1,0 +1,21 @@
+def build_database(idl_files, database_dir, feature_defines=None):
+    'This code reconstructs the FremontCut IDL database from W3C,\n  WebKit and Dart IDL files.'
+    current_dir = os.path.dirname(__file__)
+    logging.config.fileConfig(os.path.join(current_dir, 'logging.conf'))
+    db = database.Database(database_dir)
+    db.Delete()
+    builder = databasebuilder.DatabaseBuilder(db)
+    webkit_revision = '1060'
+    webkit_defines = ['LANGUAGE_DART', 'LANGUAGE_JAVASCRIPT']
+    if (feature_defines is None):
+        feature_defines = DEFAULT_FEATURE_DEFINES
+    webkit_options = databasebuilder.DatabaseBuilderOptions(idl_syntax=idlparser.WEBKIT_SYNTAX, idl_defines=[define for define in (webkit_defines + feature_defines) if (define not in UNSUPPORTED_FEATURES)], source='WebKit', source_attributes={'revision': webkit_revision, }, type_rename_map={'BarInfo': 'BarProp', 'DedicatedWorkerContext': 'DedicatedWorkerGlobalScope', 'DOMApplicationCache': 'ApplicationCache', 'DOMCoreException': 'DOMException', 'DOMFormData': 'FormData', 'DOMSelection': 'Selection', 'DOMWindow': 'Window', 'SharedWorkerContext': 'SharedWorkerGlobalScope', 'WorkerContext': 'WorkerGlobalScope', })
+    optional_argument_whitelist = [('CSSStyleDeclaration', 'setProperty', 'priority'), ('IDBDatabase', 'transaction', 'mode')]
+    for file_name in idl_files:
+        builder.import_idl_file(file_name, webkit_options)
+    dart_options = databasebuilder.DatabaseBuilderOptions(idl_syntax=idlparser.FREMONTCUT_SYNTAX, source='Dart', rename_operation_arguments_on_merge=True)
+    builder.import_idl_file(os.path.join(current_dir, '..', 'elemental', 'elemental.idl'), dart_options)
+    builder.merge_imported_interfaces(optional_argument_whitelist)
+    builder.fix_displacements('WebKit')
+    builder.normalize_annotations(['WebKit', 'Dart'])
+    db.Save()

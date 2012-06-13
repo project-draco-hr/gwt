@@ -1,0 +1,24 @@
+def _run_test(self, syntax, content, expected):
+    'Utility run tests and prints extra contextual information.\n\n    Args:\n      syntax -- IDL grammar to use (either idlparser.WEBKIT_SYNTAX,\n        WEBIDL_SYNTAX or FREMONTCUT_SYNTAX). If None, will run\n        multiple tests, each with a different syntax.\n      content -- input text for the parser.\n      expected -- expected parse result.\n    '
+    if (syntax is None):
+        self._run_test(idlparser.WEBIDL_SYNTAX, content, expected)
+        self._run_test(idlparser.WEBKIT_SYNTAX, content, expected)
+        self._run_test(idlparser.FREMONTCUT_SYNTAX, content, expected)
+        return
+    actual = None
+    error = None
+    ast = None
+    parseResult = None
+    try:
+        parser = idlparser.IDLParser(syntax)
+        ast = parser.parse(content)
+        node = idlnode.IDLFile(ast)
+        actual = (node.to_dict() if node else None)
+    except SyntaxError as e:
+        error = e
+        pass
+    if (actual == expected):
+        return
+    else:
+        msg = ('\nSYNTAX  : %s\nCONTENT :\n%s\nEXPECTED:\n%s\nACTUAL  :\n%s\nERROR   : %s\nAST   :\n%s\n      ' % (syntax, content, expected, actual, error, ast))
+        self.fail(msg)

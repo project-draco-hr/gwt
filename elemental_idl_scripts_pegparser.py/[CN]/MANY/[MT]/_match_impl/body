@@ -1,0 +1,21 @@
+def _match_impl(self, state, pos):
+    res = []
+    count = 0
+    while True:
+        if ((count > 0) and self._separator):
+            (nextPos, ast) = self._separator.match(state, pos)
+            if (nextPos is not None):
+                pos = nextPos
+                if ast:
+                    res.append(ast)
+            else:
+                break
+        (nextPos, ast) = self._sub_rule.match(state, pos)
+        if (nextPos is None):
+            break
+        count += 1
+        pos = nextPos
+        res.append(ast)
+    if (count > 0):
+        return (pos, res)
+    return (None, None)

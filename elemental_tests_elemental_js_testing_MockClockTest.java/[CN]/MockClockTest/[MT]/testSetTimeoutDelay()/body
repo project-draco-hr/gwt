@@ -1,0 +1,22 @@
+{
+  MockClock.run(new Runnable(){
+    public void run(){
+      MockClock.setTimeoutDelay(30);
+      TestTimer t=new TestTimer(){
+        @Override public void run(){
+          super.run();
+          assertTrue(MockClock.getCurrentTime() >= 130);
+        }
+      }
+;
+      assertEquals(0,MockClock.getTimeoutsMade());
+      t.schedule(100);
+      assertEquals(1,MockClock.getTimeoutsMade());
+      MockClock.tick(100);
+      assertFalse(t.hasRun);
+      MockClock.tick(30);
+      assertTrue(t.hasRun);
+    }
+  }
+);
+}

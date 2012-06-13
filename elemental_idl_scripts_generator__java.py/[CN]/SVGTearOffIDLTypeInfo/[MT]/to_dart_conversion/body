@@ -1,0 +1,15 @@
+def to_dart_conversion(self, value, interface_name, attributes):
+    svg_primitive_types = ['SVGAngle', 'SVGLength', 'SVGMatrix', 'SVGNumber', 'SVGPoint', 'SVGRect', 'SVGTransform']
+    conversion_cast = '%s::create(%s)'
+    if interface_name.startswith('SVGAnimated'):
+        conversion_cast = 'static_cast<%s*>(%s)'
+    elif (self.idl_type() == 'SVGStringList'):
+        conversion_cast = '%s::create(receiver, %s)'
+    elif interface_name.endswith('List'):
+        conversion_cast = 'static_cast<%s*>(%s.get())'
+    elif (self.idl_type() in svg_primitive_types):
+        conversion_cast = '%s::create(%s)'
+    else:
+        conversion_cast = 'static_cast<%s*>(%s)'
+    conversion_cast = (conversion_cast % (self.native_type(), value))
+    return ('Dart%s::toDart(%s)' % (self._idl_type, conversion_cast))

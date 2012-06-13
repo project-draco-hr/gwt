@@ -1,0 +1,8 @@
+def test_obsolete(self):
+    file_name1 = self._create_input('input1.idl', '\n      module M {\n        interface I {\n          readonly attribute int keep;\n          readonly attribute int obsolete; // Would be removed\n        };\n      };')
+    self._builder.import_idl_file(file_name1, DatabaseBuilderOptions(source='src'))
+    file_name2 = self._create_input('input2.idl', '\n      module M {\n        interface I {\n          readonly attribute int keep;\n          readonly attribute int new;\n        };\n      };')
+    self._builder.import_idl_file(file_name2, DatabaseBuilderOptions(source='src', obsolete_old_declarations=True))
+    self._builder.merge_imported_interfaces([])
+    self._db.Save()
+    self._assert_content_equals('I.idl', '\n      @src(module=M) interface I {\n        /* Attributes */\n        @src getter attribute int keep;\n        @src getter attribute int new;\n      };')

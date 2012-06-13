@@ -1,0 +1,23 @@
+def match(self, state, pos):
+    "Matches the rule against the text in the given position.\n\n    The actual rule evaluation is delegated to _match_impl,\n    while this function deals mostly with support tasks such as\n    skipping whitespace, debug information and data for exception.\n\n    Args:\n      state -- the current parsing state and options.\n      pos -- the current offset in the text.\n\n    Returns:\n      (next position, value) if the rule matches, or\n      (None, None) if it doesn't.\n    "
+    if (not state.is_whitespace_mode):
+        pos = _skip_whitespace(state, pos)
+        if (pos > state.max_pos):
+            state.max_pos = pos
+            if isinstance(self, _StringRule):
+                state.max_rule = [self]
+            else:
+                state.max_rule = []
+        elif (pos == state.max_pos):
+            if isinstance(self, _StringRule):
+                state.max_rule.append(self)
+        if _logger.isEnabledFor(logging.DEBUG):
+            _logger.debug(('Try:   pos=%s char=%s rule=%s' % (pos, state.text[pos:(pos + 1)], self)))
+    res = self._match_impl(state, pos)
+    if ((not state.is_whitespace_mode) and _logger.isEnabledFor(logging.DEBUG)):
+        (nextPos, ast) = res
+        if (nextPos is not None):
+            _logger.debug(('Match! pos=%s char=%s rule=%s' % (pos, state.text[pos:(pos + 1)], self)))
+        else:
+            _logger.debug(('Fail.  pos=%s char=%s rule=%s' % (pos, state.text[pos:(pos + 1)], self)))
+    return res

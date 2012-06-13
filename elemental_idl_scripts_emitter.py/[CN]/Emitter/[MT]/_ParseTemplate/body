@@ -1,0 +1,36 @@
+def _ParseTemplate(self, source):
+    'Converts the template string into a Template object.'
+    items = []
+    holes = []
+    pos = 0
+    while True:
+        match = Emitter._SUBST_RE.search(source, pos)
+        if (not match):
+            items.append(source[pos:])
+            break
+        text_fragment = source[pos:match.start()]
+        if text_fragment:
+            items.append(text_fragment)
+        pos = match.end()
+        term = match.group()
+        name = (match.group(1) or match.group(2))
+        if name:
+            item = Emitter.Lookup(name, term, term)
+            items.append(item)
+            continue
+        name = (match.group(3) or match.group(4))
+        if name:
+            item = Emitter.Lookup(name, term, term)
+            items.append(item)
+            holes.append(name)
+            continue
+        name = (match.group(5) or match.group(6))
+        if name:
+            item = Emitter.Lookup(name, term, '')
+            items.append(item)
+            holes.append(name)
+            continue
+        raise RuntimeError('Unexpected group')
+    if (len(holes) != len(set(holes))):
+        raise RuntimeError(('Cannot have repeated holes %s' % holes))
+    return Emitter.Template(items, holes)

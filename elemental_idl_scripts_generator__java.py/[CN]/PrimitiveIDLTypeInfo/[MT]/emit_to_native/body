@@ -1,0 +1,6 @@
+def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
+    arguments = [handle]
+    if ((idl_node.ext_attrs.get('Optional') == 'DefaultIsNullString') or ('RequiredCppParameter' in idl_node.ext_attrs)):
+        arguments.append('DartUtilities::ConvertNullToDefaultValue')
+    emitter.Emit('\n        const ParameterAdapter<$TYPE> $NAME($ARGUMENTS);\n        if (!$NAME.conversionSuccessful()) {\n            exception = $NAME.exception();\n            goto fail;\n        }\n', TYPE=self.native_type(), NAME=name, ARGUMENTS=', '.join(arguments))
+    return name

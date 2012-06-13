@@ -1,0 +1,22 @@
+{
+  final ArrayOf<Runner> runners=normalize(data);
+  Browser.getWindow().setTimeout(new TimeoutHandler(){
+    @Override public void onTimeoutHandler(){
+      for (int i=0, n=runners.length(); i < n; ++i) {
+        final Runner runner=runners.get(i);
+        final String name=runner.name().toLowerCase();
+        updateIndexForAllPrefixes(index,name,runner);
+        final ArrayOfString words=StringUtil.split(name," ");
+        for (int j=0, m=words.length(); j < m; ++j) {
+          updateIndexForAllPrefixes(index,words.get(j),runner);
+        }
+        updateIndexForAllPrefixes(index,"" + runner.place(),runner);
+        updateIndexForAllPrefixes(index,"" + runner.bibNumber(),runner);
+      }
+      listener.modelDidFinishBuildingIndex(Model.this);
+    }
+  }
+,0);
+  final ArrayOfInt histogram=computeHistogram(runners,SECONDS_PER_HISTOGRAM_BUCKET);
+  this.histogram=histogram;
+}

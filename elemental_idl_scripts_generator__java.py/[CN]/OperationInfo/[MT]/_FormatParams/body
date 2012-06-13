@@ -1,0 +1,22 @@
+def _FormatParams(self, params, is_interface, type_fn):
+
+    def FormatParam(param):
+        'Returns a parameter declaration fragment for an ParamInfo.'
+        type = type_fn(param)
+        if (is_interface or (param.default_value is None)):
+            return ('%s%s' % (type, param.name))
+        else:
+            return ('%s%s = %s' % (type, param.name, param.default_value))
+    required = []
+    optional = []
+    for param_info in params:
+        if param_info.default_value:
+            optional.append(param_info)
+        else:
+            if optional:
+                raise Exception(('Optional parameters cannot precede required ones: ' + str(args)))
+            required.append(param_info)
+    argtexts = map(FormatParam, required)
+    if optional:
+        argtexts.append(', '.join(map(FormatParam, optional)))
+    return ', '.join(argtexts)

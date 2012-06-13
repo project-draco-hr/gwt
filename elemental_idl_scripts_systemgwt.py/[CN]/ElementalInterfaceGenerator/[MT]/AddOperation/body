@@ -1,0 +1,17 @@
+def AddOperation(self, info, inherited):
+    '\n    Arguments:\n      operations - contains the overloads, one or more operations with the same\n        name.\n    '
+    javadoc = self.find_doc(info.name)
+    javadoctemplate = '\n  /**\n    * $JAVADOC\n    */\n'
+    if (javadoc == ''):
+        javadoctemplate = ''
+    get_attrs = []
+    set_attrs = []
+    for attr in self._interface.attributes:
+        get_attrs.append(getterName(attr))
+        set_attrs.append(setterName(attr))
+    if ((info.name in get_attrs) or (info.name in set_attrs)):
+        return
+    return_type = info.type_name
+    if (info.name == 'addEventListener'):
+        return_type = 'EventRemover'
+    self._members_emitter.Emit(('\n%s  $TYPE $NAME($PARAMS);\n' % javadoctemplate), TYPE=return_type, NAME=self.fixReservedKeyWords(info.name), PARAMS=info.ParametersInterfaceDeclaration(), JAVADOC=javadoc)

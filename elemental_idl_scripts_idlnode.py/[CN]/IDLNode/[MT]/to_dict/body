@@ -1,0 +1,20 @@
+def to_dict(self):
+    'Converts the IDLNode and its children into a dictionary.\n    This method is useful mostly for debugging and pretty printing.\n    '
+    res = {}
+    for (k, v) in self.__dict__.items():
+        if ((v == None) or (v == False) or (v == []) or (v == {})):
+            continue
+        elif (isinstance(v, IDLDictNode) and (not len(v))):
+            continue
+        elif isinstance(v, list):
+            new_v = []
+            for sub_node in v:
+                if isinstance(sub_node, IDLNode):
+                    new_v.append(sub_node.to_dict())
+                else:
+                    new_v.append(sub_node)
+            v = new_v
+        elif isinstance(v, IDLNode):
+            v = v.to_dict()
+        res[k] = v
+    return res

@@ -1,0 +1,28 @@
+def merge_imported_interfaces(self, optional_argument_whitelist):
+    'Merges all imported interfaces and loads them into the DB.'
+    for (interface, module_name, import_options) in self._imported_interfaces:
+        self._split_declarations(interface, optional_argument_whitelist)
+        self._annotate(interface, module_name, import_options)
+    for (interface, module_name, import_options) in self._imported_interfaces:
+        if (not interface.is_supplemental):
+            if self._database.HasInterface(interface.id):
+                old_interface = self._database.GetInterface(interface.id)
+                self._merge_interfaces(old_interface, interface, import_options)
+            elif import_options.add_new_interfaces:
+                self._database.AddInterface(interface)
+    for (interface, module_name, import_options) in self._imported_interfaces:
+        if interface.is_supplemental:
+            target_name = interface.ext_attrs['Supplemental']
+            if target_name:
+                target = target_name
+            else:
+                target = interface.id
+            if self._database.HasInterface(target):
+                old_interface = self._database.GetInterface(target)
+                self._merge_interfaces(old_interface, interface, import_options)
+            else:
+                raise Exception("Supplemental target '%s' not found", target)
+    for (impl_stmt, import_options) in self._impl_stmts:
+        self._merge_impl_stmt(impl_stmt, import_options)
+    self._impl_stmts = []
+    self._imported_interfaces = []

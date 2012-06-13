@@ -1,0 +1,36 @@
+{
+  final Throwable[] ex=new Throwable[2];
+  GWT.setUncaughtExceptionHandler(new UncaughtExceptionHandler(){
+    int count;
+    @Override public void onUncaughtException(    Throwable e){
+      ex[count++]=e;
+    }
+  }
+);
+  getWindow().setTimeout(new Window.TimerCallback(){
+    @Override public void fire(){
+      throw new RuntimeException("w00t!");
+    }
+  }
+,1);
+  final int[] intervalHandle=new int[1];
+  intervalHandle[0]=getWindow().setInterval(new Window.TimerCallback(){
+    @Override public void fire(){
+      getWindow().clearInterval(intervalHandle[0]);
+      throw new RuntimeException("w00t!");
+    }
+  }
+,1);
+  delayTestFinish(5000);
+  getWindow().setTimeout(new Window.TimerCallback(){
+    @Override public void fire(){
+      assertNotNull(ex[0]);
+      assertNotNull(ex[1]);
+      assertEquals("w00t!",ex[0].getMessage());
+      assertEquals("w00t!",ex[1].getMessage());
+      GWT.setUncaughtExceptionHandler(null);
+      finishTest();
+    }
+  }
+,500);
+}
