@@ -1,4 +1,5 @@
 {
+  final Set<String> nameUsed=new HashSet<String>();
   final Map<JsName,Integer> nameToFragment=new HashMap<JsName,Integer>();
   for (int i=0; i < jsProgram.getFragmentCount(); i++) {
     final Integer fragId=i;
@@ -6,13 +7,35 @@
       @Override public void endVisit(      JsFunction x,      JsContext ctx){
         if (x.getName() != null) {
           nameToFragment.put(x.getName(),fragId);
+          nameUsed.add(x.getName().getIdent());
         }
+      }
+      @Override public void endVisit(      JsNameRef x,      JsContext ctx){
+        nameUsed.add(x.getName().getIdent());
+      }
+      @Override public void endVisit(      JsNameOf x,      JsContext ctx){
+        if (x.getName() != null) {
+          nameUsed.add(x.getName().getIdent());
+        }
+      }
+      @Override public void endVisit(      JsForIn x,      JsContext ctx){
+        if (x.getIterVarName() != null) {
+          nameUsed.add(x.getIterVarName().getIdent());
+        }
+      }
+      @Override public void endVisit(      JsLabel x,      JsContext ctx){
+        nameUsed.add(x.getName().getIdent());
+      }
+      @Override public void endVisit(      JsParameter x,      JsContext ctx){
+        nameUsed.add(x.getName().getIdent());
+      }
+      @Override public void endVisit(      JsVars.JsVar x,      JsContext ctx){
+        nameUsed.add(x.getName().getIdent());
       }
     }
 .accept(jsProgram.getFragmentBlock(i));
   }
-  SymbolData[] result=new SymbolData[symbolTable.size()];
-  int i=0;
+  List<SymbolData> result=new ArrayList<SymbolData>();
   for (  Map.Entry<StandardSymbolData,JsName> entry : symbolTable.entrySet()) {
     StandardSymbolData symbolData=entry.getKey();
     symbolData.setSymbolName(entry.getValue().getShortIdent());
@@ -20,7 +43,9 @@
     if (fragNum != null) {
       symbolData.setFragmentNumber(fragNum);
     }
-    result[i++]=symbolData;
+    if (nameUsed.contains(entry.getValue().getIdent())) {
+      result.add(symbolData);
+    }
   }
-  return result;
+  return result.toArray(new SymbolData[result.size()]);
 }
