@@ -7,16 +7,19 @@
       for (      AbstractEditorDelegate<?,?> baseDelegate : delegateList) {
         String basePath=baseDelegate.getPath();
         String absolutePath=(basePath.length() > 0 ? basePath + "." : "") + error.getPath();
-        List<AbstractEditorDelegate<?,?>> leafDelegates=delegateMap.getDelegatesByPath(absolutePath);
-        List<Editor<?>> editors=delegateMap.getEditorByPath(absolutePath);
-        if (leafDelegates != null) {
-          for (          AbstractEditorDelegate<?,?> delegate : leafDelegates) {
-            delegate.recordError(error.getMessage(),null,error.getUserDataObject());
+        final String originalAbsolutePath=absolutePath;
+        while (true) {
+          if (processLeafDelegates(delegateMap,originalAbsolutePath,absolutePath,error)) {
+            break;
           }
-        }
- else         if (editors != null) {
-          for (          Editor<?> editor : editors) {
-            baseDelegate.recordError(error.getMessage(),null,error.getUserDataObject(),error.getPath(),editor);
+ else           if (processEditors(delegateMap,baseDelegate,absolutePath,error)) {
+            break;
+          }
+ else {
+            if (absolutePath.isEmpty()) {
+              throw new IllegalStateException("No editor: " + originalAbsolutePath);
+            }
+            absolutePath=getParentPath(absolutePath);
           }
         }
       }
