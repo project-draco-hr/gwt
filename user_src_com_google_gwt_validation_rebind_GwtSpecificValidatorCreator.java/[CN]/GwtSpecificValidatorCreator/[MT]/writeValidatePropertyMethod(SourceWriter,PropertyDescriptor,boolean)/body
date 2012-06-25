@@ -52,10 +52,25 @@
   int count=0;
   for (  ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
     Object annotation=constraint.getAnnotation();
-    if (!includedAnnotations.contains(annotation) && hasMatchingAnnotation(p,useField,constraint)) {
-      includedAnnotations.add(annotation);
+    if (hasMatchingAnnotation(p,useField,constraint)) {
       String constraintDescriptorVar=constraintDescriptorVar(p.getPropertyName(),count);
-      writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
+      if (!includedAnnotations.contains(annotation)) {
+        if (useField) {
+          writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
+        }
+ else {
+          boolean hasField=beanHelper.hasField(p);
+          if (!hasField || (hasField && !hasMatchingAnnotation(p,true,constraint))) {
+            writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
+          }
+        }
+      }
+ else {
+        if (!useField) {
+          writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
+        }
+      }
+      includedAnnotations.add(annotation);
     }
     count++;
   }

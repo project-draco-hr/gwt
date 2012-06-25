@@ -21,8 +21,10 @@
   sw.outdent();
   for (  PropertyDescriptor p : beanHelper.getBeanDescriptor().getConstrainedProperties()) {
     int count=0;
+    Set<Object> seen=Sets.newHashSet();
     for (    ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
-      writeConstraintDescriptor(sw,constraint,constraintDescriptorVar(p.getPropertyName(),count++));
+      writeConstraintDescriptor(sw,constraint,inferElementType(p,seen.contains(constraint.getAnnotation())),constraintDescriptorVar(p.getPropertyName(),count++));
+      seen.add(constraint.getAnnotation());
     }
     writePropertyDescriptor(sw,p);
     if (p.isCascaded()) {
@@ -31,7 +33,7 @@
   }
   int count=0;
   for (  ConstraintDescriptor<?> constraint : beanHelper.getBeanDescriptor().getConstraintDescriptors()) {
-    writeConstraintDescriptor(sw,constraint,constraintDescriptorVar("this",count++));
+    writeConstraintDescriptor(sw,constraint,ElementType.TYPE,constraintDescriptorVar("this",count++));
   }
   writeBeanDescriptor(sw);
   sw.println();
