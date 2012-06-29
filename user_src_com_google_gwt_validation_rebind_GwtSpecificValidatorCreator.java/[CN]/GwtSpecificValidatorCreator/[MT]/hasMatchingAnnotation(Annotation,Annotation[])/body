@@ -5,6 +5,9 @@
         Method valueMethod=annotation.annotationType().getMethod("value");
         Class<?> valueType=valueMethod.getReturnType();
         if (valueType.isArray() && Annotation.class.isAssignableFrom(valueType.getComponentType())) {
+          if (Modifier.isAbstract(valueMethod.getModifiers())) {
+            valueMethod.setAccessible(true);
+          }
           Annotation[] valueAnnotions=(Annotation[])valueMethod.invoke(annotation);
           for (          Annotation annotation2 : valueAnnotions) {
             if (expectedAnnotation.equals(annotation2)) {
