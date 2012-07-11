@@ -1,2 +1,16 @@
 {
+  String moduleName=getModuleNameFromRequest(target);
+  if (moduleName == null) {
+    throw new RuntimeException("invalid request (shouldn't happen): " + target);
+  }
+  if (target.equals(SOURCEMAP_PATH + moduleName + "/gwtSourceMap.json")) {
+    sendSourceMap(moduleName,request,response);
+    return;
+  }
+  if (target.endsWith(".java")) {
+    sendSourceFile(target,moduleName,response);
+    return;
+  }
+  response.sendError(HttpServletResponse.SC_NOT_FOUND);
+  logger.log(TreeLogger.WARN,"returned not found for request: " + target);
 }
