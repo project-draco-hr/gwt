@@ -1,0 +1,11 @@
+{
+  SourceInfo info=x.getSourceInfo();
+  if (!instrumentableLines.containsEntry(info.getFileName(),info.getStartLine())) {
+    return;
+  }
+  JsStringLiteral fileName=new JsStringLiteral(info,info.getFileName());
+  JsNumberLiteral lineNumber=new JsNumberLiteral(info,info.getStartLine());
+  JsArrayAccess lhs=new JsArrayAccess(info,new JsArrayAccess(info,coverageObject.makeRef(info),fileName),lineNumber);
+  JsBinaryOperation update=new JsBinaryOperation(info,JsBinaryOperator.ASG,lhs,new JsNumberLiteral(info,1));
+  ctx.replaceMe(new JsBinaryOperation(info,JsBinaryOperator.COMMA,update,x));
+}

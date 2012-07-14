@@ -1,0 +1,21 @@
+{
+  Iterable<String> lines=Splitter.on('\n').split(code);
+  Multimap<String,Integer> instrumentableLines=HashMultimap.create();
+  int i=0;
+  for (  String line : lines) {
+    instrumentableLines.put("Test.java",++i);
+  }
+  JsParser.parseInto(functionBody.getSourceInfo(),program.getScope(),functionBody,new StringReader(code));
+  i=0;
+  for (  JsStatement statement : functionBody.getStatements()) {
+    final SourceInfo info=program.createSourceInfo(++i,"Test.java");
+    statement.setSourceInfo(info);
+    new CoverageVisitor(instrumentableLines.keySet()){
+      @Override public void endVisit(      JsExpression x,      JsContext ctx){
+        x.setSourceInfo(info);
+      }
+    }
+.accept(statement);
+  }
+  return instrumentableLines;
+}

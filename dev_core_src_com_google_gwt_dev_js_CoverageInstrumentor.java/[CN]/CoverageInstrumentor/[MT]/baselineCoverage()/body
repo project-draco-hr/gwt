@@ -1,0 +1,17 @@
+{
+  SourceInfo info=dummySourceInfo();
+  JsObjectLiteral baseline=new JsObjectLiteral(info);
+  List<JsPropertyInitializer> properties=baseline.getPropertyInitializers();
+  for (  String filename : instrumentableLines.keySet()) {
+    JsPropertyInitializer pair=new JsPropertyInitializer(info);
+    pair.setLabelExpr(new JsStringLiteral(info,filename));
+    JsObjectLiteral lines=new JsObjectLiteral(info);
+    List<JsPropertyInitializer> coverage=lines.getPropertyInitializers();
+    for (    int line : instrumentableLines.get(filename)) {
+      coverage.add(new JsPropertyInitializer(info,new JsNumberLiteral(info,line),new JsNumberLiteral(info,0)));
+    }
+    pair.setValueExpr(lines);
+    properties.add(pair);
+  }
+  return baseline;
+}

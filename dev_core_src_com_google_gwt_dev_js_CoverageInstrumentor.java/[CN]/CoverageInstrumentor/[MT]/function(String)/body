@@ -1,0 +1,23 @@
+{
+  try {
+    List<JsStatement> stmts=JsParser.parse(SourceOrigin.UNKNOWN,jsProgram.getScope(),new StringReader(code));
+    JsExprStmt stmt=(JsExprStmt)stmts.get(0);
+    JsFunction f=(JsFunction)stmt.getExpression();
+    new JsVisitor(){
+      @Override public void endVisit(      JsParameter x,      JsContext ctx){
+        x.getName().setObfuscatable(false);
+      }
+      @Override public void endVisit(      JsForIn x,      JsContext ctx){
+        x.getIterVarName().setObfuscatable(false);
+      }
+      @Override public void endVisit(      JsVar x,      JsContext ctx){
+        x.getName().setObfuscatable(false);
+      }
+    }
+.accept(f);
+    return f;
+  }
+ catch (  Exception e) {
+    throw new InternalCompilerException("Unexpected exception parsing '" + code + "'",e);
+  }
+}

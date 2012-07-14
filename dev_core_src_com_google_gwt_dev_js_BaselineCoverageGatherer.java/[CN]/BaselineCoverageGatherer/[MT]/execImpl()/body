@@ -1,0 +1,35 @@
+{
+  new JVisitor(){
+    @Override public void endVisit(    JMethodCall x,    Context ctx){
+      if (x.getTarget().isSynthetic() || x.toSource().equals("super()")) {
+        return;
+      }
+      endVisit((JExpression)x,ctx);
+    }
+    @Override public void endVisit(    JThisRef x,    Context ctx){
+      if (x.getSourceInfo().equals(x.getClassType().getSourceInfo())) {
+        return;
+      }
+      endVisit((JExpression)x,ctx);
+    }
+    @Override public void endVisit(    JClassLiteral x,    Context ctx){
+      if (x.getSourceInfo().equals(x.getRefType().getSourceInfo())) {
+        return;
+      }
+      endVisit((JExpression)x,ctx);
+    }
+    @Override public void endVisit(    JExpression x,    Context ctx){
+      cover(x.getSourceInfo());
+    }
+    @Override public void endVisit(    JsniMethodBody x,    Context ctx){
+      new CoverageVisitor(instrumentedFiles){
+        @Override public void endVisit(        JsExpression x,        JsContext ctx){
+          cover(x.getSourceInfo());
+        }
+      }
+.accept(x.getFunc());
+    }
+  }
+.accept(jProgram);
+  return instrumentableLines;
+}
