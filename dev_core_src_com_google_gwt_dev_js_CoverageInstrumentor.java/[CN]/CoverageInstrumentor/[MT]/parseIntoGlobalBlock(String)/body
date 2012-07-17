@@ -1,8 +1,12 @@
 {
+  List<JsStatement> statements=null;
   try {
-    List<JsStatement> stmts=JsParser.parse(SourceOrigin.UNKNOWN,jsProgram.getScope(),new StringReader(code));
-    JsExprStmt stmt=(JsExprStmt)stmts.get(0);
-    JsFunction f=(JsFunction)stmt.getExpression();
+    statements=JsParser.parse(SourceOrigin.UNKNOWN,jsProgram.getScope(),new StringReader(code));
+  }
+ catch (  Exception e) {
+    throw new InternalCompilerException("Unexpected exception parsing '" + code + "'",e);
+  }
+  for (  JsStatement statement : statements) {
     new JsVisitor(){
       @Override public void endVisit(      JsParameter x,      JsContext ctx){
         x.getName().setObfuscatable(false);
@@ -14,10 +18,7 @@
         x.getName().setObfuscatable(false);
       }
     }
-.accept(f);
-    return f;
-  }
- catch (  Exception e) {
-    throw new InternalCompilerException("Unexpected exception parsing '" + code + "'",e);
+.accept(statement);
+    makeGlobal(statement);
   }
 }

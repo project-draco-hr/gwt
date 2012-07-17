@@ -21,7 +21,10 @@
     JsProgram jsProgram=ast.getJsProgram();
     Map<StandardSymbolData,JsName> symbolTable=new TreeMap<StandardSymbolData,JsName>(new SymbolData.ClassIdentComparator());
     ResolveRebinds.exec(jprogram,permutation.getOrderedRebindAnswers());
-    Multimap<String,Integer> instrumentableLines=BaselineCoverageGatherer.exec(jprogram);
+    Multimap<String,Integer> instrumentableLines=null;
+    if (System.getProperty("gwt.coverage") != null) {
+      instrumentableLines=BaselineCoverageGatherer.exec(jprogram);
+    }
     int optimizationLevel=options.getOptimizationLevel();
     if (optimizationLevel == OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
       draftOptimize(jprogram);
@@ -50,7 +53,9 @@
       JsDuplicateCaseFolder.exec(jsProgram);
     }
     JsStackEmulator.exec(jprogram,jsProgram,propertyOracles,jjsmap);
-    CoverageInstrumentor.exec(jsProgram,instrumentableLines);
+    if (instrumentableLines != null) {
+      CoverageInstrumentor.exec(jsProgram,instrumentableLines);
+    }
     JsCoerceIntShift.exec(jsProgram,logger,propertyOracles);
     SyntheticArtifact dependencies=null;
     if (options.isRunAsyncEnabled()) {
