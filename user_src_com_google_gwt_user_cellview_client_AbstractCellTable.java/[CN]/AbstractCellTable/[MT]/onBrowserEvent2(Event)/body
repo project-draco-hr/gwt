@@ -55,7 +55,7 @@
   }
   TableRowElement targetTableRow=targetTableCell.getParentElement().cast();
   String eventType=event.getType();
-  boolean isClick=BrowserEvents.CLICK.equals(eventType);
+  boolean isSelect=BrowserEvents.CLICK.equals(eventType) || (BrowserEvents.KEYDOWN.equals(eventType) && event.getKeyCode() == KeyCodes.KEY_ENTER);
   int col=targetTableCell.getCellIndex();
   if (targetTableSection == thead || targetTableSection == tfoot) {
     boolean isHeader=(targetTableSection == thead);
@@ -70,12 +70,12 @@
         if (cellConsumesEventType(header.getCell(),eventType)) {
           header.onBrowserEvent(context,headerParent,event);
         }
-        if (isClick) {
+        if (isSelect) {
           shouldSortColumn=header.onPreviewColumnSortEvent(context,headerParent,event);
         }
       }
     }
-    if (isClick && shouldSortColumn && columnParent != null) {
+    if (isSelect && shouldSortColumn && columnParent != null) {
       Column<T,?> column=isHeader ? headerBuilder.getColumn(columnParent) : footerBuilder.getColumn(columnParent);
       if (column != null && column.isSortable()) {
         headersDirty=true;
