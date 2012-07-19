@@ -1,8 +1,10 @@
 {
   validator.initialize(constraintDescriptor.getAnnotation());
   ConstraintValidatorContextImpl<A,V> constraintValidatorContext=context.createConstraintValidatorContext(constraintDescriptor);
-  Set<Class<?>> constraintGroup=constraintDescriptor.getGroups();
-  if (!containsAny(groups,constraintGroup) && !Arrays.asList(groups).contains(getConstraints().getElementClass())) {
+  GroupInheritanceMap groupInheritanceMap=context.getValidator().getGroupInheritanceMap();
+  Set<Class<?>> extendedGroups=groupInheritanceMap.findAllExtendedGroups(Arrays.asList(groups));
+  Set<Class<?>> constraintGroups=constraintDescriptor.getGroups();
+  if (!containsAny(extendedGroups,constraintGroups) && !Arrays.asList(groups).contains(getConstraints().getElementClass())) {
     return false;
   }
   if (!validator.isValid(value,constraintValidatorContext)) {

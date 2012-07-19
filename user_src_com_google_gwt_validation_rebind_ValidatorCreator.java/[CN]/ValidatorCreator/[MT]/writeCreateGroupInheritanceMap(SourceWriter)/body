@@ -1,0 +1,27 @@
+{
+  sw.println("private static GroupInheritanceMap createGroupInheritanceMap() {");
+  sw.indent();
+  sw.println("GroupInheritanceMap groupInheritanceMap = new GroupInheritanceMap();");
+  int i=0;
+  for (  Class<?> group : gwtValidation.groups()) {
+    Class<?>[] parentInterfaces=group.getInterfaces();
+    if (parentInterfaces.length > 0) {
+      sw.println("Set<Class<?>> parents" + i + " = new HashSet<Class<?>>();");
+      for (      Class<?> parent : parentInterfaces) {
+        sw.print("parents" + i + ".add(");
+        sw.print(parent.getCanonicalName() + ".class");
+        sw.println(");");
+      }
+    }
+    sw.print("groupInheritanceMap.addGroup(");
+    sw.print(group.getCanonicalName() + ".class");
+    if (parentInterfaces.length > 0) {
+      sw.print(", parents" + i);
+      i++;
+    }
+    sw.println(");");
+  }
+  sw.println("return groupInheritanceMap;");
+  sw.outdent();
+  sw.println("}");
+}
