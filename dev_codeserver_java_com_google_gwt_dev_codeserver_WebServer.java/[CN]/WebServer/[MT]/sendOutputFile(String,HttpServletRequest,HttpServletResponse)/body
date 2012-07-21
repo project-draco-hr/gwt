@@ -1,0 +1,26 @@
+{
+  int secondSlash=target.indexOf('/',1);
+  String moduleName=target.substring(1,secondSlash);
+  ModuleState moduleState=modules.get(moduleName);
+  File file=moduleState.getOutputFile(target);
+  if (!file.isFile()) {
+    file=moduleState.getOutputFile(target + ".gz");
+    if (!file.isFile()) {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND);
+      logger.log(TreeLogger.WARN,"not found: " + file.toString());
+      return;
+    }
+    if (!request.getHeader("Accept-Encoding").contains("gzip")) {
+      response.sendError(HttpServletResponse.SC_NOT_IMPLEMENTED);
+      logger.log(TreeLogger.WARN,"client doesn't accept gzip; bailing");
+      return;
+    }
+    response.addHeader("Content-Encoding","gzip");
+  }
+  String mimeType=guessMimeType(target);
+  if (target.endsWith(".cache.js")) {
+    response.addHeader("X-SourceMap",SourceHandler.SOURCEMAP_PATH + moduleName + "/gwtSourceMap.json");
+  }
+  response.addHeader("Access-Control-Allow-Origin","*");
+  PageUtil.sendFile(mimeType,file,response);
+}
