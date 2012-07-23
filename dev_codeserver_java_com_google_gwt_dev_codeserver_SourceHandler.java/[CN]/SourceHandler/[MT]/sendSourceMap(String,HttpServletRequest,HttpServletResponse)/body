@@ -1,8 +1,8 @@
 {
   ModuleState moduleState=modules.get(moduleName);
-  String sourceMapJson=Util.readFileAsString(moduleState.findSourceMap());
+  SourceMap map=SourceMap.load(moduleState.findSourceMap());
   String serverPrefix=String.format("http://%s:%d/sourcemaps/%s/",request.getServerName(),request.getServerPort(),moduleName);
-  sourceMapJson=addPrefixToSourceMapFilenames(serverPrefix,sourceMapJson);
-  PageUtil.sendString("application/json",sourceMapJson,response);
+  map.addPrefixToEachSourceFile(serverPrefix);
+  PageUtil.sendString("application/json",map.serialize(),response);
   logger.log(TreeLogger.WARN,"sent source map for module: " + moduleName);
 }
