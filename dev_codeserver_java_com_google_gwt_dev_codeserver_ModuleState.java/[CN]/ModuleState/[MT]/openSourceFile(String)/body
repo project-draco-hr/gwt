@@ -1,4 +1,17 @@
 {
-  URL resource=recompiler.getResourceLoader().getResource(resourceName);
-  return resource == null ? null : resource.openStream();
+  if (path.startsWith("gen/")) {
+    String rest=path.substring("gen/".length());
+    File fileInGenDir=new File(getGenDir(),rest);
+    if (!fileInGenDir.isFile()) {
+      return null;
+    }
+    return new BufferedInputStream(new FileInputStream(fileInGenDir));
+  }
+ else {
+    URL resource=recompiler.getResourceLoader().getResource(path);
+    if (resource == null) {
+      return null;
+    }
+    return resource.openStream();
+  }
 }

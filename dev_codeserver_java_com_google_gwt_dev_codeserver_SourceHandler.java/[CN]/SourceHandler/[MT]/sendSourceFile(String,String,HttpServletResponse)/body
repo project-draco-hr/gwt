@@ -1,17 +1,9 @@
 {
   ModuleState moduleState=modules.get(moduleName);
-  if (rest.startsWith("gen/")) {
-    File fileInGenDir=new File(moduleState.getGenDir(),removePrefix(rest,"gen/"));
-    if (!fileInGenDir.isFile()) {
-      sendNotFound(response,rest);
-      return;
-    }
-    PageUtil.sendFile("text/plain",fileInGenDir,response);
-    return;
-  }
   InputStream pageBytes=moduleState.openSourceFile(rest);
   if (pageBytes == null) {
-    sendNotFound(response,rest);
+    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    logger.log(TreeLogger.WARN,"unknown source file: " + rest);
     return;
   }
   PageUtil.sendStream("text/plain",pageBytes,response);
