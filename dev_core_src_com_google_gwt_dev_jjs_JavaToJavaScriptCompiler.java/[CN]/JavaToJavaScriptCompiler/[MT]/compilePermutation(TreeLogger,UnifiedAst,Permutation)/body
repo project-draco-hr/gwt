@@ -46,6 +46,9 @@
     jprogram.typeOracle.recomputeAfterOptimizations();
     JavaToJavaScriptMap jjsmap=GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput(),symbolTable,propertyOracles);
     JsNormalizer.exec(jsProgram);
+    if (instrumentableLines != null) {
+      CoverageInstrumentor.exec(jsProgram,instrumentableLines);
+    }
     JsSymbolResolver.exec(jsProgram);
     EvalFunctionsAtTopScope.exec(jsProgram,jjsmap);
     if (optimizationLevel > OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
@@ -53,9 +56,6 @@
       JsDuplicateCaseFolder.exec(jsProgram);
     }
     JsStackEmulator.exec(jprogram,jsProgram,propertyOracles,jjsmap);
-    if (instrumentableLines != null) {
-      CoverageInstrumentor.exec(jsProgram,instrumentableLines);
-    }
     JsCoerceIntShift.exec(jsProgram,logger,propertyOracles);
     SyntheticArtifact dependencies=null;
     if (options.isRunAsyncEnabled()) {

@@ -1,8 +1,9 @@
 {
-  Multimap<String,Integer> baselineCoverage=LinkedHashMultimap.create();
+  Multimap<String,Integer> instrumentableLines=LinkedHashMultimap.create();
   for (int i=1; i < 6; i++) {
-    baselineCoverage.put("A.java",i);
-    baselineCoverage.put("B.java",i);
+    instrumentableLines.put("A.java",i);
+    instrumentableLines.put("B.java",i);
   }
-  assertTrue(instrumentedProgram(baselineCoverage).contains(new StringBuilder().append("var $coverage = {'A.java':{1:0, 2:0, 3:0, 4:0, 5:0}, ").append("'B.java':{1:0, 2:0, 3:0, 4:0, 5:0}}")));
+  JsObjectLiteral baseline=CoverageInstrumentor.baselineCoverage(program.getSourceInfo(),instrumentableLines);
+  assertEquals("{'A.java':{1:0, 2:0, 3:0, 4:0, 5:0}, 'B.java':{1:0, 2:0, 3:0, 4:0, 5:0}}",baseline.toSource().trim().replaceAll("\\s+"," "));
 }
