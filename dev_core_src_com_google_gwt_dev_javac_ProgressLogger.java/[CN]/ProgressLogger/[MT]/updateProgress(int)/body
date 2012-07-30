@@ -1,0 +1,31 @@
+{
+  if (!logger.isLoggable(logLevel)) {
+    return;
+  }
+  if (!timerStarted) {
+    throw new IllegalStateException("#updateProgress() called before #startTimer().");
+  }
+  double progress=progressUnits / (double)maxProgressUnits;
+  double currentPercentage=100 * progress;
+  long elapsedNanos=nanoSource.getNanos() - startNanos;
+  if (currentPercentage < nextPercentage && progressUnits != maxProgressUnits) {
+    return;
+  }
+  if (elapsedNanos < LOG_BLACKOUT_PERIOD_NANOS) {
+    return;
+  }
+  long displayedPercentage=percentageIncrement * Math.round(Math.floor(currentPercentage / percentageIncrement));
+  if (progressUnits == maxProgressUnits) {
+    displayedPercentage=100;
+  }
+  if (progress >= ETR_ACCURACY_THRESHOLD) {
+    double estimatedTotalNanos=elapsedNanos / progress;
+    double estimatedNanosRemaining=estimatedTotalNanos - elapsedNanos;
+    double estimatedSecondsRemaining=estimatedNanosRemaining / (double)NANOSECONDS_IN_SECOND;
+    logger.log(logLevel,String.format("%d%% complete (ETR: %d seconds)",displayedPercentage,Math.round(estimatedSecondsRemaining)));
+  }
+ else {
+    logger.log(logLevel,String.format("%d%% complete (ETR: ?)",displayedPercentage));
+  }
+  nextPercentage+=percentageIncrement;
+}

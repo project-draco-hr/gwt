@@ -7,20 +7,28 @@
   }
   ArrayList<CompilationUnit> resultUnits=new ArrayList<CompilationUnit>();
   do {
+    final TreeLogger branch=logger.branch(TreeLogger.TRACE,"Compiling...");
     buildQueue=new LinkedBlockingQueue<CompilationUnitBuilder>();
     final ArrayList<CompilationUnit> newlyBuiltUnits=new ArrayList<CompilationUnit>();
     final CompilationUnitBuilder sentinel=CompilationUnitBuilder.create((GeneratedUnit)null);
     final Throwable[] workerException=new Throwable[1];
+    final ProgressLogger progressLogger=new ProgressLogger(branch,TreeLogger.TRACE,builders.size(),10);
     Thread buildThread=new Thread(){
       @Override public void run(){
+        int processedCompilationUnitBuilders=0;
         try {
           do {
             CompilationUnitBuilder builder=buildQueue.take();
+            if (!progressLogger.isTimerStarted()) {
+              progressLogger.startTimer();
+            }
             if (builder == sentinel) {
               return;
             }
             CompilationUnit unit=builder.build();
             newlyBuiltUnits.add(unit);
+            processedCompilationUnitBuilders++;
+            progressLogger.updateProgress(processedCompilationUnitBuilders);
           }
  while (true);
         }
@@ -33,6 +41,7 @@
     buildThread.setName("CompilationUnitBuilder");
     buildThread.start();
     Event jdtCompilerEvent=SpeedTracerLogger.start(eventType);
+    long compilationStartNanos=System.nanoTime();
     try {
       compiler.doCompile(builders);
     }
@@ -42,6 +51,9 @@
     buildQueue.add(sentinel);
     try {
       buildThread.join();
+      long compilationNanos=System.nanoTime() - compilationStartNanos;
+      double compilationSeconds=compilationNanos / (double)TimeUnit.SECONDS.toNanos(1);
+      branch.log(TreeLogger.TRACE,String.format("Compilation completed in %.02f seconds",compilationSeconds));
       if (workerException[0] != null) {
         throw workerException[0];
       }
