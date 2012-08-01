@@ -1,0 +1,31 @@
+{
+  sw.println("private static ValidationGroupsMetadata createValidationGroupsMetadata() {");
+  sw.indent();
+  sw.println("return ValidationGroupsMetadata.builder()");
+  sw.indent();
+  sw.indent();
+  for (  Class<?> group : gwtValidation.groups()) {
+    GroupSequence sequenceAnnotation=group.getAnnotation(GroupSequence.class);
+    Class<?>[] groups;
+    if (sequenceAnnotation != null) {
+      sw.print(".addSequence(");
+      sw.print(group.getCanonicalName() + ".class");
+      groups=sequenceAnnotation.value();
+    }
+ else {
+      sw.print(".addGroup(");
+      sw.print(group.getCanonicalName() + ".class");
+      groups=group.getInterfaces();
+    }
+    for (    Class<?> clazz : groups) {
+      sw.print(", ");
+      sw.print(clazz.getCanonicalName() + ".class");
+    }
+    sw.println(")");
+  }
+  sw.println(".build();");
+  sw.outdent();
+  sw.outdent();
+  sw.outdent();
+  sw.println("}");
+}

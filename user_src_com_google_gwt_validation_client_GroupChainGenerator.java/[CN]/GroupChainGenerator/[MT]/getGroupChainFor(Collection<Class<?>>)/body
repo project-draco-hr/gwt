@@ -1,0 +1,22 @@
+{
+  if (groups == null || groups.size() == 0) {
+    throw new IllegalArgumentException("At least one groups has to be specified.");
+  }
+  for (  Class<?> clazz : groups) {
+    if (!validationGroupsMetadata.containsGroup(clazz) && !validationGroupsMetadata.isSeqeuence(clazz)) {
+      throw new ValidationException("The class " + clazz + " is not a valid group or sequence.");
+    }
+  }
+  GroupChain chain=new GroupChain();
+  for (  Class<?> clazz : groups) {
+    if (isGroupSequence(clazz)) {
+      insertSequence(clazz,chain);
+    }
+ else {
+      Group group=new Group(clazz);
+      chain.insertGroup(group);
+      insertInheritedGroups(clazz,chain);
+    }
+  }
+  return chain;
+}

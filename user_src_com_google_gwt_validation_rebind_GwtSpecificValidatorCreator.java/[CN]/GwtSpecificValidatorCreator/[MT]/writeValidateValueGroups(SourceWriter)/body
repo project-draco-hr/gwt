@@ -1,0 +1,27 @@
+{
+  sw.println("public <T> void validateValueGroups(");
+  sw.indent();
+  sw.indent();
+  sw.println("GwtValidationContext<T> context,");
+  sw.println("Class<" + beanHelper.getTypeCanonicalName() + "> beanType,");
+  sw.println("String propertyName,");
+  sw.println("Object value,");
+  sw.println("Set<ConstraintViolation<T>> violations,");
+  sw.println("Class<?>... groups) {");
+  sw.outdent();
+  for (  PropertyDescriptor property : beanHelper.getBeanDescriptor().getConstrainedProperties()) {
+    sw.print("if (propertyName.equals(\"");
+    sw.print(property.getPropertyName());
+    sw.println("\")) {");
+    sw.indent();
+    if (!isIterableOrMap(property.getElementClass())) {
+      writeValidatePropertyCall(sw,property,true,false);
+    }
+    writeValidateInheritance(sw,beanHelper.getClazz(),Stage.VALUE,property);
+    sw.outdent();
+    sw.print("} else ");
+  }
+  writeIfPropertyNameNotFound(sw);
+  sw.outdent();
+  sw.println("}");
+}

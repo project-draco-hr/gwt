@@ -1,0 +1,54 @@
+{
+  ValidationGroupsMetadata validationGroupsMetadata=context.getValidator().getValidationGroupsMetadata();
+  GroupChain groupChain=new GroupChainGenerator(validationGroupsMetadata).getGroupChainFor(Arrays.asList(groups));
+  BeanMetadata beanMetadata=getBeanMetadata();
+  List<Class<?>> defaultGroupSeq=beanMetadata.getDefaultGroupSequence();
+  if (beanMetadata.defaultGroupSequenceIsRedefined()) {
+    groupChain.checkDefaultGroupSequenceIsExpandable(defaultGroupSeq);
+  }
+  Set<ConstraintViolation<T>> violations=new HashSet<ConstraintViolation<T>>();
+  Collection<Group> allGroups=groupChain.getAllGroups();
+  List<Class<?>> justGroups=new ArrayList<Class<?>>(allGroups.size());
+  for (  Group g : allGroups) {
+    if (g.isDefaultGroup() && beanMetadata.defaultGroupSequenceIsRedefined()) {
+      List<Group> defaultGroupSeqWrapper=new ArrayList<Group>(defaultGroupSeq.size());
+      for (int i=0; i < defaultGroupSeq.size(); i++) {
+        defaultGroupSeqWrapper.add(new Group(defaultGroupSeq.get(i),Default.class));
+      }
+      groupChain.insertSequence(defaultGroupSeqWrapper);
+    }
+ else {
+      justGroups.add(g.getGroup());
+    }
+  }
+  Class<?>[] justGroupsArray=justGroups.toArray(new Class<?>[justGroups.size()]);
+  if (useProperty) {
+    validatePropertyGroups(context,object,propertyName,violations,justGroupsArray);
+  }
+ else   if (useValue) {
+    validateValueGroups(context,beanType,propertyName,value,violations,justGroupsArray);
+  }
+ else {
+    validateClassGroups(context,object,violations,justGroupsArray);
+  }
+  Iterator<List<Group>> sequenceIterator=groupChain.getSequenceIterator();
+  while (sequenceIterator.hasNext()) {
+    List<Group> sequence=sequenceIterator.next();
+    for (    Group group : sequence) {
+      int numberOfViolations=violations.size();
+      if (useProperty) {
+        validatePropertyGroups(context,object,propertyName,violations,group.getGroup());
+      }
+ else       if (useValue) {
+        validateValueGroups(context,beanType,propertyName,value,violations,group.getGroup());
+      }
+ else {
+        validateClassGroups(context,object,violations,group.getGroup());
+      }
+      if (violations.size() > numberOfViolations) {
+        break;
+      }
+    }
+  }
+  return violations;
+}

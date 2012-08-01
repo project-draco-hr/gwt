@@ -1,0 +1,40 @@
+{
+  sw.println("private final BeanMetadata beanMetadata =");
+  sw.indent();
+  sw.indent();
+  sw.println("new " + BeanMetadata.class.getSimpleName() + "(");
+  sw.indent();
+  sw.indent();
+  Class<?> beanClazz=beanHelper.getClazz();
+  sw.print(asLiteral(beanClazz));
+  GroupSequence groupSeqAnnotation=beanClazz.getAnnotation(GroupSequence.class);
+  List<Class<?>> groupSequence=new ArrayList<Class<?>>();
+  if (groupSeqAnnotation == null) {
+    groupSequence.add(beanClazz);
+  }
+ else {
+    groupSequence.addAll(Arrays.asList(groupSeqAnnotation.value()));
+  }
+  boolean groupSequenceContainsDefault=false;
+  for (  Class<?> group : groupSequence) {
+    sw.println(",");
+    if (group.getName().equals(beanClazz.getName())) {
+      sw.print(asLiteral(Default.class));
+      groupSequenceContainsDefault=true;
+    }
+ else     if (group.getName().equals(Default.class.getName())) {
+      throw error(logger,"'Default.class' cannot appear in default group sequence list.");
+    }
+ else {
+      sw.print(asLiteral(group));
+    }
+  }
+  if (!groupSequenceContainsDefault) {
+    throw error(logger,beanClazz.getName() + " must be part of the redefined default group " + "sequence.");
+  }
+  sw.println(");");
+  sw.outdent();
+  sw.outdent();
+  sw.outdent();
+  sw.outdent();
+}
