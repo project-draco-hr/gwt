@@ -1,0 +1,23 @@
+{
+  int count=0;
+  Class<?> clazz=beanHelper.getClazz();
+  for (  ConstraintDescriptor<?> constraint : beanHelper.getBeanDescriptor().getConstraintDescriptors()) {
+    if (hasMatchingAnnotation(constraint)) {
+      if (!constraint.getConstraintValidatorClasses().isEmpty()) {
+        Class<? extends ConstraintValidator<? extends Annotation,?>> validatorClass=getValidatorForType(constraint,clazz);
+        sw.print("validate(context, violations, null, object, ");
+        sw.print("new ");
+        sw.print(validatorClass.getCanonicalName());
+        sw.print("(), ");
+        sw.print(constraintDescriptorVar("this",count));
+        sw.print(", ");
+        sw.print(groupsVarName);
+        sw.println(");");
+      }
+ else       if (constraint.getComposingConstraints().isEmpty()) {
+        logger.log(TreeLogger.WARN,"No ConstraintValidator of " + constraint + " for type "+ clazz);
+      }
+    }
+    count++;
+  }
+}

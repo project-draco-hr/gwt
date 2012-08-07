@@ -1,0 +1,18 @@
+{
+  Set<ConstraintViolation<T>> violations=new HashSet<ConstraintViolation<T>>();
+  Collection<Group> allGroups=groupChain.getAllGroups();
+  Group[] allGroupsArray=allGroups.toArray(new Group[allGroups.size()]);
+  groupValidator.validateGroups(context,violations,allGroupsArray);
+  Iterator<List<Group>> sequenceIterator=groupChain.getSequenceIterator();
+  while (sequenceIterator.hasNext()) {
+    List<Group> sequence=sequenceIterator.next();
+    for (    Group group : sequence) {
+      int numberOfViolations=violations.size();
+      groupValidator.validateGroups(context,violations,group);
+      if (violations.size() > numberOfViolations) {
+        break;
+      }
+    }
+  }
+  return violations;
+}

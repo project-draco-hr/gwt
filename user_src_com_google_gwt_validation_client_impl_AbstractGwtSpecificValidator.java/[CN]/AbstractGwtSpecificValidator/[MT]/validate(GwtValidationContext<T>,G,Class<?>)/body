@@ -1,8 +1,14 @@
 {
-  groups=addDefaultGroupWhenEmpty(groups);
   context.addValidatedObject(object);
   try {
-    return validateGroups(context,object,null,false,false,null,null,groups);
+    GroupValidator classGroupValidator=new ClassGroupValidator(object);
+    GroupChain groupChain=createGroupChainFromGroups(context,groups);
+    BeanMetadata beanMetadata=getBeanMetadata();
+    List<Class<?>> defaultGroupSeq=beanMetadata.getDefaultGroupSequence();
+    if (beanMetadata.defaultGroupSequenceIsRedefined()) {
+      groupChain.checkDefaultGroupSequenceIsExpandable(defaultGroupSeq);
+    }
+    return validateGroups(context,classGroupValidator,groupChain);
   }
  catch (  IllegalArgumentException e) {
     throw e;

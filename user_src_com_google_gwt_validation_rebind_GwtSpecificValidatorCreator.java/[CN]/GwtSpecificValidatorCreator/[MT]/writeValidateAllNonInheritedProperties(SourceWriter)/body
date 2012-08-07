@@ -1,5 +1,5 @@
 {
-  sw.println("public <T> void validateClassGroups(");
+  sw.println("private <T> void validateAllNonInheritedProperties(");
   sw.indent();
   sw.indent();
   sw.println("GwtValidationContext<T> context,");
@@ -7,9 +7,9 @@
   sw.println("Set<ConstraintViolation<T>> violations,");
   sw.println("Class<?>... groups) {");
   sw.outdent();
-  sw.println("validateAllNonInheritedProperties(context, object, violations, groups);");
-  writeValidateInheritance(sw,beanHelper.getClazz(),Stage.OBJECT,null,false,"groups");
-  writeClassLevelConstraintsValidation(sw,"groups");
+  for (  PropertyDescriptor p : beanHelper.getBeanDescriptor().getConstrainedProperties()) {
+    writeValidatePropertyCall(sw,p,false,true);
+  }
   sw.outdent();
   sw.println("}");
 }

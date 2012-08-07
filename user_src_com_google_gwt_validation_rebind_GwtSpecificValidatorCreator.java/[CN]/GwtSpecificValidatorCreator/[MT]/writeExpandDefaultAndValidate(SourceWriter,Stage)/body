@@ -1,0 +1,64 @@
+{
+  Class<?> clazz=beanHelper.getClazz();
+  sw.println("ArrayList<Class<?>> justGroups = new ArrayList<Class<?>>();");
+  sw.println("for (Group g : groups) {");
+  sw.indent();
+  sw.println("if (!g.isDefaultGroup() || !getBeanMetadata().defaultGroupSequenceIsRedefined()) {");
+  sw.indent();
+  sw.println("justGroups.add(g.getGroup());");
+  sw.outdent();
+  sw.println("}");
+  sw.outdent();
+  sw.println("}");
+  sw.println("Class<?>[] justGroupsArray = justGroups.toArray(new Class<?>[justGroups.size()]);");
+switch (stage) {
+case OBJECT:
+    sw.println("validateAllNonInheritedProperties(context, object, violations, " + "justGroupsArray);");
+  writeClassLevelConstraintsValidation(sw,"justGroupsArray");
+break;
+case PROPERTY:
+sw.println("validatePropertyGroups(context, object, propertyName, violations, " + "justGroupsArray);");
+break;
+case VALUE:
+sw.println("validateValueGroups(context, beanType, propertyName, value, violations, " + "justGroupsArray);");
+break;
+default :
+throw new IllegalStateException();
+}
+sw.println("if (getBeanMetadata().defaultGroupSequenceIsRedefined()) {");
+sw.indent();
+sw.println("for (Class<?> g : beanMetadata.getDefaultGroupSequence()) {");
+sw.indent();
+sw.println("int numberOfViolations = violations.size();");
+switch (stage) {
+case OBJECT:
+sw.println("validateAllNonInheritedProperties(context, object, violations, g);");
+writeClassLevelConstraintsValidation(sw,"g");
+writeValidateInheritance(sw,clazz,Stage.OBJECT,null,false,"g");
+break;
+case PROPERTY:
+sw.println("validatePropertyGroups(context, object, propertyName, violations, g);");
+break;
+case VALUE:
+sw.println("validateValueGroups(context, beanType, propertyName, value, violations, g);");
+break;
+default :
+throw new IllegalStateException();
+}
+sw.println("if (violations.size() > numberOfViolations) {");
+sw.indent();
+sw.println("break;");
+sw.outdent();
+sw.println("}");
+sw.outdent();
+sw.println("}");
+sw.outdent();
+sw.println("}");
+if (stage == Stage.OBJECT) {
+sw.println("else {");
+sw.indent();
+writeValidateInheritance(sw,clazz,Stage.OBJECT,null,true,"groups");
+sw.outdent();
+sw.println("}");
+}
+}
