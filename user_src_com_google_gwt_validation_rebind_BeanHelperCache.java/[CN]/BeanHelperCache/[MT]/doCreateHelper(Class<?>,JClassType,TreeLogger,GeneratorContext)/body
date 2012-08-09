@@ -1,5 +1,5 @@
 {
-  BeanHelper helper=getBeanHelper(beanType);
+  BeanHelper helper=getBean(beanType);
   if (helper == null) {
     BeanDescriptor bean;
     try {
@@ -10,11 +10,11 @@
       throw new UnableToCompleteException();
     }
     helper=new BeanHelper(beanType,clazz,bean);
-    addBeanHelper(helper);
+    cache.put(helper.getJClass(),helper);
     writeInterface(context,logger,helper);
     for (    PropertyDescriptor p : bean.getConstrainedProperties()) {
       if (p.isCascaded()) {
-        createBeanHelper(p,helper,logger,context);
+        doCreateHelperForProp(p,helper,logger,context);
       }
     }
   }
