@@ -1,0 +1,19 @@
+{
+  String typeName=validatorType.getName();
+  GwtValidation gwtValidation=validatorType.findAnnotationInTypeHierarchy(GwtValidation.class);
+  if (gwtValidation == null) {
+    logger.log(TreeLogger.ERROR,typeName + " must be anntotated with " + GwtValidation.class.getCanonicalName(),null);
+    throw new UnableToCompleteException();
+  }
+  if (gwtValidation.value().length == 0) {
+    logger.log(TreeLogger.ERROR,"The @" + GwtValidation.class.getSimpleName() + "  of "+ typeName+ "must specify at least one bean type to validate.",null);
+    throw new UnableToCompleteException();
+  }
+  if (gwtValidation.groups().length == 0) {
+    logger.log(TreeLogger.ERROR,"The @" + GwtValidation.class.getSimpleName() + "  of "+ typeName+ "must specify at least one validation group.",null);
+    throw new UnableToCompleteException();
+  }
+  TreeLogger validatorLogger=logger.branch(TreeLogger.DEBUG,"Generating Validator for  '" + validatorType.getQualifiedSourceName() + "'",null);
+  AbstractCreator creator=new ValidatorCreator(validatorType,gwtValidation,validatorLogger,context,cache);
+  return creator.create();
+}
