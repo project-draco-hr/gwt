@@ -20,59 +20,91 @@
   sw.println("boolean honorValid,");
   sw.println("Class<?>... groups) {");
   sw.outdent();
-  sw.print("final GwtValidationContext<T> myContext = context.append(\"");
-  sw.print(p.getPropertyName());
-  sw.println("\");");
-  if (p.isCascaded() && hasValid(p,useField)) {
-    sw.println("if(honorValid && value != null) {");
+  if (isPropertyConstrained(p,useField)) {
+    sw.print("final GwtValidationContext<T> myContext = context.append(\"");
+    sw.print(p.getPropertyName());
+    sw.println("\");");
+    sw.println("Node leafNode = myContext.getPath().getLeafNode();");
+    sw.println("PathImpl path = myContext.getPath().getPathWithoutLeafNode();");
+    sw.println("boolean isReachable;");
+    sw.println("try {");
     sw.indent();
-    if (isIterableOrMap(elementClass)) {
-      JClassType associationType=beanHelper.getAssociationType(p,useField);
-      createBeanHelper(associationType);
-      if (Map.class.isAssignableFrom(elementClass)) {
-        writeValidateMap(sw,p);
-      }
- else {
-        writeValidateIterable(sw,p);
-      }
-    }
- else {
-      createBeanHelper(elementClass);
-      sw.println(" if (!context.alreadyValidated(value)) {");
+    sw.println("isReachable = myContext.getTraversableResolver().isReachable(object, " + "leafNode, myContext.getRootBeanClass(), path, " + (useField ? asLiteral(ElementType.FIELD) : asLiteral(ElementType.METHOD)) + ");");
+    sw.outdent();
+    sw.println("} catch (Exception e) {");
+    sw.indent();
+    sw.println("throw new ValidationException(\"TraversableResolver isReachable caused an " + "exception\", e);");
+    sw.outdent();
+    sw.println("}");
+    sw.println("if (isReachable) {");
+    sw.indent();
+    if (p.isCascaded() && hasValid(p,useField)) {
+      sw.println("if (honorValid && value != null) {");
       sw.indent();
-      sw.print("violations.addAll(");
-      sw.println("myContext.getValidator().validate(myContext, value, groups));");
+      sw.println("boolean isCascadable;");
+      sw.println("try {");
+      sw.indent();
+      sw.println("isCascadable = myContext.getTraversableResolver().isCascadable(object, " + "leafNode, myContext.getRootBeanClass(), path, " + (useField ? asLiteral(ElementType.FIELD) : asLiteral(ElementType.METHOD)) + ");");
+      sw.outdent();
+      sw.println("} catch (Exception e) {");
+      sw.indent();
+      sw.println("throw new ValidationException(\"TraversableResolver isCascadable caused an " + "exception\", e);");
+      sw.outdent();
+      sw.println("}");
+      sw.println("if (isCascadable) {");
+      sw.indent();
+      if (isIterableOrMap(elementClass)) {
+        JClassType associationType=beanHelper.getAssociationType(p,useField);
+        createBeanHelper(associationType);
+        if (Map.class.isAssignableFrom(elementClass)) {
+          writeValidateMap(sw,p);
+        }
+ else {
+          writeValidateIterable(sw,p);
+        }
+      }
+ else {
+        createBeanHelper(elementClass);
+        sw.println(" if (!context.alreadyValidated(value)) {");
+        sw.indent();
+        sw.print("violations.addAll(");
+        sw.println("myContext.getValidator().validate(myContext, value, groups));");
+        sw.outdent();
+        sw.println("}");
+      }
+      sw.outdent();
+      sw.println("}");
       sw.outdent();
       sw.println("}");
     }
-    sw.outdent();
-    sw.println("}");
-  }
-  Set<Object> includedAnnotations=Sets.newHashSet();
-  int count=0;
-  for (  ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
-    Object annotation=constraint.getAnnotation();
-    if (hasMatchingAnnotation(p,useField,constraint)) {
-      String constraintDescriptorVar=constraintDescriptorVar(p.getPropertyName(),count);
-      if (!includedAnnotations.contains(annotation)) {
-        if (useField) {
-          writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
+    Set<Object> includedAnnotations=Sets.newHashSet();
+    int count=0;
+    for (    ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
+      Object annotation=constraint.getAnnotation();
+      if (hasMatchingAnnotation(p,useField,constraint)) {
+        String constraintDescriptorVar=constraintDescriptorVar(p.getPropertyName(),count);
+        if (!includedAnnotations.contains(annotation)) {
+          if (useField) {
+            writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
+          }
+ else {
+            boolean hasField=beanHelper.hasField(p);
+            if (!hasField || (hasField && !hasMatchingAnnotation(p,true,constraint))) {
+              writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
+            }
+          }
         }
  else {
-          boolean hasField=beanHelper.hasField(p);
-          if (!hasField || (hasField && !hasMatchingAnnotation(p,true,constraint))) {
+          if (!useField) {
             writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
           }
         }
+        includedAnnotations.add(annotation);
       }
- else {
-        if (!useField) {
-          writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
-        }
-      }
-      includedAnnotations.add(annotation);
+      count++;
     }
-    count++;
+    sw.outdent();
+    sw.println("}");
   }
   sw.outdent();
   sw.println("}");

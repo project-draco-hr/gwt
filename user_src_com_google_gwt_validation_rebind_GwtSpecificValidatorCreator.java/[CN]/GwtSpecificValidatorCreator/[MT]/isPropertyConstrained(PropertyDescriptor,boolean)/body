@@ -1,0 +1,16 @@
+{
+  JClassType jClass=beanHelper.getJClass();
+  if (useField && jClass.findField(p.getPropertyName()).isAnnotationPresent(Valid.class)) {
+    return true;
+  }
+ else   if (!useField && jClass.findMethod(asGetter(p),NO_ARGS).isAnnotationPresent(Valid.class)) {
+    return true;
+  }
+  for (  ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
+    org.hibernate.validator.metadata.ConstraintDescriptorImpl<?> constraintHibernate=(org.hibernate.validator.metadata.ConstraintDescriptorImpl<?>)constraint;
+    if (constraintHibernate.getElementType() == (useField ? ElementType.FIELD : ElementType.METHOD)) {
+      return true;
+    }
+  }
+  return false;
+}
