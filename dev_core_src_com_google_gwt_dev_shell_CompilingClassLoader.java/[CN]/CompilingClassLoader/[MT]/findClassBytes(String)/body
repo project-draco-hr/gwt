@@ -2,15 +2,15 @@
   if (JavaScriptHost.class.getName().equals(className)) {
     return javaScriptHostBytes;
   }
+  String lookupClassName=canonicalizeClassName(className);
+  CompiledClass compiledClass=compilationState.getClassFileMap().get(lookupClassName);
   if (classRewriter != null && classRewriter.isJsoIntf(className)) {
-    byte[] newBytes=classRewriter.writeJsoIntf(className);
+    byte[] newBytes=classRewriter.writeJsoIntf(className,compiledClass != null ? compiledClass.getBytes() : null);
     if (CLASS_DUMP) {
       classDump(className,newBytes);
     }
     return newBytes;
   }
-  String lookupClassName=canonicalizeClassName(className);
-  CompiledClass compiledClass=compilationState.getClassFileMap().get(lookupClassName);
   CompilationUnit unit=(compiledClass == null) ? getUnitForClassName(lookupClassName) : compiledClass.getUnit();
   if (emmaAvailable) {
     List<JsniMethod> jsniMethods=(unit == null) ? null : unit.getJsniMethods();

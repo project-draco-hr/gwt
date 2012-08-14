@@ -6,7 +6,7 @@
   assert(superDescs != null);
   assert(superDescs.size() > 0);
   ClassWriter writer=new ClassWriter(0);
-  ClassVisitor v=writer;
+  final ClassVisitor v=writer;
   String[] interfaces;
   if (superDescs.contains("java/lang/Object")) {
     interfaces=null;
@@ -15,6 +15,18 @@
     interfaces=superDescs.toArray(new String[superDescs.size()]);
   }
   v.visit(Opcodes.V1_5,Opcodes.ACC_PUBLIC | Opcodes.ACC_INTERFACE,desc,null,"java/lang/Object",interfaces);
+  if (classBytes != null) {
+    ClassAdapter cv=new ClassAdapter(new EmptyVisitor()){
+      @Override public void visitInnerClass(      String name,      String outerName,      String innerName,      int access){
+        v.visitInnerClass(name,outerName,innerName,access);
+      }
+      @Override public void visitOuterClass(      String owner,      String name,      String desc){
+        v.visitOuterClass(owner,name,desc);
+      }
+    }
+;
+    new ClassReader(classBytes).accept(cv,0);
+  }
   v.visitEnd();
   return writer.toByteArray();
 }
