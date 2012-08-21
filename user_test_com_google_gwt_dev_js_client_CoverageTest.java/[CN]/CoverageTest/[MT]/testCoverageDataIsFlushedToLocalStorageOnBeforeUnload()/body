@@ -1,0 +1,19 @@
+{
+  Storage localStorage=Storage.getLocalStorageIfSupported();
+  assertNotNull("Test browser does not support localStorage",localStorage);
+  assertNull("Found unexpected initial coverage",localStorage.getItem("gwt_coverage"));
+  CoverageTestModule.method();
+  fireOnBeforeUnloadEvent();
+  String coverageAsJson=localStorage.getItem("gwt_coverage");
+  assertNotNull("No coverage data found",coverageAsJson);
+  JSONObject coverage=JSONParser.parseStrict(coverageAsJson).isObject();
+  assertNotNull("Coverage data was not valid JSON",coverage);
+  JSONObject fileCoverage=coverage.get("com/google/gwt/dev/js/client/CoverageTestModule.java").isObject();
+  assertNotNull(fileCoverage);
+  for (  Map.Entry<String,Double> lineCoverage : EXPECTED_COVERAGE.entrySet()) {
+    assertTrue(fileCoverage.containsKey(lineCoverage.getKey()));
+    JSONNumber value=fileCoverage.get(lineCoverage.getKey()).isNumber();
+    assertNotNull(value);
+    assertEquals(lineCoverage.getValue(),value.doubleValue(),0.0001);
+  }
+}
