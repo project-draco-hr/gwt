@@ -16,7 +16,21 @@
   htmlTemplates.writeTemplateCallers(w);
   w.newline();
   JParameter[] renderParameters=findRenderParameters(baseClass);
-  writeRenderParameterDefinitions(w,renderParameters);
+  for (  JParameter param : renderParameters) {
+    fieldManager.disableOptimization(param.getName());
+  }
+  w.write("public %s() {",implClassName);
+  w.indent();
+  w.write("build_fields();");
+  w.outdent();
+  w.write("}");
+  w.newline();
+  w.write("private void build_fields() {");
+  w.indent();
+  fieldManager.initializeWidgetsInnerClass(w,getOwnerClass());
+  w.outdent();
+  w.write("}");
+  w.newline();
   String renderParameterDeclarations=renderMethodParameters(renderParameters);
   w.write("public void render(final %s sb%s%s) {",SafeHtmlBuilder.class.getName(),renderParameterDeclarations.length() != 0 ? ", " : "",renderParameterDeclarations);
   w.indent();
@@ -24,7 +38,7 @@
   writeRenderParameterInitializers(w,renderParameters);
   w.write("uiId = com.google.gwt.dom.client.Document.get().createUniqueId();");
   w.newline();
-  fieldManager.initializeWidgetsInnerClass(w,getOwnerClass());
+  w.write("build_fields();");
   w.newline();
   String safeHtml=rootField.getSafeHtml();
   w.write("sb.append(stampUiRendererAttribute(%s, RENDERED_ATTRIBUTE, uiId));",safeHtml);
