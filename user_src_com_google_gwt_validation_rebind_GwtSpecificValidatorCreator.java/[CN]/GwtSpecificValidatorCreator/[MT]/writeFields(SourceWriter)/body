@@ -25,7 +25,9 @@
     int count=0;
     for (    ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
       org.hibernate.validator.metadata.ConstraintDescriptorImpl<?> constraintHibernate=(org.hibernate.validator.metadata.ConstraintDescriptorImpl<?>)constraint;
-      writeConstraintDescriptor(sw,constraint,constraintHibernate.getElementType(),convertConstraintOriginEnum(constraintHibernate.getDefinedOn()),constraintDescriptorVar(p.getPropertyName(),count++));
+      if (areConstraintDescriptorGroupsValid(constraint)) {
+        writeConstraintDescriptor(sw,constraint,constraintHibernate.getElementType(),convertConstraintOriginEnum(constraintHibernate.getDefinedOn()),constraintDescriptorVar(p.getPropertyName(),count++));
+      }
     }
     writePropertyDescriptor(sw,p);
     if (p.isCascaded()) {
@@ -35,7 +37,9 @@
   int count=0;
   for (  ConstraintDescriptor<?> constraint : beanHelper.getBeanDescriptor().getConstraintDescriptors()) {
     org.hibernate.validator.metadata.ConstraintDescriptorImpl<?> constraintHibernate=(org.hibernate.validator.metadata.ConstraintDescriptorImpl<?>)constraint;
-    writeConstraintDescriptor(sw,constraint,ElementType.TYPE,convertConstraintOriginEnum(constraintHibernate.getDefinedOn()),constraintDescriptorVar("this",count++));
+    if (areConstraintDescriptorGroupsValid(constraint)) {
+      writeConstraintDescriptor(sw,constraint,ElementType.TYPE,convertConstraintOriginEnum(constraintHibernate.getDefinedOn()),constraintDescriptorVar("this",count++));
+    }
   }
   writeBeanDescriptor(sw);
   sw.println();

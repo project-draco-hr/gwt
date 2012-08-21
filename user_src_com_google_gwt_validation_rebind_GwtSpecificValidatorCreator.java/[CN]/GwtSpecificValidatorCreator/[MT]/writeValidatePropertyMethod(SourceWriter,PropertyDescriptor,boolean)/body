@@ -80,28 +80,30 @@
     Set<Object> includedAnnotations=Sets.newHashSet();
     int count=0;
     for (    ConstraintDescriptor<?> constraint : p.getConstraintDescriptors()) {
-      Object annotation=constraint.getAnnotation();
-      if (hasMatchingAnnotation(p,useField,constraint)) {
-        String constraintDescriptorVar=constraintDescriptorVar(p.getPropertyName(),count);
-        if (!includedAnnotations.contains(annotation)) {
-          if (useField) {
-            writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
+      if (areConstraintDescriptorGroupsValid(constraint)) {
+        Object annotation=constraint.getAnnotation();
+        if (hasMatchingAnnotation(p,useField,constraint)) {
+          String constraintDescriptorVar=constraintDescriptorVar(p.getPropertyName(),count);
+          if (!includedAnnotations.contains(annotation)) {
+            if (useField) {
+              writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
+            }
+ else {
+              boolean hasField=beanHelper.hasField(p);
+              if (!hasField || (hasField && !hasMatchingAnnotation(p,true,constraint))) {
+                writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
+              }
+            }
           }
  else {
-            boolean hasField=beanHelper.hasField(p);
-            if (!hasField || (hasField && !hasMatchingAnnotation(p,true,constraint))) {
+            if (!useField) {
               writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
             }
           }
+          includedAnnotations.add(annotation);
         }
- else {
-          if (!useField) {
-            writeValidateConstraint(sw,p,elementClass,constraint,constraintDescriptorVar);
-          }
-        }
-        includedAnnotations.add(annotation);
+        count++;
       }
-      count++;
     }
     sw.outdent();
     sw.println("}");

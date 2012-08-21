@@ -11,8 +11,12 @@
   sw.indent();
   sw.indent();
   sw.println(".setConstrained(" + beanDescriptor.isBeanConstrained() + ")");
-  for (int count=0; count < beanDescriptor.getConstraintDescriptors().size(); count++) {
-    sw.println(".add(" + constraintDescriptorVar("this",count) + ")");
+  int count=0;
+  for (  ConstraintDescriptor<?> constraint : beanDescriptor.getConstraintDescriptors()) {
+    if (areConstraintDescriptorGroupsValid(constraint)) {
+      sw.println(".add(" + constraintDescriptorVar("this",count) + ")");
+      count++;
+    }
   }
   for (  PropertyDescriptor p : beanDescriptor.getConstrainedProperties()) {
     sw.print(".put(\"");
