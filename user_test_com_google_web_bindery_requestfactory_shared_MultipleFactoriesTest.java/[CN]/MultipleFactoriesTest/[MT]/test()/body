@@ -1,0 +1,20 @@
+{
+  delayTestFinish(TEST_DELAY);
+  context1().getEntity().fire(new TestReceiver<Proxy1>(){
+    @Override public void onSuccess(    Proxy1 response){
+      assertEquals(EXPECTED_STRING_1,response.getString1());
+      context2().getEntity().to(new TestReceiver<Proxy2>(){
+        @Override public void onSuccess(        Proxy2 response){
+          assertEquals(EXPECTED_STRING_2,response.getString2());
+        }
+      }
+).fire(new TestReceiver<Void>(){
+        @Override public void onSuccess(        Void response){
+          finishTest();
+        }
+      }
+);
+    }
+  }
+);
+}
