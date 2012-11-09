@@ -1,0 +1,36 @@
+{
+  Map<String,String> toReturn=symbolCache.getAll(strongName,requiredSymbols);
+  if (toReturn.size() == requiredSymbols.size()) {
+    return toReturn;
+  }
+  Set<String> symbolsLeftToFind=new HashSet<String>(requiredSymbols);
+  toReturn=new HashMap<String,String>();
+  String line;
+  try {
+    BufferedReader bin=new BufferedReader(new InputStreamReader(getSymbolMapInputStream(strongName)));
+    try {
+      while ((line=bin.readLine()) != null && (symbolsLeftToFind.size() > 0 || !lazyLoad)) {
+        if (line.charAt(0) == '#') {
+          continue;
+        }
+        int idx=line.indexOf(',');
+        String symbol=line.substring(0,idx);
+        String symbolData=line.substring(idx + 1);
+        if (requiredSymbols.contains(symbol) || !lazyLoad) {
+          symbolsLeftToFind.remove(symbol);
+          toReturn.put(symbol,symbolData);
+        }
+      }
+    }
+  finally {
+      bin.close();
+    }
+  }
+ catch (  IOException e) {
+  }
+  for (  String symbol : symbolsLeftToFind) {
+    toReturn.put(symbol,SYMBOL_DATA_UNKNOWN);
+  }
+  symbolCache.putAll(strongName,toReturn);
+  return toReturn;
+}
