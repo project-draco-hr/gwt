@@ -6,11 +6,14 @@
     if (classBytes == null) {
       continue;
     }
+    AnonymousClassVisitor cv=new AnonymousClassVisitor();
+    new ClassReader(classBytes).accept(cv,0);
+    if (!cv.isWellFormed()) {
+      continue;
+    }
     if (isClassnameGenerated(lookupName) && !allGeneratedClasses.contains(lookupName)) {
       allGeneratedClasses.add(lookupName);
     }
-    AnonymousClassVisitor cv=new AnonymousClassVisitor();
-    new ClassReader(classBytes).accept(cv,0);
     List<String> innerClasses=cv.getInnerClassNames();
     for (    String innerClass : innerClasses) {
       if (!innerClass.startsWith(mainClass + "$")) {
