@@ -1,2 +1,28 @@
 {
+  JType leafType=array.getLeafType();
+  JWildcardType leafWild=leafType.isWildcard();
+  if (leafWild != null) {
+    JArrayType arrayType=getArrayType(typeOracle,array.getRank(),leafWild.getUpperBound());
+    return checkArrayInstantiable(logger,arrayType,path,problems);
+  }
+  TypeInfoComputed tic=ensureTypeInfoComputed(array,path);
+  if (tic.isDone() || tic.isPendingInstantiable()) {
+    return tic;
+  }
+  tic.setPendingInstantiable();
+  JTypeParameter isLeafTypeParameter=leafType.isTypeParameter();
+  if (isLeafTypeParameter != null && !typeParametersInRootTypes.contains(isLeafTypeParameter)) {
+    tic.setInstantiableSubtypes(true);
+    tic.setInstantiable(false);
+    return tic;
+  }
+  if (!isAllowedByFilter(array,problems)) {
+    tic.setInstantiable(false);
+    return tic;
+  }
+  TreeLogger branch=logger.branch(TreeLogger.DEBUG,"Analyzing component type:",null);
+  TypeInfoComputed leafTic=computeTypeInstantiability(branch,leafType,TypePaths.createArrayComponentPath(array,path),problems);
+  boolean succeeded=leafTic.hasInstantiableSubtypes();
+  tic.setInstantiable(succeeded);
+  return tic;
 }

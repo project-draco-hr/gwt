@@ -9,20 +9,30 @@
       problems.report(logger,TreeLogger.ERROR,TreeLogger.INFO);
     }
  else {
-      if (problems.hasFatalProblems()) {
-        entrySucceeded=false;
-        problems.reportFatalProblems(logger,TreeLogger.ERROR);
-      }
-      problems.report(logger,TreeLogger.DEBUG,TreeLogger.DEBUG);
+      maybeReport(logger,problems);
     }
-    allSucceeded&=entrySucceeded;
+    allSucceeded&=entrySucceeded & !problems.hasFatalProblems();
   }
   if (!allSucceeded) {
     throw new UnableToCompleteException();
   }
-  for (  TypeInfoComputed tic : typeToTypeInfoComputed.values()) {
-    assert(!tic.isPendingInstantiable());
+  assertNothingPending();
+  List<TypeInfoComputed> ticsToCheck=new ArrayList<TypeInfoComputed>();
+  ticsToCheck.addAll(typeToTypeInfoComputed.values());
+  for (  TypeInfoComputed tic : ticsToCheck) {
+    JArrayType type=tic.getType().isArray();
+    if (type != null && tic.instantiable) {
+      ProblemReport problems=new ProblemReport();
+      problems.setContextType(type);
+      markArrayTypes(logger,type,tic.getPath(),problems);
+      maybeReport(logger,problems);
+      allSucceeded&=!problems.hasFatalProblems();
+    }
   }
+  if (!allSucceeded) {
+    throw new UnableToCompleteException();
+  }
+  assertNothingPending();
   pruneUnreachableTypes();
   logReachableTypes(logger);
   Set<JClassType> possiblyInstantiatedTypes=new TreeSet<JClassType>(JTYPE_COMPARATOR);
