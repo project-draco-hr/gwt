@@ -1,7 +1,12 @@
 {
-  int fragment=request.getFragment();
-  JavaScriptObject scriptTag=createScriptTag(request.getUrl());
-  setOnSuccess(fragment,onSuccess(fragment,scriptTag,request));
-  setOnFailure(scriptTag,onFailure(fragment,scriptTag,request));
-  installScriptTag(scriptTag);
+  setAsyncCallback(request.getFragment(),request);
+  ScriptInjector.fromUrl(request.getUrl()).setRemoveTag(true).setCallback(new Callback<Void,Exception>(){
+    @Override public void onFailure(    Exception reason){
+      cleanup(request);
+    }
+    @Override public void onSuccess(    Void result){
+      cleanup(request);
+    }
+  }
+).inject();
 }
