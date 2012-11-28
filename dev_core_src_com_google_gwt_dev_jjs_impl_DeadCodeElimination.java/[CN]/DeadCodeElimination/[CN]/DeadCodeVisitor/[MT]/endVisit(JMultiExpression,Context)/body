@@ -9,6 +9,7 @@
       ignoringExpressionOutput.removeAll(nonFinalChildren);
     }
   }
+  HashSet<JDeclaredType> clinitsCalled=new HashSet<JDeclaredType>();
   for (int i=0; i < numRemovableExpressions(x); ++i) {
     JExpression expr=x.exprs.get(i);
     if (!expr.hasSideEffects()) {
@@ -23,6 +24,18 @@
       i--;
       madeChanges();
       continue;
+    }
+    if (expr instanceof JMethodCall && JProgram.isClinit(((JMethodCall)expr).getTarget())) {
+      JDeclaredType enclosingType=((JMethodCall)expr).getTarget().getEnclosingType();
+      if (enclosingType.findSubtype(clinitsCalled) != null) {
+        x.exprs.remove(i);
+        --i;
+        madeChanges();
+        continue;
+      }
+ else {
+        clinitsCalled.add(enclosingType);
+      }
     }
   }
   if (x.exprs.size() == 1) {

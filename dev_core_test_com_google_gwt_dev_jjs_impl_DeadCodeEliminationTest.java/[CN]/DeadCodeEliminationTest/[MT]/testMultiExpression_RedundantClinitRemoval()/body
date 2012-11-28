@@ -1,0 +1,6 @@
+{
+  addSnippetClassDecl("static class A  { " + "static int f1;" + "static int f2;"+ "static { f1 = 1; }"+ "static void m1() { } "+ "}"+ "static class B extends A  { "+ "static int f3;"+ "static int f4;"+ "static { f3 = 1; }"+ "static void m2() { } "+ "}");
+  optimizeExpressions(true,"void","A.m1()","A.m1()").intoString("EntryPoint$A.$clinit();\n" + "EntryPoint$A.m1();\n" + "EntryPoint$A.m1();");
+  optimizeExpressions(true,"void","B.m2()","A.m1()").intoString("EntryPoint$B.$clinit();\n" + "EntryPoint$B.m2();\n" + "EntryPoint$A.m1();");
+  optimizeExpressions(true,"void","A.m1()","B.m2()").intoString("EntryPoint$A.$clinit();\n" + "EntryPoint$A.m1();\n" + "EntryPoint$B.$clinit();\n"+ "EntryPoint$B.m2();");
+}
