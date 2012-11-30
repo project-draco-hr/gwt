@@ -1,11 +1,17 @@
 {
   boolean didChange=false;
-  if (runDCE) {
-    didChange=DeadCodeElimination.exec(program).didChange() || didChange;
+  boolean optimizeChange=false;
+  do {
+    optimizeChange=false;
+    if (runDCE) {
+      optimizeChange=DeadCodeElimination.exec(program).didChange() || optimizeChange;
+    }
+    if (runMethodInliner) {
+      optimizeChange=MethodInliner.exec(program).didChange() || optimizeChange;
+    }
+    didChange=didChange || optimizeChange;
   }
-  if (runMethodInliner) {
-    didChange=MethodInliner.exec(program).didChange() || didChange;
-  }
+ while (optimizeChange);
   didChange=DataflowOptimizer.exec(program,method).didChange() || didChange;
   return didChange;
 }

@@ -1,17 +1,24 @@
 {
   info=getBestSourceInfo(original,info,lhs);
+  if (lhs instanceof JMultiExpression) {
+    JMultiExpression lhsMulti=(JMultiExpression)lhs;
+    JMultiExpression newMulti=new JMultiExpression(info);
+    newMulti.exprs.addAll(allButLast(lhsMulti.exprs));
+    newMulti.exprs.add(orImpl(null,info,last(lhsMulti.exprs),rhs));
+    return newMulti;
+  }
   if (lhs instanceof JBooleanLiteral) {
     JBooleanLiteral booleanLiteral=(JBooleanLiteral)lhs;
     if (booleanLiteral.getValue()) {
-      return rhs;
+      return lhs;
     }
  else {
-      return lhs;
+      return rhs;
     }
   }
  else   if (rhs instanceof JBooleanLiteral) {
     JBooleanLiteral booleanLiteral=(JBooleanLiteral)rhs;
-    if (booleanLiteral.getValue()) {
+    if (!booleanLiteral.getValue()) {
       return lhs;
     }
  else     if (!lhs.hasSideEffects()) {
@@ -21,5 +28,5 @@
   if (original != null) {
     return original;
   }
-  return new JBinaryOperation(info,rhs.getType(),JBinaryOperator.AND,lhs,rhs);
+  return new JBinaryOperation(info,rhs.getType(),JBinaryOperator.OR,lhs,rhs);
 }

@@ -1,5 +1,12 @@
 {
   info=getBestSourceInfo(original,info,exp);
+  if (exp instanceof JMultiExpression) {
+    JMultiExpression expMulti=(JMultiExpression)exp;
+    JMultiExpression newMulti=new JMultiExpression(info);
+    newMulti.exprs.addAll(allButLast(expMulti.exprs));
+    newMulti.exprs.add(castImpl(null,info,type,last(expMulti.exprs)));
+    return newMulti;
+  }
   if (type == exp.getType()) {
     return exp;
   }
@@ -11,9 +18,9 @@
       return casted;
     }
   }
-  if (type == program.getTypePrimitiveInt()) {
+  if (type == JPrimitiveType.INT) {
     JType expType=exp.getType();
-    if ((expType == program.getTypePrimitiveShort()) || (expType == program.getTypePrimitiveByte())) {
+    if ((expType == JPrimitiveType.SHORT) || (expType == JPrimitiveType.BYTE)) {
       return exp;
     }
   }

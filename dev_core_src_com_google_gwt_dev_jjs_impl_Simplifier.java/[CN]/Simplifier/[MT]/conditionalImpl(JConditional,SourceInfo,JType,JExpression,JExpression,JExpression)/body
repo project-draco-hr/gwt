@@ -4,7 +4,7 @@
     JMultiExpression condMulti=(JMultiExpression)condExpr;
     JMultiExpression newMulti=new JMultiExpression(info);
     newMulti.exprs.addAll(allButLast(condMulti.exprs));
-    newMulti.exprs.add(conditional(null,info,type,last(condMulti.exprs),thenExpr,elseExpr));
+    newMulti.exprs.add(conditionalImpl(null,info,type,last(condMulti.exprs),thenExpr,elseExpr));
     return newMulti;
   }
   if (condExpr instanceof JBooleanLiteral) {
@@ -17,20 +17,20 @@
   }
  else   if (thenExpr instanceof JBooleanLiteral) {
     if (((JBooleanLiteral)thenExpr).getValue()) {
-      return shortCircuitOr(null,info,condExpr,elseExpr);
+      return orImpl(null,info,condExpr,elseExpr);
     }
  else {
-      JExpression notCondExpr=not(null,condExpr.getSourceInfo(),condExpr);
-      return shortCircuitAnd(null,info,notCondExpr,elseExpr);
+      JExpression notCondExpr=notImpl(null,condExpr.getSourceInfo(),condExpr);
+      return andImpl(null,info,notCondExpr,elseExpr);
     }
   }
  else   if (elseExpr instanceof JBooleanLiteral) {
     if (((JBooleanLiteral)elseExpr).getValue()) {
-      JExpression notCondExpr=not(null,condExpr.getSourceInfo(),condExpr);
-      return shortCircuitOr(null,info,notCondExpr,thenExpr);
+      JExpression notCondExpr=notImpl(null,condExpr.getSourceInfo(),condExpr);
+      return orImpl(null,info,notCondExpr,thenExpr);
     }
  else {
-      return shortCircuitAnd(null,info,condExpr,thenExpr);
+      return andImpl(null,info,condExpr,thenExpr);
     }
   }
  else {
