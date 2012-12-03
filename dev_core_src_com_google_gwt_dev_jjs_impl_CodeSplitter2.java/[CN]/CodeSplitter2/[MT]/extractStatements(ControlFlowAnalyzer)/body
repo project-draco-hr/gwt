@@ -54,11 +54,13 @@
       }
     }
     ControlFlowAnalyzer allButOne=computeAllButNCfas(liveAfterInitialSequence,splitPoints);
+    ControlFlowAnalyzer allFromSplitPoints=computeAllLiveFromSplitPoints(liveAfterInitialSequence,splitPoints);
     Set<JNode> allLiveNodes=union(allButOne.getLiveFieldsAndMethods(),allButOne.getFieldsWritten());
-    updateReverseMap(i,fragmentMap.fields,allLiveNodes,allFields);
-    updateReverseMap(i,fragmentMap.methods,allButOne.getLiveFieldsAndMethods(),allMethods);
-    updateReverseMap(i,fragmentMap.strings,allButOne.getLiveStrings(),everything.getLiveStrings());
-    updateReverseMap(i,fragmentMap.types,declaredTypesIn(allButOne.getInstantiatedTypes()),declaredTypesIn(everything.getInstantiatedTypes()));
+    Set<JNode> allLiveFromSplitPoints=union(allFromSplitPoints.getLiveFieldsAndMethods(),allFromSplitPoints.getFieldsWritten());
+    updateReverseMap(i,fragmentMap.fields,allLiveNodes,allFields,allLiveFromSplitPoints);
+    updateReverseMap(i,fragmentMap.methods,allButOne.getLiveFieldsAndMethods(),allMethods,allFromSplitPoints.getLiveFieldsAndMethods());
+    updateReverseMap(i,fragmentMap.strings,allButOne.getLiveStrings(),everything.getLiveStrings(),allFromSplitPoints.getLiveStrings());
+    updateReverseMap(i,fragmentMap.types,declaredTypesIn(allButOne.getInstantiatedTypes()),declaredTypesIn(everything.getInstantiatedTypes()),declaredTypesIn(allFromSplitPoints.getInstantiatedTypes()));
     if (splitPointToFragmentMap[i] != i) {
       continue;
     }
