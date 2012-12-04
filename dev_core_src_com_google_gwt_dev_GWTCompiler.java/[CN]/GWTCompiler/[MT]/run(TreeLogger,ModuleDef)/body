@@ -1,0 +1,50 @@
+{
+  Event compileEvent=SpeedTracerLogger.start(CompilerEventType.COMPILE);
+  boolean tempWorkDir=false;
+  try {
+    if (options.getWorkDir() == null) {
+      options.setWorkDir(Utility.makeTemporaryDirectory(null,"gwtc"));
+      tempWorkDir=true;
+    }
+    for (    ModuleDef module : modules) {
+      String moduleName=module.getName();
+      if (options.isValidateOnly()) {
+        if (!Precompile.validate(logger,options,module,options.getGenDir())) {
+          return false;
+        }
+      }
+ else {
+        long compileStart=System.currentTimeMillis();
+        logger=logger.branch(TreeLogger.INFO,"Compiling module " + moduleName);
+        options.setOptimizePrecompile(true);
+        Precompilation precompilation=Precompile.precompile(logger,options,module,options.getGenDir());
+        if (precompilation == null) {
+          return false;
+        }
+        Permutation[] allPerms=precompilation.getPermutations();
+        List<FileBackedObject<PermutationResult>> resultFiles=CompilePerms.makeResultFiles(options.getCompilerWorkDir(moduleName),allPerms);
+        CompilePerms.compile(logger,precompilation,allPerms,options.getLocalWorkers(),resultFiles);
+        ArtifactSet generatedArtifacts=precompilation.getGeneratedArtifacts();
+        JJSOptions precompileOptions=precompilation.getUnifiedAst().getOptions();
+        precompilation=null;
+        Link.legacyLink(logger.branch(TreeLogger.TRACE,"Linking into " + options.getOutDir().getPath()),module,generatedArtifacts,allPerms,resultFiles,options.getOutDir(),precompileOptions);
+        long compileDone=System.currentTimeMillis();
+        long delta=compileDone - compileStart;
+        if (logger.isLoggable(TreeLogger.INFO)) {
+          logger.log(TreeLogger.INFO,"Compilation succeeded -- " + String.format("%.3f",delta / 1000d) + "s");
+        }
+      }
+    }
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Unable to create compiler work directory",e);
+    return false;
+  }
+ finally {
+    compileEvent.end();
+    if (tempWorkDir) {
+      Util.recursiveDelete(options.getWorkDir(),false);
+    }
+  }
+  return true;
+}

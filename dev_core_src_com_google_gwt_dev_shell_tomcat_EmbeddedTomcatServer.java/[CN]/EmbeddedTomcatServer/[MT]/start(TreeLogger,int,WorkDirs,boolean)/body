@@ -1,0 +1,19 @@
+{
+  if (sTomcat != null) {
+    throw new IllegalStateException("Embedded Tomcat is already running");
+  }
+  try {
+    new EmbeddedTomcatServer(topLogger,port,workDirs,shouldAutoGenerateResources);
+    return null;
+  }
+ catch (  LifecycleException e) {
+    String msg=e.getMessage();
+    if (msg != null && msg.indexOf("already in use") != -1) {
+      msg="Port " + port + " is already is use; you probably still have another session active";
+    }
+ else {
+      msg="Unable to start the embedded Tomcat server; double-check that your configuration is valid";
+    }
+    return msg;
+  }
+}

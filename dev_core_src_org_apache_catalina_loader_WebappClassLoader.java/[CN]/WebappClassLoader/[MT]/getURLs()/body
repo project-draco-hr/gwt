@@ -1,0 +1,29 @@
+{
+  if (repositoryURLs != null) {
+    return repositoryURLs;
+  }
+  URL[] external=super.getURLs();
+  int filesLength=files.length;
+  int jarFilesLength=jarRealFiles.length;
+  int length=filesLength + jarFilesLength + external.length;
+  int i;
+  try {
+    URL[] urls=new URL[length];
+    for (i=0; i < length; i++) {
+      if (i < filesLength) {
+        urls[i]=getURL(files[i]);
+      }
+ else       if (i < filesLength + jarFilesLength) {
+        urls[i]=getURL(jarRealFiles[i - filesLength]);
+      }
+ else {
+        urls[i]=external[i - filesLength - jarFilesLength];
+      }
+    }
+    repositoryURLs=urls;
+  }
+ catch (  MalformedURLException e) {
+    repositoryURLs=new URL[0];
+  }
+  return repositoryURLs;
+}

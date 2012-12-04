@@ -1,0 +1,38 @@
+{
+  String pathInfo=request.getPathInfo();
+  if (pathInfo.length() == 0 || pathInfo.equals("/")) {
+    response.setContentType("text/html");
+    PrintWriter writer=response.getWriter();
+    writer.println("<html><body><basefont face='arial'>");
+    writer.println("To launch an application, specify a URL of the form <code>/<i>module</i>/<i>file.html</i></code>");
+    writer.println("</body></html>");
+    return;
+  }
+  TreeLogger logger=getLogger();
+  RequestParts parts;
+  try {
+    parts=new RequestParts(request);
+  }
+ catch (  UnableToCompleteException e) {
+    sendErrorResponse(response,HttpServletResponse.SC_NOT_FOUND,"Don't know what to do with this URL: '" + pathInfo + "'");
+    return;
+  }
+  String partialPath=parts.partialPath;
+  String moduleName=parts.moduleName;
+  ModuleDef moduleDef=loadedModulesByName.get(moduleName);
+  if (moduleDef != null) {
+    moduleName=moduleDef.getName();
+  }
+  if (partialPath == null) {
+    response.sendRedirect(moduleName + "/");
+    return;
+  }
+ else   if (partialPath.length() > 0) {
+    doGetPublicFile(request,response,logger,partialPath,moduleName);
+    return;
+  }
+ else {
+    doGetModule(request,response,logger,parts);
+    return;
+  }
+}
