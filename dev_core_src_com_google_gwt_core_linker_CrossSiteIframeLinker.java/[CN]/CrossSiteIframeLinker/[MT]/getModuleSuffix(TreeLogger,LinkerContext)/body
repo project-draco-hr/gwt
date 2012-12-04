@@ -5,6 +5,14 @@
   out.print("gwtOnLoad(" + "__gwtModuleFunction.__errFn, " + "__gwtModuleFunction.__moduleName, "+ "__gwtModuleFunction.__moduleBase, "+ "__gwtModuleFunction.__softPermutationId,"+ "__gwtModuleFunction.__computePropValue);");
   out.newlineOpt();
   out.print("$sendStats('moduleStartup', 'end');");
-  out.print("\n//@ sourceURL=0.js\n");
+  String includeSourceMapUrl=getStringConfigurationProperty(context,"includeSourceMapUrl","false");
+  if (!"false".equalsIgnoreCase(includeSourceMapUrl)) {
+    String sourceMapUrl=SymbolMapsLinker.SourceMapArtifact.sourceMapFilenameForFragment(0);
+    if (!"true".equalsIgnoreCase(includeSourceMapUrl)) {
+      sourceMapUrl=includeSourceMapUrl;
+    }
+    out.print("\n//@ sourceMappingURL=" + sourceMapUrl + " ");
+  }
+  out.print("\n//@ sourceURL=0.js \n");
   return out.toString();
 }
