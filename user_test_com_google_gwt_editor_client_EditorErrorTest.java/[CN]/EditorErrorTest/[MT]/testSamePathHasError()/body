@@ -1,0 +1,26 @@
+{
+  PersonEditorReceivesErrors editor=new PersonEditorReceivesErrors();
+  AddressEditorReceivesErrors addressEditor=new AddressEditorReceivesErrors();
+  editor.addressEditor=addressEditor;
+  Address a=new Address();
+  Person p=new Person();
+  p.address=a;
+  PersonEditorDriver driver=GWT.create(PersonEditorDriver.class);
+  driver.initialize(editor);
+  driver.edit(p);
+  driver.flush();
+  driver.setConstraintViolations(Arrays.<ConstraintViolation<?>>asList(createViolation("samePathError",p,"address")));
+  assertEquals(0,driver.getErrors().size());
+  assertEquals(0,editor.errors.size());
+  List<EditorError> list=addressEditor.errors;
+  assertNotNull(list);
+  assertEquals(1,list.size());
+  EditorError error=list.get(0);
+  assertNotNull(error);
+  assertEquals("address",error.getAbsolutePath());
+  assertEquals("samePathError",error.getMessage());
+  assertEquals("",error.getPath());
+  assertNotNull(error.getUserData());
+  assertSame(a,error.getValue());
+  assertSame(addressEditor,error.getEditor());
+}
