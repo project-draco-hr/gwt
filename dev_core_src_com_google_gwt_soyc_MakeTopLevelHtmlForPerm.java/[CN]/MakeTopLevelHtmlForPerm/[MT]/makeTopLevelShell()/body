@@ -44,30 +44,27 @@
   NumberFormat percentFormatter=NumberFormat.getPercentInstance();
   percentFormatter.setMinimumFractionDigits(1);
   percentFormatter.setMaximumFractionDigits(1);
-  if (globalInformation.getSplitPointToLocation().size() >= 1) {
-    int numSplitPoints=globalInformation.getSplitPointToLocation().size();
+  if (globalInformation.getNumFragments() >= 1) {
+    int numFragments=globalInformation.getNumFragments();
     int maxSize=globalInformation.getTotalCodeBreakdown().sizeAllCode;
-    for (int i=FRAGMENT_NUMBER_TOTAL_PROGRAM; i <= numSplitPoints + 1; i++) {
+    for (int fragment=FRAGMENT_NUMBER_TOTAL_PROGRAM; fragment <= numFragments + 1; fragment++) {
       SizeBreakdown breakdown;
-      if (i == FRAGMENT_NUMBER_TOTAL_PROGRAM) {
+      if (fragment == FRAGMENT_NUMBER_TOTAL_PROGRAM || fragment == numFragments + 1 || fragment == FRAGMENT_NUMBER_INITIAL_DOWNLOAD) {
         continue;
       }
- else       if (i == numSplitPoints + 1) {
-        continue;
-      }
- else       if (i == FRAGMENT_NUMBER_INITIAL_DOWNLOAD) {
-        continue;
-      }
- else {
-        breakdown=globalInformation.splitPointCodeBreakdown(i);
-      }
+      breakdown=globalInformation.fragmentCodeBreakdown(fragment);
       String drillDownFileName=shellFileName(breakdown,getPermutationId());
-      String splitPointDescription=globalInformation.getSplitPointToLocation().get(i);
+      final List<String> fragmentDescriptors=globalInformation.getFragmentDescriptors(fragment);
+      String[] escapedFragmentDescriptors=new String[fragmentDescriptors.size()];
+      for (int i=0; i < fragmentDescriptors.size(); i++) {
+        escapedFragmentDescriptors[i]=escapeXml(fragmentDescriptors.get(i));
+      }
+      String fragmentDescription=Strings.join(escapedFragmentDescriptors,"<BR>");
       int size=breakdown.sizeAllCode;
       float perc=(float)size / (float)maxSize;
       outFile.println("<tr>");
-      outFile.println("<td>" + i + "</td>");
-      outFile.println("<td><a href=\"" + drillDownFileName + "\">"+ splitPointDescription+ "</a></td>");
+      outFile.println("<td>" + fragment + "</td>");
+      outFile.print("<td><a href=\"" + drillDownFileName + "\">"+ fragmentDescription+ "</a></td>");
       outFile.println("<td class=\"soyc-bargraph-col\">");
       outFile.println("<div class=\"soyc-bar-graph goog-inline-block\">");
       outFile.println("<div style=\"width:" + (perc * 100.0) + "%;\" class=\"soyc-bar-graph-fill goog-inline-block\"></div>");

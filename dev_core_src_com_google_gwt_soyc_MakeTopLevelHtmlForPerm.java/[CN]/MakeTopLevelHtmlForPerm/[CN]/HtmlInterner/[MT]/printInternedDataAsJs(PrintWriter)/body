@@ -8,8 +8,13 @@
   }
   outFile.println("];");
   outFile.println("  var spl = [");
-  for (int sp=1; sp <= globalInformation.getNumSplitPoints(); sp++) {
-    outFile.println("        '" + globalInformation.getSplitPointToLocation().get(sp) + "',");
+  for (int fragment=1; fragment <= globalInformation.getNumFragments(); fragment++) {
+    final List<String> fragmentDescriptors=globalInformation.getFragmentDescriptors(fragment);
+    String[] escapedFragmentDescriptors=new String[fragmentDescriptors.size()];
+    for (int i=0; i < fragmentDescriptors.size(); i++) {
+      escapedFragmentDescriptors[i]=escapeJSString(fragmentDescriptors.get(i));
+    }
+    outFile.println("        '" + Strings.join(escapedFragmentDescriptors,",") + "',");
   }
   outFile.println("  ];");
   outFile.println("  var methodSizes = {");
@@ -76,7 +81,7 @@
   outFile.println("    var d1 = 'methodDependencies-total-" + getPermutationId() + ".html';");
   outFile.println("    document.write(\"<ul class='soyc-excl'>\");");
   outFile.println("    document.write(\"<li><a href='\" + d1 + \"#\" + className + \"'>" + "See why it's live</a></li>\");");
-  outFile.println("    for (var sp = 1; sp <= " + globalInformation.getNumSplitPoints() + "; sp++) {");
+  outFile.println("    for (var sp = 1; sp <= " + globalInformation.getNumFragments() + "; sp++) {");
   outFile.println("      var d2 = 'methodDependencies-sp' + sp + '-" + getPermutationId() + ".html';");
   outFile.println("      document.write(\"<li><a href='\" + d2 + \"#\" + className +\"'>" + " See why it's not exclusive to s.p. #\" + sp + \" (\" + spl[sp - 1] + \")" + "</a></li>\");");
   outFile.println("    }");

@@ -14,17 +14,22 @@
         inInitialLoadSequence=true;
       }
  else       if (inInitialLoadSequence && strippedName.compareTo("splitpointref") == 0) {
-        globalInformation.getSplitPointInitialLoadSequence().add(parseSplitPointReference(attributes));
+        globalInformation.getInitialFragmentLoadSequence().add(parseSplitPointReference(attributes));
       }
     }
+    /** 
+ * Parses a split point entry from a splitpoints XML soyc file.
+ * A split point node as in \<splitpoint id=N location=DESC/\>
+ * @param attributes the attributes of the splitpoint node (provided by the SAX parsing
+ * infrastructure)
+ */
     private void parseSplitPoint(    final Attributes attributes){
       if (attributes.getValue("id") != null) {
         String curSplitPoint=attributes.getValue("id");
         if (attributes.getValue("location") != null) {
           String curSplitPointLocation=attributes.getValue("location");
           curSplitPointLocation=curSplitPointLocation.replaceAll("\\(L.*","");
-          globalInformation.getSplitPointToLocation().put(Integer.parseInt(curSplitPoint),curSplitPointLocation);
-          globalInformation.incrementSplitPoints();
+          globalInformation.addFragmentDescriptor(Integer.parseInt(curSplitPoint),curSplitPointLocation);
         }
       }
     }
