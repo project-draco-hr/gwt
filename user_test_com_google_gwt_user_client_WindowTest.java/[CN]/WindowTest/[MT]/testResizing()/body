@@ -1,25 +1,28 @@
 {
+  if (!ResizeHelper.isResizeSupported()) {
+    return;
+  }
   clearBodyContent();
-  final TestResizeHandler resizeHandler=new TestResizeHandler();
-  final HandlerRegistration handlerRegistration=Window.addResizeHandler(resizeHandler);
-  delayTestFinish(2000);
-  DeferredCommand.addCommand(new Command(){
-    public void execute(){
-      int width=600;
-      int height=500;
-      if (!ResizeHelper.resizeTo(width,height)) {
-        handlerRegistration.removeHandler();
-        finishTest();
+  final int width=600;
+  final int height=500;
+  final TestResizeHandler handler=new TestResizeHandler();
+  final HandlerRegistration handlerRegistration=Window.addResizeHandler(handler);
+  ResizeHelper.resizeTo(width,height);
+  ResizeHelper.assertSize(width,height);
+  ResizeHelper.resizeBy(10,20);
+  ResizeHelper.assertSize(width + 10,height + 20);
+  delayTestFinish(1000);
+  Scheduler.get().scheduleFixedDelay(new RepeatingCommand(){
+    public boolean execute(){
+      if (!handler.isCalled()) {
+        return true;
       }
-      assertEquals(width,Window.getClientWidth() + ResizeHelper.getExtraWidth());
-      assertEquals(height,Window.getClientHeight() + ResizeHelper.getExtraHeight());
-      ResizeHelper.resizeBy(10,20);
-      assertEquals(width + 10,Window.getClientWidth() + ResizeHelper.getExtraWidth());
-      assertEquals(height + 20,Window.getClientHeight() + ResizeHelper.getExtraHeight());
+      assertEquals(Window.getClientWidth(),handler.getWidth());
+      assertEquals(Window.getClientHeight(),handler.getHeight());
       handlerRegistration.removeHandler();
-      ResizeHelper.restoreSize();
       finishTest();
+      return false;
     }
   }
-);
+,10);
 }
