@@ -15,19 +15,21 @@
     List<String> cookieHeaders=connection.getHeaderFields().get("Set-Cookie");
     if (cookieHeaders != null) {
       for (      String header : cookieHeaders) {
+        List<HttpCookie> headerCookies;
         try {
-          JSONObject cookie=Cookie.toJSONObject(header);
-          String name=cookie.getString("name");
-          String value=cookie.getString("value");
-          String domain=cookie.optString("Domain");
+          headerCookies=HttpCookie.parse(header);
+        }
+ catch (        IllegalArgumentException e) {
+          continue;
+        }
+        for (        HttpCookie cookie : headerCookies) {
+          String domain=cookie.getDomain();
           if (domain == null || url.getHost().endsWith(domain)) {
-            String path=cookie.optString("Path");
+            String path=cookie.getPath();
             if (path == null || url.getPath().startsWith(path)) {
-              cookies.put(name,value);
+              cookies.put(cookie.getName(),cookie.getValue());
             }
           }
-        }
- catch (        JSONException ignored) {
         }
       }
     }
