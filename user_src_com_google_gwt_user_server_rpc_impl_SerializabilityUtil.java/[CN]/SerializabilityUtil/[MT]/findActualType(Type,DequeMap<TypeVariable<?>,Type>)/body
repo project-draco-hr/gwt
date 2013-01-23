@@ -1,7 +1,30 @@
 {
-  Type result=genericType;
-  while (result instanceof TypeVariable<?> && resolvedTypes.get((TypeVariable<?>)result) != result && resolvedTypes.get((TypeVariable<?>)result) != null) {
-    result=resolvedTypes.get((TypeVariable<?>)result);
+  if (!(unresolved instanceof TypeVariable<?>)) {
+    return unresolved;
   }
-  return result;
+  TypeVariable<?> var=(TypeVariable<?>)unresolved;
+  Type target=resolvedTypes.get(var);
+  if (target == null || target == var) {
+    return var;
+  }
+  if (!(target instanceof TypeVariable<?>)) {
+    return target;
+  }
+  Set<TypeVariable<?>> seen=new HashSet<TypeVariable<?>>();
+  seen.add(var);
+  var=(TypeVariable<?>)target;
+  seen.add(var);
+  while (true) {
+    target=resolvedTypes.get(var);
+    if (target == null || target == var) {
+      return var;
+    }
+    if (!(target instanceof TypeVariable<?>)) {
+      return target;
+    }
+    var=(TypeVariable<?>)target;
+    if (!seen.add(var)) {
+      return var;
+    }
+  }
 }
