@@ -5,6 +5,7 @@
   if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX) {
     throw new NumberFormatException("radix " + radix + " out of range");
   }
+  final String orig=s;
   int length=s.length();
   boolean negative=(length > 0) && (s.charAt(0) == '-');
   if (negative) {
@@ -12,14 +13,14 @@
     length--;
   }
   if (length == 0) {
-    throw NumberFormatException.forInputString(s);
+    throw NumberFormatException.forInputString(orig);
   }
   while (s.length() > 0 && s.charAt(0) == '0') {
     s=s.substring(1);
     length--;
   }
   if (length > __ParseLong.maxLengthForRadix[radix]) {
-    throw NumberFormatException.forInputString(s);
+    throw NumberFormatException.forInputString(orig);
   }
   int maxNumericDigit='0' + Math.min(radix,10);
   int maxLowerCaseDigit=radix + 'a' - 10;
@@ -35,16 +36,16 @@
     if (c >= 'A' && c < maxUpperCaseDigit) {
       continue;
     }
-    throw NumberFormatException.forInputString(s);
+    throw NumberFormatException.forInputString(orig);
   }
   long toReturn=0;
   int maxDigits=__ParseLong.maxDigitsForRadix[radix];
   long radixPower=__ParseLong.maxDigitsRadixPower[radix];
-  long maxValue=__ParseLong.maxValueForRadix[radix];
+  long minValue=-__ParseLong.maxValueForRadix[radix];
   boolean firstTime=true;
   int head=length % maxDigits;
   if (head > 0) {
-    toReturn=__parseInt(s.substring(0,head),radix);
+    toReturn=-__parseInt(s.substring(0,head),radix);
     s=s.substring(head);
     length-=head;
     firstTime=false;
@@ -54,7 +55,7 @@
     s=s.substring(maxDigits);
     length-=maxDigits;
     if (!firstTime) {
-      if (toReturn > maxValue) {
+      if (toReturn < minValue) {
         throw new NumberFormatException(s);
       }
       toReturn*=radixPower;
@@ -62,13 +63,16 @@
  else {
       firstTime=false;
     }
-    toReturn+=head;
+    toReturn-=head;
   }
-  if (toReturn < 0) {
-    throw NumberFormatException.forInputString(s);
+  if (toReturn > 0) {
+    throw NumberFormatException.forInputString(orig);
   }
-  if (negative) {
+  if (!negative) {
     toReturn=-toReturn;
+    if (toReturn < 0) {
+      throw NumberFormatException.forInputString(orig);
+    }
   }
   return toReturn;
 }
