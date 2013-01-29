@@ -1,0 +1,22 @@
+{
+  delayTestFinish(DELAY_TEST_FINISH);
+  simpleFooRequest().findSimpleFooById(1L).fire(new Receiver<SimpleFooProxy>(){
+    @Override public void onSuccess(    SimpleFooProxy response){
+      SimpleFooRequest context=simpleFooRequest();
+      SimpleFooProxy foo=context.edit(response);
+      SimpleBarProxy bar=context.create(SimpleBarProxy.class);
+      foo.setBarField(bar);
+      Request<SimpleFooProxy> fooReq=context.persistCascadingAndReturnSelf().using(foo).with("barField");
+      fooReq.fire(new Receiver<SimpleFooProxy>(){
+        @Override public void onSuccess(        SimpleFooProxy returned){
+          assertTrue(AutoBeanUtils.getAutoBean(returned).isFrozen());
+          assertTrue(AutoBeanUtils.getAutoBean(returned.getBarField()).isFrozen());
+          simpleFooRequest().edit(returned);
+          finishTestAndReset();
+        }
+      }
+);
+    }
+  }
+);
+}
