@@ -126,7 +126,11 @@ List<Map<Range,SourceInfo>> sourceInfoMaps=new ArrayList<Map<Range,SourceInfo>>(
 generateJavaScriptCode(options,jprogram,jsProgram,jjsmap,js,ranges,sizeBreakdowns,sourceInfoMaps,splitBlocks,isSourceMapsEnabled);
 PermutationResult toReturn=new PermutationResultImpl(js,permutation,makeSymbolMap(symbolTable,jsProgram),ranges);
 CompilationMetricsArtifact compilationMetrics=null;
-if (!options.isClosureCompilerEnabled() && options.isCompilerMetricsEnabled()) {
+if (options.isCompilerMetricsEnabled()) {
+if (options.isClosureCompilerEnabled()) {
+logger.log(TreeLogger.WARN,"Incompatible options: -XenableClosureCompiler and " + "-XcompilerMetric; ignoring -XcompilerMetric.");
+}
+ else {
 compilationMetrics=new CompilationMetricsArtifact(permutation.getId());
 compilationMetrics.setCompileElapsedMilliseconds(System.currentTimeMillis() - startTimeMilliseconds);
 compilationMetrics.setElapsedMilliseconds(System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime());
@@ -134,12 +138,23 @@ compilationMetrics.setJsSize(sizeBreakdowns);
 compilationMetrics.setPermutationDescription(permutation.prettyPrint());
 toReturn.addArtifacts(Lists.create(unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics));
 }
-if (!options.isClosureCompilerEnabled()) {
+}
+if (options.isClosureCompilerEnabled()) {
+if (options.isSoycEnabled()) {
+logger.log(TreeLogger.WARN,"Incompatible options: -XenableClosureCompiler and " + "-compileReport; ignoring -compileReport.");
+}
+}
+ else {
 toReturn.addArtifacts(makeSoycArtifacts(logger,permutationId,jprogram,js,sizeBreakdowns,options.isSoycExtra() ? sourceInfoMaps : null,dependencies,jjsmap,obfuscateMap,unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics,options.isSoycHtmlDisabled()));
 }
-if (!options.isClosureCompilerEnabled() && isSourceMapsEnabled) {
+if (isSourceMapsEnabled) {
+if (options.isClosureCompilerEnabled()) {
+logger.log(TreeLogger.WARN,"Incompatible options: -XenableClosureCompiler and " + "compiler.useSourceMaps=true; ignoring compiler.useSourceMaps=true.");
+}
+ else {
 logger.log(TreeLogger.INFO,"Source Maps Enabled");
 toReturn.addArtifacts(SourceMapRecorder.makeSourceMapArtifacts(sourceInfoMaps,permutationId));
+}
 }
 logTrackingStats(logger);
 if (logger.isLoggable(TreeLogger.TRACE)) {
