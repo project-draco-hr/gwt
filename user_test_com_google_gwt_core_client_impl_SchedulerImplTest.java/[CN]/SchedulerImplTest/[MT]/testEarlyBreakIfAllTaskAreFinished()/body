@@ -1,0 +1,27 @@
+{
+  final SchedulerImpl impl=new SchedulerImpl(){
+    @Override Duration createDuration(){
+      return new Duration(){
+        @Override public int elapsedMillis(){
+          return 0;
+        }
+      }
+;
+    }
+  }
+;
+  final RepeatingCommandImpl command=new RepeatingCommandImpl();
+  impl.scheduleIncremental(command);
+  impl.scheduleDeferred(new ScheduledCommand(){
+    @Override public void execute(){
+      if (command.commandRanSecondTime) {
+        finishTest();
+      }
+ else {
+        impl.scheduleDeferred(this);
+      }
+    }
+  }
+);
+  delayTestFinish(TEST_DELAY);
+}
