@@ -2,18 +2,11 @@
   Object cmd=iterator.getLast();
   iterator.remove();
   assert(cmd != null);
-  RuntimeException ex=null;
   if (cmd instanceof Command) {
-    ex=new CommandCanceledException((Command)cmd);
+    GWT.maybeReportUncaughtException(new CommandCanceledException((Command)cmd));
   }
  else   if (cmd instanceof IncrementalCommand) {
-    ex=new IncrementalCommandCanceledException((IncrementalCommand)cmd);
-  }
-  if (ex != null) {
-    UncaughtExceptionHandler ueh=GWT.getUncaughtExceptionHandler();
-    if (ueh != null) {
-      ueh.onUncaughtException(ex);
-    }
+    GWT.maybeReportUncaughtException(new IncrementalCommandCanceledException((IncrementalCommand)cmd));
   }
   setExecuting(false);
   maybeStartExecutionTimer();
