@@ -1,6 +1,6 @@
 {
-  if (!GWT_RUNNER_NAME.equals(typeName)) {
-    logger.log(TreeLogger.ERROR,"This generator may only be used with " + GWT_RUNNER_NAME,null);
+  if (!PROXY.equals(typeName)) {
+    logger.log(TreeLogger.ERROR,"This generator may only be used with " + PROXY,null);
     throw new UnableToCompleteException();
   }
   JClassType requestedClass;
@@ -29,27 +29,18 @@
     logger.log(TreeLogger.ERROR,"Could not resolve user.agent property",e);
     throw new UnableToCompleteException();
   }
-  String generatedClass=requestedClass.getName().replace('.','_') + "Impl" + userAgent;
   String packageName=requestedClass.getPackage().getName();
-  String qualifiedStubClassName=packageName + "." + generatedClass;
-  SourceWriter sourceWriter=getSourceWriter(logger,context,packageName,generatedClass,GWT_RUNNER_NAME);
+  String generatedBaseClass=requestedClass.getName().replace('.','_') + "Impl";
+  SourceWriter sourceWriter=getSourceWriter(logger,context,packageName,generatedBaseClass,null,null);
   if (sourceWriter != null) {
-    TestModuleInfo moduleInfo=GWTTestCase.getTestsForModule(moduleName);
-    Set<TestInfo> moduleTests=(moduleInfo == null) ? null : moduleInfo.getTests();
-    Set<String> testClasses;
-    if (moduleTests == null || moduleTests.isEmpty()) {
-      JClassType[] allTestTypes=getAllPossibleTestTypes(context.getTypeOracle());
-      testClasses=getTestTypesForModule(logger,moduleName,allTestTypes);
-    }
- else {
-      testClasses=new TreeSet<String>();
-      for (      TestInfo testInfo : moduleTests) {
-        testClasses.add(testInfo.getTestClass());
-      }
-    }
-    writeCreateNewTestCaseMethod(testClasses,sourceWriter);
+    writeMethodCreateTestAccessor(logger,context,moduleName,sourceWriter);
+    sourceWriter.commit(logger);
+  }
+  String generatedClass=generatedBaseClass + userAgent;
+  sourceWriter=getSourceWriter(logger,context,packageName,generatedClass,generatedBaseClass,PROXY);
+  if (sourceWriter != null) {
     writeGetUserAgentPropertyMethod(userAgent,sourceWriter);
     sourceWriter.commit(logger);
   }
-  return qualifiedStubClassName;
+  return packageName + "." + generatedClass;
 }
