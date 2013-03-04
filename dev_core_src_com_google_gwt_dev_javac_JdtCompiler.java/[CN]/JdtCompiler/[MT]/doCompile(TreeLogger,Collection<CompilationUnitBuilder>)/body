@@ -1,0 +1,23 @@
+{
+  if (builders.isEmpty()) {
+    return;
+  }
+  List<ICompilationUnit> icus=new ArrayList<ICompilationUnit>();
+  for (  CompilationUnitBuilder builder : builders) {
+    addPackages(Shared.getPackageName(builder.getTypeName()).replace('.','/'));
+    icus.add(new Adapter(builder));
+  }
+  compilerImpl=new CompilerImpl();
+  try {
+    compilerImpl.compile(icus.toArray(new ICompilationUnit[icus.size()]));
+  }
+ catch (  AbortCompilation e) {
+    String filename=new String(e.problem.getOriginatingFileName());
+    TreeLogger branch=logger.branch(TreeLogger.Type.ERROR,"At " + filename + ": "+ e.problem.getSourceLineNumber());
+    branch.log(TreeLogger.Type.ERROR,"JDT compiler aborted: " + e.problem.getMessage());
+    throw new UnableToCompleteException();
+  }
+ finally {
+    compilerImpl=null;
+  }
+}
