@@ -1,16 +1,17 @@
 {
   int activeClients=messageQueue.getNumClientsRetrievedTest(currentTestInfo);
   int expectedClients=messageQueue.getNumClients();
-  if (firstLaunch && runStyle instanceof RunStyleManual) {
+  if (runStyle instanceof RunStyleManual && waitingForClients) {
     String[] newClients=messageQueue.getNewClients();
     int printIndex=activeClients - newClients.length + 1;
     for (    String newClient : newClients) {
       System.out.println(printIndex + " - " + newClient);
       ++printIndex;
     }
-    if (activeClients != expectedClients) {
+    if (activeClients < expectedClients) {
       return true;
     }
+    waitingForClients=false;
   }
   if (remoteUserAgents == null && messageQueue.getNumConnectedClients() == expectedClients) {
     remoteUserAgents=messageQueue.getUserAgents();
@@ -28,7 +29,6 @@
     if (activeClients > expectedClients) {
       getTopLogger().log(TreeLogger.WARN,"Too many clients: expected " + expectedClients + ", found "+ activeClients);
     }
-    firstLaunch=false;
     lastModule=currentModule;
     if (testMethodTimeout == 0) {
       testMethodTimeout=currentTimeMillis + testBatchingMethodTimeoutMillis;
