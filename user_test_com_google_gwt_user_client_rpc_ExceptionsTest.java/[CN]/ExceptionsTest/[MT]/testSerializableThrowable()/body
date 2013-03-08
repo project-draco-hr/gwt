@@ -1,0 +1,21 @@
+{
+  SerializableThrowable expected=new SerializableThrowable(null,"msg");
+  expected.setDesignatedType("x",true);
+  expected.setStackTrace(new StackTraceElement[]{new StackTraceElement("c","m","f",42)});
+  expected.initCause(new SerializableThrowable(null,"cause"));
+  checkException(expected,new AsyncCallback<SerializableThrowable>(){
+    public void onFailure(    Throwable caught){
+      TestSetValidator.rethrowException(caught);
+    }
+    public void onSuccess(    SerializableThrowable result){
+      assertNotNull(result);
+      assertEquals("msg",result.getMessage());
+      assertEquals("x",result.getDesignatedType());
+      assertTrue(result.isExactDesignatedTypeKnown());
+      assertEquals("c.m(f:42)",result.getStackTrace()[0].toString());
+      assertEquals("cause",((SerializableThrowable)result.getCause()).getMessage());
+      finishTest();
+    }
+  }
+);
+}
