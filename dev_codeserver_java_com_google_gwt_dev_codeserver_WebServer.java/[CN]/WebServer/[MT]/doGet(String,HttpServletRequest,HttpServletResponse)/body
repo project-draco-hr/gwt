@@ -41,6 +41,11 @@
     }
     return;
   }
+  if (target.equals("/policies/")) {
+    setHandled(request);
+    sendPolicyIndex(response);
+    return;
+  }
   Matcher matcher=SAFE_MODULE_PATH.matcher(target);
   if (matcher.matches()) {
     setHandled(request);
@@ -58,6 +63,10 @@
     setHandled(request);
     if (handler.isSourceMapRequest(target)) {
       handler.handle(target,request,response);
+      return;
+    }
+    if (target.startsWith("/policies/")) {
+      sendPolicyFile(target,response);
       return;
     }
     sendOutputFile(target,request,response);

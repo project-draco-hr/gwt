@@ -1,0 +1,22 @@
+{
+  int secondSlash=target.indexOf('/',1);
+  if (secondSlash < 1) {
+    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    return;
+  }
+  String rest=target.substring(secondSlash + 1);
+  if (rest.contains("/") || !rest.endsWith(".gwt.rpc")) {
+    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    return;
+  }
+  for (  String moduleName : modules) {
+    ModuleState module=modules.get(moduleName);
+    File policy=module.getOutputFile(moduleName + "/" + rest);
+    if (policy.isFile()) {
+      PageUtil.sendFile("text/plain",policy,response);
+      return;
+    }
+  }
+  logger.log(TreeLogger.Type.WARN,"policy file not found: " + rest);
+  response.sendError(HttpServletResponse.SC_NOT_FOUND);
+}
