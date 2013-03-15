@@ -3,11 +3,14 @@
     return;
   }
   JsFunction callerFunction=functionStack.peek();
+  if (!whitelist.contains(callerFunction)) {
+    return;
+  }
   JsFunction invokedFunction=isFunction(x.getQualifier());
   if (invokedFunction == null) {
     return;
   }
-  if (invokedFunction.getBody().getStatements().size() > 50) {
+  if (invokedFunction.getBody().getStatements().size() > MAX_INLINE_FN_SIZE) {
     return;
   }
   if (blacklist.contains(invokedFunction)) {

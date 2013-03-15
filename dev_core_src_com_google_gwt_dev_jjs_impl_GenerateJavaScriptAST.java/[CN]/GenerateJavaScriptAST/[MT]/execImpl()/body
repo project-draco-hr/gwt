@@ -1,11 +1,11 @@
 {
   SortVisitor sorter=new SortVisitor();
   sorter.accept(program);
-  RecordCrossClassCalls recorder=new RecordCrossClassCalls();
+  RecordCrossClassCallsAndJSInlinableMethods recorder=new RecordCrossClassCallsAndJSInlinableMethods();
   recorder.accept(program);
   CreateNamesAndScopesVisitor creator=new CreateNamesAndScopesVisitor();
   creator.accept(program);
-  GenerateJavaScriptVisitor generator=new GenerateJavaScriptVisitor();
+  GenerateJavaScriptVisitor generator=new GenerateJavaScriptVisitor(recorder.methodsForJsInlining);
   generator.accept(program);
   final Map<JsName,JMethod> nameToMethodMap=new HashMap<JsName,JMethod>();
   final HashMap<JsName,JField> nameToFieldMap=new HashMap<JsName,JField>();
@@ -32,28 +32,29 @@
   }
   jsProgram.setIndexedFields(indexedFields);
   jsProgram.setIndexedFunctions(indexedFunctions);
-  return new JavaToJavaScriptMap(){
-    public JsName nameForMethod(    JMethod method){
+  JavaToJavaScriptMap jjsMap=new JavaToJavaScriptMap(){
+    @Override public JsName nameForMethod(    JMethod method){
       return names.get(method);
     }
-    public JsName nameForType(    JClassType type){
+    @Override public JsName nameForType(    JClassType type){
       return names.get(type);
     }
-    public JField nameToField(    JsName name){
+    @Override public JField nameToField(    JsName name){
       return nameToFieldMap.get(name);
     }
-    public JMethod nameToMethod(    JsName name){
+    @Override public JMethod nameToMethod(    JsName name){
       return nameToMethodMap.get(name);
     }
-    public JClassType nameToType(    JsName name){
+    @Override public JClassType nameToType(    JsName name){
       return constructorNameToTypeMap.get(name);
     }
-    public JClassType typeForStatement(    JsStatement stat){
+    @Override public JClassType typeForStatement(    JsStatement stat){
       return typeForStatMap.get(stat);
     }
-    public JMethod vtableInitToMethod(    JsStatement stat){
+    @Override public JMethod vtableInitToMethod(    JsStatement stat){
       return vtableInitForMethodMap.get(stat);
     }
   }
 ;
+  return Pair.create(jjsMap,generator.functionsForJsInlining);
 }

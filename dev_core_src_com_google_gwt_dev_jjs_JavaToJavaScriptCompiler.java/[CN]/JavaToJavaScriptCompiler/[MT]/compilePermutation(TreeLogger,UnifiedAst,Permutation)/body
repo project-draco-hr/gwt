@@ -44,7 +44,8 @@
     Pruner.exec(jprogram,false);
     ReplaceGetClassOverrides.exec(jprogram);
     jprogram.typeOracle.recomputeAfterOptimizations();
-    JavaToJavaScriptMap jjsmap=GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput(),symbolTable,propertyOracles);
+    Pair<? extends JavaToJavaScriptMap,Set<JsNode>> genAstResult=GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput(),symbolTable,propertyOracles);
+    JavaToJavaScriptMap jjsmap=genAstResult.getLeft();
     JsNormalizer.exec(jsProgram);
     if (instrumentableLines != null) {
       CoverageInstrumentor.exec(jsProgram,instrumentableLines);
@@ -52,7 +53,7 @@
     JsSymbolResolver.exec(jsProgram);
     EvalFunctionsAtTopScope.exec(jsProgram,jjsmap);
     if (optimizationLevel > OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
-      optimizeJs(options,jsProgram);
+      optimizeJs(options,jsProgram,genAstResult.getRight());
       JsDuplicateCaseFolder.exec(jsProgram);
     }
     JsStackEmulator.exec(jprogram,jsProgram,propertyOracles,jjsmap);
