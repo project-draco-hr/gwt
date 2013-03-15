@@ -1,0 +1,33 @@
+{
+  JsProgram program=new JsProgram();
+  List<JsStatement> expected=JsParser.parse(SourceOrigin.UNKNOWN,program.getScope(),new StringReader(js));
+  program.getGlobalBlock().getStatements().addAll(expected);
+  JsSymbolResolver.exec(program);
+  JsPrettyNamer.exec(program,new PropertyOracle[]{new PropertyOracle(){
+    @Override public ConfigurationProperty getConfigurationProperty(    String propertyName) throws BadPropertyValueException {
+      if (useFilter) {
+        if (JsNamer.BLACKLIST.equals(propertyName)) {
+          return new DefaultConfigurationProperty(JsNamer.BLACKLIST,Arrays.asList("foo, bar","baz"));
+        }
+ else         if (JsNamer.BLACKLIST_SUFFIXES.equals(propertyName)) {
+          return new DefaultConfigurationProperty(JsNamer.BLACKLIST_SUFFIXES,Arrays.asList("logger"));
+        }
+      }
+      throw new BadPropertyValueException("No property value for " + propertyName);
+    }
+    @Override public String getPropertyValue(    TreeLogger logger,    String propertyName) throws BadPropertyValueException {
+      return null;
+    }
+    @Override public String[] getPropertyValueSet(    TreeLogger logger,    String propertyName) throws BadPropertyValueException {
+      return new String[0];
+    }
+    @Override public SelectionProperty getSelectionProperty(    TreeLogger logger,    String propertyName) throws BadPropertyValueException {
+      return null;
+    }
+  }
+});
+  TextOutput text=new DefaultTextOutput(true);
+  JsVisitor generator=new JsSourceGenerationVisitor(text);
+  generator.accept(program);
+  return text.toString();
+}
