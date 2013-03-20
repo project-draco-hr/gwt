@@ -1,0 +1,15 @@
+{
+  final String basePath=symbolMapsPath.endsWith("/") ? symbolMapsPath : symbolMapsPath + "/";
+  final ClassLoader classLoader=StackTraceDeobfuscator.class.getClassLoader();
+  return new StackTraceDeobfuscator(){
+    protected InputStream openInputStream(    String fileName) throws IOException {
+      String filePath=basePath + fileName;
+      InputStream inputStream=classLoader.getResourceAsStream(filePath);
+      if (inputStream == null) {
+        throw new IOException("Missing resource: " + filePath);
+      }
+      return inputStream;
+    }
+  }
+;
+}
