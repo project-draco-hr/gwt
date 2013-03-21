@@ -1,5 +1,17 @@
 {
-  super.process(cud,i);
+  try {
+    super.process(cud,i);
+  }
+ catch (  AbortCompilation e) {
+    abortCount++;
+    String filename=new String(cud.getFileName());
+    logger.log(TreeLogger.Type.ERROR,"JDT aborted: " + filename + ": "+ e.problem.getMessage());
+    return;
+  }
+catch (  RuntimeException e) {
+    logger.log(TreeLogger.Type.ERROR,"JDT died after " + abortCount + " previous errors",e);
+    throw new AbortCompilation(cud.compilationResult,e);
+  }
   ClassFile[] classFiles=cud.compilationResult().getClassFiles();
   Map<ClassFile,CompiledClass> results=new LinkedHashMap<ClassFile,CompiledClass>();
   for (  ClassFile classFile : classFiles) {
