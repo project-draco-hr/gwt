@@ -1,0 +1,17 @@
+{
+  Throwable throwable=new Throwable("stacktrace");
+  throwable.fillInStackTrace();
+  StackTraceElement[] newStackTrace=new StackTraceElement[2];
+  newStackTrace[0]=new StackTraceElement("TestClass","testMethod","fakefile",10);
+  newStackTrace[1]=new StackTraceElement("TestClass","testCaller","fakefile2",97);
+  throwable.setStackTrace(newStackTrace);
+  StackTraceElement[] trace=throwable.getStackTrace();
+  assertNotNull(trace);
+  assertEquals(2,trace.length);
+  assertEquals("TestClass",trace[0].getClassName());
+  assertEquals("testMethod",trace[0].getMethodName());
+  assertEquals("fakefile",trace[0].getFileName());
+  assertEquals(10,trace[0].getLineNumber());
+  assertEquals("TestClass.testMethod(fakefile:10)",trace[0].toString());
+  assertEquals("TestClass.testCaller(fakefile2:97)",trace[1].toString());
+}
