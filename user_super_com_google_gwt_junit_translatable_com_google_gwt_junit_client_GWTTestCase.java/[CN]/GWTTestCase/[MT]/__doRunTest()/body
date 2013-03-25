@@ -1,28 +1,19 @@
 {
-  Throwable caught=null;
   if (shouldCatchExceptions()) {
-    GWT.setUncaughtExceptionHandler(uncaughtHandler=new TestCaseUncaughtExceptionHandler());
     try {
       runBare();
     }
  catch (    Throwable e) {
-      caught=e;
+      if (synchronousException == null) {
+        synchronousException=e;
+      }
     }
   }
  else {
-    GWT.setUncaughtExceptionHandler(null);
     runBareTestCaseAvoidingExceptionDecl();
   }
   mainTestHasRun=true;
-  if ((uncaughtHandler != null) && (uncaughtHandler.synchronousException != null)) {
-    caught=uncaughtHandler.synchronousException;
-  }
-  if (caught != null) {
-    reportResultsAndRunNextMethod(caught);
-  }
- else   if (timer != null) {
-  }
- else {
-    reportResultsAndRunNextMethod(null);
+  if (synchronousException != null || timer == null) {
+    reportResultsAndRunNextMethod(synchronousException);
   }
 }

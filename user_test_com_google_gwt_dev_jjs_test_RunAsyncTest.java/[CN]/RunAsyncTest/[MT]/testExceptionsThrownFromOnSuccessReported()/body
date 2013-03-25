@@ -1,0 +1,25 @@
+{
+  final RuntimeException toThrow=new RuntimeException("_expected_");
+  GWT.setUncaughtExceptionHandler(new UncaughtExceptionHandler(){
+    public void onUncaughtException(    Throwable e){
+      if (e == toThrow) {
+        finishTest();
+      }
+    }
+  }
+);
+  delayTestFinish(RUNASYNC_TIMEOUT);
+  try {
+    GWT.runAsync(new RunAsyncCallback(){
+      public void onFailure(      Throwable caught){
+      }
+      public void onSuccess(){
+        throw toThrow;
+      }
+    }
+);
+  }
+ catch (  Throwable e) {
+    GWT.maybeReportUncaughtException(e);
+  }
+}

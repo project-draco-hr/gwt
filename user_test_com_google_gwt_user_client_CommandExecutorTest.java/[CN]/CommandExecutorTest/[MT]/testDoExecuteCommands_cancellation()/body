@@ -1,14 +1,14 @@
 {
   final CommandExecutor ce=new NonRestartingCommandExecutor();
-  final TestIncrementalCommand ic=new TestIncrementalCommand();
+  final TestCommand c1=new TestCommand();
   ce.setExecuting(true);
-  ce.submit(ic);
+  ce.submit(c1);
   ce.setLast(0);
   recordUncaughtException=true;
   ce.doCommandCanceled();
-  assertSame(ic,((IncrementalCommandCanceledException)capturedException).getCommand());
+  assertSame(c1,((CommandCanceledException)capturedException).getCommand());
   ce.doExecuteCommands(Duration.currentTimeMillis());
-  assertEquals(0,ic.getExecuteCount());
+  assertFalse(c1.didExecute());
   delayTestFinish(TEST_FINISH_DELAY_MILLIS);
   ce.submit(createFinishTestCommand());
   ce.doExecuteCommands(Duration.currentTimeMillis());
