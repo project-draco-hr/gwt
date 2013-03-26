@@ -1,0 +1,27 @@
+{
+  URL urlObj;
+  try {
+    urlObj=new URL(url);
+  }
+ catch (  MalformedURLException e) {
+    logger.logError("Can't parse serialization policy URL: " + url,e);
+    return null;
+  }
+  URLConnection conn;
+  InputStream in;
+  try {
+    conn=urlObj.openConnection();
+    conn.setConnectTimeout(connectTimeout);
+    conn.setReadTimeout(readTimeout);
+    if (conn instanceof HttpURLConnection) {
+      ((HttpURLConnection)conn).setInstanceFollowRedirects(false);
+    }
+    conn.connect();
+    in=conn.getInputStream();
+  }
+ catch (  IOException e) {
+    logger.logError("Can't open serialization policy URL: " + url,e);
+    return null;
+  }
+  return readPolicy(in,url,logger);
+}

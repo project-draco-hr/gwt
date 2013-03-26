@@ -1,0 +1,27 @@
+{
+  try {
+    List<ClassNotFoundException> errs=new ArrayList<ClassNotFoundException>();
+    SerializationPolicy policy=SerializationPolicyLoader.loadFromStream(in,errs);
+    logger.logInfo("Downloaded serialization policy from " + sourceName);
+    if (!errs.isEmpty()) {
+      logMissingClasses(logger,errs);
+    }
+    return policy;
+  }
+ catch (  ParseException e) {
+    logger.logError("Can't parse serialization policy from " + sourceName,e);
+    return null;
+  }
+catch (  IOException e) {
+    logger.logError("Can't read serialization policy from " + sourceName,e);
+    return null;
+  }
+ finally {
+    try {
+      in.close();
+    }
+ catch (    IOException e) {
+      logger.logError("Can't close serialization policy url: " + sourceName,e);
+    }
+  }
+}
