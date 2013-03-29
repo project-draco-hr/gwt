@@ -1,0 +1,16 @@
+{
+  ExpectedFailure annotation=getExpectedFailureAnnotation(test);
+  try {
+    annotation.withAsserter().newInstance().assertException(annotation,t);
+  }
+ catch (  AssertionFailedError e) {
+    String msg="Assertion failed for thrown exception: " + e.getMessage() + "\n(Actual thrown exception is reported below via 'caused by')";
+    AssertionFailedError errorToReport=new AssertionFailedError(msg);
+    errorToReport.initCause(t);
+    errorToReport.setStackTrace(e.getStackTrace());
+    super.addFailure(test,errorToReport);
+  }
+catch (  Exception e) {
+    super.addError(test,e);
+  }
+}
