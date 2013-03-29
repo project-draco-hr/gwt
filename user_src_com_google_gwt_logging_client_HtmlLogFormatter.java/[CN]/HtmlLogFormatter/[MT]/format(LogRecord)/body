@@ -1,10 +1,18 @@
 {
-  StringBuilder html=new StringBuilder();
+  final StringBuilder html=new StringBuilder();
   html.append(getHtmlPrefix(event));
   html.append(getRecordInfo(event," "));
   html.append(getEscaped(event.getMessage()));
-  if (showStackTraces) {
-    html.append(getEscaped(getStackTraceAsString(event.getThrown(),newline,"&nbsp;&nbsp;&nbsp;")));
+  if (showStackTraces && event.getThrown() != null) {
+    event.getThrown().printStackTrace(new StackTracePrintStream(html){
+      @Override public void append(      String str){
+        html.append(getEscaped(str));
+      }
+      @Override public void newLine(){
+        html.append("<br>");
+      }
+    }
+);
   }
   html.append(getHtmlSuffix(event));
   return html.toString();
