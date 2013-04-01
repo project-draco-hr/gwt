@@ -2,14 +2,13 @@
   TestModuleInfo moduleInfo=GWTTestCase.getTestsForModule(moduleName);
   Set<TestInfo> moduleTests=(moduleInfo == null) ? null : moduleInfo.getTests();
   if (moduleTests == null || moduleTests.isEmpty()) {
-    logger.log(TreeLogger.ERROR,"No tests found in module: " + moduleName);
+    logger.log(TreeLogger.ERROR,"No active tests found in module: " + moduleName);
     throw new UnableToCompleteException();
   }
- else {
-    Set<JClassType> testClasses=new LinkedHashSet<JClassType>();
-    for (    TestInfo testInfo : moduleTests) {
-      testClasses.add(context.getTypeOracle().findType(testInfo.getTestClass()));
-    }
-    return testClasses;
+  Map<String,JClassType> testClasses=new LinkedHashMap<String,JClassType>();
+  for (  TestInfo testInfo : moduleTests) {
+    String testClassName=testInfo.getTestClass();
+    testClasses.put(testClassName,getTestClass(context.getTypeOracle(),testClassName));
   }
+  return testClasses;
 }
