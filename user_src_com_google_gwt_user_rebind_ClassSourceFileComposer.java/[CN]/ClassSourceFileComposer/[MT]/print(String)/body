@@ -1,22 +1,22 @@
 {
-  if (atStart) {
-    for (int j=0; j < indent; ++j) {
-      printWriter.print("  ");
+  int pos=0;
+  for (; ; ) {
+    if (atStart) {
+      for (int j=0; j < indent; ++j) {
+        printWriter.print("  ");
+      }
+      if (inComment) {
+        printWriter.print(commentIndicator);
+      }
+      atStart=false;
     }
-    if (inComment) {
-      printWriter.print(commentIndicator);
+    int nl=s.indexOf('\n',pos);
+    if (nl == -1 || nl == s.length() - 1) {
+      printWriter.write(s,pos,s.length() - pos);
+      return;
     }
-    atStart=false;
-  }
-  String rest=null;
-  int i=s.indexOf("\n");
-  if (i > -1 && i < s.length() - 1) {
-    rest=s.substring(i + 1);
-    s=s.substring(0,i + 1);
-  }
-  printWriter.print(s);
-  if (rest != null) {
+    printWriter.write(s,pos,nl + 1 - pos);
     atStart=true;
-    print(rest);
+    pos=nl + 1;
   }
 }
