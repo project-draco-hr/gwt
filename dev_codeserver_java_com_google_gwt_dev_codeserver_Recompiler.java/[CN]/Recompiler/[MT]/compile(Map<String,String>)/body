@@ -7,19 +7,43 @@
     CompilationStateBuilder.init(logger,appSpace.getUnitCacheDir());
   }
   long startTime=System.currentTimeMillis();
-  CompileDir compileDir=makeCompileDir(++compilesDone);
+  int compileId=++compilesDone;
+  CompileDir compileDir=makeCompileDir(compileId);
   TreeLogger compileLogger=makeCompileLogger(compileDir);
-  ModuleDef module=loadModule(compileLogger,bindingProperties);
-  String newModuleName=module.getName();
-  moduleName.set(newModuleName);
-  CompilerOptions options=new CompilerOptionsImpl(compileDir,newModuleName);
-  boolean success=new Compiler(options).run(compileLogger,module);
-  lastBuild.set(compileDir);
+  boolean listenerFailed=false;
+  try {
+    listener.startedCompile(originalModuleName,compileId,compileDir);
+  }
+ catch (  Exception e) {
+    compileLogger.log(TreeLogger.Type.WARN,"listener threw exception",e);
+    listenerFailed=true;
+  }
+  boolean success=false;
+  try {
+    ModuleDef module=loadModule(compileLogger,bindingProperties);
+    String newModuleName=module.getName();
+    moduleName.set(newModuleName);
+    CompilerOptions options=new CompilerOptionsImpl(compileDir,newModuleName);
+    success=new Compiler(options).run(compileLogger,module);
+    lastBuild.set(compileDir);
+  }
+  finally {
+    try {
+      listener.finishedCompile(originalModuleName,compileId,success);
+    }
+ catch (    Exception e) {
+      compileLogger.log(TreeLogger.Type.WARN,"listener threw exception",e);
+      listenerFailed=true;
+    }
+  }
   if (!success) {
     compileLogger.log(TreeLogger.Type.ERROR,"Compiler returned " + success);
     throw new UnableToCompleteException();
   }
   long elapsedTime=System.currentTimeMillis() - startTime;
   compileLogger.log(TreeLogger.Type.INFO,"Compile completed in " + elapsedTime + " ms");
+  if (failIfListenerFails && listenerFailed) {
+    throw new UnableToCompleteException();
+  }
   return compileDir;
 }
