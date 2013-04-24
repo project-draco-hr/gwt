@@ -1,11 +1,15 @@
 {
   Event optimizeEvent=SpeedTracerLogger.start(CompilerEventType.OPTIMIZE);
   List<OptimizerStats> allOptimizerStats=new ArrayList<OptimizerStats>();
-  int counter=0;
-  int optimizationLevel=options.getOptimizationLevel();
+  int passCount=0;
+  int nodeCount=getNodeCount(jprogram);
+  int lastNodeCount;
+  boolean atMaxLevel=options.getOptimizationLevel() == OptionOptimize.OPTIMIZE_LEVEL_MAX;
+  int passLimit=atMaxLevel ? MAX_PASSES : options.getOptimizationLevel();
+  float minChangeRate=atMaxLevel ? FIXED_POINT_CHANGE_RATE : EFFICIENT_CHANGE_RATE;
   while (true) {
-    counter++;
-    if (optimizationLevel < OptionOptimize.OPTIMIZE_LEVEL_MAX && counter > optimizationLevel) {
+    passCount++;
+    if (passCount > passLimit) {
       break;
     }
     if (Thread.interrupted()) {
@@ -13,9 +17,13 @@
       throw new InterruptedException();
     }
     AstDumper.maybeDumpAST(jprogram);
-    OptimizerStats stats=optimizeLoop("Pass " + counter,jprogram,options.isAggressivelyOptimize());
+    OptimizerStats stats=optimizeLoop("Pass " + passCount,jprogram,options.isAggressivelyOptimize(),nodeCount);
     allOptimizerStats.add(stats);
-    if (!stats.didChange()) {
+    lastNodeCount=nodeCount;
+    nodeCount=getNodeCount(jprogram);
+    float nodeChangeRate=stats.getNumMods() / (float)lastNodeCount;
+    float sizeChangeRate=(lastNodeCount - nodeCount) / (float)lastNodeCount;
+    if (nodeChangeRate <= minChangeRate && sizeChangeRate <= minChangeRate) {
       break;
     }
   }

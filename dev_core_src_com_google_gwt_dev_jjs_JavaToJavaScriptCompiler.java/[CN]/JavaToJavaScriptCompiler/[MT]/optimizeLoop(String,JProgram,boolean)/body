@@ -1,23 +1,6 @@
 {
-  Event optimizeEvent=SpeedTracerLogger.start(CompilerEventType.OPTIMIZE,"phase","loop");
-  Event countEvent=SpeedTracerLogger.start(CompilerEventType.OPTIMIZE,"phase","countNodes");
   TreeStatistics treeStats=new TreeStatistics();
   treeStats.accept(jprogram);
   int numNodes=treeStats.getNodeCount();
-  countEvent.end();
-  jprogram.typeOracle.recomputeAfterOptimizations();
-  OptimizerStats stats=new OptimizerStats(passName);
-  stats.add(Pruner.exec(jprogram,true).recordVisits(numNodes));
-  stats.add(Finalizer.exec(jprogram).recordVisits(numNodes));
-  stats.add(MakeCallsStatic.exec(jprogram).recordVisits(numNodes));
-  stats.add(TypeTightener.exec(jprogram).recordVisits(numNodes));
-  stats.add(MethodCallTightener.exec(jprogram).recordVisits(numNodes));
-  stats.add(DeadCodeElimination.exec(jprogram).recordVisits(numNodes));
-  stats.add(MethodInliner.exec(jprogram).recordVisits(numNodes));
-  if (isAggressivelyOptimize) {
-    stats.add(SameParameterValueOptimizer.exec(jprogram).recordVisits(numNodes));
-    stats.add(EnumOrdinalizer.exec(jprogram).recordVisits(numNodes));
-  }
-  optimizeEvent.end();
-  return stats;
+  return optimizeLoop("Early Optimization",jprogram,false,numNodes);
 }
