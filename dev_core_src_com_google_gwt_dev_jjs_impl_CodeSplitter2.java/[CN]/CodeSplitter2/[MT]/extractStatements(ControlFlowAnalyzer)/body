@@ -34,6 +34,7 @@
     }
   }
   allFields.addAll(everything.getFieldsWritten());
+  ArrayList<JsStatement> leftOverMergeStats=new ArrayList<JsStatement>();
   for (int i=1; i < splitPointToFragmentMap.length; i++) {
     ArrayList<Integer> splitPoints=new ArrayList<Integer>();
     if (splitPointToFragmentMap[i] != i) {
@@ -69,15 +70,29 @@
     }
     LivenessPredicate alreadyLoaded=new ExclusivityMapLivenessPredicate(fragmentMap,0);
     LivenessPredicate liveNow=new ExclusivityMapLivenessPredicate(fragmentMap,i);
-    List<JsStatement> statsToAppend=fragmentExtractor.createOnLoadedCall(cacheIndex);
-    addFragment(i,alreadyLoaded,liveNow,statsToAppend,fragmentStats);
+    List<JsStatement> exclusiveStats=fragmentExtractor.extractStatements(liveNow,alreadyLoaded);
+    if (fragmentSizeBelowMergeLimit(exclusiveStats,leftOverMergeLimit)) {
+      leftOverMergeStats.addAll(exclusiveStats);
+      splitPointToFragmentMap[i]=-1;
+      continue;
+    }
+ else {
+      List<JsStatement> statsToAppend=fragmentExtractor.createOnLoadedCall(cacheIndex);
+      addFragment(i,alreadyLoaded,liveNow,statsToAppend,fragmentStats);
+    }
     cacheIndex++;
+  }
+  for (int i=0; i < splitPointToFragmentMap.length; i++) {
+    if (splitPointToFragmentMap[i] == -1) {
+      splitPointToFragmentMap[i]=splitPointToFragmentMap.length;
+    }
   }
 {
     LivenessPredicate alreadyLoaded=new CfaLivenessPredicate(liveAfterInitialSequence);
     LivenessPredicate liveNow=new ExclusivityMapLivenessPredicate(fragmentMap,0);
     List<JsStatement> statsToAppend=fragmentExtractor.createOnLoadedCall(cacheIndex);
-    addFragment(splitPointToFragmentMap.length,alreadyLoaded,liveNow,statsToAppend,fragmentStats);
+    leftOverMergeStats.addAll(statsToAppend);
+    addFragment(splitPointToFragmentMap.length,alreadyLoaded,liveNow,leftOverMergeStats,fragmentStats);
   }
   jsprogram.setFragmentCount(fragmentStats.size());
   int count=0;
