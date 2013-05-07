@@ -1,0 +1,22 @@
+{
+  final CountingTimer restartedTimer=new CountingTimer();
+  Timer cancelingTimer=new Timer(){
+    @Override public void run(){
+      assertEquals(0,restartedTimer.timerCount);
+      restartedTimer.cancel();
+      restartedTimer.schedule(100);
+    }
+  }
+;
+  cancelingTimer.schedule(50);
+  restartedTimer.schedule(100);
+  busyWait(200);
+  delayTestFinish(500);
+  new Timer(){
+    @Override public void run(){
+      assertEquals(1,restartedTimer.timerCount);
+      finishTest();
+    }
+  }
+.schedule(400);
+}
