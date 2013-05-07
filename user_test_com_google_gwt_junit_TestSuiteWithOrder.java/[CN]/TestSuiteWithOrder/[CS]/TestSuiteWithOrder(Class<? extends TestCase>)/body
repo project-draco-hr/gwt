@@ -1,11 +1,15 @@
 {
   super(clazz.getName());
+  Map<String,Method> testMethodMap=new HashMap<String,Method>();
   for (Class<?> c=clazz; Test.class.isAssignableFrom(c); c=c.getSuperclass()) {
-    for (    Method each : getDeclaredMethods(c)) {
-      if (isTestMethod(each)) {
-        addTestMethod(each,clazz);
+    for (    Method method : c.getDeclaredMethods()) {
+      if (isTestMethod(method) && !testMethodMap.containsKey(method.getName())) {
+        testMethodMap.put(method.getName(),method);
       }
     }
+  }
+  for (  Method m : getSortedTestMethods(testMethodMap)) {
+    addTest(createTest(clazz,m.getName()));
   }
   if (countTestCases() == 0) {
     addTest(warning("No tests found in " + clazz.getName()));
