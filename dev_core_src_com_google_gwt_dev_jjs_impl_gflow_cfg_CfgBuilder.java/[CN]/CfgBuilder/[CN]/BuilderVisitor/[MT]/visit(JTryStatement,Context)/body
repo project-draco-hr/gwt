@@ -4,7 +4,8 @@
   List<Exit> tryBlockExits=removeCurrentExits();
   List<Integer> catchBlockPos=new ArrayList<Integer>();
   List<List<Exit>> catchExits=new ArrayList<List<Exit>>();
-  for (  JBlock b : x.getCatchBlocks()) {
+  for (  JTryStatement.CatchClause clause : x.getCatchClauses()) {
+    JBlock b=clause.getBlock();
     catchBlockPos.add(nodes.size());
     accept(b);
     catchExits.add(removeCurrentExits());
@@ -18,14 +19,14 @@
     addExits(removeNormalExits(tryBlockExits));
     nextExit:     for (    Exit e : tryBlockExits) {
       if (e.isThrow()) {
-        nextCatchBlock:         for (int i=0; i < x.getCatchArgs().size(); ++i) {
-          JClassType catchType=(JClassType)x.getCatchArgs().get(i).getType();
+        nextCatchBlock:         for (int i=0; i < x.getCatchClauses().size(); ++i) {
+          JClassType catchType=(JClassType)x.getCatchClauses().get(i).getArg().getType();
           JType exceptionType=e.getExceptionType();
           boolean canCatch=false;
           boolean fullCatch=false;
           if (typeOracle.canTriviallyCast(exceptionType,catchType)) {
             canCatch=true;
-            fullCatch=true;
+            fullCatch=x.getCatchClauses().get(i).getTypes().size() == 1 && x.getCatchClauses().get(i).getTypes().get(0) == catchType;
           }
  else           if (typeOracle.canTriviallyCast(catchType,exceptionType)) {
             canCatch=true;
@@ -57,14 +58,14 @@
     addExits(finallyExits);
     nextExit:     for (    Exit e : tryBlockExits) {
       if (e.isThrow()) {
-        nextCatchBlock:         for (int i=0; i < x.getCatchArgs().size(); ++i) {
-          JClassType catchType=(JClassType)x.getCatchArgs().get(i).getType();
+        nextCatchBlock:         for (int i=0; i < x.getCatchClauses().size(); ++i) {
+          JClassType catchType=(JClassType)x.getCatchClauses().get(i).getArg().getType();
           JType exceptionType=e.getExceptionType();
           boolean canCatch=false;
           boolean fullCatch=false;
           if (typeOracle.canTriviallyCast(exceptionType,catchType)) {
             canCatch=true;
-            fullCatch=true;
+            fullCatch=x.getCatchClauses().get(i).getTypes().size() == 1 && x.getCatchClauses().get(i).getTypes().get(0) == catchType;
           }
  else           if (typeOracle.canTriviallyCast(catchType,exceptionType)) {
             canCatch=true;

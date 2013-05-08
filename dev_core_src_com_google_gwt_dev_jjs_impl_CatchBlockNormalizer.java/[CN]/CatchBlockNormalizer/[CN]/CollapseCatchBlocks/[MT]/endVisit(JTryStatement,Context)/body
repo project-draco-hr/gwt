@@ -1,8 +1,8 @@
 {
-  if (x.getCatchBlocks().isEmpty()) {
+  if (x.getCatchClauses().isEmpty()) {
     return;
   }
-  SourceInfo catchInfo=x.getCatchBlocks().get(0).getSourceInfo();
+  SourceInfo catchInfo=x.getCatchClauses().get(0).getBlock().getSourceInfo();
   JLocal exVar=popTempLocal();
   JBlock newCatchBlock=new JBlock(catchInfo);
 {
@@ -12,19 +12,24 @@
     newCatchBlock.addStmt(JProgram.createAssignmentStmt(catchInfo,new JLocalRef(catchInfo,exVar),call));
   }
   JStatement cur=new JThrowStatement(catchInfo,new JLocalRef(catchInfo,exVar));
-  for (int i=x.getCatchBlocks().size() - 1; i >= 0; --i) {
-    JBlock block=x.getCatchBlocks().get(i);
-    JLocalRef arg=x.getCatchArgs().get(i);
+  for (int i=x.getCatchClauses().size() - 1; i >= 0; i--) {
+    JTryStatement.CatchClause clause=x.getCatchClauses().get(i);
+    JBlock block=clause.getBlock();
+    JLocalRef arg=clause.getArg();
+    List<JType> exceptionsTypes=clause.getTypes();
     catchInfo=block.getSourceInfo();
-    JReferenceType argType=(JReferenceType)arg.getType();
-    JExpression ifTest=new JInstanceOf(catchInfo,argType,new JLocalRef(catchInfo,exVar));
+    JExpression ifTest=new JInstanceOf(catchInfo,(JReferenceType)exceptionsTypes.get(0),new JLocalRef(catchInfo,exVar));
+    for (int j=1; j < exceptionsTypes.size(); j++) {
+      JExpression orExp=new JInstanceOf(catchInfo,(JReferenceType)exceptionsTypes.get(j),new JLocalRef(catchInfo,exVar));
+      ifTest=new JBinaryOperation(catchInfo,JPrimitiveType.BOOLEAN,JBinaryOperator.OR,ifTest,orExp);
+    }
     JDeclarationStatement declaration=new JDeclarationStatement(catchInfo,arg,new JLocalRef(catchInfo,exVar));
     block.addStmt(0,declaration);
     cur=new JIfStatement(catchInfo,ifTest,block,cur);
   }
   newCatchBlock.addStmt(cur);
-  x.getCatchArgs().clear();
-  x.getCatchArgs().add(new JLocalRef(newCatchBlock.getSourceInfo(),exVar));
-  x.getCatchBlocks().clear();
-  x.getCatchBlocks().add(newCatchBlock);
+  x.getCatchClauses().clear();
+  List<JType> newCatchTypes=new ArrayList<JType>(1);
+  newCatchTypes.add(exVar.getType());
+  x.getCatchClauses().add(new JTryStatement.CatchClause(newCatchTypes,new JLocalRef(newCatchBlock.getSourceInfo(),exVar),newCatchBlock));
 }

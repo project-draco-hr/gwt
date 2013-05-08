@@ -4,14 +4,27 @@
     JBlock finallyBlock=pop(x.finallyBlock);
     List<JBlock> catchBlocks=pop(x.catchBlocks);
     JBlock tryBlock=pop(x.tryBlock);
-    List<JLocalRef> catchArgs=new ArrayList<JLocalRef>();
+    if (x.resources.length > 0) {
+      tryBlock=normalizeTryWithResources(info,x,tryBlock,scope);
+    }
+    List<JTryStatement.CatchClause> catchClauses=new ArrayList<JTryStatement.CatchClause>();
     if (x.catchBlocks != null) {
-      for (      Argument argument : x.catchArguments) {
+      for (int i=0; i < x.catchArguments.length; i++) {
+        Argument argument=x.catchArguments[i];
         JLocal local=(JLocal)curMethod.locals.get(argument.binding);
-        catchArgs.add(new JLocalRef(info,local));
+        List<JType> catchTypes=new ArrayList<JType>();
+        if (argument.type instanceof UnionTypeReference) {
+          for (          TypeReference type : ((UnionTypeReference)argument.type).typeReferences) {
+            catchTypes.add(typeMap.get(type.resolvedType));
+          }
+        }
+ else {
+          catchTypes.add(local.getType());
+        }
+        catchClauses.add(new JTryStatement.CatchClause(catchTypes,new JLocalRef(info,local),catchBlocks.get(i)));
       }
     }
-    push(new JTryStatement(info,tryBlock,catchArgs,catchBlocks,finallyBlock));
+    push(new JTryStatement(info,tryBlock,catchClauses,finallyBlock));
   }
  catch (  Throwable e) {
     throw translateException(x,e);

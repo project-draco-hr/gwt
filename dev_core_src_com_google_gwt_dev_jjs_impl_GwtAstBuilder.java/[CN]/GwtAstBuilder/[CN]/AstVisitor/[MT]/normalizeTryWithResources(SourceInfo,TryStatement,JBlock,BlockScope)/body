@@ -1,0 +1,28 @@
+{
+  JBlock innerBlock=new JBlock(info);
+  List<JLocal> resourceVariables=new ArrayList<JLocal>();
+  for (int i=x.resources.length - 1; i >= 0; i--) {
+    JDeclarationStatement resourceDecl=pop(x.resources[i]);
+    JLocal resourceVar=(JLocal)curMethod.locals.get(x.resources[i].binding);
+    resourceVariables.add(0,resourceVar);
+    innerBlock.addStmt(0,resourceDecl);
+  }
+  JLocal exceptionVar=createTempLocal(info,"$primary_ex",javaLangThrowable,false,curMethod.body);
+  innerBlock.addStmt(makeDeclaration(info,exceptionVar,JNullLiteral.INSTANCE));
+  List<JTryStatement.CatchClause> catchClauses=new ArrayList<JTryStatement.CatchClause>(1);
+  List<JType> clauseTypes=new ArrayList<JType>(1);
+  clauseTypes.add(javaLangThrowable);
+  JLocal catchVar=createTempLocal(info,"$caught_ex",javaLangThrowable,false,curMethod.body);
+  JBlock catchBlock=new JBlock(info);
+  catchBlock.addStmt(createAssignment(info,javaLangThrowable,exceptionVar,catchVar));
+  catchBlock.addStmt(new JThrowStatement(info,new JLocalRef(info,exceptionVar)));
+  catchClauses.add(new JTryStatement.CatchClause(clauseTypes,new JLocalRef(info,catchVar),catchBlock));
+  JBlock finallyBlock=new JBlock(info);
+  for (int i=x.resources.length - 1; i >= 0; i--) {
+    finallyBlock.addStmt(createCloseBlockFor(info,x.resources[i],resourceVariables.get(i),exceptionVar,scope));
+  }
+  JExpression exceptionNotNull=new JBinaryOperation(info,JPrimitiveType.BOOLEAN,JBinaryOperator.NEQ,new JLocalRef(info,exceptionVar),JNullLiteral.INSTANCE);
+  finallyBlock.addStmt(new JIfStatement(info,exceptionNotNull,new JThrowStatement(info,new JLocalRef(info,exceptionVar)),null));
+  innerBlock.addStmt(new JTryStatement(info,tryBlock,catchClauses,finallyBlock));
+  return innerBlock;
+}
