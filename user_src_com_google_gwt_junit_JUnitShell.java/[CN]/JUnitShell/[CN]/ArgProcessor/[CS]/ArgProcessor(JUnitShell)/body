@@ -53,35 +53,7 @@
     }
   }
 );
-  registerHandler(new ArgHandlerFlag(){
-    @Override public String getPurpose(){
-      return "Synonym for -prod (deprecated)";
-    }
-    @Override public String getTag(){
-      return "-web";
-    }
-    @Override public boolean isUndocumented(){
-      return true;
-    }
-    @Override public boolean setFlag(){
-      shell.developmentMode=false;
-      return true;
-    }
-  }
-);
-  registerHandler(new ArgHandlerFlag(){
-    @Override public String getPurpose(){
-      return "Causes your test to run in production (compiled) mode (defaults to development mode)";
-    }
-    @Override public String getTag(){
-      return "-prod";
-    }
-    @Override public boolean setFlag(){
-      shell.developmentMode=false;
-      return true;
-    }
-  }
-);
+  registerHandler(new ArgHandlerRunCompiledJavascript(shell));
   registerHandler(new ArgHandlerInt(){
     @Override public String[] getDefaultArgs(){
       return new String[]{getTag(),"5"};
@@ -173,19 +145,7 @@
     }
   }
 );
-  registerHandler(new ArgHandlerFlag(){
-    @Override public String getPurpose(){
-      return "Causes the log window and browser windows to be displayed; useful for debugging";
-    }
-    @Override public String getTag(){
-      return "-notHeadless";
-    }
-    @Override public boolean setFlag(){
-      shell.setHeadless(false);
-      return true;
-    }
-  }
-);
+  registerHandler(new ArgHandlerShowWindows(shell));
   registerHandler(new ArgHandlerString(){
     @Override public String getPurpose(){
       return "Precompile modules as tests are running (speeds up remote tests but requires more memory)";
@@ -216,32 +176,7 @@
     }
   }
 );
-  registerHandler(new ArgHandlerFlag(){
-    @Override public String getPurpose(){
-      return "Run each test using an HTML document in standards mode (rather than quirks mode)";
-    }
-    @Override public String getTag(){
-      return "-standardsMode";
-    }
-    @Override public boolean setFlag(){
-      shell.setStandardsMode(true);
-      return true;
-    }
-  }
-);
-  registerHandler(new ArgHandlerFlag(){
-    @Override public String getPurpose(){
-      return "Run each test using an HTML document in quirks mode (rather than standards mode)";
-    }
-    @Override public String getTag(){
-      return "-quirksMode";
-    }
-    @Override public boolean setFlag(){
-      shell.setStandardsMode(false);
-      return true;
-    }
-  }
-);
+  registerHandler(new ArgHandlerRunInStandardsMode(shell));
   registerHandler(new ArgHandlerInt(){
     @Override public String getPurpose(){
       return "EXPERIMENTAL: Sets the maximum number of attempts for running each test method";
@@ -260,6 +195,9 @@
     }
     @Override public void setInt(    int value){
       shell.tries=value;
+    }
+    @Override public boolean isExperimental(){
+      return true;
     }
   }
 );

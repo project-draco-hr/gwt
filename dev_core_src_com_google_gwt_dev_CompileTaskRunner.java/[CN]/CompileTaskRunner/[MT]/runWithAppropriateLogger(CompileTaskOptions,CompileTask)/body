@@ -1,27 +1,9 @@
 {
   BootStrapPlatform.applyPlatformHacks();
-  if (false && options.isUseGuiLogger()) {
-    SwingLoggerPanel loggerWindow=new SwingLoggerPanel(options.getLogLevel(),null);
-    BootStrapPlatform.initGui();
-    final TreeLogger logger=loggerWindow.getLogger();
-    final boolean[] success=new boolean[1];
-    Thread compilerThread=new Thread(new Runnable(){
-      public void run(){
-        success[0]=doRun(logger,task);
-      }
-    }
-);
-    compilerThread.setName("GWT Compiler Thread");
-    compilerThread.start();
-    waitForThreadToTerminate(compilerThread);
-    return success[0];
+  if (System.getProperty("java.awt.headless") == null) {
+    System.setProperty("java.awt.headless","true");
   }
- else {
-    if (System.getProperty("java.awt.headless") == null) {
-      System.setProperty("java.awt.headless","true");
-    }
-    PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
-    logger.setMaxDetail(options.getLogLevel());
-    return doRun(logger,task);
-  }
+  PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
+  logger.setMaxDetail(options.getLogLevel());
+  return doRun(logger,task);
 }

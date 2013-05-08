@@ -1,15 +1,16 @@
 {
   System.err.println(About.getGwtVersion());
+  Set<ArgHandler> uniqueArgHandlers=new LinkedHashSet<ArgHandler>(argHandlers.values());
   ArgHandler nullHandler=null;
   int widest=0;
-  for (  ArgHandler handler : argHandlers.values()) {
+  for (  ArgHandler handler : uniqueArgHandlers) {
     if (handler.isUndocumented()) {
       continue;
     }
-    String tag=handler.getTag();
-    if (tag != null) {
-      if (tag.length() > widest) {
-        widest=tag.length();
+    String helpTag=handler.getHelpTag();
+    if (helpTag != null) {
+      if (helpTag.length() > widest) {
+        widest=helpTag.length();
       }
     }
  else {
@@ -26,14 +27,14 @@
     name=name.substring(i + 1);
   }
   System.err.print(name);
-  for (  ArgHandler handler : argHandlers.values()) {
+  for (  ArgHandler handler : uniqueArgHandlers) {
     if (handler.isUndocumented()) {
       continue;
     }
-    String tag=handler.getTag();
-    if (tag != null) {
+    String helpTag=handler.getHelpTag();
+    if (helpTag != null) {
       System.err.print(handler.isRequired() ? " " : " [");
-      System.err.print(tag);
+      System.err.print(helpTag);
       String[] tagArgs=handler.getTagArgs();
       for (      String tagArg : tagArgs) {
         System.err.print(" " + tagArg);
@@ -57,15 +58,15 @@
     System.err.println();
   }
   System.err.println("where ");
-  for (  ArgHandler handler : argHandlers.values()) {
+  for (  ArgHandler handler : uniqueArgHandlers) {
     if (handler.isUndocumented()) {
       continue;
     }
-    String tag=handler.getTag();
-    if (tag != null) {
-      int len=tag.length();
+    String helpTag=handler.getHelpTag();
+    if (helpTag != null) {
+      int len=helpTag.length();
       System.err.print("  ");
-      System.err.print(tag);
+      System.err.print(helpTag);
       for (i=len; i < widest; ++i) {
         System.err.print(' ');
       }

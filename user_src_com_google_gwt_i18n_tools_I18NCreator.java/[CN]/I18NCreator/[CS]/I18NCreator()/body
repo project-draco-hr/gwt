@@ -1,8 +1,5 @@
 {
   registerHandler(new ArgHandlerEclipse(){
-    @Override public String getPurpose(){
-      return "Creates a i18n update launch config for the named eclipse project";
-    }
     @Override public boolean setString(    String str){
       eclipse=str;
       return true;
@@ -16,13 +13,16 @@
   }
 );
   registerHandler(new ArgHandlerOverwrite(){
-    @Override public boolean setFlag(){
-      if (ignore) {
+    @Override public boolean setFlag(    boolean value){
+      if (value && ignore) {
         System.err.println("-overwrite cannot be used with -ignore.");
         return false;
       }
-      overwrite=true;
+      overwrite=value;
       return true;
+    }
+    @Override public boolean getDefaultValue(){
+      return overwrite;
     }
   }
 );
@@ -30,13 +30,16 @@
   registerHandler(chooser.getConstantsWithLookupArgHandler());
   registerHandler(chooser.getMessagesArgHandler());
   registerHandler(new ArgHandlerIgnore(){
-    @Override public boolean setFlag(){
-      if (overwrite) {
+    @Override public boolean setFlag(    boolean value){
+      if (value && overwrite) {
         System.err.println("-ignore cannot be used with -overwrite.");
         return false;
       }
-      ignore=true;
+      ignore=value;
       return true;
+    }
+    @Override public boolean getDefaultValue(){
+      return ignore;
     }
   }
 );
