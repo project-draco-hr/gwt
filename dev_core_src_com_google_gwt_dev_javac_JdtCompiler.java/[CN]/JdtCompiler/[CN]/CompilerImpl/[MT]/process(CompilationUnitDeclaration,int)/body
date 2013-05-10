@@ -6,11 +6,19 @@
     abortCount++;
     String filename=new String(cud.getFileName());
     logger.log(TreeLogger.Type.ERROR,"JDT aborted: " + filename + ": "+ e.problem.getMessage());
+    if (abortCount >= ABORT_COUNT_MAX) {
+      throw e;
+    }
     return;
   }
 catch (  RuntimeException e) {
-    logger.log(TreeLogger.Type.ERROR,"JDT died after " + abortCount + " previous errors",e);
-    throw new AbortCompilation(cud.compilationResult,e);
+    abortCount++;
+    String filename=new String(cud.getFileName());
+    logger.log(TreeLogger.Type.ERROR,"JDT threw an exception: " + filename + ": "+ e);
+    if (abortCount >= ABORT_COUNT_MAX) {
+      throw new AbortCompilation(cud.compilationResult,e);
+    }
+    return;
   }
   ClassFile[] classFiles=cud.compilationResult().getClassFiles();
   Map<ClassFile,CompiledClass> results=new LinkedHashMap<ClassFile,CompiledClass>();

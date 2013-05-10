@@ -12,16 +12,17 @@
     compilerImpl.compile(icus.toArray(new ICompilationUnit[icus.size()]));
   }
  catch (  AbortCompilation e) {
+    final String compilerAborted=String.format("JDT compiler aborted after %d errors",compilerImpl.getAbortCount());
     if (e.problem == null) {
-      logger.log(TreeLogger.Type.ERROR,"JDT compiler aborted");
+      logger.log(TreeLogger.Type.ERROR,compilerAborted + ".");
     }
  else     if (e.problem.getOriginatingFileName() == null) {
-      logger.log(TreeLogger.Type.ERROR,"JDT compiler aborted: " + e.problem.getMessage());
+      logger.log(TreeLogger.Type.ERROR,compilerAborted + ": " + e.problem.getMessage());
     }
  else {
       String filename=new String(e.problem.getOriginatingFileName());
       TreeLogger branch=logger.branch(TreeLogger.Type.ERROR,"At " + filename + ": "+ e.problem.getSourceLineNumber());
-      branch.log(TreeLogger.Type.ERROR,"JDT compiler aborted: " + e.problem.getMessage());
+      branch.log(TreeLogger.Type.ERROR,compilerAborted + ": " + e.problem.getMessage());
     }
     throw new UnableToCompleteException();
   }
