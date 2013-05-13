@@ -1,0 +1,27 @@
+{
+  srcWriter.println("private static void " + LOAD_SIGNATURES_JAVA_HELPER_PREFIX + methodSuffix);
+  srcWriter.println("(Map<String, String> result) {");
+  srcWriter.indent();
+  int totalBytesEstimate=0;
+  while (iter.hasNext() && totalBytesEstimate < MAX_BYTES_PER_METHOD) {
+    JType type=iter.next();
+    String typeString=typeStrings.get(type);
+    if (!serializationOracle.maybeInstantiated(type) && !deserializationOracle.maybeInstantiated(type)) {
+      continue;
+    }
+    String typeRef;
+    JClassType customSerializer=SerializableTypeOracleBuilder.findCustomFieldSerializer(typeOracle,type);
+    if (customSerializer != null && CustomFieldSerializerValidator.getConcreteTypeMethod(customSerializer) != null) {
+      typeRef=customSerializer.getQualifiedSourceName() + ".concreteType()";
+    }
+ else {
+      typeRef='"' + SerializationUtils.getRpcTypeName(type) + '"';
+    }
+    String line="result.put(" + typeRef + ", \""+ typeString+ "\");";
+    totalBytesEstimate+=line.getBytes().length;
+    srcWriter.println(line);
+  }
+  srcWriter.outdent();
+  srcWriter.println("}");
+  srcWriter.println();
+}

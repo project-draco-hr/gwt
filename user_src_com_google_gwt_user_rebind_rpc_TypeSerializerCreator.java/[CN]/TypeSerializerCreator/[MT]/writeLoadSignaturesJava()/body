@@ -1,22 +1,17 @@
 {
+  List<JType> allTypes=Arrays.asList(getSerializableTypes());
+  Iterator<JType> allTypesIter=allTypes.iterator();
+  int numHelpers=0;
+  while (allTypesIter.hasNext()) {
+    writeLoadSignaturesJavaHelper(allTypesIter,Integer.toString(numHelpers));
+    numHelpers++;
+  }
   srcWriter.println("@SuppressWarnings(\"deprecation\")");
   srcWriter.println("private static Map<String, String> loadSignaturesJava() {");
   srcWriter.indent();
   srcWriter.println("Map<String, String> result = new HashMap<String, String>();");
-  for (  JType type : getSerializableTypes()) {
-    String typeString=typeStrings.get(type);
-    if (!serializationOracle.maybeInstantiated(type) && !deserializationOracle.maybeInstantiated(type)) {
-      continue;
-    }
-    String typeRef;
-    JClassType customSerializer=SerializableTypeOracleBuilder.findCustomFieldSerializer(typeOracle,type);
-    if (customSerializer != null && CustomFieldSerializerValidator.getConcreteTypeMethod(customSerializer) != null) {
-      typeRef=customSerializer.getQualifiedSourceName() + ".concreteType()";
-    }
- else {
-      typeRef='"' + SerializationUtils.getRpcTypeName(type) + '"';
-    }
-    srcWriter.println("result.put(" + typeRef + ", \""+ typeString+ "\");");
+  for (int helperNum=0; helperNum < numHelpers; helperNum++) {
+    srcWriter.println(LOAD_SIGNATURES_JAVA_HELPER_PREFIX + Integer.toString(helperNum) + "(result);");
   }
   srcWriter.println("return result;");
   srcWriter.outdent();

@@ -1,2 +1,28 @@
 {
+  List<JType> filteredTypes=new ArrayList<JType>();
+  JType[] types=getSerializableTypes();
+  int n=types.length;
+  for (int index=0; index < n; ++index) {
+    JType type=types[index];
+    if (serializationOracle.maybeInstantiated(type) || deserializationOracle.maybeInstantiated(type)) {
+      filteredTypes.add(type);
+    }
+  }
+  Iterator<JType> filteredTypesIter=filteredTypes.iterator();
+  int numHelpers=0;
+  while (filteredTypesIter.hasNext()) {
+    writeLoadMethodsJavaHelper(filteredTypesIter,Integer.toString(numHelpers));
+    numHelpers++;
+  }
+  srcWriter.println("@SuppressWarnings(\"deprecation\")");
+  srcWriter.println("private static Map<String, String> loadMethodsJava() {");
+  srcWriter.indent();
+  srcWriter.println("Map<String, String> result = new HashMap<String, String>();");
+  for (int helperNum=0; helperNum < numHelpers; helperNum++) {
+    srcWriter.println(LOAD_METHODS_JAVA_HELPER_PREFIX + Integer.toString(helperNum) + "(result);");
+  }
+  srcWriter.println("return result;");
+  srcWriter.outdent();
+  srcWriter.println("}");
+  srcWriter.println();
 }
