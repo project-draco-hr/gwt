@@ -1,0 +1,17 @@
+{
+  StringBuilder longString=new StringBuilder(66000);
+  for (int i=0; i < 660000; i++) {
+    longString.append("a");
+  }
+  ServerSerializationStreamWriter writer=new ServerSerializationStreamWriter(null,8);
+  writer.writeString(longString.toString());
+  String encoded=writer.toString();
+  assertEquals("7",encoded.substring(encoded.lastIndexOf(",") + 1,encoded.lastIndexOf("]")));
+  int maxArrayLength=ServerSerializationStreamWriter.LengthConstrainedArray.MAXIMUM_ARRAY_LENGTH + 100;
+  writer=new ServerSerializationStreamWriter(null,8);
+  for (int i=0; i < maxArrayLength; i++) {
+    writer.writeInt(i);
+  }
+  encoded=writer.toString();
+  assertEquals("7",encoded.substring(encoded.lastIndexOf(",") + 1,encoded.lastIndexOf("]")));
+}
