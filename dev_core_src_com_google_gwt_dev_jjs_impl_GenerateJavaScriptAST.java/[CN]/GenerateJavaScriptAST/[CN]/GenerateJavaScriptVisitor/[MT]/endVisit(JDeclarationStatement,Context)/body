@@ -7,9 +7,12 @@
   JsExpression initializer=(JsExpression)pop();
   JsNameRef localRef=(JsNameRef)pop();
   JVariable target=x.getVariableRef().getTarget();
-  if (target instanceof JField && ((JField)target).getLiteralInitializer() != null) {
-    push(null);
-    return;
+  if (target instanceof JField) {
+    JField field=(JField)target;
+    if (field.getLiteralInitializer() != null && (field.isStatic() || field.isFinal())) {
+      push(null);
+      return;
+    }
   }
   JsBinaryOperation binOp=new JsBinaryOperation(x.getSourceInfo(),JsBinaryOperator.ASG,localRef,initializer);
   push(binOp.makeStmt());
