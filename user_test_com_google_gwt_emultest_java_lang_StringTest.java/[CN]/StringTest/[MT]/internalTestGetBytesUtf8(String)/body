@@ -1,0 +1,32 @@
+{
+  char[] chars=new char[384];
+  for (int i=0; i < chars.length; ++i) {
+    chars[i]=(char)i;
+  }
+  String str=String.copyValueOf(chars);
+  byte[] bytes=str.getBytes(encoding);
+  assertEquals(640,bytes.length);
+  for (int i=0; i < 128; ++i) {
+    assertEquals("Position " + i,i,bytes[i]);
+  }
+  for (int i=128; i < chars.length; ++i) {
+    byte first=bytes[2 * i - 128];
+    byte second=bytes[2 * i - 127];
+    char ch=str.charAt(i);
+    assertEquals("byte " + i + " differs",ch,((first & 31) << 6) | (second & 63));
+  }
+  int firstCodePoint=0x100000;
+  int numChars=chars.length / 2;
+  for (int i=0; i < numChars; ++i) {
+    Character.toChars(firstCodePoint + i,chars,2 * i);
+  }
+  str=String.copyValueOf(chars);
+  bytes=str.getBytes(encoding);
+  assertEquals(4 * numChars,bytes.length);
+  for (int i=0; i < numChars; ++i) {
+    assertEquals("1st byte of " + i,(byte)0xF4,bytes[4 * i]);
+    assertEquals("2nd byte of " + i,(byte)0x80,bytes[4 * i + 1]);
+    assertEquals("3rd byte of " + i,(byte)0x80 + ((i >> 6) & 63),bytes[4 * i + 2]);
+    assertEquals("4th byte of " + i,(byte)0x80 + (i & 63),bytes[4 * i + 3]);
+  }
+}
