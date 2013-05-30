@@ -15,6 +15,15 @@
  else   if (entityProxyInterface.isAssignableFrom(transportedClass) || valueProxyInterface.isAssignableFrom(transportedClass)) {
     methodBuilder.setEntityType(getEntityProxyType(transportedClass));
   }
+ else   if (entityProxyIdInterface.isAssignableFrom(transportedClass)) {
+    JParameterizedType parameterized=transportedClass.isParameterized();
+    if (parameterized == null) {
+      poison("EntityProxyId must be parameterized");
+      return false;
+    }
+    JClassType entityType=ModelUtils.findParameterizationOf(entityProxyIdInterface,transportedClass)[0];
+    methodBuilder.setEntityType(getEntityProxyType(entityType));
+  }
  else   if (collectionInterface.isAssignableFrom(transportedClass)) {
     JParameterizedType parameterized=transportedClass.isParameterized();
     if (parameterized == null) {
