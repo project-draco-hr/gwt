@@ -26,6 +26,55 @@
     toReturn.append(']');
     return StringQuoter.split(toReturn.toString());
   }
+  if (value instanceof Map<?,?>) {
+    Map<?,?> map=(Map<?,?>)value;
+    StringBuilder sb=new StringBuilder();
+    if (map.containsKey(null)) {
+      throw new IllegalArgumentException("null Map keys are not supported");
+    }
+    boolean isSimpleMap=(map.isEmpty() || ValueCodex.canDecode(map.keySet().iterator().next().getClass()));
+    if (isSimpleMap) {
+      boolean first=true;
+      sb.append("{");
+      for (      Map.Entry<?,?> entry : map.entrySet()) {
+        Object mapKey=entry.getKey();
+        if (mapKey == null) {
+          continue;
+        }
+        Object mapValue=entry.getValue();
+        if (first) {
+          first=false;
+        }
+ else {
+          sb.append(",");
+        }
+        final String encodedKey=(mapKey.getClass() == String.class) ? (String)mapKey : encode(source,mapKey).getPayload();
+        sb.append(StringQuoter.quote(encodedKey));
+        sb.append(":");
+        if (mapValue == null) {
+          sb.append("null");
+        }
+ else {
+          sb.append(encode(source,mapValue).getPayload());
+        }
+      }
+      sb.append("}");
+    }
+ else {
+      List<Object> keys=new ArrayList<Object>(map.size());
+      List<Object> values=new ArrayList<Object>(map.size());
+      for (      Map.Entry<?,?> entry : map.entrySet()) {
+        keys.add(entry.getKey());
+        values.add(entry.getValue());
+      }
+      sb.append("[");
+      sb.append(encode(source,keys).getPayload());
+      sb.append(",");
+      sb.append(encode(source,values).getPayload());
+      sb.append("]");
+    }
+    return StringQuoter.split(sb.toString());
+  }
   if (value instanceof BaseProxy) {
     AutoBean<BaseProxy> autoBean=AutoBeanUtils.getAutoBean((BaseProxy)value);
     value=BaseProxyCategory.stableId(autoBean);

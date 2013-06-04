@@ -43,5 +43,13 @@
     }
     return makeResolution(accumulator);
   }
+  if (Map.class.isAssignableFrom(returnClass)) {
+    Map<Object,Object> accumulator=new HashMap<Object,Object>();
+    Type[] entryTypes=TypeUtils.getParameterization(Map.class,clientType);
+    for (    Map.Entry<?,?> entry : ((Map<?,?>)domainValue).entrySet()) {
+      accumulator.put(resolveClientValue(entry.getKey(),entryTypes[0]).getClientObject(),resolveClientValue(entry.getValue(),entryTypes[1]).getClientObject());
+    }
+    return makeResolution(accumulator);
+  }
   throw new ReportableException("Unsupported domain type " + returnClass.getCanonicalName());
 }

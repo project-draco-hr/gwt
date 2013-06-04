@@ -31,5 +31,17 @@
     }
     return t.getTypeArguments().get(0).accept(this,state);
   }
+  final DeclaredType mapType=state.findType(Map.class);
+  if (state.types.isAssignable(t,mapType)) {
+    if (!allowNestedParameterization) {
+      return false;
+    }
+    allowNestedParameterization=false;
+    DeclaredType asMap=(DeclaredType)State.viewAs(mapType,t,state);
+    if (asMap.getTypeArguments().isEmpty()) {
+      return false;
+    }
+    return t.getTypeArguments().get(0).accept(this,state) && t.getTypeArguments().get(1).accept(this,state);
+  }
   return false;
 }

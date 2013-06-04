@@ -8,8 +8,17 @@
         if (ctx.canSet()) {
           if (properties.containsKey(propertyName)) {
             Splittable raw=properties.get(propertyName);
-            Class<?> elementType=ctx instanceof CollectionPropertyContext ? ((CollectionPropertyContext)ctx).getElementType() : null;
-            Object decoded=EntityCodex.decode(AbstractRequestContext.this,ctx.getType(),elementType,raw);
+            Object decoded=null;
+            if (ctx.getType() == Map.class) {
+              MapPropertyContext mapCtx=(MapPropertyContext)ctx;
+              Class<?> keyType=mapCtx.getKeyType();
+              Class<?> valueType=mapCtx.getValueType();
+              decoded=EntityCodex.decode(AbstractRequestContext.this,mapCtx.getType(),keyType,valueType,raw);
+            }
+ else {
+              Class<?> elementType=ctx instanceof CollectionPropertyContext ? ((CollectionPropertyContext)ctx).getElementType() : null;
+              decoded=EntityCodex.decode(AbstractRequestContext.this,ctx.getType(),elementType,raw);
+            }
             ctx.set(decoded);
           }
         }
