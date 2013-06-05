@@ -24,7 +24,11 @@
       if (fieldWriter == null) {
         logger.die(("Method '%s' can not be bound. You probably missed ui:field='%s' " + "in the template."),boundMethod,objectName);
       }
-      JMethod addHandlerMethodType=getAddHandlerMethodForObject(fieldWriter.getInstantiableType(),handlerType);
+      JClassType objectType=fieldWriter.getInstantiableType();
+      if (objectType.isGenericType() != null) {
+        objectType=tryEnhancingTypeInfo(objectName,objectType);
+      }
+      JMethod addHandlerMethodType=getAddHandlerMethodForObject(objectType,handlerType);
       if (addHandlerMethodType == null) {
         logger.die("Field '%s' does not have an 'add%s' method associated.",objectName,handlerType.getName());
       }
