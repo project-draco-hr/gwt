@@ -1,5 +1,5 @@
 {
-class TextBoxEvents extends HandlesAllKeyEvents implements ValueChangeHandler<String> {
+class TextBoxEvents implements KeyDownHandler, KeyUpHandler, ValueChangeHandler<String> {
     public void onKeyDown(    KeyDownEvent event){
 switch (event.getNativeKeyCode()) {
 case KeyCodes.KEY_DOWN:
@@ -19,20 +19,16 @@ setNewSelection(suggestion);
 }
 break;
 }
-delegateEvent(SuggestBox.this,event);
-}
-public void onKeyPress(KeyPressEvent event){
-delegateEvent(SuggestBox.this,event);
 }
 public void onKeyUp(KeyUpEvent event){
 refreshSuggestions();
-delegateEvent(SuggestBox.this,event);
 }
 public void onValueChange(ValueChangeEvent<String> event){
 delegateEvent(SuggestBox.this,event);
 }
 }
 TextBoxEvents events=new TextBoxEvents();
-events.addKeyHandlersTo(box);
+box.addKeyDownHandler(events);
+box.addKeyUpHandler(events);
 box.addValueChangeHandler(events);
 }
