@@ -1,0 +1,23 @@
+{
+  sourceOracle.addOrReplace(new MockJavaResource("test.SplitPoint4"){
+    @Override public CharSequence getContent(){
+      StringBuffer code=new StringBuffer();
+      code.append("package test;\n");
+      code.append("import com.google.gwt.core.client.GWT;\n");
+      code.append("import com.google.gwt.core.client.RunAsyncCallback;\n");
+      code.append("public class SplitPoint4 {\n");
+      code.append("  public abstract class AbstractRunAsyncCallback implements RunAsyncCallback {\n");
+      code.append("    public void run() {\n");
+      code.append("      GWT.runAsync(this);\n");
+      code.append("    }\n");
+      code.append("  }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  addSnippetImport("test.SplitPoint4");
+  expectError("Errors in 'test/SplitPoint4.java'");
+  expectError("Line 7: Only a RunAsyncCallback with a defined onSuccess() can " + "be passed to runAsync().");
+  testSnippet("new SplitPoint4();");
+}
