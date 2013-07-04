@@ -1,15 +1,19 @@
 {
-  if (javaScriptException.getClass().getClassLoader() != cl) {
-    return null;
+  if (exception.getClass().getClassLoader() != cl) {
+    return exception;
   }
   Exception caught;
   try {
     Class<?> javaScriptExceptionClass=Class.forName("com.google.gwt.core.client.JavaScriptException",true,cl);
-    if (!javaScriptExceptionClass.isInstance(javaScriptException)) {
-      return null;
+    if (!javaScriptExceptionClass.isInstance(exception)) {
+      return exception;
     }
-    Method getException=javaScriptExceptionClass.getMethod("getException");
-    return getException.invoke(javaScriptException);
+    Method isThrownSet=javaScriptExceptionClass.getMethod("isThrownSet");
+    if (!((Boolean)isThrownSet.invoke(exception))) {
+      return exception;
+    }
+    Method getThrown=javaScriptExceptionClass.getMethod("getThrown");
+    return getThrown.invoke(exception);
   }
  catch (  NoSuchMethodException e) {
     caught=e;
