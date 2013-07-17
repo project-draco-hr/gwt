@@ -1,0 +1,19 @@
+{
+  if (cud.imports == null) {
+    return;
+  }
+  AccumulateNamesVisitor astVisitor=new AccumulateNamesVisitor();
+  for (  TypeDeclaration typeDecl : cud.types) {
+    typeDecl.traverse(astVisitor,cud.scope);
+  }
+  List<ImportReference> newImports=new ArrayList<ImportReference>();
+  for (  ImportReference importRef : cud.imports) {
+    String importName=new String(importRef.getImportName()[importRef.getImportName().length - 1]);
+    if (importName.equals("*") || importRef.trailingStarPosition > 0 || usedNames.contains(importName)) {
+      newImports.add(importRef);
+    }
+  }
+  if (newImports.size() != cud.imports.length) {
+    cud.imports=newImports.toArray(new ImportReference[newImports.size()]);
+  }
+}
