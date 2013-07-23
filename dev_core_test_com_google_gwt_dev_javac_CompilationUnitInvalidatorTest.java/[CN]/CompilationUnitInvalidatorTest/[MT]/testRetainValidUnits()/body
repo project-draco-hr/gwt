@@ -1,0 +1,22 @@
+{
+  CompilationUnit bad0=getUnitWithApiRefs(true,"bad0");
+  CompilationUnit bad1=getUnitWithApiRefs(true,"bad1");
+  CompilationUnit bad2=getUnitWithApiRefs(false,"bad2","bad0");
+  CompilationUnit bad3=getUnitWithApiRefs(false,"bad3","bad1");
+  CompilationUnit bad4=getUnitWithApiRefs(false,"bad4","missing0");
+  CompilationUnit bad5=getUnitWithApiRefs(false,"bad5","good0","good1","bad3");
+  CompilationUnit bad6=getUnitWithApiRefs(false,"bad6","bad5");
+  CompilationUnit good0=getUnitWithApiRefs(false,"good0");
+  CompilationUnit good1=getUnitWithApiRefs(false,"good1","good0");
+  CompilationUnit good2=getUnitWithApiRefs(false,"good2","good1");
+  CompilationUnit good3=getUnitWithApiRefs(false,"good3","good0","good1","good2");
+  Collection<CompilationUnit> units=new ArrayList();
+  units.addAll(Arrays.asList(bad1,bad2,bad3,bad4,bad5,bad6,good1,good2,good3));
+  Map<String,CompiledClass> validClasses=new HashMap<String,CompiledClass>();
+  validClasses.put("bad0",bad0.getCompiledClasses().iterator().next());
+  validClasses.put("good0",good0.getCompiledClasses().iterator().next());
+  Map<String,CompiledClass> knownValidClasses=new HashMap<String,CompiledClass>(validClasses);
+  CompilationUnitInvalidator.retainValidUnits(TreeLogger.NULL,units,validClasses);
+  assertEquals(knownValidClasses,validClasses);
+  assertEquals(Arrays.asList(good1,good2,good3),units);
+}
