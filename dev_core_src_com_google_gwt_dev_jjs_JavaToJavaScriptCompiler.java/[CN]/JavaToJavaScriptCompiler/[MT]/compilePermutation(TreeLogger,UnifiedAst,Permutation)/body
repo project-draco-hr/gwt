@@ -88,19 +88,9 @@
 switch (options.getOutput()) {
 case OBFUSCATED:
       obfuscateMap=JsStringInterner.exec(jprogram,jsProgram,isIE6orUnknown);
-    JsObfuscateNamer.exec(jsProgram,propertyOracles);
-  if (options.shouldRemoveDuplicateFunctions()) {
-    if (JsStackEmulator.getStackMode(propertyOracles) == JsStackEmulator.StackMode.STRIP) {
-      boolean changed=false;
-      for (int i=0; i < jsProgram.getFragmentCount(); i++) {
-        JsBlock fragment=jsProgram.getFragmentBlock(i);
-        changed=JsDuplicateFunctionRemover.exec(jsProgram,fragment) || changed;
-      }
-      if (changed) {
-        JsUnusedFunctionRemover.exec(jsProgram);
-        JsObfuscateNamer.exec(jsProgram,propertyOracles);
-      }
-    }
+    FreshNameGenerator freshNameGenerator=JsObfuscateNamer.exec(jsProgram,propertyOracles);
+  if (options.shouldRemoveDuplicateFunctions() && JsStackEmulator.getStackMode(propertyOracles) == JsStackEmulator.StackMode.STRIP) {
+    JsDuplicateFunctionRemover.exec(jsProgram,freshNameGenerator);
   }
 break;
 case PRETTY:

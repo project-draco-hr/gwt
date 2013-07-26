@@ -1,13 +1,9 @@
 {
   JsProgram program=new JsProgram();
   String js="_.method1=function(){};_.method2=function(){};_.method1();_.method2();";
-  List<JsStatement> expected=JsParser.parse(SourceOrigin.UNKNOWN,program.getScope(),new StringReader(js));
-  program.getGlobalBlock().getStatements().addAll(expected);
-  new JsModVisitor(){
-    public void endVisit(    JsFunction func,    JsContext ctx){
-      func.setFromJava(true);
-    }
-  }
-.accept(program);
-  assertEquals("_.method1=_DUP0;_.method2=_DUP0;_.method1();_.method2();function _DUP0(){}\n",optimize(program,JsSymbolResolver.class,JsDuplicateFunctionRemover.class,JsUnusedFunctionRemover.class));
+  List<JsStatement> input=JsParser.parse(SourceOrigin.UNKNOWN,program.getScope(),new StringReader(js));
+  program.getGlobalBlock().getStatements().addAll(input);
+  setAllFromJava(program);
+  String firstName=new MockNameGenerator().getFreshName();
+  assertEquals("_.method1=" + firstName + ";_.method2="+ firstName+ ";_.method1();_.method2();function "+ firstName+ "(){}\n",optimize(program,JsSymbolResolver.class,JsDuplicateFunctionRemoverProxy.class));
 }

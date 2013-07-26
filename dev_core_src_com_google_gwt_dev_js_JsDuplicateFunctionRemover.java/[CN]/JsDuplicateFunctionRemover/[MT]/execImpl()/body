@@ -1,0 +1,28 @@
+{
+  boolean changed=false;
+  for (int i=0; i < program.getFragmentCount(); i++) {
+    JsBlock fragment=program.getFragmentBlock(i);
+    DuplicateFunctionBodyRecorder dfbr=new DuplicateFunctionBodyRecorder();
+    dfbr.accept(fragment);
+    Map<JsFunction,JsName> newNamesByHoistedFunction=new HashMap<JsFunction,JsName>();
+    Map<JsFunction,JsFunction> dupMethodMap=dfbr.getDuplicateMethodMap();
+    for (    JsFunction dupMethod : dupMethodMap.values()) {
+      if (newNamesByHoistedFunction.containsKey(dupMethod)) {
+        continue;
+      }
+      JsName newName=program.getScope().declareName(freshNameGenerator.getFreshName());
+      JsFunction newFunc=new JsFunction(dupMethod.getSourceInfo(),program.getScope(),newName,dupMethod.isFromJava());
+      newFunc.setBody(dupMethod.getBody());
+      newFunc.getParameters().addAll(dupMethod.getParameters());
+      fragment.getStatements().add(newFunc.makeStmt());
+      newNamesByHoistedFunction.put(dupMethod,newName);
+    }
+    ReplaceDuplicateInvocationNameRefs rdup=new ReplaceDuplicateInvocationNameRefs(dfbr.getDuplicateMap(),dfbr.getBlacklist(),dupMethodMap,newNamesByHoistedFunction);
+    rdup.accept(fragment);
+    changed=changed || rdup.didChange();
+  }
+  if (changed) {
+    JsUnusedFunctionRemover.exec(program);
+  }
+  return changed;
+}

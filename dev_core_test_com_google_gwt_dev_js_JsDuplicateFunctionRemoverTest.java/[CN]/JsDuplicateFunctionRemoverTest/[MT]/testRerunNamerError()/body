@@ -1,0 +1,18 @@
+{
+  JsProgram program=new JsProgram();
+  String js="var c; function a(){return f1;}; function f1() {_.b = function() {return a;} }; " + "function f2() { var a = null; _.c = function() {return a;} };f1();f2();_.b();_.c();";
+  List<JsStatement> input=JsParser.parse(SourceOrigin.UNKNOWN,program.getScope(),new StringReader(js));
+  program.getGlobalBlock().getStatements().addAll(input);
+  setAllFromJava(program);
+  JsName topScope_a=program.getScope().findExistingName("a");
+  JsName f2_a=null;
+  for (  JsScope scope : program.getScope().getChildren()) {
+    if (scope.toString().startsWith("function f2->")) {
+      f2_a=scope.findExistingName("a");
+    }
+  }
+  assertTrue(topScope_a != f2_a);
+  optimize(program,JsSymbolResolver.class,JsDuplicateFunctionRemoverProxy.class);
+  final Map<String,JsName> assignments=AssignmentGatherer.exec(program);
+  assertTrue(assignments.get("_.b") != assignments.get("_.c") || topScope_a.getShortIdent().equals(f2_a.getShortIdent()));
+}

@@ -1,0 +1,16 @@
+{
+  JsProgram program=new JsProgram();
+  String fragment0js="_.a=function (){return _.a;}; _.b=function (){return _.a}; _.a();_.b();";
+  String fragment1js="_.c=function (){return _.c;}; _.d=function (){return _.c}; _.c();_.d();";
+  List<JsStatement> fragment0=JsParser.parse(SourceOrigin.UNKNOWN,program.getScope(),new StringReader(fragment0js));
+  List<JsStatement> fragment1=JsParser.parse(SourceOrigin.UNKNOWN,program.getScope(),new StringReader(fragment1js));
+  program.setFragmentCount(2);
+  program.getFragmentBlock(0).getStatements().addAll(fragment0);
+  program.getFragmentBlock(1).getStatements().addAll(fragment1);
+  setAllFromJava(program);
+  optimize(program,JsSymbolResolver.class,JsDuplicateFunctionRemoverProxy.class);
+  MockNameGenerator tempFreshNameGenerator=new MockNameGenerator();
+  String firstName=tempFreshNameGenerator.getFreshName();
+  String secondName=tempFreshNameGenerator.getFreshName();
+  assertNotNull(program.getScope().findExistingName(secondName));
+}
