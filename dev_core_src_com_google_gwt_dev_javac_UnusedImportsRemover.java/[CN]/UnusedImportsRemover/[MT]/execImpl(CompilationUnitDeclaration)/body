@@ -6,6 +6,16 @@
   for (  TypeDeclaration typeDecl : cud.types) {
     typeDecl.traverse(astVisitor,cud.scope);
   }
+  if (cud.currentPackage != null && cud.currentPackage.annotations != null) {
+    for (    Annotation annotation : cud.currentPackage.annotations) {
+      if (annotation.type instanceof SingleTypeReference) {
+        astVisitor.addName((SingleTypeReference)annotation.type);
+      }
+ else       if (annotation.type instanceof QualifiedTypeReference) {
+        astVisitor.addName((QualifiedTypeReference)annotation.type);
+      }
+    }
+  }
   List<ImportReference> newImports=new ArrayList<ImportReference>();
   for (  ImportReference importRef : cud.imports) {
     String importName=new String(importRef.getImportName()[importRef.getImportName().length - 1]);
