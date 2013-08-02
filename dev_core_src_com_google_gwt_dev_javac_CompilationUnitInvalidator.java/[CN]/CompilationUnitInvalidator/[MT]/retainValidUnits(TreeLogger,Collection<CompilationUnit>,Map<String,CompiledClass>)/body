@@ -1,39 +1,42 @@
 {
   logger=logger.branch(TreeLogger.TRACE,"Removing invalidated units");
-  Set<CompilationUnit> currentlyValidUnits=new LinkedHashSet<CompilationUnit>();
-  Set<String> currentlyValidClasses=new HashSet<String>();
+  Multimap<String,CompilationUnit> depsNeeded=HashMultimap.create();
+  Set<String> depsProvided=new HashSet<String>();
+  Set<CompilationUnit> initialUnits=(units instanceof Set) ? (Set<CompilationUnit>)units : ImmutableSet.<CompilationUnit>copyOf(units);
+  Set<CompilationUnit> allBrokenUnits=new HashSet<CompilationUnit>();
   for (  CompilationUnit unit : units) {
-    if (!unit.isError()) {
-      currentlyValidUnits.add(unit);
+    if (unit.isError()) {
+      allBrokenUnits.add(unit);
+    }
+ else {
       for (      CompiledClass cc : unit.getCompiledClasses()) {
-        currentlyValidClasses.add(cc.getSourceName());
+        depsProvided.add(cc.getSourceName());
+      }
+      for (      String ref : unit.getDependencies().getApiRefs()) {
+        CompiledClass compiledClass=validClasses.get(ref);
+        if ((compiledClass == null) || compiledClass.getUnit().isError() || initialUnits.contains(compiledClass.getUnit())) {
+          depsNeeded.put(ref,unit);
+        }
       }
     }
   }
-  for (  Entry<String,CompiledClass> entry : validClasses.entrySet()) {
-    if (!entry.getValue().getUnit().isError()) {
-      currentlyValidClasses.add(entry.getKey());
-    }
-  }
-  boolean changed;
+  Multimap<String,CompilationUnit> missing;
   do {
-    changed=false;
-    for (Iterator<CompilationUnit> it=currentlyValidUnits.iterator(); it.hasNext(); ) {
-      CompilationUnit unitToCheck=it.next();
-      List<String> invalidRefs=unitToCheck.getDependencies().findMissingApiRefs(currentlyValidClasses);
-      if (invalidRefs.size() > 0) {
-        it.remove();
-        for (        CompiledClass cc : unitToCheck.getCompiledClasses()) {
-          currentlyValidClasses.remove(cc.getSourceName());
+    missing=HashMultimap.create();
+    missing.putAll(depsNeeded);
+    missing.keySet().removeAll(depsProvided);
+    for (    Map.Entry<String,CompilationUnit> brokenEntry : missing.entries()) {
+      CompilationUnit brokenUnit=brokenEntry.getValue();
+      if (allBrokenUnits.add(brokenUnit)) {
+        for (        CompiledClass cc : brokenUnit.getCompiledClasses()) {
+          depsProvided.remove(cc.getSourceName());
         }
-        changed=true;
-        TreeLogger branch=logger.branch(TreeLogger.DEBUG,"Compilation unit '" + unitToCheck + "' is removed due to invalid reference(s):");
-        for (        String ref : invalidRefs) {
-          branch.log(TreeLogger.DEBUG,ref);
-        }
+        TreeLogger branch=logger.branch(TreeLogger.DEBUG,"Compilation unit '" + brokenUnit + "' is removed due to invalid reference(s):");
+        branch.log(TreeLogger.DEBUG,brokenEntry.getKey());
       }
     }
+    depsNeeded.keySet().removeAll(missing.keySet());
   }
- while (changed);
-  units.retainAll(currentlyValidUnits);
+ while (!missing.isEmpty());
+  units.removeAll(allBrokenUnits);
 }
