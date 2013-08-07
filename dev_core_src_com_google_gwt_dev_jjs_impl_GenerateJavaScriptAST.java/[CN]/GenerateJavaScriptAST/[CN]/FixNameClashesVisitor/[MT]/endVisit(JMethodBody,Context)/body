@@ -1,0 +1,32 @@
+{
+  for (  String name : localsByName.keySet()) {
+    Collection<JLocal> localSet=localsByName.get(name);
+    if (localSet.size() == 1) {
+      continue;
+    }
+    JLocal[] locals=localSet.toArray(new JLocal[localSet.size()]);
+    for (int i=0; i < locals.length; i++) {
+      for (int j=i + 1; j < locals.length; j++) {
+        Scope iLocalScope=scopesByLocal.get(locals[i]);
+        Scope jLocalScope=scopesByLocal.get(locals[j]);
+        Scope commonAncestor=Scope.getInnermostEnclosingScope(iLocalScope,jLocalScope);
+        if (commonAncestor != iLocalScope && commonAncestor != jLocalScope) {
+          continue;
+        }
+        int n=0;
+        String baseName=locals[i].getName();
+        String newName;
+        do {
+          newName=baseName + n++;
+        }
+ while (iLocalScope.isConflictingName(newName));
+        locals[i].setName(newName);
+        iLocalScope.addUsedName(newName);
+        break;
+      }
+    }
+  }
+  currentScope=null;
+  scopesByLocal=null;
+  localsByName=null;
+}

@@ -1,6 +1,6 @@
 {
   final JMethodBody body=(JMethodBody)method.getBody();
-  new TempLocalVisitor(){
+  new JModVisitor(){
     private JMethodCall createClinitCall(    SourceInfo sourceInfo,    JDeclaredType targetType){
       JMethod clinit=targetType.getClinitTarget().getClinitMethod();
       assert(JProgram.isClinit(clinit));
@@ -13,7 +13,7 @@
         JExpression instance=((JMethodCall)x).getInstance();
         if (instance != null) {
           multi.exprs.add(instance);
-          JLocal var=createTempLocal(instance.getSourceInfo(),instance.getType());
+          JLocal var=JProgram.createLocal(instance.getSourceInfo(),"$t",instance.getType(),false,body);
           JLocalRef localRef=new JLocalRef(var.getSourceInfo(),var);
           instance=new JBinaryOperation(instance.getSourceInfo(),localRef.getType(),JBinaryOperator.ASG,localRef,instance);
         }
