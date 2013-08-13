@@ -12,12 +12,18 @@
               ArrayInitializer ai=(ArrayInitializer)valueExpr;
               String[] values=new String[ai.expressions.length];
               for (int i=0, j=values.length; i < j; i++) {
-                values[i]=((StringLiteral)ai.expressions[i]).constant.stringValue().toLowerCase(Locale.ENGLISH);
+                if ((ai.expressions[i]) instanceof StringLiteral) {
+                  StringLiteral expression=(StringLiteral)ai.expressions[i];
+                  values[i]=expression.constant.stringValue().toLowerCase(Locale.ENGLISH);
+                }
+ else {
+                  suppressionAnnotationWarning(a,"Unable to analyze SuppressWarnings annotation, " + ai.expressions[i].toString() + " not a string constant.");
+                }
               }
               return Sets.create(values);
             }
  else {
-              throw new InternalCompilerException("Unable to analyze SuppressWarnings annotation");
+              suppressionAnnotationWarning(a,"Unable to analyze SuppressWarnings annotation, " + valueExpr.toString() + " not a string constant.");
             }
           }
         }
