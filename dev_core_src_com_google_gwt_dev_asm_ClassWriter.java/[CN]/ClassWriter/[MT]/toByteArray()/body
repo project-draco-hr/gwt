@@ -1,20 +1,28 @@
 {
+  if (index > 0xFFFF) {
+    throw new RuntimeException("Class file too large!");
+  }
   int size=24 + 2 * interfaceCount;
   int nbFields=0;
   FieldWriter fb=firstField;
   while (fb != null) {
     ++nbFields;
     size+=fb.getSize();
-    fb=fb.next;
+    fb=(FieldWriter)fb.fv;
   }
   int nbMethods=0;
   MethodWriter mb=firstMethod;
   while (mb != null) {
     ++nbMethods;
     size+=mb.getSize();
-    mb=mb.next;
+    mb=(MethodWriter)mb.mv;
   }
   int attributeCount=0;
+  if (bootstrapMethods != null) {
+    ++attributeCount;
+    size+=8 + bootstrapMethods.length;
+    newUTF8("BootstrapMethods");
+  }
   if (ClassReader.SIGNATURES && signature != 0) {
     ++attributeCount;
     size+=8;
@@ -40,10 +48,12 @@
     size+=6;
     newUTF8("Deprecated");
   }
-  if ((access & Opcodes.ACC_SYNTHETIC) != 0 && (version & 0xffff) < Opcodes.V1_5) {
-    ++attributeCount;
-    size+=6;
-    newUTF8("Synthetic");
+  if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
+    if ((version & 0xFFFF) < Opcodes.V1_5 || (access & ACC_SYNTHETIC_ATTRIBUTE) != 0) {
+      ++attributeCount;
+      size+=6;
+      newUTF8("Synthetic");
+    }
   }
   if (innerClasses != null) {
     ++attributeCount;
@@ -68,7 +78,8 @@
   ByteVector out=new ByteVector(size);
   out.putInt(0xCAFEBABE).putInt(version);
   out.putShort(index).putByteArray(pool.data,0,pool.length);
-  out.putShort(access).putShort(name).putShort(superName);
+  int mask=Opcodes.ACC_DEPRECATED | ACC_SYNTHETIC_ATTRIBUTE | ((access & ACC_SYNTHETIC_ATTRIBUTE) / TO_ACC_SYNTHETIC);
+  out.putShort(access & ~mask).putShort(name).putShort(superName);
   out.putShort(interfaceCount);
   for (int i=0; i < interfaceCount; ++i) {
     out.putShort(interfaces[i]);
@@ -77,15 +88,20 @@
   fb=firstField;
   while (fb != null) {
     fb.put(out);
-    fb=fb.next;
+    fb=(FieldWriter)fb.fv;
   }
   out.putShort(nbMethods);
   mb=firstMethod;
   while (mb != null) {
     mb.put(out);
-    mb=mb.next;
+    mb=(MethodWriter)mb.mv;
   }
   out.putShort(attributeCount);
+  if (bootstrapMethods != null) {
+    out.putShort(newUTF8("BootstrapMethods"));
+    out.putInt(bootstrapMethods.length + 2).putShort(bootstrapMethodsCount);
+    out.putByteArray(bootstrapMethods.data,0,bootstrapMethods.length);
+  }
   if (ClassReader.SIGNATURES && signature != 0) {
     out.putShort(newUTF8("Signature")).putInt(2).putShort(signature);
   }
@@ -104,8 +120,10 @@
   if ((access & Opcodes.ACC_DEPRECATED) != 0) {
     out.putShort(newUTF8("Deprecated")).putInt(0);
   }
-  if ((access & Opcodes.ACC_SYNTHETIC) != 0 && (version & 0xffff) < Opcodes.V1_5) {
-    out.putShort(newUTF8("Synthetic")).putInt(0);
+  if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
+    if ((version & 0xFFFF) < Opcodes.V1_5 || (access & ACC_SYNTHETIC_ATTRIBUTE) != 0) {
+      out.putShort(newUTF8("Synthetic")).putInt(0);
+    }
   }
   if (innerClasses != null) {
     out.putShort(newUTF8("InnerClasses"));

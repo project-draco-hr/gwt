@@ -1,5 +1,8 @@
 {
   this.b=b;
+  if (readShort(off + 6) > Opcodes.V1_7) {
+    throw new IllegalArgumentException();
+  }
   items=new int[readUnsignedShort(off + 8)];
   int n=items.length;
   strings=new String[n];
@@ -15,6 +18,7 @@ case ClassWriter.IMETH:
 case ClassWriter.INT:
 case ClassWriter.FLOAT:
 case ClassWriter.NAME_TYPE:
+case ClassWriter.INDY:
       size=5;
     break;
 case ClassWriter.LONG:
@@ -27,6 +31,9 @@ size=3 + readUnsignedShort(index + 1);
 if (size > max) {
 max=size;
 }
+break;
+case ClassWriter.HANDLE:
+size=4;
 break;
 default :
 size=3;

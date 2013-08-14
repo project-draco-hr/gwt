@@ -64,8 +64,14 @@ break;
 case ClassWriter.CLASS:
 push(OBJECT | cw.addType("java/lang/Class"));
 break;
-default :
+case ClassWriter.STR:
 push(OBJECT | cw.addType("java/lang/String"));
+break;
+case ClassWriter.MTYPE:
+push(OBJECT | cw.addType("java/lang/invoke/MethodType"));
+break;
+default :
+push(OBJECT | cw.addType("java/lang/invoke/MethodHandle"));
 }
 break;
 case Opcodes.ALOAD:
@@ -109,6 +115,9 @@ t2=get(arg - 1);
 if (t2 == LONG || t2 == DOUBLE) {
 set(arg - 1,TOP);
 }
+ else if ((t2 & KIND) != BASE) {
+set(arg - 1,t2 | TOP_IF_LONG_OR_DOUBLE);
+}
 }
 break;
 case Opcodes.LSTORE:
@@ -121,6 +130,9 @@ if (arg > 0) {
 t2=get(arg - 1);
 if (t2 == LONG || t2 == DOUBLE) {
 set(arg - 1,TOP);
+}
+ else if ((t2 & KIND) != BASE) {
+set(arg - 1,t2 | TOP_IF_LONG_OR_DOUBLE);
 }
 }
 break;
@@ -341,6 +353,10 @@ init(t1);
 }
 }
 push(cw,item.strVal3);
+break;
+case Opcodes.INVOKEDYNAMIC:
+pop(item.strVal2);
+push(cw,item.strVal2);
 break;
 case Opcodes.NEW:
 push(UNINITIALIZED | cw.addUninitializedType(item.strVal1,arg));

@@ -1,5 +1,7 @@
 {
-  out.putShort(access).putShort(name).putShort(desc);
+  final int FACTOR=ClassWriter.TO_ACC_SYNTHETIC;
+  int mask=ACC_CONSTRUCTOR | Opcodes.ACC_DEPRECATED | ClassWriter.ACC_SYNTHETIC_ATTRIBUTE| ((access & ClassWriter.ACC_SYNTHETIC_ATTRIBUTE) / FACTOR);
+  out.putShort(access & ~mask).putShort(name).putShort(desc);
   if (classReaderOffset != 0) {
     out.putByteArray(cw.cr.b,classReaderOffset,classReaderLength);
     return;
@@ -11,8 +13,10 @@
   if (exceptionCount > 0) {
     ++attributeCount;
   }
-  if ((access & Opcodes.ACC_SYNTHETIC) != 0 && (cw.version & 0xffff) < Opcodes.V1_5) {
-    ++attributeCount;
+  if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
+    if ((cw.version & 0xFFFF) < Opcodes.V1_5 || (access & ClassWriter.ACC_SYNTHETIC_ATTRIBUTE) != 0) {
+      ++attributeCount;
+    }
   }
   if ((access & Opcodes.ACC_DEPRECATED) != 0) {
     ++attributeCount;
@@ -116,8 +120,10 @@
       out.putShort(exceptions[i]);
     }
   }
-  if ((access & Opcodes.ACC_SYNTHETIC) != 0 && (cw.version & 0xffff) < Opcodes.V1_5) {
-    out.putShort(cw.newUTF8("Synthetic")).putInt(0);
+  if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
+    if ((cw.version & 0xFFFF) < Opcodes.V1_5 || (access & ClassWriter.ACC_SYNTHETIC_ATTRIBUTE) != 0) {
+      out.putShort(cw.newUTF8("Synthetic")).putInt(0);
+    }
   }
   if ((access & Opcodes.ACC_DEPRECATED) != 0) {
     out.putShort(cw.newUTF8("Deprecated")).putInt(0);

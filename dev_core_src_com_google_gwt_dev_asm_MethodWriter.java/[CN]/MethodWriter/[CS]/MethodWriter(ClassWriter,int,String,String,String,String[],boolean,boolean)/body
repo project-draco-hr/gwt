@@ -1,13 +1,17 @@
 {
+  super(Opcodes.ASM4);
   if (cw.firstMethod == null) {
     cw.firstMethod=this;
   }
  else {
-    cw.lastMethod.next=this;
+    cw.lastMethod.mv=this;
   }
   cw.lastMethod=this;
   this.cw=cw;
   this.access=access;
+  if ("<init>".equals(name)) {
+    this.access|=ACC_CONSTRUCTOR;
+  }
   this.name=cw.newUTF8(name);
   this.desc=cw.newUTF8(desc);
   this.descriptor=desc;
@@ -23,14 +27,12 @@
   }
   this.compute=computeFrames ? FRAMES : (computeMaxs ? MAXS : NOTHING);
   if (computeMaxs || computeFrames) {
-    if (computeFrames && "<init>".equals(name)) {
-      this.access|=ACC_CONSTRUCTOR;
-    }
-    int size=getArgumentsAndReturnSizes(descriptor) >> 2;
+    int size=Type.getArgumentsAndReturnSizes(descriptor) >> 2;
     if ((access & Opcodes.ACC_STATIC) != 0) {
       --size;
     }
     maxLocals=size;
+    currentLocals=size;
     labels=new Label();
     labels.status|=Label.PUSHED;
     visitLabel(labels);

@@ -39,7 +39,21 @@ index=items[i];
 s=strings[i]=readUTF(index + 2,readUnsignedShort(index),buf);
 }
 item.set(tag,s,null,null);
+break;
 }
+case ClassWriter.HANDLE:
+{
+int fieldOrMethodRef=items[readUnsignedShort(index + 1)];
+nameType=items[readUnsignedShort(fieldOrMethodRef + 2)];
+item.set(ClassWriter.HANDLE_BASE + readByte(index),readClass(fieldOrMethodRef,buf),readUTF8(nameType,buf),readUTF8(nameType + 2,buf));
+break;
+}
+case ClassWriter.INDY:
+if (classWriter.bootstrapMethods == null) {
+copyBootstrapMethods(classWriter,items2,buf);
+}
+nameType=items[readUnsignedShort(index + 2)];
+item.set(readUTF8(nameType,buf),readUTF8(nameType + 2,buf),readUnsignedShort(index));
 break;
 default :
 item.set(tag,readUTF8(index,buf),null,null);

@@ -1,0 +1,133 @@
+{
+  char[] c=context.buffer;
+  int access=readUnsignedShort(u);
+  String name=readUTF8(u + 2,c);
+  String desc=readUTF8(u + 4,c);
+  u+=6;
+  int code=0;
+  int exception=0;
+  String[] exceptions=null;
+  String signature=null;
+  int anns=0;
+  int ianns=0;
+  int dann=0;
+  int mpanns=0;
+  int impanns=0;
+  int firstAttribute=u;
+  Attribute attributes=null;
+  for (int i=readUnsignedShort(u); i > 0; --i) {
+    String attrName=readUTF8(u + 2,c);
+    if ("Code".equals(attrName)) {
+      if ((context.flags & SKIP_CODE) == 0) {
+        code=u + 8;
+      }
+    }
+ else     if ("Exceptions".equals(attrName)) {
+      exceptions=new String[readUnsignedShort(u + 8)];
+      exception=u + 10;
+      for (int j=0; j < exceptions.length; ++j) {
+        exceptions[j]=readClass(exception,c);
+        exception+=2;
+      }
+    }
+ else     if (SIGNATURES && "Signature".equals(attrName)) {
+      signature=readUTF8(u + 8,c);
+    }
+ else     if ("Deprecated".equals(attrName)) {
+      access|=Opcodes.ACC_DEPRECATED;
+    }
+ else     if (ANNOTATIONS && "RuntimeVisibleAnnotations".equals(attrName)) {
+      anns=u + 8;
+    }
+ else     if (ANNOTATIONS && "AnnotationDefault".equals(attrName)) {
+      dann=u + 8;
+    }
+ else     if ("Synthetic".equals(attrName)) {
+      access|=Opcodes.ACC_SYNTHETIC | ClassWriter.ACC_SYNTHETIC_ATTRIBUTE;
+    }
+ else     if (ANNOTATIONS && "RuntimeInvisibleAnnotations".equals(attrName)) {
+      ianns=u + 8;
+    }
+ else     if (ANNOTATIONS && "RuntimeVisibleParameterAnnotations".equals(attrName)) {
+      mpanns=u + 8;
+    }
+ else     if (ANNOTATIONS && "RuntimeInvisibleParameterAnnotations".equals(attrName)) {
+      impanns=u + 8;
+    }
+ else {
+      Attribute attr=readAttribute(context.attrs,attrName,u + 8,readInt(u + 4),c,-1,null);
+      if (attr != null) {
+        attr.next=attributes;
+        attributes=attr;
+      }
+    }
+    u+=6 + readInt(u + 4);
+  }
+  u+=2;
+  MethodVisitor mv=classVisitor.visitMethod(access,name,desc,signature,exceptions);
+  if (mv == null) {
+    return u;
+  }
+  if (WRITER && mv instanceof MethodWriter) {
+    MethodWriter mw=(MethodWriter)mv;
+    if (mw.cw.cr == this && signature == mw.signature) {
+      boolean sameExceptions=false;
+      if (exceptions == null) {
+        sameExceptions=mw.exceptionCount == 0;
+      }
+ else       if (exceptions.length == mw.exceptionCount) {
+        sameExceptions=true;
+        for (int j=exceptions.length - 1; j >= 0; --j) {
+          exception-=2;
+          if (mw.exceptions[j] != readUnsignedShort(exception)) {
+            sameExceptions=false;
+            break;
+          }
+        }
+      }
+      if (sameExceptions) {
+        mw.classReaderOffset=firstAttribute;
+        mw.classReaderLength=u - firstAttribute;
+        return u;
+      }
+    }
+  }
+  if (ANNOTATIONS && dann != 0) {
+    AnnotationVisitor dv=mv.visitAnnotationDefault();
+    readAnnotationValue(dann,c,null,dv);
+    if (dv != null) {
+      dv.visitEnd();
+    }
+  }
+  if (ANNOTATIONS && anns != 0) {
+    for (int i=readUnsignedShort(anns), v=anns + 2; i > 0; --i) {
+      v=readAnnotationValues(v + 2,c,true,mv.visitAnnotation(readUTF8(v,c),true));
+    }
+  }
+  if (ANNOTATIONS && ianns != 0) {
+    for (int i=readUnsignedShort(ianns), v=ianns + 2; i > 0; --i) {
+      v=readAnnotationValues(v + 2,c,true,mv.visitAnnotation(readUTF8(v,c),false));
+    }
+  }
+  if (ANNOTATIONS && mpanns != 0) {
+    readParameterAnnotations(mpanns,desc,c,true,mv);
+  }
+  if (ANNOTATIONS && impanns != 0) {
+    readParameterAnnotations(impanns,desc,c,false,mv);
+  }
+  while (attributes != null) {
+    Attribute attr=attributes.next;
+    attributes.next=null;
+    mv.visitAttribute(attributes);
+    attributes=attr;
+  }
+  if (code != 0) {
+    context.access=access;
+    context.name=name;
+    context.desc=desc;
+    mv.visitCode();
+    readCode(mv,context,code);
+  }
+  mv.visitEnd();
+  return u;
+}

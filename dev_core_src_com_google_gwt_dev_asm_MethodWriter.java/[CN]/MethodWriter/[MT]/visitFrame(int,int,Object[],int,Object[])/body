@@ -3,7 +3,11 @@
     return;
   }
   if (type == Opcodes.F_NEW) {
-    startFrame(code.length,nLocal,nStack);
+    if (previousFrame == null) {
+      visitImplicitFirstFrame();
+    }
+    currentLocals=nLocal;
+    int frameIndex=startFrame(code.length,nLocal,nStack);
     for (int i=0; i < nLocal; ++i) {
       if (local[i] instanceof String) {
         frame[frameIndex++]=Frame.OBJECT | cw.addType((String)local[i]);
@@ -36,25 +40,36 @@
     }
  else {
       delta=code.length - previousFrameOffset - 1;
+      if (delta < 0) {
+        if (type == Opcodes.F_SAME) {
+          return;
+        }
+ else {
+          throw new IllegalStateException();
+        }
+      }
     }
 switch (type) {
 case Opcodes.F_FULL:
-      stackMap.putByte(FULL_FRAME).putShort(delta).putShort(nLocal);
-    for (int i=0; i < nLocal; ++i) {
-      writeFrameType(local[i]);
-    }
-  stackMap.putShort(nStack);
+      currentLocals=nLocal;
+    stackMap.putByte(FULL_FRAME).putShort(delta).putShort(nLocal);
+  for (int i=0; i < nLocal; ++i) {
+    writeFrameType(local[i]);
+  }
+stackMap.putShort(nStack);
 for (int i=0; i < nStack; ++i) {
-  writeFrameType(stack[i]);
+writeFrameType(stack[i]);
 }
 break;
 case Opcodes.F_APPEND:
+currentLocals+=nLocal;
 stackMap.putByte(SAME_FRAME_EXTENDED + nLocal).putShort(delta);
 for (int i=0; i < nLocal; ++i) {
 writeFrameType(local[i]);
 }
 break;
 case Opcodes.F_CHOP:
+currentLocals-=nLocal;
 stackMap.putByte(SAME_FRAME_EXTENDED - nLocal).putShort(delta);
 break;
 case Opcodes.F_SAME:
@@ -78,4 +93,6 @@ break;
 previousFrameOffset=code.length;
 ++frameCount;
 }
+maxStack=Math.max(maxStack,nStack);
+maxLocals=Math.max(maxLocals,currentLocals);
 }

@@ -48,7 +48,6 @@
         e=e.next;
       }
     }
-    this.maxStack=max;
     Label l=labels;
     while (l != null) {
       f=l.frame;
@@ -60,17 +59,26 @@
         int start=l.position;
         int end=(k == null ? code.length : k.position) - 1;
         if (end >= start) {
+          max=Math.max(max,1);
           for (int i=start; i < end; ++i) {
             code.data[i]=Opcodes.NOP;
           }
           code.data[end]=(byte)Opcodes.ATHROW;
-          startFrame(start,0,1);
-          frame[frameIndex++]=Frame.OBJECT | cw.addType("java/lang/Throwable");
+          int frameIndex=startFrame(start,0,1);
+          frame[frameIndex]=Frame.OBJECT | cw.addType("java/lang/Throwable");
           endFrame();
+          firstHandler=Handler.remove(firstHandler,l,k);
         }
       }
       l=l.successor;
     }
+    handler=firstHandler;
+    handlerCount=0;
+    while (handler != null) {
+      handlerCount+=1;
+      handler=handler.next;
+    }
+    this.maxStack=max;
   }
  else   if (compute == MAXS) {
     Handler handler=firstHandler;
@@ -113,7 +121,7 @@
         if ((l.status & Label.JSR) != 0) {
           Label L=labels;
           while (L != null) {
-            L.status&=~Label.VISITED;
+            L.status&=~Label.VISITED2;
             L=L.successor;
           }
           Label subroutine=l.successors.next.successor;
@@ -147,7 +155,7 @@
         b=b.next;
       }
     }
-    this.maxStack=max;
+    this.maxStack=Math.max(maxStack,max);
   }
  else {
     this.maxStack=maxStack;

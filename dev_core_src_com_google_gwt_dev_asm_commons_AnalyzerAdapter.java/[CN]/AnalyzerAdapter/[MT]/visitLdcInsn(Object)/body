@@ -2,6 +2,10 @@
   if (mv != null) {
     mv.visitLdcInsn(cst);
   }
+  if (this.locals == null) {
+    labels=null;
+    return;
+  }
   if (cst instanceof Integer) {
     push(Opcodes.INTEGER);
   }
@@ -20,7 +24,19 @@
     push("java/lang/String");
   }
  else   if (cst instanceof Type) {
-    push("java/lang/Class");
+    int sort=((Type)cst).getSort();
+    if (sort == Type.OBJECT || sort == Type.ARRAY) {
+      push("java/lang/Class");
+    }
+ else     if (sort == Type.METHOD) {
+      push("java/lang/invoke/MethodType");
+    }
+ else {
+      throw new IllegalArgumentException();
+    }
+  }
+ else   if (cst instanceof Handle) {
+    push("java/lang/invoke/MethodHandle");
   }
  else {
     throw new IllegalArgumentException();

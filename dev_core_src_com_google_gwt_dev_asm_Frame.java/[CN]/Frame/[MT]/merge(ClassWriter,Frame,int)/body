@@ -16,14 +16,19 @@
  else {
         dim=s & DIM;
         kind=s & KIND;
-        if (kind == LOCAL) {
-          t=dim + inputLocals[s & VALUE];
-        }
- else         if (kind == STACK) {
-          t=dim + inputStack[nStack - (s & VALUE)];
+        if (kind == BASE) {
+          t=s;
         }
  else {
-          t=s;
+          if (kind == LOCAL) {
+            t=dim + inputLocals[s & VALUE];
+          }
+ else {
+            t=dim + inputStack[nStack - (s & VALUE)];
+          }
+          if ((s & TOP_IF_LONG_OR_DOUBLE) != 0 && (t == LONG || t == DOUBLE)) {
+            t=TOP;
+          }
         }
       }
     }
@@ -63,14 +68,19 @@
     s=outputStack[i];
     dim=s & DIM;
     kind=s & KIND;
-    if (kind == LOCAL) {
-      t=dim + inputLocals[s & VALUE];
-    }
- else     if (kind == STACK) {
-      t=dim + inputStack[nStack - (s & VALUE)];
+    if (kind == BASE) {
+      t=s;
     }
  else {
-      t=s;
+      if (kind == LOCAL) {
+        t=dim + inputLocals[s & VALUE];
+      }
+ else {
+        t=dim + inputStack[nStack - (s & VALUE)];
+      }
+      if ((s & TOP_IF_LONG_OR_DOUBLE) != 0 && (t == LONG || t == DOUBLE)) {
+        t=TOP;
+      }
     }
     if (initializations != null) {
       t=init(cw,t);

@@ -1,14 +1,13 @@
 {
-  int intOp=-1;
 switch (type.getSort()) {
 case Type.LONG:
     mv.visitInsn(Opcodes.LCMP);
   break;
 case Type.DOUBLE:
-mv.visitInsn(Opcodes.DCMPG);
+mv.visitInsn(mode == GE || mode == GT ? Opcodes.DCMPL : Opcodes.DCMPG);
 break;
 case Type.FLOAT:
-mv.visitInsn(Opcodes.FCMPG);
+mv.visitInsn(mode == GE || mode == GT ? Opcodes.FCMPL : Opcodes.FCMPG);
 break;
 case Type.ARRAY:
 case Type.OBJECT:
@@ -22,6 +21,7 @@ return;
 }
 throw new IllegalArgumentException("Bad comparison for type " + type);
 default :
+int intOp=-1;
 switch (mode) {
 case EQ:
 intOp=Opcodes.IF_ICMPEQ;
@@ -45,14 +45,5 @@ break;
 mv.visitJumpInsn(intOp,label);
 return;
 }
-int jumpMode=mode;
-switch (mode) {
-case GE:
-jumpMode=LT;
-break;
-case LE:
-jumpMode=GT;
-break;
-}
-mv.visitJumpInsn(jumpMode,label);
+mv.visitJumpInsn(mode,label);
 }

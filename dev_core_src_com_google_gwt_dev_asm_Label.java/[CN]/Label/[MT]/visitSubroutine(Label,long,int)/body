@@ -1,30 +1,39 @@
 {
-  if (JSR != null) {
-    if ((status & VISITED) != 0) {
-      return;
-    }
-    status|=VISITED;
-    if ((status & RET) != 0) {
-      if (!inSameSubroutine(JSR)) {
-        Edge e=new Edge();
-        e.info=inputStackTop;
-        e.successor=JSR.successors.successor;
-        e.next=successors;
-        successors=e;
+  Label stack=this;
+  while (stack != null) {
+    Label l=stack;
+    stack=l.next;
+    l.next=null;
+    if (JSR != null) {
+      if ((l.status & VISITED2) != 0) {
+        continue;
+      }
+      l.status|=VISITED2;
+      if ((l.status & RET) != 0) {
+        if (!l.inSameSubroutine(JSR)) {
+          Edge e=new Edge();
+          e.info=l.inputStackTop;
+          e.successor=JSR.successors.successor;
+          e.next=l.successors;
+          l.successors=e;
+        }
       }
     }
-  }
  else {
-    if (inSubroutine(id)) {
-      return;
+      if (l.inSubroutine(id)) {
+        continue;
+      }
+      l.addToSubroutine(id,nbSubroutines);
     }
-    addToSubroutine(id,nbSubroutines);
-  }
-  Edge e=successors;
-  while (e != null) {
-    if ((status & Label.JSR) == 0 || e != successors.next) {
-      e.successor.visitSubroutine(JSR,id,nbSubroutines);
+    Edge e=l.successors;
+    while (e != null) {
+      if ((l.status & Label.JSR) == 0 || e != l.successors.next) {
+        if (e.successor.next == null) {
+          e.successor.next=stack;
+          stack=e.successor;
+        }
+      }
+      e=e.next;
     }
-    e=e.next;
   }
 }

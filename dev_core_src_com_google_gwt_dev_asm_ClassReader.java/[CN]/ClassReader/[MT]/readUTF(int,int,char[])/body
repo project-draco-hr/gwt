@@ -2,29 +2,33 @@
   int endIndex=index + utfLen;
   byte[] b=this.b;
   int strLen=0;
-  int c, d, e;
+  int c;
+  int st=0;
+  char cc=0;
   while (index < endIndex) {
-    c=b[index++] & 0xFF;
-switch (c >> 4) {
+    c=b[index++];
+switch (st) {
 case 0:
-case 1:
-case 2:
-case 3:
-case 4:
-case 5:
-case 6:
-case 7:
+      c=c & 0xFF;
+    if (c < 0x80) {
       buf[strLen++]=(char)c;
-    break;
-case 12:
-case 13:
-  d=b[index++];
-buf[strLen++]=(char)(((c & 0x1F) << 6) | (d & 0x3F));
+    }
+ else     if (c < 0xE0 && c > 0xBF) {
+      cc=(char)(c & 0x1F);
+      st=1;
+    }
+ else {
+      cc=(char)(c & 0x0F);
+      st=2;
+    }
+  break;
+case 1:
+buf[strLen++]=(char)((cc << 6) | (c & 0x3F));
+st=0;
 break;
-default :
-d=b[index++];
-e=b[index++];
-buf[strLen++]=(char)(((c & 0x0F) << 12) | ((d & 0x3F) << 6) | (e & 0x3F));
+case 2:
+cc=(char)((cc << 6) | (c & 0x3F));
+st=1;
 break;
 }
 }
