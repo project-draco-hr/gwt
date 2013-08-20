@@ -1,0 +1,37 @@
+{
+  if (args.length < 2) {
+    System.err.println("java -cp requestfactory-client.jar:your_server-code.jar " + ValidationTool.class.getCanonicalName() + " (/some/directory | output.jar) com.example.shared.MyRequestFactory");
+    System.err.println("See " + "http://code.google.com/p/google-web-toolkit/wiki/RequestFactoryInterfaceValidation " + "for more information.");
+    return false;
+  }
+  if (compiler == null) {
+    System.err.println("This tool must be run with a JDK, not a JRE");
+    return false;
+  }
+  if (!compiler.getSourceVersions().contains(SourceVersion.RELEASE_6)) {
+    System.err.println("This tool must be run with a Java 1.6 compiler");
+    return false;
+  }
+  boolean clientOnly=false;
+  List<String> argList=new ArrayList<String>(Arrays.asList(args));
+  if (argList.get(0).equals("-client")) {
+    clientOnly=true;
+    argList.remove(0);
+  }
+  JavaFileManager fileManager=new JarOrDirectoryOutputFileManager(new File(argList.remove(0)),compiler.getStandardFileManager(null,null,null));
+  RfValidator processor=new RfValidator();
+  if (clientOnly) {
+    processor.setClientOnly(true);
+  }
+ else {
+    processor.setMustResolveAllMappings(true);
+  }
+  processor.setRootOverride(argList);
+  CompilationTask task=compiler.getTask(null,fileManager,null,javacOpts,null,Arrays.asList(new FakeJavaFileObject()));
+  task.setProcessors(Arrays.asList(processor));
+  if (!task.call()) {
+    return false;
+  }
+  fileManager.close();
+  return true;
+}
