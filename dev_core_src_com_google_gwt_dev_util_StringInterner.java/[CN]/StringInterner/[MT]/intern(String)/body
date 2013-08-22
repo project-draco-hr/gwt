@@ -1,4 +1,26 @@
 {
-  int shardId=getShardId(original);
-  return shards[shardId].intern(original);
+  AtomicReferenceArray<Entry> currentTable=table;
+  ValueEntry runUntil=null;
+  while (true) {
+    int index=original.hashCode() & getMask(currentTable);
+    Entry head=currentTable.get(index);
+    if (head instanceof ForwardingEntry) {
+      currentTable=((ForwardingEntry)head).forward;
+      runUntil=null;
+      continue;
+    }
+    ValueEntry vHead=(ValueEntry)head;
+    for (ValueEntry current=vHead; current != runUntil; current=current.next) {
+      String s=current.get();
+      if (original.equals(s)) {
+        return s;
+      }
+    }
+    ValueEntry newEntry=new ValueEntry(original,vHead);
+    if (currentTable.compareAndSet(index,head,newEntry)) {
+      maybeRehash();
+      return original;
+    }
+    runUntil=vHead;
+  }
 }
