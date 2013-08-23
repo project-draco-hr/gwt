@@ -1,0 +1,28 @@
+{
+  Set<Script> results=artifacts.find(Script.class);
+  if (results.size() != 1) {
+    logger.log(TreeLogger.ERROR,"The module must have exactly one distinct" + " permutation when using the " + getDescription() + " Linker; found "+ results.size(),null);
+    throw new UnableToCompleteException();
+  }
+  Script result=results.iterator().next();
+  DefaultTextOutput out=new DefaultTextOutput(true);
+  String bootstrap=generateSelectionScript(logger,context,artifacts);
+  bootstrap=context.optimizeJavaScript(logger,bootstrap);
+  out.print(bootstrap);
+  out.newlineOpt();
+  out.print("var $gwt_version = \"" + About.getGwtVersionNum() + "\";");
+  out.newlineOpt();
+  out.print("var $wnd = window;");
+  out.newlineOpt();
+  out.print("var $doc = $wnd.document;");
+  out.newlineOpt();
+  out.print("var $moduleName, $moduleBase;");
+  out.newlineOpt();
+  out.print("var $strongName = '" + result.getStrongName() + "';");
+  out.newlineOpt();
+  out.print("load($strongName + '.js');");
+  out.newlineOpt();
+  out.print("if (" + context.getModuleFunctionName() + ") "+ context.getModuleFunctionName()+ ".onScriptLoad(gwtOnLoad);");
+  out.newlineOpt();
+  return emitString(logger,out.toString(),context.getModuleName() + ".nocache.js");
+}

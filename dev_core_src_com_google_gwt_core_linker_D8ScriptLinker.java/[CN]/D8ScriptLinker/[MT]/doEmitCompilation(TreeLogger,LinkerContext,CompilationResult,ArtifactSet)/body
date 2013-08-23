@@ -1,0 +1,13 @@
+{
+  String[] js=result.getJavaScript();
+  if (js.length != 1) {
+    logger.branch(TreeLogger.ERROR,"The module must not have multiple fragments when using the " + getDescription() + " Linker.",null);
+    throw new UnableToCompleteException();
+  }
+  Collection<Artifact<?>> toReturn=new ArrayList<Artifact<?>>();
+  toReturn.add(new Script(result.getStrongName()));
+  toReturn.addAll(emitSelectionInformation(result.getStrongName(),result));
+  SyntheticArtifact artifact=emitString(logger,js[0],result.getStrongName() + ".js");
+  toReturn.add(artifact);
+  return toReturn;
+}
