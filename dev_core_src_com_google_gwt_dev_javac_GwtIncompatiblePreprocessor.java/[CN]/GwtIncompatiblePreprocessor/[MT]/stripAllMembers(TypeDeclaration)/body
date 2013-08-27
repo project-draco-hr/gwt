@@ -5,7 +5,10 @@
   tyDecl.methods=new AbstractMethodDeclaration[0];
   tyDecl.memberTypes=new TypeDeclaration[0];
   tyDecl.fields=new FieldDeclaration[0];
-  tyDecl.createDefaultConstructor(true,true);
-  tyDecl.methods[0].modifiers=ClassFileConstants.AccPrivate;
-  tyDecl.modifiers|=ClassFileConstants.AccFinal;
+  if (TypeDeclaration.kind(tyDecl.modifiers) != TypeDeclaration.INTERFACE_DECL) {
+    ConstructorDeclaration constructor=tyDecl.createDefaultConstructor(true,true);
+    constructor.modifiers=ClassFileConstants.AccPrivate;
+    constructor.bits&=~ASTNode.IsDefaultConstructor;
+    tyDecl.modifiers|=ClassFileConstants.AccFinal;
+  }
 }
