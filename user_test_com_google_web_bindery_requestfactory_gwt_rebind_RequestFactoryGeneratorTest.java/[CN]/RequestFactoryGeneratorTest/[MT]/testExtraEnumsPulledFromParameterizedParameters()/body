@@ -1,0 +1,15 @@
+{
+  JavaSource simpleEnumTest=createMockJavaSource("test.Simple","package test;",COMMON_IMPORTS,"public interface Simple extends RequestFactory {","  SimpleContext simple();","  @JsonRpcService","  public interface SimpleContext extends RequestContext {","    GetByIdRequest getById(Long id);","    public interface GetByIdRequest extends Request<String> {","      public enum GetByIdEnum {}","      GetByIdRequest setId(Long id);","      GetByIdRequest setEnums(java.util.List<GetByIdEnum> enums);","    }","  }","}");
+  contextBuilder.add(simpleEnumTest);
+  StandardGeneratorContext ctx=(StandardGeneratorContext)contextBuilder.buildGeneratorContext();
+  assertNotNull(ctx.getTypeOracle().findType("test.Simple"));
+  try {
+    assertEquals("test.SimpleImpl",generator.generate(logger,ctx,"test.Simple"));
+  }
+ catch (  UnableToCompleteException e) {
+    throw new RuntimeException("Could not complete with errors:\n" + writer.toString());
+  }
+  assertNotNull(ctx.getGeneratedUnitMap().get("test.SimpleImpl"));
+  String source=ctx.getGeneratedUnitMap().get("test.SimpleImpl").getSource();
+  assertTrue(source.contains("@com.google.web.bindery.autobean.shared.impl.EnumMap.ExtraEnums(" + "{test.Simple.SimpleContext.GetByIdRequest.GetByIdEnum.class})"));
+}
