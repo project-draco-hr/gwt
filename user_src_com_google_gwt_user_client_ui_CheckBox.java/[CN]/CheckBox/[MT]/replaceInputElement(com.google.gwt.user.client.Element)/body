@@ -1,0 +1,27 @@
+{
+  InputElement newInputElem=InputElement.as(elem);
+  int tabIndex=getTabIndex();
+  boolean checked=getValue();
+  boolean enabled=isEnabled();
+  String formValue=getFormValue();
+  String uid=inputElem.getId();
+  String accessKey=inputElem.getAccessKey();
+  int sunkEvents=Event.getEventsSunk(inputElem);
+  DOM.setEventListener(inputElem,null);
+  getElement().replaceChild(newInputElem,inputElem);
+  Event.sinkEvents(elem,Event.getEventsSunk(inputElem));
+  Event.sinkEvents(inputElem,0);
+  inputElem=newInputElem;
+  Event.sinkEvents(inputElem,sunkEvents);
+  inputElem.setId(uid);
+  if (!"".equals(accessKey)) {
+    inputElem.setAccessKey(accessKey);
+  }
+  setTabIndex(tabIndex);
+  setValue(checked);
+  setEnabled(enabled);
+  setFormValue(formValue);
+  if (isAttached()) {
+    DOM.setEventListener(inputElem,this);
+  }
+}
