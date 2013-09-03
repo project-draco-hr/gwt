@@ -1,0 +1,18 @@
+{
+  int numFixups=0;
+  Queue<JDeclaredType> typesToCheck=new ArrayDeque<JDeclaredType>(jprogram.getDeclaredTypes().size());
+  typesToCheck.addAll(jprogram.getDeclaredTypes());
+  while (!typesToCheck.isEmpty()) {
+    JDeclaredType type=typesToCheck.remove();
+    if (type.getSuperClass() != null) {
+      int typeFrag=getFragment(fragmentForType,type);
+      int supertypeFrag=getFragment(fragmentForType,type.getSuperClass());
+      if (typeFrag != supertypeFrag && supertypeFrag != NOT_EXCLUSIVE) {
+        numFixups++;
+        fragmentForType.put(type.getSuperClass(),NOT_EXCLUSIVE);
+        typesToCheck.add(type.getSuperClass());
+      }
+    }
+  }
+  logger.log(TreeLogger.DEBUG,"Fixed up load-order dependencies on supertypes by moving " + numFixups + " types to fragment 0, out of "+ jprogram.getDeclaredTypes().size());
+}

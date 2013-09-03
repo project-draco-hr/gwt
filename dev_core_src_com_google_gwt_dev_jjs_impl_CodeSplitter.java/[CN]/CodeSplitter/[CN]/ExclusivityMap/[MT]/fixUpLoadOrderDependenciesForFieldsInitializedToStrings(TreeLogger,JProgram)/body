@@ -1,0 +1,20 @@
+{
+  final int[] numFixups=new int[1];
+  final int[] numFieldStrings=new int[1];
+  (new JVisitor(){
+    @Override public void endVisit(    JField field,    Context ctx){
+      if (field.getInitializer() instanceof JStringLiteral) {
+        numFieldStrings[0]++;
+        String string=((JStringLiteral)field.getInitializer()).getValue();
+        int fieldFrag=getFragment(fragmentForField,field);
+        int stringFrag=getFragment(fragmentForString,string);
+        if (fieldFrag != stringFrag && stringFrag != NOT_EXCLUSIVE) {
+          numFixups[0]++;
+          fragmentForString.put(string,NOT_EXCLUSIVE);
+        }
+      }
+    }
+  }
+).accept(jprogram);
+  logger.log(TreeLogger.DEBUG,"Fixed up load-order dependencies by moving " + numFixups[0] + " strings used to initialize fields to fragment 0, out of "+ numFieldStrings[0]);
+}

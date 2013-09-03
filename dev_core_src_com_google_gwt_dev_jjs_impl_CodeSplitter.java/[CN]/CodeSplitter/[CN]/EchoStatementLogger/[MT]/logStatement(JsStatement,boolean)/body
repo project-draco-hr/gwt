@@ -1,24 +1,28 @@
 {
-  if (isIncluded) {
-    if (stat instanceof JsExprStmt) {
-      JsExpression expr=((JsExprStmt)stat).getExpression();
-      if (expr instanceof JsFunction) {
-        JsFunction func=(JsFunction)expr;
-        if (func.getName() != null) {
-          JMethod method=map.nameToMethod(func.getName());
-          if (method != null) {
-            System.out.println(fullNameString(method));
-          }
-        }
-      }
+  if (!isIncluded) {
+    return;
+  }
+  if (stat instanceof JsExprStmt) {
+    JsExpression expr=((JsExprStmt)stat).getExpression();
+    if (!(expr instanceof JsFunction)) {
+      return;
     }
-    if (stat instanceof JsVars) {
-      JsVars vars=(JsVars)stat;
-      for (      JsVar var : vars) {
-        JField field=map.nameToField(var.getName());
-        if (field != null) {
-          System.out.println(fullNameString(field));
-        }
+    JsFunction func=(JsFunction)expr;
+    if (func.getName() == null) {
+      return;
+    }
+    JMethod method=map.nameToMethod(func.getName());
+    if (method == null) {
+      return;
+    }
+    System.out.println(fullNameString(method));
+  }
+ else   if (stat instanceof JsVars) {
+    JsVars vars=(JsVars)stat;
+    for (    JsVar var : vars) {
+      JField field=map.nameToField(var.getName());
+      if (field != null) {
+        System.out.println(fullNameString(field));
       }
     }
   }

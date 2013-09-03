@@ -1,0 +1,17 @@
+{
+  int numFixups=0;
+  for (  JDeclaredType type : jprogram.getDeclaredTypes()) {
+    int typeFrag=getFragment(fragmentForType,type);
+    if (typeFrag == NOT_EXCLUSIVE) {
+      continue;
+    }
+    for (    JMethod method : type.getMethods()) {
+      if (method.needsVtable() && methodsInJavaScript.contains(method) && typeFrag != getFragment(fragmentForMethod,method)) {
+        fragmentForType.put(type,NOT_EXCLUSIVE);
+        numFixups++;
+        break;
+      }
+    }
+  }
+  logger.log(TreeLogger.DEBUG,"Fixed up load-order dependencies for instance methods by moving " + numFixups + " types to fragment 0, out of "+ jprogram.getDeclaredTypes().size());
+}

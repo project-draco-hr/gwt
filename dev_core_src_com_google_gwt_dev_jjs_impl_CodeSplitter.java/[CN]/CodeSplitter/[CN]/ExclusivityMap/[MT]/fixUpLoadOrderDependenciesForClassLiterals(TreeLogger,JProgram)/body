@@ -1,0 +1,34 @@
+{
+  int numClassLitStrings=0;
+  int numFixups=0;
+  int numClassLiteralFixups=0;
+  Queue<JField> potentialClassLiteralFields=new ArrayDeque<JField>(jprogram.getTypeClassLiteralHolder().getFields());
+  int numClassLiterals=potentialClassLiteralFields.size();
+  while (!potentialClassLiteralFields.isEmpty()) {
+    JField field=potentialClassLiteralFields.remove();
+    if (!field.isStatic()) {
+      continue;
+    }
+    int classLiteralFragment=getFragment(fragmentForField,field);
+    JExpression initializer=field.getInitializer();
+    for (    String string : stringsIn(initializer)) {
+      numClassLitStrings++;
+      int stringFrag=getFragment(fragmentForString,string);
+      if (stringFrag != classLiteralFragment && stringFrag != NOT_EXCLUSIVE) {
+        numFixups++;
+        fragmentForString.put(string,NOT_EXCLUSIVE);
+      }
+    }
+    for (    JClassLiteral superclassClassLiteral : classLiteralsIn(initializer)) {
+      JField superclassClassLiteralField=superclassClassLiteral.getField();
+      int superclassClassLiteralFragment=getFragment(fragmentForField,superclassClassLiteralField);
+      if (superclassClassLiteralFragment != classLiteralFragment && superclassClassLiteralFragment != NOT_EXCLUSIVE) {
+        numClassLiteralFixups++;
+        fragmentForField.put(superclassClassLiteralField,NOT_EXCLUSIVE);
+        potentialClassLiteralFields.add(superclassClassLiteralField);
+      }
+    }
+  }
+  logger.log(TreeLogger.DEBUG,"Fixed up load-order dependencies by moving " + numFixups + " strings in class literal constructors to fragment 0, out of "+ numClassLitStrings);
+  logger.log(TreeLogger.DEBUG,"Fixed up load-order dependencies by moving " + numClassLiteralFixups + " fields in class literal constructors to fragment 0, out of "+ numClassLiterals);
+}
