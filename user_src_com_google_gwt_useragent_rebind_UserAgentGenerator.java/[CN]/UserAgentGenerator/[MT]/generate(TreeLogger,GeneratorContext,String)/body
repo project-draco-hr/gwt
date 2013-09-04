@@ -16,17 +16,6 @@
     throw new UnableToCompleteException();
   }
   PropertyOracle propertyOracle=context.getPropertyOracle();
-  boolean userAgentRuntimeWarning=true;
-  try {
-    ConfigurationProperty property=propertyOracle.getConfigurationProperty(PROPERTY_USER_AGENT_RUNTIME_WARNING);
-    userAgentRuntimeWarning=Boolean.valueOf(property.getValues().get(0));
-  }
- catch (  BadPropertyValueException e) {
-    logger.log(TreeLogger.WARN,"Unable to find value for '" + PROPERTY_USER_AGENT_RUNTIME_WARNING + "'",e);
-  }
-  if (!userAgentRuntimeWarning) {
-    return "com.google.gwt.useragent.client.UserAgentAsserter.UserAgentPropertyDisabled";
-  }
   String userAgentValue;
   SelectionProperty selectionProperty;
   try {
@@ -44,13 +33,6 @@
   PrintWriter pw=context.tryCreate(logger,packageName,className);
   if (pw != null) {
     SourceWriter sw=composerFactory.createSourceWriter(context,pw);
-    sw.println();
-    sw.println("public boolean getUserAgentRuntimeWarning() {");
-    sw.indent();
-    sw.println("return " + userAgentRuntimeWarning + ";");
-    sw.outdent();
-    sw.println("}");
-    sw.println();
     sw.println();
     sw.println("public native String getRuntimeValue() /*-{");
     sw.indent();
