@@ -18,7 +18,19 @@
   }
 );
   options.setServletContainerLauncher(shell.new MyJettyLauncher());
-  registerHandler(new ArgHandlerWarDir(options));
+  registerHandler(new ArgHandlerWarDir(options){
+    private static final String OUT_TAG="-out";
+    @Override public String[] getTags(){
+      return new String[]{getTag(),OUT_TAG};
+    }
+    @Override public int handle(    String[] args,    int tagIndex){
+      if (OUT_TAG.equals(args[tagIndex])) {
+        System.err.println("The -out option is deprecated. This option will be removed in " + "future GWT release and will throw an error if it is still used. Please use -war " + "option instead.");
+      }
+      return super.handle(args,tagIndex);
+    }
+  }
+);
   registerHandler(new ArgHandlerDeployDir(options));
   registerHandler(new ArgHandlerExtraDir(options));
   registerHandler(new ArgHandlerWorkDirOptional(options));
