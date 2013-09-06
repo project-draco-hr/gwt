@@ -1,0 +1,31 @@
+{
+  if (!BASE_CLASS.equals(typeName)) {
+    logger.log(TreeLogger.ERROR,"This generator may only be used with " + BASE_CLASS,null);
+    throw new UnableToCompleteException();
+  }
+  JClassType requestedClass;
+  try {
+    requestedClass=context.getTypeOracle().getType(typeName);
+  }
+ catch (  NotFoundException e) {
+    logger.log(TreeLogger.ERROR,"Could not find type '" + typeName + "'; please see the log, as this usually indicates a previous error ",e);
+    throw new UnableToCompleteException();
+  }
+  String moduleName;
+  try {
+    ConfigurationProperty prop=context.getPropertyOracle().getConfigurationProperty("junit.moduleName");
+    moduleName=prop.getValues().get(0);
+  }
+ catch (  BadPropertyValueException e) {
+    logger.log(TreeLogger.ERROR,"Could not resolve junit.moduleName property",e);
+    throw new UnableToCompleteException();
+  }
+  String packageName=requestedClass.getPackage().getName();
+  String generatedClass=requestedClass.getName() + "Impl";
+  SourceWriter sourceWriter=getSourceWriter(logger,context,packageName,generatedClass);
+  if (sourceWriter != null) {
+    writeCreateMethod(sourceWriter,getTestClasses(logger,context,moduleName));
+    sourceWriter.commit(logger);
+  }
+  return packageName + "." + generatedClass;
+}
