@@ -61,20 +61,15 @@
     SyntheticArtifact dependencies=null;
     if (options.isRunAsyncEnabled()) {
       ByteArrayOutputStream baos=new ByteArrayOutputStream();
-      int fragmentsMerge=0;
       int expectedFragmentCount=options.getFragmentCount();
-      if (expectedFragmentCount > 0) {
-        fragmentsMerge=jprogram.getRunAsyncs().size() + 2 - expectedFragmentCount;
+      if (expectedFragmentCount <= 0) {
+        int numberOfMerges=options.getFragmentsMerge();
+        if (numberOfMerges > 0) {
+          expectedFragmentCount=Math.max(0,jprogram.getRunAsyncs().size() + 2 - numberOfMerges);
+        }
       }
- else {
-        fragmentsMerge=options.getFragmentsMerge();
-      }
-      if (fragmentsMerge > 0) {
-        CodeSplitter2.exec(logger,jprogram,jsProgram,jjsmap,fragmentsMerge,chooseDependencyRecorder(options.isSoycEnabled(),baos),findIntegerConfigurationProperty(propertyOracles,logger,CodeSplitter2.LEFTOVERMERGE_SIZE,0));
-      }
- else {
-        CodeSplitter.exec(logger,jprogram,jsProgram,jjsmap,chooseDependencyRecorder(options.isSoycEnabled(),baos));
-      }
+      int minFragmentSize=findIntegerConfigurationProperty(propertyOracles,logger,CodeSplitters.MIN_FRAGMENT_SIZE,0);
+      CodeSplitter.exec(logger,jprogram,jsProgram,jjsmap,expectedFragmentCount,minFragmentSize,chooseDependencyRecorder(options.isSoycEnabled(),baos));
       if (baos.size() == 0 && options.isSoycEnabled()) {
         recordNonSplitDependencies(jprogram,baos);
       }

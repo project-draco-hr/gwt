@@ -1,0 +1,28 @@
+{
+  StringBuffer code=new StringBuffer();
+  code.append("package test;\n");
+  code.append("import com.google.gwt.core.client.GWT;\n");
+  code.append("import com.google.gwt.core.client.RunAsyncCallback;\n");
+  code.append("public class EntryPoint {\n");
+  code.append("static {");
+  code.append("}");
+  code.append(functionA);
+  code.append(functionB);
+  code.append(functionC);
+  code.append("  public static void onModuleLoad() {\n");
+  code.append("functionC();");
+  code.append(createRunAsync("functionA();"));
+  code.append(createRunAsync("functionA(); functionB();"));
+  code.append(createRunAsync("functionC();"));
+  code.append("  }\n");
+  code.append("}\n");
+  expectedFragmentCount=4;
+  compileSnippet(code.toString());
+  assertFragmentCount(4);
+  assertInFragment("functionA",1);
+  assertNotInFragment("functionA",0);
+  assertNotInFragment("functionA",2);
+  assertNotInFragment("functionA",3);
+  assertInFragment("functionB",1);
+  assertInFragment("functionC",0);
+}

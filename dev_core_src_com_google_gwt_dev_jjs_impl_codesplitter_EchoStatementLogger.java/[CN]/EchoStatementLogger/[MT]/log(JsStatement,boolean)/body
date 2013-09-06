@@ -1,0 +1,29 @@
+{
+  if (!include) {
+    return;
+  }
+  if (statement instanceof JsExprStmt) {
+    JsExpression expr=((JsExprStmt)statement).getExpression();
+    if (!(expr instanceof JsFunction)) {
+      return;
+    }
+    JsFunction func=(JsFunction)expr;
+    if (func.getName() == null) {
+      return;
+    }
+    JMethod method=map.nameToMethod(func.getName());
+    if (method == null) {
+      return;
+    }
+    System.out.println(JProgram.getFullName(method));
+  }
+ else   if (statement instanceof JsVars) {
+    JsVars vars=(JsVars)statement;
+    for (    JsVars.JsVar var : vars) {
+      JField field=map.nameToField(var.getName());
+      if (field != null) {
+        System.out.println(field.getFullName());
+      }
+    }
+  }
+}
