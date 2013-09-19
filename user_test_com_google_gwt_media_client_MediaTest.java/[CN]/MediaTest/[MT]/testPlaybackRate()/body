@@ -4,22 +4,18 @@
     return;
   }
   assertEquals("Default playback rate should be 1.0",1.0,media.getDefaultPlaybackRate());
-  delayTestFinish(20 * 1000);
-  new Timer(){
-    @Override public void run(){
-      MediaError error=media.getError();
-      if (error != null) {
-        fail("Media error (" + error.getCode() + ")");
-      }
+  assertAfterLoad(new RepeatingCommand(){
+    @Override public boolean execute(){
+      assertNoErrors(media);
       double rate=2.0;
       media.setPlaybackRate(rate);
       assertEquals("Should be able to change playback rate",rate,media.getPlaybackRate());
       rate=1.0;
       media.setPlaybackRate(rate);
       assertEquals("Should be able to change playback rate",rate,media.getPlaybackRate());
-      finishTest();
+      return false;
     }
   }
-.schedule(15 * 1000);
+);
   media.play();
 }

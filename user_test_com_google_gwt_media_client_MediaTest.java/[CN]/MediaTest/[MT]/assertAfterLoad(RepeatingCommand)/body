@@ -1,0 +1,21 @@
+{
+  delayTestFinish(5 * 1000);
+  getMedia().addLoadedMetadataHandler(new LoadedMetadataHandler(){
+    @Override public void onLoadedMetadata(    LoadedMetadataEvent event){
+      assertNoErrors(getMedia());
+      Scheduler.get().scheduleFixedDelay(new RepeatingCommand(){
+        @Override public boolean execute(){
+          assertNoErrors(getMedia());
+          boolean finished=!command.execute();
+          if (finished) {
+            finishTest();
+            return false;
+          }
+          return true;
+        }
+      }
+,100);
+    }
+  }
+);
+}

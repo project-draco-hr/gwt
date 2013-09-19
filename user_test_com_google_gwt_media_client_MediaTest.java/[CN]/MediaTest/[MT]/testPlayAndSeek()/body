@@ -1,0 +1,24 @@
+{
+  final MediaBase media=getMedia();
+  if (media == null) {
+    return;
+  }
+  assertAfterLoad(new RepeatingCommand(){
+    boolean afterSeek=false;
+    @Override public boolean execute(){
+      if (media.getCurrentTime() >= 1) {
+        assertFalse(afterSeek);
+        media.setCurrentTime(0);
+        afterSeek=true;
+        return true;
+      }
+      if (afterSeek) {
+        assertTrue(media.getCurrentTime() < 1);
+        return false;
+      }
+      return true;
+    }
+  }
+);
+  media.play();
+}
