@@ -1,11 +1,14 @@
 {
-  JExpression lhs=x.getTestExpr();
-  String methodName="Exceptions.throwAssertionError" + getAssertMethodSuffix(x.getArg());
+  JBlock then=new JBlock(x.getSourceInfo());
+  then.addStmt(new JDebuggerStatement(x.getSourceInfo()));
+  String methodName="Exceptions.makeAssertionError" + getAssertMethodSuffix(x.getArg());
   JMethod method=program.getIndexedMethod(methodName);
-  JMethodCall rhs=new JMethodCall(x.getSourceInfo(),null,method);
+  JMethodCall call=new JMethodCall(x.getSourceInfo(),null,method);
   if (x.getArg() != null) {
-    rhs.addArg(x.getArg());
+    call.addArg(x.getArg());
   }
-  JBinaryOperation binOp=new JBinaryOperation(x.getSourceInfo(),program.getTypePrimitiveBoolean(),JBinaryOperator.OR,lhs,rhs);
-  ctx.replaceMe(binOp.makeStatement());
+  then.addStmt(new JThrowStatement(x.getSourceInfo(),call));
+  JUnaryOperation notX=new JPrefixOperation(x.getSourceInfo(),JUnaryOperator.NOT,x.getTestExpr());
+  JIfStatement cond=new JIfStatement(x.getSourceInfo(),notX,then,null);
+  ctx.replaceMe(cond);
 }
