@@ -1,0 +1,18 @@
+{
+  int lastSeenId=-1;
+  Fragment.Type lastTypeSeen=Fragment.Type.INITIAL;
+  boolean leftoversFragmentSeen=false;
+  int leftoversFragmentId=-1;
+  for (  Fragment fragment : fragments) {
+    Preconditions.checkState(fragment.getFragmentId() == lastSeenId + 1);
+    lastSeenId=fragment.getFragmentId();
+    Preconditions.checkState(fragment.getType().ordinal() >= lastTypeSeen.ordinal());
+    lastTypeSeen=fragment.getType();
+    if (fragment.getType() == Fragment.Type.NOT_EXCLUSIVE) {
+      Preconditions.checkState(!leftoversFragmentSeen);
+      leftoversFragmentSeen=true;
+      leftoversFragmentId=fragment.getFragmentId();
+    }
+  }
+  Preconditions.checkState(leftoversFragmentId == -1 || leftoversFragmentId == lastSeenId);
+}
