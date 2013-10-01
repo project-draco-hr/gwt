@@ -1,0 +1,19 @@
+{
+  ModuleDef moduleDef=tryGetLoadedModule(moduleName,refresh);
+  if (moduleDef != null) {
+    return moduleDef;
+  }
+  ResourceLoader resources=ResourceLoaders.forClassLoader(Thread.currentThread());
+  ModuleDefLoader loader=new ModuleDefLoader(resources,compilerContext){
+    @Override protected void load(    TreeLogger logger,    String nameOfModuleToLoad,    ModuleDef dest) throws UnableToCompleteException {
+      logger.log(TreeLogger.TRACE,"Loading module '" + nameOfModuleToLoad + "'");
+      for (      String inherit : inherits) {
+        nestedLoad(logger,inherit,dest);
+      }
+    }
+  }
+;
+  ModuleDef module=doLoadModule(loader,logger,moduleName,resources);
+  module.setNameOverride(null);
+  return module;
+}

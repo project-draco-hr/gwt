@@ -12,7 +12,7 @@
   TreeLogger compileLogger=makeCompileLogger(compileDir);
   boolean listenerFailed=false;
   try {
-    listener.startedCompile(originalModuleName,compileId,compileDir);
+    options.getRecompileListener().startedCompile(originalModuleName,compileId,compileDir);
   }
  catch (  Exception e) {
     compileLogger.log(TreeLogger.Type.WARN,"listener threw exception",e);
@@ -20,16 +20,19 @@
   }
   boolean success=false;
   try {
+    CompilerOptions compilerOptions=new CompilerOptionsImpl(compileDir,options.getModuleNames(),options.getSourceLevel(),options.enforceStrictResources());
+    compilerContext.setOptions(compilerOptions);
     ModuleDef module=loadModule(compileLogger,bindingProperties);
     String newModuleName=module.getName();
     moduleName.set(newModuleName);
-    CompilerOptions options=new CompilerOptionsImpl(compileDir,newModuleName,sourceLevel);
-    success=new Compiler(options).run(compileLogger,module);
+    compilerOptions=new CompilerOptionsImpl(compileDir,Lists.newArrayList(newModuleName),options.getSourceLevel(),options.enforceStrictResources());
+    compilerContext.setOptions(compilerOptions);
+    success=new Compiler(compilerOptions).run(compileLogger,module);
     lastBuild.set(compileDir);
   }
   finally {
     try {
-      listener.finishedCompile(originalModuleName,compileId,success);
+      options.getRecompileListener().finishedCompile(originalModuleName,compileId,success);
     }
  catch (    Exception e) {
       compileLogger.log(TreeLogger.Type.WARN,"listener threw exception",e);
@@ -42,7 +45,7 @@
   }
   long elapsedTime=System.currentTimeMillis() - startTime;
   compileLogger.log(TreeLogger.Type.INFO,"Compile completed in " + elapsedTime + " ms");
-  if (failIfListenerFails && listenerFailed) {
+  if (options.isCompileTest() && listenerFailed) {
     throw new UnableToCompleteException();
   }
   return compileDir;
