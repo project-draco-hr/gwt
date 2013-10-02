@@ -1,0 +1,15 @@
+{
+  try {
+    URLConnection urlConnection=JNode.class.getResource("JNode.class").openConnection();
+    if (urlConnection instanceof JarURLConnection) {
+      String gwtdevJar=((JarURLConnection)urlConnection).getJarFile().getName();
+      return CACHE_FILE_PREFIX + Files.hash(new File(gwtdevJar),Hashing.sha1()).toString() + "-";
+    }
+    System.err.println("Could not find the GWT compiler jarfile. " + "Serialization errors might occur when accessing the persistent unit cache.");
+  }
+ catch (  IOException e) {
+    System.err.println("Could not compute the hash for the GWT compiler jarfile." + "Serialization errors might occur when accessing the persistent unit cache.");
+    e.printStackTrace();
+  }
+  return CACHE_FILE_PREFIX;
+}
