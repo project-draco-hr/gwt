@@ -1,0 +1,39 @@
+{
+  Set<EmittedArtifact> genFiles=new LinkedHashSet<EmittedArtifact>();
+  Set<EmittedArtifact> sourceMaps=new LinkedHashSet<EmittedArtifact>();
+  for (  EmittedArtifact candidate : artifacts.find(EmittedArtifact.class)) {
+    if (candidate.getVisibility() == Visibility.Source) {
+      genFiles.add(candidate);
+      continue;
+    }
+    boolean isSourceMap=SourceMapArtifact.isSourceMapFile.matcher(candidate.getPartialPath()).find();
+    if (isSourceMap) {
+      sourceMaps.add(candidate);
+    }
+  }
+  if (genFiles.isEmpty()) {
+    return;
+  }
+  if (sourceMaps.isEmpty()) {
+    logger.log(Type.WARN,"Not saving source because sourcemaps weren't generated. " + "Hint: set compiler.useSourceMaps.");
+    return;
+  }
+  boolean saveInExtras=options.getSaveSourceOutput() == null || options.getSaveSourceOutput().equals(options.getExtraDir());
+  OutputFileSet out;
+  if (saveInExtras) {
+    out=extraFileSet;
+    logger.log(Type.INFO,"Saving source with extras");
+  }
+ else {
+    out=Link.chooseOutputFileSet(options.getSaveSourceOutput(),modulePrefix);
+    logger.log(Type.INFO,"Saving source to " + options.getSaveSourceOutput());
+  }
+  try {
+    copySources(logger,sourceMaps,genFiles,loader,out,"src/");
+  }
+  finally {
+    if (!saveInExtras) {
+      out.close();
+    }
+  }
+}

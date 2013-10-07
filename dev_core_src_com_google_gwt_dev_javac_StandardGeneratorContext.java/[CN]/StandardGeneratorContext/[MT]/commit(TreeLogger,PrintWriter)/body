@@ -1,11 +1,16 @@
 {
   Generated gcup=uncommittedGeneratedCupsByPrintWriter.get(pw);
-  if (gcup != null) {
-    gcup.commit(logger);
-    uncommittedGeneratedCupsByPrintWriter.remove(pw);
-    committedGeneratedCups.put(gcup.getTypeName(),gcup);
-  }
- else {
+  if (gcup == null) {
     logger.log(TreeLogger.WARN,"Generator attempted to commit an unknown PrintWriter",null);
+    return;
   }
+  gcup.commit(logger);
+  uncommittedGeneratedCupsByPrintWriter.remove(pw);
+  committedGeneratedCups.put(gcup.getTypeName(),gcup);
+  if (currentGenerator == null) {
+    return;
+  }
+  GeneratedResource debuggerSource=new StandardGeneratedResource(currentGenerator,gcup.getSourceMapPath(),gcup.getSourceToken());
+  debuggerSource.setVisibility(Visibility.Source);
+  commitArtifact(logger,debuggerSource);
 }

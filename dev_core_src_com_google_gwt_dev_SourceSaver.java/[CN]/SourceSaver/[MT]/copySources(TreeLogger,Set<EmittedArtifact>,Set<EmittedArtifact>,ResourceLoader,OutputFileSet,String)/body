@@ -1,0 +1,37 @@
+{
+  Set<String> filesInSourceMap=getSourcePaths(logger,sourceMaps);
+  Set<String> remainingFiles=Sets.newLinkedHashSet();
+  for (  String path : filesInSourceMap) {
+    try {
+      if (!copySourceFile(path,loader,dest,destPrefix)) {
+        remainingFiles.add(path);
+      }
+    }
+ catch (    IOException e) {
+      logger.log(Type.ERROR,"Unable to copy source file: " + path,e);
+      throw new UnableToCompleteException();
+    }
+  }
+  for (  EmittedArtifact candidate : genFiles) {
+    if (!remainingFiles.contains(candidate.getPartialPath())) {
+      continue;
+    }
+    copyGeneratedFile(logger,candidate,dest,destPrefix);
+    remainingFiles.remove(candidate.getPartialPath());
+  }
+  if (!remainingFiles.isEmpty()) {
+    logger.log(Type.WARN,"Unable to find all source code needed by debuggers. " + remainingFiles.size() + " files from sourcemaps weren't found.");
+    if (logger.isLoggable(Type.DEBUG)) {
+      TreeLogger missing=logger.branch(Type.DEBUG,"Missing files:");
+      int filesPrinted=0;
+      for (      String path : remainingFiles) {
+        if (filesPrinted >= 100) {
+          missing.log(Type.DEBUG,"(truncated)");
+          break;
+        }
+        missing.log(Type.DEBUG,path);
+        filesPrinted++;
+      }
+    }
+  }
+}

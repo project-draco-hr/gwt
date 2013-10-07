@@ -28,6 +28,9 @@
         if (precompilation == null) {
           return false;
         }
+        if (!options.shouldSaveSource()) {
+          precompilation.removeSourceArtifacts(logger);
+        }
         Event compilePermutationsEvent=SpeedTracerLogger.start(CompilerEventType.COMPILE_PERMUTATIONS);
         Permutation[] allPerms=precompilation.getPermutations();
         List<FileBackedObject<PermutationResult>> resultFiles=CompilePerms.makeResultFiles(options.getCompilerWorkDir(moduleName),allPerms);
@@ -45,7 +48,7 @@
           absExtrasPath=absExtrasPath.getAbsoluteFile();
           logMessage+="; Writing extras to " + absExtrasPath;
         }
-        Link.link(logger.branch(TreeLogger.TRACE,logMessage),module,generatedArtifacts,allPerms,resultFiles,options.getWarDir(),options.getDeployDir(),options.getExtraDir(),precompileOptions);
+        Link.link(logger.branch(TreeLogger.TRACE,logMessage),module,generatedArtifacts,allPerms,resultFiles,precompileOptions,options);
         linkEvent.end();
         long compileDone=System.currentTimeMillis();
         long delta=compileDone - compileStart;

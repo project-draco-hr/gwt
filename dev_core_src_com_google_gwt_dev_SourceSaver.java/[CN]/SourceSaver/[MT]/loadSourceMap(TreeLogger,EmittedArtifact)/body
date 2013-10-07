@@ -1,0 +1,21 @@
+{
+  JsonObject json;
+  try {
+    InputStream bytes=sourceMap.getContents(logger);
+    try {
+      json=JsonObject.parse(new InputStreamReader(bytes));
+    }
+  finally {
+      bytes.close();
+    }
+  }
+ catch (  JsonException e) {
+    logger.log(Type.ERROR,"Unable to parse sourcemap: " + sourceMap.getPartialPath(),e);
+    throw new UnableToCompleteException();
+  }
+catch (  IOException e) {
+    logger.log(Type.ERROR,"Unable to read sourcemap: " + sourceMap.getPartialPath(),e);
+    throw new UnableToCompleteException();
+  }
+  return json;
+}
