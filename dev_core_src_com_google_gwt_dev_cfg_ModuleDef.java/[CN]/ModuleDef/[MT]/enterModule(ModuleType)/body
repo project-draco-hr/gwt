@@ -1,0 +1,22 @@
+{
+  if (monolithic) {
+    currentAttributeSource.push(AttributeSource.TARGET_LIBRARY);
+    return;
+  }
+  Preconditions.checkArgument(!(currentAttributeSource.isEmpty() && moduleType == ModuleType.FILESET));
+  if (currentAttributeSource.isEmpty() && moduleType == ModuleType.LIBRARY) {
+    currentAttributeSource.push(AttributeSource.TARGET_LIBRARY);
+    return;
+  }
+  if (currentAttributeSource.peek() == AttributeSource.TARGET_LIBRARY) {
+    if (moduleType == ModuleType.FILESET) {
+      currentAttributeSource.push(AttributeSource.TARGET_LIBRARY);
+    }
+ else {
+      currentAttributeSource.push(AttributeSource.EXTERNAL_LIBRARY);
+    }
+  }
+ else   if (currentAttributeSource.peek() == AttributeSource.EXTERNAL_LIBRARY) {
+    currentAttributeSource.push(AttributeSource.EXTERNAL_LIBRARY);
+  }
+}
