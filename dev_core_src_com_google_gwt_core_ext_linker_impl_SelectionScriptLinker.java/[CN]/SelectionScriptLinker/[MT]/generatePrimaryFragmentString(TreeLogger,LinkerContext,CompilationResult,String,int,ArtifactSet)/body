@@ -7,6 +7,14 @@
   artifacts.add(editsArtifact);
   b.append(modulePrefix);
   b.append(js);
-  b.append(getModuleSuffix(logger,context));
+  String suffix=getModuleSuffix(logger,context);
+  if (suffix == null) {
+    suffix=getModuleSuffix2(logger,context,strongName);
+    if (suffix == null) {
+      logger.log(Type.ERROR,"Neither getModuleSuffix nor getModuleSuffix2 were overridden in " + "linker: " + getClass().getName());
+      throw new UnableToCompleteException();
+    }
+  }
+  b.append(suffix);
   return wrapPrimaryFragment(logger,context,b.toString(),artifacts,result);
 }
