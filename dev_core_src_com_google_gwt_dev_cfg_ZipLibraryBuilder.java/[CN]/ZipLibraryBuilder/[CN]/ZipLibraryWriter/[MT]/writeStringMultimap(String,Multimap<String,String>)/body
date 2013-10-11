@@ -1,0 +1,31 @@
+{
+  Map<String,Collection<String>> stringListsByString=stringMultimap.asMap();
+  createZipEntry(entryName);
+  Iterator<Entry<String,Collection<String>>> entryIterator=stringListsByString.entrySet().iterator();
+  try {
+    while (entryIterator.hasNext()) {
+      Entry<String,Collection<String>> entry=entryIterator.next();
+      String key=entry.getKey();
+      Preconditions.checkState(isTriviallySerializable(key),"Nonserializable characters in key '%s'.",key);
+      zipOutputStream.write(key.getBytes());
+      boolean first=true;
+      for (      String value : entry.getValue()) {
+        Preconditions.checkState(isTriviallySerializable(value),"Nonserializable characters in value '%s'.",value);
+        if (first) {
+          first=false;
+          zipOutputStream.write(Libraries.KEY_VALUE_SEPARATOR.getBytes());
+        }
+ else {
+          zipOutputStream.write(Libraries.VALUE_SEPARATOR.getBytes());
+        }
+        zipOutputStream.write(value.getBytes());
+      }
+      if (entryIterator.hasNext()) {
+        zipOutputStream.write(Libraries.LINE_SEPARATOR.getBytes());
+      }
+    }
+  }
+ catch (  IOException e) {
+    throw new CompilerIoException("Failed to write " + entryName + " as a String multimap.",e);
+  }
+}

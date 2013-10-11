@@ -1,0 +1,37 @@
+{
+  File zipFile=File.createTempFile("Test",".gwtlib");
+  zipFile.deleteOnExit();
+  String expectedLibraryName="BazLib";
+  final String expectedResourceContents="<html><head><title>Index</title></head><body>Hi</body></html>";
+  Set<String> expectedRanGeneratorNames=Sets.newHashSet("UiBinderGenerator","PlatinumGenerator");
+  Set<String> expectedUserAgentConfigurationValues=Sets.newHashSet("webkit");
+  Set<String> expectedLocaleConfigurationValues=Sets.newHashSet("en","fr");
+  Set<String> expectedDependencyLibraryNames=Sets.newHashSet("FooLib","BarLib");
+  MockCompilationUnit expectedCompilationUnit=new MockCompilationUnit("com.google.gwt.core.client.RuntimeRebinder","blah");
+  ZipLibraryBuilder zipLibraryBuilder=new ZipLibraryBuilder(zipFile.getPath());
+  zipLibraryBuilder.setLibraryName(expectedLibraryName);
+  zipLibraryBuilder.addPublicResource(new MockResource("index.html"){
+    @Override public CharSequence getContent(){
+      return expectedResourceContents;
+    }
+  }
+);
+  zipLibraryBuilder.addNewConfigurationPropertyValuesByName("user.agent",expectedUserAgentConfigurationValues);
+  zipLibraryBuilder.addNewConfigurationPropertyValuesByName("locale",expectedLocaleConfigurationValues);
+  for (  String generatorName : expectedRanGeneratorNames) {
+    zipLibraryBuilder.addRanGeneratorName(generatorName);
+  }
+  zipLibraryBuilder.addDependencyLibraryNames(expectedDependencyLibraryNames);
+  zipLibraryBuilder.addCompilationUnit(expectedCompilationUnit);
+  zipLibraryBuilder.write();
+  ZipLibrary zipLibrary=new ZipLibrary(zipFile.getPath());
+  CompilationUnit actualCompilationUnit=zipLibrary.getCompilationUnitByTypeName("com.google.gwt.core.client.RuntimeRebinder");
+  assertEquals(expectedLibraryName,zipLibrary.getLibraryName());
+  assertEquals(expectedResourceContents,Util.readStreamAsString(zipLibrary.getPublicResourceByPath("index.html").openContents()));
+  assertEquals(expectedRanGeneratorNames,zipLibrary.getRanGeneratorNames());
+  assertEquals(expectedUserAgentConfigurationValues,zipLibrary.getNewConfigurationPropertyValuesByName().get("user.agent"));
+  assertEquals(expectedLocaleConfigurationValues,zipLibrary.getNewConfigurationPropertyValuesByName().get("locale"));
+  assertEquals(expectedDependencyLibraryNames,zipLibrary.getDependencyLibraryNames());
+  assertEquals(expectedCompilationUnit.getResourceLocation(),actualCompilationUnit.getResourceLocation());
+  assertEquals(expectedCompilationUnit.getTypeName(),actualCompilationUnit.getTypeName());
+}

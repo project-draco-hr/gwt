@@ -1,0 +1,14 @@
+{
+  ZipEntry zipEntry=zipFile.getEntry(entryName);
+  InputStream entryInputStream=getInputStream(zipEntry);
+  String inputString=readToString(entryName,entryInputStream);
+  Iterable<String> lines=Splitter.on(Libraries.LINE_SEPARATOR).omitEmptyStrings().split(inputString);
+  Multimap<String,String> stringMultimap=LinkedHashMultimap.<String,String>create();
+  for (  String line : lines) {
+    LinkedList<String> entry=Lists.newLinkedList(Splitter.on(Libraries.KEY_VALUE_SEPARATOR).omitEmptyStrings().split(line));
+    String key=entry.getFirst();
+    Iterable<String> values=Splitter.on(Libraries.VALUE_SEPARATOR).omitEmptyStrings().split(entry.getLast());
+    stringMultimap.putAll(key,values);
+  }
+  return stringMultimap;
+}
