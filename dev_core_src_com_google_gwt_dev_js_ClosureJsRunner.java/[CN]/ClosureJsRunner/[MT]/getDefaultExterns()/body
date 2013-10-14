@@ -7,7 +7,7 @@
   ZipInputStream zip=new ZipInputStream(input);
   Map<String,JSSourceFile> externsMap=Maps.newHashMap();
   for (ZipEntry entry=null; (entry=zip.getNextEntry()) != null; ) {
-    BufferedInputStream entryStream=new BufferedInputStream(new LimitInputStream(zip,entry.getSize()));
+    BufferedInputStream entryStream=new BufferedInputStream(ByteStreams.limit(zip,entry.getSize()));
     externsMap.put(entry.getName(),JSSourceFile.fromInputStream("externs.zip//" + entry.getName(),entryStream));
   }
   Preconditions.checkState(externsMap.keySet().equals(Sets.newHashSet(DEFAULT_EXTERNS_NAMES)),"Externs zip must match our hard-coded list of externs.");
