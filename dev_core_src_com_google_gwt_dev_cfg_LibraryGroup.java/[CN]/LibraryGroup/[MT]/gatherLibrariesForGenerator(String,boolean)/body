@@ -1,0 +1,22 @@
+{
+  Set<Library> exploredLibraries=Sets.newHashSet();
+  LinkedList<Library> unexploredLibraries=Lists.newLinkedList();
+  List<Library> librariesForGenerator=Lists.newArrayList();
+  unexploredLibraries.addAll(rootLibraries);
+  while (!unexploredLibraries.isEmpty()) {
+    Library library=unexploredLibraries.removeFirst();
+    exploredLibraries.add(library);
+    boolean alreadyProcessed=library.getRanGeneratorNames().contains(generatorName);
+    if (generatorWasRun && alreadyProcessed) {
+      continue;
+    }
+    librariesForGenerator.add(library);
+    for (    Library dependencyLibrary : asLibraries(library.getDependencyLibraryNames())) {
+      if (exploredLibraries.contains(dependencyLibrary)) {
+        continue;
+      }
+      unexploredLibraries.add(dependencyLibrary);
+    }
+  }
+  return librariesForGenerator;
+}

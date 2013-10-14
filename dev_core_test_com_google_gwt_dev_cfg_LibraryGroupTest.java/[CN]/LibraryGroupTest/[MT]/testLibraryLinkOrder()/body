@@ -1,0 +1,16 @@
+{
+  List<Library> libraries=MockLibrary.createRandomLibraryGraph(210,3);
+  LibraryGroup libraryGroup=LibraryGroup.fromLibraries(libraries,true);
+  List<Library> linkOrderLibraries=libraryGroup.getLibraries();
+  for (  Library parentLibrary : libraries) {
+    int parentLibraryIndex=linkOrderLibraries.indexOf(parentLibrary);
+    assertTrue(parentLibraryIndex != -1);
+    Collection<Library> childLibraries=libraryGroup.getLibraries(parentLibrary.getDependencyLibraryNames());
+    for (    Library childLibrary : childLibraries) {
+      int childLibraryIndex=linkOrderLibraries.indexOf(childLibrary);
+      assertTrue(childLibraryIndex != -1);
+      assertTrue(childLibraryIndex < parentLibraryIndex);
+    }
+  }
+  assertEquals(libraries.size(),linkOrderLibraries.size());
+}
