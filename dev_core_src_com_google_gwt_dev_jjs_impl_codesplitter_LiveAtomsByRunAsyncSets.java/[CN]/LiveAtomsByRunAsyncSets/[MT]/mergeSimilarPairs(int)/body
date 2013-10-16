@@ -1,7 +1,14 @@
 {
-  List<List<JRunAsync>> fragmentRunAsyncLists=Lists.newArrayList();
+  Collection<Collection<JRunAsync>> fragmentRunAsyncLists=Lists.newArrayList();
   BitSet mergedSubset=new BitSet();
   PriorityQueue<SubsetWithSize> subsetsDescending=computeSubsetsDescending();
+  for (  Collection<JRunAsync> runAsyncGroup : groupedRunAsyncs) {
+    if (runAsyncGroup.size() <= 1) {
+      continue;
+    }
+    fragmentRunAsyncLists.add(runAsyncGroup);
+    mergedSubset.or(asBitSet(runAsyncGroup));
+  }
   while (fragmentRunAsyncLists.size() < pairCount && !subsetsDescending.isEmpty()) {
     BitSet largestSubset=subsetsDescending.poll().subset;
     if (largestSubset.intersects(mergedSubset)) {
@@ -12,6 +19,6 @@
     mergedSubset.or(largestSubset);
   }
   BitSet notMergedSubset=computeComplement(mergedSubset,getRunAsyncCount());
-  fragmentRunAsyncLists.addAll(getListOfLists(asRunAsyncList(notMergedSubset)));
+  fragmentRunAsyncLists.addAll(CodeSplitters.getListOfLists(asRunAsyncList(notMergedSubset)));
   return fragmentRunAsyncLists;
 }
