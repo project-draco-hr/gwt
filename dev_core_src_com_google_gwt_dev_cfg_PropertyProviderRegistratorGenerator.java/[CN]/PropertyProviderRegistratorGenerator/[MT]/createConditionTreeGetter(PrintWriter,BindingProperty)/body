@@ -1,0 +1,24 @@
+{
+  List<Entry<Condition,SortedSet<String>>> entries=new ArrayList<Entry<Condition,SortedSet<String>>>(bindingProperty.getConditionalValues().entrySet());
+  List<Entry<Condition,SortedSet<String>>> prioritizedEntries=Lists.reverse(entries);
+  out.println("  public String getValue() {");
+  boolean alwaysReturnsAValue=false;
+  for (  Entry<Condition,SortedSet<String>> entry : prioritizedEntries) {
+    Condition condition=entry.getKey();
+    SortedSet<String> propertyValue=entry.getValue();
+    String conditionSource=condition.toSource();
+    if (!conditionSource.isEmpty() && !conditionSource.equals("true")) {
+      out.println("    if (" + conditionSource + ") {");
+      out.println("      return \"" + propertyValue.iterator().next() + "\";");
+      out.println("    }");
+    }
+ else {
+      alwaysReturnsAValue=true;
+      out.println("    return \"" + propertyValue.iterator().next() + "\";");
+    }
+  }
+  if (!alwaysReturnsAValue) {
+    out.println("    throw new RuntimeException(\"No known value for property " + bindingProperty.getName() + "\");");
+  }
+  out.println("  }");
+}

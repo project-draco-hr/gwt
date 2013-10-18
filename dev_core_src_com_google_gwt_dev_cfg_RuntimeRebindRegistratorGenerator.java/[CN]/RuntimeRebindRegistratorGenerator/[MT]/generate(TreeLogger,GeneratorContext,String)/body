@@ -1,0 +1,27 @@
+{
+  Map<String,String> runtimeRebindRuleSourcesByName=RuntimeRebindRuleGenerator.RUNTIME_REBIND_RULE_SOURCES_BY_NAME;
+  String typeName=moduleName.replace(".","_").replace("-","_") + "_" + RUNTIME_REBIND_REGISTRATOR_SUFFIX;
+  PrintWriter out=context.tryCreate(logger,PACKAGE_PATH,typeName);
+  if (out != null) {
+    out.println("package " + PACKAGE_PATH + ";");
+    out.println("public class " + typeName + " {");
+    for (    String runtimeRebindRuleSource : runtimeRebindRuleSourcesByName.values()) {
+      out.println(runtimeRebindRuleSource);
+    }
+    out.println("  public static void register() {");
+    if (!runtimeRebindRuleSourcesByName.isEmpty()) {
+      for (      String runtimeRebindRuleName : runtimeRebindRuleSourcesByName.keySet()) {
+        out.println(String.format("    RuntimeRebinder.registerRuntimeRebindRule(new %s());",runtimeRebindRuleName));
+      }
+    }
+ else {
+      out.println("    // There are no runtime rebind rules for this module.");
+    }
+    out.println("  }");
+    out.println("}");
+    context.commit(logger,out);
+  }
+ else {
+  }
+  return PACKAGE_PATH + "." + typeName;
+}

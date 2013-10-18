@@ -1,0 +1,23 @@
+{
+  String typeName=moduleName.replace(".","_").replace("-","_") + "_" + PROPERTY_PROVIDER_REGISTRATOR_SUFFIX;
+  PrintWriter out=context.tryCreate(logger,PACKAGE_PATH,typeName);
+  if (out != null) {
+    out.println("package " + PACKAGE_PATH + ";");
+    out.println("import com.google.gwt.core.client.BindingPropertiesProvider;");
+    out.println("import com.google.gwt.core.client.BindingPropertiesProvider.BindingPropertyProvider;");
+    out.println("public class " + typeName + " {");
+    for (    BindingProperty bindingProperty : newBindingProperties) {
+      createPropertyProviderClass(logger,out,bindingProperty);
+    }
+    out.println("  public static void register() {");
+    for (    String propertyProviderClassName : propertyProviderClassNames) {
+      out.println("    BindingPropertiesProvider.registerBindingPropertyProvider(new " + propertyProviderClassName + "());");
+    }
+    out.println("  }");
+    out.println("}");
+    context.commit(logger,out);
+  }
+ else {
+  }
+  return PACKAGE_PATH + "." + typeName;
+}
