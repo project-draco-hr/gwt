@@ -4,33 +4,21 @@
   final SimpleFooProxy foo=context.create(SimpleFooProxy.class);
   final SimpleBarProxy bar0=context.create(SimpleBarProxy.class);
   final SimpleBarProxy bar1=context.create(SimpleBarProxy.class);
-  final SimpleBarProxy bar2=context.create(SimpleBarProxy.class);
-  final SimpleBarProxy bar3=context.create(SimpleBarProxy.class);
-  final SimpleBarProxy bar4=context.create(SimpleBarProxy.class);
   List<SimpleBarProxy> bars=new ArrayList<SimpleBarProxy>();
   bars.add(bar0);
   bars.add(bar1);
-  Map<SimpleBarProxy,Integer> barAsKeyMap=new HashMap<SimpleBarProxy,Integer>();
-  barAsKeyMap.put(bar2,4);
-  barAsKeyMap.put(bar3,21);
-  Map<Integer,SimpleBarProxy> barAsValueMap=new HashMap<Integer,SimpleBarProxy>();
-  barAsValueMap.put(41,bar2);
-  barAsValueMap.put(141,bar3);
-  barAsValueMap.put(43,bar4);
   final SimpleFooEventHandler<SimpleBarProxy> handler=new SimpleFooEventHandler<SimpleBarProxy>();
   EntityProxyChange.registerForProxyType(req.getEventBus(),SimpleBarProxy.class,handler);
   Request<SimpleFooProxy> request=context.persistCascadingAndReturnSelf().using(foo);
   SimpleFooProxy editFoo=context.edit(foo);
   editFoo.setOneToManyField(bars);
-  editFoo.setSimpleBarKeyMap(barAsKeyMap);
-  editFoo.setSimpleBarValueMap(barAsValueMap);
   request.fire(new Receiver<SimpleFooProxy>(){
     @Override public void onSuccess(    SimpleFooProxy response){
       response=checkSerialization(response);
       assertFalse(((SimpleEntityProxyId<SimpleFooProxy>)response.stableId()).isEphemeral());
-      assertEquals(5,handler.persistEventCount);
-      assertEquals(5,handler.updateEventCount);
-      assertEquals(10,handler.totalEventCount);
+      assertEquals(2,handler.persistEventCount);
+      assertEquals(2,handler.updateEventCount);
+      assertEquals(4,handler.totalEventCount);
       finishTestAndReset();
     }
   }

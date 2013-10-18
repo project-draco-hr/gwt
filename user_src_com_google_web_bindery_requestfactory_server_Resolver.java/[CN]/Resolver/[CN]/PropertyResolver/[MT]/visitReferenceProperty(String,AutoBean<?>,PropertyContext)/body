@@ -1,16 +1,6 @@
 {
-  Class<?> elementType=null;
-  if (ctx instanceof CollectionPropertyContext) {
-    elementType=((CollectionPropertyContext)ctx).getElementType();
-  }
-  Class<?> keyType=null;
-  Class<?> valueType=null;
-  if (ctx instanceof MapPropertyContext) {
-    MapPropertyContext mapCtx=(MapPropertyContext)ctx;
-    keyType=mapCtx.getKeyType();
-    valueType=mapCtx.getValueType();
-  }
-  boolean shouldSend=isOwnerValueProxy || matchesPropertyRef(propertyRefs,propertyName) || (elementType != null && ValueCodex.canDecode(elementType))|| (keyType != null && ValueCodex.canDecode(keyType) && valueType != null && ValueCodex.canDecode(valueType));
+  Class<?> elementType=ctx instanceof CollectionPropertyContext ? ((CollectionPropertyContext)ctx).getElementType() : null;
+  boolean shouldSend=isOwnerValueProxy || matchesPropertyRef(propertyRefs,propertyName) || elementType != null && ValueCodex.canDecode(elementType);
   if (!shouldSend) {
     return false;
   }
@@ -19,14 +9,11 @@
     return false;
   }
   Type type;
-  if (elementType != null) {
-    type=new CollectionType(ctx.getType(),elementType);
-  }
- else   if (keyType != null && valueType != null) {
-    type=new MapType(keyType,valueType);
+  if (elementType == null) {
+    type=ctx.getType();
   }
  else {
-    type=ctx.getType();
+    type=new CollectionType(ctx.getType(),elementType);
   }
   Resolution resolution=resolveClientValue(domainValue,type);
   addPathsToResolution(resolution,propertyName,propertyRefs);
