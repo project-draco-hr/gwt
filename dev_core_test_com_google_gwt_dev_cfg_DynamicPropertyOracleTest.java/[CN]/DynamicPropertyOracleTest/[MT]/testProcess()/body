@@ -1,0 +1,35 @@
+{
+  Properties properties=new Properties();
+  BindingProperty userAgentProperty=properties.createBinding("user.agent");
+  BindingProperty localeProperty=properties.createBinding("locale");
+  DynamicPropertyOracle dynamicPropertyOracle=new DynamicPropertyOracle(properties);
+  assertFalse(dynamicPropertyOracle.haveAccessedPropertiesChanged());
+  assertTrue(dynamicPropertyOracle.getAccessedProperties().isEmpty());
+  userAgentProperty.setFallback("mozilla");
+  assertEquals("mozilla",dynamicPropertyOracle.getSelectionProperty(null,"user.agent").getCurrentValue());
+  assertTrue(dynamicPropertyOracle.haveAccessedPropertiesChanged());
+  assertEquals(1,dynamicPropertyOracle.getAccessedProperties().size());
+  dynamicPropertyOracle.reset();
+  userAgentProperty.addDefinedValue(new ConditionWhenLinkerAdded("foo"),"webkit");
+  userAgentProperty.addDefinedValue(new ConditionWhenLinkerAdded("bar"),"webkit");
+  userAgentProperty.addDefinedValue(new ConditionWhenLinkerAdded("baz"),"webkit");
+  assertEquals("webkit",dynamicPropertyOracle.getSelectionProperty(null,"user.agent").getCurrentValue());
+  assertFalse(dynamicPropertyOracle.haveAccessedPropertiesChanged());
+  assertEquals(1,dynamicPropertyOracle.getAccessedProperties().size());
+  dynamicPropertyOracle.reset();
+  localeProperty.addDefinedValue(new ConditionWhenLinkerAdded("qwer"),"en");
+  localeProperty.addDefinedValue(new ConditionWhenLinkerAdded("asdf"),"fr");
+  localeProperty.addDefinedValue(new ConditionWhenLinkerAdded("zxcv"),"ru");
+  assertEquals("en",dynamicPropertyOracle.getSelectionProperty(null,"locale").getCurrentValue());
+  assertTrue(dynamicPropertyOracle.haveAccessedPropertiesChanged());
+  assertEquals(2,dynamicPropertyOracle.getAccessedProperties().size());
+  dynamicPropertyOracle.reset();
+  dynamicPropertyOracle.prescribePropertyValue("user.agent","redbull");
+  assertEquals("redbull",dynamicPropertyOracle.getSelectionProperty(null,"user.agent").getCurrentValue());
+  assertFalse(dynamicPropertyOracle.haveAccessedPropertiesChanged());
+  assertEquals(2,dynamicPropertyOracle.getAccessedProperties().size());
+  dynamicPropertyOracle.reset();
+  assertEquals("webkit",dynamicPropertyOracle.getSelectionProperty(null,"user.agent").getCurrentValue());
+  assertFalse(dynamicPropertyOracle.haveAccessedPropertiesChanged());
+  assertEquals(2,dynamicPropertyOracle.getAccessedProperties().size());
+}
