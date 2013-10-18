@@ -39,7 +39,15 @@
     Type elementType=TypeUtils.getSingleParameterization(Collection.class,clientType);
     for (    Object o : (Collection<?>)domainValue) {
       Resolution resolution=resolveClientValue(o,elementType);
-      accumulator.add(resolution == null ? null : resolution.getClientObject());
+      accumulator.add(getClientObject(resolution));
+    }
+    return makeResolution(accumulator);
+  }
+  if (Map.class.isAssignableFrom(returnClass)) {
+    Map<Object,Object> accumulator=new HashMap<Object,Object>();
+    Type[] entryTypes=TypeUtils.getParameterization(Map.class,clientType);
+    for (    Map.Entry<?,?> entry : ((Map<?,?>)domainValue).entrySet()) {
+      accumulator.put(getClientObject(resolveClientValue(entry.getKey(),entryTypes[0])),getClientObject(resolveClientValue(entry.getValue(),entryTypes[1])));
     }
     return makeResolution(accumulator);
   }
