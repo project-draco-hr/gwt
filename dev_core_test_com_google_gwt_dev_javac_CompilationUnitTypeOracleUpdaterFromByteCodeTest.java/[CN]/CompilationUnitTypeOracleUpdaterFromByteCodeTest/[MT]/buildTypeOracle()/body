@@ -1,0 +1,21 @@
+{
+  Collection<CompilationUnitTypeOracleUpdater.TypeData> typeDataList=new ArrayList<CompilationUnitTypeOracleUpdater.TypeData>();
+  for (  Resource resource : resources) {
+    if (resource instanceof MutableJavaResource) {
+      MutableJavaResource javaResource=(MutableJavaResource)resource;
+      try {
+        for (        TypeData result : javaResource.getTypeData()) {
+          typeDataList.add(result);
+        }
+      }
+ catch (      IOException e) {
+        e.printStackTrace();
+        throw new TypeOracleException(e);
+      }
+    }
+  }
+  CompilationUnitTypeOracleUpdater typeOracleUpdater=new CompilationUnitTypeOracleUpdater(new TypeOracle());
+  typeOracleUpdater.addNewTypes(createTreeLogger(),typeDataList);
+  this.typeOracle=typeOracleUpdater.getTypeOracle();
+  checkTypes(typeOracle.getTypes());
+}

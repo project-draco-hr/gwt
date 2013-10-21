@@ -1,0 +1,47 @@
+{
+  Event typeOracleUpdaterEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_UPDATER);
+  Event visitClassFileEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_UPDATER,"phase","Visit Class Files");
+  TypeOracleBuildContext context=new TypeOracleBuildContext(argsLookup);
+  for (  TypeData typeData : typeDataList) {
+    CollectClassData cv=typeData.getCollectClassData();
+    if (!cv.hasNoExternalName()) {
+      context.classMap.put(typeData.internalName,cv);
+    }
+  }
+  visitClassFileEvent.end();
+  Event identityEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_UPDATER,"phase","Establish Identity");
+  Set<JRealClassType> unresolvedTypes=new LinkedHashSet<JRealClassType>();
+  for (  TypeData typeData : typeDataList) {
+    CollectClassData cv=context.classMap.get(typeData.internalName);
+    if (cv == null) {
+      continue;
+    }
+    JRealClassType type=createType(typeData,unresolvedTypes,context);
+    if (type != null) {
+      binaryMapper.put(typeData.internalName,type);
+      context.classMapType.put(type,cv);
+    }
+  }
+  identityEvent.end();
+  Event resolveEnclosingEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_UPDATER,"phase","Resolve Enclosing Classes");
+  TreeLogger branch=logger.branch(TreeLogger.SPAM,"Resolving enclosing classes");
+  for (Iterator<JRealClassType> it=unresolvedTypes.iterator(); it.hasNext(); ) {
+    JRealClassType type=it.next();
+    if (!resolveEnclosingClass(branch,type,context)) {
+      it.remove();
+    }
+  }
+  resolveEnclosingEvent.end();
+  Event resolveUnresolvedEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_UPDATER,"phase","Resolve Unresolved Types");
+  for (  JRealClassType type : unresolvedTypes) {
+    branch=logger.branch(TreeLogger.SPAM,"Resolving " + type.getQualifiedSourceName());
+    if (!resolveClass(branch,type,context)) {
+    }
+  }
+  resolveUnresolvedEvent.end();
+  Event finishEvent=SpeedTracerLogger.start(CompilerEventType.TYPE_ORACLE_UPDATER,"phase","Finish");
+  super.finish();
+  finishEvent.end();
+  context=null;
+  typeOracleUpdaterEvent.end();
+}
