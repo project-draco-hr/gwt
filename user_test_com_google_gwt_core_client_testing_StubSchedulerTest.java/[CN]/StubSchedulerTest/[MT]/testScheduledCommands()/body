@@ -1,0 +1,17 @@
+{
+  scheduler.scheduleDeferred(new FakeScheduledCommand("deferred1","deferred1 child"));
+  scheduler.scheduleEntry(new FakeScheduledCommand("entry1",null));
+  scheduler.scheduleFinally(new FakeScheduledCommand("finally1",null));
+  scheduler.scheduleFinally(new FakeScheduledCommand("finally2",null));
+  scheduler.scheduleEntry(new FakeScheduledCommand("entry2","entry2 child"));
+  scheduler.scheduleDeferred(new FakeScheduledCommand("deferred2",null));
+  scheduler.scheduleEntry(new FakeRepeatingCommand("repeating",1,null));
+  checkEvents();
+  checkCommands(scheduler.getScheduledCommands(),"deferred1","entry1","finally1","finally2","entry2","deferred2");
+  assertTrue(scheduler.executeScheduledCommands());
+  checkEvents("deferred1","entry1","finally1","finally2","entry2","deferred2");
+  checkCommands(scheduler.getScheduledCommands(),"deferred1 child","entry2 child");
+  assertFalse(scheduler.executeScheduledCommands());
+  checkEvents("deferred1 child","entry2 child");
+  checkCommands(scheduler.getScheduledCommands());
+}

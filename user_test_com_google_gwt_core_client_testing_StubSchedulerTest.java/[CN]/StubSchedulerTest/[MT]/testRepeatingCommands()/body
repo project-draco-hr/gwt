@@ -1,0 +1,27 @@
+{
+  scheduler.scheduleEntry(new FakeRepeatingCommand("entry1",1,null));
+  scheduler.scheduleFinally(new FakeRepeatingCommand("finally1",2,null));
+  scheduler.scheduleFixedDelay(new FakeRepeatingCommand("delay1",1,null),42);
+  scheduler.scheduleFixedPeriod(new FakeRepeatingCommand("period1",2,"period1 child"),42);
+  scheduler.scheduleIncremental(new FakeRepeatingCommand("incremental1",1,null));
+  scheduler.scheduleEntry(new FakeRepeatingCommand("entry2",2,null));
+  scheduler.scheduleFinally(new FakeRepeatingCommand("finally2",1,"finally2 child"));
+  scheduler.scheduleFixedDelay(new FakeRepeatingCommand("delay2",2,null),42);
+  scheduler.scheduleFixedPeriod(new FakeRepeatingCommand("period2",1,null),42);
+  scheduler.scheduleIncremental(new FakeRepeatingCommand("incremental2",2,null));
+  scheduler.scheduleDeferred(new FakeScheduledCommand("scheduled",null));
+  checkEvents();
+  checkCommands(scheduler.getRepeatingCommands(),"entry1","finally1","delay1","period1","incremental1","entry2","finally2","delay2","period2","incremental2");
+  assertTrue(scheduler.executeRepeatingCommands());
+  checkEvents("entry1","finally1","delay1","period1","incremental1","entry2","finally2","delay2","period2","incremental2");
+  checkCommands(scheduler.getRepeatingCommands(),"finally1","period1 child","period1","entry2","finally2 child","delay2","incremental2");
+  assertTrue(scheduler.executeRepeatingCommands());
+  checkEvents("finally1","period1 child","period1","entry2","finally2 child","delay2","incremental2");
+  checkCommands(scheduler.getRepeatingCommands(),"period1 child","period1 child");
+  assertTrue(scheduler.executeRepeatingCommands());
+  checkEvents("period1 child","period1 child");
+  checkCommands(scheduler.getRepeatingCommands(),"period1 child");
+  assertFalse(scheduler.executeRepeatingCommands());
+  checkEvents("period1 child");
+  checkCommands(scheduler.getRepeatingCommands());
+}

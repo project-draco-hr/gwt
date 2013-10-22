@@ -1,0 +1,15 @@
+{
+  scheduler.scheduleEntry(new FakeRepeatingCommand("repeating",2,"repeating child"));
+  scheduler.scheduleDeferred(new FakeScheduledCommand("scheduled","scheduled child"));
+  checkEvents();
+  assertTrue(scheduler.executeCommands());
+  checkEvents("repeating","scheduled");
+  assertTrue(scheduler.executeCommands());
+  checkEvents("repeating child","repeating","scheduled child");
+  assertTrue(scheduler.executeCommands());
+  checkEvents("repeating child","repeating child");
+  assertFalse(scheduler.executeCommands());
+  checkEvents("repeating child");
+  checkCommands(scheduler.getRepeatingCommands());
+  checkCommands(scheduler.getScheduledCommands());
+}
