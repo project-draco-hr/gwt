@@ -12,13 +12,12 @@
       JLocal arrayVar=JProgram.createLocal(info,elementVarName + "$array",collection.getType(),true,curMethod.body);
       JLocal indexVar=JProgram.createLocal(info,elementVarName + "$index",JPrimitiveType.INT,false,curMethod.body);
       JLocal maxVar=JProgram.createLocal(info,elementVarName + "$max",JPrimitiveType.INT,true,curMethod.body);
-      List<JStatement> initializers=new ArrayList<JStatement>(3);
+      List<JStatement> initializers=Lists.newArrayListWithCapacity(3);
       initializers.add(makeDeclaration(info,arrayVar,collection));
       initializers.add(makeDeclaration(info,indexVar,JIntLiteral.get(0)));
       initializers.add(makeDeclaration(info,maxVar,new JArrayLength(info,new JLocalRef(info,arrayVar))));
       JExpression condition=new JBinaryOperation(info,JPrimitiveType.BOOLEAN,JBinaryOperator.LT,new JLocalRef(info,indexVar),new JLocalRef(info,maxVar));
-      List<JExpressionStatement> increments=new ArrayList<JExpressionStatement>(1);
-      increments.add(new JPrefixOperation(info,JUnaryOperator.INC,new JLocalRef(info,indexVar)).makeStatement());
+      JExpression increments=new JPrefixOperation(info,JUnaryOperator.INC,new JLocalRef(info,indexVar));
       elementDecl.initializer=new JArrayRef(info,new JLocalRef(info,arrayVar),new JLocalRef(info,indexVar));
       body.addStmt(0,elementDecl);
       result=new JForStatement(info,initializers,condition,increments,body);
@@ -31,7 +30,7 @@
       MethodBinding hasNext=javaUtilIterator.getExactMethod(HAS_NEXT,NO_TYPES,cudScope);
       MethodBinding next=javaUtilIterator.getExactMethod(NEXT,NO_TYPES,cudScope);
       JLocal iteratorVar=JProgram.createLocal(info,(elementVarName + "$iterator"),typeMap.get(javaUtilIterator),false,curMethod.body);
-      List<JStatement> initializers=new ArrayList<JStatement>(1);
+      List<JStatement> initializers=Lists.newArrayListWithCapacity(1);
       initializers.add(makeDeclaration(info,iteratorVar,new JMethodCall(info,collection,typeMap.get(iterator))));
       JExpression condition=new JMethodCall(info,new JLocalRef(info,iteratorVar),typeMap.get(hasNext));
       elementDecl.initializer=new JMethodCall(info,new JLocalRef(info,iteratorVar),typeMap.get(next));
@@ -42,7 +41,7 @@
         elementDecl.initializer=maybeCast(toType,elementDecl.initializer);
       }
       body.addStmt(0,elementDecl);
-      result=new JForStatement(info,initializers,condition,Collections.<JExpressionStatement>emptyList(),body);
+      result=new JForStatement(info,initializers,condition,null,body);
     }
     elementDecl.initializer=maybeBoxOrUnbox(elementDecl.initializer,x.elementVariableImplicitWidening);
     push(result);

@@ -2,10 +2,17 @@
   try {
     SourceInfo info=makeSourceInfo(x);
     JStatement action=pop(x.action);
-    List<JExpressionStatement> increments=pop(x.increments);
+    List<JExpression> incrementsExpressions=Lists.transform(pop(x.increments),new Function<JStatement,JExpression>(){
+      @Override public JExpression apply(      JStatement statement){
+        Preconditions.checkArgument(statement instanceof JExpressionStatement);
+        return ((JExpressionStatement)statement).getExpr();
+      }
+    }
+);
+    JExpression incrementsExpression=singleExpressionFromExpressionList(info,incrementsExpressions);
     JExpression condition=pop(x.condition);
     List<JStatement> initializations=pop(x.initializations);
-    push(new JForStatement(info,initializations,condition,increments,action));
+    push(new JForStatement(info,initializations,condition,incrementsExpression,action));
   }
  catch (  Throwable e) {
     throw translateException(x,e);

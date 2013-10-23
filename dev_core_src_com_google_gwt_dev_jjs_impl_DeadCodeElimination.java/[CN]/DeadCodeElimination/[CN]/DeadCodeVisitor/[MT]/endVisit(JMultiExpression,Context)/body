@@ -1,5 +1,5 @@
 {
-  List<JExpression> exprs=x.exprs;
+  List<JExpression> exprs=x.getExpressions();
   if (exprs.size() > 0) {
     if (ignoringExpressionOutput.contains(x)) {
       ignoringExpressionOutput.removeAll(exprs);
@@ -11,16 +11,16 @@
   }
   HashSet<JDeclaredType> clinitsCalled=new HashSet<JDeclaredType>();
   for (int i=0; i < numRemovableExpressions(x); ++i) {
-    JExpression expr=x.exprs.get(i);
+    JExpression expr=x.getExpression(i);
     if (!expr.hasSideEffects()) {
-      x.exprs.remove(i);
+      x.removeExpression(i);
       --i;
       madeChanges();
       continue;
     }
     if (expr instanceof JMultiExpression) {
-      x.exprs.remove(i);
-      x.exprs.addAll(i,((JMultiExpression)expr).exprs);
+      x.removeExpression(i);
+      x.addExpressions(i,((JMultiExpression)expr).getExpressions());
       i--;
       madeChanges();
       continue;
@@ -28,7 +28,7 @@
     if (expr instanceof JMethodCall && JProgram.isClinit(((JMethodCall)expr).getTarget())) {
       JDeclaredType enclosingType=((JMethodCall)expr).getTarget().getEnclosingType();
       if (enclosingType.findSubtype(clinitsCalled) != null) {
-        x.exprs.remove(i);
+        x.removeExpression(i);
         --i;
         madeChanges();
         continue;
@@ -38,7 +38,7 @@
       }
     }
   }
-  if (x.exprs.size() == 1) {
-    maybeReplaceMe(x,x.exprs.get(0),ctx);
+  if (x.getNumberOfExpressions() == 1) {
+    maybeReplaceMe(x,x.getExpressions().get(0),ctx);
   }
 }
