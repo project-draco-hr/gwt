@@ -1,0 +1,30 @@
+{
+  JSONObject json=new JSONObject();
+  json.put(ENTITY_NAME,pkg.getName());
+  JSONArray classes=new JSONArray();
+  for (  ClassDescriptor classDescriptor : pkg.getClasses()) {
+    JSONObject jsonClass=writeJsonFromEntity(classDescriptor);
+    jsonClass.put(ENTITY_NAME,classDescriptor.getName());
+    JSONArray fields=new JSONArray();
+    for (    FieldDescriptor fieldDescriptor : classDescriptor.getFields()) {
+      fields.put(writeJsonFromMember(fieldDescriptor));
+    }
+    jsonClass.put(FIELDS,fields);
+    JSONArray methods=new JSONArray();
+    for (    MethodDescriptor methodDescriptor : classDescriptor.getMethods()) {
+      JSONObject jsonMethod=writeJsonFromMember(methodDescriptor);
+      jsonMethod.put(METHOD_ID,methodDescriptor.getUniqueId());
+      jsonMethod.put(METHOD_DEPENDENTS,methodDescriptor.getDependentPointers());
+      methods.put(jsonMethod);
+    }
+    jsonClass.put(METHODS,methods);
+    classes.put(jsonClass);
+  }
+  json.put(CLASSES,classes);
+  JSONArray packages=new JSONArray();
+  for (  PackageDescriptor packageDescriptor : pkg.getPackages()) {
+    packages.put(writeJson(packageDescriptor));
+  }
+  json.put(PACKAGES,packages);
+  return json;
+}

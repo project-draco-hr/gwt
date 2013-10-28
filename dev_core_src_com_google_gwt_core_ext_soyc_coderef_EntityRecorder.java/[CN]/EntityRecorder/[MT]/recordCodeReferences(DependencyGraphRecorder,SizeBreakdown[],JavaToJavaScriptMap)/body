@@ -1,0 +1,50 @@
+{
+  this.sizeMetrics=new JSONObject[sizeBreakdowns.length];
+  for (int i=0; i < sizeBreakdowns.length; i++) {
+    for (    Entry<JsName,Integer> kv : sizeBreakdowns[i].getSizeMap().entrySet()) {
+      JsName name=kv.getKey();
+      int size=kv.getValue();
+      JMethod method=jjsmap.nameToMethod(name);
+      if (method != null) {
+        codeGraph.methodDescriptorFrom(method).addFragment(new Fragment(i,size));
+        continue;
+      }
+      JField field=jjsmap.nameToField(name);
+      if ((field != null) && (field.getEnclosingType() != null)) {
+        codeGraph.classDescriptorFrom(field.getEnclosingType()).fieldFrom(field).addFragment(new Fragment(i,size));
+        continue;
+      }
+      JClassType type=jjsmap.nameToType(name);
+      if (type != null) {
+        codeGraph.classDescriptorFrom(type).addFragment(new Fragment(i,size));
+        continue;
+      }
+      this.otherSizes[i]+=size;
+    }
+    sizeMetrics[i]=this.getSizeMetrics(i);
+  }
+  for (  ClassDescriptor cls : codeGraph.getCodeModel().values()) {
+    JDeclaredType type=cls.getTypeReference();
+    if (type instanceof JClassType) {
+      JsName jsName=jjsmap.nameForType((JClassType)type);
+      if (jsName != null) {
+        cls.addObfuscatedName(jsName.getShortIdent());
+      }
+    }
+    for (    MethodDescriptor mth : cls.getMethods()) {
+      for (      JMethod jMethod : mth.getMethodReferences()) {
+        JsName jsName=jjsmap.nameForMethod(jMethod);
+        if (jsName != null) {
+          mth.addObfuscatedName(jsName.getShortIdent());
+        }
+      }
+    }
+    for (    JField field : type.getFields()) {
+      JsName jsName=jjsmap.nameForField(field);
+      if (jsName != null) {
+        cls.fieldFrom(field).addObfuscatedName(jsName.getShortIdent());
+      }
+    }
+  }
+  addArtifactFromJson(EntityDescriptorJsonTranslator.writeJson(PackageDescriptor.from(codeGraph.getCodeModel())),ENTITIES + permutationId + ".json");
+}

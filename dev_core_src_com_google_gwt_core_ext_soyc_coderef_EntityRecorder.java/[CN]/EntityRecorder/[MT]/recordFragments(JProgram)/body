@@ -1,0 +1,26 @@
+{
+  JSONObject jsonPoints=new JSONObject();
+  FragmentPartitioningResult partitionResult=jprogram.getFragmentPartitioningResult();
+  if (partitionResult != null) {
+    Map<Integer,Set<String>> runAsyncPerFragment=Maps.newHashMap();
+    for (    JRunAsync runAsync : jprogram.getRunAsyncs()) {
+      int fragmentId=partitionResult.getFragmentForRunAsync(runAsync.getRunAsyncId());
+      Set<String> runAsyncNames=runAsyncPerFragment.get(fragmentId);
+      if (runAsyncNames == null) {
+        runAsyncNames=Sets.newHashSet();
+      }
+      runAsyncNames.add(runAsync.getName());
+      runAsyncPerFragment.put(fragmentId,runAsyncNames);
+    }
+    for (    Integer idx : runAsyncPerFragment.keySet()) {
+      sizeMetrics[idx].put(FRAGMENT_POINTS,runAsyncPerFragment.get(idx));
+    }
+    JSONArray initialSequence=new JSONArray();
+    for (    int fragId : jprogram.getInitialFragmentIdSequence()) {
+      initialSequence.put(partitionResult.getFragmentForRunAsync(fragId));
+    }
+    jsonPoints.put(INITIAL_SEQUENCE,initialSequence);
+  }
+  jsonPoints.put(FRAGMENTS,this.sizeMetrics);
+  addArtifactFromJson(jsonPoints,FRAGMENTS + permutationId + ".json");
+}

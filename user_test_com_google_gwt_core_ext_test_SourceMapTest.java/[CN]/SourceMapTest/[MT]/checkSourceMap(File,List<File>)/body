@@ -1,0 +1,38 @@
+{
+  final Map<String,SimpleSymbolData> symbolTable=SimpleSymbolData.readSymbolMap(symbolMap);
+  boolean firstIteration=true;
+  for (  File sourceMapFile : sourceMapFiles) {
+    SourceMapConsumerV3 sourceMap=new SourceMapConsumerV3();
+    sourceMap.parse(stringContent(sourceMapFile));
+    if (firstIteration) {
+      mapping.put((Integer)sourceMap.getExtensions().get(SourceMapRecorderExt.PERMUTATION_EXT),symbolTable);
+      firstIteration=false;
+    }
+    sourceMap.visitMappings(new SourceMapConsumerV3.EntryVisitor(){
+      @Override public void visit(      String sourceName,      String symbolName,      FilePosition srcStartPos,      FilePosition startPosition,      FilePosition endPosition){
+        if (symbolName == null || symbolName.isEmpty()) {
+          return;
+        }
+        SimpleSymbolData symbolData=symbolTable.get(symbolName);
+        if (symbolData == null) {
+          return;
+        }
+        symbolData.incCounter();
+        if (!symbolData.isField()) {
+          assertEquals(symbolData.getSourceUri(),sourceName);
+          if (symbolData.isClass()) {
+            if (symbolData.getFragmentNumber() >= 0) {
+              assertEquals(symbolData.getSourceLine() - 1,srcStartPos.getLine());
+            }
+          }
+ else {
+            if (symbolData.getCounter() == 0) {
+              assertTrue(Math.abs(symbolData.getSourceLine() - srcStartPos.getLine()) <= 1);
+            }
+          }
+        }
+      }
+    }
+);
+  }
+}

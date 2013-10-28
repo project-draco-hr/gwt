@@ -1,0 +1,14 @@
+{
+  PackageDescriptor topPackage=new PackageDescriptor(DEFAULT_PKG,"");
+  for (  ClassDescriptor classDescriptor : codeModel.values()) {
+    PackageDescriptor packageDescriptor=topPackage;
+    if (!classDescriptor.getPackageName().equals(topPackage.longName)) {
+      for (      String packageName : classDescriptor.getPackageName().split("\\.")) {
+        packageDescriptor=packageDescriptor.createOrGetChildPackage(packageName);
+      }
+    }
+    packageDescriptor.addClass(classDescriptor);
+  }
+  topPackage.collapseEmptyPackages();
+  return topPackage;
+}

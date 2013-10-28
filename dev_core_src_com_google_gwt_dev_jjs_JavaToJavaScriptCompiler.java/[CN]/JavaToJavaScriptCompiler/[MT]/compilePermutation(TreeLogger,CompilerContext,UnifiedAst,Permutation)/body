@@ -59,6 +59,8 @@
     JsStackEmulator.exec(jprogram,jsProgram,propertyOracles,jjsmap);
     JsCoerceIntShift.exec(jsProgram,logger,propertyOracles);
     SyntheticArtifact dependencies=null;
+    boolean isSourceMapsEnabled=findBooleanProperty(propertyOracles,logger,"compiler.useSourceMaps","true",true,false,false);
+    MultipleDependencyGraphRecorder dependencyRecorder=null;
     if (options.isRunAsyncEnabled()) {
       ByteArrayOutputStream baos=new ByteArrayOutputStream();
       int expectedFragmentCount=options.getFragmentCount();
@@ -69,15 +71,18 @@
         }
       }
       int minFragmentSize=findIntegerConfigurationProperty(propertyOracles,logger,CodeSplitters.MIN_FRAGMENT_SIZE,0);
-      CodeSplitter.exec(logger,jprogram,jsProgram,jjsmap,expectedFragmentCount,minFragmentSize,chooseDependencyRecorder(options.isSoycEnabled(),baos));
-      if (baos.size() == 0 && options.isSoycEnabled()) {
-        recordNonSplitDependencies(jprogram,baos);
+      dependencyRecorder=chooseDependencyRecorder(options,jprogram,baos);
+      CodeSplitter.exec(logger,jprogram,jsProgram,jjsmap,expectedFragmentCount,minFragmentSize,dependencyRecorder);
+      if (baos.size() == 0) {
+        dependencyRecorder=recordNonSplitDependencies(jprogram,baos,options);
       }
       if (baos.size() > 0) {
         dependencies=new SyntheticArtifact(SoycReportLinker.class,"dependencies" + permutationId + ".xml.gz",baos.toByteArray());
       }
     }
-    boolean isSourceMapsEnabled=findBooleanProperty(propertyOracles,logger,"compiler.useSourceMaps","true",true,false,false);
+ else     if (options.isSoycEnabled() || options.isJsonSoycEnabled()) {
+      dependencyRecorder=recordNonSplitDependencies(jprogram,new ByteArrayOutputStream(),options);
+    }
     Map<JsName,String> obfuscateMap=Maps.create();
 switch (options.getOutput()) {
 case OBFUSCATED:
@@ -102,9 +107,9 @@ VerifySymbolMap.exec(jsProgram,jjsmap,symbolTable);
 JsBreakUpLargeVarStatements.exec(jsProgram,propertyOracles);
 String[] js=new String[jsProgram.getFragmentCount()];
 StatementRanges[] ranges=new StatementRanges[js.length];
-SizeBreakdown[] sizeBreakdowns=options.isSoycEnabled() || options.isCompilerMetricsEnabled() ? new SizeBreakdown[js.length] : null;
+SizeBreakdown[] sizeBreakdowns=options.isJsonSoycEnabled() || options.isSoycEnabled() || options.isCompilerMetricsEnabled() ? new SizeBreakdown[js.length] : null;
 List<Map<Range,SourceInfo>> sourceInfoMaps=new ArrayList<Map<Range,SourceInfo>>();
-generateJavaScriptCode(compilerContext,jprogram,jsProgram,jjsmap,js,ranges,sizeBreakdowns,sourceInfoMaps,isSourceMapsEnabled);
+generateJavaScriptCode(compilerContext,jprogram,jsProgram,jjsmap,js,ranges,sizeBreakdowns,sourceInfoMaps,isSourceMapsEnabled || options.isJsonSoycEnabled());
 PermutationResult toReturn=new PermutationResultImpl(js,permutation,makeSymbolMap(symbolTable,jsProgram),ranges);
 CompilationMetricsArtifact compilationMetrics=null;
 if (options.isCompilerMetricsEnabled()) {
@@ -128,13 +133,21 @@ logger.log(TreeLogger.WARN,"Incompatible options: -XenableClosureCompiler and " 
  else {
 toReturn.addArtifacts(makeSoycArtifacts(logger,permutationId,jprogram,js,sizeBreakdowns,options.isSoycExtra() ? sourceInfoMaps : null,dependencies,jjsmap,obfuscateMap,unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics,options.isSoycHtmlDisabled()));
 }
-if (isSourceMapsEnabled) {
+if (options.isJsonSoycEnabled()) {
+if (options.isClosureCompilerEnabled()) {
+logger.log(TreeLogger.WARN,"Incompatible options: -XenableClosureCompiler and " + "-XjsonSoyc; ignoring -XjsonSoyc.");
+}
+ else {
+toReturn.addArtifacts(EntityRecorder.makeSoycArtifacts(permutationId,sourceInfoMaps,jjsmap,sizeBreakdowns,((DependencyGraphRecorder)dependencyRecorder),jprogram));
+}
+}
+ else if (isSourceMapsEnabled) {
 if (options.isClosureCompilerEnabled()) {
 logger.log(TreeLogger.WARN,"Incompatible options: -XenableClosureCompiler and " + "compiler.useSourceMaps=true; ignoring compiler.useSourceMaps=true.");
 }
  else {
 logger.log(TreeLogger.INFO,"Source Maps Enabled");
-toReturn.addArtifacts(SourceMapRecorder.makeSourceMapArtifacts(sourceInfoMaps,permutationId));
+toReturn.addArtifacts(SourceMapRecorder.makeSourceMapArtifacts(permutationId,sourceInfoMaps));
 }
 }
 logTrackingStats(logger);

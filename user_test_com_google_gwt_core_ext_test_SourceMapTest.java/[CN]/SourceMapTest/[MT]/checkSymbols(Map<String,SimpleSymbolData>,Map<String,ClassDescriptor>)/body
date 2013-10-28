@@ -1,0 +1,21 @@
+{
+  for (  SimpleSymbolData symbol : symbolTable.values()) {
+    if (symbol.getClassName().endsWith("[]")) {
+      continue;
+    }
+    ClassDescriptor classDescriptor=clsMap.get(symbol.getClassName());
+    if (classDescriptor == null) {
+      continue;
+    }
+    if (symbol.isClass()) {
+      assertTrue(classDescriptor.getObfuscatedNames().contains(symbol.getSymbolName()));
+    }
+ else     if (symbol.isField()) {
+      assertTrue(classDescriptor.getField(symbol.getMemberName()).getObfuscatedNames().contains(symbol.getSymbolName()));
+    }
+ else {
+      MethodDescriptor mth=classDescriptor.getMethod(unSynthMethodSignature(symbol.getJsniIdent().split("::")[1]));
+      assertTrue(mth.getObfuscatedNames().contains(symbol.getSymbolName()));
+    }
+  }
+}

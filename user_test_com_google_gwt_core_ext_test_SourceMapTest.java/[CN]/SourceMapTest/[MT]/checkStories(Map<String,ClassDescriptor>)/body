@@ -1,0 +1,37 @@
+{
+  return new DefaultHandler(){
+    int fragment=-1;
+    @Override public void startElement(    String uri,    String localName,    String qName,    Attributes attributes) throws SAXException {
+      super.startElement(uri,localName,qName,attributes);
+      if (qName.equals("sizemap")) {
+        fragment=Integer.parseInt(attributes.getValue("fragment"));
+      }
+ else       if (qName.equals("size")) {
+        assertTrue(fragment > -1);
+        String kind=attributes.getValue("type");
+        int size=Integer.parseInt(attributes.getValue("size"));
+        String ref=attributes.getValue("ref");
+        if (kind.equals("type")) {
+          checkInFragments(size,clsMap.get(ref).getFragments());
+        }
+ else         if (kind.equals("method")) {
+          String[] fullName=ref.split("::");
+          checkInFragments(size,clsMap.get(fullName[0]).getMethod(unSynthMethodSignature(fullName[1])).getFragments());
+        }
+ else         if (kind.equals("field")) {
+          String[] fullName=ref.split("::");
+          checkInFragments(size,clsMap.get(fullName[0]).getField(fullName[1]).getFragments());
+        }
+      }
+    }
+    private void checkInFragments(    int size,    Collection<Fragment> fragments){
+      for (      EntityDescriptor.Fragment frag : fragments) {
+        if (frag.getId() == fragment && frag.getSize() == size) {
+          return;
+        }
+      }
+      fail("Fragment <" + fragment + "> and size <"+ size+ "> don't match");
+    }
+  }
+;
+}
