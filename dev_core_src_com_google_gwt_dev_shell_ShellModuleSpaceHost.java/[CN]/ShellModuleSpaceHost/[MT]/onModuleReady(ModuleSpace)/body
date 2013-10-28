@@ -4,7 +4,10 @@
   try {
     ModuleSpacePropertyOracle propOracle=new ModuleSpacePropertyOracle(module.getProperties(),module.getActiveLinkerNames(),readySpace);
     Rules rules=module.getRules();
-    StandardGeneratorContext genCtx=new StandardGeneratorContext(compilationState,module,genDir,new ArtifactSet(),false);
+    PrecompileTaskOptionsImpl options=new PrecompileTaskOptionsImpl();
+    options.setGenDir(genDir);
+    CompilerContext compilerContext=new CompilerContext.Builder().module(module).options(options).build();
+    StandardGeneratorContext genCtx=new StandardGeneratorContext(compilerContext,compilationState,new ArtifactSet(),false);
     genCtx.setGeneratorResultCachingEnabled((rebindCache != null));
     rebindOracle=new StandardRebindOracle(propOracle,rules,genCtx);
     rebindOracle.setRebindCache(rebindCache);

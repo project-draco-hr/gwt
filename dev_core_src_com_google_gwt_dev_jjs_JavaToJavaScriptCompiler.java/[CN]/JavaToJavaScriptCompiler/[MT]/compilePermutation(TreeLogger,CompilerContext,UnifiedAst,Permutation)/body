@@ -1,0 +1,157 @@
+{
+  JJSOptions options=unifiedAst.getOptions();
+  long startTimeMilliseconds=System.currentTimeMillis();
+  Event jjsCompilePermutationEvent=SpeedTracerLogger.start(CompilerEventType.JJS_COMPILE_PERMUTATION,"name",permutation.prettyPrint());
+  InternalCompilerException.preload();
+  PropertyOracle[] propertyOracles=permutation.getPropertyOracles();
+  int permutationId=permutation.getId();
+  if (logger.isLoggable(TreeLogger.INFO)) {
+    logger.log(TreeLogger.INFO,"Compiling permutation " + permutationId + "...");
+  }
+  long permStart=System.currentTimeMillis();
+  try {
+    if (JProgram.isTracingEnabled()) {
+      System.out.println("-------------------------------------------------------------");
+      System.out.println("|                     (new permutation)                     |");
+      System.out.println("-------------------------------------------------------------");
+      System.out.println("Properties: " + permutation.prettyPrint());
+    }
+    AST ast=unifiedAst.getFreshAst();
+    JProgram jprogram=ast.getJProgram();
+    JsProgram jsProgram=ast.getJsProgram();
+    Map<StandardSymbolData,JsName> symbolTable=new TreeMap<StandardSymbolData,JsName>(new SymbolData.ClassIdentComparator());
+    ResolveRebinds.exec(jprogram,permutation.getOrderedRebindAnswers());
+    Multimap<String,Integer> instrumentableLines=null;
+    if (System.getProperty("gwt.coverage") != null) {
+      instrumentableLines=BaselineCoverageGatherer.exec(jprogram);
+    }
+    int optimizationLevel=options.getOptimizationLevel();
+    if (optimizationLevel == OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
+      draftOptimize(jprogram);
+    }
+ else {
+      optimize(options,jprogram);
+    }
+    RemoveEmptySuperCalls.exec(jprogram);
+    JsoDevirtualizer.exec(jprogram);
+    CatchBlockNormalizer.exec(jprogram);
+    PostOptimizationCompoundAssignmentNormalizer.exec(jprogram);
+    LongCastNormalizer.exec(jprogram);
+    LongEmulationNormalizer.exec(jprogram);
+    CastNormalizer.exec(jprogram,options.isCastCheckingDisabled());
+    ArrayNormalizer.exec(jprogram,options.isCastCheckingDisabled());
+    EqualityNormalizer.exec(jprogram);
+    Pruner.exec(jprogram,false);
+    ReplaceGetClassOverrides.exec(jprogram);
+    jprogram.typeOracle.recomputeAfterOptimizations();
+    Pair<? extends JavaToJavaScriptMap,Set<JsNode>> genAstResult=GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput(),symbolTable,propertyOracles);
+    JavaToJavaScriptMap jjsmap=genAstResult.getLeft();
+    JsNormalizer.exec(jsProgram);
+    if (instrumentableLines != null) {
+      CoverageInstrumentor.exec(jsProgram,instrumentableLines);
+    }
+    JsSymbolResolver.exec(jsProgram);
+    EvalFunctionsAtTopScope.exec(jsProgram,jjsmap);
+    if (optimizationLevel > OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
+      optimizeJs(options,jsProgram,genAstResult.getRight());
+      JsDuplicateCaseFolder.exec(jsProgram);
+    }
+    JsStackEmulator.exec(jprogram,jsProgram,propertyOracles,jjsmap);
+    JsCoerceIntShift.exec(jsProgram,logger,propertyOracles);
+    SyntheticArtifact dependencies=null;
+    if (options.isRunAsyncEnabled()) {
+      ByteArrayOutputStream baos=new ByteArrayOutputStream();
+      int expectedFragmentCount=options.getFragmentCount();
+      if (expectedFragmentCount <= 0) {
+        int numberOfMerges=options.getFragmentsMerge();
+        if (numberOfMerges > 0) {
+          expectedFragmentCount=Math.max(0,jprogram.getRunAsyncs().size() + 2 - numberOfMerges);
+        }
+      }
+      int minFragmentSize=findIntegerConfigurationProperty(propertyOracles,logger,CodeSplitters.MIN_FRAGMENT_SIZE,0);
+      CodeSplitter.exec(logger,jprogram,jsProgram,jjsmap,expectedFragmentCount,minFragmentSize,chooseDependencyRecorder(options.isSoycEnabled(),baos));
+      if (baos.size() == 0 && options.isSoycEnabled()) {
+        recordNonSplitDependencies(jprogram,baos);
+      }
+      if (baos.size() > 0) {
+        dependencies=new SyntheticArtifact(SoycReportLinker.class,"dependencies" + permutationId + ".xml.gz",baos.toByteArray());
+      }
+    }
+    boolean isIE6orUnknown=findBooleanProperty(propertyOracles,logger,"user.agent","ie6",true,false,true);
+    boolean isSourceMapsEnabled=findBooleanProperty(propertyOracles,logger,"compiler.useSourceMaps","true",true,false,false);
+    Map<JsName,String> obfuscateMap=Maps.create();
+switch (options.getOutput()) {
+case OBFUSCATED:
+      obfuscateMap=JsStringInterner.exec(jprogram,jsProgram,isIE6orUnknown);
+    FreshNameGenerator freshNameGenerator=JsObfuscateNamer.exec(jsProgram,propertyOracles);
+  if (options.shouldRemoveDuplicateFunctions() && JsStackEmulator.getStackMode(propertyOracles) == JsStackEmulator.StackMode.STRIP) {
+    JsDuplicateFunctionRemover.exec(jsProgram,freshNameGenerator);
+  }
+break;
+case PRETTY:
+JsPrettyNamer.exec(jsProgram,propertyOracles);
+break;
+case DETAILED:
+obfuscateMap=JsStringInterner.exec(jprogram,jsProgram,isIE6orUnknown);
+JsVerboseNamer.exec(jsProgram,propertyOracles);
+break;
+default :
+throw new InternalCompilerException("Unknown output mode");
+}
+HandleCrossFragmentReferences.exec(logger,jsProgram,propertyOracles);
+VerifySymbolMap.exec(jsProgram,jjsmap,symbolTable);
+boolean splitBlocks=isIE6orUnknown;
+if (splitBlocks) {
+JsIEBlockSizeVisitor.exec(jsProgram);
+}
+JsBreakUpLargeVarStatements.exec(jsProgram,propertyOracles);
+String[] js=new String[jsProgram.getFragmentCount()];
+StatementRanges[] ranges=new StatementRanges[js.length];
+SizeBreakdown[] sizeBreakdowns=options.isSoycEnabled() || options.isCompilerMetricsEnabled() ? new SizeBreakdown[js.length] : null;
+List<Map<Range,SourceInfo>> sourceInfoMaps=new ArrayList<Map<Range,SourceInfo>>();
+generateJavaScriptCode(compilerContext,jprogram,jsProgram,jjsmap,js,ranges,sizeBreakdowns,sourceInfoMaps,splitBlocks,isSourceMapsEnabled);
+PermutationResult toReturn=new PermutationResultImpl(js,permutation,makeSymbolMap(symbolTable,jsProgram),ranges);
+CompilationMetricsArtifact compilationMetrics=null;
+if (options.isCompilerMetricsEnabled()) {
+if (options.isClosureCompilerEnabled()) {
+logger.log(TreeLogger.WARN,"Incompatible options: -XenableClosureCompiler and " + "-XcompilerMetric; ignoring -XcompilerMetric.");
+}
+ else {
+compilationMetrics=new CompilationMetricsArtifact(permutation.getId());
+compilationMetrics.setCompileElapsedMilliseconds(System.currentTimeMillis() - startTimeMilliseconds);
+compilationMetrics.setElapsedMilliseconds(System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime());
+compilationMetrics.setJsSize(sizeBreakdowns);
+compilationMetrics.setPermutationDescription(permutation.prettyPrint());
+toReturn.addArtifacts(Lists.create(unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics));
+}
+}
+if (options.isClosureCompilerEnabled()) {
+if (options.isSoycEnabled()) {
+logger.log(TreeLogger.WARN,"Incompatible options: -XenableClosureCompiler and " + "-compileReport; ignoring -compileReport.");
+}
+}
+ else {
+toReturn.addArtifacts(makeSoycArtifacts(logger,permutationId,jprogram,js,sizeBreakdowns,options.isSoycExtra() ? sourceInfoMaps : null,dependencies,jjsmap,obfuscateMap,unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics,options.isSoycHtmlDisabled()));
+}
+if (isSourceMapsEnabled) {
+if (options.isClosureCompilerEnabled()) {
+logger.log(TreeLogger.WARN,"Incompatible options: -XenableClosureCompiler and " + "compiler.useSourceMaps=true; ignoring compiler.useSourceMaps=true.");
+}
+ else {
+logger.log(TreeLogger.INFO,"Source Maps Enabled");
+toReturn.addArtifacts(SourceMapRecorder.makeSourceMapArtifacts(sourceInfoMaps,permutationId));
+}
+}
+logTrackingStats(logger);
+if (logger.isLoggable(TreeLogger.TRACE)) {
+logger.log(TreeLogger.TRACE,"Permutation took " + (System.currentTimeMillis() - permStart) + " ms");
+}
+return toReturn;
+}
+ catch (Throwable e) {
+throw CompilationProblemReporter.logAndTranslateException(logger,e);
+}
+ finally {
+jjsCompilePermutationEvent.end();
+}
+}

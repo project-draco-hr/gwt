@@ -14,9 +14,10 @@
     }
     CompilationStateBuilder.init(logger,persistentUnitCacheDir);
     for (    ModuleDef module : modules) {
+      compilerContext=compilerContextBuilder.module(module).build();
       String moduleName=module.getCanonicalName();
       if (options.isValidateOnly()) {
-        if (!Precompile.validate(logger,options,module,options.getGenDir())) {
+        if (!Precompile.validate(logger,compilerContext)) {
           return false;
         }
       }
@@ -24,7 +25,7 @@
         long compileStart=System.currentTimeMillis();
         TreeLogger branch=logger.branch(TreeLogger.INFO,"Compiling module " + moduleName);
         options.setOptimizePrecompile(true);
-        Precompilation precompilation=Precompile.precompile(branch,options,module,options.getGenDir());
+        Precompilation precompilation=Precompile.precompile(branch,compilerContext);
         if (precompilation == null) {
           return false;
         }
@@ -34,7 +35,7 @@
         Event compilePermutationsEvent=SpeedTracerLogger.start(CompilerEventType.COMPILE_PERMUTATIONS);
         Permutation[] allPerms=precompilation.getPermutations();
         List<FileBackedObject<PermutationResult>> resultFiles=CompilePerms.makeResultFiles(options.getCompilerWorkDir(moduleName),allPerms);
-        CompilePerms.compile(branch,precompilation,allPerms,options.getLocalWorkers(),resultFiles);
+        CompilePerms.compile(branch,compilerContext,precompilation,allPerms,resultFiles);
         compilePermutationsEvent.end();
         ArtifactSet generatedArtifacts=precompilation.getGeneratedArtifacts();
         JJSOptions precompileOptions=precompilation.getUnifiedAst().getOptions();

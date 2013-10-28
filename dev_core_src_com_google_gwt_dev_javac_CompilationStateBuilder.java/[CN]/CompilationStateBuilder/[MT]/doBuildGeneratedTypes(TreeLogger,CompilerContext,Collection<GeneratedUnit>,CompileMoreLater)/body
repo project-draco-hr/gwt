@@ -1,0 +1,17 @@
+{
+  List<CompilationUnitBuilder> builders=new ArrayList<CompilationUnitBuilder>();
+  Map<CompilationUnitBuilder,CompilationUnit> cachedUnits=new IdentityHashMap<CompilationUnitBuilder,CompilationUnit>();
+  for (  GeneratedUnit generatedUnit : generatedUnits) {
+    CompilationUnitBuilder builder=CompilationUnitBuilder.create(generatedUnit);
+    CompilationUnit cachedUnit=unitCache.find(builder.getContentId());
+    if (cachedUnit != null) {
+      if (!cachedUnit.isError()) {
+        cachedUnits.put(builder,cachedUnit);
+        compileMoreLater.addValidUnit(cachedUnit);
+        continue;
+      }
+    }
+    builders.add(builder);
+  }
+  return compileMoreLater.compile(logger,compilerContext,builders,cachedUnits,CompilerEventType.JDT_COMPILER_CSB_GENERATED);
+}

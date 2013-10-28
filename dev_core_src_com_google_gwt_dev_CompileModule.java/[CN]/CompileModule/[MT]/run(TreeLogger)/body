@@ -6,12 +6,14 @@
     logger.log(Type.ERROR,"Error creating directories for ouptut: " + outputDir.getAbsolutePath());
     return false;
   }
-  CompilerContext compilerContext=new CompilerContext.Builder().options(options).build();
+  CompilerContext.Builder compilerContextBuilder=new CompilerContext.Builder();
+  CompilerContext compilerContext=compilerContextBuilder.options(options).build();
   for (  String moduleToCompile : options.getModuleNames()) {
     ModuleDef module;
     Set<String> currentModuleArchivedUnits=new HashSet<String>();
     try {
-      module=ModuleDefLoader.loadFromClassPath(logger,moduleToCompile,compilerContext);
+      module=ModuleDefLoader.loadFromClassPath(logger,compilerContext,moduleToCompile);
+      compilerContext=compilerContextBuilder.module(module).build();
     }
  catch (    Throwable e) {
       CompilationProblemReporter.logAndTranslateException(logger,e);
@@ -66,7 +68,7 @@ catch (        ClassNotFoundException ex) {
     }
     CompilationState compilationState;
     try {
-      compilationState=module.getCompilationState(logger,!options.isStrict(),options.getSourceLevel());
+      compilationState=module.getCompilationState(logger,compilerContext);
     }
  catch (    Throwable e) {
       CompilationProblemReporter.logAndTranslateException(logger,e);

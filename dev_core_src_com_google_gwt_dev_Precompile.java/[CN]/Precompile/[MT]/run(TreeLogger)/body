@@ -5,7 +5,8 @@
     Util.recursiveDelete(compilerWorkDir,true);
     compilerWorkDir.mkdirs();
     File precompilationFile=new File(compilerWorkDir,PRECOMPILE_FILENAME);
-    ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,moduleName,compilerContext);
+    ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,compilerContext,moduleName);
+    compilerContext=compilerContextBuilder.module(module).build();
     StandardLinkerContext linkerContext=new StandardLinkerContext(TreeLogger.NULL,module,options);
     boolean generateOnShards=true;
     if (!options.isEnabledGeneratingOnShards()) {
@@ -36,7 +37,7 @@
  else {
       if (options.isValidateOnly()) {
         TreeLogger branch=logger.branch(TreeLogger.INFO,"Validating compilation " + module.getName());
-        if (!validate(branch,options,module,options.getGenDir())) {
+        if (!validate(branch,compilerContext)) {
           branch.log(TreeLogger.ERROR,"Validation failed");
           return false;
         }
@@ -44,7 +45,7 @@
       }
  else {
         TreeLogger branch=logger.branch(TreeLogger.INFO,"Precompiling module " + module.getName());
-        Precompilation precompilation=precompile(branch,options,module,options.getGenDir());
+        Precompilation precompilation=precompile(branch,compilerContext);
         if (precompilation == null) {
           branch.log(TreeLogger.ERROR,"Precompilation failed");
           return false;

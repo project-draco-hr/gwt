@@ -1,0 +1,67 @@
+{
+  Event precompileEvent=SpeedTracerLogger.start(CompilerEventType.PRECOMPILE);
+  new GraphicsInitThread().start();
+  ArchivePreloader.preloadArchives(logger,compilerContext.getModule());
+  try {
+    ModuleDef module=compilerContext.getModule();
+    PrecompileTaskOptions jjsOptions=compilerContext.getOptions();
+    CompilationState compilationState=module.getCompilationState(logger,compilerContext);
+    if (jjsOptions.isStrict() && compilationState.hasErrors()) {
+      abortDueToStrictMode(logger);
+    }
+    List<String> initialTypeOracleTypes=new ArrayList<String>();
+    if (jjsOptions.isCompilerMetricsEnabled()) {
+      for (      JClassType type : compilationState.getTypeOracle().getTypes()) {
+        initialTypeOracleTypes.add(type.getPackage().getName() + "." + type.getName());
+      }
+    }
+    long moduleLoadFinished=System.currentTimeMillis();
+    String[] declEntryPts=module.getEntryPointTypeNames();
+    if (declEntryPts.length == 0) {
+      logger.log(TreeLogger.ERROR,"Module has no entry points defined",null);
+      throw new UnableToCompleteException();
+    }
+    ArtifactSet generatedArtifacts=new ArtifactSet();
+    DistillerRebindPermutationOracle rpo=new DistillerRebindPermutationOracle(compilerContext,compilationState,generatedArtifacts,allPermutations);
+    compilationState=null;
+    PrecompilationMetricsArtifact precompilationMetrics=jjsOptions.isCompilerMetricsEnabled() ? new PrecompilationMetricsArtifact(permutationBase) : null;
+    UnifiedAst unifiedAst=getCompiler(module).precompile(logger,compilerContext,rpo,declEntryPts,null,rpo.getPermutationCount() == 1,precompilationMetrics);
+    if (jjsOptions.isCompilerMetricsEnabled()) {
+      ModuleMetricsArtifact moduleMetrics=new ModuleMetricsArtifact();
+      moduleMetrics.setSourceFiles(module.getAllSourceFiles());
+      moduleMetrics.setInitialTypes(initialTypeOracleTypes);
+      moduleMetrics.setElapsedMilliseconds(moduleLoadFinished - startTimeMilliseconds);
+      unifiedAst.setModuleMetrics(moduleMetrics);
+    }
+    List<Permutation> permutations=new ArrayList<Permutation>(Arrays.asList(rpo.getPermutations()));
+    mergeCollapsedPermutations(permutations);
+    SortedMap<RebindAnswersPermutationKey,Permutation> merged=new TreeMap<RebindAnswersPermutationKey,Permutation>();
+    SortedSet<String> liveRebindRequests=unifiedAst.getRebindRequests();
+    for (    Permutation permutation : permutations) {
+      RebindAnswersPermutationKey key=new RebindAnswersPermutationKey(permutation,liveRebindRequests);
+      if (merged.containsKey(key)) {
+        Permutation existing=merged.get(key);
+        existing.mergeFrom(permutation,liveRebindRequests);
+      }
+ else {
+        merged.put(key,permutation);
+      }
+    }
+    if (jjsOptions.isCompilerMetricsEnabled()) {
+      int[] ids=new int[allPermutations.size()];
+      for (int i=0; i < allPermutations.size(); i++) {
+        ids[i]=permutationBase + i;
+      }
+      precompilationMetrics.setPermutationIds(ids);
+      precompilationMetrics.setElapsedMilliseconds(System.currentTimeMillis() - startTimeMilliseconds);
+      unifiedAst.setPrecompilationMetrics(precompilationMetrics);
+    }
+    return new Precompilation(unifiedAst,merged.values(),permutationBase,generatedArtifacts);
+  }
+ catch (  UnableToCompleteException e) {
+    return null;
+  }
+ finally {
+    precompileEvent.end();
+  }
+}

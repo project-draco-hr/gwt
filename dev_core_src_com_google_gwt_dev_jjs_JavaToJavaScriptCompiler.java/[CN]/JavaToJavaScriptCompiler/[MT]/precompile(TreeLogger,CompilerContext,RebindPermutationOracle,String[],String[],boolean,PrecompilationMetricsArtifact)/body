@@ -1,0 +1,88 @@
+{
+  InternalCompilerException.preload();
+  PrecompileTaskOptions options=compilerContext.getOptions();
+  ModuleDef module=compilerContext.getModule();
+  if (additionalRootTypes == null) {
+    additionalRootTypes=Empty.STRINGS;
+  }
+  if (declEntryPts.length + additionalRootTypes.length == 0) {
+    throw new IllegalArgumentException("entry point(s) required");
+  }
+  Set<String> allRootTypes=new TreeSet<String>();
+  for (  String element : declEntryPts) {
+    String[] all=rpo.getAllPossibleRebindAnswers(logger,element);
+    Collections.addAll(allRootTypes,all);
+  }
+  rpo.getGeneratorContext().finish(logger);
+  Collections.addAll(allRootTypes,additionalRootTypes);
+  allRootTypes.addAll(JProgram.CODEGEN_TYPES_SET);
+  allRootTypes.addAll(JProgram.INDEX_TYPES_SET);
+  TypeOracle typeOracle=rpo.getCompilationState().getTypeOracle();
+  for (  com.google.gwt.core.ext.typeinfo.JClassType singleJsoIntf : typeOracle.getSingleJsoImplInterfaces()) {
+    allRootTypes.add(typeOracle.getSingleJsoImpl(singleJsoIntf).getQualifiedSourceName());
+  }
+  Memory.maybeDumpMemory("CompStateBuilt");
+  JProgram jprogram=new JProgram();
+  JsProgram jsProgram=new JsProgram();
+  try {
+    UnifyAst unifyAst=new UnifyAst(logger,compilerContext,jprogram,jsProgram,rpo);
+    unifyAst.addRootTypes(allRootTypes);
+    findEntryPoints(logger,compilerContext,rpo,declEntryPts,jprogram);
+    unifyAst.exec();
+    List<String> finalTypeOracleTypes=Lists.create();
+    if (precompilationMetrics != null) {
+      for (      com.google.gwt.core.ext.typeinfo.JClassType type : typeOracle.getTypes()) {
+        finalTypeOracleTypes=Lists.add(finalTypeOracleTypes,type.getPackage().getName() + "." + type.getName());
+      }
+      precompilationMetrics.setFinalTypeOracleTypes(finalTypeOracleTypes);
+    }
+    rpo.clear();
+    if (options.isSoycEnabled()) {
+      SourceInfoCorrelator.exec(jprogram);
+    }
+    jprogram.typeOracle.computeBeforeAST();
+    Memory.maybeDumpMemory("AstOnly");
+    AstDumper.maybeDumpAST(jprogram);
+    if (module != null) {
+      ConfigurationProperty enumNameObfuscationProp=(ConfigurationProperty)module.getProperties().find(ENUM_NAME_OBFUSCATION_PROPERTY);
+      if (enumNameObfuscationProp != null && Boolean.parseBoolean(enumNameObfuscationProp.getValue())) {
+        EnumNameObfuscator.exec(jprogram,logger);
+      }
+    }
+    FixAssignmentsToUnboxOrCast.exec(jprogram);
+    if (options.isEnableAssertions()) {
+      AssertionNormalizer.exec(jprogram);
+    }
+ else {
+      AssertionRemover.exec(jprogram);
+    }
+    if (module != null && options.isRunAsyncEnabled()) {
+      ReplaceRunAsyncs.exec(logger,jprogram);
+      CodeSplitters.pickInitialLoadSequence(logger,jprogram,module.getProperties());
+    }
+    ImplementClassLiteralsAsFields.exec(jprogram);
+    if (options.getOptimizationLevel() > OptionOptimize.OPTIMIZE_LEVEL_DRAFT && !singlePermutation) {
+      if (options.isOptimizePrecompile()) {
+        optimize(options,jprogram);
+      }
+ else {
+        optimizeLoop("Early Optimization",jprogram,options);
+      }
+    }
+    Set<String> rebindRequests=new HashSet<String>();
+    RecordRebinds.exec(jprogram,rebindRequests);
+    if (options.isCompilerMetricsEnabled()) {
+      precompilationMetrics.setAstTypes(getReferencedJavaClasses(jprogram));
+    }
+    logTrackingStats(logger);
+    Event createUnifiedAstEvent=SpeedTracerLogger.start(CompilerEventType.CREATE_UNIFIED_AST);
+    UnifiedAst result=new UnifiedAst(options,new AST(jprogram,jsProgram),singlePermutation,rebindRequests);
+    createUnifiedAstEvent.end();
+    return result;
+  }
+ catch (  Throwable e) {
+    throw CompilationProblemReporter.logAndTranslateException(logger,e);
+  }
+ finally {
+  }
+}
