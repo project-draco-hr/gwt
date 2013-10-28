@@ -10,21 +10,23 @@
       didChange=true;
       continue;
     }
-    if (stmt.unconditionalControlBreak()) {
-      for (int j=i + 1; j < stmts.size(); ) {
-        JsStatement toRemove=stmts.get(j);
-        JsStatement toReplace=ensureDeclarations(toRemove);
-        if (toReplace == null) {
-          stmts.remove(j);
-          didChange=true;
-        }
- else         if (toReplace == toRemove) {
-          ++j;
-        }
+    if (!stmt.unconditionalControlBreak()) {
+      continue;
+    }
+    for (int j=i + 1; j < stmts.size(); ) {
+      JsStatement toRemove=stmts.get(j);
+      JsStatement toReplace=ensureDeclarations(toRemove);
+      if (toReplace == null) {
+        stmts.remove(j);
+        didChange=true;
+      }
+ else       if (toReplace == toRemove) {
+        ++j;
+      }
  else {
-          stmts.set(j,toReplace);
-          didChange=true;
-        }
+        stmts.set(j,toReplace);
+        ++j;
+        didChange=true;
       }
     }
   }
