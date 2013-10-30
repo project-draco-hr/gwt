@@ -1,3 +1,35 @@
 {
-  changeNames(scope);
+  Set<String> myChildIdents=childIdents;
+  childIdents=new HashSet<String>();
+  for (  JsScope child : scope.getChildren()) {
+    visit(child);
+  }
+  HashMap<String,Integer> startIdent=new HashMap<String,Integer>();
+  for (Iterator<JsName> it=scope.getAllNames(); it.hasNext(); ) {
+    JsName name=it.next();
+    if (!referenced.contains(name)) {
+      continue;
+    }
+    if (!name.isObfuscatable()) {
+      name.setShortIdent(name.getIdent());
+      continue;
+    }
+    String newIdent=name.getShortIdent();
+    if (!isLegal(scope,childIdents,newIdent)) {
+      String checkIdent;
+      Integer s=startIdent.get(newIdent);
+      int suffix=(s == null) ? 0 : s.intValue();
+      do {
+        checkIdent=newIdent + "_" + suffix++;
+      }
+ while (!isLegal(scope,childIdents,checkIdent));
+      startIdent.put(newIdent,suffix);
+      name.setShortIdent(checkIdent);
+    }
+ else {
+    }
+    childIdents.add(name.getShortIdent());
+  }
+  myChildIdents.addAll(childIdents);
+  childIdents=myChildIdents;
 }
