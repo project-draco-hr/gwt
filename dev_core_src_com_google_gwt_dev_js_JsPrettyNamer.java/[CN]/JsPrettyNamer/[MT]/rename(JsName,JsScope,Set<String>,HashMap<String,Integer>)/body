@@ -1,0 +1,18 @@
+{
+  if (!name.isObfuscatable()) {
+    name.setShortIdent(name.getIdent());
+    return;
+  }
+  String prefix=name.getShortIdent();
+  if (!isAvailable(prefix,scope,taken)) {
+    Integer suffixOrNull=suffixCounters.get(prefix);
+    int suffix=(suffixOrNull == null) ? 0 : suffixOrNull;
+    String candidate;
+    do {
+      candidate=prefix + "_" + suffix++;
+    }
+ while (!isAvailable(candidate,scope,taken));
+    suffixCounters.put(prefix,suffix);
+    name.setShortIdent(candidate);
+  }
+}
