@@ -1,7 +1,7 @@
 {
   Element bodyElem=getBody();
   while (DOM.getChildCount(bodyElem) > 0) {
-    DOM.removeChild(bodyElem,DOM.getChild(bodyElem,0));
+    bodyElem.removeChild(DOM.getChild(bodyElem,0));
   }
   int rowCount=1, colCount=1;
   for (Iterator<Widget> it=getChildren().iterator(); it.hasNext(); ) {
@@ -28,20 +28,20 @@
     LayoutData layout=(LayoutData)child.getLayoutData();
     Element td=DOM.createTD();
     layout.td=td;
-    DOM.setElementProperty(layout.td,"align",layout.hAlign);
-    DOM.setStyleAttribute(layout.td,"verticalAlign",layout.vAlign);
-    DOM.setElementProperty(layout.td,"width",layout.width);
-    DOM.setElementProperty(layout.td,"height",layout.height);
+    layout.td.setPropertyString("align",layout.hAlign);
+    layout.td.getStyle().setProperty("verticalAlign",layout.vAlign);
+    layout.td.setPropertyString("width",layout.width);
+    layout.td.setPropertyString("height",layout.height);
     if (layout.direction == NORTH) {
       DOM.insertChild(rows[northRow].tr,td,rows[northRow].center);
       DOM.appendChild(td,child.getElement());
-      DOM.setElementPropertyInt(td,"colSpan",logicalRightCol - logicalLeftCol + 1);
+      td.setPropertyInt("colSpan",logicalRightCol - logicalLeftCol + 1);
       ++northRow;
     }
  else     if (layout.direction == SOUTH) {
       DOM.insertChild(rows[southRow].tr,td,rows[southRow].center);
       DOM.appendChild(td,child.getElement());
-      DOM.setElementPropertyInt(td,"colSpan",logicalRightCol - logicalLeftCol + 1);
+      td.setPropertyInt("colSpan",logicalRightCol - logicalLeftCol + 1);
       --southRow;
     }
  else     if (layout.direction == CENTER) {
@@ -51,14 +51,14 @@
       TmpRow row=rows[northRow];
       DOM.insertChild(row.tr,td,row.center++);
       DOM.appendChild(td,child.getElement());
-      DOM.setElementPropertyInt(td,"rowSpan",southRow - northRow + 1);
+      td.setPropertyInt("rowSpan",southRow - northRow + 1);
       ++logicalLeftCol;
     }
  else     if (shouldAddToLogicalRightOfTable(layout.direction)) {
       TmpRow row=rows[northRow];
       DOM.insertChild(row.tr,td,row.center);
       DOM.appendChild(td,child.getElement());
-      DOM.setElementPropertyInt(td,"rowSpan",southRow - northRow + 1);
+      td.setPropertyInt("rowSpan",southRow - northRow + 1);
       --logicalRightCol;
     }
   }
