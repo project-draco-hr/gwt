@@ -1,2 +1,13 @@
 {
+  JMethod method=x.getTarget();
+  if (!mightBeJsoMethod(method)) {
+    return;
+  }
+  JType instanceType=x.getInstance().getType();
+  if (instanceType != program.getTypeJavaLangObject() && !program.typeOracle.canBeJavaScriptObject(instanceType)) {
+    return;
+  }
+  ensureDevirtualVersionExists(method);
+  JMethod devirtualMethod=devirtualMethodByMethod.get(method);
+  ctx.replaceMe(MakeCallsStatic.makeStaticCall(x,devirtualMethod));
 }
