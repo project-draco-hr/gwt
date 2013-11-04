@@ -1,0 +1,14 @@
+{
+  JsProgram jsProgram=new JsProgram();
+  JsScope scope=jsProgram.getScope();
+  JsName name=scope.declareName("package-info","package-info");
+  List<JsStatement> statements=jsProgram.getFragment(0).getGlobalBlock().getStatements();
+  JsFunction function=new JsFunction(SourceOrigin.UNKNOWN,scope,name);
+  function.setBody(new JsBlock(SourceOrigin.UNKNOWN));
+  statements.add(new JsExprStmt(SourceOrigin.UNKNOWN,function));
+  JsInvocation invocation=new JsInvocation(SourceOrigin.UNKNOWN);
+  invocation.setQualifier(new JsNameRef(SourceOrigin.UNKNOWN,name));
+  statements.add(new JsExprStmt(SourceOrigin.UNKNOWN,invocation));
+  assertEquals("function package_info(){}\npackage_info();",rename(jsProgram,JsOutputOption.PRETTY));
+  assertEquals("function package_info(){}\npackage_info();",rename(jsProgram,JsOutputOption.DETAILED));
+}
