@@ -21,8 +21,10 @@
     type=CompilerEventType.GENERATOR_OTHER;
   }
   Event generatorEvent=SpeedTracerLogger.start(type,"class",generatorClassName,"type",typeName);
+  PropertyOracle originalPropertyOracle=propertyOracle;
   try {
     RebindResult result;
+    propertyOracle=new SubsetFilteringPropertyOracle(generator.getAccessedPropertyNames(),originalPropertyOracle,generatorClassName + ".getAccessedPropertyNames() may need to be updated.");
     if (generator instanceof IncrementalGenerator) {
       IncrementalGenerator incGenerator=(IncrementalGenerator)generator;
       if (cachedRebindResult != null) {
@@ -56,6 +58,7 @@ catch (  RuntimeException e) {
     throw new UnableToCompleteException();
   }
  finally {
+    propertyOracle=originalPropertyOracle;
     generatorEvent.end();
   }
 }
