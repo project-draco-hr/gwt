@@ -77,12 +77,11 @@
         dependencies=new SyntheticArtifact(SoycReportLinker.class,"dependencies" + permutationId + ".xml.gz",baos.toByteArray());
       }
     }
-    boolean isIE6orUnknown=findBooleanProperty(propertyOracles,logger,"user.agent","ie6",true,false,true);
     boolean isSourceMapsEnabled=findBooleanProperty(propertyOracles,logger,"compiler.useSourceMaps","true",true,false,false);
     Map<JsName,String> obfuscateMap=Maps.create();
 switch (options.getOutput()) {
 case OBFUSCATED:
-      obfuscateMap=JsStringInterner.exec(jprogram,jsProgram,isIE6orUnknown);
+      obfuscateMap=JsStringInterner.exec(jprogram,jsProgram);
     FreshNameGenerator freshNameGenerator=JsObfuscateNamer.exec(jsProgram,propertyOracles);
   if (options.shouldRemoveDuplicateFunctions() && JsStackEmulator.getStackMode(propertyOracles) == JsStackEmulator.StackMode.STRIP) {
     JsDuplicateFunctionRemover.exec(jsProgram,freshNameGenerator);
@@ -92,7 +91,7 @@ case PRETTY:
 JsPrettyNamer.exec(jsProgram,propertyOracles);
 break;
 case DETAILED:
-obfuscateMap=JsStringInterner.exec(jprogram,jsProgram,isIE6orUnknown);
+obfuscateMap=JsStringInterner.exec(jprogram,jsProgram);
 JsVerboseNamer.exec(jsProgram,propertyOracles);
 break;
 default :
@@ -100,16 +99,12 @@ throw new InternalCompilerException("Unknown output mode");
 }
 HandleCrossFragmentReferences.exec(logger,jsProgram,propertyOracles);
 VerifySymbolMap.exec(jsProgram,jjsmap,symbolTable);
-boolean splitBlocks=isIE6orUnknown;
-if (splitBlocks) {
-JsIEBlockSizeVisitor.exec(jsProgram);
-}
 JsBreakUpLargeVarStatements.exec(jsProgram,propertyOracles);
 String[] js=new String[jsProgram.getFragmentCount()];
 StatementRanges[] ranges=new StatementRanges[js.length];
 SizeBreakdown[] sizeBreakdowns=options.isSoycEnabled() || options.isCompilerMetricsEnabled() ? new SizeBreakdown[js.length] : null;
 List<Map<Range,SourceInfo>> sourceInfoMaps=new ArrayList<Map<Range,SourceInfo>>();
-generateJavaScriptCode(compilerContext,jprogram,jsProgram,jjsmap,js,ranges,sizeBreakdowns,sourceInfoMaps,splitBlocks,isSourceMapsEnabled);
+generateJavaScriptCode(compilerContext,jprogram,jsProgram,jjsmap,js,ranges,sizeBreakdowns,sourceInfoMaps,isSourceMapsEnabled);
 PermutationResult toReturn=new PermutationResultImpl(js,permutation,makeSymbolMap(symbolTable,jsProgram),ranges);
 CompilationMetricsArtifact compilationMetrics=null;
 if (options.isCompilerMetricsEnabled()) {
