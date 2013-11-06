@@ -40,18 +40,9 @@
   if (logger.isLoggable(logStatus)) {
     TreeLogger branch=logger.branch(logStatus,String.valueOf(status) + " - " + request.getMethod()+ ' '+ request.getUri()+ " ("+ userString+ request.getRemoteHost()+ ')'+ bytesString);
     if (branch.isLoggable(logHeaders)) {
-      TreeLogger headers=branch.branch(logHeaders,"Request headers");
-      Iterator<Field> headerFields=request.getConnection().getRequestFields().getFields();
-      while (headerFields.hasNext()) {
-        Field headerField=headerFields.next();
-        headers.log(logHeaders,headerField.getName() + ": " + headerField.getValue());
-      }
-      headers=branch.branch(logHeaders,"Response headers");
-      headerFields=response.getHttpFields().getFields();
-      while (headerFields.hasNext()) {
-        Field headerField=headerFields.next();
-        headers.log(logHeaders,headerField.getName() + ": " + headerField.getValue());
-      }
+      AbstractHttpConnection connection=request.getConnection();
+      logHeaders(branch.branch(logHeaders,"Request headers"),logHeaders,connection.getRequestFields());
+      logHeaders(branch.branch(logHeaders,"Response headers"),logHeaders,connection.getResponseFields());
     }
   }
 }

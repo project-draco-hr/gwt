@@ -3,13 +3,14 @@
   SocketConnector connector=new SocketConnector();
   connector.setPort(9999);
   server.addConnector(connector);
-  Context ctx=new Context();
-  ctx.addServlet(RequestFactoryServlet.class,"/gwtRequest");
-  ctx.addFilter(GzipFilter.class,"*",Handler.DEFAULT);
+  ServletContextHandler handler=new ServletContextHandler(ServletContextHandler.SESSIONS);
+  handler.setContextPath("/");
+  handler.addServlet(RequestFactoryServlet.class,"/gwtRequest");
+  handler.addFilter(GzipFilter.class,"/*",EnumSet.allOf(DispatcherType.class));
   SessionHandler sessionHandler=new SessionHandler();
   sessionHandler.getSessionManager().setMaxInactiveInterval(5);
-  ctx.setSessionHandler(sessionHandler);
-  server.addHandler(ctx);
+  handler.setSessionHandler(sessionHandler);
+  server.setHandler(handler);
   try {
     server.start();
   }
