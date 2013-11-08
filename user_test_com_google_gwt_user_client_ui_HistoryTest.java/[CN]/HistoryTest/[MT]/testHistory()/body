@@ -1,26 +1,26 @@
 {
-  if (isSafari2()) {
-    return;
-  }
   History.newItem("if-you-see-this-then-history-went-back-too-far");
+  final String historyToken1="token 1";
+  final String historyToken2="token 2";
   delayTestFinish(10000);
-  addHistoryListenerImpl(new HistoryListener(){
+  addHistoryListenerImpl(new ValueChangeHandler<String>(){
     private int state=0;
-    public void onHistoryChanged(    String historyToken){
+    @Override public void onValueChange(    ValueChangeEvent<String> event){
+      String historyToken=event.getValue();
 switch (state) {
 case 0:
 {
-          if (!historyToken.equals("foo bar")) {
-            fail("Expecting token 'foo bar', but got: " + historyToken);
+          if (!historyToken.equals(historyToken1)) {
+            fail("Expecting token '" + historyToken1 + "', but got: "+ historyToken);
           }
           state=1;
-          History.newItem("baz");
+          History.newItem(historyToken2);
           break;
         }
 case 1:
 {
-        if (!historyToken.equals("baz")) {
-          fail("Expecting token 'baz', but got: " + historyToken);
+        if (!historyToken.equals(historyToken2)) {
+          fail("Expecting token '" + historyToken2 + "', but got: "+ historyToken);
         }
         state=2;
         History.back();
@@ -28,8 +28,8 @@ case 1:
       }
 case 2:
 {
-      if (!historyToken.equals("foo bar")) {
-        fail("Expecting token 'foo bar' after History.back(), but got: " + historyToken);
+      if (!historyToken.equals(historyToken1)) {
+        fail("Expecting token '" + historyToken1 + "', but got: "+ historyToken);
       }
       finishTest();
       break;
@@ -38,10 +38,5 @@ case 2:
 }
 }
 );
-new Timer(){
-@Override public void run(){
-History.newItem("foo bar");
-}
-}
-.schedule(5000);
+History.newItem(historyToken1);
 }
