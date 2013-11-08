@@ -1,0 +1,11 @@
+{
+  RPCTypeCheckFactory builder=new RPCTypeCheckFactory(SubtypeUsedTwice.class,"send");
+  builder.write(SubtypeUsedTwice.makeArg(123));
+  String request=builder.toString();
+  RPCRequest decoded=RPC.decodeRequest(request);
+  Object deserializedArg=decoded.getParameters()[0];
+  assertEquals(Arg.class,deserializedArg.getClass());
+  IsSerializable thing=((Arg)deserializedArg).handle.thing.any;
+  TypedHandle handle=(TypedHandle)thing;
+  assertEquals(123,handle.thing);
+}
