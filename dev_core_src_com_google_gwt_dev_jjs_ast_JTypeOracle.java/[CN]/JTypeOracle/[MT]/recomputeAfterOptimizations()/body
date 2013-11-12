@@ -1,21 +1,26 @@
 {
   Set<JDeclaredType> computed=new IdentityHashSet<JDeclaredType>();
-  for (  JDeclaredType type : program.getDeclaredTypes()) {
-    computeClinitTarget(type,computed);
-  }
-  nextDual:   for (Iterator<JInterfaceType> it=dualImpls.iterator(); it.hasNext(); ) {
-    JInterfaceType dualIntf=it.next();
-    Set<JClassType> implementors=get(isImplementedMap,dualIntf);
-    for (    JClassType implementor : implementors) {
-      if (isInstantiatedType(implementor) && !program.isJavaScriptObject(implementor)) {
-        continue nextDual;
-      }
+  if (hasWholeWorldKnowledge) {
+    for (    JDeclaredType type : program.getDeclaredTypes()) {
+      computeClinitTarget(type,computed);
     }
-    it.remove();
-  }
-  Iterator<JClassType> jit=jsoSingleImpls.values().iterator();
-  while (jit.hasNext()) {
-    if (!isInstantiatedType(jit.next())) {
+    nextDual:     for (Iterator<JInterfaceType> it=dualImpls.iterator(); it.hasNext(); ) {
+      JInterfaceType dualIntf=it.next();
+      Set<JClassType> implementors=get(isImplementedMap,dualIntf);
+      for (      JClassType implementor : implementors) {
+        if (isInstantiatedType(implementor) && !program.isJavaScriptObject(implementor)) {
+          continue nextDual;
+        }
+      }
+      it.remove();
+    }
+    Iterator<Entry<JInterfaceType,JClassType>> jit=jsoSingleImpls.entrySet().iterator();
+    while (jit.hasNext()) {
+      Entry<JInterfaceType,JClassType> jsoSingleImplEntry=jit.next();
+      if (isInstantiatedType(jsoSingleImplEntry.getValue())) {
+        continue;
+      }
+      dualImpls.remove(jsoSingleImplEntry.getKey());
       jit.remove();
     }
   }
