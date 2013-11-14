@@ -2,36 +2,28 @@
   super.endVisit(x,ctx);
   JsArrayLiteral arrayLit=(JsArrayLiteral)pop();
   SourceInfo sourceInfo=x.getSourceInfo();
-  if (namesByQueryId == null || x.getExprs().size() == 0) {
-    String stringMap=castMapToString(x);
-    if (namesByCastMap.containsKey(stringMap)) {
-      push(namesByCastMap.get(stringMap).makeRef(x.getSourceInfo()));
-    }
- else     if (internedCastMap.contains(stringMap)) {
-      String internName="CM$";
-      boolean first=true;
-      for (      JExpression expr : x.getExprs()) {
-        if (first) {
-          first=false;
-        }
- else {
-          internName+="_";
-        }
-        internName+=((JsQueryType)expr).getQueryId();
+  String stringMap=castMapToString(x);
+  if (namesByCastMap.containsKey(stringMap)) {
+    push(namesByCastMap.get(stringMap).makeRef(x.getSourceInfo()));
+  }
+ else   if (internedCastMap.contains(stringMap)) {
+    String internName="CM$";
+    boolean first=true;
+    for (    JExpression expr : x.getExprs()) {
+      if (first) {
+        first=false;
       }
-      JsName internedCastMapName=topScope.declareName(internName,internName);
-      namesByCastMap.put(stringMap,internedCastMapName);
-      castMapByString.put(stringMap,castMapToObjectLiteral(arrayLit,sourceInfo));
-      push(internedCastMapName.makeRef(x.getSourceInfo()));
-    }
  else {
-      push(castMapToObjectLiteral(arrayLit,sourceInfo));
+        internName+="_";
+      }
+      internName+=((JsQueryType)expr).getQueryId();
     }
+    JsName internedCastMapName=topScope.declareName(internName,internName);
+    namesByCastMap.put(stringMap,internedCastMapName);
+    castMapByString.put(stringMap,castMapToObjectLiteral(arrayLit,sourceInfo));
+    push(internedCastMapName.makeRef(x.getSourceInfo()));
   }
  else {
-    JsInvocation inv=new JsInvocation(sourceInfo);
-    inv.setQualifier(makeMapFunction.getName().makeRef(sourceInfo));
-    inv.getArguments().add(arrayLit);
-    push(inv);
+    push(castMapToObjectLiteral(arrayLit,sourceInfo));
   }
 }
