@@ -8,6 +8,12 @@
   Set<String> expectedLocaleConfigurationValues=Sets.newHashSet("en","fr");
   Set<String> expectedDependencyLibraryNames=Sets.newHashSet("FooLib","BarLib");
   MockCompilationUnit expectedCompilationUnit=new MockCompilationUnit("com.google.gwt.core.client.RuntimeRebinder","blah");
+  MockCompilationUnit expectedSuperSourceCompilationUnit=new MockCompilationUnit("com.google.gwt.core.client.SuperRuntimeRebinder","superblah"){
+    @Override public boolean isSuperSource(){
+      return true;
+    }
+  }
+;
   ZipLibraryBuilder zipLibraryBuilder=new ZipLibraryBuilder(zipFile.getPath());
   zipLibraryBuilder.setLibraryName(expectedLibraryName);
   zipLibraryBuilder.addPublicResource(new SimpleMockResource("ui:binder:com.foo.baz.TableView"));
@@ -24,9 +30,11 @@
   }
   zipLibraryBuilder.addDependencyLibraryNames(expectedDependencyLibraryNames);
   zipLibraryBuilder.addCompilationUnit(expectedCompilationUnit);
+  zipLibraryBuilder.addCompilationUnit(expectedSuperSourceCompilationUnit);
   zipLibraryBuilder.write();
   ZipLibrary zipLibrary=new ZipLibrary(zipFile.getPath());
   CompilationUnit actualCompilationUnit=zipLibrary.getCompilationUnitByTypeName("com.google.gwt.core.client.RuntimeRebinder");
+  CompilationUnit actualSuperSourceCompilationUnit=zipLibrary.getCompilationUnitByTypeName("com.google.gwt.core.client.SuperRuntimeRebinder");
   assertEquals(expectedLibraryName,zipLibrary.getLibraryName());
   assertEquals(expectedResourceContents,Util.readStreamAsString(zipLibrary.getPublicResourceByPath("index.html").openContents()));
   assertEquals(expectedRanGeneratorNames,zipLibrary.getRanGeneratorNames());
@@ -35,4 +43,6 @@
   assertEquals(expectedDependencyLibraryNames,zipLibrary.getDependencyLibraryNames());
   assertEquals(expectedCompilationUnit.getResourceLocation(),actualCompilationUnit.getResourceLocation());
   assertEquals(expectedCompilationUnit.getTypeName(),actualCompilationUnit.getTypeName());
+  assertEquals(expectedSuperSourceCompilationUnit.getResourceLocation(),actualSuperSourceCompilationUnit.getResourceLocation());
+  assertEquals(expectedSuperSourceCompilationUnit.getTypeName(),actualSuperSourceCompilationUnit.getTypeName());
 }
