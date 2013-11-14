@@ -1,0 +1,91 @@
+{
+  System.err.println(About.getGwtVersion());
+  Set<ArgHandler> uniqueArgHandlers=new LinkedHashSet<ArgHandler>(argHandlers.values());
+  ArgHandler nullHandler=null;
+  int widest=0;
+  for (  ArgHandler handler : uniqueArgHandlers) {
+    if (handler.isUndocumented()) {
+      continue;
+    }
+    String helpTag=handler.getHelpTag();
+    if (helpTag != null) {
+      if (helpTag.length() > widest) {
+        widest=helpTag.length();
+      }
+    }
+ else {
+      nullHandler=handler;
+      int len=nullHandler.getTagArgs()[0].length();
+      if (len > widest) {
+        widest=len;
+      }
+    }
+  }
+  String name=getName();
+  int i=name.lastIndexOf('.');
+  if (i != -1) {
+    name=name.substring(i + 1);
+  }
+  System.err.print(name);
+  for (  ArgHandler handler : uniqueArgHandlers) {
+    if (!includeUndocumented && handler.isUndocumented()) {
+      continue;
+    }
+    String helpTag=handler.getHelpTag();
+    if (helpTag != null) {
+      System.err.print(handler.isRequired() ? " " : " [");
+      System.err.print(helpTag);
+      String[] tagArgs=handler.getTagArgs();
+      for (      String tagArg : tagArgs) {
+        System.err.print(" " + tagArg);
+      }
+      System.err.print(handler.isRequired() ? "" : "]");
+    }
+  }
+  if (nullHandler != null && (!nullHandler.isUndocumented() || includeUndocumented)) {
+    String[] tagArgs=nullHandler.getTagArgs();
+    for (    String element : tagArgs) {
+      System.err.print(nullHandler.isRequired() ? " " : " [");
+      System.err.print(element);
+      System.err.print(nullHandler.isRequired() ? " " : "]");
+    }
+    System.err.println();
+  }
+  System.err.println();
+  String description=getDescription();
+  if (description != null) {
+    System.err.println(description);
+    System.err.println();
+  }
+  System.err.println("where ");
+  for (  ArgHandler handler : uniqueArgHandlers) {
+    if (!includeUndocumented && handler.isUndocumented()) {
+      continue;
+    }
+    String helpTag=handler.getHelpTag();
+    if (helpTag != null) {
+      int len=helpTag.length();
+      System.err.print("  ");
+      System.err.print(helpTag);
+      for (i=len; i < widest; ++i) {
+        System.err.print(' ');
+      }
+      System.err.print("  ");
+      System.err.print(handler.getPurpose());
+      System.err.println();
+    }
+  }
+  if (nullHandler != null && (!nullHandler.isUndocumented() || includeUndocumented)) {
+    System.err.println("and ");
+    String tagArg=nullHandler.getTagArgs()[0];
+    int len=tagArg.length();
+    System.err.print("  ");
+    System.err.print(tagArg);
+    for (i=len; i < widest; ++i) {
+      System.err.print(' ');
+    }
+    System.err.print("  ");
+    System.err.print(nullHandler.getPurpose());
+    System.err.println();
+  }
+}
