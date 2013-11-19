@@ -1,0 +1,14 @@
+{
+  if (runtimeRebindRuleByRequestTypeName.containsKey(requestTypeName)) {
+    RuntimeRebindRule runtimeRebindRule=runtimeRebindRuleByRequestTypeName.get(requestTypeName);
+    return runtimeRebindRule.createInstance();
+  }
+  for (int i=runtimeRebindRules.size() - 1; i >= 0; i--) {
+    RuntimeRebindRule runtimeRebindRule=runtimeRebindRules.get(i);
+    if (runtimeRebindRule.matches(requestTypeName)) {
+      runtimeRebindRuleByRequestTypeName.put(requestTypeName,runtimeRebindRule);
+      return runtimeRebindRule.createInstance();
+    }
+  }
+  throw new RuntimeException("Could not rebind " + requestTypeName + ".");
+}
