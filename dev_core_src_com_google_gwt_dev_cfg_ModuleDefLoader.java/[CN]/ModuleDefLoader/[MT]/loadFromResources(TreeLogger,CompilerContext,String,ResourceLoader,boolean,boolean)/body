@@ -10,7 +10,11 @@
       return moduleDef;
     }
     ModuleDefLoader loader=new ModuleDefLoader(compilerContext,resources);
-    return ModuleDefLoader.doLoadModule(loader,logger,moduleName,resources,monolithic);
+    ModuleDef module=ModuleDefLoader.doLoadModule(loader,logger,moduleName,resources,monolithic);
+    LibraryWriter libraryWriter=compilerContext.getLibraryWriter();
+    libraryWriter.setLibraryName(module.getName());
+    libraryWriter.addDependencyLibraryNames(module.getExternalLibraryModuleNames());
+    return module;
   }
   finally {
     moduleDefLoadFromClassPathEvent.end();

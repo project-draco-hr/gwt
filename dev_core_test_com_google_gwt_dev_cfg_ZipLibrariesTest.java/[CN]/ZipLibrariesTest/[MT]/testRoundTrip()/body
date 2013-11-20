@@ -14,24 +14,24 @@
     }
   }
 ;
-  ZipLibraryBuilder zipLibraryBuilder=new ZipLibraryBuilder(zipFile.getPath());
-  zipLibraryBuilder.setLibraryName(expectedLibraryName);
-  zipLibraryBuilder.addPublicResource(new SimpleMockResource("ui:binder:com.foo.baz.TableView"));
-  zipLibraryBuilder.addPublicResource(new MockResource("index.html"){
+  ZipLibraryWriter zipLibraryWriter=new ZipLibraryWriter(zipFile.getPath());
+  zipLibraryWriter.setLibraryName(expectedLibraryName);
+  zipLibraryWriter.addPublicResource(new SimpleMockResource("ui:binder:com.foo.baz.TableView"));
+  zipLibraryWriter.addPublicResource(new MockResource("index.html"){
     @Override public CharSequence getContent(){
       return expectedResourceContents;
     }
   }
 );
-  zipLibraryBuilder.addNewConfigurationPropertyValuesByName("user.agent",expectedUserAgentConfigurationValues);
-  zipLibraryBuilder.addNewConfigurationPropertyValuesByName("locale",expectedLocaleConfigurationValues);
+  zipLibraryWriter.addNewConfigurationPropertyValuesByName("user.agent",expectedUserAgentConfigurationValues);
+  zipLibraryWriter.addNewConfigurationPropertyValuesByName("locale",expectedLocaleConfigurationValues);
   for (  String generatorName : expectedRanGeneratorNames) {
-    zipLibraryBuilder.addRanGeneratorName(generatorName);
+    zipLibraryWriter.addRanGeneratorName(generatorName);
   }
-  zipLibraryBuilder.addDependencyLibraryNames(expectedDependencyLibraryNames);
-  zipLibraryBuilder.addCompilationUnit(expectedCompilationUnit);
-  zipLibraryBuilder.addCompilationUnit(expectedSuperSourceCompilationUnit);
-  zipLibraryBuilder.write();
+  zipLibraryWriter.addDependencyLibraryNames(expectedDependencyLibraryNames);
+  zipLibraryWriter.addCompilationUnit(expectedCompilationUnit);
+  zipLibraryWriter.addCompilationUnit(expectedSuperSourceCompilationUnit);
+  zipLibraryWriter.write();
   ZipLibrary zipLibrary=new ZipLibrary(zipFile.getPath());
   CompilationUnit actualCompilationUnit=zipLibrary.getCompilationUnitByTypeName("com.google.gwt.core.client.RuntimeRebinder");
   CompilationUnit actualSuperSourceCompilationUnit=zipLibrary.getCompilationUnitByTypeName("com.google.gwt.core.client.SuperRuntimeRebinder");
