@@ -8,6 +8,8 @@
   if (declEntryPts.length + additionalRootTypes.length == 0) {
     throw new IllegalArgumentException("entry point(s) required");
   }
+  JProgram jprogram=new JProgram();
+  JsProgram jsProgram=new JsProgram();
   Set<String> allRootTypes=new TreeSet<String>();
   for (  String element : declEntryPts) {
     String[] all=rpo.getAllPossibleRebindAnswers(logger,element);
@@ -16,18 +18,17 @@
   rpo.getGeneratorContext().finish(logger);
   Collections.addAll(allRootTypes,additionalRootTypes);
   allRootTypes.addAll(JProgram.CODEGEN_TYPES_SET);
-  allRootTypes.addAll(JProgram.INDEX_TYPES_SET);
+  allRootTypes.addAll(jprogram.getTypeNamesToIndex());
   TypeOracle typeOracle=rpo.getCompilationState().getTypeOracle();
   for (  com.google.gwt.core.ext.typeinfo.JClassType singleJsoIntf : typeOracle.getSingleJsoImplInterfaces()) {
     allRootTypes.add(typeOracle.getSingleJsoImpl(singleJsoIntf).getQualifiedSourceName());
   }
   Memory.maybeDumpMemory("CompStateBuilt");
-  JProgram jprogram=new JProgram();
-  JsProgram jsProgram=new JsProgram();
+  String entryMethodHolderTypeName=buildEntryMethodHolder(logger,compilerContext,rpo.getGeneratorContext(),allRootTypes,jprogram);
   try {
     UnifyAst unifyAst=new UnifyAst(logger,compilerContext,jprogram,jsProgram,rpo);
     unifyAst.addRootTypes(allRootTypes);
-    findEntryPoints(logger,compilerContext,rpo,declEntryPts,jprogram);
+    findEntryPoints(logger,compilerContext,rpo,declEntryPts,jprogram,entryMethodHolderTypeName);
     unifyAst.exec();
     List<String> finalTypeOracleTypes=Lists.create();
     if (precompilationMetrics != null) {
