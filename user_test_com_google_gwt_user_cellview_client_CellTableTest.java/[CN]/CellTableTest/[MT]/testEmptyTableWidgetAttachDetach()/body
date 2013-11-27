@@ -1,0 +1,24 @@
+{
+class AttachDetachAwareWidget extends Widget {
+    int attachCount=0;
+    int detachCount=0;
+    public AttachDetachAwareWidget(){
+      setElement(DOM.createAnchor());
+    }
+    @Override protected void onAttach(){
+      attachCount++;
+    }
+    @Override protected void onDetach(){
+      detachCount++;
+    }
+  }
+  AttachDetachAwareWidget widget=new AttachDetachAwareWidget();
+  CellTable<String> table=createAbstractHasData(new TextCell());
+  table.setEmptyTableWidget(widget);
+  assertEquals(0,widget.attachCount);
+  RootPanel.get().add(table);
+  RootPanel.get().remove(table);
+  RootPanel.get().add(table);
+  assertEquals(2,widget.attachCount);
+  assertEquals(1,widget.detachCount);
+}
