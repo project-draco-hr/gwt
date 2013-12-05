@@ -4,10 +4,11 @@
     path='/' + module.getName() + path;
     if (!servletClass.equals(loadedServletsByPath.get(path))) {
       try {
-        wac.addServlet(servletClass,path);
+        Class<? extends Servlet> clazz=wac.loadClass(servletClass).asSubclass(Servlet.class);
+        wac.addServlet(clazz,path);
         loadedServletsByPath.put(path,servletClass);
       }
- catch (      Exception e) {
+ catch (      ClassNotFoundException e) {
         getTopLogger().log(TreeLogger.WARN,"Failed to load servlet class '" + servletClass + "' declared in '"+ module.getName()+ "'",e);
       }
     }
