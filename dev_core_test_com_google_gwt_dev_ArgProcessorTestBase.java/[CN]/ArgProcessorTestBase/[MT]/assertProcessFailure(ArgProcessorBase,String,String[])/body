@@ -1,0 +1,15 @@
+{
+  PrintStream oldErrStream=System.err;
+  ByteArrayOutputStream myErrStream=new ByteArrayOutputStream();
+  try {
+    System.setErr(new PrintStream(myErrStream,true));
+    assertFalse(argProcessor.processArgs(args));
+  }
+  finally {
+    System.err.flush();
+    System.setErr(oldErrStream);
+  }
+  String outputString=new String(myErrStream.toByteArray()).split("[\n\r]")[0];
+  assertFalse(outputString.isEmpty());
+  assertTrue("\"" + stringContainedInErrorMessage + "\" is not part of the error message: \""+ outputString+ "\"",outputString.contains(stringContainedInErrorMessage));
+}
