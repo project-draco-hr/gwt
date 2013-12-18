@@ -2,5 +2,10 @@
   if (!GWT.isScript()) {
     throw new RuntimeException("StackTraceCreator should only be called in Production Mode");
   }
-  GWT.<Collector>create(Collector.class).createStackTrace(e);
+  Collector collector=GWT.<Collector>create(Collector.class);
+  JsArrayString stack=collector.inferFrom(e.getThrown());
+  StackTraceElement[] stackTrace=collector.getStackTrace(stack);
+  if (stackTrace != null) {
+    e.setStackTrace(stackTrace);
+  }
 }
