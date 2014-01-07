@@ -1,0 +1,16 @@
+{
+  File work=Utility.makeTemporaryDirectory(null,"outputfileset");
+  try {
+    OutputFileSetOnDirectory output=new OutputFileSetOnDirectory(work,"test/");
+    int tstamp=OutputFileSet.TIMESTAMP_UNAVAILABLE;
+    output.createNewOutputStream("path/to/file",tstamp).close();
+    assertTrue(new File(work,"test/path/to/file").exists());
+    output.createNewOutputStream("path/../to/file",tstamp).close();
+    assertTrue(new File(work,"test/to/file").exists());
+    output.createNewOutputStream("/../path/../to/./file",tstamp).close();
+    assertTrue(new File(work,"to/file").exists());
+  }
+  finally {
+    Util.recursiveDelete(work,false);
+  }
+}
