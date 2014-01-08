@@ -1,0 +1,51 @@
+{
+  int len=1 + rest.length;
+  ResourceOracleImpl[] oracles=new ResourceOracleImpl[1 + rest.length];
+  oracles[0]=first;
+  System.arraycopy(rest,0,oracles,1,rest.length);
+  Event resourceOracle=SpeedTracerLogger.start(CompilerEventType.RESOURCE_ORACLE,"phase","refresh");
+  TreeLogger refreshBranch=Messages.REFRESHING_RESOURCES.branch(logger,null);
+  List<Map<String,ResourceData>> resourceDataMaps=new ArrayList<Map<String,ResourceData>>();
+  List<PathPrefixSet> pathPrefixSets=new ArrayList<PathPrefixSet>();
+  for (  ResourceOracleImpl oracle : oracles) {
+    if (!oracle.classPath.equals(oracles[0].classPath)) {
+      throw new IllegalArgumentException("Refreshing multiple oracles with different classpaths");
+    }
+    resourceDataMaps.add(new LinkedHashMap<String,ResourceData>());
+    pathPrefixSets.add(oracle.pathPrefixSet);
+  }
+  for (  ClassPathEntry pathRoot : oracles[0].classPath) {
+    TreeLogger branchForClassPathEntry=Messages.EXAMINING_PATH_ROOT.branch(refreshBranch,pathRoot.getLocation(),null);
+    List<Map<AbstractResource,PathPrefix>> resourceToPrefixMaps=pathRoot.findApplicableResources(branchForClassPathEntry,pathPrefixSets);
+    for (int i=0; i < len; ++i) {
+      Map<String,ResourceData> resourceDataMap=resourceDataMaps.get(i);
+      Map<AbstractResource,PathPrefix> resourceToPrefixMap=resourceToPrefixMaps.get(i);
+      for (      Entry<AbstractResource,PathPrefix> entry : resourceToPrefixMap.entrySet()) {
+        ResourceData newCpeData=new ResourceData(entry.getKey(),entry.getValue());
+        String resourcePath=newCpeData.resource.getPath();
+        ResourceData oldCpeData=resourceDataMap.get(resourcePath);
+        if (oldCpeData == null || oldCpeData.compareTo(newCpeData) < 0) {
+          resourceDataMap.put(resourcePath,newCpeData);
+        }
+ else {
+          Messages.IGNORING_SHADOWED_RESOURCE.log(branchForClassPathEntry,resourcePath,null);
+        }
+      }
+    }
+  }
+  for (int i=0; i < len; ++i) {
+    Map<String,ResourceData> resourceDataMap=resourceDataMaps.get(i);
+    Map<String,Resource> externalMap=new HashMap<String,Resource>();
+    Set<Resource> externalSet=new HashSet<Resource>();
+    for (    Entry<String,ResourceData> entry : resourceDataMap.entrySet()) {
+      String path=entry.getKey();
+      ResourceData data=entry.getValue();
+      externalMap.put(path,data.resource);
+      externalSet.add(data.resource);
+    }
+    oracles[i].exposedResources=Collections.unmodifiableSet(externalSet);
+    oracles[i].exposedResourceMap=Collections.unmodifiableMap(externalMap);
+    oracles[i].exposedPathNames=Collections.unmodifiableSet(externalMap.keySet());
+  }
+  resourceOracle.end();
+}
