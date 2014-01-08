@@ -1,0 +1,19 @@
+{
+  if (lazyResourcesOracle == null) {
+    lazyResourcesOracle=new ResourceOracleImpl(TreeLogger.NULL,resources);
+    PathPrefixSet pathPrefixes=lazySourceOracle.getPathPrefixes();
+    PathPrefixSet newPathPrefixes=new PathPrefixSet();
+    for (    PathPrefix pathPrefix : pathPrefixes.values()) {
+      newPathPrefixes.add(new PathPrefix(pathPrefix.getPrefix(),NON_JAVA_RESOURCES,pathPrefix.shouldReroot()));
+    }
+    for (    PathPrefix resourcePathPrefix : resourcePrefixSet.values()) {
+      newPathPrefixes.add(resourcePathPrefix);
+    }
+    lazyResourcesOracle.setPathPrefixes(newPathPrefixes);
+    lazyResourcesOracle.scanResources(TreeLogger.NULL);
+  }
+ else {
+    ensureResourcesScanned();
+  }
+  return lazyResourcesOracle;
+}
