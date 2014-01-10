@@ -1,0 +1,16 @@
+{
+  Memory.initialize();
+  SpeedTracerLogger.init();
+  final CompilerOptions compilerOptions=new CompilerOptionsImpl();
+  ArgProcessor argProcessor=new ArgProcessor(compilerOptions);
+  if (argProcessor.processArgs(args)) {
+    CompileTask compileTask=new CompileTask(){
+      @Override public boolean run(      TreeLogger logger) throws UnableToCompleteException {
+        return new LibraryCompiler(compilerOptions).run(logger);
+      }
+    }
+;
+    boolean success=CompileTaskRunner.runWithAppropriateLogger(compilerOptions,compileTask);
+    System.exit(success ? 0 : 1);
+  }
+}

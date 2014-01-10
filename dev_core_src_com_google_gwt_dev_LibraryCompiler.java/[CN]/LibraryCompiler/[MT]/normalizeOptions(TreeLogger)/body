@@ -1,0 +1,25 @@
+{
+  Preconditions.checkArgument(compilerOptions.getModuleNames().size() == 1);
+  if (compilerOptions.getWorkDir() == null) {
+    try {
+      compilerOptions.setWorkDir(Utility.makeTemporaryDirectory(null,"gwtc"));
+      Runtime.getRuntime().addShutdownHook(new Thread(){
+        @Override public void run(){
+          Util.recursiveDelete(compilerOptions.getWorkDir(),false);
+        }
+      }
+);
+    }
+ catch (    IOException e) {
+      logger.log(TreeLogger.ERROR,e.getMessage());
+      throw new UnableToCompleteException();
+    }
+  }
+  if ((compilerOptions.isSoycEnabled() || compilerOptions.isJsonSoycEnabled()) && compilerOptions.getExtraDir() == null) {
+    compilerOptions.setExtraDir(new File("extras"));
+  }
+  if (Strings.isNullOrEmpty(compilerOptions.getOutputLibraryPath())) {
+    compilerOptions.setOutputLibraryPath(compilerOptions.getWorkDir().getPath() + "/" + compilerOptions.getModuleNames().get(0)+ ".gwtlib");
+  }
+  compilerOptions.setOptimizePrecompile(true);
+}

@@ -1,0 +1,28 @@
+{
+  long beforeLinkMs=System.currentTimeMillis();
+  Event linkEvent=SpeedTracerLogger.start(CompilerEventType.LINK);
+  generatedArtifacts.addAll(libraryGroup.getGeneratedArtifacts());
+  Set<PermutationResult> libraryPermutationResults=Sets.newLinkedHashSet();
+  List<PersistenceBackedObject<PermutationResult>> permutationResultHandles=libraryGroup.getPermutationResultHandlesInLinkOrder();
+  for (  PersistenceBackedObject<PermutationResult> permutationResultHandle : permutationResultHandles) {
+    libraryPermutationResults.add(permutationResultHandle.newInstance(logger));
+  }
+  File absPath=new File(compilerOptions.getWarDir(),module.getName());
+  absPath=absPath.getAbsoluteFile();
+  String logMessage="Linking into " + absPath;
+  if (compilerOptions.getExtraDir() != null) {
+    File absExtrasPath=new File(compilerOptions.getExtraDir(),module.getName());
+    absExtrasPath=absExtrasPath.getAbsoluteFile();
+    logMessage+="; Writing extras to " + absExtrasPath;
+  }
+  TreeLogger branch=logger.branch(TreeLogger.TRACE,logMessage);
+  try {
+    Link.link(branch,module,compilerContext.getPublicResourceOracle(),generatedArtifacts,permutations,permutationResultFiles,libraryPermutationResults,compilerOptions,compilerOptions);
+  }
+ catch (  IOException e) {
+    throw new UnableToCompleteException();
+  }
+  linkEvent.end();
+  long durationMs=System.currentTimeMillis() - beforeLinkMs;
+  branch.log(TreeLogger.INFO,"Library link succeeded -- " + String.format("%.3f",durationMs / 1000d) + "s");
+}
