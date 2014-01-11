@@ -1,17 +1,10 @@
 {
   body.println("var ua = navigator.userAgent.toLowerCase();");
-  body.println("var makeVersion = function(result) {");
-  body.indent();
-  body.println("return (parseInt(result[1]) * 1000) + parseInt(result[2]);");
-  body.outdent();
-  body.println("};");
-  for (int i=0; i < predicates.length; i++) {
-    if (possibleValues.contains(predicates[i].getUserAgent())) {
+  for (  UserAgent userAgent : UserAgent.values()) {
+    if (possibleValues.contains(userAgent.name())) {
       body.println("if ((function() { ");
-      body.indent();
-      body.print(predicates[i].toString());
-      body.outdent();
-      body.println("})()) return " + predicates[i].getReturnValue() + ";");
+      body.indentln(userAgent.predicateBlock);
+      body.println("})()) return '%s';",userAgent.name());
     }
   }
   body.println("return 'unknown';");
