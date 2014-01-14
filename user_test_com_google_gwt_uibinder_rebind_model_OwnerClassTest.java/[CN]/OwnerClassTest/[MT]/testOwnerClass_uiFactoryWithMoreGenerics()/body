@@ -1,13 +1,16 @@
 {
-  JClassType ownerType=types.findType("com.google.gwt.uibinder.rebind.model.ParamterizedWidgetFactory");
+  JClassType ownerType=types.findType("com.google.gwt.uibinder.rebind.model.TooManyGenerics");
   JClassType abstractType=types.findType("com.google.gwt.uibinder.rebind.model.Abstract");
   JClassType abstractTypeWildcard=createParameterizedWithWildcard(abstractType);
   JClassType abstractTypeString=createParameterizedWithString(abstractType);
   JClassType abstractTypeObject=createParameterizedWithObject(abstractType);
   OwnerClass ownerClass=new OwnerClass(ownerType,MortalLogger.NULL,uiBinderCtx);
-  JMethod expected=ownerType.findMethod("createOne",new JType[]{});
+  JMethod expected;
+  expected=ownerType.findMethod("create",new JType[]{});
   assertEquals(expected,ownerClass.getUiFactoryMethod(abstractType));
+  assertEquals(expected,ownerClass.getUiFactoryMethod(abstractTypeObject));
+  expected=ownerType.findMethod("createSomething",new JType[]{});
   assertEquals(expected,ownerClass.getUiFactoryMethod(abstractTypeWildcard));
+  expected=ownerType.findMethod("createStringThing",new JType[]{});
   assertEquals(expected,ownerClass.getUiFactoryMethod(abstractTypeString));
-  assertEquals(null,ownerClass.getUiFactoryMethod(abstractTypeObject));
 }
