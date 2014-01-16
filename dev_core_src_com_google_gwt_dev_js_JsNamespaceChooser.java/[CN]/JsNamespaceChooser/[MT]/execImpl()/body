@@ -1,0 +1,28 @@
+{
+  Map<String,JsName> packageToNamespace=Maps.newHashMap();
+  JsVars namespaceVars=new JsVars(SourceOrigin.UNKNOWN);
+  ImmutableList<JsName> allNames=ImmutableList.copyOf(program.getScope().getAllNames());
+  for (  JsName name : allNames) {
+    if (name.getNamespace() != null || !name.isObfuscatable()) {
+      continue;
+    }
+    String packageName=findPackage(name);
+    if (packageName == null) {
+      continue;
+    }
+    JsName namespace=packageToNamespace.get(packageName);
+    if (namespace == null) {
+      namespace=program.getScope().declareName(chooseUnusedName(packageName));
+      JsVar init=new JsVar(SourceOrigin.UNKNOWN,namespace);
+      init.setInitExpr(new JsObjectLiteral(SourceOrigin.UNKNOWN));
+      namespaceVars.add(init);
+      packageToNamespace.put(packageName,namespace);
+    }
+    name.setNamespace(namespace);
+  }
+  fixGlobalFunctions(program);
+  new NameFixer().accept(program);
+  if (!namespaceVars.isEmpty()) {
+    program.getGlobalBlock().getStatements().add(0,namespaceVars);
+  }
+}
