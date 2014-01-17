@@ -1,0 +1,30 @@
+{
+  if (!x.isInternable()) {
+    return false;
+  }
+  if (occurrenceMap != null) {
+    int occurrences=occurrenceMap.count(x);
+    if (occurrences < INTERN_THRESHOLD) {
+      return false;
+    }
+  }
+  JsName name=toCreate.get(x);
+  if (name == null) {
+    String ident=PREFIX + lastId++;
+    name=scope.declareName(ident);
+    toCreate.put(x,name);
+  }
+  Integer currentAssignment=fragmentAssignment.get(x);
+  if (currentAssignment == null) {
+    fragmentAssignment.put(x,currentFragment);
+  }
+ else   if (currentAssignment != currentFragment) {
+    Preconditions.checkState(program != null,"JsLiteralInterner cannot be used with " + "fragmented JsProgram without an accompanying JProgram");
+    int newAssignment=program.getCommonAncestorFragmentId(currentAssignment,currentFragment);
+    if (newAssignment != currentAssignment) {
+      fragmentAssignment.put(x,newAssignment);
+    }
+  }
+  ctx.replaceMe(name.makeRef(x.getSourceInfo().makeChild()));
+  return true;
+}

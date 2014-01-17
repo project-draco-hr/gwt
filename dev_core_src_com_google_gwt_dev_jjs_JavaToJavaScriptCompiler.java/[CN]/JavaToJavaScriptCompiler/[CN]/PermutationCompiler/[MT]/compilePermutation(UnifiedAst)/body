@@ -40,7 +40,7 @@
     }
     JsStackEmulator.exec(jprogram,jsProgram,propertyOracles,jjsmap);
     Pair<SyntheticArtifact,MultipleDependencyGraphRecorder> dependenciesAndRecorder=splitJsIntoFragments(propertyOracles,permutationId,jjsmap);
-    Map<JsName,String> internedTextByVariableName=renameJsSymbols(propertyOracles);
+    Map<JsName,JsLiteral> internedLiteralByVariableName=renameJsSymbols(propertyOracles);
     JsBreakUpLargeVarStatements.exec(jsProgram,propertyOracles);
     boolean isSourceMapsEnabled=PropertyOracles.findBooleanProperty(logger,propertyOracles,"compiler.useSourceMaps","true",true,false,false);
     String[] jsFragments=new String[jsProgram.getFragmentCount()];
@@ -48,7 +48,7 @@
     SizeBreakdown[] sizeBreakdowns=options.isJsonSoycEnabled() || options.isSoycEnabled() || options.isCompilerMetricsEnabled() ? new SizeBreakdown[jsFragments.length] : null;
     generateJavaScriptCode(jjsmap,jsFragments,ranges,sizeBreakdowns,sourceInfoMaps,isSourceMapsEnabled || options.isJsonSoycEnabled());
     PermutationResult permutationResult=new PermutationResultImpl(jsFragments,permutation,makeSymbolMap(symbolTable),ranges);
-    addSyntheticArtifacts(unifiedAst,permutation,startTimeMs,permutationId,jjsmap,dependenciesAndRecorder,internedTextByVariableName,isSourceMapsEnabled,jsFragments,sizeBreakdowns,sourceInfoMaps,permutationResult);
+    addSyntheticArtifacts(unifiedAst,permutation,startTimeMs,permutationId,jjsmap,dependenciesAndRecorder,internedLiteralByVariableName,isSourceMapsEnabled,jsFragments,sizeBreakdowns,sourceInfoMaps,permutationResult);
     return permutationResult;
   }
  catch (  Throwable e) {

@@ -1,0 +1,20 @@
+{
+  out=new GZIPOutputStream(out);
+  Writer writer=new OutputStreamWriter(out,Util.DEFAULT_ENCODING);
+  writer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+  writer.append("<sizemaps>\n");
+  for (int i=0; i < sizeBreakdowns.length; i++) {
+    writer.append("<sizemap fragment=\"" + i + "\" "+ "size=\""+ sizeBreakdowns[i].getSize()+ "\">\n");
+    Map<JsName,Integer> sizeMap=new TreeMap<JsName,Integer>(JSNAME_SORT);
+    sizeMap.putAll(sizeBreakdowns[i].getSizeMap());
+    for (    Entry<JsName,Integer> sizeMapEntry : sizeMap.entrySet()) {
+      JsName name=sizeMapEntry.getKey();
+      int size=sizeMapEntry.getValue();
+      TypedProgramReference typedRef=typedProgramReference(name,jjsmap,internedLiteralByVariableName);
+      writer.append("  <size " + "type=\"" + escapeXml(typedRef.type) + "\" "+ "ref=\""+ escapeXml(typedRef.description)+ "\" "+ "size=\""+ size+ "\"/>\n");
+    }
+    writer.append("</sizemap>\n");
+  }
+  writer.append("</sizemaps>");
+  writer.close();
+}
