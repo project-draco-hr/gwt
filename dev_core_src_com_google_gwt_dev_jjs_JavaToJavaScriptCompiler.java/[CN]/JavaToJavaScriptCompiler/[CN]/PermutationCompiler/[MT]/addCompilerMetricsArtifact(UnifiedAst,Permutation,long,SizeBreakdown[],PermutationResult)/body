@@ -1,0 +1,17 @@
+{
+  CompilationMetricsArtifact compilationMetrics=null;
+  if (options.isCompilerMetricsEnabled()) {
+    if (options.isClosureCompilerEnabled()) {
+      logger.log(TreeLogger.WARN,"Incompatible options: -XenableClosureCompiler and " + "-XcompilerMetric; ignoring -XcompilerMetric.");
+    }
+ else {
+      compilationMetrics=new CompilationMetricsArtifact(permutation.getId());
+      compilationMetrics.setCompileElapsedMilliseconds(System.currentTimeMillis() - startTimeMs);
+      compilationMetrics.setElapsedMilliseconds(System.currentTimeMillis() - ManagementFactory.getRuntimeMXBean().getStartTime());
+      compilationMetrics.setJsSize(sizeBreakdowns);
+      compilationMetrics.setPermutationDescription(permutation.prettyPrint());
+      permutationResult.addArtifacts(Lists.newArrayList(unifiedAst.getModuleMetrics(),unifiedAst.getPrecompilationMetrics(),compilationMetrics));
+    }
+  }
+  return compilationMetrics;
+}

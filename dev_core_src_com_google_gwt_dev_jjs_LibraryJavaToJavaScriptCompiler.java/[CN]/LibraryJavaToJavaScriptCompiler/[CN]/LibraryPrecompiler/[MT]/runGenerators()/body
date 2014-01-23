@@ -1,0 +1,20 @@
+{
+  boolean fixedPoint=true;
+  boolean globalCompile=compilerContext.getOptions().shouldLink();
+  Set<Rule> generatorRules=Sets.newHashSet(module.getGeneratorRules());
+  for (  Rule rule : generatorRules) {
+    RuleGenerateWith generatorRule=(RuleGenerateWith)rule;
+    String generatorName=generatorRule.getName();
+    if (generatorRule.contentDependsOnTypes() && !globalCompile) {
+      continue;
+    }
+    Set<String> newReboundTypeNames=compilerContext.gatherNewReboundTypeNamesForGenerator(generatorName);
+    fixedPoint&=runGenerator(generatorRule,newReboundTypeNames);
+    if (generatorRule.contentDependsOnProperties() && relevantPropertiesHaveChanged(generatorRule)) {
+      Set<String> oldReboundTypeNames=compilerContext.gatherOldReboundTypeNamesForGenerator(generatorName);
+      fixedPoint&=runGenerator(generatorRule,oldReboundTypeNames);
+    }
+    compilerContext.getLibraryWriter().addRanGeneratorName(generatorName);
+  }
+  return fixedPoint;
+}

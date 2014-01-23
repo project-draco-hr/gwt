@@ -1,0 +1,28 @@
+{
+  try {
+    SelectionProperty userAgentProperty=context.getPropertyOracle().getSelectionProperty(logger,"user.agent");
+    String userAgentValue=userAgentProperty.getCurrentValue();
+    String className=null;
+    if (userAgentValue.equals("webkit")) {
+      className="FooWebkit";
+    }
+ else {
+      SelectionProperty flavorProperty=context.getPropertyOracle().getSelectionProperty(logger,"flavor");
+      String flavorValue=flavorProperty.getCurrentValue();
+      className="FooMozilla" + flavorValue;
+    }
+    if (className != null) {
+      PrintWriter pw=context.tryCreate(logger,"com.google.gwt",className);
+      if (pw != null) {
+        pw.println("package com.google.gwt;");
+        pw.println("public class " + className + " {");
+        pw.println("}");
+        pw.flush();
+      }
+    }
+    return "com.google.gwt." + className;
+  }
+ catch (  BadPropertyValueException e) {
+    throw new UnableToCompleteException();
+  }
+}

@@ -1,0 +1,27 @@
+{
+  Map<String,String> runtimeRebindRuleSourcesByName=RuntimeRebindRuleGenerator.RUNTIME_REBIND_RULE_SOURCES_BY_NAME;
+  MockLibraryWriter libraryWriter=new MockLibraryWriter();
+  MockModuleDef module=new MockModuleDef();
+  BindingProperty userAgentProperty=module.getProperties().createBinding("user.agent");
+  userAgentProperty.addDefinedValue(userAgentProperty.getRootCondition(),"mozilla");
+  userAgentProperty.addDefinedValue(userAgentProperty.getRootCondition(),"webkit");
+  userAgentProperty.addDefinedValue(userAgentProperty.getRootCondition(),"ie");
+  userAgentProperty.addDefinedValue(userAgentProperty.getRootCondition(),"webkit_phone");
+  userAgentProperty.addDefinedValue(userAgentProperty.getRootCondition(),"webkit_tablet");
+  BindingProperty flavorProperty=module.getProperties().createBinding("locale");
+  flavorProperty.addDefinedValue(flavorProperty.getRootCondition(),"en");
+  flavorProperty.addDefinedValue(flavorProperty.getRootCondition(),"fr");
+  flavorProperty.addDefinedValue(flavorProperty.getRootCondition(),"ru");
+  RuleGenerateWith browserShimGenerateRule=new RuleGenerateWith(BrowserShimGenerator.class);
+  browserShimGenerateRule.getRootCondition().getConditions().add(new ConditionWhenTypeEndsWith("Shim"));
+  module.addRule(browserShimGenerateRule);
+  RuleGenerateWith localeMessageGenerateRule=new RuleGenerateWith(LocaleMessageGenerator.class);
+  localeMessageGenerateRule.getRootCondition().getConditions().add(new ConditionWhenTypeEndsWith("Messages"));
+  module.addRule(localeMessageGenerateRule);
+  LibraryGroup libraryGroup=LibraryGroupTest.buildVariedPropertyGeneratorLibraryGroup("com.google.gwt.dev.jjs.LibraryJavaToJavaScriptCompilerTest.BrowserShimGenerator",Sets.newHashSet("com.google.ChromeMessages"),"com.google.gwt.dev.jjs.LibraryJavaToJavaScriptCompilerTest.LocaleMessageGenerator",Sets.newHashSet("com.google.WindowShim"));
+  compilerContext=new CompilerContext.Builder().libraryGroup(libraryGroup).libraryWriter(libraryWriter).module(module).build();
+  finishSetUpWithCompilerContext();
+  precompiler.runGeneratorsToFixedPoint(null);
+  assertEquals(Sets.newHashSet("com.google.EventShim","com.google.WindowShim","com.google.ChromeMessages","com.google.ErrorMessages"),precompiler.processedReboundTypeNames);
+  assertEquals(16,runtimeRebindRuleSourcesByName.size());
+}

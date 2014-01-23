@@ -1,0 +1,33 @@
+{
+  Set<String> allRootTypes=Sets.newHashSet();
+  compiler.jprogram=new JProgram();
+  Map<String,String> runtimeRebindRuleSourcesByName=RuntimeRebindRuleGenerator.RUNTIME_REBIND_RULE_SOURCES_BY_NAME;
+  Rules rules=new Rules();
+  RuleFail ruleFail=new RuleFail();
+  ruleFail.getRootCondition().getConditions().add(new ConditionWhenPropertyIs("foo","bar"));
+  rules.prepend(ruleFail);
+  rules.prepend(new RuleGenerateWith(Generator.class));
+  RuleReplaceWith ruleReplaceCanvas=new RuleReplaceWith("WebkitCanvasElement");
+  ruleReplaceCanvas.getRootCondition().getConditions().add(new ConditionWhenTypeIs("CanvasElement"));
+  rules.prepend(ruleReplaceCanvas);
+  rules.prepend(new RuleReplaceWithFallback("CanvasElement"));
+  precompiler.buildSimpleRuntimeRebindRules(rules);
+  assertEquals(3,runtimeRebindRuleSourcesByName.size());
+  String runtimeRebindRule0=runtimeRebindRuleSourcesByName.get("RuntimeRebindRule0");
+  assertTrue(runtimeRebindRule0.contains("@CanvasElement::new()()"));
+  assertTrue(runtimeRebindRule0.contains("requestTypeName.equals(\"CanvasElement\")"));
+  String runtimeRebindRule1=runtimeRebindRuleSourcesByName.get("RuntimeRebindRule1");
+  assertTrue(runtimeRebindRule1.contains("@WebkitCanvasElement::new()()"));
+  assertTrue(runtimeRebindRule1.contains("requestTypeName.equals(\"CanvasElement\")"));
+  String runtimeRebindRule2=runtimeRebindRuleSourcesByName.get("RuntimeRebindRule2");
+  assertTrue(runtimeRebindRule2.contains("Deferred binding request failed for type"));
+  assertTrue(runtimeRebindRule2.contains("RuntimePropertyRegistry.getPropertyValue(\"foo\").equals(\"bar\")"));
+  precompiler.buildRuntimeRebindRegistrator(allRootTypes);
+  assertEquals("com.google.gwt.core.client.mock_RuntimeRebindRegistrator",compiler.jprogram.getRuntimeRebindRegistratorTypeName());
+  assertTrue(allRootTypes.contains(compiler.jprogram.getRuntimeRebindRegistratorTypeName()));
+  String registratorSource=generatorContext.stringWriterByTypeName.get(compiler.jprogram.getRuntimeRebindRegistratorTypeName()).toString();
+  System.out.println(registratorSource);
+  assertTrue(registratorSource.contains("RuntimeRebinder.registerRuntimeRebindRule(new RuntimeRebindRule0());"));
+  assertTrue(registratorSource.contains("RuntimeRebinder.registerRuntimeRebindRule(new RuntimeRebindRule1());"));
+  assertTrue(registratorSource.contains("RuntimeRebinder.registerRuntimeRebindRule(new RuntimeRebindRule2());"));
+}

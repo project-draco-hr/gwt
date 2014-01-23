@@ -1,0 +1,40 @@
+{
+  try {
+    Set<String> allRootTypes=new TreeSet<String>();
+    createJProgram();
+    jsProgram=new JsProgram();
+    if (additionalRootTypes == null) {
+      additionalRootTypes=Empty.STRINGS;
+    }
+    checkEntryPoints(entryPointTypeNames,additionalRootTypes);
+    CompilationState compilationState=constructJavaAst(entryPointTypeNames,additionalRootTypes,allRootTypes);
+    logTypeOracleMetrics(precompilationMetrics,compilationState);
+    Memory.maybeDumpMemory("AstOnly");
+    AstDumper.maybeDumpAST(jprogram);
+    obfuscateEnums();
+    FixAssignmentsToUnboxOrCast.exec(jprogram);
+    if (options.isEnableAssertions()) {
+      AssertionNormalizer.exec(jprogram);
+    }
+ else {
+      AssertionRemover.exec(jprogram);
+    }
+    if (module != null && options.isRunAsyncEnabled()) {
+      ReplaceRunAsyncs.exec(logger,jprogram);
+      CodeSplitters.pickInitialLoadSequence(logger,jprogram,module.getProperties());
+    }
+    ImplementClassLiteralsAsFields.exec(jprogram);
+    optimizeJava(singlePermutation);
+    logAstTypeMetrics(precompilationMetrics);
+    Event createUnifiedAstEvent=SpeedTracerLogger.start(CompilerEventType.CREATE_UNIFIED_AST);
+    UnifiedAst result=new UnifiedAst(options,new AST(jprogram,jsProgram),singlePermutation,RecordRebinds.exec(jprogram));
+    createUnifiedAstEvent.end();
+    return result;
+  }
+ catch (  Throwable e) {
+    throw CompilationProblemReporter.logAndTranslateException(logger,e);
+  }
+ finally {
+    logTrackingStats();
+  }
+}
