@@ -9,7 +9,10 @@
       if (parameters.length != 1) {
         continue;
       }
-      JType methodParam=parameters[0].getType();
+      JClassType methodParam=parameters[0].getType().isClassOrInterface();
+      if (methodParam == null) {
+        continue;
+      }
       if (handlerType.equals(methodParam)) {
         if (handlerMethod != null) {
           logger.die(("This handler cannot be generated. Methods '%s' and '%s' are " + "ambiguous. Which one to pick?"),method,handlerMethod);
@@ -17,12 +20,11 @@
         handlerMethod=method;
         continue;
       }
-      JParameterizedType ptype=handlerType.isParameterized();
-      if (ptype != null) {
-        if (methodParam.equals(ptype.getRawType())) {
-          alternativeHandlerMethod=method;
-        }
-        if (objectType.isGenericType() != null && methodParam.getErasedType().equals(ptype.getRawType())) {
+      if (handlerType.isAssignableFrom(methodParam)) {
+        alternativeHandlerMethod=method;
+      }
+ else       if (handlerType.isParameterized() != null && objectType.isGenericType() != null) {
+        if (methodParam.getErasedType().equals(handlerType.isParameterized().getErasedType())) {
           alternativeHandlerMethod2=method;
         }
       }
