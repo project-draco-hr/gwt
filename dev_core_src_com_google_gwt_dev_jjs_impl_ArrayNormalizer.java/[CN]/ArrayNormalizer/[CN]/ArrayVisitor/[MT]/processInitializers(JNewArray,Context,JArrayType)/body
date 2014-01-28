@@ -3,11 +3,12 @@
   JMethodCall call=new JMethodCall(sourceInfo,null,initValues,arrayType);
   JLiteral classLit=x.getClassLiteral();
   JExpression castableTypeMap=getOrCreateCastMap(sourceInfo,arrayType);
-  JLiteral queryIdLit=getElementQueryType(sourceInfo,arrayType);
+  JRuntimeTypeReference elementTypeIds=getElementRuntimeTypeReference(sourceInfo,arrayType);
   JsonArray initList=new JsonArray(sourceInfo,program.getJavaScriptObject());
+  JIntLiteral leafElementTypeClass=JIntLiteral.get(getLeafElementClass(arrayType));
   for (int i=0; i < x.initializers.size(); ++i) {
     initList.getExprs().add(x.initializers.get(i));
   }
-  call.addArgs(classLit,castableTypeMap,queryIdLit,initList);
+  call.addArgs(classLit,castableTypeMap,elementTypeIds,leafElementTypeClass,initList);
   ctx.replaceMe(call);
 }

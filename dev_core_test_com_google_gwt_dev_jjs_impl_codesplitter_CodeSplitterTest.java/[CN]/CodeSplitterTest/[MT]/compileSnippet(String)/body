@@ -16,7 +16,8 @@
   ArrayNormalizer.exec(jProgram,false);
   TypeTightener.exec(jProgram);
   MethodCallTightener.exec(jProgram);
+  Map<JType,JLiteral> typeIdsByType=ResolveRuntimeTypeReferencesIntoIntLiterals.exec(jProgram);
   Map<StandardSymbolData,JsName> symbolTable=new TreeMap<StandardSymbolData,JsName>(new SymbolData.ClassIdentComparator());
-  JavaToJavaScriptMap map=GenerateJavaScriptAST.exec(jProgram,jsProgram,JsOutputOption.PRETTY,symbolTable,new PropertyOracle[]{new StaticPropertyOracle(orderedProps,orderedPropValues,configProps)}).getLeft();
+  JavaToJavaScriptMap map=GenerateJavaScriptAST.exec(jProgram,jsProgram,JsOutputOption.PRETTY,typeIdsByType,symbolTable,new PropertyOracle[]{new StaticPropertyOracle(orderedProps,orderedPropValues,configProps)}).getLeft();
   CodeSplitter.exec(logger,jProgram,jsProgram,map,expectedFragmentCount,leftOverMergeSize,NULL_RECORDER);
 }

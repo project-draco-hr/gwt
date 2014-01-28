@@ -2,21 +2,22 @@
   SourceInfo sourceInfo=x.getSourceInfo();
   JMethodCall call=new JMethodCall(sourceInfo,null,initDims,arrayType);
   JsonArray classLitList=new JsonArray(sourceInfo,program.getJavaScriptObject());
-  JsonArray castableTypeMapList=new JsonArray(sourceInfo,program.getJavaScriptObject());
-  JsonArray queryIdList=new JsonArray(sourceInfo,program.getJavaScriptObject());
+  JsonArray castableTypeMaps=new JsonArray(sourceInfo,program.getJavaScriptObject());
+  JsonArray elementTypeReferences=new JsonArray(sourceInfo,program.getJavaScriptObject());
   JsonArray dimList=new JsonArray(sourceInfo,program.getJavaScriptObject());
+  JIntLiteral leafElementTypeClass=JIntLiteral.get(getLeafElementClass(arrayType));
   JType cur=arrayType;
   for (int i=0; i < dims; ++i) {
     JArrayType curArrayType=(JArrayType)cur;
     JLiteral classLit=x.getClassLiterals().get(i);
     classLitList.getExprs().add(classLit);
     JExpression castableTypeMap=getOrCreateCastMap(sourceInfo,curArrayType);
-    castableTypeMapList.getExprs().add(castableTypeMap);
-    JLiteral queryIdLit=getElementQueryType(sourceInfo,curArrayType);
-    queryIdList.getExprs().add(queryIdLit);
+    castableTypeMaps.getExprs().add(castableTypeMap);
+    JRuntimeTypeReference elementTypeIdLit=getElementRuntimeTypeReference(sourceInfo,curArrayType);
+    elementTypeReferences.getExprs().add(elementTypeIdLit);
     dimList.getExprs().add(x.dims.get(i));
     cur=curArrayType.getElementType();
   }
-  call.addArgs(classLitList,castableTypeMapList,queryIdList,dimList,program.getLiteralInt(dims),getSeedTypeLiteralFor(cur));
+  call.addArgs(classLitList,castableTypeMaps,elementTypeReferences,leafElementTypeClass,dimList,program.getLiteralInt(dims),getInitValueTypeFor(cur));
   ctx.replaceMe(call);
 }

@@ -1,0 +1,20 @@
+{
+  JType elementType=arrayType.getElementType();
+  if (elementType instanceof JArrayType) {
+    return getLeafElementClass((JArrayType)elementType);
+  }
+  if (!(elementType instanceof JReferenceType)) {
+    return TYPE_JAVA_OBJECT;
+  }
+  JReferenceType elementRefType=((JReferenceType)elementType).getUnderlyingType();
+  if (elementRefType == program.getTypeJavaLangObject()) {
+    return TYPE_JAVA_LANG_OBJECT;
+  }
+ else   if (program.typeOracle.isEffectivelyJavaScriptObject(elementRefType)) {
+    return TYPE_JSO;
+  }
+ else   if (program.typeOracle.isDualJsoInterface(elementRefType)) {
+    return TYPE_JAVA_OBJECT_OR_JSO;
+  }
+  return TYPE_JAVA_OBJECT;
+}

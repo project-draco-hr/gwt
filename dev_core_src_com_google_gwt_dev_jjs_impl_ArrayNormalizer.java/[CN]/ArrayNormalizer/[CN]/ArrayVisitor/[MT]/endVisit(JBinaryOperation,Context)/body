@@ -1,18 +1,19 @@
 {
-  if (x.getOp() == JBinaryOperator.ASG && x.getLhs() instanceof JArrayRef) {
-    JArrayRef arrayRef=(JArrayRef)x.getLhs();
-    JType elementType=arrayRef.getType();
-    if (elementType instanceof JNullType) {
-      return;
-    }
-    if (!disableCastChecking) {
-      if (elementType instanceof JReferenceType) {
-        if (!((JReferenceType)elementType).isFinal() || !program.typeOracle.canTriviallyCast((JReferenceType)x.getRhs().getType(),(JReferenceType)elementType)) {
-          JMethodCall call=new JMethodCall(x.getSourceInfo(),null,setCheckMethod);
-          call.addArgs(arrayRef.getInstance(),arrayRef.getIndexExpr(),x.getRhs());
-          ctx.replaceMe(call);
-        }
-      }
-    }
+  if (disableCastChecking || x.getOp() != JBinaryOperator.ASG || !(x.getLhs() instanceof JArrayRef)) {
+    return;
   }
+  JArrayRef arrayRef=(JArrayRef)x.getLhs();
+  JType elementType=arrayRef.getType();
+  if (elementType instanceof JNullType) {
+    return;
+  }
+ else   if (!(elementType instanceof JReferenceType)) {
+    return;
+  }
+ else   if (elementType.isFinal() && program.typeOracle.canTriviallyCast((JReferenceType)x.getRhs().getType(),(JReferenceType)elementType)) {
+    return;
+  }
+  JMethodCall call=new JMethodCall(x.getSourceInfo(),null,setCheckMethod);
+  call.addArgs(arrayRef.getInstance(),arrayRef.getIndexExpr(),x.getRhs());
+  ctx.replaceMe(call);
 }

@@ -21,9 +21,10 @@
     }
     optimizeJava();
     normalizeSemantics();
+    Map<JType,JLiteral> typeIdLiteralssByType=ResolveRuntimeTypeReferencesIntoIntLiterals.exec(jprogram);
     postNormalizationOptimizeJava();
     jprogram.typeOracle.recomputeAfterOptimizations();
-    Pair<? extends JavaToJavaScriptMap,Set<JsNode>> jjsMapAndInlineableFunctions=GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput(),symbolTable,propertyOracles);
+    Pair<? extends JavaToJavaScriptMap,Set<JsNode>> jjsMapAndInlineableFunctions=GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput(),typeIdLiteralssByType,symbolTable,propertyOracles);
     JavaToJavaScriptMap jjsmap=jjsMapAndInlineableFunctions.getLeft();
     if (System.getProperty("gwt.coverage") != null) {
       CoverageInstrumentor.exec(jsProgram,instrumentableLines);
