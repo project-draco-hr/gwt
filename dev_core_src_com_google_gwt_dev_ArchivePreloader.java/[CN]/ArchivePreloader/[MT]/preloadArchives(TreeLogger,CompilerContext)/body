@@ -5,7 +5,7 @@
   logger.log(TreeLogger.TRACE,"Looking for precompiled archives.  To disable, use -Dgwt.usearchives=false");
   SpeedTracerLogger.Event loadArchive=SpeedTracerLogger.start(CompilerEventType.LOAD_ARCHIVE);
   try {
-    Collection<URL> archiveURLs=module.getAllCompilationUnitArchiveURLs();
+    Collection<URL> archiveURLs=compilerContext.getModule().getAllCompilationUnitArchiveURLs();
     for (    URL archiveURL : archiveURLs) {
       Long lastModifiedTime=Util.getResourceModifiedTime(archiveURL);
       String toLoad=archiveURL.toExternalForm();
@@ -14,7 +14,7 @@
         logger.log(TreeLogger.TRACE,"Loading archived module: " + archiveURL);
         try {
           CompilationUnitArchive archive=CompilationUnitArchive.createFromURL(archiveURL);
-          CompilationStateBuilder.addArchive(archive);
+          CompilationStateBuilder.addArchive(compilerContext,archive);
         }
  catch (        IOException ex) {
           logger.log(TreeLogger.WARN,"Unable to read: " + archiveURL + ". Skipping: "+ ex);
