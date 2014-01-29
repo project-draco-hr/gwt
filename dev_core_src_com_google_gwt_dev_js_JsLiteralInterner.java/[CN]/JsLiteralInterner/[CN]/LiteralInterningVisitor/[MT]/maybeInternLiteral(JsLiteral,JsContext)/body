@@ -2,17 +2,21 @@
   if (!x.isInternable()) {
     return false;
   }
-  if (occurrenceMap != null) {
-    int occurrences=occurrenceMap.count(x);
-    if (occurrences < INTERN_THRESHOLD) {
+  if (!alwaysIntern) {
+    int occurrences=occurrencesPerLiteral.count(x);
+    if (occurrences < MINIMUM_NUMBER_OF_OCCURRENCES_TO_INTERN) {
+      return false;
+    }
+    boolean alreadyInterned=variableNameForInternedLiteral.containsKey(x);
+    if (!alreadyInterned && !isProfitableToIntern(x,occurrences)) {
       return false;
     }
   }
-  JsName name=toCreate.get(x);
+  JsName name=variableNameForInternedLiteral.get(x);
   if (name == null) {
     String ident=PREFIX + lastId++;
     name=scope.declareName(ident);
-    toCreate.put(x,name);
+    variableNameForInternedLiteral.put(x,name);
   }
   Integer currentAssignment=fragmentAssignment.get(x);
   if (currentAssignment == null) {
