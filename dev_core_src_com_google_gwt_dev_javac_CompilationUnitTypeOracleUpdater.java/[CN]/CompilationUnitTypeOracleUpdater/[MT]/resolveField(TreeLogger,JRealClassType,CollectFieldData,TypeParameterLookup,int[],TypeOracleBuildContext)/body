@@ -4,11 +4,11 @@
   String name=field.getName();
   JField jfield;
   if ((field.getAccess() & Opcodes.ACC_ENUM) != 0) {
-    assert(type.isEnum() != null);
-    jfield=newEnumConstant(type,name,declaredAnnotations,nextEnumOrdinal[0]++);
+    assert(unresolvedType.isEnum() != null);
+    jfield=newEnumConstant(unresolvedType,name,declaredAnnotations,nextEnumOrdinal[0]++);
   }
  else {
-    JField newField=newField(type,name,declaredAnnotations);
+    JField newField=newField(unresolvedType,name,declaredAnnotations);
     jfield=newField;
   }
   addModifierBits(jfield,mapBits(ASM_TO_SHARED_MODIFIERS,field.getAccess()));
@@ -17,7 +17,7 @@
   if (signature != null) {
     SignatureReader reader=new SignatureReader(signature);
     JType[] fieldTypeRef=new JType[1];
-    reader.acceptType(new ResolveTypeSignature(context.resolver,internalMapper,logger,fieldTypeRef,typeParamLookup,null));
+    reader.acceptType(new ResolveTypeSignature(context.resolver,typesByInternalName,logger,fieldTypeRef,typeParamLookup,null));
     fieldType=fieldTypeRef[0];
   }
  else {

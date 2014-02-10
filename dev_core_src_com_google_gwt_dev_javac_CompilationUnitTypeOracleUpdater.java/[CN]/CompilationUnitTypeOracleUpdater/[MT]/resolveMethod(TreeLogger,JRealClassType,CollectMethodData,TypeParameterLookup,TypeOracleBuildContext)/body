@@ -5,7 +5,7 @@
   if ("<clinit>".equals(name) || (methodData.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
     return true;
   }
-  if (type.isEnum() != null && "<init>".equals(name)) {
+  if (unresolvedType.isEnum() != null && "<init>".equals(name)) {
     return true;
   }
   JAbstractMethod method;
@@ -13,20 +13,20 @@
   typeParamLookup.pushScope(typeParams);
   boolean hasReturnType=true;
   if ("<init>".equals(name)) {
-    name=type.getSimpleSourceName();
-    method=newConstructor(type,name,declaredAnnotations,typeParams);
+    name=unresolvedType.getSimpleSourceName();
+    method=newConstructor(unresolvedType,name,declaredAnnotations,typeParams);
     hasReturnType=false;
   }
  else {
-    if (type.isAnnotation() != null) {
-      method=newAnnotationMethod(type,name,declaredAnnotations,typeParams,null);
+    if (unresolvedType.isAnnotation() != null) {
+      method=newAnnotationMethod(unresolvedType,name,declaredAnnotations,typeParams,null);
     }
  else {
-      method=newMethod(type,name,declaredAnnotations,typeParams);
+      method=newMethod(unresolvedType,name,declaredAnnotations,typeParams);
     }
   }
   addModifierBits(method,mapBits(ASM_TO_SHARED_MODIFIERS,methodData.getAccess()));
-  if (type.isInterface() != null) {
+  if (unresolvedType.isInterface() != null) {
     addModifierBits(method,Shared.MOD_PUBLIC | Shared.MOD_ABSTRACT);
   }
   if ((methodData.getAccess() & Opcodes.ACC_VARARGS) != 0) {
