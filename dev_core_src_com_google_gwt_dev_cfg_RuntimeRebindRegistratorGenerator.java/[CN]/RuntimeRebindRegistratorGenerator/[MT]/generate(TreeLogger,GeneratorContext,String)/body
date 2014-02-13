@@ -1,17 +1,17 @@
 {
-  Map<String,String> runtimeRebindRuleSourcesByName=RuntimeRebindRuleGenerator.RUNTIME_REBIND_RULE_SOURCES_BY_NAME;
-  String typeName=moduleName.replace(".","_").replace("-","_") + "_" + RUNTIME_REBIND_REGISTRATOR_SUFFIX;
-  PrintWriter out=context.tryCreate(logger,PACKAGE_PATH,typeName);
+  Map<String,String> runtimeRebindRuleSourcesByShortName=RuntimeRebindRuleGenerator.RUNTIME_REBIND_RULE_SOURCES_BY_SHORT_NAME;
+  String typeShortName=moduleName.replace(".","_").replace("-","_") + "_" + RUNTIME_REBIND_REGISTRATOR_SUFFIX;
+  PrintWriter out=context.tryCreate(logger,PACKAGE_PATH,typeShortName);
   if (out != null) {
     out.println("package " + PACKAGE_PATH + ";");
-    out.println("public class " + typeName + " {");
-    for (    String runtimeRebindRuleSource : runtimeRebindRuleSourcesByName.values()) {
+    out.println("public class " + typeShortName + " {");
+    for (    String runtimeRebindRuleSource : runtimeRebindRuleSourcesByShortName.values()) {
       out.println(runtimeRebindRuleSource);
     }
     out.println("  public static void register() {");
-    if (!runtimeRebindRuleSourcesByName.isEmpty()) {
-      for (      String runtimeRebindRuleName : runtimeRebindRuleSourcesByName.keySet()) {
-        out.println(String.format("    RuntimeRebinder.registerRuntimeRebindRule(new %s());",runtimeRebindRuleName));
+    if (!runtimeRebindRuleSourcesByShortName.isEmpty()) {
+      for (      String runtimeRebindRuleShortName : runtimeRebindRuleSourcesByShortName.keySet()) {
+        out.println(String.format("    RuntimeRebinder.registerRuntimeRebindRule(new %s());",runtimeRebindRuleShortName));
       }
     }
  else {
@@ -23,5 +23,5 @@
   }
  else {
   }
-  return PACKAGE_PATH + "." + typeName;
+  return PACKAGE_PATH + "." + typeShortName;
 }
