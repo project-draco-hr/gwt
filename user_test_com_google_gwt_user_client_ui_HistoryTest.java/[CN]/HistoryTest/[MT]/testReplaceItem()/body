@@ -1,0 +1,51 @@
+{
+  History.newItem("if-you-see-this-then-history-went-back-too-far");
+  final String historyToken1="token 1";
+  final String historyToken2="token 2";
+  final String historyToken3="token 3";
+  delayTestFinish(10000);
+  addHistoryListenerImpl(new ValueChangeHandler<String>(){
+    private int state=0;
+    @Override public void onValueChange(    ValueChangeEvent<String> event){
+      String historyToken=event.getValue();
+switch (state) {
+case 0:
+{
+          if (!historyToken.equals(historyToken1)) {
+            fail("Expecting token '" + historyToken1 + "', but got: "+ historyToken);
+          }
+          state=1;
+          History.newItem(historyToken2);
+          break;
+        }
+case 1:
+{
+        if (!historyToken.equals(historyToken2)) {
+          fail("Expecting token '" + historyToken2 + "', but got: "+ historyToken);
+        }
+        state=2;
+        History.replaceItem(historyToken3,true);
+        break;
+      }
+case 2:
+{
+      if (!historyToken.equals(historyToken3)) {
+        fail("Expecting token '" + historyToken3 + "', but got: "+ historyToken);
+      }
+      state=3;
+      History.back();
+      break;
+    }
+case 3:
+{
+    if (!historyToken.equals(historyToken1)) {
+      fail("Expecting token '" + historyToken1 + "', but got: "+ historyToken);
+    }
+    finishTest();
+  }
+}
+}
+}
+);
+History.newItem(historyToken1);
+}

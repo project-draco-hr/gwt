@@ -1,0 +1,24 @@
+{
+  History.newItem("if-you-see-this-then-history-went-back-too-far");
+  final String historyToken1="token 1";
+  final String historyToken2="token 2";
+  final String historyToken2_encoded="token%202";
+  History.newItem(historyToken1);
+  addHistoryListenerImpl(new ValueChangeHandler<String>(){
+    @Override public void onValueChange(    ValueChangeEvent<String> event){
+      fail("No event expected");
+    }
+  }
+);
+  History.replaceItem(historyToken2,false);
+  assertEquals(historyToken2,History.getToken());
+  delayTestFinish(500);
+  timer=new Timer(){
+    @Override public void run(){
+      assertEquals(historyToken2_encoded,getCurrentLocationHash());
+      finishTest();
+    }
+  }
+;
+  timer.schedule(200);
+}
