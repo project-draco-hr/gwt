@@ -5,10 +5,9 @@
   JsonArray castableTypeMaps=new JsonArray(sourceInfo,program.getJavaScriptObject());
   JsonArray elementTypeReferences=new JsonArray(sourceInfo,program.getJavaScriptObject());
   JsonArray dimList=new JsonArray(sourceInfo,program.getJavaScriptObject());
-  JIntLiteral leafElementTypeClass=JIntLiteral.get(getLeafElementClass(arrayType));
-  JType cur=arrayType;
+  JType currentElementType=arrayType;
   for (int i=0; i < dims; ++i) {
-    JArrayType curArrayType=(JArrayType)cur;
+    JArrayType curArrayType=(JArrayType)currentElementType;
     JLiteral classLit=x.getClassLiterals().get(i);
     classLitList.getExprs().add(classLit);
     JExpression castableTypeMap=getOrCreateCastMap(sourceInfo,curArrayType);
@@ -16,8 +15,10 @@
     JRuntimeTypeReference elementTypeIdLit=getElementRuntimeTypeReference(sourceInfo,curArrayType);
     elementTypeReferences.getExprs().add(elementTypeIdLit);
     dimList.getExprs().add(x.dims.get(i));
-    cur=curArrayType.getElementType();
+    currentElementType=curArrayType.getElementType();
   }
-  call.addArgs(classLitList,castableTypeMaps,elementTypeReferences,leafElementTypeClass,dimList,program.getLiteralInt(dims),getInitValueTypeFor(cur));
+  JType leafElementType=currentElementType;
+  JIntLiteral leafElementTypeClass=JIntLiteral.get(getTypeClass(leafElementType));
+  call.addArgs(classLitList,castableTypeMaps,elementTypeReferences,leafElementTypeClass,dimList,program.getLiteralInt(dims));
   ctx.replaceMe(call);
 }
