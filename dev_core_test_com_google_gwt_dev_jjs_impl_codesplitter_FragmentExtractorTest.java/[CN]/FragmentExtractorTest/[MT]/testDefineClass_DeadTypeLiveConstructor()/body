@@ -1,0 +1,45 @@
+{
+  FragmentExtractor fragmentExtractor;
+  LivenessPredicate constructorLivePredicate;
+{
+    SourceInfo nullSourceInfo=new MockSourceInfo();
+    final JClassType barType=new JClassType(nullSourceInfo,"Bar",false,false);
+    final JsName barConstructorName=new JsName(null,"Bar","Bar");
+    final JConstructor barConstructor=new JConstructor(nullSourceInfo,barType);
+    Map<String,JsFunction> functionsByName=new HashMap<String,JsFunction>();
+    functionsByName.put("JavaClassHierarchySetupUtil.defineClass",new JsFunction(nullSourceInfo,new JsRootScope(),DEFINE_CLASS_FUNCTION_NAME));
+    final JsExprStmt defineClassStatement=createDefineClassStatement(barConstructorName);
+    JsProgram jsProgram=new JsProgram();
+    jsProgram.setIndexedFunctions(functionsByName);
+    jsProgram.getGlobalBlock().getStatements().add(defineClassStatement);
+    JavaToJavaScriptMap map=new MockJavaToJavaScriptMap(){
+      @Override public JMethod nameToMethod(      JsName name){
+        if (name == barConstructorName) {
+          return barConstructor;
+        }
+        return null;
+      }
+      @Override public JClassType typeForStatement(      JsStatement statement){
+        if (statement == defineClassStatement) {
+          return barType;
+        }
+        return null;
+      }
+    }
+;
+    fragmentExtractor=new FragmentExtractor(null,jsProgram,map);
+    constructorLivePredicate=new MockLivenessPredicate(){
+      @Override public boolean isLive(      JDeclaredType type){
+        return false;
+      }
+      @Override public boolean isLive(      JMethod method){
+        return method == barConstructor;
+      }
+    }
+;
+  }
+  List<JsStatement> extractedStatements=fragmentExtractor.extractStatements(constructorLivePredicate,new NothingAlivePredicate());
+  assertEquals(1,extractedStatements.size());
+  JsStatement defineClassStatement=extractedStatements.get(0);
+  assertTrue(defineClassStatement.toString().contains("defineClass"));
+}
