@@ -1,4 +1,13 @@
 {
-  compilationUnitsByTypeName.put(compilationUnit.getTypeName(),compilationUnit);
-  compilationUnitTypeNames.add(compilationUnit.getTypeName());
+  String compilationUnitTypeSourceName=compilationUnit.getTypeName();
+  compilationUnitsByTypeName.put(compilationUnitTypeSourceName,compilationUnit);
+  compilationUnitTypeNames.add(compilationUnitTypeSourceName);
+  List<JDeclaredType> types=compilationUnit.getTypes();
+  for (  JDeclaredType type : types) {
+    String sourceName=BinaryName.toSourceName(type.getName());
+    if (Name.isSourceName(sourceName)) {
+      nestedNamesByCompilationUnitName.put(compilationUnitTypeSourceName,sourceName);
+      compilationUnitNamesByNestedName.put(sourceName,compilationUnitTypeSourceName);
+    }
+  }
 }

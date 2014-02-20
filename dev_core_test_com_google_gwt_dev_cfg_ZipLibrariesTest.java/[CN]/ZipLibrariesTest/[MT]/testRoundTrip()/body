@@ -14,6 +14,12 @@
     }
   }
 ;
+  MockCompilationUnit expectedNestedTypeCompilationUnit=new MockCompilationUnit("com.google.gwt.user.Outer","superblah"){
+    @Override public List<JDeclaredType> getTypes(){
+      return Lists.<JDeclaredType>newArrayList(new JClassType(SourceOrigin.UNKNOWN,"com.google.gwt.user.Outer",false,true),new JClassType(SourceOrigin.UNKNOWN,"com.google.gwt.user.Outer.Inner",false,true));
+    }
+  }
+;
   ZipLibraryWriter zipLibraryWriter=new ZipLibraryWriter(zipFile.getPath());
   zipLibraryWriter.setLibraryName(expectedLibraryName);
   zipLibraryWriter.addPublicResource(new SimpleMockResource("ui:binder:com.foo.baz.TableView"));
@@ -31,6 +37,7 @@
   zipLibraryWriter.addDependencyLibraryNames(expectedDependencyLibraryNames);
   zipLibraryWriter.addCompilationUnit(expectedCompilationUnit);
   zipLibraryWriter.addCompilationUnit(expectedSuperSourceCompilationUnit);
+  zipLibraryWriter.addCompilationUnit(expectedNestedTypeCompilationUnit);
   zipLibraryWriter.write();
   ZipLibrary zipLibrary=new ZipLibrary(zipFile.getPath());
   CompilationUnit actualCompilationUnit=zipLibrary.getCompilationUnitByTypeSourceName("com.google.gwt.lang.RuntimeRebinder");
@@ -45,4 +52,5 @@
   assertEquals(expectedCompilationUnit.getTypeName(),actualCompilationUnit.getTypeName());
   assertEquals(expectedSuperSourceCompilationUnit.getResourceLocation(),actualSuperSourceCompilationUnit.getResourceLocation());
   assertEquals(expectedSuperSourceCompilationUnit.getTypeName(),actualSuperSourceCompilationUnit.getTypeName());
+  assertTrue(zipLibrary.getNestedNamesByCompilationUnitName().get("com.google.gwt.user.Outer").contains("com.google.gwt.user.Outer.Inner"));
 }

@@ -4,14 +4,10 @@
     return findDomElementTypeForTag(tagName);
   }
   String ns=elem.getNamespaceUri();
-  String packageName=ns;
+  String packageName=ns.substring(PACKAGE_URI_SCHEME.length());
   String className=tagName;
   while (true) {
-    JPackage pkg=parseNamespacePackage(packageName);
-    if (pkg == null) {
-      throw new RuntimeException("No such package: " + packageName);
-    }
-    JClassType rtn=getOracle().findType(pkg.getName(),className);
+    JClassType rtn=getOracle().findType(packageName + "." + className);
     if (rtn != null) {
       return rtn;
     }

@@ -27,5 +27,16 @@
     logger.log(TreeLogger.TRACE,"Found " + cachedUnits.size() + " cached/archived units.  Used "+ cachedUnits.size()+ " / "+ resources.size()+ " units from cache.");
   }
   Collection<CompilationUnit> resultUnits=compileMoreLater.compile(logger,compilerContext,builders,cachedUnits,CompilerEventType.JDT_COMPILER_CSB_FROM_ORACLE);
-  return new CompilationState(logger,resultUnits,compileMoreLater);
+  boolean compileMonolithic=compilerContext.shouldCompileMonolithic();
+  TypeOracle typeOracle=null;
+  CompilationUnitTypeOracleUpdater typeOracleUpdater=null;
+  if (compileMonolithic) {
+    typeOracle=new TypeOracle();
+    typeOracleUpdater=new CompilationUnitTypeOracleUpdater(typeOracle);
+  }
+ else {
+    typeOracle=new LibraryTypeOracle(compilerContext);
+    typeOracleUpdater=((LibraryTypeOracle)typeOracle).getTypeOracleUpdater();
+  }
+  return new CompilationState(logger,typeOracle,typeOracleUpdater,resultUnits,compileMoreLater);
 }
