@@ -1,0 +1,23 @@
+{
+  if (findCache == null) {
+    findCache=new HashMap<Class<?>,SortedSet<?>>();
+  }
+ else {
+    SortedSet<?> s=findCache.get(type);
+    if (s != null) {
+      return (SortedSet<T>)s;
+    }
+  }
+  if (index == null) {
+    generateTypeIndex();
+  }
+  ImmutableSortedSet.Builder<T> builder=ImmutableSortedSet.<T>naturalOrder();
+  for (  Map.Entry<Class<?>,?> entry : index.asMap().entrySet()) {
+    if (type.isAssignableFrom(entry.getKey())) {
+      builder.addAll((SortedSet<? extends T>)entry.getValue());
+    }
+  }
+  SortedSet<T> toReturn=builder.build();
+  findCache.put(type,toReturn);
+  return toReturn;
+}
