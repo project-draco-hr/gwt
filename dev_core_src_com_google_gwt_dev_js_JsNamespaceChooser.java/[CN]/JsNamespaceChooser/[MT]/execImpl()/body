@@ -1,34 +1,30 @@
 {
-  Map<String,JsName> packageToNamespace=Maps.newHashMap();
-  JsVars namespaceVars=new JsVars(SourceOrigin.UNKNOWN);
-  ImmutableList<JsName> allNames=ImmutableList.copyOf(program.getScope().getAllNames());
-  for (  JsName name : allNames) {
-    if (name.getNamespace() != null || !name.isObfuscatable()) {
-      continue;
-    }
-    String packageName=findPackage(name);
-    if (packageName == null) {
-      continue;
-    }
-    if (name.getStaticRef() instanceof JsFunction) {
-      JsFunction func=(JsFunction)name.getStaticRef();
-      if (program.isIndexedFunction(func)) {
-        continue;
+  List<JsStatement> globalStatements=program.getGlobalBlock().getStatements();
+  List<JsStatement> after=Lists.newArrayList();
+  for (  JsStatement before : globalStatements) {
+    if (before instanceof JsExprStmt) {
+      JsExpression exp=((JsExprStmt)before).getExpression();
+      if (exp instanceof JsFunction) {
+        after.add(visitGlobalFunction((JsFunction)exp));
+      }
+ else {
+        after.add(before);
       }
     }
-    JsName namespace=packageToNamespace.get(packageName);
-    if (namespace == null) {
-      namespace=program.getScope().declareName(chooseUnusedName(packageName));
-      JsVar init=new JsVar(SourceOrigin.UNKNOWN,namespace);
-      init.setInitExpr(new JsObjectLiteral(SourceOrigin.UNKNOWN));
-      namespaceVars.add(init);
-      packageToNamespace.put(packageName,namespace);
+ else     if (before instanceof JsVars) {
+      for (      JsVar var : ((JsVars)before)) {
+        JsStatement replacement=visitGlobalVar(var);
+        if (replacement != null) {
+          after.add(replacement);
+        }
+      }
     }
-    name.setNamespace(namespace);
+ else {
+      after.add(before);
+    }
   }
-  fixGlobalFunctions(program);
+  after.addAll(0,createNamespaceInitializers(packageToNamespace.values()));
+  globalStatements.clear();
+  globalStatements.addAll(after);
   new NameFixer().accept(program);
-  if (!namespaceVars.isEmpty()) {
-    program.getGlobalBlock().getStatements().add(0,namespaceVars);
-  }
 }
