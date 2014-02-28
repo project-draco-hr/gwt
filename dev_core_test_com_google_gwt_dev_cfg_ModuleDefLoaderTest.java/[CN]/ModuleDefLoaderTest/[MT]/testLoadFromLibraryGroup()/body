@@ -1,0 +1,18 @@
+{
+  File zipFile=File.createTempFile("FooLib",".gwtlib");
+  zipFile.deleteOnExit();
+  ZipLibraryWriter zipLibraryWriter=new ZipLibraryWriter(zipFile.getPath());
+  zipLibraryWriter.setLibraryName("FooLib");
+  MockResource userXmlResource=new MockResource("com/google/gwt/user/User.gwt.xml"){
+    @Override public CharSequence getContent(){
+      return "<module></module>";
+    }
+  }
+;
+  zipLibraryWriter.addBuildResource(userXmlResource);
+  zipLibraryWriter.write();
+  ZipLibrary zipLibrary=new ZipLibrary(zipFile.getPath());
+  compilerContext=compilerContextBuilder.libraryGroup(LibraryGroup.fromLibraries(Lists.<Library>newArrayList(zipLibrary),false)).build();
+  ResourceLoader resourceLoader=ResourceLoaders.wrap(new URLClassLoader(new URL[]{zipFile.toURL()},null));
+  ModuleDefLoader.loadFromResources(TreeLogger.NULL,compilerContext,"com.google.gwt.user.User",resourceLoader,false);
+}

@@ -14,6 +14,21 @@
     LibraryWriter libraryWriter=compilerContext.getLibraryWriter();
     libraryWriter.setLibraryName(module.getName());
     libraryWriter.addDependencyLibraryNames(module.getExternalLibraryModuleNames());
+    for (    BindingProperty bindingProperty : module.getProperties().getBindingProperties()) {
+      libraryWriter.addNewBindingPropertyValuesByName(bindingProperty.getName(),bindingProperty.getTargetLibraryDefinedValues());
+    }
+    for (    ConfigurationProperty configurationProperty : module.getProperties().getConfigurationProperties()) {
+      libraryWriter.addNewConfigurationPropertyValuesByName(configurationProperty.getName(),configurationProperty.getTargetLibraryValues());
+    }
+    for (    Resource buildResource : module.getBuildResourceOracle().getResources()) {
+      if (buildResource.getPath().endsWith(".java") || buildResource.getPath().endsWith(".gwt.xml")) {
+        continue;
+      }
+      libraryWriter.addBuildResource(buildResource);
+    }
+    for (    Resource publicResource : module.getPublicResourceOracle().getResources()) {
+      libraryWriter.addPublicResource(publicResource);
+    }
     return module;
   }
   finally {
