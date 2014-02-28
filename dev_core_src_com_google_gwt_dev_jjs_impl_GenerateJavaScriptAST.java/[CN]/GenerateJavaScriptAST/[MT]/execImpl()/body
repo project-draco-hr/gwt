@@ -1,14 +1,14 @@
 {
   new FixNameClashesVisitor().accept(program);
-  CanObserveSubclassUninitializedFieldsVisitor canObserve=new CanObserveSubclassUninitializedFieldsVisitor();
-  canObserve.accept(program);
-  SortVisitor sorter=new SortVisitor();
-  sorter.accept(program);
-  RecordCrossClassCallsAndJSInlinableMethods recorder=new RecordCrossClassCallsAndJSInlinableMethods();
-  recorder.accept(program);
+  new CanObserveSubclassUninitializedFieldsVisitor().accept(program);
+  new SortVisitor().accept(program);
+  if (hasWholeWorldKnowledge) {
+    new RecordCrossClassCallsAndConstructorLiveness().accept(program);
+    new RecordJSInlinableMethods().accept(program);
+  }
   CreateNamesAndScopesVisitor creator=new CreateNamesAndScopesVisitor();
   creator.accept(program);
-  GenerateJavaScriptVisitor generator=new GenerateJavaScriptVisitor(recorder.methodsForJsInlining);
+  GenerateJavaScriptVisitor generator=new GenerateJavaScriptVisitor();
   generator.accept(program);
   jsProgram.setIndexedFields(indexedFields);
   jsProgram.setIndexedFunctions(indexedFunctions);

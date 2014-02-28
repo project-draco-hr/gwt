@@ -1,5 +1,21 @@
 {
   SourceInfo sourceInfo=SourceOrigin.UNKNOWN;
+  String moduleRuntimeRebindRegistratorSourceName=program.getRuntimeRebindRegistratorTypeSourceName();
+  if (moduleRuntimeRebindRegistratorSourceName != null) {
+    String runtimeRebindRegistratorTypeShortName=SourceName.getShortClassName(moduleRuntimeRebindRegistratorSourceName);
+    JsFunction registerRuntimeRebindsFunction=indexedFunctions.get(runtimeRebindRegistratorTypeShortName + ".register");
+    JsInvocation registerRuntimeRebindsCall=new JsInvocation(sourceInfo);
+    registerRuntimeRebindsCall.setQualifier(registerRuntimeRebindsFunction.getName().makeRef(sourceInfo));
+    globalStmts.add(registerRuntimeRebindsCall.makeStmt());
+  }
+  String modulepropertyProviderRegistratorSourceName=program.getPropertyProviderRegistratorTypeSourceName();
+  if (modulepropertyProviderRegistratorSourceName != null) {
+    String propertyProviderRegistratorTypeShortName=SourceName.getShortClassName(program.getPropertyProviderRegistratorTypeSourceName());
+    JsFunction registerPropertyProvidersFunction=indexedFunctions.get(propertyProviderRegistratorTypeShortName + ".register");
+    JsInvocation registerPropertyProvidersCall=new JsInvocation(sourceInfo);
+    registerPropertyProvidersCall.setQualifier(registerPropertyProvidersFunction.getName().makeRef(sourceInfo));
+    globalStmts.add(registerPropertyProvidersCall.makeStmt());
+  }
   JsName entryName=topScope.declareName("$entry");
   JsVar entryVar=new JsVar(sourceInfo,entryName);
   JsInvocation registerEntryCall=new JsInvocation(sourceInfo);

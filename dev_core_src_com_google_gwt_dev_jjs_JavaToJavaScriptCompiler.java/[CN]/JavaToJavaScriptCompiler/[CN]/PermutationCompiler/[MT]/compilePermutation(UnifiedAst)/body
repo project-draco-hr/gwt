@@ -24,7 +24,7 @@
     Map<JType,JLiteral> typeIdLiteralssByType=ResolveRuntimeTypeReferences.IntoIntLiterals.exec(jprogram);
     postNormalizationOptimizeJava();
     jprogram.typeOracle.recomputeAfterOptimizations();
-    Pair<? extends JavaToJavaScriptMap,Set<JsNode>> jjsMapAndInlineableFunctions=GenerateJavaScriptAST.exec(jprogram,jsProgram,options.getOutput(),typeIdLiteralssByType,symbolTable,propertyOracles);
+    Pair<? extends JavaToJavaScriptMap,Set<JsNode>> jjsMapAndInlineableFunctions=GenerateJavaScriptAST.exec(jprogram,jsProgram,compilerContext,typeIdLiteralssByType,symbolTable,propertyOracles);
     JavaToJavaScriptMap jjsmap=jjsMapAndInlineableFunctions.getLeft();
     if (System.getProperty("gwt.coverage") != null) {
       CoverageInstrumentor.exec(jsProgram,instrumentableLines);
@@ -35,10 +35,8 @@
       JsNamespaceChooser.exec(jsProgram,jjsmap);
     }
     EvalFunctionsAtTopScope.exec(jsProgram,jjsmap);
-    if (options.getOptimizationLevel() > OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
-      optimizeJs(jjsMapAndInlineableFunctions.getRight());
-      JsDuplicateCaseFolder.exec(jsProgram);
-    }
+    final Set<JsNode> inlinableJsFunctions=jjsMapAndInlineableFunctions.getRight();
+    optimizeJs(inlinableJsFunctions);
     JsStackEmulator.exec(jprogram,jsProgram,propertyOracles,jjsmap);
     Pair<SyntheticArtifact,MultipleDependencyGraphRecorder> dependenciesAndRecorder=splitJsIntoFragments(propertyOracles,permutationId,jjsmap);
     Map<JsName,JsLiteral> internedLiteralByVariableName=renameJsSymbols(propertyOracles);
