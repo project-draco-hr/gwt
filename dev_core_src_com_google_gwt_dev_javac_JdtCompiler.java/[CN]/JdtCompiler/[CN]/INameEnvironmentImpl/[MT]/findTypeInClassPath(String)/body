@@ -1,0 +1,23 @@
+{
+  URL resource=getClassLoader().getResource(internalName + ".class");
+  if (resource == null) {
+    return null;
+  }
+  InputStream openStream=null;
+  try {
+    openStream=resource.openStream();
+    ClassFileReader classFileReader=ClassFileReader.read(openStream,resource.toExternalForm(),true);
+    return new NameEnvironmentAnswer(classFileReader,null);
+  }
+ catch (  IOException e) {
+    return null;
+  }
+catch (  ClassFormatException e) {
+    return null;
+  }
+ finally {
+    if (openStream != null) {
+      Utility.close(openStream);
+    }
+  }
+}

@@ -1,41 +1,24 @@
 {
   char[] internalNameChars=CharOperation.concatWith(compoundTypeName,'/');
   String internalName=String.valueOf(internalNameChars);
-  CompiledClass compiledClass=internalTypes.get(internalName);
-  try {
-    if (compiledClass != null) {
-      return compiledClass.getNameEnvironmentAnswer();
-    }
-  }
- catch (  ClassFormatException ex) {
-  }
   if (isPackage(internalName)) {
     return null;
   }
-  if (additionalTypeProviderDelegate != null) {
-    GeneratedUnit unit=additionalTypeProviderDelegate.doFindAdditionalType(internalName);
-    if (unit != null) {
-      CompilationUnitBuilder b=CompilationUnitBuilder.create(unit);
-      Adapter a=new Adapter(b);
-      return new NameEnvironmentAnswer(a,null);
-    }
+  NameEnvironmentAnswer cachedAnswer=findTypeInCache(internalName);
+  if (cachedAnswer != null) {
+    return cachedAnswer;
   }
-  try {
-    URL resource=getClassLoader().getResource(internalName + ".class");
-    if (resource != null) {
-      InputStream openStream=resource.openStream();
-      try {
-        ClassFileReader cfr=ClassFileReader.read(openStream,resource.toExternalForm(),true);
-        return new NameEnvironmentAnswer(cfr,null);
-      }
-  finally {
-        Utility.close(openStream);
-      }
-    }
+  NameEnvironmentAnswer additionalProviderAnswer=findTypeInAdditionalProvider(internalName);
+  if (additionalProviderAnswer != null) {
+    return additionalProviderAnswer;
   }
- catch (  ClassFormatException e) {
+  NameEnvironmentAnswer libraryGroupAnswer=findTypeInLibraryGroup(internalName);
+  if (libraryGroupAnswer != null) {
+    return libraryGroupAnswer;
   }
-catch (  IOException e) {
+  NameEnvironmentAnswer classPathAnswer=findTypeInClassPath(internalName);
+  if (classPathAnswer != null) {
+    return classPathAnswer;
   }
   return null;
 }
