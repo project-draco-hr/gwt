@@ -1,0 +1,90 @@
+{
+  K[] keys=getSortedKeys();
+  V[] values=getSortedValues();
+  NavigableMap<K,V> map=createNavigableMap();
+  for (int i=0; i < keys.length; i++) {
+    map.put(keys[i],values[i]);
+  }
+  SortedMap<K,V> subMap=map.headMap(keys[2],true);
+  assertEquals(3,subMap.size());
+  subMap=map.headMap(keys[3],true);
+  assertEquals(4,subMap.size());
+  for (int i=0; i < 4; i++) {
+    assertEquals(values[i],subMap.get(keys[i]));
+  }
+  subMap=map.headMap(keys[2],false);
+  assertEquals(2,subMap.size());
+  assertNull(subMap.get(keys[3]));
+  assertEquals(0,map.headMap(keys[0],false).size());
+  try {
+    map.headMap(null,true);
+    assertTrue("expected exception",useNullKey());
+  }
+ catch (  NullPointerException e) {
+    assertFalse("unexpected NPE",useNullKey());
+  }
+  try {
+    map.headMap(null,false);
+    assertTrue("expected exception",useNullKey());
+  }
+ catch (  NullPointerException e) {
+    assertFalse("unexpected NPE",useNullKey());
+  }
+  subMap=map.headMap(keys[2]);
+  assertEquals(2,subMap.size());
+  try {
+    subMap.put(keys[2],values[2]);
+    fail("should throw IllegalArgumentException");
+  }
+ catch (  IllegalArgumentException expected) {
+  }
+  assertEquals(keys.length,map.size());
+  subMap=map.headMap(keys[2],true);
+  assertEquals(3,subMap.size());
+  subMap.remove(keys[1]);
+  assertFalse(subMap.containsKey(keys[1]));
+  assertFalse(subMap.containsValue(values[1]));
+  assertFalse(map.containsKey(keys[1]));
+  assertFalse(map.containsValue(values[1]));
+  assertEquals(2,subMap.size());
+  assertEquals(keys.length - 1,map.size());
+  subMap.put(keys[1],values[1]);
+  try {
+    subMap.subMap(keys[1],keys[3]);
+    fail("should throw IllegalArgumentException");
+  }
+ catch (  IllegalArgumentException expected) {
+  }
+  try {
+    subMap.subMap(keys[3],keys[1]);
+    fail("should throw IllegalArgumentException");
+  }
+ catch (  IllegalArgumentException expected) {
+  }
+  if (useNullKey() && useNullValue()) {
+    map.put(null,null);
+    subMap=map.headMap(null,true);
+    assertEquals(1,subMap.size());
+    assertTrue(subMap.containsValue(null));
+    assertNull(subMap.get(null));
+    subMap=map.subMap(null,false,keys[2],true);
+    assertEquals(3,subMap.size());
+    Set<K> keySet=subMap.keySet();
+    assertEquals(3,keySet.size());
+    Set<Map.Entry<K,V>> entrySet=subMap.entrySet();
+    assertEquals(3,entrySet.size());
+    Collection<V> valueCollection=subMap.values();
+    assertEquals(3,valueCollection.size());
+    map.remove(null);
+  }
+  NavigableMap<K,V> headMap=map.headMap(keys[3],true);
+  assertEquals(4,headMap.size());
+  headMap=headMap.headMap(keys[3],false);
+  assertEquals(3,headMap.size());
+  headMap=headMap.headMap(keys[2],false);
+  assertEquals(2,headMap.size());
+  headMap=headMap.tailMap(keys[0],false);
+  assertEquals(1,headMap.size());
+  headMap=headMap.tailMap(keys[1],false);
+  assertEquals(0,headMap.size());
+}

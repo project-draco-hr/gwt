@@ -1,10 +1,49 @@
 {
-  Map<K,V> map=createMap();
-  map.put(getKeys()[0],getValues()[0]);
-  Collection<V> values=map.values();
-  assertNotNull(values);
-  assertEquals(1,values.size());
-  Iterator<V> valueIter=values.iterator();
-  V value=valueIter.next();
-  assertEquals(value,getValues()[0]);
+  K[] keys=getSortedKeys();
+  V[] values=getSortedValues();
+  NavigableMap<K,V> map=createNavigableMap();
+  map.put(keys[0],values[0]);
+  Collection<V> mapValues=map.values();
+  assertNotNull(mapValues);
+  assertEquals(1,mapValues.size());
+  Iterator<V> valueIter=mapValues.iterator();
+  assertEquals(values[0],valueIter.next());
+  _assertEquals(mapValues,map.values());
+  mapValues.clear();
+  _assertEmpty(map);
+  for (int i=0; i < keys.length; i++) {
+    map.put(keys[i],values[i]);
+  }
+  mapValues.iterator();
+  assertEquals(map.size(),mapValues.size());
+  for (  V value : values) {
+    assertTrue(mapValues.contains(value));
+  }
+  assertEquals(values.length,mapValues.size());
+  int size=0;
+  for (Iterator iter=mapValues.iterator(); iter.hasNext(); iter.next()) {
+    size++;
+  }
+  assertEquals(values.length,size);
+  mapValues=map.descendingMap().values();
+  mapValues.iterator();
+  assertEquals(map.size(),mapValues.size());
+  for (  V value : values) {
+    assertTrue(mapValues.contains(value));
+  }
+  assertEquals(values.length,mapValues.size());
+  size=0;
+  for (Iterator iter=mapValues.iterator(); iter.hasNext(); iter.next()) {
+    size++;
+  }
+  assertEquals(values.length,size);
+  mapValues=map.values();
+  mapValues.remove(values[0]);
+  assertTrue(!map.containsValue(values[0]));
+  assertEquals(values.length - 1,mapValues.size());
+  size=0;
+  for (Iterator iter=mapValues.iterator(); iter.hasNext(); iter.next()) {
+    size++;
+  }
+  assertEquals(values.length - 1,size);
 }

@@ -1,0 +1,30 @@
+{
+  K[] keys=getSortedKeys();
+  V[] values=getSortedValues();
+  NavigableMap<K,V> map=createNavigableMap();
+  for (int i=0; i < keys.length; i++) {
+    map.put(keys[i],values[i]);
+  }
+  assertEquals(keys.length,map.size());
+  Map<K,V> subMap=map.subMap(getLessThanMinimumKey(),keys[3]);
+  assertEquals(3,subMap.size());
+  Set<Map.Entry<K,V>> entrySet=subMap.entrySet();
+  assertEquals(3,entrySet.size());
+  Iterator<Entry<K,V>> it=entrySet.iterator();
+  while (it.hasNext()) {
+    Entry<K,V> entry=it.next();
+    assertTrue(map.containsKey(entry.getKey()));
+    assertTrue(map.containsValue(entry.getValue()));
+  }
+  try {
+    it.next();
+    fail("should throw NoSuchElementException");
+  }
+ catch (  NoSuchElementException expected) {
+  }
+  Set<K> keySet=subMap.keySet();
+  assertEquals(3,keySet.size());
+  for (  K key : keySet) {
+    assertTrue(map.containsKey(key));
+  }
+}

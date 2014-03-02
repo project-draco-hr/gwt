@@ -1,0 +1,28 @@
+{
+  K[] keys=getSortedKeys();
+  V[] values=getSortedValues();
+  NavigableMap<K,V> map=createNavigableMap();
+  map.put(keys[0],values[0]);
+  assertNull(map.higherEntry(keys[0]));
+  assertEquals(keys[0],map.higherEntry(getLessThanMinimumKey()).getKey());
+  assertEquals(values[0],map.higherEntry(getLessThanMinimumKey()).getValue());
+  assertEquals(map.keySet().toArray()[0],map.higherEntry(getLessThanMinimumKey()).getKey());
+  map.put(keys[1],values[1]);
+  assertEquals(keys[0],map.higherEntry(getLessThanMinimumKey()).getKey());
+  Entry<K,V> entry=map.higherEntry(keys[0]);
+  verifyEntry(entry);
+  assertEquals(keys[1],entry.getKey());
+  assertEquals(values[1],entry.getValue());
+  assertNull(map.higherEntry(keys[1]));
+  assertNull(map.higherEntry(getGreaterThanMaximumKey()));
+  try {
+    map.higherEntry(null);
+    assertTrue("expected exception",useNullKey());
+  }
+ catch (  NullPointerException e) {
+    assertFalse("unexpected NPE",useNullKey());
+  }
+  map.clear();
+  assertNull(map.higherEntry(keys[1]));
+  assertNull(map.higherEntry(null));
+}

@@ -1,0 +1,31 @@
+{
+  K[] keys=getSortedKeys();
+  V[] values=getSortedValues();
+  NavigableMap<K,V> map=createNavigableMap();
+  map.put(keys[0],values[0]);
+  map.put(keys[1],values[1]);
+  map.put(keys[3],values[3]);
+  NavigableMap<K,V> tailMap=map.tailMap(keys[1],true);
+  try {
+    tailMap.put(keys[0],values[0]);
+    fail();
+  }
+ catch (  IllegalArgumentException e) {
+  }
+  tailMap.remove(keys[0]);
+  assertEquals(2,tailMap.size());
+  assertEquals(3,map.size());
+  assertTrue(map.containsKey(keys[0]));
+  tailMap.put(keys[2],values[2]);
+  assertEquals(3,tailMap.size());
+  assertEquals(4,map.size());
+  assertTrue(map.containsKey(keys[2]));
+  assertTrue(tailMap.containsKey(keys[2]));
+  tailMap.remove(keys[2]);
+  assertFalse(map.containsKey(keys[2]));
+  assertFalse(tailMap.containsKey(keys[2]));
+  tailMap.clear();
+  assertEquals(0,tailMap.size());
+  assertEquals(1,map.size());
+  assertTrue(map.containsKey(keys[0]));
+}

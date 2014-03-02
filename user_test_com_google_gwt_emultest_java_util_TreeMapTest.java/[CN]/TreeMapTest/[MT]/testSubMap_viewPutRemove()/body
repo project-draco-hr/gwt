@@ -1,0 +1,32 @@
+{
+  K[] keys=getSortedKeys();
+  V[] values=getSortedValues();
+  NavigableMap<K,V> map=createNavigableMap();
+  map.put(keys[0],values[0]);
+  map.put(keys[1],values[1]);
+  map.put(keys[3],values[3]);
+  NavigableMap<K,V> subMap=map.subMap(keys[1],true,keys[3],true);
+  try {
+    subMap.put(keys[0],values[0]);
+    fail();
+  }
+ catch (  IllegalArgumentException e) {
+  }
+  assertFalse(subMap.containsKey(keys[0]));
+  assertNull(subMap.remove(keys[0]));
+  assertTrue(map.containsKey(keys[0]));
+  assertEquals(2,subMap.size());
+  assertEquals(3,map.size());
+  subMap.put(keys[2],values[2]);
+  assertEquals(3,subMap.size());
+  assertEquals(4,map.size());
+  assertTrue(map.containsKey(keys[2]));
+  assertTrue(subMap.containsKey(keys[2]));
+  subMap.remove(keys[2]);
+  assertFalse(map.containsKey(keys[2]));
+  assertFalse(subMap.containsKey(keys[2]));
+  subMap.clear();
+  assertEquals(0,subMap.size());
+  assertEquals(1,map.size());
+  assertTrue(map.containsKey(keys[0]));
+}

@@ -1,0 +1,33 @@
+{
+  K[] keys=getSortedKeys();
+  V[] values=getSortedValues();
+  NavigableMap<K,V> map=createNavigableMap();
+  map.put(keys[0],values[0]);
+  NavigableMap<K,V> descendingMap=map.descendingMap();
+  _assertEquals(descendingMap,map.descendingMap());
+  map.put(keys[1],values[1]);
+  _assertEquals(map,descendingMap.descendingMap());
+  _assertEquals(reverseCollection(map.entrySet()),descendingMap.entrySet());
+  descendingMap.put(keys[2],values[2]);
+  _assertEquals(reverseCollection(map.entrySet()),descendingMap.entrySet());
+  _assertEquals(map.entrySet(),descendingMap.descendingMap().entrySet());
+  descendingMap.remove(keys[1]);
+  _assertEquals(reverseCollection(map.entrySet()),descendingMap.entrySet());
+  descendingMap.clear();
+  assertEquals(0,descendingMap.size());
+  assertEquals(0,map.size());
+  map.put(keys[0],values[0]);
+  map.put(keys[1],values[1]);
+  map.put(keys[2],values[2]);
+  assertEquals(3,descendingMap.size());
+  NavigableMap<K,V> headMap=descendingMap.headMap(keys[1],false);
+  assertEquals(1,headMap.size());
+  assertTrue(headMap.containsKey(keys[2]));
+  NavigableMap<K,V> subMap=descendingMap.subMap(keys[2],true,keys[1],true);
+  assertEquals(2,subMap.size());
+  assertTrue(subMap.containsKey(keys[1]));
+  assertTrue(subMap.containsKey(keys[2]));
+  NavigableMap<K,V> tailMap=descendingMap.tailMap(keys[1],false);
+  assertEquals(1,tailMap.size());
+  assertTrue(tailMap.containsKey(keys[0]));
+}

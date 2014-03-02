@@ -1,0 +1,29 @@
+{
+  NavigableMap<K,V> map=createNavigableMap();
+  map.putAll(makeFullMap());
+  resetFull();
+  ArrayList<K> keys=new ArrayList<K>();
+  for (  Object key : getSampleKeys()) {
+    keys.add((K)key);
+  }
+  if (useNullKey() && !GWT.isScript() && TestUtils.getJdkVersion() < 7) {
+    map.remove(null);
+    keys.remove(null);
+  }
+  Comparator<? super K> cmp=((TreeMap<K,V>)map).comparator();
+  Collections.sort(keys,Collections.reverseOrder(cmp));
+  Iterator<K> it=map.descendingKeySet().iterator();
+  for (  K key : keys) {
+    assertTrue(it.hasNext());
+    K rem=it.next();
+    it.remove();
+    assertEquals(key,rem);
+  }
+  try {
+    it.next();
+    fail("should throw NoSuchElementException");
+  }
+ catch (  NoSuchElementException expected) {
+  }
+  _assertEmpty(map);
+}

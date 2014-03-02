@@ -1,15 +1,28 @@
 {
-  SortedMap sortedMap=createSortedMap();
-  sortedMap.put(getKeys()[0],getValues()[0]);
+  K[] keys=getSortedKeys();
+  V[] values=getSortedValues();
+  SortedMap sortedMap=createNavigableMap();
   if (isNaturalOrder()) {
     sortedMap.headMap(getConflictingKey());
   }
  else {
     try {
       sortedMap.headMap(getConflictingKey());
-      assertTrue("CCE expected in Development Mode",GWT.isScript());
+      fail("ClassCastException expected");
     }
- catch (    ClassCastException e) {
+ catch (    ClassCastException expected) {
+    }
+  }
+  sortedMap.put(keys[0],values[0]);
+  if (isNaturalOrder()) {
+    sortedMap.headMap(getConflictingKey());
+  }
+ else {
+    try {
+      sortedMap.headMap(getConflictingKey());
+      fail("ClassCastException expected");
+    }
+ catch (    ClassCastException expected) {
     }
   }
 }

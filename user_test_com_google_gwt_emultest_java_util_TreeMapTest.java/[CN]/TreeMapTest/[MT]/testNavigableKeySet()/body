@@ -1,0 +1,55 @@
+{
+  K[] keys=getSortedKeys();
+  V[] values=getSortedValues();
+  NavigableMap<K,V> map=createNavigableMap();
+  map.put(keys[0],values[0]);
+  Set<K> keySet=map.navigableKeySet();
+  _assertEquals(keySet,map.navigableKeySet());
+  map.put(keys[1],values[1]);
+  map.put(keys[2],values[2]);
+  _assertEquals(map.navigableKeySet(),keySet);
+  _assertEquals(keySet,keySet);
+  try {
+    keySet.add(keys[3]);
+    fail("should throw UnsupportedOperationException");
+  }
+ catch (  UnsupportedOperationException expected) {
+  }
+  try {
+    keySet.add(null);
+    fail("should throw UnsupportedOperationException");
+  }
+ catch (  UnsupportedOperationException expected) {
+  }
+  try {
+    keySet.addAll(null);
+    fail("should throw NullPointerException");
+  }
+ catch (  NullPointerException expected) {
+  }
+  Collection<K> collection=new ArrayList<K>();
+  keySet.addAll(collection);
+  try {
+    collection.add(keys[3]);
+    keySet.addAll(collection);
+    fail("should throw UnsupportedOperationException");
+  }
+ catch (  UnsupportedOperationException expected) {
+  }
+  Iterator<K> iter=keySet.iterator();
+  iter.next();
+  iter.remove();
+  assertFalse(map.containsKey(keys[0]));
+  collection=new ArrayList<K>();
+  collection.add(keys[2]);
+  keySet.retainAll(collection);
+  assertEquals(1,map.size());
+  assertTrue(keySet.contains(keys[2]));
+  keySet.removeAll(collection);
+  _assertEmpty(map);
+  map.put(keys[0],values[0]);
+  assertEquals(1,map.size());
+  assertTrue(keySet.contains(keys[0]));
+  keySet.clear();
+  _assertEmpty(map);
+}

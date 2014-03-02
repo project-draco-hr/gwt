@@ -1,0 +1,64 @@
+{
+  K[] keys=getSortedKeys();
+  V[] values=getSortedValues();
+  NavigableMap<K,V> map=createNavigableMap();
+  map.put(keys[0],values[0]);
+  map.put(keys[1],values[1]);
+  map.put(keys[2],values[2]);
+  map.put(keys[3],values[3]);
+  SortedMap<K,V> subMap=map.subMap(keys[1],keys[3]);
+  Set<Entry<K,V>> entries=subMap.entrySet();
+  assertEquals(2,subMap.size());
+  assertEquals(subMap.size(),entries.size());
+  assertFalse(entries.contains(new SimpleEntry<K,V>(keys[0],values[0])));
+  assertTrue(entries.contains(new SimpleEntry<K,V>(keys[1],values[1])));
+  assertTrue(entries.contains(new SimpleEntry<K,V>(keys[2],values[2])));
+  assertFalse(entries.contains(new SimpleEntry<K,V>(keys[3],values[3])));
+  entries.remove(new SimpleEntry<K,V>(keys[1],values[1]));
+  assertEquals(3,map.size());
+  assertEquals(subMap.size(),entries.size());
+  assertFalse(entries.contains(new SimpleEntry<K,V>(keys[1],values[1])));
+  assertFalse(subMap.containsKey(keys[1]));
+  assertFalse(subMap.containsValue(values[1]));
+  entries.clear();
+  assertEquals(2,map.size());
+  assertEquals(subMap.size(),entries.size());
+  assertTrue(entries.isEmpty());
+  assertTrue(subMap.isEmpty());
+  subMap.put(keys[2],values[2]);
+  assertEquals(1,subMap.size());
+  assertEquals(subMap.size(),entries.size());
+  subMap.put(keys[1],values[1]);
+  Iterator<Entry<K,V>> it=entries.iterator();
+  while (it.hasNext()) {
+    Map.Entry<K,V> entry=it.next();
+    subMap.containsKey(entry.getKey());
+    subMap.containsValue(entry.getValue());
+    it.remove();
+  }
+  try {
+    it.next();
+    fail("should throw NoSuchElementException");
+  }
+ catch (  NoSuchElementException expected) {
+  }
+  assertEquals(2,map.size());
+  assertEquals(0,subMap.size());
+  assertEquals(subMap.size(),entries.size());
+  map=createNavigableMap();
+  Set<Entry<K,V>> entrySet=map.entrySet();
+  map.put(keys[0],values[0]);
+  map.put(keys[1],values[1]);
+  map.put(keys[2],values[2]);
+  assertEquals(map.size(),entrySet.size());
+  _assertEquals(entrySet,map.entrySet());
+  map.clear();
+  assertEquals(map.size(),entrySet.size());
+  _assertEquals(entrySet,map.entrySet());
+  map.put(keys[0],values[0]);
+  assertEquals(map.size(),entrySet.size());
+  _assertEquals(entrySet,map.entrySet());
+  entrySet.clear();
+  assertEquals(map.size(),entrySet.size());
+  _assertEquals(entrySet,map.entrySet());
+}

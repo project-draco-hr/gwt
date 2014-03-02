@@ -1,0 +1,47 @@
+{
+  K[] keys=getSortedKeys();
+  V[] values=getSortedValues();
+  NavigableMap<K,V> map=createNavigableMap();
+  for (int i=0; i < keys.length; i++) {
+    map.put(keys[i],values[i]);
+  }
+  Map<K,V> head=map.headMap(keys[3]);
+  assertEquals(3,head.size());
+  assertTrue(head.containsKey(keys[0]));
+  assertTrue(head.containsValue(values[1]));
+  assertTrue(head.containsKey(keys[2]));
+  if (useNullKey() && useNullValue()) {
+    map.put(null,null);
+    SortedMap<K,V> submap=map.headMap(null);
+    assertEquals(0,submap.size());
+    Set<K> keySet=submap.keySet();
+    assertEquals(0,keySet.size());
+    Set<Map.Entry<K,V>> entrySet=submap.entrySet();
+    assertEquals(0,entrySet.size());
+    Collection<V> valueCollection=submap.values();
+    assertEquals(0,valueCollection.size());
+    map.remove(null);
+  }
+  SortedMap<K,V> submap=map.headMap(getLessThanMinimumKey());
+  assertEquals(submap.size(),0);
+  assertTrue(submap.isEmpty());
+  try {
+    submap.firstKey();
+    fail("NoSuchElementException should be thrown");
+  }
+ catch (  NoSuchElementException expected) {
+  }
+  try {
+    submap.lastKey();
+    fail("NoSuchElementException should be thrown");
+  }
+ catch (  NoSuchElementException expected) {
+  }
+  try {
+    submap.headMap(null);
+    assertTrue("expected exception",useNullKey());
+  }
+ catch (  NullPointerException e) {
+    assertFalse("unexpected NPE",useNullKey());
+  }
+}

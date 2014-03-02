@@ -1,21 +1,44 @@
 {
-  Map<K,V> map=createMap();
-  map.put(getKeys()[0],getValues()[0]);
+  K[] keys=getSortedKeys();
+  V[] values=getSortedValues();
+  NavigableMap<K,V> map=createNavigableMap();
+  map.put(keys[0],values[0]);
   assertEquals(1,map.size());
-  map.put(getKeys()[1],getValues()[1]);
+  map.put(keys[1],values[1]);
   assertEquals(2,map.size());
-  map.put(getKeys()[2],getValues()[2]);
+  map.put(keys[2],values[2]);
   assertEquals(3,map.size());
-  map.remove(getKeys()[0]);
+  map.remove(keys[0]);
   assertEquals(2,map.size());
-  map.remove(getKeys()[1]);
+  map.remove(keys[1]);
   assertEquals(1,map.size());
-  map.remove(getKeys()[2]);
+  map.remove(keys[2]);
   assertEquals(0,map.size());
-  map.put(getKeys()[0],getValues()[0]);
-  map.put(getKeys()[1],getValues()[1]);
-  map.put(getKeys()[2],getValues()[2]);
+  map.put(keys[0],values[0]);
+  map.put(keys[1],values[1]);
+  map.put(keys[2],values[2]);
   assertEquals(3,map.size());
   map.clear();
   _assertEmpty(map);
+  for (int i=0; i < keys.length; i++) {
+    map.put(keys[i],values[i]);
+  }
+  assertEquals(keys.length,map.size());
+  for (int i=0; i < keys.length; i++) {
+    assertEquals(i,map.headMap(keys[i]).size());
+  }
+  assertEquals(keys.length,map.headMap(getGreaterThanMaximumKey()).size());
+  for (int i=0; i < keys.length; i++) {
+    assertEquals(keys.length - i,map.tailMap(keys[i]).size());
+  }
+  assertEquals(keys.length,map.tailMap(getLessThanMinimumKey()).size());
+  assertEquals(1,map.subMap(keys[1],keys[2]).size());
+  assertEquals(2,map.subMap(keys[0],keys[2]).size());
+  try {
+    map.subMap(keys[2],keys[1]);
+    fail("Should throw an IllegalArgumentException");
+  }
+ catch (  IllegalArgumentException expected) {
+  }
+  assertEquals(keys.length,map.subMap(getLessThanMinimumKey(),getGreaterThanMaximumKey()).size());
 }

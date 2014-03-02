@@ -1,15 +1,23 @@
 {
+  K[] keys=getKeys();
+  V[] values=getValues();
   if (isRemoveSupported) {
-    map=createMap();
-    map.put(getKeys()[0],getValues()[0]);
+    Map<K,V> map=createMap();
+    try {
+      map.remove(null);
+      if (!GWT.isScript() && TestUtils.getJdkVersion() > 6) {
+        assertTrue(useNullKey());
+      }
+    }
+ catch (    NullPointerException e) {
+      assertFalse(useNullKey());
+    }
+    map.put(keys[0],values[0]);
     try {
       map.remove(null);
       assertTrue(useNullKey());
     }
  catch (    NullPointerException e) {
-      assertFalse(useNullKey());
-    }
-catch (    JavaScriptException e) {
       assertFalse(useNullKey());
     }
   }
