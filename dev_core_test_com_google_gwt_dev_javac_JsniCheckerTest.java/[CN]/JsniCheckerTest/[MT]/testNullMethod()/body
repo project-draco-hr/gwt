@@ -1,16 +1,6 @@
 {
-  StringBuffer code=new StringBuffer();
-  code.append("class Buggy {\n");
-  code.append("  static native Object main() /*-{\n");
-  code.append("    return @null::nullMethod()();\n");
-  code.append("  }-*/;\n");
-  code.append("}\n");
-  shouldGenerateNoWarning(code);
-  code=new StringBuffer();
-  code.append("class Buggy {\n");
-  code.append("  static native Object main() /*-{\n");
-  code.append("    return @null::foo()();\n");
-  code.append("  }-*/;\n");
-  code.append("}\n");
-  shouldGenerateError(code,3,"Referencing method 'null.foo()': 'nullMethod()' is the only legal method for 'null'");
+  MockJavaResource buggy=JavaResourceBase.createMockJavaResource("Buggy","class Buggy {","  static native Object main() /*-{","    return @null::nullMethod()();","  }-*/;","}");
+  shouldGenerateNoWarning(buggy);
+  buggy=JavaResourceBase.createMockJavaResource("Buggy","class Buggy {","  static native Object main() /*-{","    return @null::foo()();","  }-*/;","}");
+  shouldGenerateError(buggy,3,"Referencing method 'null.foo()': 'nullMethod()' is the only legal method for 'null'");
 }

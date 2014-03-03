@@ -1,32 +1,35 @@
 {
-  if (annotations != null) {
-    for (    Annotation a : annotations) {
-      if (SuppressWarnings.class.getName().equals(CharOperation.toString(((ReferenceBinding)a.resolvedType).compoundName))) {
-        for (        MemberValuePair pair : a.memberValuePairs()) {
-          if (String.valueOf(pair.name).equals("value")) {
-            Expression valueExpr=pair.value;
-            if (valueExpr instanceof StringLiteral) {
-              return Sets.create(((StringLiteral)valueExpr).constant.stringValue().toLowerCase(Locale.ENGLISH));
-            }
- else             if (valueExpr instanceof ArrayInitializer) {
-              ArrayInitializer ai=(ArrayInitializer)valueExpr;
-              String[] values=new String[ai.expressions.length];
-              for (int i=0, j=values.length; i < j; i++) {
-                if ((ai.expressions[i]) instanceof StringLiteral) {
-                  StringLiteral expression=(StringLiteral)ai.expressions[i];
-                  values[i]=expression.constant.stringValue().toLowerCase(Locale.ENGLISH);
-                }
+  if (annotations == null) {
+    return Sets.create();
+  }
+  for (  Annotation a : annotations) {
+    if (!SuppressWarnings.class.getName().equals(CharOperation.toString(((ReferenceBinding)a.resolvedType).compoundName))) {
+      continue;
+    }
+    for (    MemberValuePair pair : a.memberValuePairs()) {
+      if (!String.valueOf(pair.name).equals("value")) {
+        continue;
+      }
+      Expression valueExpr=pair.value;
+      if (valueExpr instanceof StringLiteral) {
+        return Sets.create(((StringLiteral)valueExpr).constant.stringValue().toLowerCase(Locale.ENGLISH));
+      }
+ else       if (valueExpr instanceof ArrayInitializer) {
+        ArrayInitializer ai=(ArrayInitializer)valueExpr;
+        String[] values=new String[ai.expressions.length];
+        for (int i=0, j=values.length; i < j; i++) {
+          if ((ai.expressions[i]) instanceof StringLiteral) {
+            StringLiteral expression=(StringLiteral)ai.expressions[i];
+            values[i]=expression.constant.stringValue().toLowerCase(Locale.ENGLISH);
+          }
  else {
-                  suppressionAnnotationWarning(a,"Unable to analyze SuppressWarnings annotation, " + ai.expressions[i].toString() + " not a string constant.");
-                }
-              }
-              return Sets.create(values);
-            }
- else {
-              suppressionAnnotationWarning(a,"Unable to analyze SuppressWarnings annotation, " + valueExpr.toString() + " not a string constant.");
-            }
+            suppressionAnnotationWarning(a,"Unable to analyze SuppressWarnings annotation, " + ai.expressions[i].toString() + " not a string constant.");
           }
         }
+        return Sets.create(values);
+      }
+ else {
+        suppressionAnnotationWarning(a,"Unable to analyze SuppressWarnings annotation, " + valueExpr.toString() + " not a string constant.");
       }
     }
   }

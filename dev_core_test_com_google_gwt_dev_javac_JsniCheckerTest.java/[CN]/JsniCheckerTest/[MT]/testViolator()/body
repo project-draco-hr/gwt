@@ -1,32 +1,12 @@
 {
 {
-    StringBuffer okay=new StringBuffer();
-    okay.append("class Buggy {\n");
-    okay.append("  native void jsniMeth() /*-{\n");
-    okay.append("    $wnd.alert(@Extra.Inner::x);\n");
-    okay.append("  }-*/;\n");
-    okay.append("}\n");
-    StringBuffer extra=new StringBuffer();
-    extra.append("class Extra {\n");
-    extra.append("  private static class Inner { \n");
-    extra.append("    private static int x = 3;\n");
-    extra.append("  }\n");
-    extra.append("}\n");
-    shouldGenerateNoError(okay,extra);
+    MockJavaResource buggy=JavaResourceBase.createMockJavaResource("Buggy","class Buggy {","  native void jsniMeth() /*-{","    $wnd.alert(@Extra.Inner::x);","  }-*/;","}");
+    MockJavaResource extra=JavaResourceBase.createMockJavaResource("Extra","class Extra {","  private static class Inner { ","    private static int x = 3;","  }","}");
+    shouldGenerateNoError(buggy,extra);
   }
 {
-    StringBuffer buggy=new StringBuffer();
-    buggy.append("class Buggy {\n");
-    buggy.append("  native void jsniMeth() /*-{\n");
-    buggy.append("    $wnd.alert(@Extra.Inner::x);\n");
-    buggy.append("  }-*/;\n");
-    buggy.append("}\n");
-    StringBuffer extra=new StringBuffer();
-    extra.append("class Extra {\n");
-    extra.append("  private static class Inner { \n");
-    extra.append("    private static long x = 3;\n");
-    extra.append("  }\n");
-    extra.append("}\n");
+    MockJavaResource buggy=JavaResourceBase.createMockJavaResource("Buggy","class Buggy {","  native void jsniMeth() /*-{","    $wnd.alert(@Extra.Inner::x);","  }-*/;","}");
+    MockJavaResource extra=JavaResourceBase.createMockJavaResource("Extra","class Extra {","  private static class Inner { ","    private static long x = 3;","  }","}");
     shouldGenerateError(buggy,extra,3,"Referencing field 'Extra.Inner.x': type 'long' is not safe to access in JSNI code");
   }
 }

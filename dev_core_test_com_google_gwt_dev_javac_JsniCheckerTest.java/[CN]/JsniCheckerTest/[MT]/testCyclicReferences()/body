@@ -1,38 +1,12 @@
 {
 {
-    StringBuffer buggy=new StringBuffer();
-    buggy.append("class Buggy {\n");
-    buggy.append("  static int anint = 3;\n");
-    buggy.append("  native void jsniMeth() /*-{\n");
-    buggy.append("    $wnd.alert(@Extra::along);\n");
-    buggy.append("  }-*/;\n");
-    buggy.append("}\n");
-    StringBuffer extra=new StringBuffer();
-    extra.append("class Extra {\n");
-    extra.append("  static long along = 3;\n");
-    extra.append("  native void jsniMeth() /*-{\n");
-    extra.append("    $wnd.alert(@Buggy::anint);\n");
-    extra.append("  }-*/;\n");
-    extra.append("}\n");
+    MockJavaResource buggy=JavaResourceBase.createMockJavaResource("Buggy","class Buggy {","  static int anint = 3;","  native void jsniMeth() /*-{","    $wnd.alert(@Extra::along);","  }-*/;","}");
+    MockJavaResource extra=JavaResourceBase.createMockJavaResource("Extra","class Extra {","  static long along = 3;","  native void jsniMeth() /*-{","    $wnd.alert(@Buggy::anint);","  }-*/;","}");
     shouldGenerateError(buggy,extra,4,"Referencing field 'Extra.along': " + "type 'long' is not safe to access in JSNI code");
   }
 {
-    StringBuffer buggy=new StringBuffer();
-    buggy.append("class Buggy {\n");
-    buggy.append("  Extra anExtra = new Extra();\n");
-    buggy.append("  static int anint = 3;\n");
-    buggy.append("  native void jsniMeth() /*-{\n");
-    buggy.append("    $wnd.alert(@Extra::along);\n");
-    buggy.append("  }-*/;\n");
-    buggy.append("}\n");
-    StringBuffer extra=new StringBuffer();
-    extra.append("class Extra {\n");
-    extra.append("  Buggy mattress = new Buggy();\n");
-    extra.append("  static long along = 3;\n");
-    extra.append("  native void jsniMeth() /*-{\n");
-    extra.append("    $wnd.alert(@Buggy::anint);\n");
-    extra.append("  }-*/;\n");
-    extra.append("}\n");
+    MockJavaResource buggy=JavaResourceBase.createMockJavaResource("Buggy","class Buggy {","  Extra anExtra = new Extra();","  static int anint = 3;","  native void jsniMeth() /*-{","    $wnd.alert(@Extra::along);","  }-*/;","}");
+    MockJavaResource extra=JavaResourceBase.createMockJavaResource("Extra","class Extra {","  Buggy mattress = new Buggy();","  static long along = 3;","  native void jsniMeth() /*-{","    $wnd.alert(@Buggy::anint);","  }-*/;","}");
     shouldGenerateError(buggy,extra,5,"Referencing field 'Extra.along': " + "type 'long' is not safe to access in JSNI code");
   }
 }

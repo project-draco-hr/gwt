@@ -1,0 +1,23 @@
+{
+  for (  MethodBinding constructorBinding : clazz.getMethods(INIT_CTOR_CHARS)) {
+    StringBuilder methodSig=new StringBuilder();
+    if (clazz instanceof NestedTypeBinding) {
+      NestedTypeBinding nestedBinding=(NestedTypeBinding)clazz;
+      if (nestedBinding.enclosingInstances != null) {
+        for (int i=0; i < nestedBinding.enclosingInstances.length; ++i) {
+          SyntheticArgumentBinding arg=nestedBinding.enclosingInstances[i];
+          methodSig.append(arg.type.signature());
+        }
+      }
+    }
+    if (constructorBinding.parameters != null) {
+      for (      TypeBinding binding : constructorBinding.parameters) {
+        methodSig.append(binding.signature());
+      }
+    }
+    if (methodSig.toString().equals(jsniRef.paramTypesString())) {
+      return constructorBinding;
+    }
+  }
+  return null;
+}

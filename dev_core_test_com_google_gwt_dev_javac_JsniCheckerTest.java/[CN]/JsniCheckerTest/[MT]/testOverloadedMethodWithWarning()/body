@@ -1,10 +1,4 @@
 {
-  StringBuffer code=new StringBuffer();
-  code.append("class Buggy {\n");
-  code.append("  long m(int x) { return -1; }\n");
-  code.append("  int m(String x) { return -1; }\n");
-  code.append("  native void jsniMeth() /*-{\n");
-  code.append("    $wnd.alert(this.@Buggy::m(I)(10)); }-*/;\n");
-  code.append("}\n");
-  shouldGenerateError(code,5,"Referencing method 'Buggy.m': return type 'long' is not safe to access in JSNI code");
+  MockJavaResource buggy=JavaResourceBase.createMockJavaResource("Buggy","class Buggy {","  long m(int x) { return -1; }","  int m(String x) { return -1; }","  native void jsniMeth() /*-{","    $wnd.alert(this.@Buggy::m(I)(10)); }-*/;","}");
+  shouldGenerateError(buggy,5,"Referencing method 'Buggy.m': return type 'long' is not safe to access in JSNI code");
 }

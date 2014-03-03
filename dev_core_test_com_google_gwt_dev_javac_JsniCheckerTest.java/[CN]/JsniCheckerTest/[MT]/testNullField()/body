@@ -1,16 +1,6 @@
 {
-  StringBuffer code=new StringBuffer();
-  code.append("class Buggy {\n");
-  code.append("  static native Object main() /*-{\n");
-  code.append("    return @null::nullField;\n");
-  code.append("  }-*/;\n");
-  code.append("}\n");
-  shouldGenerateNoWarning(code);
-  code=new StringBuffer();
-  code.append("class Buggy {\n");
-  code.append("  static native Object main() /*-{\n");
-  code.append("    return @null::foo;\n");
-  code.append("  }-*/;\n");
-  code.append("}\n");
-  shouldGenerateError(code,3,"Referencing field 'null.foo': 'nullField' is the only legal field reference for 'null'");
+  MockJavaResource buggy=JavaResourceBase.createMockJavaResource("Buggy","class Buggy {","  static native Object main() /*-{","    return @null::nullField;","  }-*/;","}");
+  shouldGenerateNoWarning(buggy);
+  buggy=JavaResourceBase.createMockJavaResource("Buggy","class Buggy {","  static native Object main() /*-{","    return @null::foo;","  }-*/;","}");
+  shouldGenerateError(buggy,3,"Referencing field 'null.foo': 'nullField' is the only legal field reference for 'null'");
 }

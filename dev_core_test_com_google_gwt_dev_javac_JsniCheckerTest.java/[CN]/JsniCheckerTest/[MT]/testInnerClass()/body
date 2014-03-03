@@ -1,12 +1,4 @@
 {
-  StringBuffer code=new StringBuffer();
-  code.append("public class Buggy {\n");
-  code.append("  static class Inner {\n");
-  code.append("    static long x = 3;\n");
-  code.append("  }\n");
-  code.append("  native void jsniMeth() /*-{\n");
-  code.append("    $wnd.alert(@Buggy.Inner::x);\n");
-  code.append("  }-*/;\n");
-  code.append("}\n");
-  shouldGenerateError(code,6,"Referencing field 'Buggy.Inner.x': " + "type 'long' is not safe to access in JSNI code");
+  MockJavaResource buggy=JavaResourceBase.createMockJavaResource("Buggy","public class Buggy {","  static class Inner {","    static long x = 3;","  }","  native void jsniMeth() /*-{","    $wnd.alert(@Buggy.Inner::x);","  }-*/;","}");
+  shouldGenerateError(buggy,6,"Referencing field 'Buggy.Inner.x': " + "type 'long' is not safe to access in JSNI code");
 }

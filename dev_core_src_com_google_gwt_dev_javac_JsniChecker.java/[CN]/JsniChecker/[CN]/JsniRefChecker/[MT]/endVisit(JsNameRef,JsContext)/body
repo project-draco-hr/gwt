@@ -1,17 +1,16 @@
 {
-  this.errorInfo=x.getSourceInfo();
   String ident=x.getIdent();
-  if (ident.charAt(0) == '@') {
-    JsniRef jsniRef=JsniRef.parse(ident);
-    if (jsniRef == null) {
-      emitError("Malformed JSNI identifier '" + ident + "'");
-    }
- else {
-      Binding binding=checkRef(jsniRef,x.getQualifier() != null,ctx.isLvalue());
-      if (binding != null) {
-        jsniRefs.put(ident,binding);
-      }
-    }
+  if (ident.charAt(0) != '@') {
+    return;
   }
-  this.errorInfo=null;
+  JsniRef jsniRef=JsniRef.parse(ident);
+  if (jsniRef == null) {
+    emitError("Malformed JSNI identifier '" + ident + "'",x.getSourceInfo());
+    return;
+  }
+  resolveClassReference(jsniRef);
+  Binding binding=checkRef(x.getSourceInfo(),jsniRef,x.getQualifier() != null,ctx.isLvalue());
+  if (binding != null) {
+    jsniRefs.put(ident,binding);
+  }
 }

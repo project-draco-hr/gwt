@@ -1,16 +1,4 @@
 {
-  StringBuffer code=new StringBuffer();
-  code.append("class Buggy {\n");
-  code.append("  static void main() {\n");
-  code.append("    new Object() {\n");
-  code.append("      class A {\n");
-  code.append("        int foo = 3;\n");
-  code.append("      };\n");
-  code.append("    };\n");
-  code.append("  }\n");
-  code.append("  native void jsniMeth(Object o) /*-{\n");
-  code.append("    o.@Buggy$1.A::foo;\n");
-  code.append("  }-*/;\n");
-  code.append("}\n");
-  shouldGenerateError(code,10,"Referencing class 'Buggy$1.A': " + "JSNI references to anonymous classes are illegal");
+  MockJavaResource buggy=JavaResourceBase.createMockJavaResource("Buggy","class Buggy {","  static void main() {","    new Object() {","      class A {","        int foo = 3;","      };","    };","  }","  native void jsniMeth(Object o) /*-{","    o.@Buggy$1.A::foo;","  }-*/;","}");
+  shouldGenerateError(buggy,10,"Referencing class 'Buggy$1.A': " + "JSNI references to anonymous classes are illegal");
 }
