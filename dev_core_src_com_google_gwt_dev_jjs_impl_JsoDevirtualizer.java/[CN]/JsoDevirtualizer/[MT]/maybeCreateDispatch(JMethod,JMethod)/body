@@ -1,0 +1,16 @@
+{
+  if (dispatchTo == null) {
+    return null;
+  }
+  List<JParameter> parameters=Lists.newArrayList(devirtualMethod.getParams());
+  SourceInfo sourceInfo=devirtualMethod.getSourceInfo();
+  JParameterRef thisParamRef=null;
+  if (!dispatchTo.isStatic()) {
+    thisParamRef=new JParameterRef(sourceInfo,parameters.remove(0));
+  }
+  JMethodCall dispatchCall=new JMethodCall(sourceInfo,thisParamRef,dispatchTo);
+  for (  JParameter param : parameters) {
+    dispatchCall.addArg(new JParameterRef(sourceInfo,param));
+  }
+  return dispatchCall;
+}

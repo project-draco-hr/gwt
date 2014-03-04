@@ -1,0 +1,17 @@
+{
+  SourceInfo sourceInfo=method.getSourceInfo().makeChild();
+  int methodCount=jsoMethodInstances.add(method.getSignature(),1);
+  String prefix=method.getName() + (methodCount == 0 ? "" : methodCount);
+  JMethod devirtualMethod=new JMethod(sourceInfo,prefix + "__devirtual$",inClass,method.getType(),false,true,true,AccessModifier.PUBLIC);
+  devirtualMethod.setBody(new JMethodBody(sourceInfo));
+  devirtualMethod.setSynthetic();
+  inClass.addMethod(devirtualMethod);
+  JProgram.createParameter(sourceInfo,"this$static",method.getEnclosingType(),true,true,devirtualMethod);
+  for (  JParameter oldParam : method.getParams()) {
+    JProgram.createParameter(sourceInfo,oldParam.getName(),oldParam.getType(),true,false,devirtualMethod);
+  }
+  devirtualMethod.freezeParamTypes();
+  devirtualMethod.addThrownExceptions(method.getThrownExceptions());
+  sourceInfo.addCorrelation(sourceInfo.getCorrelator().by(devirtualMethod));
+  return devirtualMethod;
+}

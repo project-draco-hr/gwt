@@ -4,5 +4,11 @@
   if (x == program.getTypeJavaLangObject()) {
     generateToStringAlias(x,globalStmts);
     generateTypeMarker(globalStmts);
+    setupStringCastMap(program.getTypeJavaLangString(),globalStmts);
+    JsFunction patchFunc=indexedFunctions.get("JavaClassHierarchySetupUtil.patchIsArray");
+    JsName patchFuncName=patchFunc.getName();
+    JsInvocation callPatchFunc=new JsInvocation(x.getSourceInfo());
+    callPatchFunc.setQualifier(patchFuncName.makeRef(x.getSourceInfo()));
+    globalStmts.add(callPatchFunc.makeStmt());
   }
 }
