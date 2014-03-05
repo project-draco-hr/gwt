@@ -1,0 +1,31 @@
+{
+  final String code=Joiner.on("\n").join(lines);
+  MockResourceOracle sourceOracle=new MockResourceOracle();
+  sourceOracle.addOrReplace(new MockJavaResource("test.EntryPoint"){
+    @Override public CharSequence getContent(){
+      return code;
+    }
+  }
+);
+  sourceOracle.add(JavaAstConstructor.getCompilerTypes());
+  addBuiltinClassesToGenerateJavaScriptAST(sourceOracle);
+  PrecompileTaskOptions options=new PrecompileTaskOptionsImpl();
+  options.setOutput(JsOutputOption.PRETTY);
+  options.setRunAsyncEnabled(false);
+  CompilerContext context=new CompilerContext.Builder().options(options).build();
+  CompilationState state=CompilationStateBuilder.buildFrom(logger,context,sourceOracle.getResources(),null);
+  JProgram jProgram=AstConstructor.construct(logger,state,options,new Properties());
+  jProgram.addEntryMethod(findMethod(jProgram,"onModuleLoad"));
+  ComputeCastabilityInformation.exec(jProgram,false);
+  ImplementCastsAndTypeChecks.exec(jProgram,false);
+  ArrayNormalizer.exec(jProgram,false);
+  Map<JType,JLiteral> typeIdsByType=ResolveRuntimeTypeReferences.IntoIntLiterals.exec(jProgram);
+  Map<StandardSymbolData,JsName> symbolTable=new TreeMap<StandardSymbolData,JsName>(new SymbolData.ClassIdentComparator());
+  BindingProperty stackMode=new BindingProperty("compiler.stackMode");
+  stackMode.addDefinedValue(new ConditionNone(),"EMULATED");
+  PropertyOracle[] properties={new StaticPropertyOracle(new BindingProperty[]{stackMode},new String[]{"EMULATED"},new ConfigurationProperty[]{recordFileNamesProp,recordLineNumbersProp})};
+  JsProgram jsProgram=new JsProgram();
+  JavaToJavaScriptMap jjsmap=GenerateJavaScriptAST.exec(jProgram,jsProgram,context,typeIdsByType,symbolTable,properties).getLeft();
+  JsStackEmulator.exec(jProgram,jsProgram,properties,jjsmap);
+  return jsProgram;
+}

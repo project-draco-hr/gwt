@@ -1,12 +1,17 @@
 {
-  addMockIntrinsic();
+  addBuiltinClassesToGenerateJavaScriptAST(sourceOracle);
+  sourceOracle.addOrReplace(new MockJavaResource("com.google.gwt.core.client.GWT"){
+    @Override public CharSequence getContent(){
+      return "package com.google.gwt.core.client; public class GWT {" + "public static void runAsync(RunAsyncCallback cb){}" + "public static void runAsync(Class<?> clazz, RunAsyncCallback cb){}}";
+    }
+  }
+);
   sourceOracle.addOrReplace(new MockJavaResource("test.EntryPoint"){
     @Override public CharSequence getContent(){
       return code;
     }
   }
 );
-  addBuiltinClasses(sourceOracle);
   PrecompileTaskOptions options=new PrecompileTaskOptionsImpl();
   options.setOutput(JsOutputOption.PRETTY);
   CompilerContext compilerContext=new CompilerContext.Builder().options(options).build();
