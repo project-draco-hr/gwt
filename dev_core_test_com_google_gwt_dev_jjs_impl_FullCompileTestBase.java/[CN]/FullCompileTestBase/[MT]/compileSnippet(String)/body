@@ -1,0 +1,22 @@
+{
+  sourceOracle.addOrReplace(new MockJavaResource("test.EntryPoint"){
+    @Override public CharSequence getContent(){
+      return code;
+    }
+  }
+);
+  CompilerContext compilerContext=provideCompilerContext();
+  CompilationState state=CompilationStateBuilder.buildFrom(logger,compilerContext,sourceOracle.getResources(),getAdditionalTypeProviderDelegate());
+  Properties properties=createPropertiesObject(configProps);
+  jProgram=JavaAstConstructor.construct(logger,state,compilerContext.getOptions(),properties,"test.EntryPoint","com.google.gwt.lang.Exceptions");
+  jProgram.addEntryMethod(findMethod(jProgram,"onModuleLoad"));
+  optimizeJava();
+  ComputeCastabilityInformation.exec(jProgram,false);
+  ImplementCastsAndTypeChecks.exec(jProgram,false);
+  ArrayNormalizer.exec(jProgram,false);
+  TypeTightener.exec(jProgram);
+  MethodCallTightener.exec(jProgram);
+  Map<JType,JLiteral> typeIdsByType=ResolveRuntimeTypeReferences.IntoIntLiterals.exec(jProgram);
+  Map<StandardSymbolData,JsName> symbolTable=new TreeMap<StandardSymbolData,JsName>(new SymbolData.ClassIdentComparator());
+  return GenerateJavaScriptAST.exec(jProgram,jsProgram,compilerContext,typeIdsByType,symbolTable,new PropertyOracle[]{new StaticPropertyOracle(orderedProps,orderedPropValues,configProps)});
+}
