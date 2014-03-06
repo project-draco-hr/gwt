@@ -1,0 +1,32 @@
+{
+  sourceNameBasedTypeLocator=new NameBasedTypeLocator(compiledClassesBySourceName){
+    @Override protected CompilationUnit getCompilationUnitFromLibrary(    String sourceName){
+      return compilerContext.getLibraryGroup().getCompilationUnitByTypeSourceName(sourceName);
+    }
+  }
+;
+  binaryNameBasedTypeLocator=new NameBasedTypeLocator(null){
+    @Override protected CompilationUnit getCompilationUnitFromLibrary(    String binaryName){
+      return compilerContext.getLibraryGroup().getCompilationUnitByTypeBinaryName(binaryName);
+    }
+    @Override protected CompilationUnit getCompilationUnitFromSource(    String binaryName){
+      return internalNameBasedTypeLocator.getCompilationUnitFromSource(BinaryName.toInternalName(binaryName));
+    }
+    @Override protected boolean sourceCompilationUnitIsAvailable(    String binaryName){
+      return internalNameBasedTypeLocator.sourceCompilationUnitIsAvailable(BinaryName.toInternalName(binaryName));
+    }
+  }
+;
+  internalNameBasedTypeLocator=new NameBasedTypeLocator(compiledClassesByInternalName){
+    @Override protected CompilationUnit getCompilationUnitFromLibrary(    String internalName){
+      return binaryNameBasedTypeLocator.getCompilationUnitFromLibrary(InternalName.toBinaryName(internalName));
+    }
+    @Override protected JDeclaredType getResolvedType(    String internalName){
+      return binaryNameBasedTypeLocator.getResolvedType(InternalName.toBinaryName(internalName));
+    }
+    @Override protected boolean resolvedTypeIsAvailable(    String internalName){
+      return binaryNameBasedTypeLocator.resolvedTypeIsAvailable(InternalName.toBinaryName(internalName));
+    }
+  }
+;
+}

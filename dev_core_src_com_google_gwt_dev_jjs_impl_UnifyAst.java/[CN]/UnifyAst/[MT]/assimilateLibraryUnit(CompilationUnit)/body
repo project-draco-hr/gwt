@@ -1,0 +1,20 @@
+{
+  if (referencedCompilationUnit.isError()) {
+    if (failedUnits.add(referencedCompilationUnit)) {
+      CompilationProblemReporter.reportErrors(logger,referencedCompilationUnit,false);
+      errorsFound=true;
+    }
+    return;
+  }
+  compilerContext.getUnitCache().add(referencedCompilationUnit);
+  compilationState.addReferencedCompilationUnits(logger,Lists.create(referencedCompilationUnit));
+  for (  JDeclaredType referenceOnlyType : referencedCompilationUnit.getTypes()) {
+    program.addType(referenceOnlyType);
+    program.addReferenceOnlyType(referenceOnlyType);
+  }
+  for (  JDeclaredType t : referencedCompilationUnit.getTypes()) {
+    for (    JMethod method : t.getMethods()) {
+      flowInto(method);
+    }
+  }
+}

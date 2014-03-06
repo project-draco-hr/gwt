@@ -1,0 +1,19 @@
+{
+  assert(gwtCreateCall.getArgs().size() == 1);
+  JExpression arg=gwtCreateCall.getArgs().get(0);
+  if (!(arg instanceof JClassLiteral)) {
+    error(gwtCreateCall,"Only class literals may be used as arguments to GWT.create()");
+    return null;
+  }
+  JClassLiteral classLiteral=(JClassLiteral)arg;
+  if (!(classLiteral.getRefType() instanceof JDeclaredType)) {
+    error(gwtCreateCall,"Only classes and interfaces may be used as arguments to GWT.create()");
+    return null;
+  }
+  if (compilerContext.shouldCompileMonolithic()) {
+    return createStaticRebindExpression(gwtCreateCall,classLiteral);
+  }
+ else {
+    return createRuntimeRebindExpression(gwtCreateCall,classLiteral);
+  }
+}

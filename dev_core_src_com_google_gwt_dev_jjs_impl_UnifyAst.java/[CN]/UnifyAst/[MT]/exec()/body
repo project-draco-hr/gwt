@@ -7,6 +7,19 @@
       flowInto(method);
     }
   }
+  if (!compilerContext.shouldCompileMonolithic()) {
+    Set<String> sourceNames=ImmutableSet.copyOf(compiledClassesBySourceName.keySet());
+    for (    String sourceTypeName : sourceNames) {
+      JDeclaredType type=findType(sourceTypeName,sourceNameBasedTypeLocator);
+      instantiate(type);
+      for (      JField field : type.getFields()) {
+        flowInto(field);
+      }
+      for (      JMethod method : type.getMethods()) {
+        flowInto(method);
+      }
+    }
+  }
   instantiate(program.getTypeJavaLangString());
   flowInto(program.getIndexedMethod("Object.toString"));
   mapApi(program.getTypeJavaLangString());
@@ -19,7 +32,7 @@
   for (  JMethod method : autoboxUtils.getUnboxMethods()) {
     flowInto(method);
   }
-  if (options.isRunAsyncEnabled()) {
+  if (compilerContext.getOptions().isRunAsyncEnabled()) {
     flowInto(program.getIndexedMethod("AsyncFragmentLoader.onLoad"));
     flowInto(program.getIndexedMethod("AsyncFragmentLoader.runAsync"));
   }
@@ -30,27 +43,8 @@
     }
   }
   mainLoop();
-  for (Iterator<JDeclaredType> it=program.getDeclaredTypes().iterator(); it.hasNext(); ) {
-    JDeclaredType type=it.next();
-    boolean isInstantiated=instantiatedTypes.contains(type);
-    for (int i=0; i < type.getFields().size(); ++i) {
-      JField field=type.getFields().get(i);
-      if (!liveFieldsAndMethods.contains(field) || (!field.isStatic() && !isInstantiated)) {
-        type.removeField(i);
-        --i;
-      }
-    }
-    JMethod clinit=type.getClinitMethod();
-    if (!liveFieldsAndMethods.contains(clinit)) {
-      clinit.setBody(new JMethodBody(SourceOrigin.UNKNOWN));
-    }
-    for (int i=1; i < type.getMethods().size(); ++i) {
-      JMethod method=type.getMethods().get(i);
-      if (!liveFieldsAndMethods.contains(method) || (!method.isStatic() && !isInstantiated)) {
-        type.removeMethod(i);
-        --i;
-      }
-    }
+  if (compilerContext.shouldCompileMonolithic()) {
+    pruneDeadFieldsAndMethods();
   }
   computeOverrides();
   if (errorsFound) {
