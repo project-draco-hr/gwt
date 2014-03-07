@@ -1,0 +1,23 @@
+{
+  final String helperClassName="ParameterizedTestHelper";
+  Set<Resource> resources=new HashSet<Resource>();
+  resources.addAll(Arrays.asList(JavaResourceBase.getStandardResources()));
+  resources.add(JavaResourceBase.createMockJavaResource(helperClassName,"import java.util.*;","public class " + helperClassName + " {",fromType + " from() { return null; }",toType + " to() { return null; }","}"));
+  resources.add(JavaResourceBase.createMockJavaResource("ExtendsRawComparable","public interface ExtendsRawComparable extends Comparable {}"));
+  resources.add(JavaResourceBase.createMockJavaResource("NonRecursiveComparable","public interface NonRecursiveComparable extends Comparable<Number> {}"));
+  resources.add(JavaResourceBase.createMockJavaResource("ExtendsRawList","import java.util.*;","public interface ExtendsRawList extends List {}"));
+  JClassType to;
+  JClassType from;
+  try {
+    JClassType helperType=(JClassType)TypeOracleTestingUtils.buildTypeOracle(createTreeLogger(),resources).getType(helperClassName);
+    to=(JClassType)helperType.getMethod("to",TypeOracle.NO_JCLASSES).getReturnType();
+    from=(JClassType)helperType.getMethod("from",TypeOracle.NO_JCLASSES).getReturnType();
+  }
+ catch (  NotFoundException e) {
+    throw new AssertionError("Possible compilation error. Enable logToConsole for more info");
+  }
+  boolean assignableFrom=to.isAssignableFrom(from);
+  boolean assignableTo=from.isAssignableTo(to);
+  assertEquals(assignableFrom,assignableTo);
+  return assignableFrom;
+}
