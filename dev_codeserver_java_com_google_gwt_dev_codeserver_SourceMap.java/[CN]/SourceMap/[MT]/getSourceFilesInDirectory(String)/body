@@ -5,9 +5,13 @@
   JsonArray sources=(JsonArray)json.get("sources");
   List<String> result=new ArrayList<String>();
   for (int i=0; i < sources.getLength(); i++) {
-    File candidate=new File(sources.get(i).asString().getString());
-    if (parent.equals(candidate.getParent() + "/")) {
-      result.add(candidate.getName());
+    String candidate=sources.get(i).asString().getString();
+    if (!candidate.startsWith(parent)) {
+      continue;
+    }
+    int nameStart=candidate.lastIndexOf('/') + 1;
+    if (nameStart == parent.length()) {
+      result.add(candidate.substring(nameStart));
     }
   }
   return result;
