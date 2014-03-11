@@ -1,5 +1,6 @@
 {
-  if ((jsdate.getHours() % 24) != (hours % 24)) {
+  int hours=jsdate.getHours();
+  if ((hours % 24) != (requestedHours % 24)) {
     JsDate copy=JsDate.create(jsdate.getTime());
     copy.setDate(copy.getDate() + 1);
     int timeDiff=jsdate.getTimezoneOffset() - copy.getTimezoneOffset();
@@ -11,8 +12,14 @@
       if (badHours + timeDiffHours >= 24) {
         day++;
       }
-      JsDate newTime=JsDate.create(jsdate.getFullYear(),jsdate.getMonth(),day,hours + timeDiffHours,jsdate.getMinutes() + timeDiffMinutes,jsdate.getSeconds(),jsdate.getMilliseconds());
+      JsDate newTime=JsDate.create(jsdate.getFullYear(),jsdate.getMonth(),day,requestedHours + timeDiffHours,jsdate.getMinutes() + timeDiffMinutes,jsdate.getSeconds(),jsdate.getMilliseconds());
       jsdate.setTime(newTime.getTime());
     }
+    return;
+  }
+  double originalTimeInMillis=jsdate.getTime();
+  jsdate.setTime(originalTimeInMillis + ONE_HOUR_IN_MILLISECONDS);
+  if (hours != jsdate.getHours()) {
+    jsdate.setTime(originalTimeInMillis);
   }
 }
