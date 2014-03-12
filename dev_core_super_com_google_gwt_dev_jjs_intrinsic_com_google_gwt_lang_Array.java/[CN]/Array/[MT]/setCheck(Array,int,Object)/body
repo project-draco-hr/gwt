@@ -1,16 +1,29 @@
 {
   if (value != null) {
-    int elementTypeClass=Array.getElementTypeClass(array);
+    int elementTypeCategory=Array.getElementTypeCategory(array);
     JavaScriptObject elementTypeId=Array.getElementTypeId(array);
-    if (elementTypeClass == TYPE_JAVA_OBJECT && !Cast.canCast(value,elementTypeId)) {
-      throw new ArrayStoreException();
-    }
- else     if (elementTypeClass == TYPE_JSO && !Cast.isJavaScriptObject(value)) {
-      throw new ArrayStoreException();
-    }
- else     if (elementTypeClass == TYPE_JAVA_OBJECT_OR_JSO && !Cast.isJavaScriptObject(value) && !Cast.canCast(value,elementTypeId)) {
-      throw new ArrayStoreException();
-    }
+switch (elementTypeCategory) {
+case TYPE_JAVA_LANG_STRING:
+      if (!Cast.isJavaString(value)) {
+        throw new ArrayStoreException();
+      }
+    break;
+case TYPE_JAVA_OBJECT:
+  if (!Cast.canCast(value,elementTypeId)) {
+    throw new ArrayStoreException();
   }
-  return set(array,index,value);
+break;
+case TYPE_JSO:
+if (!Cast.isJavaScriptObject(value)) {
+throw new ArrayStoreException();
+}
+break;
+case TYPE_JAVA_OBJECT_OR_JSO:
+if (!Cast.isJavaScriptObject(value) && !Cast.canCast(value,elementTypeId)) {
+throw new ArrayStoreException();
+}
+break;
+}
+}
+return set(array,index,value);
 }
