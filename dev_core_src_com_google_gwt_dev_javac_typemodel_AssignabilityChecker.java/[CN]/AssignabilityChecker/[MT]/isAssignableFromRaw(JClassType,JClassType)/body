@@ -2,9 +2,15 @@
   if (isJavaLangObject(to)) {
     return true;
   }
-  for (  JClassType jClassType : from.getFlattenedSupertypeHierarchy()) {
-    if (jClassType.getErasedType() == to.getErasedType()) {
-      return true;
+  Set<JClassType> fromSuperTypeHierarchy=from.getFlattenedSupertypeHierarchy();
+  if (fromSuperTypeHierarchy.contains(to)) {
+    return true;
+  }
+  if (to.isRawType() != null) {
+    for (    JClassType fromSuper : fromSuperTypeHierarchy) {
+      if (fromSuper.getErasedType() == to.getErasedType()) {
+        return true;
+      }
     }
   }
   return false;
