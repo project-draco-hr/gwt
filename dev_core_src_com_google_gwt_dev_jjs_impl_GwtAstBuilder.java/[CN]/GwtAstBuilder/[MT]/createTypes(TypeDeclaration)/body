@@ -14,9 +14,14 @@
     JDeclaredType type;
     if (binding.isClass()) {
       type=new JClassType(info,name,binding.isAbstract(),binding.isFinal());
+      JsInteropUtil.maybeSetJsPrototypeFlag(x,(JClassType)type);
     }
  else     if (binding.isInterface() || binding.isAnnotationType()) {
-      type=new JInterfaceType(info,name);
+      String jsPrototype="";
+      JInterfaceType.JsInteropType interopType=JInterfaceType.JsInteropType.NONE;
+      jsPrototype=JsInteropUtil.maybeGetJsInterfacePrototype(x,jsPrototype);
+      interopType=JsInteropUtil.maybeGetJsInterfaceType(x,jsPrototype,interopType);
+      type=new JInterfaceType(info,name,interopType,jsPrototype);
     }
  else     if (binding.isEnum()) {
       if (binding.isAnonymousType()) {

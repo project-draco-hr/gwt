@@ -15,8 +15,19 @@
   addSnippetClassDecl("static native void unusedNativeMethod()","/*-{","}-*/;");
   addSnippetClassDecl("static void methodWithUninstantiatedParam(UninstantiatedClass c) { }");
   addSnippetClassDecl("interface UnusedInterface { void foo(); }");
+  addSnippetImport("com.google.gwt.core.client.js.JsInterface");
+  addSnippetImport("com.google.gwt.core.client.js.JsExport");
+  addSnippetImport("com.google.gwt.core.client.js.impl" + ".PrototypeOfJsInterface");
+  addSnippetClassDecl("interface Callback { void go(); }");
+  addSnippetImport("com.google.gwt.core.client.js.JsInterface");
+  addSnippetImport("com.google.gwt.core.client.js.JsExport");
+  addSnippetClassDecl("@JsInterface interface Js { void doIt(Callback cb); }");
+  addSnippetClassDecl("@JsInterface(prototype=\"Foo\") interface JsProto { " + "@PrototypeOfJsInterface static class Prototype implements JsProto {" + "public Prototype(int arg) {}"+ "}"+ "}");
+  addSnippetClassDecl("static class JsProtoImpl " + "extends JsProto.Prototype {" + "public JsProtoImpl() { super(10); }"+ "}");
+  addSnippetClassDecl("static class JsProtoImpl2 extends JsProto.Prototype {" + "@JsExport(\"foo\") public JsProtoImpl2() { super(10); }" + "}");
+  addSnippetClassDecl("static class JsProtoImpl3 extends JsProto.Prototype {" + "public JsProtoImpl3() { super(10); }" + "}");
   Result result;
-  (result=optimize("void","usedMethod();","unreadField = 1;","foo(unassignedField);","returnUninstantiatedClass();","usedNativeMethod(null, null);","foo(uninstantiatedField.field);","uninstantiatedField.method();","methodWithUninstantiatedParam(null);","new UsedClass(null);","new UsedClass(returnUninstantiatedClass(), returnUninstantiatedClass());","UninstantiatedClass localUninstantiated = null;")).intoString("EntryPoint.usedMethod();","EntryPoint.foo(EntryPoint.unassignedField);","EntryPoint.returnUninstantiatedClass();","EntryPoint.usedNativeMethod(null, null);","EntryPoint.foo(null.nullField);","null.nullMethod();","EntryPoint.methodWithUninstantiatedParam();","new EntryPoint$UsedClass();","new EntryPoint$UsedClass((EntryPoint.returnUninstantiatedClass(), EntryPoint.returnUninstantiatedClass()));");
+  (result=optimize("void","usedMethod();","unreadField = 1;","foo(unassignedField);","returnUninstantiatedClass();","usedNativeMethod(null, null);","foo(uninstantiatedField.field);","uninstantiatedField.method();","methodWithUninstantiatedParam(null);","new UsedClass(null);","new UsedClass(returnUninstantiatedClass(), returnUninstantiatedClass());","UninstantiatedClass localUninstantiated = null;","JsProtoImpl jsp = new JsProtoImpl();")).intoString("EntryPoint.usedMethod();","EntryPoint.foo(EntryPoint.unassignedField);","EntryPoint.returnUninstantiatedClass();","EntryPoint.usedNativeMethod(null, null);","EntryPoint.foo(null.nullField);","null.nullMethod();","EntryPoint.methodWithUninstantiatedParam();","new EntryPoint$UsedClass();","new EntryPoint$UsedClass((EntryPoint.returnUninstantiatedClass(), EntryPoint.returnUninstantiatedClass()));","new EntryPoint$JsProtoImpl();");
   assertNotNull(result.findMethod("usedMethod"));
   assertNotNull(result.findField("unassignedField"));
   assertNotNull(result.findMethod("usedNativeMethod"));
@@ -37,4 +48,7 @@
   assertEquals("[final null nullField, int field2]",((JsniMethodBody)result.findMethod("usedNativeMethod").getBody()).getJsniFieldRefs().toString());
   assertEquals("[public final null nullMethod(), public void method2()]",((JsniMethodBody)result.findMethod("usedNativeMethod").getBody()).getJsniMethodRefs().toString());
   assertEquals("interface EntryPoint$UsedInterface {\n" + "  private static final void $clinit(){\n" + "  }\n"+ "\n"+ "}",result.findClass("EntryPoint$UsedInterface").toSource());
+  assertEquals("public EntryPoint$JsProtoImpl(){\n" + "  super(10);\n" + "  this.$init();\n"+ "}",findMethod(result.findClass("EntryPoint$JsProtoImpl"),"EntryPoint$JsProtoImpl").toSource());
+  assertNull(result.findClass("EntryPoint$JsProtoImpl3"));
+  assertNotNull(result.findClass("EntryPoint$JsProtoImpl2"));
 }

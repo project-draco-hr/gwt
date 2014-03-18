@@ -1,0 +1,22 @@
+{
+  if (type instanceof JNonNullType) {
+    type=((JNonNullType)type).getUnderlyingType();
+  }
+  if (type instanceof JInterfaceType) {
+    JInterfaceType intf=(JInterfaceType)type;
+    if (isJsInterface(type)) {
+      if (!mustHavePrototype || !Strings.isNullOrEmpty(intf.getJsPrototype())) {
+        return intf;
+      }
+    }
+  }
+  if (type instanceof JDeclaredType) {
+    for (    JInterfaceType superIntf : ((JDeclaredType)type).getImplements()) {
+      JInterfaceType jsIntf=getNearestJsInterface(superIntf,mustHavePrototype);
+      if (jsIntf != null) {
+        return jsIntf;
+      }
+    }
+  }
+  return null;
+}

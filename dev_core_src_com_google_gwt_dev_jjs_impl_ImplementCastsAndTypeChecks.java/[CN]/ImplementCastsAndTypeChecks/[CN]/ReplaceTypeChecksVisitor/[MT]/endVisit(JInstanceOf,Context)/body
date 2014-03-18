@@ -2,7 +2,7 @@
   JReferenceType argType=(JReferenceType)x.getExpr().getType();
   JReferenceType toType=x.getTestType();
   assert(toType == toType.getUnderlyingType());
-  if (program.typeOracle.canTriviallyCast(argType,toType) || (program.typeOracle.isEffectivelyJavaScriptObject(argType) && program.typeOracle.isEffectivelyJavaScriptObject(toType))) {
+  if (program.typeOracle.canTriviallyCast(argType,toType) || (program.typeOracle.willCrossCastLikeJso(argType) && program.typeOracle.willCrossCastLikeJso(toType))) {
     JNullLiteral nullLit=program.getLiteralNull();
     JBinaryOperation eq=new JBinaryOperation(x.getSourceInfo(),program.getTypePrimitiveBoolean(),JBinaryOperator.NEQ,x.getExpr(),nullLit);
     ctx.replaceMe(eq);
@@ -10,20 +10,30 @@
  else {
     JMethod method;
     boolean isJsoCast=false;
+    boolean isJsInterfaceCast=false;
     if (program.typeOracle.isDualJsoInterface(toType)) {
       method=program.getIndexedMethod("Cast.instanceOfOrJso");
     }
- else     if (program.typeOracle.isEffectivelyJavaScriptObject(toType)) {
+ else     if (program.typeOracle.willCrossCastLikeJso(toType)) {
       isJsoCast=true;
       method=program.getIndexedMethod("Cast.instanceOfJso");
     }
  else {
-      method=program.getIndexedMethod("Cast.instanceOf");
+      if (program.typeOracle.isOrExtendsJsInterface(toType,true)) {
+        method=program.getIndexedMethod("Cast.instanceOfJsInterface");
+        isJsInterfaceCast=true;
+      }
+ else {
+        method=program.getIndexedMethod("Cast.instanceOf");
+      }
     }
     JMethodCall call=new JMethodCall(x.getSourceInfo(),null,method);
     call.addArg(x.getExpr());
     if (!isJsoCast) {
       call.addArg((new JRuntimeTypeReference(x.getSourceInfo(),program.getTypeJavaLangObject(),toType)));
+    }
+    if (isJsInterfaceCast) {
+      call.addArg(program.getStringLiteral(x.getSourceInfo(),program.typeOracle.getNearestJsInterface(toType,true).getJsPrototype()));
     }
     ctx.replaceMe(call);
   }

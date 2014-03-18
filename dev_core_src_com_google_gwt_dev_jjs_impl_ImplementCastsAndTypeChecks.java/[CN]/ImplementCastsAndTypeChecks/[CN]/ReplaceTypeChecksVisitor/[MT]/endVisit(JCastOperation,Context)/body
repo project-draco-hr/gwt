@@ -2,6 +2,16 @@
   JExpression replaceExpr;
   JType toType=x.getCastType();
   JExpression expr=x.getExpr();
+  boolean isJsoCast=false;
+  boolean isJsInterfaceCast=false;
+  if (toType instanceof JReferenceType && !(toType instanceof JNullType)) {
+    JReferenceType refType=((JReferenceType)toType).getUnderlyingType();
+    isJsoCast=program.typeOracle.willCrossCastLikeJso(refType);
+    isJsInterfaceCast=program.typeOracle.isOrExtendsJsInterface(toType,true);
+    if (isJsoCast || isJsInterfaceCast) {
+      instantiateJsoInterface(refType);
+    }
+  }
   if (disableCastChecking && toType instanceof JReferenceType) {
     return;
   }
@@ -16,12 +26,14 @@
     JExpression curExpr=expr;
     JReferenceType refType=((JReferenceType)toType).getUnderlyingType();
     JReferenceType argType=(JReferenceType)expr.getType();
-    if (program.typeOracle.canTriviallyCast(argType,refType) || (program.typeOracle.isEffectivelyJavaScriptObject(argType) && program.typeOracle.isEffectivelyJavaScriptObject(refType))) {
+    if (program.typeOracle.canTriviallyCast(argType,refType)) {
       replaceExpr=curExpr;
+    }
+ else     if (program.typeOracle.willCrossCastLikeJso(argType) && program.typeOracle.willCrossCastLikeJso(refType)) {
+      return;
     }
  else {
       JMethod method;
-      boolean isJsoCast=program.typeOracle.isEffectivelyJavaScriptObject(refType);
       if (isJsoCast) {
         method=program.getIndexedMethod("Cast.dynamicCastJso");
       }
@@ -29,12 +41,32 @@
         method=program.getIndexedMethod("Cast.dynamicCastAllowJso");
       }
  else {
-        method=program.getIndexedMethod("Cast.dynamicCast");
+        if (program.typeOracle.isOrExtendsJsInterface(toType,true)) {
+          if (isJsInterfaceCast) {
+            method=program.getIndexedMethod("Cast.dynamicCastWithPrototype");
+          }
+ else {
+            method=program.getIndexedMethod("Cast.dynamicCast");
+          }
+          isJsInterfaceCast=true;
+        }
+ else {
+          method=program.getIndexedMethod("Cast.dynamicCast");
+        }
       }
       JMethodCall call=new JMethodCall(info,null,method,toType);
       call.addArg(curExpr);
       if (!isJsoCast) {
         call.addArg((new JRuntimeTypeReference(x.getSourceInfo(),program.getTypeJavaLangObject(),refType)));
+      }
+      if (isJsInterfaceCast) {
+        call.addArg(program.getStringLiteral(x.getSourceInfo(),program.typeOracle.getNearestJsInterface(toType,true).getJsPrototype()));
+      }
+      if (isJsoCast || isJsInterfaceCast) {
+        instantiateJsoInterface((JReferenceType)toType);
+      }
+      if (isJsInterfaceCast) {
+        call.addArg(program.getStringLiteral(x.getSourceInfo(),program.typeOracle.getNearestJsInterface(toType,true).getJsPrototype()));
       }
       replaceExpr=call;
     }

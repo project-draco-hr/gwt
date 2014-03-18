@@ -1,2 +1,99 @@
 {
+  JMethod method=x.getTarget();
+  JsInvocation jsInvocation=new JsInvocation(x.getSourceInfo());
+  popList(jsInvocation.getArguments(),x.getArgs().size());
+  if (JProgram.isClinit(method)) {
+    JDeclaredType type=method.getEnclosingType();
+    JDeclaredType clinitTarget=type.getClinitTarget();
+    if (clinitTarget == null) {
+      if (x.getInstance() != null) {
+        pop();
+      }
+      push(JsNullLiteral.INSTANCE);
+      return;
+    }
+ else     if (type != clinitTarget) {
+      method=clinitTarget.getClinitMethod();
+    }
+  }
+  JsNameRef qualifier=null;
+  JsExpression unnecessaryQualifier=null;
+  JsExpression result=null;
+  boolean isJsProperty=false;
+  result=jsInvocation;
+  if (method.isStatic()) {
+    if (x.getInstance() != null) {
+      unnecessaryQualifier=(JsExpression)pop();
+    }
+    qualifier=names.get(method).makeRef(x.getSourceInfo());
+  }
+ else   if (x.isStaticDispatchOnly() && method.isConstructor()) {
+    JsName callName=objectScope.declareName("call");
+    callName.setObfuscatable(false);
+    qualifier=callName.makeRef(x.getSourceInfo());
+    JsNameRef methodRef=names.get(method).makeRef(x.getSourceInfo());
+    qualifier.setQualifier(methodRef);
+    jsInvocation.getArguments().add(0,(JsExpression)pop());
+    if (JProgram.isJsInterfacePrototype(method.getEnclosingType())) {
+      result=dispatchToSuperPrototype(x,method,qualifier,methodRef,jsInvocation);
+    }
+  }
+ else   if (x.isStaticDispatchOnly() && !method.isConstructor()) {
+    JsNameRef getClassProtoFunctionRef=indexedFunctions.get("JavaClassHierarchySetupUtil.getClassPrototype").getName().makeRef(x.getSourceInfo());
+    JsInvocation getPrototypeCall=new JsInvocation(x.getSourceInfo());
+    getPrototypeCall.setQualifier(getClassProtoFunctionRef);
+    final JDeclaredType superMethodTargetType=method.getEnclosingType();
+    getPrototypeCall.getArguments().add(convertJavaLiteral(typeIdsByType.get(superMethodTargetType)));
+    JsNameRef methodNameRef=polymorphicNames.get(method).makeRef(x.getSourceInfo());
+    methodNameRef.setQualifier(getPrototypeCall);
+    JsName callName=objectScope.declareName("call");
+    callName.setObfuscatable(false);
+    qualifier=callName.makeRef(x.getSourceInfo());
+    qualifier.setQualifier(methodNameRef);
+    jsInvocation.getArguments().add(0,(JsExpression)pop());
+    if (JProgram.isJsInterfacePrototype(method.getEnclosingType())) {
+      result=dispatchToSuperPrototype(x,method,qualifier,methodNameRef,jsInvocation);
+    }
+    if (JProgram.isJsInterfacePrototype(method.getEnclosingType())) {
+      result=dispatchToSuperPrototype(x,method,qualifier,methodNameRef,jsInvocation);
+    }
+  }
+ else {
+    JsName polyName=polymorphicNames.get(method);
+    JMethod target=x.getTarget();
+    for (    JMethod overrideMethod : target.getOverriddenMethods()) {
+      if (overrideMethod.isJsProperty()) {
+        isJsProperty=true;
+        break;
+      }
+    }
+    if (isJsProperty || target.isJsProperty()) {
+      String getter=isGetter(target);
+      String setter=isSetter(target);
+      String has=isHas(target);
+      JType type=target.getType();
+      boolean isFluent=type instanceof JReferenceType && type != program.getTypeJavaLangObject() && program.typeOracle.canTriviallyCast(x.getTarget().getEnclosingType(),((JReferenceType)type).getUnderlyingType());
+      JsExpression qualExpr=(JsExpression)pop();
+      if (getter != null) {
+        result=dispatchAsGetter(x,unnecessaryQualifier,getter,qualExpr);
+      }
+ else       if (setter != null) {
+        result=dispatchAsSetter(x,jsInvocation,setter,isFluent,qualExpr);
+      }
+ else       if (has != null) {
+        result=dispatchAsHas(x,has,qualExpr);
+      }
+ else {
+        throw new InternalCompilerException("JsProperty not a setter, getter, or has.");
+      }
+    }
+ else {
+      qualifier=polyName.makeRef(x.getSourceInfo());
+      qualifier.setQualifier((JsExpression)pop());
+    }
+  }
+  if (!isJsProperty) {
+    jsInvocation.setQualifier(qualifier);
+  }
+  push(createCommaExpression(unnecessaryQualifier,result));
 }

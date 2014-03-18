@@ -1,13 +1,18 @@
 {
   JType targetType=x.getCastType();
-  if (program.typeOracle.canBeJavaScriptObject(targetType)) {
+  if (program.typeOracle.canBeInstantiatedInJavascript(targetType)) {
     rescue((JReferenceType)targetType,true,true);
     JType exprType=x.getExpr().getType();
     if (program.typeOracle.isSingleJsoImpl(targetType)) {
       if (program.getTypeJavaLangObject() == exprType || program.typeOracle.canBeJavaScriptObject(exprType)) {
         JClassType jsoImplementor=program.typeOracle.getSingleJsoImpl((JReferenceType)targetType);
-        rescue(jsoImplementor,true,true);
+        if (jsoImplementor != null) {
+          rescue(jsoImplementor,true,true);
+        }
       }
+    }
+ else     if (program.typeOracle.isJsInterface(targetType) && ((JInterfaceType)targetType).getJsPrototype() != null) {
+      rescue((JReferenceType)targetType,true,true);
     }
   }
   return true;

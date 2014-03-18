@@ -1,0 +1,24 @@
+{
+  ReferenceBinding superClass=type.binding.superclass();
+  if (isMagicPrototype(type.binding,jsInterface)) {
+    return;
+  }
+ else   if (isMagicPrototypeStub(type)) {
+    errorOn(type,ERR_FORGOT_TO_MAKE_PROTOTYPE_IMPL_JSINTERFACE);
+  }
+  if (shouldExtend) {
+    if (LINT_MODE && (superClass == null || !isMagicPrototype(superClass,jsInterface))) {
+      errorOn(type,ERR_MUST_EXTEND_MAGIC_PROTOTYPE_CLASS);
+    }
+  }
+ else {
+    if (superClass != null && isMagicPrototype(superClass,jsInterface)) {
+      if (!isNative) {
+        errorOn(type,ERR_CLASS_EXTENDS_MAGIC_PROTOTYPE_BUT_NO_PROTOTYPE_ATTRIBUTE);
+      }
+ else {
+        errorOn(type,ERR_SUBCLASSING_NATIVE_NOT_ALLOWED);
+      }
+    }
+  }
+}

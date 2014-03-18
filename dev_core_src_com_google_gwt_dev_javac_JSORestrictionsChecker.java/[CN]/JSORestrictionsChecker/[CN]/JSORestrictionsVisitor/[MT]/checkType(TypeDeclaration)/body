@@ -1,7 +1,14 @@
 {
   SourceTypeBinding binding=type.binding;
+  if (isJsInterface(type.binding)) {
+    checkJsInterface(type,type.binding);
+    return ClassState.JSINTERFACE;
+  }
+  if (checkClassImplementingJsInterface(type)) {
+    return ClassState.JSINTERFACE_IMPL;
+  }
   if (!isJsoSubclass(binding)) {
-    return false;
+    return ClassState.NORMAL;
   }
   if (type.enclosingType != null && !binding.isStatic()) {
     errorOn(type,ERR_IS_NONSTATIC_NESTED);
@@ -20,5 +27,5 @@
       }
     }
   }
-  return true;
+  return ClassState.JSO;
 }

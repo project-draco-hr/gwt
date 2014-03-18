@@ -12,6 +12,7 @@
   isImplementedMap.clear();
   couldBeImplementedMap.clear();
   jsoSingleImpls.clear();
+  jsInterfaces.clear();
   dualImpls.clear();
   for (  JDeclaredType type : program.getDeclaredTypes()) {
     if (type instanceof JClassType) {
@@ -19,6 +20,14 @@
     }
  else {
       recordSuperSubInfo((JInterfaceType)type);
+      if (((JInterfaceType)type).isJsInterface()) {
+        jsInterfaces.add((JInterfaceType)type);
+      }
+    }
+    for (    JMethod method : type.getMethods()) {
+      if (method.getExportName() != null) {
+        exportedMethods.add(method);
+      }
     }
   }
   JClassType jsoType=program.getJavaScriptObject();

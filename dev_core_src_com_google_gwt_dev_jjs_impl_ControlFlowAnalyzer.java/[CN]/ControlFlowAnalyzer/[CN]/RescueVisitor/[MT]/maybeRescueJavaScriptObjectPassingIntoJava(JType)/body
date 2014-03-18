@@ -1,19 +1,22 @@
 {
   boolean doIt=false;
-  if (program.typeOracle.canBeJavaScriptObject(type) || program.isJavaLangString(type)) {
+  if (program.typeOracle.canBeInstantiatedInJavascript(type) || program.isJavaLangString(type)) {
     doIt=true;
   }
  else   if (type instanceof JArrayType) {
     JArrayType arrayType=(JArrayType)type;
     JType elementType=arrayType.getElementType();
-    if (elementType instanceof JPrimitiveType || program.isJavaLangString(elementType) || program.typeOracle.canBeJavaScriptObject(elementType)) {
+    if (elementType instanceof JPrimitiveType || program.isJavaLangString(elementType) || program.typeOracle.canBeInstantiatedInJavascript(elementType)) {
       doIt=true;
     }
   }
   if (doIt) {
     rescue((JReferenceType)type,true,true);
     if (program.typeOracle.isSingleJsoImpl(type)) {
-      rescue(program.typeOracle.getSingleJsoImpl((JReferenceType)type),true,true);
+      JClassType singleJsoImpl=program.typeOracle.getSingleJsoImpl((JReferenceType)type);
+      if (singleJsoImpl != null) {
+        rescue(singleJsoImpl,true,true);
+      }
     }
   }
 }
