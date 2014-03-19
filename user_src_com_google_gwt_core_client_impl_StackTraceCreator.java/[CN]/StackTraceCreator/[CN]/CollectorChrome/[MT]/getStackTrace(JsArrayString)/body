@@ -1,10 +1,11 @@
 {
-  StackTraceElement[] stackTrace=new StackTraceElement[stack.length()];
-  for (int i=0, j=stackTrace.length; i < j; i++) {
+  int length=stack.length();
+  StackTraceElement[] stackTrace=new StackTraceElement[length];
+  for (int i=0; i < length; i++) {
     String stackElements[]=stack.get(i).split("@@");
     int line=LINE_NUMBER_UNKNOWN;
     int col=-1;
-    String fileName="Unknown";
+    String fileName=UNKNOWN;
     if (stackElements.length == 2 && stackElements[1] != null) {
       String location=stackElements[1];
       int lastColon=location.lastIndexOf(':');
@@ -15,7 +16,7 @@
         col=parseInt(location.substring(lastColon + 1));
       }
     }
-    stackTrace[i]=new StackTraceElement("Unknown",stackElements[0],fileName + "@" + col,replaceIfNoSourceMap(line < 0 ? -1 : line));
+    stackTrace[i]=new StackTraceElement(UNKNOWN,stackElements[0],fileName + "@" + col,replaceIfNoSourceMap(line < 0 ? LINE_NUMBER_UNKNOWN : line));
   }
   return stackTrace;
 }
