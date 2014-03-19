@@ -40,19 +40,18 @@
         apiRefs.set(i,interner.intern(apiRefs.get(i)));
       }
       Dependencies dependencies=new Dependencies(packageName,unresolvedQualified,unresolvedSimple,apiRefs);
-      List<JDeclaredType> types=Lists.newArrayList();
+      List<JDeclaredType> types=ImmutableList.of();
       if (!cud.compilationResult().hasErrors()) {
         types=astBuilder.process(cud,builder.getSourceMapPath(),artificialRescues,jsniMethods,jsniRefs);
       }
       for (      CompiledClass cc : compiledClasses) {
         allValidClasses.put(cc.getSourceName(),cc);
       }
-      builder.setTypes(types).setDependencies(dependencies).setJsniMethods(jsniMethods.values()).setMethodArgs(methodArgs);
+      builder.setTypes(types).setDependencies(dependencies).setJsniMethods(jsniMethods.values()).setMethodArgs(methodArgs).setClasses(compiledClasses).setProblems(cud.compilationResult().getProblems());
     }
  else {
-      builder.setTypes(Collections.<JDeclaredType>emptyList()).setDependencies(new Dependencies()).setJsniMethods(Collections.<JsniMethod>emptyList()).setMethodArgs(new MethodArgNamesLookup());
+      builder.setTypes(Collections.<JDeclaredType>emptyList()).setDependencies(new Dependencies()).setJsniMethods(Collections.<JsniMethod>emptyList()).setMethodArgs(new MethodArgNamesLookup()).setClasses(compiledClasses).setProblems(cud.compilationResult().getProblems());
     }
-    builder.setClasses(compiledClasses).setProblems(cud.compilationResult().getProblems());
     buildQueue.add(builder);
   }
   finally {

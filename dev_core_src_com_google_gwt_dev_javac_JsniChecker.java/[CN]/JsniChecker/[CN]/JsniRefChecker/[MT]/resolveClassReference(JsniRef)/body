@@ -6,26 +6,26 @@
   }
   ReferenceBinding declaringClass=method.binding.declaringClass;
   while (declaringClass != null) {
-    String declaringClassName=JdtUtil.sourceNameFromNamesArray(declaringClass.compoundName);
+    String declaringClassName=JdtUtil.getSourceName(declaringClass);
     if (declaringClassName.equals(importedClassName) || declaringClassName.endsWith("." + importedClassName)) {
       jsniRef.setClassName(declaringClassName + originalName.substring(importedClassName.length()));
       return;
     }
     String fullClassName=declaringClassName + "." + originalName;
     if (typeResolver.resolveType(fullClassName) != null) {
-      jsniRef.setClassName(fullClassName);
+      jsniRef.setClassName(StringInterner.get().intern(fullClassName));
       return;
     }
     declaringClass=declaringClass.enclosingTypeAt(1);
   }
   for (  ImportReference importReference : cudImports) {
-    String nameFromImport=JdtUtil.sourceNameFromNamesArray(importReference.getImportName());
+    String nameFromImport=JdtUtil.asDottedString(importReference.getImportName());
     if (!importReference.isStatic() && importReference.trailingStarPosition == 0 && nameFromImport.endsWith("." + importedClassName)) {
       jsniRef.setClassName(nameFromImport + originalName.substring(importedClassName.length()));
       return;
     }
   }
-  String currentPackageClassName=JdtUtil.sourceNameFromNamesArray(method.binding.declaringClass.getPackage().compoundName);
+  String currentPackageClassName=String.valueOf(method.binding.declaringClass.qualifiedPackageName());
   currentPackageClassName+=(currentPackageClassName.isEmpty() ? "" : ".") + originalName;
   if (typeResolver.resolveType(currentPackageClassName) != null) {
     jsniRef.setClassName(currentPackageClassName);
@@ -35,7 +35,7 @@
     if (importReference.isStatic() || importReference.trailingStarPosition == 0) {
       continue;
     }
-    String fullClassName=JdtUtil.sourceNameFromNamesArray(importReference.getImportName()) + "." + originalName;
+    String fullClassName=JdtUtil.asDottedString(importReference.getImportName()) + "." + originalName;
     if (typeResolver.resolveType(fullClassName) != null) {
       jsniRef.setClassName(fullClassName);
       return;
