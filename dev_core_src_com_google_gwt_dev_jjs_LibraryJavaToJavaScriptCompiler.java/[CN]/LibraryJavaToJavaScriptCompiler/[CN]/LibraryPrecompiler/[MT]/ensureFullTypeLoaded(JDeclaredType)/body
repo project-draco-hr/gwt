@@ -1,6 +1,14 @@
 {
-  String resourcePath=LibraryGroupUnitCache.typeSourceNameToResourcePath(type.getName());
-  CompilationUnit compilationUnit=compilerContext.getUnitCache().find(resourcePath);
-  type=compilationUnit.getTypeByName(type.getName());
+  String internalName=BinaryName.toInternalName(type.getName());
+  Map<String,CompiledClass> compiledClassesByInternalName=rpo.getCompilationState().getClassFileMap();
+  if (compiledClassesByInternalName.containsKey(internalName)) {
+    CompiledClass compiledClass=compiledClassesByInternalName.get(internalName);
+    return compiledClass.getUnit().getTypeByName(type.getName());
+  }
+  CompilationUnit compilationUnit=compilerContext.getLibraryGroup().getCompilationUnitByTypeBinaryName(type.getName());
+  if (compilationUnit != null) {
+    compilerContext.getUnitCache().add(compilationUnit);
+    return compilationUnit.getTypeByName(type.getName());
+  }
   return type;
 }
