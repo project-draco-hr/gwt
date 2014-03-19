@@ -1,0 +1,26 @@
+{
+  logger=logger.branch(TreeLogger.Type.INFO,"binding: " + propName + "="+ newValue);
+  Property prop=module.getProperties().find(propName);
+  if (!(prop instanceof BindingProperty)) {
+    logger.log(TreeLogger.Type.WARN,"undefined property: '" + propName + "'");
+    return;
+  }
+  BindingProperty binding=(BindingProperty)prop;
+  if (!binding.isAllowedValue(newValue)) {
+    String[] allowedValues=binding.getAllowedValues(binding.getRootCondition());
+    logger.log(TreeLogger.Type.WARN,"property '" + propName + "' cannot be set to '"+ newValue+ "'");
+    logger.log(TreeLogger.Type.INFO,"allowed values: " + Joiner.on(", ").join(allowedValues));
+    if (allowedValues.length == 1) {
+      newValue=allowedValues[0];
+    }
+ else     if (binding.getName().equals("locale")) {
+      newValue=chooseDefault(binding,"default","en","en_US");
+    }
+ else {
+      logger.log(TreeLogger.Type.INFO,"continuing without " + propName + ". Sourcemaps may not work.");
+      return;
+    }
+    logger.log(TreeLogger.Type.INFO,"recovered with " + propName + "="+ newValue);
+  }
+  binding.setAllowedValues(binding.getRootCondition(),newValue);
+}
