@@ -1,8 +1,18 @@
 {
   long beforeLinkMs=System.currentTimeMillis();
   Event linkEvent=SpeedTracerLogger.start(CompilerEventType.LINK);
+  Library resultLibrary;
+  try {
+    resultLibrary=new ZipLibrary(compilerOptions.getOutputLibraryPath());
+  }
+ catch (  IncompatibleLibraryVersionException e) {
+    logger.log(TreeLogger.ERROR,e.getMessage());
+    throw new UnableToCompleteException();
+  }
   generatedArtifacts.addAll(libraryGroup.getGeneratedArtifacts());
   Set<PermutationResult> libraryPermutationResults=Sets.newLinkedHashSet();
+  List<PersistenceBackedObject<PermutationResult>> resultFiles=Lists.newArrayList();
+  resultFiles.add(resultLibrary.getPermutationResultHandle());
   List<PersistenceBackedObject<PermutationResult>> permutationResultHandles=libraryGroup.getPermutationResultHandlesInLinkOrder();
   for (  PersistenceBackedObject<PermutationResult> permutationResultHandle : permutationResultHandles) {
     libraryPermutationResults.add(permutationResultHandle.newInstance(logger));
@@ -17,7 +27,7 @@
   }
   TreeLogger branch=logger.branch(TreeLogger.TRACE,logMessage);
   try {
-    Link.link(branch,module,compilerContext.getPublicResourceOracle(),generatedArtifacts,permutations,permutationResultFiles,libraryPermutationResults,compilerOptions,compilerOptions);
+    Link.link(branch,module,compilerContext.getPublicResourceOracle(),generatedArtifacts,permutations,resultFiles,libraryPermutationResults,compilerOptions,compilerOptions);
   }
  catch (  IOException e) {
     throw new UnableToCompleteException();

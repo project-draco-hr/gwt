@@ -6,9 +6,13 @@
   Multimap<String,String> stringMultimap=LinkedHashMultimap.<String,String>create();
   for (  String line : lines) {
     LinkedList<String> entry=Lists.newLinkedList(Splitter.on(Libraries.KEY_VALUE_SEPARATOR).omitEmptyStrings().split(line));
-    String key=entry.getFirst();
+    String key=decode(entry.getFirst());
     Iterable<String> values=Splitter.on(Libraries.VALUE_SEPARATOR).omitEmptyStrings().split(entry.getLast());
-    stringMultimap.putAll(key,values);
+    List<String> decodedValues=Lists.newArrayList();
+    for (    String value : values) {
+      decodedValues.add(decode(value));
+    }
+    stringMultimap.putAll(key,decodedValues);
   }
   return stringMultimap;
 }

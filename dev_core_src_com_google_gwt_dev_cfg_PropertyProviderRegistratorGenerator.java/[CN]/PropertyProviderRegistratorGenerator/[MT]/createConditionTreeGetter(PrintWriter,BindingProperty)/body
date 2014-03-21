@@ -1,7 +1,7 @@
 {
   List<Entry<Condition,SortedSet<String>>> entries=new ArrayList<Entry<Condition,SortedSet<String>>>(bindingProperty.getConditionalValues().entrySet());
   List<Entry<Condition,SortedSet<String>>> prioritizedEntries=Lists.reverse(entries);
-  out.println("  public String getValue() {");
+  out.println("  public native String getValue() /*-{");
   boolean alwaysReturnsAValue=false;
   for (  Entry<Condition,SortedSet<String>> entry : prioritizedEntries) {
     Condition condition=entry.getKey();
@@ -18,7 +18,7 @@
     }
   }
   if (!alwaysReturnsAValue) {
-    out.println("    throw new RuntimeException(\"No known value for property " + bindingProperty.getName() + "\");");
+    out.println("    throw @java.lang.RuntimeException::new(Ljava/lang/String;)" + "(\"No known value for property " + bindingProperty.getName() + "\");");
   }
-  out.println("  }");
+  out.println("  }-*/;");
 }

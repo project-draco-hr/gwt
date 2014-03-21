@@ -1,10 +1,14 @@
 {
   RuntimeTypeCollectorVisitor runtimeTypeCollector=new RuntimeTypeCollectorVisitor();
   runtimeTypeCollector.accept(program);
+  runtimeTypeCollector.accept(Lists.newArrayList(program.getCastMap().values()));
+  runtimeTypeCollector.accept(program.getIndexedType("ClassLiteralHolder"));
   assignTypes(runtimeTypeCollector.typesRequiringRuntimeIds);
   ReplaceRuntimeTypeReferencesVisitor replaceTypeIdsVisitor=new ReplaceRuntimeTypeReferencesVisitor();
   replaceTypeIdsVisitor.accept(program);
-  for (  JCastMap castMap : program.getCastMaps()) {
+  replaceTypeIdsVisitor.accept(program.getIndexedType("ClassLiteralHolder"));
+  for (  Entry<JReferenceType,JCastMap> entry : program.getCastMap().entrySet()) {
+    JCastMap castMap=entry.getValue();
     replaceTypeIdsVisitor.accept(castMap);
   }
   return typeIdLiteralsByType;

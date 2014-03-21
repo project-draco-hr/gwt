@@ -2,25 +2,29 @@
   long beforeCompileMs=System.currentTimeMillis();
   TreeLogger branch=logger.branch(TreeLogger.INFO,"Compiling module " + module.getCanonicalName());
   LibraryWriter libraryWriter=compilerContext.getLibraryWriter();
-  if (compilerOptions.isValidateOnly()) {
-    boolean valid=Precompile.validate(logger,compilerContext);
-    if (!valid) {
-      throw new UnableToCompleteException();
+  try {
+    if (compilerOptions.isValidateOnly()) {
+      boolean valid=Precompile.validate(logger,compilerContext);
+      if (!valid) {
+        throw new UnableToCompleteException();
+      }
     }
+    Precompilation precompilation=Precompile.precompile(branch,compilerContext);
+    if (!compilerOptions.shouldSaveSource()) {
+      precompilation.removeSourceArtifacts(logger);
+    }
+    Event compilePermutationsEvent=SpeedTracerLogger.start(CompilerEventType.COMPILE_PERMUTATIONS);
+    permutations=new Permutation[]{precompilation.getPermutations()[0]};
+    List<PersistenceBackedObject<PermutationResult>> permutationResultFiles=new ArrayList<PersistenceBackedObject<PermutationResult>>();
+    permutationResultFiles.add(libraryWriter.getPermutationResultHandle());
+    CompilePerms.compile(branch,compilerContext,precompilation,permutations,compilerOptions.getLocalWorkers(),permutationResultFiles);
+    compilePermutationsEvent.end();
+    generatedArtifacts=precompilation.getGeneratedArtifacts();
+    libraryWriter.addGeneratedArtifacts(generatedArtifacts);
   }
-  Precompilation precompilation=Precompile.precompile(branch,compilerContext);
-  if (!compilerOptions.shouldSaveSource()) {
-    precompilation.removeSourceArtifacts(logger);
+  finally {
+    libraryWriter.write();
   }
-  Event compilePermutationsEvent=SpeedTracerLogger.start(CompilerEventType.COMPILE_PERMUTATIONS);
-  permutations=new Permutation[]{precompilation.getPermutations()[0]};
-  permutationResultFiles=new ArrayList<PersistenceBackedObject<PermutationResult>>();
-  permutationResultFiles.add(libraryWriter.getPermutationResultHandle());
-  CompilePerms.compile(branch,compilerContext,precompilation,permutations,compilerOptions.getLocalWorkers(),permutationResultFiles);
-  compilePermutationsEvent.end();
-  generatedArtifacts=precompilation.getGeneratedArtifacts();
-  libraryWriter.addGeneratedArtifacts(generatedArtifacts);
-  libraryWriter.write();
   long durationMs=System.currentTimeMillis() - beforeCompileMs;
   branch.log(TreeLogger.INFO,"Library compilation succeeded -- " + String.format("%.3f",durationMs / 1000d) + "s");
 }
