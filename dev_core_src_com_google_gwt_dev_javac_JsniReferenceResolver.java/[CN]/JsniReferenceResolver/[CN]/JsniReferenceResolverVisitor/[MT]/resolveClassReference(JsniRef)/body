@@ -1,0 +1,49 @@
+{
+  String originalName=jsniRef.className();
+  String importedClassName=originalName;
+  if (importedClassName.contains(".")) {
+    importedClassName=importedClassName.substring(0,importedClassName.indexOf("."));
+  }
+  ReferenceBinding declaringClass=method.binding.declaringClass;
+  while (declaringClass != null) {
+    String declaringClassName=JdtUtil.getSourceName(declaringClass);
+    if (declaringClassName.equals(importedClassName) || declaringClassName.endsWith("." + importedClassName)) {
+      jsniRef.setResolvedClassName(declaringClassName + originalName.substring(importedClassName.length()));
+      return;
+    }
+    String fullClassName=declaringClassName + "." + originalName;
+    if (typeResolver.resolveType(fullClassName) != null) {
+      jsniRef.setResolvedClassName(fullClassName);
+      return;
+    }
+    declaringClass=declaringClass.enclosingTypeAt(1);
+  }
+  for (  ImportReference importReference : cudImports) {
+    String nameFromImport=JdtUtil.asDottedString(importReference.getImportName());
+    if (!importReference.isStatic() && importReference.trailingStarPosition == 0 && nameFromImport.endsWith("." + importedClassName)) {
+      jsniRef.setResolvedClassName(nameFromImport + originalName.substring(importedClassName.length()));
+      return;
+    }
+  }
+  String currentPackageClassName=String.valueOf(method.binding.declaringClass.qualifiedPackageName());
+  currentPackageClassName+=(currentPackageClassName.isEmpty() ? "" : ".") + originalName;
+  if (typeResolver.resolveType(currentPackageClassName) != null) {
+    jsniRef.setResolvedClassName(currentPackageClassName);
+    return;
+  }
+  List<String> importPackages=Lists.newArrayList("java.lang");
+  for (  ImportReference importReference : cudImports) {
+    if (importReference.isStatic() || importReference.trailingStarPosition == 0) {
+      continue;
+    }
+    importPackages.add(JdtUtil.asDottedString(importReference.getImportName()));
+  }
+  for (  String importPackage : importPackages) {
+    String fullClassName=importPackage + "." + originalName;
+    if (typeResolver.resolveType(fullClassName) != null) {
+      jsniRef.setResolvedClassName(fullClassName);
+      return;
+    }
+  }
+  jsniRef.setResolvedClassName(jsniRef.className());
+}

@@ -1,0 +1,18 @@
+{
+  StringBuffer code=new StringBuffer();
+  code.append("class Foo {\n");
+  code.append("  native void m(Object o) /*-{\n");
+  code.append("    o.@Foo::m(Ljava/lang/String);\n");
+  code.append("  }-*/;\n");
+  code.append("}\n");
+  String source=code.toString();
+  CategorizedProblem[] problems=getProblems("Foo",source);
+  assertEquals(1,problems.length);
+  CategorizedProblem problem=problems[0];
+  if (JSNI_PARSES_SOURCE_POSITION) {
+    assertEquals(source.indexOf('@'),problem.getSourceStart());
+  }
+  assertEquals(3,problem.getSourceLineNumber());
+  assertTrue(problem.isError());
+  assertEquals("Referencing method 'Foo.m(Ljava/lang/String)': unable to resolve method in class 'Foo'",problem.getMessage());
+}

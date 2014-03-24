@@ -1,0 +1,25 @@
+{
+  ReferenceBinding declaringClassBinding=methodBinding.declaringClass;
+  StringBuilder methodNameWithSignature=new StringBuilder();
+  String methodName=String.valueOf(methodBinding.selector);
+  List<TypeBinding> parameterTypeBindings=Lists.newArrayList();
+  if (methodName.equals("<init>")) {
+    methodName="new";
+    if (isInnerClass(declaringClassBinding)) {
+      NestedTypeBinding nestedBinding=(NestedTypeBinding)declaringClassBinding;
+      if (nestedBinding.enclosingInstances != null) {
+        for (        SyntheticArgumentBinding argumentBinding : nestedBinding.enclosingInstances) {
+          parameterTypeBindings.add(argumentBinding.type);
+        }
+      }
+    }
+  }
+  parameterTypeBindings.addAll(Arrays.asList(methodBinding.parameters));
+  methodNameWithSignature.append(methodName);
+  methodNameWithSignature.append("(");
+  for (  TypeBinding parameterTypeBinding : parameterTypeBindings) {
+    methodNameWithSignature.append(parameterTypeBinding.signature());
+  }
+  methodNameWithSignature.append(")");
+  return methodNameWithSignature.toString();
+}
