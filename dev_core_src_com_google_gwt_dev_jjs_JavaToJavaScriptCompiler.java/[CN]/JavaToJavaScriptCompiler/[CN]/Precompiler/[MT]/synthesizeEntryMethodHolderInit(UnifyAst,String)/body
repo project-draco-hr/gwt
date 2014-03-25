@@ -1,0 +1,26 @@
+{
+  JDeclaredType entryMethodHolderType=unifyAst.findType(entryMethodHolderTypeName,unifyAst.getSourceNameBasedTypeLocator());
+  JDeclaredType gwtType=unifyAst.findType("com.google.gwt.core.client.GWT",unifyAst.getSourceNameBasedTypeLocator());
+  JMethod initMethod=entryMethodHolderType.findMethod("init()V",false);
+  JMethod gwtCreateMethod=gwtType.findMethod("create(Ljava/lang/Class;)Ljava/lang/Object;",false);
+  JBlock initMethodBlock=((JMethodBody)initMethod.getBody()).getBlock();
+  SourceInfo origin=initMethodBlock.getSourceInfo().makeChild();
+  for (  String entryPointTypeName : entryPointTypeNames) {
+    JDeclaredType specificEntryPointType=unifyAst.findType(entryPointTypeName,unifyAst.getSourceNameBasedTypeLocator());
+    if (specificEntryPointType == null) {
+      logger.log(TreeLogger.ERROR,"Could not find module entry point class '" + entryPointTypeName + "'",null);
+      throw new UnableToCompleteException();
+    }
+    JMethod specificOnModuleLoadMethod=specificEntryPointType.findMethod("onModuleLoad()V",true);
+    if (specificOnModuleLoadMethod != null && specificOnModuleLoadMethod.isStatic()) {
+      JMethodCall staticOnModuleLoadCall=new JMethodCall(origin,null,specificOnModuleLoadMethod);
+      initMethodBlock.addStmt(staticOnModuleLoadCall.makeStatement());
+    }
+ else {
+      JClassLiteral entryPointTypeClassLiteral=new JClassLiteral(origin,specificEntryPointType);
+      JMethodCall createInstanceCall=new JMethodCall(origin,null,gwtCreateMethod,entryPointTypeClassLiteral);
+      JMethodCall instanceOnModuleLoadCall=new JMethodCall(origin,createInstanceCall,specificOnModuleLoadMethod);
+      initMethodBlock.addStmt(instanceOnModuleLoadCall.makeStatement());
+    }
+  }
+}
