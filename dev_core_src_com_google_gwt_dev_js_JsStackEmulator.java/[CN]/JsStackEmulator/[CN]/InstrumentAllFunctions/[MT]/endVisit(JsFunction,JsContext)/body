@@ -1,15 +1,11 @@
 {
-  if (!x.getBody().getStatements().isEmpty()) {
-    JsName fnName=x.getName();
-    JMethod method=jjsmap.nameToMethod(fnName);
-    if (method != null && jprogram.immortalCodeGenTypes.contains(method.getEnclosingType())) {
-      return;
-    }
-    if (recordLineNumbers) {
-      (new LocationVisitor(x)).instrumentBody(x);
-    }
+  if (x.getBody().getStatements().isEmpty() || !shouldInstrumentFunction(x)) {
+    return;
+  }
+  if (recordLineNumbers) {
+    (new LocationVisitor(x)).instrumentBody(x);
+  }
  else {
-      (new EntryExitVisitor(x)).accept(x.getBody());
-    }
+    (new EntryExitVisitor(x)).accept(x.getBody());
   }
 }
