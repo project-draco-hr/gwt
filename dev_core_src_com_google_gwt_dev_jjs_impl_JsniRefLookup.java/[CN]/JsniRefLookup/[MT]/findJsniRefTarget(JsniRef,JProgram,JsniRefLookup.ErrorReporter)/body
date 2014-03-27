@@ -1,21 +1,13 @@
 {
   String className=ref.className();
-  JType type=null;
-  if (!className.equals("null")) {
-    type=program.getTypeFromJsniRef(className);
-    if (type == null) {
-      errorReporter.reportError("Unresolvable native reference to type '" + className + "'");
-      return null;
-    }
+  JType type=program.getTypeFromJsniRef(className);
+  if (type == null) {
+    errorReporter.reportError("Unresolvable native reference to type '" + className + "'");
+    return null;
   }
   if (!ref.isMethod()) {
     String fieldName=ref.memberName();
-    if (type == null) {
-      if (fieldName.equals("nullField")) {
-        return program.getNullField();
-      }
-    }
- else     if (fieldName.equals(JsniRef.CLASS)) {
+    if (fieldName.equals(JsniRef.CLASS)) {
       return type;
     }
  else     if (type instanceof JPrimitiveType) {
@@ -44,22 +36,15 @@
     LinkedHashMap<String,LinkedHashMap<String,JMethod>> matchesBySig=new LinkedHashMap<String,LinkedHashMap<String,JMethod>>();
     String methodName=ref.memberName();
     String jsniSig=ref.memberSignature();
-    if (type == null) {
-      if (jsniSig.equals("nullMethod()")) {
-        return program.getNullMethod();
-      }
+    findMostDerivedMembers(matchesBySig,(JDeclaredType)type,methodName,true);
+    LinkedHashMap<String,JMethod> matches=matchesBySig.get(jsniSig);
+    if (matches != null && matches.size() == 1) {
+      return matches.values().iterator().next();
     }
- else {
-      findMostDerivedMembers(matchesBySig,(JDeclaredType)type,methodName,true);
-      LinkedHashMap<String,JMethod> matches=matchesBySig.get(jsniSig);
-      if (matches != null && matches.size() == 1) {
-        return matches.values().iterator().next();
-      }
-      removeSyntheticMembers(matchesBySig);
-      matches=matchesBySig.get(jsniSig);
-      if (matches != null && matches.size() == 1) {
-        return matches.values().iterator().next();
-      }
+    removeSyntheticMembers(matchesBySig);
+    matches=matchesBySig.get(jsniSig);
+    if (matches != null && matches.size() == 1) {
+      return matches.values().iterator().next();
     }
     if (matchesBySig.isEmpty()) {
       errorReporter.reportError("Unresolvable native reference to method '" + methodName + "' in type '"+ className+ "'");
