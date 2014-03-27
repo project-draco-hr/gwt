@@ -1,4 +1,20 @@
 {
   nodesInRefContext.remove(x.getQualifier());
-  record(x,ctx);
+  List<JsExpression> args=x.getArguments();
+  if (!args.isEmpty()) {
+    recordAfterLastArg(x);
+    return;
+  }
+  JsNameRef qualifier=getPossibleMethod(x);
+  if (qualifier == null) {
+    record(x,ctx);
+    return;
+  }
+  SourceInfo locationToRecord=x.getSourceInfo();
+  if (sameAsLastLocation(locationToRecord)) {
+    return;
+  }
+  qualifier.setQualifier(recordAfter(qualifier.getQualifier(),locationToRecord));
+  setLastLocation(locationToRecord);
+  didChange=true;
 }

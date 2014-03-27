@@ -5,17 +5,11 @@
  else   if (nodesInRefContext.contains(x)) {
     return;
   }
- else   if (x.getSourceInfo().getStartLine() == lastLine && (!recordFileNames || x.getSourceInfo().getFileName().equals(lastFile))) {
+  SourceInfo locationToRecord=x.getSourceInfo();
+  if (sameAsLastLocation(locationToRecord)) {
     return;
   }
-  SourceInfo info=x.getSourceInfo();
-  JsExpression location=new JsStringLiteral(info,String.valueOf(lastLine=info.getStartLine()));
-  if (recordFileNames) {
-    JsStringLiteral stringLit=new JsStringLiteral(info,baseName(lastFile=info.getFileName()) + ":");
-    location=new JsBinaryOperation(info,JsBinaryOperator.ADD,stringLit,location);
-  }
-  JsArrayAccess access=new JsArrayAccess(info,lineNumbers.makeRef(info),stackIndexRef(info));
-  JsBinaryOperation asg=new JsBinaryOperation(info,JsBinaryOperator.ASG,access,location);
-  JsBinaryOperation comma=new JsBinaryOperation(info,JsBinaryOperator.COMMA,asg,x);
+  JsBinaryOperation comma=new JsBinaryOperation(locationToRecord,JsBinaryOperator.COMMA,assignLocation(locationToRecord),x);
   ctx.replaceMe(comma);
+  setLastLocation(locationToRecord);
 }
