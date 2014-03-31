@@ -1,16 +1,12 @@
 {
   checkPermutationStrongName();
+  RPCRequest rpcRequest;
   try {
-    RPCRequest rpcRequest=RPC.decodeRequest(payload,delegate.getClass(),this);
-    onAfterRequestDeserialized(rpcRequest);
-    return RPC.invokeAndEncodeResponse(delegate,rpcRequest.getMethod(),rpcRequest.getParameters(),rpcRequest.getSerializationPolicy(),rpcRequest.getFlags());
+    rpcRequest=RPC.decodeRequest(payload,delegate.getClass(),this);
   }
  catch (  IncompatibleRemoteServiceException ex) {
     log("An IncompatibleRemoteServiceException was thrown while processing this call.",ex);
-    return RPC.encodeResponseForFailure(null,ex);
+    return RPC.encodeResponseForFailedRequest(null,ex);
   }
-catch (  RpcTokenException tokenException) {
-    log("An RpcTokenException was thrown while processing this call.",tokenException);
-    return RPC.encodeResponseForFailure(null,tokenException);
-  }
+  return processCall(rpcRequest);
 }
