@@ -1,0 +1,21 @@
+{
+  Map<String,JMethod> methodsBySignature=methodsBySignatureForType.get(type);
+  if (methodsBySignature == null) {
+    JClassType superClass=type.getSuperClass();
+    if (superClass == null) {
+      methodsBySignature=new HashMap<String,JMethod>();
+    }
+ else {
+      Map<String,JMethod> superMethodsBySignature=getOrCreateMethodsBySignatureForType(type.getSuperClass());
+      methodsBySignature=new HashMap<String,JMethod>(superMethodsBySignature);
+    }
+    for (    JMethod method : type.getMethods()) {
+      if (method.canBePolymorphic()) {
+        methodsBySignature.put(method.getSignature(),method);
+      }
+    }
+    methodsBySignature=Maps.normalize(methodsBySignature);
+    methodsBySignatureForType.put(type,methodsBySignature);
+  }
+  return methodsBySignature;
+}
