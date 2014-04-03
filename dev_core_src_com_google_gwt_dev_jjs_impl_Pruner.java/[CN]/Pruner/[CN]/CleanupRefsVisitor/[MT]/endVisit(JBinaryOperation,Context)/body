@@ -1,13 +1,15 @@
 {
-  if (x.getOp() == JBinaryOperator.ASG) {
-    lValues.pop();
-    JExpression lhs=x.getLhs();
-    if (lhs instanceof JVariableRef) {
-      JVariableRef variableRef=(JVariableRef)lhs;
-      if (isVariablePruned(variableRef.getTarget())) {
-        JExpression replacement=makeReplacementForAssignment(x.getSourceInfo(),variableRef,x.getRhs());
-        ctx.replaceMe(replacement);
-      }
-    }
+  if (x.getOp() != JBinaryOperator.ASG) {
+    return;
+  }
+  lValues.pop();
+  JExpression lhs=x.getLhs();
+  if (!(lhs instanceof JVariableRef)) {
+    return;
+  }
+  JVariableRef variableRef=(JVariableRef)lhs;
+  if (isVariablePruned(variableRef.getTarget())) {
+    JExpression replacement=makeReplacementForAssignment(x.getSourceInfo(),variableRef,x.getRhs());
+    ctx.replaceMe(replacement);
   }
 }

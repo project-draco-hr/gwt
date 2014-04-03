@@ -10,9 +10,6 @@
   JNode node=null;
   JsniRef ref=JsniRef.parse(stringValue);
   if (ref != null) {
-    if (Name.isBinaryName(ref.className())) {
-      findType(ref.className(),binaryNameBasedTypeLocator);
-    }
     node=JsniRefLookup.findJsniRefTarget(ref,program,new JsniRefLookup.ErrorReporter(){
       @Override public void reportError(      String errMsg){
         error(x,errMsg);
@@ -20,14 +17,12 @@
     }
 );
   }
- else {
-    String typeName=stringValue.charAt(0) == '@' ? stringValue.substring(1) : stringValue;
-    node=findType(typeName,binaryNameBasedTypeLocator);
-  }
   if (node == null) {
     return null;
   }
- else {
-    return new JNameOf(x.getSourceInfo(),program.getTypeJavaLangString(),(HasName)node);
+  if (node instanceof JMethod) {
+    flowInto((JMethod)node);
+    program.addPinnedMethod((JMethod)node);
   }
+  return new JNameOf(x.getSourceInfo(),program.getTypeJavaLangString(),(HasName)node);
 }
