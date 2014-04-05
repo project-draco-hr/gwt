@@ -73,41 +73,7 @@ catch (    Throwable e) {
     for (    CompilationUnit unit : newlyBuiltUnits) {
       unit.getDependencies().resolve(allValidClasses);
     }
-    Collection<CompilationUnit> invalidatedUnits=Lists.newArrayList();
-    for (Iterator<Entry<CompilationUnitBuilder,CompilationUnit>> it=cachedUnits.entrySet().iterator(); it.hasNext(); ) {
-      Entry<CompilationUnitBuilder,CompilationUnit> entry=it.next();
-      CompilationUnit unit=entry.getValue();
-      boolean isValid=unit.getDependencies().validate(logger,allValidClasses);
-      if (isValid && unit.isError()) {
-        for (        CompiledClass cc : unit.getCompiledClasses()) {
-          try {
-            cc.getNameEnvironmentAnswer();
-          }
- catch (          ClassFormatException ex) {
-            isValid=false;
-            break;
-          }
-        }
-      }
-      if (!isValid) {
-        if (logger.isLoggable(TreeLogger.TRACE)) {
-          logger.log(TreeLogger.TRACE,"Invalid Unit: " + unit.getTypeName());
-        }
-        invalidatedUnits.add(unit);
-        builders.add(entry.getKey());
-        it.remove();
-      }
-    }
-    if (invalidatedUnits.size() > 0) {
-      if (logger.isLoggable(TreeLogger.TRACE)) {
-        logger.log(TreeLogger.TRACE,"Invalid units found: " + invalidatedUnits.size());
-      }
-    }
-    for (    CompilationUnit unit : invalidatedUnits) {
-      for (      CompiledClass cc : unit.getCompiledClasses()) {
-        allValidClasses.remove(cc.getSourceName());
-      }
-    }
+    removeInvalidCachedUnitsAndRescheduleCorrespondingBuilders(logger,builders,cachedUnits);
   }
  while (builders.size() > 0);
   for (  CompilationUnit unit : resultUnits) {
