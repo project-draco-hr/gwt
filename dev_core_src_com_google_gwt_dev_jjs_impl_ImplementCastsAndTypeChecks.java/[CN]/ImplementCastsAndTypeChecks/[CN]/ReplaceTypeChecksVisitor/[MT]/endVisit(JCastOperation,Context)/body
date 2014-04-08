@@ -37,27 +37,16 @@
  else       if (program.typeOracle.isDualJsoInterface(refType)) {
         method=program.getIndexedMethod("Cast.dynamicCastAllowJso");
       }
+ else       if (isJsInterfaceCast) {
+        method=program.getIndexedMethod("Cast.dynamicCastWithPrototype");
+      }
  else {
-        if (program.typeOracle.isOrExtendsJsInterface(toType,true)) {
-          if (isJsInterfaceCast) {
-            method=program.getIndexedMethod("Cast.dynamicCastWithPrototype");
-          }
- else {
-            method=program.getIndexedMethod("Cast.dynamicCast");
-          }
-          isJsInterfaceCast=true;
-        }
- else {
-          method=program.getIndexedMethod("Cast.dynamicCast");
-        }
+        method=program.getIndexedMethod("Cast.dynamicCast");
       }
       JMethodCall call=new JMethodCall(info,null,method,toType);
       call.addArg(curExpr);
       if (!isJsoCast) {
         call.addArg((new JRuntimeTypeReference(x.getSourceInfo(),program.getTypeJavaLangObject(),refType)));
-      }
-      if (isJsInterfaceCast) {
-        call.addArg(program.getStringLiteral(x.getSourceInfo(),program.typeOracle.getNearestJsInterface(toType,true).getJsPrototype()));
       }
       if (isJsInterfaceCast) {
         call.addArg(program.getStringLiteral(x.getSourceInfo(),program.typeOracle.getNearestJsInterface(toType,true).getJsPrototype()));
