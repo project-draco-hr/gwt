@@ -1,0 +1,23 @@
+{
+  for (  String moduleName : Lists.newArrayList(directDependentsModuleNamesByModuleName.keySet())) {
+    Set<String> libraryModules=Sets.newHashSet();
+    Set<String> filesetsProcessed=Sets.newHashSet();
+    Queue<String> modulesToProcess=Queues.newArrayDeque(directDependentsModuleNamesByModuleName.get(moduleName));
+    while (!modulesToProcess.isEmpty()) {
+      String dependentModuleName=modulesToProcess.poll();
+      boolean isLibrary=!filesetModuleNames.contains(dependentModuleName);
+      if (isLibrary) {
+        if (!moduleName.equals(dependentModuleName)) {
+          libraryModules.add(dependentModuleName);
+        }
+        continue;
+      }
+      filesetsProcessed.add(dependentModuleName);
+      Set<String> notAlreadyProcessed=Sets.newHashSet(directDependentsModuleNamesByModuleName.get(dependentModuleName));
+      notAlreadyProcessed.removeAll(filesetsProcessed);
+      modulesToProcess.addAll(notAlreadyProcessed);
+    }
+    directDependentsModuleNamesByModuleName.replaceValues(moduleName,libraryModules);
+  }
+  directDependentsModuleNamesByModuleName.removeAll(filesetModuleNames);
+}
