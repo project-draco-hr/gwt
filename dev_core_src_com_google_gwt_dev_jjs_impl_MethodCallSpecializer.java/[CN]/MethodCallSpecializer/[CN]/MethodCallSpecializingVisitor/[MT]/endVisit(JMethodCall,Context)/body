@@ -1,0 +1,35 @@
+{
+  if (x.isVolatile() || x.canBePolymorphic() || x.getTarget().isAbstract()|| !x.getTarget().isFinal()|| !x.getTarget().isStatic()) {
+    return;
+  }
+  JMethod method=x.getTarget();
+  JMethod.Specialization specialization=method.getSpecialization();
+  if (specialization == null) {
+    return;
+  }
+  List<JType> params=specialization.getParams();
+  if (params.size() == x.getArgs().size()) {
+    for (int i=0; i < params.size(); i++) {
+      JType argType=x.getArgs().get(i).getType();
+      if (argType instanceof JNonNullType) {
+        argType=((JNonNullType)argType).getUnderlyingType();
+      }
+      if (argType instanceof JNullType) {
+        return;
+      }
+      JType qType=params.get(i);
+      if (qType instanceof JNonNullType) {
+        qType=((JNonNullType)qType).getUnderlyingType();
+      }
+      if (!program.typeOracle.canTriviallyCast(argType,qType)) {
+        return;
+      }
+    }
+    JMethod targetMethod=specialization.getTargetMethod();
+    if (targetMethod != null) {
+      JMethodCall call=new JMethodCall(x.getSourceInfo(),x.getInstance(),targetMethod);
+      call.addArgs(x.getArgs());
+      ctx.replaceMe(call);
+    }
+  }
+}

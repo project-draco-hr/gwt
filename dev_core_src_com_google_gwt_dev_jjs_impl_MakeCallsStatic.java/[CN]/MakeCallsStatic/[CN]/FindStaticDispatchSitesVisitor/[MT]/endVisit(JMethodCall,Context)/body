@@ -1,31 +1,9 @@
 {
   JMethod method=x.getTarget();
-  if (method.isExternal()) {
-    return;
+  if (shouldBeMadeStatic(x,method)) {
+    toBeMadeStatic.add(method);
+    if (method.getSpecialization() != null && shouldBeMadeStatic(x,method.getSpecialization().getTargetMethod())) {
+      toBeMadeStatic.add(method.getSpecialization().getTargetMethod());
+    }
   }
-  if (!program.allowStatificationOf(method)) {
-    return;
-  }
-  if (program.getStaticImpl(method) != null || toBeMadeStatic.contains(method)) {
-    return;
-  }
-  if (x.canBePolymorphic()) {
-    return;
-  }
-  if (!method.needsVtable()) {
-    return;
-  }
-  if (method.isAbstract()) {
-    return;
-  }
-  if (method == program.getNullMethod()) {
-    return;
-  }
-  if (!method.getEnclosingType().getMethods().contains(method)) {
-    return;
-  }
-  if (program.typeOracle.isJsInterfaceMethod(method)) {
-    return;
-  }
-  toBeMadeStatic.add(method);
 }
