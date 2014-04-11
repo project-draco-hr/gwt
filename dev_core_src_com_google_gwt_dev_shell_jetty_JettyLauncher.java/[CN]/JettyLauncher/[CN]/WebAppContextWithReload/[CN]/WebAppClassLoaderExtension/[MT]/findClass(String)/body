@@ -1,5 +1,5 @@
 {
-  if (isSystemClass(name)) {
+  if (isSystemClass(name) && !systemClassesFromWebappFirst.match(name)) {
     try {
       return systemClassLoader.loadClass(name);
     }
@@ -18,6 +18,9 @@
   URL found=systemClassLoader.getResource(resourceName);
   if (found == null) {
     return null;
+  }
+  if (allowedFromSystemClassLoader.match(name)) {
+    return systemClassLoader.loadClass(name);
   }
   String warnMessage="Server class '" + name + "' could not be found in the web app, but was found on the system classpath";
   if (!addContainingClassPathEntry(warnMessage,found,resourceName)) {

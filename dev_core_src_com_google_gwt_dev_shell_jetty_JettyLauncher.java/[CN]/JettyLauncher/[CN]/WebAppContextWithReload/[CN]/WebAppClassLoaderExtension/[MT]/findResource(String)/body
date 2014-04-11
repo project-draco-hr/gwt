@@ -3,8 +3,9 @@
   if (checkName.startsWith(META_INF_SERVICES)) {
     checkName=checkName.substring(META_INF_SERVICES.length());
   }
+  checkName=checkName.replace('/','.');
   URL found;
-  if (isSystemClass(checkName.replace('/','.'))) {
+  if (isSystemClass(checkName) && !systemClassesFromWebappFirst.match(checkName)) {
     found=systemClassLoader.getResource(name);
     if (found != null) {
       return found;
@@ -15,8 +16,11 @@
     return found;
   }
   found=systemClassLoader.getResource(name);
-  if (found == null) {
+  if (found == null || isServerClass(checkName)) {
     return null;
+  }
+  if (allowedFromSystemClassLoader.match(checkName) || "log4j.xml".equals(name) || "log4j.properties".equals(name)) {
+    return found;
   }
   String warnMessage="Server resource '" + name + "' could not be found in the web app, but was found on the system classpath";
   if (!addContainingClassPathEntry(warnMessage,found,name)) {
