@@ -31,8 +31,17 @@ catch (  IOException e) {
  finally {
     Utility.close(reader);
   }
-  if (caught != null) {
+  if (caught instanceof UnableToCompleteException) {
+    throw (UnableToCompleteException)caught;
+  }
+ else   if (caught instanceof SAXParseException) {
+    SAXParseException parseException=((SAXParseException)caught);
+    logger.log(Type.ERROR,"Line " + parseException.getLineNumber() + ", column "+ parseException.getColumnNumber()+ " : "+ parseException.getMessage());
+  }
+ else   if (caught != null) {
     Messages.XML_PARSE_FAILED.log(logger,caught);
+  }
+  if (caught != null) {
     throw new UnableToCompleteException();
   }
 }
