@@ -5,14 +5,14 @@
     if (!propertySettings.containsKey(name.token)) {
       propertySettings.put(name.token,moduleName);
     }
-    logger.log(TreeLogger.WARN,"Setting configuration property named " + name.token + " in "+ moduleName+ " that has not been previously defined."+ "  This may be disallowed in the future.");
+    Messages.UNDEFINED_CONFIGURATION_PROPERTY.log(logger,getLineNumber(),name.token,moduleName,null);
   }
  else   if (!(existingProperty instanceof ConfigurationProperty)) {
     if (existingProperty instanceof BindingProperty) {
-      logger.log(TreeLogger.ERROR,"The property " + name.token + " is already defined as a deferred-binding property");
+      Messages.CONFIGURATION_PROPERTY_REDEFINES_BINDING_PROPERTY.log(logger,getLineNumber(),name.token,null);
     }
  else {
-      logger.log(TreeLogger.ERROR,"May not replace property named " + name.token + " of unknown type "+ existingProperty.getClass().getName());
+      Messages.CANNOT_REPLACE_PROPERTY.log(logger,getLineNumber(),name.token,existingProperty.getName(),existingProperty.getClass().getName(),null);
     }
     throw new UnableToCompleteException();
   }
