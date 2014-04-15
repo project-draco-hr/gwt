@@ -4,15 +4,23 @@
     String qs=queryString.substring(1);
     for (    String kvPair : qs.split("&")) {
       String[] kv=kvPair.split("=",2);
-      if (kv[0].length() == 0) {
+      String key=kv[0];
+      if (key.isEmpty()) {
         continue;
       }
-      List<String> values=out.get(kv[0]);
+      String val=kv.length > 1 ? kv[1] : "";
+      try {
+        val=URL.decodeQueryString(val);
+      }
+ catch (      JavaScriptException e) {
+        GWT.log("Cannot decode a URL query string parameter=" + key + " value="+ val,e);
+      }
+      List<String> values=out.get(key);
       if (values == null) {
         values=new ArrayList<String>();
-        out.put(kv[0],values);
+        out.put(key,values);
       }
-      values.add(kv.length > 1 ? URL.decodeQueryString(kv[1]) : "");
+      values.add(val);
     }
   }
   for (  Map.Entry<String,List<String>> entry : out.entrySet()) {
