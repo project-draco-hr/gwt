@@ -11,9 +11,10 @@
       result.append("class ");
     }
     result.append(current.getJNISignature());
-    if (current.getSuperclass() != null) {
+    JClassType superclass=current.getSuperclass();
+    if (superclass != null) {
       result.append(" extends ");
-      result.append(current.getSuperclass().getJNISignature());
+      result.append(superclass.getJNISignature());
     }
     for (    JClassType currentInterface : current.getImplementedInterfaces()) {
       result.append(" implements ");
@@ -29,18 +30,10 @@
       addMethods(constructors,result,filter);
     }
     addMethods(current.getMethods(),result,filter);
-    for (    JField currentField : current.getFields()) {
-      if (!filter.shouldPrint(currentField)) {
-        continue;
-      }
-      result.append(" field ");
-      if (currentField.isStatic()) {
-        result.append("static ");
-      }
-      result.append(currentField.getName());
-      result.append(' ');
-      result.append(currentField.getType().getJNISignature());
-      result.append('\n');
+    addFields(current.getFields(),result,filter);
+    for (JClassType c=superclass; c != null && !filter.shouldPrint(c); c=c.getSuperclass()) {
+      addMethods(c.getMethods(),result,filter);
+      addFields(c.getFields(),result,filter);
     }
   }
   return result.toString();
