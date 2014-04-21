@@ -1,17 +1,21 @@
 {
   final JPrimitiveType typePrimitiveChar=program.getTypePrimitiveChar();
   final JPrimitiveType typePrimitiveLong=program.getTypePrimitiveLong();
-  if (expr.getType() != typePrimitiveChar && expr.getType() != typePrimitiveLong) {
-    return expr;
+  if (expr instanceof JLongLiteral) {
+    long longValue=((JLongLiteral)expr).getValue();
+    return program.getStringLiteral(expr.getSourceInfo(),String.valueOf(longValue));
   }
-  if (expr.getType() == typePrimitiveLong) {
+ else   if (expr.getType() == typePrimitiveLong) {
     JMethodCall call=new JMethodCall(expr.getSourceInfo(),null,program.getIndexedMethod("LongLib.toString"),expr);
     return call;
   }
-  if (expr instanceof JCharLiteral) {
+ else   if (expr instanceof JCharLiteral) {
     char charValue=((JCharLiteral)expr).getValue();
     return program.getStringLiteral(expr.getSourceInfo(),Character.toString(charValue));
   }
-  JMethodCall call=new JMethodCall(expr.getSourceInfo(),null,program.getIndexedMethod("Cast.charToString"),expr);
-  return call;
+ else   if (expr.getType() == typePrimitiveChar) {
+    JMethodCall call=new JMethodCall(expr.getSourceInfo(),null,program.getIndexedMethod("Cast.charToString"),expr);
+    return call;
+  }
+  return expr;
 }
