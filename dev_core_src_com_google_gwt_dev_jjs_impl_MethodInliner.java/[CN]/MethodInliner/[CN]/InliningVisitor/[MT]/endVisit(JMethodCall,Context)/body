@@ -6,27 +6,7 @@
   if (cannotInline.contains(method)) {
     return;
   }
-  boolean possibleToInline=false;
-  if (JProgram.isJsInterfacePrototype(method.getEnclosingType())) {
-    possibleToInline=false;
-  }
-  if (method.isStatic() && !method.isNative() && program.allowInliningOf(method)) {
-    JMethodBody body=(JMethodBody)method.getBody();
-    List<JStatement> stmts=body.getStatements();
-    if (method.getEnclosingType() != null && method.getEnclosingType().getClinitMethod() == method && !stmts.isEmpty()) {
-      possibleToInline=false;
-    }
- else     if (!body.getLocals().isEmpty()) {
-      possibleToInline=false;
-    }
- else {
-      JMultiExpression multi=createMultiExpressionFromBody(body,ignoringReturnValueFor == x);
-      if (multi != null) {
-        possibleToInline=tryInlineExpression(x,ctx,multi);
-      }
-    }
-  }
-  if (!possibleToInline) {
+  if (!tryInlineMethodCall(x,ctx)) {
     cannotInline.add(method);
   }
 }
