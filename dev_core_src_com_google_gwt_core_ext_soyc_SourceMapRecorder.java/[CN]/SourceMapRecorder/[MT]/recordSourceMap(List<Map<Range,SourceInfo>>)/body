@@ -2,26 +2,14 @@
   List<SyntheticArtifact> toReturn=Lists.newArrayList();
   ByteArrayOutputStream baos=new ByteArrayOutputStream();
   SourceMapGeneratorV3 generator=new SourceMapGeneratorV3();
-  OutputStreamWriter out=new OutputStreamWriter(baos);
   int fragment=0;
   if (!sourceInfoMaps.isEmpty()) {
     for (    Map<Range,SourceInfo> sourceMap : sourceInfoMaps) {
       generator.reset();
-      Set<Range> rangeSet=sourceMap.keySet();
-      Range[] ranges=rangeSet.toArray(new Range[rangeSet.size()]);
-      Arrays.sort(ranges,Range.DEPENDENCY_ORDER_COMPARATOR);
-      for (      Range r : ranges) {
-        SourceInfo si=sourceMap.get(r);
-        if (si.getFileName() == null || si.getStartLine() < 0) {
-          continue;
-        }
-        if (r.getStartLine() == 0 || r.getEndLine() == 0) {
-          continue;
-        }
-        generator.addMapping(si.getFileName(),getName(si),new FilePosition(si.getStartLine() - 1,0),new FilePosition(r.getStartLine(),r.getStartColumn()),new FilePosition(r.getEndLine(),r.getEndColumn()));
-      }
+      addMappings(new SourceMappingWriter(generator),sourceMap);
       updateSourceMap(generator,fragment);
       baos.reset();
+      OutputStreamWriter out=new OutputStreamWriter(baos);
       generator.appendTo(out,"sourceMap" + fragment);
       out.flush();
       toReturn.add(new SymbolMapsLinker.SourceMapArtifact(permutationId,fragment,baos.toByteArray()));

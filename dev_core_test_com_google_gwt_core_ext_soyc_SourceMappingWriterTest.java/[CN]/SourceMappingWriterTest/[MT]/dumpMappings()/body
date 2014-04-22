@@ -1,0 +1,44 @@
+{
+  writer.flush();
+  generator.addMapping("Dummy",null,new FilePosition(0,0),new FilePosition(99,0),new FilePosition(99,1));
+  StringBuilder generated=new StringBuilder();
+  generator.appendTo(generated,"test");
+  SourceMapConsumerV3 consumer=new SourceMapConsumerV3();
+  consumer.parse(generated.toString());
+  final StringBuilder out=new StringBuilder();
+  out.append("Mappings:\n");
+  consumer.visitMappings(new EntryVisitor(){
+    @Override public void visit(    String javaFile,    String javaName,    FilePosition javaStart,    FilePosition jsStart,    FilePosition jsEnd){
+      if (javaFile.equals("Dummy")) {
+        return;
+      }
+      out.append(jsStart.getLine());
+      out.append(":");
+      out.append(jsStart.getColumn());
+      out.append("-");
+      if (jsEnd.getLine() != jsStart.getLine()) {
+        out.append(jsEnd.getLine());
+        out.append(":");
+      }
+      out.append(jsEnd.getColumn());
+      out.append(" -> ");
+      if (!javaFile.equals(JAVA_FILENAME)) {
+        out.append(javaFile);
+        out.append(":");
+      }
+      out.append(javaStart.getLine() + 1);
+      if (javaStart.getColumn() != 0) {
+        out.append(":");
+        out.append(javaStart.getColumn());
+      }
+      if (javaName != null) {
+        out.append(" (");
+        out.append(javaName);
+        out.append(")");
+      }
+      out.append("\n");
+    }
+  }
+);
+  return out.toString();
+}
