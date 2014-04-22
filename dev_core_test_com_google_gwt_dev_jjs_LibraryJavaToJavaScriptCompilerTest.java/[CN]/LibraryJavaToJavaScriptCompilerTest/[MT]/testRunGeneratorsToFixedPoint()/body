@@ -18,8 +18,10 @@
   RuleGenerateWith localeMessageGenerateRule=new RuleGenerateWith(LocaleMessageGenerator.class);
   localeMessageGenerateRule.getRootCondition().getConditions().add(new ConditionWhenTypeEndsWith("Messages"));
   module.addRule(localeMessageGenerateRule);
-  LibraryGroup libraryGroup=LibraryGroupTest.buildVariedPropertyGeneratorLibraryGroup("com.google.gwt.dev.jjs.LibraryJavaToJavaScriptCompilerTest.BrowserShimGenerator",Sets.newHashSet("com.google.ChromeMessages"),"com.google.gwt.dev.jjs.LibraryJavaToJavaScriptCompilerTest.LocaleMessageGenerator",Sets.newHashSet("com.google.WindowShim"));
-  compilerContext=new CompilerContext.Builder().libraryGroup(libraryGroup).libraryWriter(libraryWriter).module(module).build();
+  LibraryGroup libraryGroup=LibraryGroupTest.buildVariedPropertyGeneratorLibraryGroup(Sets.newHashSet("com.google.ChromeMessages"),Sets.newHashSet("com.google.WindowShim"));
+  PrecompileTaskOptions options=new CompilerOptionsImpl();
+  options.setFinalProperties(module.getProperties());
+  compilerContext=new CompilerContext.Builder().libraryGroup(libraryGroup).libraryWriter(libraryWriter).module(module).options(options).build();
   finishSetUpWithCompilerContext();
   precompiler.runGeneratorsToFixedPoint(null);
   assertEquals(Sets.newHashSet("com.google.EventShim","com.google.WindowShim","com.google.ChromeMessages","com.google.ErrorMessages"),precompiler.processedReboundTypeSourceNames);

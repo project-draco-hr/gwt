@@ -1,8 +1,19 @@
 {
-  UnifyAst unifyAst=new UnifyAst(logger,compilerContext,jprogram,jsProgram,rpo);
+  UnifyAst unifyAst;
+  try {
+    unifyAst=new UnifyAst(logger,compilerContext,jprogram,jsProgram,rpo);
+  }
+ catch (  CollidingCompilationUnitException e) {
+    logger.log(TreeLogger.ERROR,e.getMessage());
+    throw new UnableToCompleteException();
+  }
   unifyAst.addRootTypes(allRootTypes);
-  synthesizeEntryMethodHolderInit(unifyAst,entryMethodHolderTypeName);
+  if (entryMethodHolderTypeName != null) {
+    synthesizeEntryMethodHolderInit(unifyAst,entryMethodHolderTypeName);
+  }
   jprogram.addEntryMethod(jprogram.getIndexedMethod("Impl.registerEntry"));
-  jprogram.addEntryMethod(jprogram.getIndexedMethod(SourceName.getShortClassName(entryMethodHolderTypeName) + ".init"));
+  if (entryMethodHolderTypeName != null) {
+    jprogram.addEntryMethod(jprogram.getIndexedMethod(SourceName.getShortClassName(entryMethodHolderTypeName) + ".init"));
+  }
   unifyAst.exec();
 }

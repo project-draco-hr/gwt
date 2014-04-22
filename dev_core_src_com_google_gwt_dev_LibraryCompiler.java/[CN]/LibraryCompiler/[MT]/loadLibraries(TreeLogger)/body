@@ -6,5 +6,13 @@
     logger.log(TreeLogger.ERROR,e.getMessage());
     throw new UnableToCompleteException();
   }
-  compilerContext=compilerContextBuilder.libraryGroup(libraryGroup).libraryWriter(new ZipLibraryWriter(compilerOptions.getOutputLibraryPath())).unitCache(new LibraryGroupUnitCache(libraryGroup)).build();
+  libraryGroup.verify(logger);
+  try {
+    CloseableJarHandlerFactory.closeStreams(compilerOptions.getOutputLibraryPath());
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.WARN,String.format("Failed to close old connections to %s. " + "Repeated incremental compiles in the same JVM process may fail.",compilerOptions.getOutputLibraryPath()));
+  }
+  ZipLibraryWriter zipLibraryWriter=new ZipLibraryWriter(compilerOptions.getOutputLibraryPath());
+  compilerContext=compilerContextBuilder.libraryGroup(libraryGroup).libraryWriter(zipLibraryWriter).unitCache(UnitCacheSingleton.get(logger,compilerOptions.getWorkDir())).build();
 }

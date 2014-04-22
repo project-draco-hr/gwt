@@ -1,7 +1,6 @@
 {
   long beforeLinkMs=System.currentTimeMillis();
   Event linkEvent=SpeedTracerLogger.start(CompilerEventType.LINK);
-  Library resultLibrary;
   try {
     resultLibrary=new ZipLibrary(compilerOptions.getOutputLibraryPath());
   }
@@ -19,20 +18,15 @@
   }
   File absPath=new File(compilerOptions.getWarDir(),module.getName());
   absPath=absPath.getAbsoluteFile();
-  String logMessage="Linking into " + absPath;
-  if (compilerOptions.getExtraDir() != null) {
-    File absExtrasPath=new File(compilerOptions.getExtraDir(),module.getName());
-    absExtrasPath=absExtrasPath.getAbsoluteFile();
-    logMessage+="; Writing extras to " + absExtrasPath;
-  }
-  TreeLogger branch=logger.branch(TreeLogger.TRACE,logMessage);
   try {
-    Link.link(branch,module,compilerContext.getPublicResourceOracle(),generatedArtifacts,permutations,resultFiles,libraryPermutationResults,compilerOptions,compilerOptions);
+    Link.link(TreeLogger.NULL,module,compilerContext.getPublicResourceOracle(),generatedArtifacts,permutations,resultFiles,libraryPermutationResults,compilerOptions,compilerOptions);
+    long durationMs=System.currentTimeMillis() - beforeLinkMs;
+    logger.log(TreeLogger.INFO,String.format("%.3fs -- Successfully linking application",durationMs / 1000d));
   }
  catch (  IOException e) {
+    long durationMs=System.currentTimeMillis() - beforeLinkMs;
+    logger.log(TreeLogger.INFO,String.format("%.3fs -- Failing to link application",durationMs / 1000d));
     throw new UnableToCompleteException();
   }
   linkEvent.end();
-  long durationMs=System.currentTimeMillis() - beforeLinkMs;
-  branch.log(TreeLogger.INFO,"Library link succeeded -- " + String.format("%.3f",durationMs / 1000d) + "s");
 }

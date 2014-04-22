@@ -38,6 +38,7 @@
     ResolveMethodSignature methodResolver=new ResolveMethodSignature(context.resolver,logger,method,typeParamLookup,hasReturnType,methodData,methodData.getArgTypes(),methodData.getArgNames(),methodData.hasActualArgNames(),context.allMethodArgs);
     reader.accept(methodResolver);
     if (!methodResolver.finish()) {
+      logger.log(TreeLogger.ERROR,"Failed to resolve.");
       return false;
     }
   }
@@ -46,6 +47,7 @@
       Type returnType=Type.getReturnType(methodData.getDesc());
       JType returnJType=resolveType(returnType);
       if (returnJType == null) {
+        logger.log(TreeLogger.ERROR,"Unable to resolve return type " + returnType.getInternalName());
         return false;
       }
       setReturnType(method,returnJType);
@@ -54,7 +56,7 @@
       return false;
     }
   }
-  if (!resolveThrows(method,methodData)) {
+  if (!resolveThrows(logger,method,methodData)) {
     return false;
   }
   typeParamLookup.popScope();

@@ -1,0 +1,34 @@
+{
+  try {
+    logger=logger.branch(TreeLogger.INFO,"Performing an incremental build");
+    CompilerContext compilerContext=new CompilerContext.Builder().compileMonolithic(false).libraryGroup(LibraryGroup.fromLibraries(Lists.<Library>newArrayList(),false)).build();
+    long beforeLoadRootModuleMs=System.currentTimeMillis();
+    rootModule=ModuleDefLoader.loadFromResources(logger,compilerContext,rootModuleName,resourceLoader,false);
+    finalProperties=rootModule.getProperties();
+    long loadRootModuleDurationMs=System.currentTimeMillis() - beforeLoadRootModuleMs;
+    logger.log(TreeLogger.INFO,String.format("%.3fs -- Parsing and loading root module definition in %s",loadRootModuleDurationMs / 1000d,rootModuleName));
+    long beforeCreateTargetGraphMs=System.currentTimeMillis();
+    rootBuildTarget=createBuildTarget(logger,rootModuleName);
+    rootBuildTarget.setModule(rootModule);
+    long createdTargetGraphDurationMs=System.currentTimeMillis() - beforeCreateTargetGraphMs;
+    logger.log(TreeLogger.INFO,String.format("%.3fs -- Creating target graph (%s targets)",createdTargetGraphDurationMs / 1000d,buildTargetsByCanonicalModuleName.size()));
+    if (!circularReferenceModuleNameLoops.isEmpty()) {
+      for (      List<String> circularReferenceModuleNameLoop : circularReferenceModuleNameLoops) {
+        logger.log(TreeLogger.ERROR,formatCircularModulePathMessage(circularReferenceModuleNameLoop));
+      }
+      throw new UnableToCompleteException();
+    }
+    logLoadedBuildTargetGraph(logger,buildTargetsByCanonicalModuleName);
+    long beforeComputeOutputFreshnessMs=System.currentTimeMillis();
+    ModuleDefLoader.clearModuleCache();
+    rootBuildTarget.computeOutputFreshness(logger);
+    long computeOutputFreshnessDurationMs=System.currentTimeMillis() - beforeComputeOutputFreshnessMs;
+    logger.log(TreeLogger.INFO,String.format("%.3fs -- Computing per-target output freshness",computeOutputFreshnessDurationMs / 1000d));
+    TreeLogger branch=logger.branch(TreeLogger.INFO,"Compiling target graph");
+    boolean success=rootBuildTarget.link(branch);
+    return BuildResultStatus.get(success);
+  }
+ catch (  UnableToCompleteException e) {
+    return BuildResultStatus.FAILED;
+  }
+}

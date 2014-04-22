@@ -1,0 +1,19 @@
+{
+  logger=logger.branch(TreeLogger.INFO,"Performing an incremental rebuild");
+  ResourceOracleImpl.clearCache();
+  ZipFileClassPathEntry.clearCache();
+  ModuleDefLoader.clearModuleCache();
+  ResourceGeneratorUtilImpl.clearGeneratedFilesByName();
+  long beforeComputeOutputFreshnessMs=System.currentTimeMillis();
+  forgetAllOutputFreshness();
+  rootBuildTarget.computeOutputFreshness(logger);
+  long computeOutputFreshnessDurationMs=System.currentTimeMillis() - beforeComputeOutputFreshnessMs;
+  logger.log(TreeLogger.INFO,String.format("%.3fs -- Computing per-target output freshness",computeOutputFreshnessDurationMs / 1000d));
+  if (rootBuildTarget.isOutputFresh()) {
+    logger.log(TreeLogger.INFO,NO_FILES_HAVE_CHANGED);
+    return BuildResultStatus.SUCCESS_NO_CHANGES;
+  }
+  TreeLogger branch=logger.branch(TreeLogger.INFO,"Compiling target graph");
+  boolean success=rootBuildTarget.link(branch);
+  return BuildResultStatus.get(success);
+}

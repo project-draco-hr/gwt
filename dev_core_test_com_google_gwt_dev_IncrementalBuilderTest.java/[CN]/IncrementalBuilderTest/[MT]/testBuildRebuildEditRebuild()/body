@@ -1,0 +1,34 @@
+{
+  UnitTestTreeLogger.Builder loggerBuilder=new UnitTestTreeLogger.Builder();
+  loggerBuilder.setLowestLogLevel(TreeLogger.INFO);
+  loggerBuilder.expectInfo(BuildTarget.formatCompilingModuleMessage("com.google.gwt.core.Core"),null);
+  loggerBuilder.expectInfo(BuildTarget.formatCompilingModuleMessage("com.google.gwt.dev.testdata.incrementalbuildsystem.SimpleBottom"),null);
+  loggerBuilder.expectInfo(BuildTarget.formatCompilingModuleMessage("com.google.gwt.dev.testdata.incrementalbuildsystem.SimpleMid"),null);
+  loggerBuilder.expectInfo(BuildTarget.formatCompilingModuleMessage("com.google.gwt.dev.testdata.incrementalbuildsystem.SimpleTop"),null);
+  UnitTestTreeLogger testLogger=loggerBuilder.createLogger();
+  ResourceLoader resourceLoader=createGwtClassPathResourceLoaderWithMocks("com/google/gwt/dev/testdata/incrementalbuildsystem/Foo.java");
+  IncrementalBuilder incrementalBuilder=createIncrementalBuilder("com.google.gwt.dev.testdata.incrementalbuildsystem.SimpleTop",resourceLoader);
+  incrementalBuilder.clean();
+  boolean actualBuildSuccess=incrementalBuilder.build(testLogger).isSuccess();
+  assertEquals(true,actualBuildSuccess);
+  testLogger.assertLogEntriesContainExpected();
+  loggerBuilder=new UnitTestTreeLogger.Builder();
+  loggerBuilder.setLowestLogLevel(TreeLogger.INFO);
+  loggerBuilder.expectInfo(IncrementalBuilder.NO_FILES_HAVE_CHANGED,null);
+  testLogger=loggerBuilder.createLogger();
+  actualBuildSuccess=incrementalBuilder.rebuild(testLogger).isSuccess();
+  assertEquals(true,actualBuildSuccess);
+  testLogger.assertLogEntriesContainExpected();
+  File fooFile=new File(resourceLoader.getResource("com/google/gwt/dev/testdata/incrementalbuildsystem/Foo.java").getPath());
+  fooFile.setLastModified(System.currentTimeMillis() + 60 * 1000);
+  loggerBuilder=new UnitTestTreeLogger.Builder();
+  loggerBuilder.setLowestLogLevel(TreeLogger.SPAM);
+  loggerBuilder.expectSpam(BuildTarget.formatReusingCachedLibraryMessage("com.google.gwt.core.Core"),null);
+  loggerBuilder.expectSpam(BuildTarget.formatReusingCachedLibraryMessage("com.google.gwt.dev.testdata.incrementalbuildsystem.SimpleBottom"),null);
+  loggerBuilder.expectInfo(BuildTarget.formatCompilingModuleMessage("com.google.gwt.dev.testdata.incrementalbuildsystem.SimpleMid"),null);
+  loggerBuilder.expectInfo(BuildTarget.formatCompilingModuleMessage("com.google.gwt.dev.testdata.incrementalbuildsystem.SimpleTop"),null);
+  testLogger=loggerBuilder.createLogger();
+  actualBuildSuccess=incrementalBuilder.rebuild(testLogger).isSuccess();
+  assertEquals(true,actualBuildSuccess);
+  testLogger.assertLogEntriesContainExpected();
+}

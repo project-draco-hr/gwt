@@ -1,0 +1,26 @@
+{
+  if (outputFreshness == OutputFreshness.FRESH) {
+    logger.log(TreeLogger.SPAM,formatReusingCachedLibraryMessage(canonicalModuleName));
+    return true;
+  }
+  for (  BuildTarget dependencyBuildTarget : dependencyBuildTargets) {
+    if (!dependencyBuildTarget.build(logger)) {
+      return false;
+    }
+  }
+  TreeLogger branch=logger.branch(TreeLogger.INFO,formatCompilingModuleMessage(canonicalModuleName));
+  boolean buildSucceeded;
+  try {
+    RuntimeRebindRuleGenerator.RUNTIME_REBIND_RULE_SOURCES_BY_SHORT_NAME.clear();
+    LibraryCompiler libraryCompiler=new LibraryCompiler(computeCompileOptions(link));
+    libraryCompiler.setResourceLoader(buildTargetOptions.getResourceLoader());
+    buildSucceeded=libraryCompiler.run(branch);
+    module=libraryCompiler.getModule();
+  }
+ catch (  Throwable t) {
+    logger.log(TreeLogger.ERROR,t.getMessage());
+    return false;
+  }
+  outputFreshness=OutputFreshness.FRESH;
+  return buildSucceeded;
+}

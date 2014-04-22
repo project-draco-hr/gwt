@@ -1,0 +1,16 @@
+{
+  if (isCircularlyReferent(moduleName)) {
+    return null;
+  }
+  if (buildTargetsByCanonicalModuleName.containsKey(moduleName)) {
+    return buildTargetsByCanonicalModuleName.get(moduleName);
+  }
+  logger.log(TreeLogger.SPAM,String.format("Adding target %s to build graph.",moduleName));
+  moduleReferencePath.add(moduleName);
+  List<BuildTarget> dependencyBuildTargets=Lists.newArrayList();
+  for (  String dependencyModuleName : rootModule.getDirectDependencies(moduleName)) {
+    dependencyBuildTargets.add(createBuildTarget(logger,dependencyModuleName));
+  }
+  moduleReferencePath.remove(moduleName);
+  return createBuildTarget(moduleName,dependencyBuildTargets.toArray(new BuildTarget[0]));
+}

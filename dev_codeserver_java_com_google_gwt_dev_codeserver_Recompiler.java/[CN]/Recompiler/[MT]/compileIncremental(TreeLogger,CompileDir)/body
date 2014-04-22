@@ -1,0 +1,22 @@
+{
+  BuildResultStatus buildResultStatus;
+  if (incrementalBuilder == null) {
+    ResourceLoader resources=ResourceLoaders.forClassLoader(Thread.currentThread());
+    resources=ResourceLoaders.forPathAndFallback(options.getSourcePath(),resources);
+    this.resourceLoader.set(resources);
+    incrementalBuilder=new IncrementalBuilder(originalModuleName,compileDir.getWarDir().getPath(),compileDir.getWorkDir().getPath(),compileDir.getGenDir().getPath(),resourceLoader.get());
+    buildResultStatus=incrementalBuilder.build(compileLogger);
+  }
+ else {
+    incrementalBuilder.setWarDir(compileDir.getWarDir().getPath());
+    buildResultStatus=incrementalBuilder.rebuild(compileLogger);
+  }
+  if (incrementalBuilder.isRootModuleKnown()) {
+    moduleName.set(incrementalBuilder.getRootModuleName());
+  }
+  if (buildResultStatus.isSuccess() && buildResultStatus.outputChanged()) {
+    publishedCompileDir=compileDir;
+  }
+  lastBuild.set(compileDir);
+  return buildResultStatus.isSuccess();
+}

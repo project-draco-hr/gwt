@@ -1,23 +1,32 @@
 {
-  for (  String moduleName : Lists.newArrayList(directDependentsModuleNamesByModuleName.keySet())) {
+  for (  String moduleName : Lists.newArrayList(directDependencyModuleNamesByModuleName.keySet())) {
     Set<String> libraryModules=Sets.newHashSet();
     Set<String> filesetsProcessed=Sets.newHashSet();
-    Queue<String> modulesToProcess=Queues.newArrayDeque(directDependentsModuleNamesByModuleName.get(moduleName));
-    while (!modulesToProcess.isEmpty()) {
-      String dependentModuleName=modulesToProcess.poll();
+    Queue<LinkedList<String>> modulePathsToProcess=Queues.newArrayDeque();
+    Collection<String> directDependencyModuleNames=directDependencyModuleNamesByModuleName.get(moduleName);
+    for (    String directDependencyModuleName : directDependencyModuleNames) {
+      modulePathsToProcess.add(Lists.newLinkedList(ImmutableList.of(directDependencyModuleName)));
+    }
+    while (!modulePathsToProcess.isEmpty()) {
+      LinkedList<String> dependentModuleNamePath=modulePathsToProcess.poll();
+      String dependentModuleName=dependentModuleNamePath.getLast();
       boolean isLibrary=!filesetModuleNames.contains(dependentModuleName);
       if (isLibrary) {
         if (!moduleName.equals(dependentModuleName)) {
           libraryModules.add(dependentModuleName);
+          dependentModuleNamePath.removeLast();
+          filesetPathPerEdge.putAll(new LibraryDependencyEdge(moduleName,dependentModuleName),dependentModuleNamePath);
         }
         continue;
       }
       filesetsProcessed.add(dependentModuleName);
-      Set<String> notAlreadyProcessed=Sets.newHashSet(directDependentsModuleNamesByModuleName.get(dependentModuleName));
-      notAlreadyProcessed.removeAll(filesetsProcessed);
-      modulesToProcess.addAll(notAlreadyProcessed);
+      Set<String> unProcessedModules=Sets.newHashSet(directDependencyModuleNamesByModuleName.get(dependentModuleName));
+      unProcessedModules.removeAll(filesetsProcessed);
+      for (      String unProcessedModule : unProcessedModules) {
+        modulePathsToProcess.add(createExtendedCopy(dependentModuleNamePath,unProcessedModule));
+      }
     }
-    directDependentsModuleNamesByModuleName.replaceValues(moduleName,libraryModules);
+    directDependencyModuleNamesByModuleName.replaceValues(moduleName,libraryModules);
   }
-  directDependentsModuleNamesByModuleName.removeAll(filesetModuleNames);
+  directDependencyModuleNamesByModuleName.removeAll(filesetModuleNames);
 }

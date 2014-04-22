@@ -13,19 +13,25 @@
   }
   addModifierBits(jfield,mapBits(ASM_TO_SHARED_MODIFIERS,field.getAccess()));
   String signature=field.getSignature();
-  JType fieldType;
+  JType fieldJType;
   if (signature != null) {
     SignatureReader reader=new SignatureReader(signature);
     JType[] fieldTypeRef=new JType[1];
     reader.acceptType(new ResolveTypeSignature(context.resolver,logger,fieldTypeRef,typeParamLookup,null));
-    fieldType=fieldTypeRef[0];
+    fieldJType=fieldTypeRef[0];
+    if (fieldJType == null) {
+      logger.log(TreeLogger.ERROR,"Unable to resolve type in field signature " + signature);
+      return false;
+    }
   }
  else {
-    fieldType=resolveType(Type.getType(field.getDesc()));
+    Type fieldType=Type.getType(field.getDesc());
+    fieldJType=resolveType(fieldType);
+    if (fieldJType == null) {
+      logger.log(TreeLogger.ERROR,"Unable to resolve type " + fieldType.getInternalName() + " of field "+ field.getName());
+      return false;
+    }
   }
-  if (fieldType == null) {
-    return false;
-  }
-  setFieldType(jfield,fieldType);
+  setFieldType(jfield,fieldJType);
   return true;
 }

@@ -1,4 +1,6 @@
 {
+  PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
+  logger.setMaxDetail(TreeLogger.INFO);
   File zipFile=File.createTempFile("FooLib",".gwtlib");
   zipFile.deleteOnExit();
   ZipLibraryWriter zipLibraryWriter=new ZipLibraryWriter(zipFile.getPath());
@@ -13,6 +15,6 @@
   zipLibraryWriter.write();
   ZipLibrary zipLibrary=new ZipLibrary(zipFile.getPath());
   compilerContext=compilerContextBuilder.libraryGroup(LibraryGroup.fromLibraries(Lists.<Library>newArrayList(zipLibrary),false)).build();
-  ResourceLoader resourceLoader=ResourceLoaders.wrap(new URLClassLoader(new URL[]{zipFile.toURL()},null));
-  ModuleDefLoader.loadFromResources(TreeLogger.NULL,compilerContext,"com.google.gwt.user.User",resourceLoader,false);
+  ResourceLoader resourceLoader=ResourceLoaders.forPathAndFallback(Lists.newArrayList(zipFile),ResourceLoaders.forClassLoader(Thread.currentThread()));
+  ModuleDefLoader.loadFromResources(logger,compilerContext,"com.google.gwt.user.User",resourceLoader,false);
 }

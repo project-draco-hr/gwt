@@ -23,8 +23,10 @@
     }
     builders.add(builder);
   }
+  int cachedSourceCount=cachedUnits.size();
+  int sourceCount=resources.size();
   if (logger.isLoggable(TreeLogger.TRACE)) {
-    logger.log(TreeLogger.TRACE,"Found " + cachedUnits.size() + " cached/archived units.  Used "+ cachedUnits.size()+ " / "+ resources.size()+ " units from cache.");
+    logger.log(TreeLogger.TRACE,"Found " + cachedSourceCount + " cached/archived units.  Used "+ cachedSourceCount+ " / "+ sourceCount+ " units from cache.");
   }
   Collection<CompilationUnit> resultUnits=compileMoreLater.compile(logger,compilerContext,builders,cachedUnits,CompilerEventType.JDT_COMPILER_CSB_FROM_ORACLE);
   boolean compileMonolithic=compilerContext.shouldCompileMonolithic();
@@ -38,5 +40,8 @@
     typeOracle=new LibraryTypeOracle(compilerContext);
     typeOracleUpdater=((LibraryTypeOracle)typeOracle).getTypeOracleUpdater();
   }
-  return new CompilationState(logger,compilerContext,typeOracle,typeOracleUpdater,resultUnits,compileMoreLater);
+  CompilationState compilationState=new CompilationState(logger,compilerContext,typeOracle,typeOracleUpdater,resultUnits,compileMoreLater);
+  compilationState.incrementStaticSourceCount(sourceCount);
+  compilationState.incrementCachedStaticSourceCount(cachedSourceCount);
+  return compilationState;
 }

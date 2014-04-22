@@ -10,7 +10,7 @@
   int compileId=++compilesDone;
   CompileDir compileDir=makeCompileDir(compileId);
   TreeLogger compileLogger=makeCompileLogger(compileDir);
-  boolean listenerFailed=false;
+  listenerFailed=false;
   try {
     options.getRecompileListener().startedCompile(originalModuleName,compileId,compileDir);
   }
@@ -20,19 +20,16 @@
   }
   boolean success=false;
   try {
-    CompilerOptions compilerOptions=new CompilerOptionsImpl(compileDir,options.getModuleNames(),options.getSourceLevel(),options.isFailOnError(),options.enforceStrictResources(),options.getLogLevel());
-    compilerContext=compilerContextBuilder.options(compilerOptions).build();
-    ModuleDef module=loadModule(compileLogger,bindingProperties);
-    String newModuleName=module.getName();
-    moduleName.set(newModuleName);
-    compilerOptions=new CompilerOptionsImpl(compileDir,Lists.newArrayList(newModuleName),options.getSourceLevel(),options.isFailOnError(),options.enforceStrictResources(),options.getLogLevel());
-    compilerContext=compilerContextBuilder.options(compilerOptions).build();
-    success=new Compiler(compilerOptions).run(compileLogger,module);
-    lastBuild.set(compileDir);
+    if (options.shouldCompileIncremental()) {
+      success=compileIncremental(compileLogger,compileDir);
+    }
+ else {
+      success=compileMonolithic(compileLogger,bindingProperties,compileDir);
+    }
   }
   finally {
     try {
-      options.getRecompileListener().finishedCompile(originalModuleName,compileId,success);
+      options.getRecompileListener().finishedCompile(originalModuleName,compilesDone,success);
     }
  catch (    Exception e) {
       compileLogger.log(TreeLogger.Type.WARN,"listener threw exception",e);
@@ -44,9 +41,9 @@
     throw new UnableToCompleteException();
   }
   long elapsedTime=System.currentTimeMillis() - startTime;
-  compileLogger.log(TreeLogger.Type.INFO,"Compile completed in " + elapsedTime + " ms");
+  compileLogger.log(TreeLogger.Type.INFO,String.format("%.3fs total -- Compile completed",elapsedTime / 1000d));
   if (options.isCompileTest() && listenerFailed) {
     throw new UnableToCompleteException();
   }
-  return compileDir;
+  return publishedCompileDir;
 }

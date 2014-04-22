@@ -1,0 +1,21 @@
+{
+  if (nameBasedTypeLocator.resolvedTypeIsAvailable(typeName)) {
+    return nameBasedTypeLocator.getResolvedType(typeName);
+  }
+  if (nameBasedTypeLocator.sourceCompilationUnitIsAvailable(typeName)) {
+    assimilateSourceUnit(nameBasedTypeLocator.getCompilationUnitFromSource(typeName));
+    return nameBasedTypeLocator.getResolvedType(typeName);
+  }
+  if (compilerContext.shouldCompileMonolithic()) {
+    logger.log(TreeLogger.ERROR,String.format("Could not find %s in types compiled from source. " + "It was either unavailable or failed to compile.",typeName));
+    errorsFound=true;
+    return null;
+  }
+  if (nameBasedTypeLocator.libraryCompilationUnitIsAvailable(typeName)) {
+    assimilateLibraryUnit(nameBasedTypeLocator.getCompilationUnitFromLibrary(typeName));
+    return nameBasedTypeLocator.getResolvedType(typeName);
+  }
+  logger.log(TreeLogger.ERROR,String.format("Could not find %s in types compiled from source or in provided dependency libraries. " + "Either the source file was unavailable, failed to compile or there is a missing " + "dependency.",typeName));
+  errorsFound=true;
+  return null;
+}

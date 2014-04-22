@@ -11,13 +11,15 @@
   }
   List<CollectAnnotationData>[] paramAnnot=methodData.getArgAnnotations();
   for (int i=0; i < argTypes.length; ++i) {
-    JType argType=resolveType(argTypes[i]);
-    if (argType == null) {
+    Type argType=argTypes[i];
+    JType argJType=resolveType(argType);
+    if (argJType == null) {
+      logger.log(TreeLogger.ERROR,"Unable to resolve type " + argType.getInternalName() + " of argument "+ methodData.getArgNames()[i]);
       return false;
     }
     Map<Class<? extends Annotation>,Annotation> declaredAnnotations=new HashMap<Class<? extends Annotation>,Annotation>();
     resolveAnnotations(logger,paramAnnot[i],declaredAnnotations);
-    newParameter(method,argType,argNames[i],declaredAnnotations,argNamesAreReal);
+    newParameter(method,argJType,argNames[i],declaredAnnotations,argNamesAreReal);
   }
   return true;
 }
