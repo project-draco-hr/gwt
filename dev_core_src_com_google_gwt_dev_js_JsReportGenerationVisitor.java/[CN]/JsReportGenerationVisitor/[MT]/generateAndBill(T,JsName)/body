@@ -1,4 +1,5 @@
 {
+  previousChildKey=null;
   if (!(node instanceof HasSourceInfo)) {
     return super.generateAndBill(node,nameToBillTo);
   }
@@ -6,8 +7,11 @@
   int beforeLine=out.getLine();
   int beforeColumn=out.getColumn();
   T toReturn=super.generateAndBill(node,nameToBillTo);
-  Range javaScriptRange=new Range(beforePosition,out.getPosition(),beforeLine,beforeColumn,out.getLine(),out.getColumn());
-  SourceInfo target=((HasSourceInfo)node).getSourceInfo();
-  sourceInfoMap.put(javaScriptRange,target);
+  if (out.getPosition() > beforePosition) {
+    Range javaScriptRange=new Range(beforePosition,out.getPosition(),beforeLine,beforeColumn,out.getLine(),out.getColumn());
+    SourceInfo target=((HasSourceInfo)node).getSourceInfo();
+    sourceInfoMap.put(javaScriptRange,target);
+    previousChildKey=javaScriptRange;
+  }
   return toReturn;
 }
