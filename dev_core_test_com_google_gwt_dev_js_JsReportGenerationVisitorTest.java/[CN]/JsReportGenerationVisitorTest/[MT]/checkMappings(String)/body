@@ -1,8 +1,13 @@
 {
-  DefaultTextOutput text=new DefaultTextOutput(true);
+  DefaultTextOutput text=new DefaultTextOutput(compact);
   JsReportGenerationVisitor generator=new JsReportGenerationVisitor(text,JavaToJavaScriptMap.EMPTY);
   generator.accept(program);
   String actual=dumpMappings(text.toString(),generator.getSourceInfoMap());
-  String expected=expectedLines.length == 0 ? "" : Joiner.on("\n").join(expectedLines) + "\n";
-  assertEquals("Mappings:\n" + expected,actual);
+  StringBuilder expected=new StringBuilder();
+  expected.append("Mappings:\n");
+  for (  String line : expectedLines) {
+    expected.append(escape(line));
+    expected.append("\n");
+  }
+  assertEquals(expected.toString(),actual);
 }
