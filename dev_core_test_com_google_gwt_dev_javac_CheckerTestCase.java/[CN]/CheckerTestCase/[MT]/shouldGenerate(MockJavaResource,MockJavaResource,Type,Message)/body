@@ -1,16 +1,18 @@
 {
   UnitTestTreeLogger.Builder b=new UnitTestTreeLogger.Builder();
   b.setLowestLogLevel(logLevel);
-  if (message != null) {
-    b.expect(logLevel,logHeader + " in '" + buggyCode.getLocation()+ "'",null);
-    final String fullMessage="Line " + line + ": "+ message;
-    b.expect(logLevel,fullMessage,null);
+  if (messages.length != 0) {
+    b.expect(logLevel,(logLevel == Type.WARN ? "Warnings" : "Errors") + " in '" + buggyCode.getLocation()+ "'",null);
+  }
+  for (  Message message : messages) {
+    final String fullMessage="Line " + message.line + ": "+ message.message;
+    b.expect(message.logLevel,fullMessage,null);
   }
   UnitTestTreeLogger logger=b.createLogger();
   TypeOracle oracle=buildOracle(logger,buggyCode,extraCode);
   logger.assertCorrectLogEntries();
   String className=buggyCode.getTypeName();
-  if (message != null && logLevel == TreeLogger.ERROR) {
+  if (messages.length != 0 && logLevel == TreeLogger.ERROR) {
     assertNull("Buggy compilation unit not removed from type oracle",oracle.findType(className));
   }
  else {
