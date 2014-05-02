@@ -2,8 +2,9 @@
   if (shouldIgnore(x,state)) {
     return null;
   }
+  ExecutableType xType=viewIn(checkedElement,x,state);
   if (isGetter(x,state)) {
-    TypeMirror returnType=x.getReturnType();
+    TypeMirror returnType=xType.getReturnType();
     if (!state.isTransportableType(returnType)) {
       state.poison(x,Messages.untransportableType(returnType));
     }
@@ -11,5 +12,12 @@
  else   if (!isSetter(x,state)) {
     state.poison(x,Messages.proxyOnlyGettersSetters());
   }
-  return super.visitExecutable(x,state);
+  int i=0;
+  for (  TypeMirror parameterType : xType.getParameterTypes()) {
+    if (!state.isTransportableType(parameterType)) {
+      state.poison(x.getParameters().get(i),Messages.untransportableType(parameterType));
+    }
+    i++;
+  }
+  return null;
 }

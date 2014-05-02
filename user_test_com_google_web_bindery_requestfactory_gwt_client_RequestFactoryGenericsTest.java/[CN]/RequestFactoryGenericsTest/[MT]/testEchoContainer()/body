@@ -1,0 +1,15 @@
+{
+  delayTestFinish(TEST_DELAY);
+  Context ctx=factory.ctx();
+  DomainProxy proxy=ctx.create(DomainProxy.class);
+  proxy.setA("42");
+  ContainerProxy container=ctx.create(ContainerProxy.class);
+  container.setDomain(proxy);
+  ctx.echoContainer(container).fire(new Receiver<ContainerProxy>(){
+    @Override public void onSuccess(    ContainerProxy response){
+      assertEquals("42",response.getDomain().getA());
+      finishTest();
+    }
+  }
+);
+}

@@ -1,0 +1,19 @@
+{
+  delayTestFinish(TEST_DELAY);
+  Context ctx=factory.ctx();
+  DomainProxy proxy=ctx.create(DomainProxy.class);
+  proxy.setA("foo");
+  proxy.setB(true);
+  proxy.setListOfA(Collections.singletonList("bar"));
+  proxy.setListOfStrings(Collections.singletonList("baz"));
+  ctx.echoDomain(proxy).fire(new Receiver<DomainProxy>(){
+    @Override public void onSuccess(    DomainProxy response){
+      assertEquals("foo",response.getA());
+      assertEquals(Boolean.TRUE,response.getB());
+      assertEquals(Collections.singletonList("bar"),response.getListOfA());
+      assertEquals(Collections.singletonList("baz"),response.getListOfStrings());
+      finishTest();
+    }
+  }
+);
+}

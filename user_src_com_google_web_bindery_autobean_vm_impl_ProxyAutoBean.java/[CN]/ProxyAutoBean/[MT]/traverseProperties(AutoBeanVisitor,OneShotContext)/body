@@ -1,2 +1,73 @@
 {
+  for (  Map.Entry<String,Data> entry : propertyData.entrySet()) {
+    String name=entry.getKey();
+    Data data=entry.getValue();
+    Method getter=data.getter;
+    PropertyType propertyType=data.propertyType;
+    Object value;
+    try {
+      getter.setAccessible(true);
+      value=getter.invoke(as());
+    }
+ catch (    IllegalArgumentException e) {
+      throw new RuntimeException(e);
+    }
+catch (    IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+catch (    InvocationTargetException e) {
+      throw new RuntimeException(e.getCause());
+    }
+    MethodPropertyContext x;
+    if (isUsingSimplePeer()) {
+      x=new BeanPropertyContext(this,name,data.genericType,data.type,data.elementType,data.keyType,data.valueType);
+    }
+ else {
+      x=new GetterPropertyContext(this,getter,data.genericType,data.type,data.elementType,data.keyType,data.valueType);
+    }
+switch (propertyType) {
+case VALUE:
+{
+        if (visitor.visitValueProperty(name,value,x)) {
+        }
+        visitor.endVisitValueProperty(name,value,x);
+        break;
+      }
+case COLLECTION:
+{
+      @SuppressWarnings("rawtypes") AutoBean temp=AutoBeanUtils.getAutoBean((Collection)value);
+      @SuppressWarnings("unchecked") AutoBean<Collection<?>> bean=(AutoBean<Collection<?>>)temp;
+      if (visitor.visitCollectionProperty(name,bean,x)) {
+        if (value != null) {
+          ((ProxyAutoBean<?>)bean).traverse(visitor,ctx);
+        }
+      }
+      visitor.endVisitCollectionProperty(name,bean,x);
+      break;
+    }
+case MAP:
+{
+    @SuppressWarnings("rawtypes") AutoBean temp=AutoBeanUtils.getAutoBean((Map)value);
+    @SuppressWarnings("unchecked") AutoBean<Map<?,?>> bean=(AutoBean<Map<?,?>>)temp;
+    if (visitor.visitMapProperty(name,bean,x)) {
+      if (value != null) {
+        ((ProxyAutoBean<?>)bean).traverse(visitor,ctx);
+      }
+    }
+    visitor.endVisitMapProperty(name,bean,x);
+    break;
+  }
+case REFERENCE:
+{
+  ProxyAutoBean<?> bean=(ProxyAutoBean<?>)AutoBeanUtils.getAutoBean(value);
+  if (visitor.visitReferenceProperty(name,bean,x)) {
+    if (value != null) {
+      bean.traverse(visitor,ctx);
+    }
+  }
+  visitor.endVisitReferenceProperty(name,bean,x);
+  break;
+}
+}
+}
 }

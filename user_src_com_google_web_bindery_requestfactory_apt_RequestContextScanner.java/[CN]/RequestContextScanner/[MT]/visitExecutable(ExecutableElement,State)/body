@@ -2,7 +2,8 @@
   if (shouldIgnore(x,state)) {
     return null;
   }
-  TypeMirror returnType=x.getReturnType();
+  ExecutableType xType=viewIn(checkedElement,x,state);
+  TypeMirror returnType=xType.getReturnType();
   if (state.types.isAssignable(returnType,state.requestType)) {
     DeclaredType asRequest=(DeclaredType)State.viewAs(state.requestType,returnType,state);
     if (asRequest.getTypeArguments().isEmpty()) {
@@ -29,10 +30,15 @@
       }
     }
   }
- else   if (isSetter(x,state)) {
-  }
- else {
+ else   if (!isSetter(x,state)) {
     state.poison(x,Messages.contextRequiredReturnTypes(state.requestType.asElement().getSimpleName(),state.instanceRequestType.asElement().getSimpleName()));
   }
-  return super.visitExecutable(x,state);
+  int i=0;
+  for (  TypeMirror parameterType : xType.getParameterTypes()) {
+    if (!state.isTransportableType(parameterType)) {
+      state.poison(x.getParameters().get(i),Messages.untransportableType(parameterType));
+    }
+    i++;
+  }
+  return null;
 }

@@ -1,34 +1,48 @@
 {
-  Data toReturn;
+  Map<String,Data> toReturn;
 synchronized (cache) {
     toReturn=cache.get(beanType);
     if (toReturn == null) {
-      toReturn=new Data();
+      Map<String,Data> getters=new HashMap<String,Data>();
+      List<Method> setters=new ArrayList<Method>();
       for (      Method method : beanType.getMethods()) {
         if (BeanMethod.GET.matches(method)) {
-          toReturn.getters.add(method);
-          String name;
-          PropertyName annotation=method.getAnnotation(PropertyName.class);
-          if (annotation != null) {
-            name=annotation.value();
-          }
+          String name=method.getName();
+          Type genericReturnType=TypeUtils.resolveGenerics(beanType,method.getGenericReturnType());
+          Class<?> returnType=TypeUtils.ensureBaseType(genericReturnType);
+          Data data=getters.get(name);
+          if (data == null || data.type.isAssignableFrom(returnType)) {
+            PropertyType propertyType;
+            if (TypeUtils.isValueType(returnType)) {
+              propertyType=PropertyType.VALUE;
+            }
+ else             if (Collection.class.isAssignableFrom(returnType)) {
+              propertyType=PropertyType.COLLECTION;
+            }
+ else             if (Map.class.isAssignableFrom(returnType)) {
+              propertyType=PropertyType.MAP;
+            }
  else {
-            name=BeanMethod.GET.inferName(method);
+              propertyType=PropertyType.REFERENCE;
+            }
+            data=new Data(method,genericReturnType,returnType,propertyType);
+            getters.put(name,data);
           }
-          toReturn.getterNames.add(name);
-          Class<?> returnType=method.getReturnType();
-          if (TypeUtils.isValueType(returnType)) {
-            toReturn.propertyType.add(PropertyType.VALUE);
-          }
- else           if (Collection.class.isAssignableFrom(returnType)) {
-            toReturn.propertyType.add(PropertyType.COLLECTION);
-          }
- else           if (Map.class.isAssignableFrom(returnType)) {
-            toReturn.propertyType.add(PropertyType.MAP);
-          }
- else {
-            toReturn.propertyType.add(PropertyType.REFERENCE);
-          }
+        }
+ else         if (BeanMethod.SET.matches(method) || BeanMethod.SET_BUILDER.matches(method)) {
+          setters.add(method);
+        }
+      }
+      toReturn=new HashMap<String,Data>(getters.size());
+      for (      Map.Entry<String,Data> entry : getters.entrySet()) {
+        Data data=entry.getValue();
+        toReturn.put(BeanMethod.GET.inferName(data.getter),data);
+      }
+      for (      Method setter : setters) {
+        String name=BeanMethod.SET.inferName(setter);
+        Data data=toReturn.get(name);
+        if (data != null && data.setter == null && data.getter.getReturnType().isAssignableFrom(setter.getParameterTypes()[0])) {
+          data.setter=setter;
         }
       }
       cache.put(beanType,toReturn);
