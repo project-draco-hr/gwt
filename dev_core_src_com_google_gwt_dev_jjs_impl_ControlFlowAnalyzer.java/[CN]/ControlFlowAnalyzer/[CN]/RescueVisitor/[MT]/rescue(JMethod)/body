@@ -1,33 +1,32 @@
 {
-  if (method != null) {
-    if (!liveFieldsAndMethods.contains(method)) {
-      liveFieldsAndMethods.add(method);
-      membersToRescueIfTypeIsInstantiated.remove(method);
-      if (dependencyRecorder != null) {
-        curMethodStack.add(method);
-        dependencyRecorder.methodIsLiveBecause(method,curMethodStack);
-      }
-      accept(method);
-      if (dependencyRecorder != null) {
-        curMethodStack.remove(curMethodStack.size() - 1);
-      }
-      if (method.isNative()) {
-        maybeRescueJavaScriptObjectPassingIntoJava(method.getType());
-      }
-      rescueOverridingMethods(method);
-      if (method == getClassMethod) {
-        rescueClassLiteralsIfGetClassIsLive();
-      }
-      if (JProgram.isJsInterfacePrototype(method.getEnclosingType())) {
-        for (        JParameter param : method.getParams()) {
-          rescue(param);
-        }
-      }
-      if (method.getSpecialization() != null) {
-        rescue(method.getSpecialization().getTargetMethod());
-      }
-      return true;
+  if (method == null) {
+    return;
+  }
+  if (!liveFieldsAndMethods.add(method)) {
+    return;
+  }
+  membersToRescueIfTypeIsInstantiated.remove(method);
+  if (dependencyRecorder != null) {
+    curMethodStack.add(method);
+    dependencyRecorder.methodIsLiveBecause(method,curMethodStack);
+  }
+  accept(method);
+  if (dependencyRecorder != null) {
+    curMethodStack.remove(curMethodStack.size() - 1);
+  }
+  if (method.isNative()) {
+    maybeRescueJavaScriptObjectPassingIntoJava(method.getType());
+  }
+  rescueOverridingMethods(method);
+  if (method == getClassMethod) {
+    rescueClassLiteralsIfGetClassIsLive();
+  }
+  if (JProgram.isJsInterfacePrototype(method.getEnclosingType())) {
+    for (    JParameter param : method.getParams()) {
+      rescue(param);
     }
   }
-  return false;
+  if (method.getSpecialization() != null) {
+    rescue(method.getSpecialization().getTargetMethod());
+  }
 }

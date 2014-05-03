@@ -1,0 +1,12 @@
+{
+  sourceOracle.addOrReplace(new MockJavaResource("test.Foo"){
+    @Override public CharSequence getContent(){
+      return Joiner.on("\n").join("package test;","public class Foo {","  public static native int[] create_array() /*-{ return {}; }-*/;","  public static native int[][] create_2d_array() /*-{ return {}; }-*/;","}");
+    }
+  }
+);
+  addSnippetImport("test.Foo");
+  analyzeSnippet("").assertOnlyInstantiatedTypes(Empty.STRINGS);
+  analyzeSnippet("Foo.create_array();").assertOnlyInstantiatedTypes("int[]","Object");
+  analyzeSnippet("Foo.create_2d_array();").assertOnlyInstantiatedTypes("int[][]","Object[]","Object");
+}

@@ -8,17 +8,11 @@
   for (int c=params.size(); i < c; ++i) {
     JExpression arg=args.get(i);
     JParameter param=params.get(i);
-    if (arg.hasSideEffects() || liveFieldsAndMethods.contains(param) || program.typeOracle.isJsInterfaceMethod(method)|| program.isJsInterfacePrototype(method.getEnclosingType())) {
+    if (arg.hasSideEffects() || liveFieldsAndMethods.contains(param) || program.typeOracle.isJsInterfaceMethod(method)|| JProgram.isJsInterfacePrototype(method.getEnclosingType())) {
       this.accept(arg);
       continue;
     }
-    List<JExpression> list=argsToRescueIfParameterRead.get(param);
-    if (list == null) {
-      argsToRescueIfParameterRead.put(param,Lists.create(arg));
-    }
- else {
-      argsToRescueIfParameterRead.put(param,Lists.add(list,arg));
-    }
+    argsToRescueIfParameterRead.put(param,arg);
   }
   for (int c=args.size(); i < c; ++i) {
     this.accept(args.get(i));

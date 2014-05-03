@@ -1,16 +1,16 @@
 {
-  JDeclaredType type=program.getFromTypeMap(typeName);
-  if (type == null && typeName.indexOf('.') < 0) {
-    for (    JDeclaredType checkType : program.getDeclaredTypes()) {
-      if (checkType.getShortName().equals(typeName)) {
-        if (type == null) {
-          type=checkType;
-        }
- else {
-          fail("Ambiguous type reference '" + typeName + "' might be '"+ type.getName()+ "' or '"+ checkType.getName()+ "' (possibly more matches)");
-        }
-      }
-    }
+  Matcher matcher=typeNamePattern.matcher(typeName);
+  if (!matcher.matches()) {
+    return null;
+  }
+  String bareName=matcher.group(1);
+  int dimensions=matcher.group(2).length() / 2;
+  JType type=JPrimitiveType.getType(bareName);
+  if (type == null) {
+    type=findDeclaredType(program,bareName);
+  }
+  if (type != null && dimensions > 0) {
+    type=program.getTypeArray(type,dimensions);
   }
   return type;
 }
