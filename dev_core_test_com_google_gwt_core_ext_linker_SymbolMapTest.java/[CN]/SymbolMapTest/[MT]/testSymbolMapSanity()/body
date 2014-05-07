@@ -1,0 +1,32 @@
+{
+  String benchmark="hello";
+  String module="com.google.gwt.sample.hello.Hello";
+  File work=Utility.makeTemporaryDirectory(null,benchmark + "work");
+  try {
+    options.addModuleName(module);
+    options.setWarDir(new File(work,"war"));
+    options.setExtraDir(new File(work,"extra"));
+    PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
+    logger.setMaxDetail(TreeLogger.ERROR);
+    new com.google.gwt.dev.Compiler(options).run(logger);
+    String parentDir=options.getExtraDir() + "/" + benchmark;
+    Map<String,SimpleSymbolData> symbolDataBySymbolName=loadSymbolMap(new File(parentDir + "/symbolMaps/"));
+    assertTrue(!symbolDataBySymbolName.isEmpty());
+    assertNotNull(symbolDataBySymbolName.get(JSE_METHOD));
+    assertTrue(symbolDataBySymbolName.get(JSE_METHOD).isMethod());
+    assertFalse(symbolDataBySymbolName.get(JSE_METHOD).isField());
+    assertFalse(symbolDataBySymbolName.get(JSE_METHOD).isClass());
+    assertNotNull(symbolDataBySymbolName.get(JSE_FIELD));
+    assertTrue(symbolDataBySymbolName.get(JSE_FIELD).isField());
+    assertFalse(symbolDataBySymbolName.get(JSE_FIELD).isMethod());
+    assertFalse(symbolDataBySymbolName.get(JSE_FIELD).isClass());
+    assertNotNull(symbolDataBySymbolName.get(JSE_CLASS));
+    assertTrue(symbolDataBySymbolName.get(JSE_CLASS).isClass());
+    assertFalse(symbolDataBySymbolName.get(JSE_CLASS).isField());
+    assertFalse(symbolDataBySymbolName.get(JSE_CLASS).isMethod());
+    assertNull(symbolDataBySymbolName.get(UNINSTANTIABLE_CLASS));
+  }
+  finally {
+    Util.recursiveDelete(work,false);
+  }
+}
