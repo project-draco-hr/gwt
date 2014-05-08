@@ -1,0 +1,30 @@
+{
+  PathPrefixSet pps=new PathPrefixSet(mergePathPrefixes);
+  PathPrefix pp1=new PathPrefix("",null);
+  PathPrefix pp2=new PathPrefix("a/",null);
+  PathPrefix pp3=new PathPrefix("a/b/",new ResourceFilter(){
+    @Override public boolean allows(    String path){
+      return !path.endsWith("FILTERMEOUT");
+    }
+  }
+);
+  PathPrefix pp4=new PathPrefix("a/b/c/",null);
+  PathPrefix pp5=new PathPrefix("a/",new ResourceFilter(){
+    @Override public boolean allows(    String path){
+      return !path.endsWith("X.java");
+    }
+  }
+);
+  pps.add(pp1);
+  pps.add(pp2);
+  pps.add(pp3);
+  pps.add(pp4);
+  pps.add(pp5);
+  assertEquals(pp1,pps.includesResource("W.java").getPathPrefix());
+  assertEquals(pp5,pps.includesResource("a/Y.java").getPathPrefix());
+  assertEquals(pp3,pps.includesResource("a/b/Y.java").getPathPrefix());
+  assertNull(pps.includesResource("a/b/FILTERMEOUT"));
+  assertEquals(pp4,pps.includesResource("a/b/c/DONT_FILTERMEOUT").getPathPrefix());
+  assertEquals(pp4,pps.includesResource("a/b/c/Z.java").getPathPrefix());
+  assertEquals(pp4,pps.includesResource("a/b/c/d/V.java").getPathPrefix());
+}

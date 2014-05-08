@@ -1,0 +1,20 @@
+{
+  PathPrefixSet pps=new PathPrefixSet(mergePathPrefixes);
+  ResourceFilter allowsGifs=new ResourceFilter(){
+    @Override public boolean allows(    String path){
+      return path.toLowerCase(Locale.ENGLISH).endsWith(".gif");
+    }
+  }
+;
+  PathPrefix pp1=new PathPrefix("com/google/gwt/user/public/",allowsGifs);
+  PathPrefix pp2=new PathPrefix("com/google/gwt/sample/mail/public/",allowsGifs);
+  pps.add(pp1);
+  pps.add(pp2);
+  assertEquals(pp1,pps.includesResource("com/google/gwt/user/public/clear.cache.gif").getPathPrefix());
+  assertEquals(pp2,pps.includesResource("com/google/gwt/sample/mail/public/inboxIcon.gif").getPathPrefix());
+  assertNull(pps.includesResource("com/google/gwt/user/public/README.txt"));
+  assertNull(pps.includesResource("com/google/gwt/sample/mail/public/README.txt"));
+  assertNull(pps.includesResource("com/google/gwt/user/client/Command.java"));
+  assertNull(pps.includesResource("com/google/gwt/user/rebind/rpc/ServiceInterfaceProxyGenerator.java"));
+  assertNull(pps.includesResource("com/google/gwt/i18n/public/flags.gif"));
+}

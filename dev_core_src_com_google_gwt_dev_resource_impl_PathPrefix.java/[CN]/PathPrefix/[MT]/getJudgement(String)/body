@@ -1,0 +1,21 @@
+{
+  if (!path.startsWith(prefix)) {
+    return Judgement.IMPLICIT_EXCLUDE;
+  }
+  if (filters.size() == 0 && exclusions.size() == 0) {
+    return Judgement.FILTER_INCLUDE;
+  }
+  if (shouldReroot) {
+    path=getRerootedPath(path);
+  }
+  createExcludeFilter();
+  if (exclusionScanner != null && exclusionScanner.match(path)) {
+    return Judgement.EXCLUSION_EXCLUDE;
+  }
+  for (  ResourceFilter filter : filters) {
+    if (filter == null || filter.allows(path)) {
+      return Judgement.FILTER_INCLUDE;
+    }
+  }
+  return Judgement.IMPLICIT_EXCLUDE;
+}

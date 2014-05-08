@@ -1,0 +1,15 @@
+{
+  UnitTestTreeLogger logger=new UnitTestTreeLogger.Builder().createLogger();
+  MockDepsInfoProvider depsInfo=new MockDepsInfoProvider();
+  depsInfo.addModuleDep("FooModule","BarModule");
+  depsInfo.addModuleDep("FooModule","BazModule");
+  depsInfo.addGwtXmlFile("FooModule","com/google/gwt/FooModule.gwt.xml");
+  depsInfo.addGwtXmlFile("BarModule","com/google/gwt/BarModule.gwt.xml");
+  depsInfo.addGwtXmlFile("BazModule","com/google/gwt/BazModule.gwt.xml");
+  depsInfo.registerType("BangType","BarModule");
+  depsInfo.registerType("ZingType","BazModule");
+  TypeRefDepsChecker typeRefDepsChecker=new TypeRefDepsChecker(logger,null,depsInfo,false,null);
+  typeRefDepsChecker.maybeRecordTypeRef("BangType","ZingType");
+  typeRefDepsChecker.verifyTypeRefsInModules();
+  logger.assertCorrectLogEntries();
+}

@@ -1,23 +1,39 @@
 {
   assertValidAbstractResourcePathName(resourceAbstractPathName);
+  ResourceResolution resourceResolution=new ResourceResolution();
   TrieNode currentNode=rootTrieNode;
-  PathPrefix mostSpecificPrefix=rootTrieNode.getPathPrefix();
+  List<PathPrefix> mostSpecificPrefixes=rootTrieNode.getPathPrefixes();
   for (  String part : parts) {
     assert(!"".equals(part));
     TrieNode childNode=currentNode.findChild(part);
-    if (childNode != null) {
-      PathPrefix moreSpecificPrefix=childNode.getPathPrefix();
-      if (moreSpecificPrefix != null) {
-        mostSpecificPrefix=moreSpecificPrefix;
-      }
-      currentNode=childNode;
-    }
- else {
+    if (childNode == null) {
       break;
     }
+    if (childNode.hasPrefixes) {
+      List<PathPrefix> moreSpecificPrefixes=childNode.getPathPrefixes();
+      if (!mergePathPrefixes) {
+        for (        PathPrefix candidatePrefix : moreSpecificPrefixes) {
+          if (candidatePrefix.getJudgement(resourceAbstractPathName).isInclude()) {
+            resourceResolution.addSourceModuleName(candidatePrefix.getModuleName());
+          }
+        }
+      }
+      mostSpecificPrefixes=moreSpecificPrefixes;
+    }
+    currentNode=childNode;
   }
-  if (mostSpecificPrefix == null || !mostSpecificPrefix.allows(resourceAbstractPathName)) {
+  PathPrefix chiefPrefix=null;
+  Judgement chiefJudgement=null;
+  for (  PathPrefix candidatePrefix : mostSpecificPrefixes) {
+    Judgement judgement=candidatePrefix.getJudgement(resourceAbstractPathName);
+    if (chiefJudgement == null || judgement.getPriority() > chiefJudgement.getPriority()) {
+      chiefPrefix=candidatePrefix;
+      chiefJudgement=judgement;
+    }
+  }
+  if (chiefPrefix == null || !chiefJudgement.isInclude()) {
     return null;
   }
-  return mostSpecificPrefix;
+  resourceResolution.setPathPrefix(chiefPrefix);
+  return resourceResolution;
 }

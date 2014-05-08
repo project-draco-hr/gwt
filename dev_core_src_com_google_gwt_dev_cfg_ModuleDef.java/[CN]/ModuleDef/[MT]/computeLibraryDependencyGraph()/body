@@ -1,9 +1,9 @@
 {
-  for (  String moduleName : Lists.newArrayList(directDependencyModuleNamesByModuleName.keySet())) {
+  for (  String moduleName : Lists.newArrayList(directDepModuleNamesByModuleName.keySet())) {
     Set<String> libraryModules=Sets.newHashSet();
     Set<String> filesetsProcessed=Sets.newHashSet();
     Queue<LinkedList<String>> modulePathsToProcess=Queues.newArrayDeque();
-    Collection<String> directDependencyModuleNames=directDependencyModuleNamesByModuleName.get(moduleName);
+    Collection<String> directDependencyModuleNames=directDepModuleNamesByModuleName.get(moduleName);
     for (    String directDependencyModuleName : directDependencyModuleNames) {
       modulePathsToProcess.add(Lists.newLinkedList(ImmutableList.of(directDependencyModuleName)));
     }
@@ -20,13 +20,13 @@
         continue;
       }
       filesetsProcessed.add(dependentModuleName);
-      Set<String> unProcessedModules=Sets.newHashSet(directDependencyModuleNamesByModuleName.get(dependentModuleName));
+      Set<String> unProcessedModules=Sets.newHashSet(directDepModuleNamesByModuleName.get(dependentModuleName));
       unProcessedModules.removeAll(filesetsProcessed);
       for (      String unProcessedModule : unProcessedModules) {
         modulePathsToProcess.add(createExtendedCopy(dependentModuleNamePath,unProcessedModule));
       }
     }
-    directDependencyModuleNamesByModuleName.replaceValues(moduleName,libraryModules);
+    directDepModuleNamesByModuleName.replaceValues(moduleName,libraryModules);
   }
-  directDependencyModuleNamesByModuleName.removeAll(filesetModuleNames);
+  directDepModuleNamesByModuleName.removeAll(filesetModuleNames);
 }
