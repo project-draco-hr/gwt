@@ -1,0 +1,18 @@
+{
+  if (!x.isStatic()) {
+    return null;
+  }
+  JDeclaredType targetType=x.getEnclosingType().getClinitTarget();
+  if (targetType == null) {
+    return null;
+  }
+  if (!isExported && (currentMethod == null || !currentMethod.getEnclosingType().checkClinitTo(targetType))) {
+    return null;
+  }
+ else   if (targetType.equals(program.getTypeClassLiteralHolder())) {
+    return null;
+  }
+  JMethod clinitMethod=targetType.getClinitMethod();
+  SourceInfo sourceInfo=x.getSourceInfo();
+  return new JsInvocation(sourceInfo,names.get(clinitMethod).makeRef(sourceInfo));
+}

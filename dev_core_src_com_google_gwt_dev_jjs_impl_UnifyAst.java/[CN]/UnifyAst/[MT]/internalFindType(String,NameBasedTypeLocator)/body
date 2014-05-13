@@ -1,14 +1,11 @@
 {
-  if (nameBasedTypeLocator.resolvedTypeIsAvailable(typeName)) {
-    return nameBasedTypeLocator.getResolvedType(typeName);
-  }
-  if (nameBasedTypeLocator.sourceCompilationUnitIsAvailable(typeName)) {
-    assimilateSourceUnit(nameBasedTypeLocator.getCompilationUnitFromSource(typeName));
-    return nameBasedTypeLocator.getResolvedType(typeName);
+  JDeclaredType toReturn=internalFindTypeViaLocator(typeName,nameBasedTypeLocator);
+  if (toReturn != null) {
+    return toReturn;
   }
   if (compilerContext.shouldCompileMonolithic()) {
     if (nameBasedTypeLocator.hasCompileErrors(typeName)) {
-      TreeLogger branch=logger.branch(TreeLogger.ERROR,String.format("Type %s could not be referenced because it previously failed to " + "compile with errors:"));
+      TreeLogger branch=logger.branch(TreeLogger.ERROR,String.format("Type %s could not be referenced because it previously failed to " + "compile with errors:",typeName));
       nameBasedTypeLocator.logErrorTrace(branch,TreeLogger.ERROR,typeName);
     }
  else {

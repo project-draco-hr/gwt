@@ -29,9 +29,28 @@
         type.addArtificialRescue(typeMap.get((MethodBinding)rescue));
       }
  else {
-        throw new InternalCompilerException("Unknown artifical rescue binding type.");
+        throw new InternalCompilerException("Unknown artificial rescue binding type.");
       }
     }
   }
+  if (JsInteropUtil.isClassWideJsExport(x)) {
+    for (    JMethod m : type.getMethods()) {
+      if (m.getExportName() != null) {
+        continue;
+      }
+      if (m.getAccess() == AccessModifier.PUBLIC && (m.isStatic() || (m instanceof JConstructor && !((JConstructor)m).isDefaultConstructor()))) {
+        m.setExportName("");
+      }
+    }
+    for (    JField f : type.getFields()) {
+      if (f.getExportName() != null) {
+        continue;
+      }
+      if (f.isStatic()) {
+        f.setExportName("");
+      }
+    }
+  }
+  JsInteropUtil.maybeSetJsNamespace(type,x);
   curClass=classStack.pop();
 }

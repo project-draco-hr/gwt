@@ -1,0 +1,17 @@
+{
+  ReferenceBinding binding=(ReferenceBinding)typeBinding;
+  if (binding.isClass()) {
+    AnnotationBinding jsinterfaceAnn=JdtUtil.getAnnotation(typeBinding,JsInteropUtil.JSTYPE_CLASS);
+    String jsPrototype=JdtUtil.getAnnotationParameterString(jsinterfaceAnn,"prototype");
+    if (jsPrototype != null && !"".equals(jsPrototype)) {
+      errorOn(type,ERR_JS_TYPE_WITH_PROTOTYPE_SET_NOT_ALLOWED_ON_CLASS_TYPES);
+    }
+  }
+  Map<String,MethodBinding> methodSignatures=new HashMap<String,MethodBinding>();
+  Map<String,MethodBinding> noExports=new HashMap<String,MethodBinding>();
+  checkJsTypeMethodsForOverloads(methodSignatures,noExports,binding);
+  for (  MethodBinding mb : binding.methods()) {
+    checkJsProperty(mb,true);
+    checkJsExport(mb,!binding.isInterface());
+  }
+}

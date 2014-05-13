@@ -1,0 +1,24 @@
+{
+  if (isInteropEnabled()) {
+    if (type instanceof JNonNullType) {
+      type=((JNonNullType)type).getUnderlyingType();
+    }
+    if (type instanceof JDeclaredType) {
+      JDeclaredType dtype=(JDeclaredType)type;
+      if (isJsType(type)) {
+        if (!mustHavePrototype || !Strings.isNullOrEmpty(dtype.getJsPrototype())) {
+          return dtype;
+        }
+      }
+    }
+    if (type instanceof JDeclaredType) {
+      for (      JInterfaceType superIntf : ((JDeclaredType)type).getImplements()) {
+        JDeclaredType jsIntf=getNearestJsType(superIntf,mustHavePrototype);
+        if (jsIntf != null) {
+          return jsIntf;
+        }
+      }
+    }
+  }
+  return null;
+}

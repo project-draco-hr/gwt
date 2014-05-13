@@ -1,0 +1,23 @@
+{
+  String lastProvidedNamespace="";
+  boolean createdClinit=false;
+  for (  JMethod m : x.getMethods()) {
+    if (m.isNoExport()) {
+      continue;
+    }
+    if ((m.isStatic() || m instanceof JConstructor && !((JConstructor)m).isDefaultConstructor()) && program.typeOracle.isExportedMethod(m)) {
+      createdClinit=maybeHoistClinit(exportStmts,createdClinit,maybeCreateClinitCall(m));
+      JsExpression exportRhs=createJsInteropBridgeMethod(m,names.get(m).makeRef(m.getSourceInfo()));
+      String exportName=m.getQualifiedExportName();
+      lastProvidedNamespace=exportMember(x,globalStmts,lastProvidedNamespace,exportRhs,exportName);
+    }
+  }
+  for (  JField f : x.getFields()) {
+    if (f.isStatic() && f.getExportName() != null) {
+      createdClinit=maybeHoistClinit(exportStmts,createdClinit,maybeCreateClinitCall(f,true));
+      JsNameRef exportRhs=names.get(f).makeRef(f.getSourceInfo());
+      String exportName=f.getQualifiedExportName();
+      lastProvidedNamespace=exportMember(x,globalStmts,lastProvidedNamespace,exportRhs,exportName);
+    }
+  }
+}

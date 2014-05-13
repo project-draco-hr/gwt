@@ -6,8 +6,15 @@
  else   if (binding instanceof ReferenceBinding) {
     return getAnnotation(((ReferenceBinding)binding).getAnnotations(),nameToFind);
   }
+ else   if (binding instanceof SyntheticMethodBinding) {
+    return null;
+  }
  else   if (binding instanceof MethodBinding) {
-    return getAnnotation(((MethodBinding)binding).sourceMethod().annotations,nameToFind);
+    AbstractMethodDeclaration abMethod=safeSourceMethod((MethodBinding)binding);
+    return abMethod != null ? getAnnotation(abMethod.annotations,nameToFind) : null;
+  }
+ else   if (binding instanceof FieldBinding) {
+    return getAnnotation(((FieldBinding)binding).sourceField().annotations,nameToFind);
   }
  else {
     return null;
