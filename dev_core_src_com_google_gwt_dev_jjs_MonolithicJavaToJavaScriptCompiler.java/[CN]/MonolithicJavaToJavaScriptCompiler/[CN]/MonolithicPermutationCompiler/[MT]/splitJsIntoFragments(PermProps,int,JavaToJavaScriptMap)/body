@@ -1,0 +1,30 @@
+{
+  Pair<SyntheticArtifact,MultipleDependencyGraphRecorder> dependenciesAndRecorder;
+  MultipleDependencyGraphRecorder dependencyRecorder=null;
+  SyntheticArtifact dependencies=null;
+  if (options.isRunAsyncEnabled()) {
+    ByteArrayOutputStream baos=new ByteArrayOutputStream();
+    int expectedFragmentCount=options.getFragmentCount();
+    if (expectedFragmentCount <= 0) {
+      int numberOfMerges=options.getFragmentsMerge();
+      if (numberOfMerges > 0) {
+        expectedFragmentCount=Math.max(0,jprogram.getRunAsyncs().size() + 2 - numberOfMerges);
+      }
+    }
+    int minFragmentSize=props.getConfigProps().getInteger(CodeSplitters.MIN_FRAGMENT_SIZE,0);
+    dependencyRecorder=chooseDependencyRecorder(baos);
+    CodeSplitter.exec(logger,jprogram,jsProgram,jjsmap,expectedFragmentCount,minFragmentSize,dependencyRecorder);
+    if (baos.size() == 0) {
+      dependencyRecorder=recordNonSplitDependencies(baos);
+    }
+    if (baos.size() > 0) {
+      dependencies=new SyntheticArtifact(SoycReportLinker.class,"dependencies" + permutationId + ".xml.gz",baos.toByteArray());
+    }
+  }
+ else   if (options.isSoycEnabled() || options.isJsonSoycEnabled()) {
+    dependencyRecorder=recordNonSplitDependencies(new ByteArrayOutputStream());
+  }
+  dependenciesAndRecorder=Pair.<SyntheticArtifact,MultipleDependencyGraphRecorder>create(dependencies,dependencyRecorder);
+  HandleCrossFragmentReferences.exec(jsProgram,props);
+  return dependenciesAndRecorder;
+}
