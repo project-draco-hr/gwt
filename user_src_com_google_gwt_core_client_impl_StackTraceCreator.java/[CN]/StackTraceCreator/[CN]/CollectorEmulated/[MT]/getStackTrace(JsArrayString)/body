@@ -1,11 +1,13 @@
 {
+  JsArray<JsArrayString> stack=st.cast();
   if (stack.length() == 0) {
     return null;
   }
-  JsArrayString locations=getLocation();
   StackTraceElement[] stackTrace=new StackTraceElement[stack.length()];
-  for (int i=0, j=stackTrace.length; i < j; i++) {
-    String location=locations.get(j - i - 1);
+  for (int i=0; i < stackTrace.length; i++) {
+    JsArrayString frame=stack.get(i);
+    String name=frame.get(0);
+    String location=frame.get(1);
     String fileName=null;
     int lineNumber=LINE_NUMBER_UNKNOWN;
     if (location != null) {
@@ -18,7 +20,7 @@
         lineNumber=parseInt(location);
       }
     }
-    stackTrace[i]=new StackTraceElement(UNKNOWN,stack.get(i),fileName,lineNumber);
+    stackTrace[i]=new StackTraceElement(UNKNOWN,name,fileName,lineNumber);
   }
   return stackTrace;
 }
