@@ -1,0 +1,46 @@
+{
+  if (!(s.getExpr() instanceof JValueLiteral)) {
+    return false;
+  }
+  JValueLiteral targetValue=(JValueLiteral)s.getExpr();
+  JCaseStatement matchingCase=null;
+  for (  JStatement subStatement : s.getBody().getStatements()) {
+    if (subStatement instanceof JCaseStatement) {
+      JCaseStatement caseStatement=(JCaseStatement)subStatement;
+      if (caseStatement.getExpr() == null) {
+        matchingCase=caseStatement;
+      }
+ else       if (caseStatement.getExpr() instanceof JValueLiteral) {
+        JValueLiteral caseValue=(JValueLiteral)caseStatement.getExpr();
+        if (caseValue.getValueObj().equals(targetValue.getValueObj())) {
+          matchingCase=caseStatement;
+          break;
+        }
+      }
+    }
+  }
+  if (matchingCase == null) {
+    removeMe(s,ctx);
+    return true;
+  }
+  Iterator<JStatement> it=s.getBody().getStatements().iterator();
+  while (it.hasNext() && (it.next() != matchingCase)) {
+    it.remove();
+    madeChanges();
+  }
+  while (it.hasNext()) {
+    JStatement statement=it.next();
+    if (statement.unconditionalControlBreak()) {
+      break;
+    }
+ else     if (statement instanceof JCaseStatement) {
+      it.remove();
+    }
+  }
+  while (it.hasNext()) {
+    it.next();
+    it.remove();
+    madeChanges();
+  }
+  return false;
+}
