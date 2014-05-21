@@ -1,20 +1,17 @@
 {
   Event moduleDefNormalize=SpeedTracerLogger.start(CompilerEventType.MODULE_DEF,"phase","normalize");
   computeLibraryDependencyGraph();
-  for (  Property current : getProperties()) {
-    if (current instanceof BindingProperty) {
-      BindingProperty prop=(BindingProperty)current;
-      if (collapseAllProperties) {
-        prop.addCollapsedValues("*");
-      }
-      prop.normalizeCollapsedValues();
-      if (prop.getProvider() == null && prop.getConstrainedValue() == null) {
-        String src="{";
-        src+="return __gwt_getMetaProperty(\"";
-        src+=prop.getName();
-        src+="\"); }";
-        prop.setProvider(new PropertyProvider(src));
-      }
+  for (  BindingProperty prop : properties.getBindingProperties()) {
+    if (collapseAllProperties) {
+      prop.addCollapsedValues("*");
+    }
+    prop.normalizeCollapsedValues();
+    if (prop.getProvider() == null && prop.getConstrainedValue() == null) {
+      String src="{";
+      src+="return __gwt_getMetaProperty(\"";
+      src+=prop.getName();
+      src+="\"); }";
+      prop.setProvider(new PropertyProvider(src));
     }
   }
   TreeLogger branch=Messages.PUBLIC_PATH_LOCATIONS.branch(logger,null);

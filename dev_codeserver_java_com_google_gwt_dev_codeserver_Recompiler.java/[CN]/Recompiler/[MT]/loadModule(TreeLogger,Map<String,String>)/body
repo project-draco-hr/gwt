@@ -7,6 +7,7 @@
   this.resourceLoader.set(resources);
   ModuleDef moduleDef=ModuleDefLoader.loadFromResources(logger,compilerContext,originalModuleName,resources,true);
   compilerContext=compilerContextBuilder.module(moduleDef).build();
+  ConfigProps config=new ConfigProps(moduleDef);
   if (IFrameLinker.class.isAssignableFrom(moduleDef.getActivePrimaryLinker())) {
     moduleDef.addLinker("xsiframe");
   }
@@ -15,11 +16,11 @@
     logger.log(TreeLogger.ERROR,"linkers other than CrossSiteIFrameLinker aren't supported. Found: " + linker.getName());
     throw new UnableToCompleteException();
   }
-  if (moduleDef.getProperties().find("devModeRedirectEnabled") == null) {
+  if (config.getStrings("devModeRedirectEnabled").isEmpty()) {
     throw new RuntimeException("devModeRedirectEnabled isn't set for module: " + moduleDef.getName());
   }
   overrideConfig(moduleDef,"devModeRedirectEnabled","false");
-  if (getBooleanConfig(moduleDef,"installCode",true)) {
+  if (config.getBoolean("installCode",true)) {
     overrideConfig(moduleDef,"installCode","false");
     overrideConfig(moduleDef,"installScriptJs","com/google/gwt/core/ext/linker/impl/installScriptDirect.js");
   }

@@ -2,18 +2,8 @@
   SpeedTracerLogger.Event codeSplitterEvent=SpeedTracerLogger.start(CompilerEventType.CODE_SPLITTER,"phase","pickInitialLoadSequence");
   TreeLogger branch=logger.branch(TreeLogger.TRACE,"Looking up initial load sequence for split points");
   LinkedHashSet<JRunAsync> asyncsInInitialLoadSequence=new LinkedHashSet<JRunAsync>();
-  ConfigurationProperty configurationPropertyInitialSequence;
-{
-    Property property=properties.find(PROP_INITIAL_SEQUENCE);
-    if (property == null) {
-      throw new InternalCompilerException("Could not find configuration property " + PROP_INITIAL_SEQUENCE);
-    }
-    if (!(property instanceof ConfigurationProperty)) {
-      throw new InternalCompilerException(PROP_INITIAL_SEQUENCE + " is not a configuration property");
-    }
-    configurationPropertyInitialSequence=(ConfigurationProperty)property;
-  }
-  for (  String runAsyncReference : configurationPropertyInitialSequence.getValues()) {
+  List<String> initialSequence=config.getStrings(PROP_INITIAL_SEQUENCE);
+  for (  String runAsyncReference : initialSequence) {
     JRunAsync runAsync=findRunAsync(runAsyncReference,program,branch);
     if (asyncsInInitialLoadSequence.contains(runAsync)) {
       branch.log(TreeLogger.ERROR,"Split point specified more than once: " + runAsyncReference);

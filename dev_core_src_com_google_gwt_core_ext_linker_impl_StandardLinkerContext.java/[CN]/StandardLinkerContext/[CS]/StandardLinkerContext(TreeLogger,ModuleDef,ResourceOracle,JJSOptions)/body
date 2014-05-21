@@ -40,24 +40,19 @@
 {
     SortedSet<ConfigurationProperty> mutableConfigurationProperties=new TreeSet<ConfigurationProperty>(CONFIGURATION_PROPERTY_COMPARATOR);
     SortedSet<SelectionProperty> mutableSelectionProperties=new TreeSet<SelectionProperty>(SELECTION_PROPERTY_COMPARATOR);
-    for (    Property p : module.getProperties()) {
-      if (p instanceof com.google.gwt.dev.cfg.ConfigurationProperty) {
-        StandardConfigurationProperty newProp=new StandardConfigurationProperty((com.google.gwt.dev.cfg.ConfigurationProperty)p);
-        mutableConfigurationProperties.add(newProp);
-        if (logger.isLoggable(TreeLogger.SPAM)) {
-          logger.log(TreeLogger.SPAM,"Added configuration property " + newProp,null);
-        }
+    for (    com.google.gwt.dev.cfg.ConfigurationProperty p : module.getProperties().getConfigurationProperties()) {
+      StandardConfigurationProperty newProp=new StandardConfigurationProperty(p);
+      mutableConfigurationProperties.add(newProp);
+      if (logger.isLoggable(TreeLogger.SPAM)) {
+        logger.log(TreeLogger.SPAM,"Added configuration property " + newProp,null);
       }
- else       if (p instanceof BindingProperty) {
-        StandardSelectionProperty newProp=new StandardSelectionProperty((BindingProperty)p);
-        mutableSelectionProperties.add(newProp);
-        propertiesByName.put(newProp.getName(),newProp);
-        if (logger.isLoggable(TreeLogger.SPAM)) {
-          logger.log(TreeLogger.SPAM,"Added selection property " + newProp,null);
-        }
-      }
- else {
-        logger.log(TreeLogger.ERROR,"Unknown property type " + p.getClass().getName());
+    }
+    for (    BindingProperty p : module.getProperties().getBindingProperties()) {
+      StandardSelectionProperty newProp=new StandardSelectionProperty(p);
+      mutableSelectionProperties.add(newProp);
+      propertiesByName.put(newProp.getName(),newProp);
+      if (logger.isLoggable(TreeLogger.SPAM)) {
+        logger.log(TreeLogger.SPAM,"Added selection property " + newProp,null);
       }
     }
     selectionProperties=Collections.unmodifiableSortedSet(mutableSelectionProperties);

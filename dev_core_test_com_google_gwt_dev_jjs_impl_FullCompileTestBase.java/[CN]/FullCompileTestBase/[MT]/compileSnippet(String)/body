@@ -7,8 +7,8 @@
 );
   CompilerContext compilerContext=provideCompilerContext();
   CompilationState state=CompilationStateBuilder.buildFrom(logger,compilerContext,sourceOracle.getResources(),getAdditionalTypeProviderDelegate());
-  Properties properties=createPropertiesObject(configProps);
-  jProgram=JavaAstConstructor.construct(logger,state,compilerContext.getOptions(),properties,"test.EntryPoint","com.google.gwt.lang.Exceptions");
+  ConfigProps config=new ConfigProps(Lists.newArrayList(configProps));
+  jProgram=JavaAstConstructor.construct(logger,state,compilerContext.getOptions(),config,"test.EntryPoint","com.google.gwt.lang.Exceptions");
   jProgram.addEntryMethod(findMethod(jProgram,"onModuleLoad"));
   optimizeJava();
   ComputeCastabilityInformation.exec(jProgram,false);
@@ -19,7 +19,6 @@
   MethodCallTightener.exec(jProgram);
   Map<JType,JLiteral> typeIdsByType=ResolveRuntimeTypeReferences.IntoIntLiterals.exec(jProgram);
   Map<StandardSymbolData,JsName> symbolTable=new TreeMap<StandardSymbolData,JsName>(new SymbolData.ClassIdentComparator());
-  ConfigProps config=new ConfigProps(Arrays.asList(configProps));
   PermProps props=new PermProps(Arrays.asList(new BindingProps(orderedProps,orderedPropValues,config)));
   return GenerateJavaScriptAST.exec(jProgram,jsProgram,compilerContext,typeIdsByType,symbolTable,props);
 }
