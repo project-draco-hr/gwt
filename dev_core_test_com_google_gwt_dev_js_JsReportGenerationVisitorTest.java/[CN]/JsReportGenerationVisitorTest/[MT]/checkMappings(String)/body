@@ -1,6 +1,11 @@
 {
   DefaultTextOutput text=new DefaultTextOutput(compact);
-  JsReportGenerationVisitor generator=new JsReportGenerationVisitor(text,JavaToJavaScriptMap.EMPTY);
+  JsReportGenerationVisitor generator=new JsReportGenerationVisitor(text,JavaToJavaScriptMap.EMPTY,false){
+    @Override boolean surroundsInJavaSource(    SourceInfo parent,    SourceInfo child){
+      return !includeInlinedRanges;
+    }
+  }
+;
   generator.accept(program);
   String actual=dumpMappings(text.toString(),generator.getSourceInfoMap());
   StringBuilder expected=new StringBuilder();

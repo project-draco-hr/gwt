@@ -1,16 +1,47 @@
 {
   previousChildKey=null;
-  if (!(node instanceof HasSourceInfo)) {
+  if (!(node instanceof JsNode)) {
     return super.generateAndBill(node,nameToBillTo);
+  }
+  boolean willReportRange=false;
+  if (node instanceof JsBlock) {
+    willReportRange=false;
+  }
+ else   if (parentStack.isEmpty()) {
+    willReportRange=true;
+  }
+ else   if (node instanceof JsStatement) {
+    willReportRange=true;
+  }
+ else   if ((node instanceof JsNameRef) && needSourcemapNames) {
+    willReportRange=true;
+  }
+ else {
+    JsNode parent=parentStack.get(parentStack.size() - 1);
+    if ((node instanceof JsExpression) && (parent instanceof JsDoWhile)) {
+      willReportRange=true;
+    }
+ else {
+      SourceInfo info=((JsNode)node).getSourceInfo();
+      if (!surroundsInJavaSource(parent.getSourceInfo(),info)) {
+        willReportRange=true;
+      }
+    }
   }
   int beforePosition=out.getPosition();
   int beforeLine=out.getLine();
   int beforeColumn=out.getColumn();
+  if (willReportRange) {
+    parentStack.add((JsNode)node);
+  }
   T toReturn=super.generateAndBill(node,nameToBillTo);
-  if (out.getPosition() > beforePosition) {
+  if (willReportRange) {
+    parentStack.remove(parentStack.size() - 1);
+  }
+  if (out.getPosition() > beforePosition && willReportRange) {
+    SourceInfo info=((JsNode)node).getSourceInfo();
     Range javaScriptRange=new Range(beforePosition,out.getPosition(),beforeLine,beforeColumn,out.getLine(),out.getColumn());
-    SourceInfo target=((HasSourceInfo)node).getSourceInfo();
-    sourceInfoMap.put(javaScriptRange,target);
+    sourceInfoMap.put(javaScriptRange,info);
     previousChildKey=javaScriptRange;
   }
   return toReturn;
