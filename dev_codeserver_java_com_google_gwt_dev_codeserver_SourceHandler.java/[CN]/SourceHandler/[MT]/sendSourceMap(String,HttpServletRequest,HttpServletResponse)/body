@@ -1,7 +1,9 @@
 {
-  SourceMap map=loadSourceMap(moduleName);
-  String serverPrefix=String.format("http://%s:%d/sourcemaps/%s/",request.getServerName(),request.getServerPort(),moduleName);
-  map.addPrefixToEachSourceFile(serverPrefix);
-  PageUtil.sendString("application/json",map.serialize(),response);
-  logger.log(TreeLogger.WARN,"sent source map for module: " + moduleName);
+  long startTime=System.currentTimeMillis();
+  ModuleState moduleState=modules.get(moduleName);
+  File sourceMap=moduleState.findSourceMap();
+  String sourceRoot=String.format("http://%s:%d/sourcemaps/%s/",request.getServerName(),request.getServerPort(),moduleName);
+  PageUtil.sendTemplateFile("application/json",sourceMap,"\"" + SOURCEROOT_TEMPLATE_VARIABLE + "\"","\"" + sourceRoot + "\"",response);
+  long elapsedTime=System.currentTimeMillis() - startTime;
+  logger.log(TreeLogger.WARN,"sent source map for module '" + moduleName + "' in "+ elapsedTime+ " ms");
 }

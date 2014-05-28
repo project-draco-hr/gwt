@@ -1,0 +1,21 @@
+{
+  List<SyntheticArtifact> toReturn=Lists.newArrayList();
+  ByteArrayOutputStream baos=new ByteArrayOutputStream();
+  SourceMapGeneratorV3 generator=new SourceMapGeneratorV3();
+  int fragment=0;
+  for (  JsSourceMap sourceMap : fragmentMaps) {
+    generator.reset();
+    if (sourceRoot != null) {
+      generator.setSourceRoot(sourceRoot);
+    }
+    addExtensions(generator,fragment);
+    addMappings(new SourceMappingWriter(generator),sourceMap);
+    baos.reset();
+    OutputStreamWriter out=new OutputStreamWriter(baos);
+    generator.appendTo(out,"sourceMap" + fragment);
+    out.flush();
+    toReturn.add(new SymbolMapsLinker.SourceMapArtifact(permutationId,fragment,baos.toByteArray(),sourceRoot));
+    fragment++;
+  }
+  return toReturn;
+}
