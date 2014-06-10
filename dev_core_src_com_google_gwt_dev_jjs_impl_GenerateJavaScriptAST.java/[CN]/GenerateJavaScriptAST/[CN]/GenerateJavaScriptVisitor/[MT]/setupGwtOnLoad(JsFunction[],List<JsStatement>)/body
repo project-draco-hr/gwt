@@ -1,0 +1,23 @@
+{
+  final SourceInfo sourceInfo=SourceOrigin.UNKNOWN;
+  JsStatement entryVars=constructFunctionCallStatement(topScope.declareName("$entry"),"ModuleUtils.registerEntry");
+  globalStmts.add(entryVars);
+  JsName gwtOnLoad=topScope.findExistingUnobfuscatableName("gwtOnLoad");
+  JsVar varGwtOnLoad=new JsVar(sourceInfo,gwtOnLoad);
+  varGwtOnLoad.setInitExpr(createAssignment(gwtOnLoad.makeRef(sourceInfo),indexedFunctions.get("ModuleUtils.gwtOnLoad").getName().makeRef(sourceInfo)));
+  globalStmts.add(new JsVars(sourceInfo,varGwtOnLoad));
+  List<String> registerFnList=Lists.newArrayList();
+  mayAddProviderRegisterFn(registerFnList,program.getRuntimeRebindRegistratorTypeSourceName());
+  mayAddProviderRegisterFn(registerFnList,program.getPropertyProviderRegistratorTypeSourceName());
+  for (  String registerFnName : registerFnList) {
+    globalStmts.add(constructInvocation(sourceInfo,registerFnName).makeStmt());
+  }
+  List<JsExpression> arguments=Lists.transform(Arrays.asList(entryFuncs),new Function<JsFunction,JsExpression>(){
+    @Override public JsExpression apply(    JsFunction jsFunction){
+      return jsFunction.getName().makeRef(sourceInfo);
+    }
+  }
+);
+  JsStatement createGwtOnLoadFunctionCall=constructInvocation("ModuleUtils.addInitFunctions",arguments).makeStmt();
+  globalStmts.add(createGwtOnLoadFunctionCall);
+}
