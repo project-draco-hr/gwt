@@ -1,0 +1,24 @@
+{
+  File firstCompileWorkDir=Utility.makeTemporaryDirectory(null,"hellowork");
+  File secondCompileWorkDir=Utility.makeTemporaryDirectory(null,"hellowork");
+  String oldPersistentUnitCacheValue=System.setProperty(GWT_PERSISTENTUNITCACHE,"false");
+  try {
+    options.addModuleName("com.google.gwt.sample.hello.Hello");
+    options.setWarDir(new File(firstCompileWorkDir,"war"));
+    options.setExtraDir(new File(firstCompileWorkDir,"extra"));
+    PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
+    logger.setMaxDetail(TreeLogger.ERROR);
+    new Compiler(options).run(logger);
+    Set<String> firstTimeOutput=Sets.newHashSet(new File(options.getWarDir() + "/hello").list());
+    options.setWarDir(new File(secondCompileWorkDir,"war"));
+    options.setExtraDir(new File(secondCompileWorkDir,"extra"));
+    new Compiler(options).run(logger);
+    Set<String> secondTimeOutput=Sets.newHashSet(new File(options.getWarDir() + "/hello").list());
+    assertEquals("First and second compile produced different outputs",firstTimeOutput,secondTimeOutput);
+  }
+  finally {
+    System.setProperty(GWT_PERSISTENTUNITCACHE,oldPersistentUnitCacheValue);
+    Util.recursiveDelete(firstCompileWorkDir,false);
+    Util.recursiveDelete(secondCompileWorkDir,false);
+  }
+}
