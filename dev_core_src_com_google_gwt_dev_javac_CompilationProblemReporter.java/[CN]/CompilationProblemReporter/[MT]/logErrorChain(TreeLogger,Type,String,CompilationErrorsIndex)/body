@@ -1,0 +1,21 @@
+{
+  final Set<String> visited=new HashSet<String>();
+  final Queue<String> toVisit=new LinkedList<String>();
+  addUnitToVisit(compilationErrorsIndex,typeSourceName,toVisit,visited);
+  while (!toVisit.isEmpty()) {
+    String dependentTypeSourceName=toVisit.remove();
+    Set<String> compileErrors=compilationErrorsIndex.getCompileErrors(dependentTypeSourceName);
+    TreeLogger branch=logger.branch(logLevel,"Errors in '" + compilationErrorsIndex.getFileName(dependentTypeSourceName) + "'");
+    for (    String compileError : compileErrors) {
+      branch.log(logLevel,compileError);
+    }
+    Set<String> typeReferences=compilationErrorsIndex.getTypeReferences(dependentTypeSourceName);
+    if (typeReferences != null) {
+      for (      String typeReference : typeReferences) {
+        addUnitToVisit(compilationErrorsIndex,typeReference,toVisit,visited);
+      }
+    }
+  }
+  logger.log(TreeLogger.DEBUG,"Checked " + visited.size() + " dependencies for errors.");
+  return visited.size() > 1;
+}

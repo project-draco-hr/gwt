@@ -18,7 +18,20 @@
   validClasses.put("bad2",bad2.getCompiledClasses().iterator().next());
   validClasses.put("good1",good1.getCompiledClasses().iterator().next());
   Map<String,CompiledClass> knownValidClasses=new HashMap<String,CompiledClass>(validClasses);
-  CompilationUnitInvalidator.retainValidUnits(TreeLogger.NULL,units,validClasses);
+  CompilerContext compilerContext=new CompilerContext.Builder().build();
+  CompilationUnitInvalidator.retainValidUnits(TreeLogger.NULL,units,validClasses,compilerContext.getLocalCompilationErrorsIndex());
+  UnitTestTreeLogger.Builder loggerBuilder=new UnitTestTreeLogger.Builder();
+  loggerBuilder.setLowestLogLevel(TreeLogger.INFO);
+  loggerBuilder.expectInfo("Tracing compile failure path for type 'bad6'",null);
+  loggerBuilder.expectError("Errors in '/mock/bad6.java'",null);
+  loggerBuilder.expectError("bad5 cannot be resolved to a type",null);
+  loggerBuilder.expectError("Errors in '/mock/bad5.java'",null);
+  loggerBuilder.expectError("bad3 cannot be resolved to a type",null);
+  loggerBuilder.expectError("Errors in '/mock/bad3.java'",null);
+  loggerBuilder.expectError("bad1 cannot be resolved to a type",null);
+  UnitTestTreeLogger testLogger=loggerBuilder.createLogger();
+  CompilationProblemReporter.logErrorTrace(testLogger,TreeLogger.ERROR,compilerContext,"bad6",false);
+  testLogger.assertCorrectLogEntries();
   assertEquals(knownValidClasses,validClasses);
   assertEquals(Arrays.asList(good1,good2,good3),units);
 }

@@ -8,9 +8,13 @@
     }
   }
   if (!compilerContext.shouldCompileMonolithic()) {
+    boolean errorStateBeforeForcedTraversal=errorsFound;
     Set<String> internalNames=ImmutableSet.copyOf(compiledClassesByInternalName.keySet());
     for (    String internalName : internalNames) {
       JDeclaredType type=internalFindType(internalName,internalNameBasedTypeLocator);
+      if (type == null) {
+        continue;
+      }
       instantiate(type);
       for (      JField field : type.getFields()) {
         flowInto(field);
@@ -18,6 +22,9 @@
       for (      JMethod method : type.getMethods()) {
         flowInto(method);
       }
+    }
+    if (!compilerContext.getOptions().isStrict()) {
+      errorsFound=errorStateBeforeForcedTraversal;
     }
   }
   instantiate(program.getTypeJavaLangString());

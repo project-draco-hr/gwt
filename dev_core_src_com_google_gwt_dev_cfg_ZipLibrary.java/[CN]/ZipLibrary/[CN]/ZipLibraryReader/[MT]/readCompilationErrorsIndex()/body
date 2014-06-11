@@ -1,0 +1,20 @@
+{
+  ZipEntry compilationErrorsIndexEntry=zipFile.getEntry(Libraries.COMPILATION_ERRORS_INDEX_ENTRY_NAME);
+  if (compilationErrorsIndexEntry == null) {
+    return null;
+  }
+  InputStream compilationErrorsIndexInputStream=getInputStream(compilationErrorsIndexEntry);
+  CompilationErrorsIndexImpl newCompilationErrorsIndex;
+  try {
+    ObjectInputStream objectInputStream=new ObjectInputStream(compilationErrorsIndexInputStream);
+    newCompilationErrorsIndex=(CompilationErrorsIndexImpl)objectInputStream.readObject();
+    objectInputStream.close();
+  }
+ catch (  IOException e) {
+    throw new CompilerIoException("Failed to read the compilation errors index for deserialization.",e);
+  }
+catch (  ClassNotFoundException e) {
+    throw new CompilerIoException("Failed to deserialize the compilation errors index because a " + "referenced type could not be found.",e);
+  }
+  return newCompilationErrorsIndex;
+}

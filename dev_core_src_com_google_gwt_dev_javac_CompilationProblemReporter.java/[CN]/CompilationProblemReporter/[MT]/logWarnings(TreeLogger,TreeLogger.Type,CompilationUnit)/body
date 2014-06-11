@@ -1,0 +1,16 @@
+{
+  if (!hasWarnings(unit)) {
+    return false;
+  }
+  TreeLogger branch=logger.branch(logLevel,"Warnings in '" + unit.getResourceLocation() + "'",null);
+  for (  CategorizedProblem problem : unit.getProblems()) {
+    if (!problem.isWarning() || !(problem instanceof GWTProblem)) {
+      continue;
+    }
+    branch.log(logLevel,toMessageWithLineNumber(problem),null,((GWTProblem)problem).getHelpInfo());
+  }
+  if (branch.isLoggable(TreeLogger.INFO) && unit instanceof GeneratedCompilationUnit) {
+    CompilationProblemReporter.maybeDumpSource(branch,((GeneratedCompilationUnit)unit).getSource(),unit.getTypeName());
+  }
+  return true;
+}

@@ -81,16 +81,17 @@ catch (    Throwable e) {
   }
   resultUnits.addAll(cachedUnits.values());
   unitCache.cleanup(logger);
-  Collections.sort(resultUnits,CompilationUnit.COMPARATOR);
-  logger=logger.branch(TreeLogger.DEBUG,"Validating units:");
-  int errorCount=0;
-  for (  CompilationUnit unit : resultUnits) {
-    if (CompilationProblemReporter.reportErrors(logger,unit,suppressErrors)) {
-      errorCount++;
-    }
+  Type logLevelForWarnings=suppressErrors ? TreeLogger.DEBUG : TreeLogger.WARN;
+  int warningCount=CompilationProblemReporter.logWarnings(logger,logLevelForWarnings,resultUnits);
+  if (warningCount > 0 && !logger.isLoggable(logLevelForWarnings)) {
+    logger.log(TreeLogger.INFO,"Ignored " + warningCount + " unit"+ (warningCount > 1 ? "s" : "")+ " with compilation errors in first pass.\n"+ "Compile with -strict or with -logLevel set to DEBUG or WARN to see all errors.");
   }
-  if (suppressErrors && errorCount > 0 && !logger.isLoggable(TreeLogger.TRACE) && logger.isLoggable(TreeLogger.INFO)) {
+  CompilationProblemReporter.indexErrors(compilerContext.getLocalCompilationErrorsIndex(),resultUnits);
+  Type logLevelForErrors=suppressErrors ? TreeLogger.TRACE : TreeLogger.ERROR;
+  int errorCount=CompilationProblemReporter.logErrorTrace(logger,logLevelForErrors,compilerContext,resultUnits,false);
+  if (errorCount > 0 && !logger.isLoggable(logLevelForErrors) && logger.isLoggable(TreeLogger.INFO)) {
     logger.log(TreeLogger.INFO,"Ignored " + errorCount + " unit"+ (errorCount > 1 ? "s" : "")+ " with compilation errors in first pass.\n"+ "Compile with -strict or with -logLevel set to TRACE or DEBUG to see all errors.");
   }
+  Collections.sort(resultUnits,CompilationUnit.COMPARATOR);
   return resultUnits;
 }

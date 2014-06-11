@@ -3,6 +3,12 @@
     @Override protected CompilationUnit getCompilationUnitFromLibrary(    String sourceName){
       return compilerContext.getLibraryGroup().getCompilationUnitByTypeSourceName(sourceName);
     }
+    @Override protected boolean hasCompileErrors(    String sourceName){
+      return compilerContext.getGlobalCompilationErrorsIndex().hasCompileErrors(sourceName);
+    }
+    @Override protected void logErrorTrace(    TreeLogger branch,    Type logLevel,    String sourceName){
+      CompilationProblemReporter.logErrorTrace(branch,logLevel,compilerContext,sourceName,false);
+    }
   }
 ;
   binaryNameBasedTypeLocator=new NameBasedTypeLocator(null){
@@ -15,6 +21,12 @@
     @Override protected boolean sourceCompilationUnitIsAvailable(    String binaryName){
       return internalNameBasedTypeLocator.sourceCompilationUnitIsAvailable(BinaryName.toInternalName(binaryName));
     }
+    @Override protected boolean hasCompileErrors(    String binaryName){
+      return sourceNameBasedTypeLocator.hasCompileErrors(BinaryName.toSourceName(binaryName));
+    }
+    @Override protected void logErrorTrace(    TreeLogger branch,    Type logLevel,    String binaryName){
+      sourceNameBasedTypeLocator.logErrorTrace(branch,logLevel,BinaryName.toSourceName(binaryName));
+    }
   }
 ;
   internalNameBasedTypeLocator=new NameBasedTypeLocator(compiledClassesByInternalName){
@@ -26,6 +38,12 @@
     }
     @Override protected boolean resolvedTypeIsAvailable(    String internalName){
       return binaryNameBasedTypeLocator.resolvedTypeIsAvailable(InternalName.toBinaryName(internalName));
+    }
+    @Override protected boolean hasCompileErrors(    String internalName){
+      return sourceNameBasedTypeLocator.hasCompileErrors(InternalName.toSourceName(internalName));
+    }
+    @Override protected void logErrorTrace(    TreeLogger branch,    Type logLevel,    String internalName){
+      sourceNameBasedTypeLocator.logErrorTrace(branch,logLevel,BinaryName.toSourceName(internalName));
     }
   }
 ;

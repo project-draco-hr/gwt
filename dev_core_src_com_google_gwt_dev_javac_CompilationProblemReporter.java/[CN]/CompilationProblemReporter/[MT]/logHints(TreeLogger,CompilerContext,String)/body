@@ -1,0 +1,26 @@
+{
+  ClassLoader cl=Thread.currentThread().getContextClassLoader();
+  URL sourceURL=Util.findSourceInClassPath(cl,typeSourceName);
+  if (sourceURL != null) {
+    if (typeSourceName.indexOf(".client.") != -1) {
+      Messages.HINT_CHECK_MODULE_INHERITANCE.log(logger,null);
+    }
+ else {
+      Messages.HINT_CHECK_MODULE_NONCLIENT_SOURCE_DECL.log(logger,null);
+    }
+  }
+ else   if (!typeSourceName.equals("java.lang.Object")) {
+    boolean strictSourceResources=compilerContext.getOptions().enforceStrictSourceResources();
+    if (strictSourceResources) {
+      Messages.HINT_STRICT_SOURCE_ENTRIES.log(logger,null);
+    }
+    Messages.HINT_CHECK_TYPENAME.log(logger,typeSourceName,null);
+    Messages.HINT_CHECK_CLASSPATH_SOURCE_ENTRIES.log(logger,null);
+  }
+  if (typeSourceName.indexOf("java.lang.") == 0 || typeSourceName.indexOf("com.google.gwt.core.") == 0) {
+    Messages.HINT_CHECK_INHERIT_CORE.log(logger,null);
+  }
+ else   if (typeSourceName.indexOf("com.google.gwt.user.") == 0) {
+    Messages.HINT_CHECK_INHERIT_USER.log(logger,null);
+  }
+}
