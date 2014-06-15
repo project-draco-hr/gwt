@@ -1,0 +1,35 @@
+{
+  HttpConfiguration config=defaultConfig();
+  if (useSsl) {
+    TreeLogger sslLogger=logger.branch(TreeLogger.INFO,"Listening for SSL connections");
+    if (sslLogger.isLoggable(TreeLogger.TRACE)) {
+      sslLogger.log(TreeLogger.TRACE,"Using keystore " + keyStore);
+    }
+    SslContextFactory ssl=new SslContextFactory();
+    if (clientAuth != null) {
+switch (clientAuth) {
+case NONE:
+        ssl.setWantClientAuth(false);
+      ssl.setNeedClientAuth(false);
+    break;
+case WANT:
+  sslLogger.log(TreeLogger.TRACE,"Requesting client certificates");
+ssl.setWantClientAuth(true);
+ssl.setNeedClientAuth(false);
+break;
+case REQUIRE:
+sslLogger.log(TreeLogger.TRACE,"Requiring client certificates");
+ssl.setWantClientAuth(true);
+ssl.setNeedClientAuth(true);
+break;
+}
+}
+ssl.setKeyStorePath(keyStore);
+ssl.setTrustStorePath(keyStore);
+ssl.setKeyStorePassword(keyStorePassword);
+ssl.setTrustStorePassword(keyStorePassword);
+config.addCustomizer(new SecureRequestCustomizer());
+return new ServerConnector(server,null,null,null,0,2,new SslConnectionFactory(ssl,"http/1.1"),new HttpConnectionFactory(config));
+}
+return new ServerConnector(server,new HttpConnectionFactory(config));
+}

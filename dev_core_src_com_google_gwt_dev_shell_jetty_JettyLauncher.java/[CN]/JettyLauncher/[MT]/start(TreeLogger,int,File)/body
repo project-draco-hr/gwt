@@ -5,7 +5,7 @@
   jreLeakPrevention(logger);
   System.setProperty("org.eclipse.jetty.xml.XmlParser.Validating","false");
   Server server=new Server();
-  AbstractConnector connector=getConnector(logger);
+  ServerConnector connector=getConnector(server,logger);
   setupConnector(connector,bindAddress,port);
   server.addConnector(connector);
   WebAppContext wac=createWebAppContext(logger,appRootDir);
@@ -19,9 +19,6 @@
   int connectorPort=connector.getLocalPort();
   if (connector.getLocalPort() < 0) {
     branch.log(TreeLogger.ERROR,String.format("Failed to connect to open channel with port %d (return value %d)",port,connectorPort));
-    if (connector.getConnection() == null) {
-      branch.log(TreeLogger.TRACE,"Connection is null");
-    }
   }
   return createServletContainer(logger,appRootDir,server,wac,connectorPort);
 }
