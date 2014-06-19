@@ -7,11 +7,12 @@
       flowInto(method);
     }
   }
-  if (!compilerContext.shouldCompileMonolithic()) {
-    boolean errorStateBeforeForcedTraversal=errorsFound;
+  boolean isLibraryCompile=!compilerContext.shouldCompileMonolithic();
+  if (isLibraryCompile) {
     Set<String> internalNames=ImmutableSet.copyOf(compiledClassesByInternalName.keySet());
     for (    String internalName : internalNames) {
-      JDeclaredType type=internalFindType(internalName,internalNameBasedTypeLocator);
+      boolean reportErrors=false;
+      JDeclaredType type=internalFindType(internalName,internalNameBasedTypeLocator,reportErrors);
       if (type == null) {
         continue;
       }
@@ -25,10 +26,9 @@
     }
   }
  else   if (program.typeOracle.isInteropEnabled()) {
-    boolean savedErrorsFound=errorsFound;
     Set<String> internalNames=ImmutableSet.copyOf(compiledClassesByInternalName.keySet());
     for (    String internalName : internalNames) {
-      JDeclaredType type=internalFindTypeViaLocator(internalName,internalNameBasedTypeLocator);
+      JDeclaredType type=internalFindType(internalName,internalNameBasedTypeLocator,false);
       if (type != null && (isJsType(type) || hasAnyExports(type))) {
         instantiate(type);
         for (        JField field : type.getFields()) {
@@ -39,7 +39,6 @@
         }
       }
     }
-    errorsFound=savedErrorsFound;
   }
   instantiate(program.getTypeJavaLangString());
   flowInto(program.getIndexedMethod("Object.toString"));
