@@ -3,7 +3,9 @@
   generateVTables(x,globalStmts);
   if (x == program.getTypeJavaLangObject()) {
     generateToStringAlias(x,globalStmts);
-    setupStringCastMap(program.getTypeJavaLangString(),globalStmts);
+    for (    Map.Entry<JClassType,DispatchType> nativeRepresentedType : program.getRepresentedAsNativeTypesDispatchMap().entrySet()) {
+      setupCastMapForUnboxedType(nativeRepresentedType.getKey(),globalStmts,nativeRepresentedType.getValue().getCastMapField());
+    }
     globalStmts.add(constructInvocation(x.getSourceInfo(),"JavaClassHierarchySetupUtil.modernizeBrowser").makeStmt());
   }
 }
