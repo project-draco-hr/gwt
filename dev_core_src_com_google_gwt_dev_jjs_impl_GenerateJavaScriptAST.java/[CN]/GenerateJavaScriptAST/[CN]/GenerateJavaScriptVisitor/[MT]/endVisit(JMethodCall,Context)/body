@@ -82,8 +82,14 @@
       }
     }
  else {
-      qualifier=polyName.makeRef(x.getSourceInfo());
-      qualifier.setQualifier((JsExpression)pop());
+      if (program.typeOracle.needsJsInteropBridgeMethod(method)) {
+        maybeDispatchViaTrampolineToBridgeMethod(x,method,jsInvocation,unnecessaryQualifier,result,polyName);
+        return;
+      }
+ else {
+        qualifier=polyName.makeRef(x.getSourceInfo());
+        qualifier.setQualifier((JsExpression)pop());
+      }
     }
   }
   if (!isJsProperty) {

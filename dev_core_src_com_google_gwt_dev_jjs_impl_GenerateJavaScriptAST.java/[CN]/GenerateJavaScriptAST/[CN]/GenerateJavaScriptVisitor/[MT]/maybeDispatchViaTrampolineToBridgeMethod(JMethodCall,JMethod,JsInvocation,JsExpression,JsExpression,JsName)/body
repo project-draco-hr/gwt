@@ -1,0 +1,17 @@
+{
+  JsExpression tmp=createAssignment(globalTemp.makeRef(x.getSourceInfo()),((JsExpression)pop()));
+  JsName trampMethName=indexedFunctions.get("JavaClassHierarchySetupUtil.trampolineBridgeMethod").getName();
+  JsName bridgejsName=polyName.getEnclosing().findExistingName(method.getName());
+  JsNameRef bridgeRef=bridgejsName != null ? bridgejsName.makeRef(x.getSourceInfo()) : new JsNameRef(x.getSourceInfo(),method.getName());
+  bridgeRef.setQualifier(globalTemp.makeRef(x.getSourceInfo()));
+  JsNameRef javaMethRef=polyName.makeRef(x.getSourceInfo());
+  javaMethRef.setQualifier(globalTemp.makeRef(x.getSourceInfo()));
+  JsInvocation callTramp=new JsInvocation(x.getSourceInfo(),trampMethName.makeRef(x.getSourceInfo()),globalTemp.makeRef(x.getSourceInfo()),bridgeRef,javaMethRef);
+  JsNameRef bind=new JsNameRef(x.getSourceInfo(),"bind");
+  JsInvocation callBind=new JsInvocation(x.getSourceInfo());
+  callBind.setQualifier(bind);
+  callBind.getArguments().add(globalTemp.makeRef(x.getSourceInfo()));
+  bind.setQualifier(createCommaExpression(tmp,callTramp));
+  jsInvocation.setQualifier(callBind);
+  push(createCommaExpression(unnecessaryQualifier,result));
+}
