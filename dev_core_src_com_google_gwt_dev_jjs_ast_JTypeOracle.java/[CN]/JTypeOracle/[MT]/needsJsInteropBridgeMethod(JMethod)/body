@@ -2,6 +2,28 @@
   if (!isInteropEnabled()) {
     return false;
   }
+  List<JParameter> xParams=x.getParams();
+  if (isJsTypeMethod(x)) {
+    for (    JMethod other : x.getEnclosingType().getMethods()) {
+      if (other == x) {
+        continue;
+      }
+      if (isJsTypeMethod(other) && x.getName().equals(other.getName())) {
+        List<JParameter> otherParams=other.getParams();
+        if (otherParams.size() == xParams.size()) {
+          for (int i=0; i < otherParams.size(); i++) {
+            if (otherParams.get(i).getType() != xParams.get(i).getType()) {
+              break;
+            }
+          }
+          return true;
+        }
+ else {
+          break;
+        }
+      }
+    }
+  }
   if (x.needsVtable() && isJsTypeMethod(x)) {
     for (    JMethod override : getAllOverriddenMethods(x)) {
       if (!isJsTypeMethod(override)) {
@@ -13,7 +35,7 @@
     if (x.getOriginalReturnType() == JPrimitiveType.LONG) {
       return true;
     }
-    for (    JParameter p : x.getParams()) {
+    for (    JParameter p : xParams) {
       if (p.getType() == JPrimitiveType.LONG) {
         return true;
       }
