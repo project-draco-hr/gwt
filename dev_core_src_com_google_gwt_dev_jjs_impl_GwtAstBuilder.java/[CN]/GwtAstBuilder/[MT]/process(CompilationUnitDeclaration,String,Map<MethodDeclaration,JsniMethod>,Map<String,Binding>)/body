@@ -1,0 +1,37 @@
+{
+  if (cud.types == null) {
+    return Collections.emptyList();
+  }
+  this.sourceMapPath=sourceMapPath;
+  this.jsniRefs=jsniRefs;
+  this.jsniMethods=jsniMethods;
+  newTypes=Lists.newArrayList();
+  curCud=new CudInfo(cud);
+  for (  TypeDeclaration typeDecl : cud.types) {
+    createTypes(typeDecl);
+  }
+  javaLangObject=(JClassType)typeMap.get(cud.scope.getJavaLangObject());
+  javaLangString=(JClassType)typeMap.get(cud.scope.getJavaLangString());
+  javaLangClass=(JClassType)typeMap.get(cud.scope.getJavaLangClass());
+  javaLangThrowable=(JClassType)typeMap.get(cud.scope.getJavaLangThrowable());
+  for (  TypeDeclaration typeDecl : cud.types) {
+    resolveTypeRefs(typeDecl);
+  }
+  for (  TypeDeclaration typeDecl : cud.types) {
+    createMembers(typeDecl);
+  }
+  for (  TypeDeclaration typeDecl : cud.types) {
+    typeDecl.traverse(astVisitor,cud.scope);
+  }
+  List<JDeclaredType> result=newTypes;
+  typeMap.clearSource();
+  this.jsniRefs=jsniRefs;
+  this.jsniMethods=jsniMethods;
+  newTypes=null;
+  curCud=null;
+  javaLangObject=null;
+  javaLangString=null;
+  javaLangClass=null;
+  javaLangThrowable=null;
+  return result;
+}
