@@ -1,21 +1,3 @@
 {
-  TreeLogger linkLogger=logger.branch(TreeLogger.DEBUG,"Linking module '" + module.getName() + "'");
-  OutputFileSetOnDirectory outFileSet=new OutputFileSetOnDirectory(options.getWarDir(),module.getName() + "/");
-  OutputFileSetOnDirectory deployFileSet=new OutputFileSetOnDirectory(options.getDeployDir(),module.getName() + "/");
-  OutputFileSet extraFileSet=new NullOutputFileSet();
-  if (options.getExtraDir() != null) {
-    extraFileSet=new OutputFileSetOnDirectory(options.getExtraDir(),module.getName() + "/");
-  }
-  linkerStack.produceOutput(linkLogger,artifacts,Visibility.Public,outFileSet);
-  linkerStack.produceOutput(linkLogger,artifacts,Visibility.Deploy,deployFileSet);
-  linkerStack.produceOutput(linkLogger,artifacts,Visibility.Private,extraFileSet);
-  outFileSet.close();
-  deployFileSet.close();
-  try {
-    extraFileSet.close();
-  }
- catch (  IOException e) {
-    linkLogger.log(TreeLogger.ERROR,"Error emiting extra files",e);
-    throw new UnableToCompleteException();
-  }
+  listener.writeCompilerOutput(linkerStack,artifacts,module,isRelink);
 }

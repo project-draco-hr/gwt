@@ -1,0 +1,20 @@
+{
+  try {
+    String computeScriptBase=Utility.getFileFromClassPath("com/google/gwt/dev/codeserver/computeScriptBase.js");
+    String contents=Utility.getFileFromClassPath("com/google/gwt/dev/codeserver/stub.nocache.js");
+    File file=new File(options.getWarDir() + "/" + module.getName()+ "/"+ module.getName()+ ".nocache.js");
+    file.deleteOnExit();
+    file.getParentFile().mkdirs();
+    Map<String,String> replacements=new HashMap<String,String>();
+    replacements.put("__COMPUTE_SCRIPT_BASE__",computeScriptBase);
+    replacements.put("__MODULE_NAME__",module.getName());
+    replacements.put("__SUPERDEV_PORT__","" + codeServerPort);
+    Utility.writeTemplateFile(file,contents,replacements);
+    String recompileUrl="http://" + options.getConnectAddress() + ":"+ codeServerPort+ "/recompile/"+ module.getName()+ "?_calback=bar&user.agent=safari";
+    System.out.println("To compile the module '" + module.getName() + "' , visit:\n "+ recompileUrl);
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Unable to create nocache script ",e);
+    throw new UnableToCompleteException();
+  }
+}
