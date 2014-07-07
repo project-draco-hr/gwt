@@ -1,13 +1,29 @@
 {
+  if (type instanceof JArrayType) {
+    JArrayType arrayType=(JArrayType)type;
+    Set<JReferenceType> superHierarchyTypes=Sets.newHashSet();
+    superHierarchyTypes.add(javaLangObject);
+    if (arrayType.getLeafType() instanceof JPrimitiveType) {
+      superHierarchyTypes.add(arrayType);
+    }
+ else {
+      JDeclaredType leafType=(JDeclaredType)arrayType.getLeafType();
+      for (      JReferenceType leafSuperType : getSuperHierarchyTypes(leafType)) {
+        JArrayType superArrayType=program.getTypeArray(leafSuperType,arrayType.getDims());
+        superHierarchyTypes.add(superArrayType);
+      }
+    }
+    return superHierarchyTypes;
+  }
   Set<JReferenceType> superHierarchyTypes=Sets.newHashSet();
-  if (superClassMap.containsKey(type)) {
-    superHierarchyTypes.addAll(superClassMap.get(type));
+  if (superClassMap.containsKey(type.getName())) {
+    superHierarchyTypes.addAll(getTypes(superClassMap,type));
   }
-  if (superInterfaceMap.containsKey(type)) {
-    superHierarchyTypes.addAll(superInterfaceMap.get(type));
+  if (superInterfaceMap.containsKey(type.getName())) {
+    superHierarchyTypes.addAll(getTypes(superInterfaceMap,type));
   }
-  if (implementsMap.containsKey(type)) {
-    superHierarchyTypes.addAll(implementsMap.get(type));
+  if (implementsMap.containsKey(type.getName())) {
+    superHierarchyTypes.addAll(getTypes(implementsMap,type));
   }
   superHierarchyTypes.add(type);
   return superHierarchyTypes;

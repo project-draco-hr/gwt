@@ -4,20 +4,22 @@
     for (    JDeclaredType type : program.getDeclaredTypes()) {
       computeClinitTarget(type,computed);
     }
-    nextDual:     for (Iterator<JInterfaceType> it=dualImpls.iterator(); it.hasNext(); ) {
-      JInterfaceType dualIntf=it.next();
-      Set<JClassType> implementors=get(isImplementedMap,dualIntf);
-      for (      JClassType implementor : implementors) {
+    nextDual:     for (Iterator<String> it=dualImpls.iterator(); it.hasNext(); ) {
+      String dualIntf=it.next();
+      Set<String> implementors=get(isImplementedMap,dualIntf);
+      for (      String implementorName : implementors) {
+        JReferenceType implementor=referenceTypesByName.get(implementorName);
         if (isInstantiatedType(implementor) && !program.isJavaScriptObject(implementor)) {
           continue nextDual;
         }
       }
       it.remove();
     }
-    Iterator<Entry<JInterfaceType,JClassType>> jit=jsoSingleImpls.entrySet().iterator();
+    Iterator<Entry<String,String>> jit=jsoSingleImpls.entrySet().iterator();
     while (jit.hasNext()) {
-      Entry<JInterfaceType,JClassType> jsoSingleImplEntry=jit.next();
-      if (isInstantiatedType(jsoSingleImplEntry.getValue())) {
+      Entry<String,String> jsoSingleImplEntry=jit.next();
+      JDeclaredType clazz=(JDeclaredType)referenceTypesByName.get(jsoSingleImplEntry.getValue());
+      if (isInstantiatedType(clazz)) {
         continue;
       }
       dualImpls.remove(jsoSingleImplEntry.getKey());
