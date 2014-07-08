@@ -1,0 +1,47 @@
+{
+  String location="";
+  if (stString.isEmpty()) {
+    return createSte(UNKNOWN,ANONYMOUS,LINE_NUMBER_UNKNOWN,-1);
+  }
+  String toReturn=stString.trim();
+  if (toReturn.startsWith("at ")) {
+    toReturn=toReturn.substring(3);
+  }
+  toReturn=stripSquareBrackets(toReturn);
+  int index=toReturn.indexOf("(");
+  if (index == -1) {
+    index=toReturn.indexOf("@");
+    if (index == -1) {
+      location=toReturn;
+      toReturn="";
+    }
+ else {
+      location=toReturn.substring(index + 1).trim();
+      toReturn=toReturn.substring(0,index).trim();
+    }
+  }
+ else {
+    int closeParen=toReturn.indexOf(")",index);
+    location=toReturn.substring(index + 1,closeParen);
+    toReturn=toReturn.substring(0,index).trim();
+  }
+  index=toReturn.indexOf('.');
+  if (index != -1) {
+    toReturn=toReturn.substring(index + 1);
+  }
+  final String ieAnonymousFunctionName="Anonymous function";
+  if (toReturn.isEmpty() || toReturn.equals(ieAnonymousFunctionName)) {
+    toReturn=ANONYMOUS;
+  }
+  int lastColonIndex=location.lastIndexOf(':');
+  int endFileUrlIndex=location.lastIndexOf(':',lastColonIndex - 1);
+  int line=LINE_NUMBER_UNKNOWN;
+  int col=-1;
+  String fileName=UNKNOWN;
+  if (lastColonIndex != -1 && endFileUrlIndex != -1) {
+    fileName=location.substring(0,endFileUrlIndex);
+    line=parseInt(location.substring(endFileUrlIndex + 1,lastColonIndex));
+    col=parseInt(location.substring(lastColonIndex + 1));
+  }
+  return createSte(fileName,toReturn,line,col);
+}
