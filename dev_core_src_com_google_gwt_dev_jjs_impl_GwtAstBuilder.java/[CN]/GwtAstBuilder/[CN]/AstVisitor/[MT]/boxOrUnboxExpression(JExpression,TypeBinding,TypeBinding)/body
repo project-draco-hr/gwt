@@ -1,0 +1,17 @@
+{
+  if (fromType == TypeBinding.VOID || toType == TypeBinding.VOID) {
+    return expr;
+  }
+  int implicitConversion;
+  if (fromType.isBaseType() && !toType.isBaseType()) {
+    implicitConversion=(fromType.id & TypeIds.IMPLICIT_CONVERSION_MASK) << 4;
+    implicitConversion=implicitConversion | TypeIds.BOXING;
+    expr=box(expr,implicitConversion);
+  }
+ else   if (!fromType.isBaseType() && toType.isBaseType()) {
+    implicitConversion=(toType.id & TypeIds.IMPLICIT_CONVERSION_MASK) << 4;
+    implicitConversion=implicitConversion | TypeIds.UNBOXING;
+    expr=unbox(expr,implicitConversion);
+  }
+  return expr;
+}

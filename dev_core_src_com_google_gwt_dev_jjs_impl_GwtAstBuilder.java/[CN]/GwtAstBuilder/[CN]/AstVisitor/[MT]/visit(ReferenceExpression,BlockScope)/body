@@ -1,0 +1,22 @@
+{
+  if (x.isArrayConstructorReference()) {
+    JMethod synthMethod=typeMap.get(x.binding);
+    if (synthMethod.getBody() == null) {
+      JMethodBody body=new JMethodBody(synthMethod.getSourceInfo());
+      List<JExpression> dims=new ArrayList<JExpression>();
+      JArrayType arrayType=(JArrayType)synthMethod.getType();
+      JParameter dimParam=synthMethod.getParams().get(0);
+      JExpression dimArgExpr=new JParameterRef(dimParam.getSourceInfo(),dimParam);
+      dims.add(dimArgExpr);
+      for (int i=1; i < arrayType.getDims(); i++) {
+        dims.add(JAbsentArrayDimension.INSTANCE);
+      }
+      JNewArray newArray=JNewArray.createDims(synthMethod.getSourceInfo(),arrayType,dims);
+      JReturnStatement retArray=new JReturnStatement(synthMethod.getSourceInfo(),newArray);
+      body.getBlock().addStmt(retArray);
+      synthMethod.setBody(body);
+    }
+    push(null);
+  }
+  return true;
+}

@@ -1,0 +1,21 @@
+{
+  addSnippetClassDecl("private int y = 22;");
+  String lambda="int x = 42; new AcceptsLambda<Integer>().accept((a,b) -> x + y + a + b);";
+  assertEqualBlock("int x=42;(new AcceptsLambda()).accept(new EntryPoint$lambda$0$Type(this,x));",lambda);
+  JProgram program=compileSnippet("void",lambda,false);
+  assertNotNull(getMethod(program,"lambda$0"));
+  JClassType lambdaInnerClass=(JClassType)getType(program,"test.EntryPoint$lambda$0$Type");
+  assertNotNull(lambdaInnerClass);
+  JMethod ctor=findMethod(lambdaInnerClass,"EntryPoint$lambda$0$Type");
+  assertTrue(ctor instanceof JConstructor);
+  assertEquals(2,ctor.getParams().size());
+  assertEquals(lambdaInnerClass.getEnclosingType(),ctor.getOriginalParamTypes().get(0));
+  assertEquals(JPrimitiveType.INT,ctor.getOriginalParamTypes().get(1));
+  assertEquals(2,lambdaInnerClass.getFields().size());
+  assertEquals(lambdaInnerClass.getEnclosingType(),lambdaInnerClass.getFields().get(0).getType());
+  assertEquals(JPrimitiveType.INT,lambdaInnerClass.getFields().get(1).getType());
+  assertEquals("{this.$$outer_0=$$outer_0;this.x_1=x_1;}",formatSource(ctor.getBody().toSource()));
+  assertTrue(lambdaInnerClass.getImplements().contains(program.getFromTypeMap("test.Lambda")));
+  JMethod samMethod=findMethod(lambdaInnerClass,"run");
+  assertEquals("public final Object run(int arg0,int arg1){return this.$$outer_0.lambda$0(this.x_1,arg0,arg1);}",formatSource(samMethod.toSource()));
+}

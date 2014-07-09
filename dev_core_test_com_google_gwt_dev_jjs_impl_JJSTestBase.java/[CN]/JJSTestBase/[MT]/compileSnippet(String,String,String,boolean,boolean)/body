@@ -1,0 +1,32 @@
+{
+  sourceOracle.addOrReplace(new MockJavaResource("test.EntryPoint"){
+    @Override public CharSequence getContent(){
+      StringBuilder code=new StringBuilder();
+      code.append("package test;\n");
+      for (      String snippetImport : snippetImports) {
+        code.append("import " + snippetImport + ";\n");
+      }
+      code.append("public class EntryPoint {\n");
+      for (      String snippetClassDecl : snippetClassDecls) {
+        code.append(snippetClassDecl + ";\n");
+      }
+      code.append("  public " + (staticMethod ? "static " : "") + returnType+ " onModuleLoad("+ params+ ") {\n");
+      code.append(codeSnippet);
+      code.append("  }\n");
+      code.append("}\n");
+      return code;
+    }
+  }
+);
+  CompilerContext compilerContext=new CompilerContext.Builder().options(new PrecompileTaskOptionsImpl(){
+    @Override public boolean shouldJDTInlineCompileTimeConstants(){
+      return false;
+    }
+  }
+).compileMonolithic(compileMonolithic).build();
+  compilerContext.getOptions().setSourceLevel(sourceLevel);
+  compilerContext.getOptions().setStrict(true);
+  CompilationState state=CompilationStateBuilder.buildFrom(logger,compilerContext,sourceOracle.getResources(),getAdditionalTypeProviderDelegate());
+  JProgram program=JavaAstConstructor.construct(logger,state,compilerContext.getOptions(),null,"test.EntryPoint","com.google.gwt.lang.Exceptions");
+  return program;
+}

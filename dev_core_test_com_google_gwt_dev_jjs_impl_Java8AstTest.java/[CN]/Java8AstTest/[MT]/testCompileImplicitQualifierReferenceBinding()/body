@@ -1,0 +1,14 @@
+{
+  String lambda="new AcceptsLambda<String>().accept2(String::equalsIgnoreCase);";
+  assertEqualBlock("(new AcceptsLambda()).accept2(new Lambda2$$equalsIgnoreCase__Ljava_lang_String_2Z$Type());",lambda);
+  JProgram program=compileSnippet("void",lambda,false);
+  JClassType lambdaInnerClass=(JClassType)getType(program,"test.Lambda2$$equalsIgnoreCase__Ljava_lang_String_2Z$Type");
+  assertNotNull(lambdaInnerClass);
+  JMethod ctor=findMethod(lambdaInnerClass,"Lambda2$$equalsIgnoreCase__Ljava_lang_String_2Z$Type");
+  assertTrue(ctor instanceof JConstructor);
+  assertEquals(0,ctor.getParams().size());
+  assertEquals(0,lambdaInnerClass.getFields().size());
+  assertTrue(lambdaInnerClass.getImplements().contains(program.getFromTypeMap("test.Lambda2")));
+  JMethod samMethod=findMethod(lambdaInnerClass,"run");
+  assertEquals("public final boolean run(Object arg0,Object arg1){return arg0.equalsIgnoreCase(arg1);}",formatSource(samMethod.toSource()));
+}

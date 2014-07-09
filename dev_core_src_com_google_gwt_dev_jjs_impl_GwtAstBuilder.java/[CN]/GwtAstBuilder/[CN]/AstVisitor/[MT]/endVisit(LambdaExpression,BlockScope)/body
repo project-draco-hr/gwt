@@ -1,0 +1,20 @@
+{
+  TypeBinding binding=x.expectedType();
+  MethodBinding samBinding=binding.getSingleAbstractMethod(blockScope,false);
+  JMethod interfaceMethod=typeMap.get(samBinding);
+  JInterfaceType funcType=(JInterfaceType)typeMap.get(binding);
+  SourceInfo info=makeSourceInfo(x);
+  JClassType innerLambdaClass=createInnerClass(JdtUtil.asDottedString(x.binding.declaringClass.compoundName) + "$" + new String(x.binding.selector),x,funcType,info);
+  JConstructor ctor=new JConstructor(info,innerLambdaClass);
+  List<JField> locals=new ArrayList<JField>();
+  SyntheticArgumentBinding[] synthArgs=x.outerLocalVariables;
+  JField outerField=createLambdaConstructor(x,info,innerLambdaClass,ctor,locals,synthArgs);
+  JMethod lambdaMethod=createLambdaMethod(x);
+  JMethod samMethod=new JMethod(info,interfaceMethod.getName(),innerLambdaClass,interfaceMethod.getType(),false,false,true,interfaceMethod.getAccess());
+  createLambdaSamMethod(x,interfaceMethod,info,innerLambdaClass,locals,outerField,lambdaMethod,samMethod);
+  ctor.freezeParamTypes();
+  samMethod.freezeParamTypes();
+  replaceLambdaWithInnerClassAllocation(x,info,innerLambdaClass,ctor,synthArgs);
+  popMethodInfo();
+  newTypes.add(innerLambdaClass);
+}

@@ -1,0 +1,15 @@
+{
+  String lambda="new AcceptsLambda<Integer>().accept((a,b) -> a + b);";
+  assertEqualBlock("(new AcceptsLambda()).accept(new EntryPoint$lambda$0$Type());",lambda);
+  JProgram program=compileSnippet("void",lambda,false);
+  assertNotNull(getMethod(program,"lambda$0"));
+  JClassType lambdaInnerClass=(JClassType)getType(program,"test.EntryPoint$lambda$0$Type");
+  assertNotNull(lambdaInnerClass);
+  assertEquals(0,lambdaInnerClass.getFields().size());
+  JMethod ctor=findMethod(lambdaInnerClass,"EntryPoint$lambda$0$Type");
+  assertTrue(ctor instanceof JConstructor);
+  assertEquals(0,ctor.getParams().size());
+  assertTrue(lambdaInnerClass.getImplements().contains(program.getFromTypeMap("test.Lambda")));
+  JMethod samMethod=findMethod(lambdaInnerClass,"run");
+  assertEquals("public final Object run(int arg0,int arg1){return EntryPoint.lambda$0(arg0,arg1);}",formatSource(samMethod.toSource()));
+}

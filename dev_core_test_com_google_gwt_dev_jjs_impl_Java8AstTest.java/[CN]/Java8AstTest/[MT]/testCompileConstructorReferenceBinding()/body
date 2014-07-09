@@ -1,0 +1,14 @@
+{
+  String lambda="new AcceptsLambda<Pojo>().accept(Pojo::new);";
+  assertEqualBlock("(new AcceptsLambda()).accept(new Lambda$$Pojo__IIV$Type());",lambda);
+  JProgram program=compileSnippet("void",lambda,false);
+  JClassType lambdaInnerClass=(JClassType)getType(program,"test.Lambda$$Pojo__IIV$Type");
+  assertNotNull(lambdaInnerClass);
+  JMethod ctor=findMethod(lambdaInnerClass,"Lambda$$Pojo__IIV$Type");
+  assertTrue(ctor instanceof JConstructor);
+  assertEquals(0,ctor.getParams().size());
+  assertEquals(0,lambdaInnerClass.getFields().size());
+  assertTrue(lambdaInnerClass.getImplements().contains(program.getFromTypeMap("test.Lambda")));
+  JMethod samMethod=findMethod(lambdaInnerClass,"run");
+  assertEquals("public final Object run(int arg0,int arg1){return new Pojo(arg0,arg1);}",formatSource(samMethod.toSource()));
+}

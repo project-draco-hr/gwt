@@ -1,0 +1,16 @@
+{
+  addSnippetClassDecl("int field1, field2;");
+  addSnippetClassDecl("class Pojo2 {","  public Pojo2(int x, int y) {","  }","  public int someMethod() { ","    return field1 + field2; ","  }","}");
+  String lambda="new AcceptsLambda<Pojo2>().accept(Pojo2::new);";
+  assertEqualBlock("(new AcceptsLambda()).accept(new Lambda$$EntryPoint$Pojo2__Ltest_EntryPoint_2IIV$Type(this));",lambda);
+  JProgram program=compileSnippet("void",lambda,false);
+  JClassType lambdaInnerClass=(JClassType)getType(program,"test.Lambda$$EntryPoint$Pojo2__Ltest_EntryPoint_2IIV$Type");
+  assertNotNull(lambdaInnerClass);
+  JMethod ctor=findMethod(lambdaInnerClass,"Lambda$$EntryPoint$Pojo2__Ltest_EntryPoint_2IIV$Type");
+  assertTrue(ctor instanceof JConstructor);
+  assertEquals(1,ctor.getParams().size());
+  assertEquals(1,lambdaInnerClass.getFields().size());
+  assertTrue(lambdaInnerClass.getImplements().contains(program.getFromTypeMap("test.Lambda")));
+  JMethod samMethod=findMethod(lambdaInnerClass,"run");
+  assertEquals("public final Object run(int arg0,int arg1){return new EntryPoint$Pojo2(this.test.EntryPoint,arg0,arg1);}",formatSource(samMethod.toSource()));
+}

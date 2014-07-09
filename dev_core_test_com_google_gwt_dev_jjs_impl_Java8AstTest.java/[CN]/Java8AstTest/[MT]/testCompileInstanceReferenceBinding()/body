@@ -1,0 +1,18 @@
+{
+  addSnippetClassDecl("public Integer foo(int x, int y) { return x + y; }");
+  String lambda="new AcceptsLambda<Integer>().accept(this::foo);";
+  assertEqualBlock("(new AcceptsLambda()).accept(new Lambda$foo__IILjava_lang_Integer_2$Type(this));",lambda);
+  JProgram program=compileSnippet("void",lambda,false);
+  assertNotNull(getMethod(program,"foo"));
+  JClassType lambdaInnerClass=(JClassType)getType(program,"test.Lambda$foo__IILjava_lang_Integer_2$Type");
+  assertNotNull(lambdaInnerClass);
+  JMethod ctor=findMethod(lambdaInnerClass,"Lambda$foo__IILjava_lang_Integer_2$Type");
+  assertTrue(ctor instanceof JConstructor);
+  assertEquals(1,ctor.getParams().size());
+  assertEquals(lambdaInnerClass.getEnclosingType(),ctor.getOriginalParamTypes().get(0));
+  assertEquals(1,lambdaInnerClass.getFields().size());
+  assertEquals(lambdaInnerClass.getEnclosingType(),lambdaInnerClass.getFields().get(0).getType());
+  assertTrue(lambdaInnerClass.getImplements().contains(program.getFromTypeMap("test.Lambda")));
+  JMethod samMethod=findMethod(lambdaInnerClass,"run");
+  assertEquals("public final Object run(int arg0,int arg1){return this.$$outer_0.foo(arg0,arg1);}",formatSource(samMethod.toSource()));
+}

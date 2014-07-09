@@ -1,0 +1,22 @@
+{
+  for (  JParameter origParam : interfaceMethod.getParams()) {
+    JType origType=origParam.getType();
+    samMethod.addParam(new JParameter(origParam.getSourceInfo(),origParam.getName(),origType,origParam.isFinal(),origParam.isThis(),samMethod));
+  }
+  JMethodBody samMethodBody=new JMethodBody(info);
+  JMethodCall samCall=new JMethodCall(info,x.shouldCaptureInstance ? new JFieldRef(info,new JThisRef(info,innerLambdaClass),outerField,innerLambdaClass) : null,lambdaMethod);
+  for (  JField localField : locals) {
+    samCall.addArg(new JFieldRef(info,new JThisRef(info,innerLambdaClass),localField,innerLambdaClass));
+  }
+  for (  JParameter param : samMethod.getParams()) {
+    samCall.addArg(new JParameterRef(info,param));
+  }
+  if (samMethod.getType() != JPrimitiveType.VOID) {
+    samMethodBody.getBlock().addStmt(new JReturnStatement(info,samCall));
+  }
+ else {
+    samMethodBody.getBlock().addStmt(samCall.makeStatement());
+  }
+  samMethod.setBody(samMethodBody);
+  innerLambdaClass.addMethod(samMethod);
+}

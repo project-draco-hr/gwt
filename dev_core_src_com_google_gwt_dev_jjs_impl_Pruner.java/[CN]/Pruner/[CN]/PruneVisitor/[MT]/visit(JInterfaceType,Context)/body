@@ -1,2 +1,24 @@
 {
+  boolean isReferenced=referencedTypes.contains(type);
+  boolean isInstantiated=program.typeOracle.isInstantiatedType(type);
+  for (int i=0; i < type.getFields().size(); ++i) {
+    JField field=type.getFields().get(i);
+    if (!isReferenced || !referencedNonTypes.contains(field)) {
+      fieldWasRemoved(field);
+      type.removeField(i);
+      madeChanges();
+      --i;
+    }
+  }
+  for (int i=1; i < type.getMethods().size(); ++i) {
+    JMethod method=type.getMethods().get(i);
+    if (!isInstantiated || !referencedNonTypes.contains(method)) {
+      methodWasRemoved(method);
+      type.removeMethod(i);
+      program.removeStaticImplMapping(method);
+      madeChanges();
+      --i;
+    }
+  }
+  return false;
 }

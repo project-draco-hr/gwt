@@ -1,0 +1,23 @@
+{
+  JMethodBody ctorBody=new JMethodBody(info);
+  JField outerField=null;
+  if (x.shouldCaptureInstance) {
+    outerField=createAndBindCapturedLambdaParameter(info,OUTER_LAMBDA_PARAM_NAME,innerLambdaClass.getEnclosingType(),ctor,ctorBody);
+  }
+  String paramNames[]=new String[x.binding.parameters.length];
+  int numSynthArgs=synthArgs != null ? synthArgs.length : 0;
+  for (int i=0; i < paramNames.length; i++) {
+    if (i < numSynthArgs) {
+      paramNames[i]=nameForSyntheticArgument(synthArgs[i]);
+      JType captureType=typeMap.get(synthArgs[i].type);
+      JField captureField=createAndBindCapturedLambdaParameter(info,paramNames[i],captureType,ctor,ctorBody);
+      locals.add(captureField);
+    }
+ else {
+      paramNames[i]=nameForArgument(x.arguments,i - numSynthArgs,i);
+    }
+  }
+  ctor.setBody(ctorBody);
+  innerLambdaClass.addMethod(ctor);
+  return outerField;
+}
