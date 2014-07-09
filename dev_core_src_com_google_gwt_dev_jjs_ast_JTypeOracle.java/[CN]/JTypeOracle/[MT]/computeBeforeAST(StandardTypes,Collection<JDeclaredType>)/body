@@ -1,19 +1,16 @@
 {
-  baseArrayType=program.getIndexedType("Array");
-  javaLangObject=program.getTypeJavaLangObject();
-  javaIoSerializable=program.getFromTypeMap(Serializable.class.getName());
-  javaLangCloneable=program.getFromTypeMap(Cloneable.class.getName());
-  recordImmediateTypeRelations(program.getDeclaredTypes());
+  this.standardTypes=standardTypes;
+  recordImmediateTypeRelations(declaredTypes);
   computeExtendedTypeRelations();
   jsInterfaces.clear();
-  for (  JDeclaredType type : program.getDeclaredTypes()) {
+  for (  JDeclaredType type : declaredTypes) {
     if (type instanceof JInterfaceType) {
       if (((JInterfaceType)type).isJsType()) {
         jsInterfaces.add((JInterfaceType)type);
       }
     }
     for (    JMethod method : type.getMethods()) {
-      if (program.typeOracle.isExportedMethod(method)) {
+      if (isExportedMethod(method)) {
         exportedMethods.add(method);
       }
     }
@@ -23,7 +20,7 @@
       }
     }
   }
-  for (  JDeclaredType type : program.getModuleDeclaredTypes()) {
+  for (  JDeclaredType type : declaredTypes) {
     if (type instanceof JClassType) {
       computeVirtualUpRefs((JClassType)type);
     }
