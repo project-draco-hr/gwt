@@ -4,11 +4,10 @@
     error(logger,methodName + " cannot have parameters; extend Messages instead if you need to create " + "parameterized messages");
   }
   enableCache();
-  String constantMapClassName=ConstantMap.class.getCanonicalName();
   println(GENERIC_STRING_MAP_TYPE + " args = (" + GENERIC_STRING_MAP_TYPE+ ") cache.get("+ wrap(methodName)+ ");");
   println("if (args == null) {");
   indent();
-  println("args = new " + constantMapClassName + "(new String[] {");
+  println("args = new java.util.HashMap<String, String>();");
   String keyString;
   try {
     keyString=resourceList.getRequiredString(mapName);
@@ -36,24 +35,12 @@
       throw e;
     }
   }
-  indent();
-  indent();
-  Set<Entry<String,String>> entries=map.entrySet();
-  for (  Entry<String,String> entry : entries) {
-    println(wrap(entry.getKey()) + ", ");
+  for (  Entry<String,String> entry : map.entrySet()) {
+    println("args.put(" + wrap(entry.getKey()) + ", "+ wrap(entry.getValue())+ ");");
   }
-  outdent();
-  println("},");
-  indent();
-  println("new String[] {");
-  for (  Entry<String,String> entry : entries) {
-    println(wrap(entry.getValue()) + ", ");
-  }
-  outdent();
-  println("});");
-  outdent();
+  println("args = java.util.Collections.unmodifiableMap(args);");
   println("cache.put(" + wrap(methodName) + ", args);");
   outdent();
-  println("};");
+  println("}");
   println("return args;");
 }
