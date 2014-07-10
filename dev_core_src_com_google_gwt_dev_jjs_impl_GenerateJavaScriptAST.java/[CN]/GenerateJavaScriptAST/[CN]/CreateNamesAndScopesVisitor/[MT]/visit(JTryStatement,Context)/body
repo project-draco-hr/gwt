@@ -3,14 +3,14 @@
   for (  JTryStatement.CatchClause clause : x.getCatchClauses()) {
     JLocalRef arg=clause.getArg();
     JBlock catchBlock=clause.getBlock();
-    JsCatch jsCatch=new JsCatch(x.getSourceInfo(),peek(),arg.getTarget().getName());
+    JsCatch jsCatch=new JsCatch(x.getSourceInfo(),scopeStack.peek(),arg.getTarget().getName());
     JsParameter jsParam=jsCatch.getParameter();
     names.put(arg.getTarget(),jsParam.getName());
     catchMap.put(catchBlock,jsCatch);
     catchParamIdentifiers.add(jsParam.getName());
-    push(jsCatch.getScope());
+    scopeStack.push(jsCatch.getScope());
     accept(catchBlock);
-    pop();
+    scopeStack.pop();
   }
   if (x.getFinallyBlock() != null) {
     accept(x.getFinallyBlock());
