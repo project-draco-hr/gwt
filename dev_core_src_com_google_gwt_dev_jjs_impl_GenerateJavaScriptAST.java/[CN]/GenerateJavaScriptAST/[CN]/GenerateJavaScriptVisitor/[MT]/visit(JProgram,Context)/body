@@ -1,9 +1,22 @@
 {
-  List<JMethod> entryMethods=x.getEntryMethods();
-  entryFunctions=new JsFunction[entryMethods.size()];
-  entryMethodToIndex=Maps.newIdentityHashMap();
-  for (int i=0; i < entryMethods.size(); i++) {
-    entryMethodToIndex.put(entryMethods.get(i),i);
+  List<JsStatement> globalStmts=jsProgram.getGlobalBlock().getStatements();
+  Set<JDeclaredType> preambleTypes=generatePreamble(x,globalStmts);
+  Set<JDeclaredType> topologicallySortedBodyTypes=Sets.newLinkedHashSet();
+  for (  JDeclaredType type : x.getModuleDeclaredTypes()) {
+    if (preambleTypes.contains(type)) {
+      continue;
+    }
+    insertInTopologicalOrder(type,topologicallySortedBodyTypes);
   }
-  return true;
+  topologicallySortedBodyTypes.removeAll(preambleTypes);
+  for (  JDeclaredType type : topologicallySortedBodyTypes) {
+    accept(type);
+    JsVars classLiteralVars=new JsVars(jsProgram.getSourceInfo());
+    maybeGenerateClassLiteral(type,classLiteralVars);
+    if (!classLiteralVars.isEmpty()) {
+      globalStmts.add(classLiteralVars);
+    }
+  }
+  generateEpilogue(globalStmts);
+  return false;
 }
