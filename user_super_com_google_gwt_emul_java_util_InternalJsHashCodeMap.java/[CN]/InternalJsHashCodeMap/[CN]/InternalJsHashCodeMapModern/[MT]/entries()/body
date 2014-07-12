@@ -1,0 +1,39 @@
+{
+  final String[] keys=keys();
+  return new Iterator<Map.Entry<K,V>>(){
+    int chainIndex=-1, itemIndex=0;
+    Entry<K,V>[] chain=new Entry[0];
+    Entry<K,V>[] lastChain=null;
+    Entry<K,V> lastEntry=null;
+    @Override public boolean hasNext(){
+      if (itemIndex < chain.length) {
+        return true;
+      }
+      if (chainIndex < keys.length - 1) {
+        chain=get(keys[++chainIndex]);
+        itemIndex=0;
+        return true;
+      }
+      return false;
+    }
+    @Override public Entry<K,V> next(){
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+      lastChain=chain;
+      lastEntry=chain[itemIndex++];
+      return lastEntry;
+    }
+    @Override public void remove(){
+      if (lastChain == null) {
+        throw new IllegalStateException();
+      }
+      InternalJsHashCodeMapModern.this.remove(lastEntry.getKey());
+      if (chain == lastChain && chain.length != 1) {
+        itemIndex--;
+      }
+      lastChain=null;
+    }
+  }
+;
+}
