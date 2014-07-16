@@ -7,7 +7,7 @@
     options.addModuleName(module);
     options.setWarDir(new File(work,"war"));
     options.setExtraDir(new File(work,"extra"));
-    options.setOptimizationLevel(0);
+    options.setOptimizationLevel(optimizeLevel);
     PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
     logger.setMaxDetail(TreeLogger.ERROR);
     new com.google.gwt.dev.Compiler(options).run(logger);
@@ -26,7 +26,12 @@
       assertTrue(symbolDataBySymbolName.get(JSE_CLASS).isClass());
       assertFalse(symbolDataBySymbolName.get(JSE_CLASS).isField());
       assertFalse(symbolDataBySymbolName.get(JSE_CLASS).isMethod());
-      assertNull(symbolDataBySymbolName.get(UNINSTANTIABLE_CLASS));
+      if (optimizeLevel == OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
+        assertNotNull(symbolDataBySymbolName.get(UNINSTANTIABLE_CLASS));
+      }
+ else {
+        assertNull(symbolDataBySymbolName.get(UNINSTANTIABLE_CLASS));
+      }
     }
   }
   finally {
