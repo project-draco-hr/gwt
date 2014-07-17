@@ -4,13 +4,13 @@
   }
   if (target.equals("/")) {
     setHandled(request);
-    JsonObject config=makeConfig();
+    JsonObject config=modules.getConfig();
     PageUtil.sendJsonAndHtml("config",config,"frontpage.html",response,logger);
     return;
   }
   if (target.equals("/dev_mode_on.js")) {
     setHandled(request);
-    JsonObject config=makeConfig();
+    JsonObject config=modules.getConfig();
     PageUtil.sendJsonAndJavaScript("__gwt_codeserver_config",config,"dev_mode_on.js",response,logger);
     return;
   }
@@ -23,8 +23,8 @@
       logger.log(TreeLogger.WARN,"not found: " + target);
       return;
     }
-    boolean ok=moduleState.recompile(getBindingProperties(request));
-    JsonObject config=makeConfig();
+    boolean ok=modules.recompile(moduleState,getBindingProperties(request));
+    JsonObject config=modules.getConfig();
     config.put("status",ok ? "ok" : "failed");
     sendJsonpPage(config,request,response);
     return;
@@ -47,6 +47,11 @@
   if (target.equals("/policies/")) {
     setHandled(request);
     sendPolicyIndex(response);
+    return;
+  }
+  if (target.equals("/progress")) {
+    setHandled(request);
+    sendJsonpPage(modules.getProgress(),request,response);
     return;
   }
   Matcher matcher=SAFE_MODULE_PATH.matcher(target);
