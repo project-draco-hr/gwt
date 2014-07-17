@@ -9,14 +9,18 @@
     insertInTopologicalOrder(type,topologicallySortedBodyTypes);
   }
   topologicallySortedBodyTypes.removeAll(preambleTypes);
+  markPosition(globalStmts,"Program",Type.PROGRAM_START);
   for (  JDeclaredType type : topologicallySortedBodyTypes) {
+    markPosition(globalStmts,type.getName(),Type.CLASS_START);
     accept(type);
     JsVars classLiteralVars=new JsVars(jsProgram.getSourceInfo());
     maybeGenerateClassLiteral(type,classLiteralVars);
     if (!classLiteralVars.isEmpty()) {
       globalStmts.add(classLiteralVars);
     }
+    markPosition(globalStmts,type.getName(),Type.CLASS_END);
   }
+  markPosition(globalStmts,"Program",Type.PROGRAM_END);
   generateEpilogue(globalStmts);
   return false;
 }

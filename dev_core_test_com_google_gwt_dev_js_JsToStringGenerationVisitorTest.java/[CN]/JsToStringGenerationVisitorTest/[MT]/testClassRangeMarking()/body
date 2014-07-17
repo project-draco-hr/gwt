@@ -1,0 +1,23 @@
+{
+  StringBuffer code=new StringBuffer();
+  code.append("package test;\n");
+  code.append("public class EntryPoint {\n");
+  code.append("  public interface SomeInterface {}\n");
+  code.append("  public static void onModuleLoad() {}\n");
+  code.append("}\n");
+  compileSnippet(code.toString());
+  TextOutput text=new DefaultTextOutput(true);
+  JsSourceGenerationVisitor jsSourceGenerationVisitor=new JsSourceGenerationVisitor(text);
+  jsSourceGenerationVisitor.accept(jsProgram);
+  List<NamedRange> classRanges=jsSourceGenerationVisitor.getClassRanges();
+  Map<String,NamedRange> classRangesByName=Maps.newHashMap();
+  for (  NamedRange classRange : classRanges) {
+    classRangesByName.put(classRange.getName(),classRange);
+  }
+  assertTrue(classRangesByName.containsKey("test.EntryPoint"));
+  assertTrue(classRangesByName.containsKey("test.EntryPoint$SomeInterface"));
+  assertTrue(classRangesByName.size() > 2);
+  NamedRange programClassRange=jsSourceGenerationVisitor.getProgramClassRange();
+  assertTrue(programClassRange.getStartPosition() > 0);
+  assertTrue(programClassRange.getEndPosition() < text.getPosition());
+}
