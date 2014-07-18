@@ -9,11 +9,15 @@
   vars.add(new JsVar(jsProgram.getSourceInfo(),globalTemp));
   globalStmts.add(vars);
   generateImmortalTypes(vars);
-  Set<JDeclaredType> alreadyProcessed=Sets.<JDeclaredType>newHashSet(program.immortalCodeGenTypes);
+  Set<JDeclaredType> alreadyProcessed=Sets.<JDeclaredType>newLinkedHashSet(program.immortalCodeGenTypes);
   alreadyProcessed.add(program.getTypeClassLiteralHolder());
-  Set<JDeclaredType> classLiteralSupportClasses=generateClassLiteralsSupportClasses(program,alreadyProcessed);
-  generateClassLiterals(globalStmts,(Set)classLiteralSupportClasses);
-  Set<JDeclaredType> preambleTypes=Sets.newHashSet(alreadyProcessed);
+  List<JDeclaredType> classLiteralSupportClasses=computeClassLiteralsSupportClasses(program,alreadyProcessed);
+  classLiteralSupportClasses.removeAll(alreadyProcessed);
+  for (  JDeclaredType type : classLiteralSupportClasses) {
+    accept(type);
+  }
+  generateClassLiterals(globalStmts,classLiteralSupportClasses);
+  Set<JDeclaredType> preambleTypes=Sets.newLinkedHashSet(alreadyProcessed);
   preambleTypes.addAll(classLiteralSupportClasses);
   return preambleTypes;
 }
