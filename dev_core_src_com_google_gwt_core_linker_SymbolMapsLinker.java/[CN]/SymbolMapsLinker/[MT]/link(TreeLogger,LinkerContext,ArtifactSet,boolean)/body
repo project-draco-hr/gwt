@@ -2,6 +2,7 @@
   if (onePermutation) {
     artifacts=new ArtifactSet(artifacts);
     Map<Integer,String> permMap=new HashMap<Integer,String>();
+    Event writeSymbolMapsEvent=SpeedTracerLogger.start(CompilerEventType.WRITE_SYMBOL_MAPS);
     ByteArrayOutputStream out=new ByteArrayOutputStream();
     for (    CompilationResult result : artifacts.find(CompilationResult.class)) {
       boolean makeSymbolMaps=true;
@@ -21,6 +22,8 @@
         out.reset();
       }
     }
+    writeSymbolMapsEvent.end();
+    Event writeSourceMapsEvent=SpeedTracerLogger.start(CompilerEventType.WRITE_SOURCE_MAPS);
     for (    SourceMapArtifact se : artifacts.find(SourceMapArtifact.class)) {
       String sourceMapString=Util.readStreamAsString(se.getContents(logger));
       String strongName=permMap.get(se.getPermutationId());
@@ -67,6 +70,7 @@
       artifacts.add(emArt);
       artifacts.remove(se);
     }
+    writeSourceMapsEvent.end();
   }
   return artifacts;
 }

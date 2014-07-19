@@ -1,7 +1,13 @@
 {
-  if (options.getOptimizationLevel() > OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
-    RemoveSpecializations.exec(jprogram);
-    Pruner.exec(jprogram,false);
+  Event event=SpeedTracerLogger.start(CompilerEventType.JAVA_POST_NORMALIZER_OPTIMIZERS);
+  try {
+    if (options.getOptimizationLevel() > OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
+      RemoveSpecializations.exec(jprogram);
+      Pruner.exec(jprogram,false);
+    }
+    ReplaceGetClassOverrides.exec(jprogram);
   }
-  ReplaceGetClassOverrides.exec(jprogram);
+  finally {
+    event.end();
+  }
 }

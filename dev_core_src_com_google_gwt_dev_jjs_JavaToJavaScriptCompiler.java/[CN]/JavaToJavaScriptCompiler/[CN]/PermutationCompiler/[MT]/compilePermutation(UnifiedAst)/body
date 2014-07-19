@@ -2,6 +2,7 @@
   Event jjsCompilePermutationEvent=SpeedTracerLogger.start(CompilerEventType.JJS_COMPILE_PERMUTATION,"name",permutation.getProps().prettyPrint());
   long permStartMs=System.currentTimeMillis();
   try {
+    Event javaEvent=SpeedTracerLogger.start(CompilerEventType.PERMUTATION_JAVA);
     long startTimeMs=System.currentTimeMillis();
     PermProps props=permutation.getProps();
     int permutationId=permutation.getId();
@@ -23,6 +24,8 @@
     Map<JType,JLiteral> typeIdLiteralsByType=normalizeSemantics();
     postNormalizationOptimizeJava();
     jprogram.typeOracle.recomputeAfterOptimizations(jprogram.getDeclaredTypes());
+    javaEvent.end();
+    Event javaScriptEvent=SpeedTracerLogger.start(CompilerEventType.PERMUTATION_JAVASCRIPT);
     Pair<? extends JavaToJavaScriptMap,Set<JsNode>> jjsMapAndInlineableFunctions=GenerateJavaScriptAST.exec(jprogram,jsProgram,compilerContext,typeIdLiteralsByType,symbolTable,props);
     JavaToJavaScriptMap jjsmap=jjsMapAndInlineableFunctions.getLeft();
     if (System.getProperty("gwt.coverage") != null) {
@@ -46,6 +49,7 @@
     StatementRanges[] ranges=new StatementRanges[jsFragments.length];
     SizeBreakdown[] sizeBreakdowns=options.isJsonSoycEnabled() || options.isSoycEnabled() || options.isCompilerMetricsEnabled() ? new SizeBreakdown[jsFragments.length] : null;
     generateJavaScriptCode(jjsmap,jsFragments,ranges,sizeBreakdowns,sourceInfoMaps,isSourceMapsEnabled || options.isJsonSoycEnabled());
+    javaScriptEvent.end();
     PermutationResult permutationResult=new PermutationResultImpl(jsFragments,permutation,makeSymbolMap(symbolTable),ranges);
     addSyntheticArtifacts(unifiedAst,permutation,startTimeMs,permutationId,jjsmap,dependenciesAndRecorder,internedLiteralByVariableName,isSourceMapsEnabled,jsFragments,sizeBreakdowns,sourceInfoMaps,permutationResult);
     return permutationResult;
