@@ -1,4 +1,5 @@
 {
+  int optimizationLevel=options.getOptimizationLevel();
   List<OptimizerStats> allOptimizerStats=new ArrayList<OptimizerStats>();
   int counter=0;
   while (true) {
@@ -13,10 +14,12 @@
     stats.add(JsUnusedFunctionRemover.exec(jsProgram));
     allOptimizerStats.add(stats);
     optimizeJsEvent.end();
-    int optimizationLevel=options.getOptimizationLevel();
     if ((optimizationLevel < OptionOptimize.OPTIMIZE_LEVEL_MAX && counter > optimizationLevel) || !stats.didChange()) {
       break;
     }
+  }
+  if (optimizationLevel > OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
+    DuplicateExecuteOnceRemover.exec(jsProgram);
   }
   printJsOptimizeTrace(allOptimizerStats);
 }
