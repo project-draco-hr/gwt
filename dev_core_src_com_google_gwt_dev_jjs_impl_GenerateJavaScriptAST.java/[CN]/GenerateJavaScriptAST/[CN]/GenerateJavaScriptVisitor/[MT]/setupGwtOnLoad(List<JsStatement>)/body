@@ -12,12 +12,11 @@
   JsVar varGwtOnLoad=new JsVar(sourceInfo,gwtOnLoad);
   varGwtOnLoad.setInitExpr(createAssignment(gwtOnLoad.makeRef(sourceInfo),indexedFunctions.get("ModuleUtils.gwtOnLoad").getName().makeRef(sourceInfo)));
   globalStmts.add(new JsVars(sourceInfo,varGwtOnLoad));
-  List<JsExpression> arguments=Lists.transform(Arrays.asList(entryFuncs),new Function<JsFunction,JsExpression>(){
-    @Override public JsExpression apply(    JsFunction jsFunction){
-      return jsFunction.getName().makeRef(sourceInfo);
-    }
+  List<JsExpression> arguments=Lists.newArrayList();
+  for (  JMethod entryPointMethod : program.getEntryMethods()) {
+    JsFunction entryFunction=getJsFunctionFor(entryPointMethod);
+    arguments.add(entryFunction.getName().makeRef(sourceInfo));
   }
-);
   JsStatement createGwtOnLoadFunctionCall=constructInvocation("ModuleUtils.addInitFunctions",arguments).makeStmt();
   globalStmts.add(createGwtOnLoadFunctionCall);
 }
