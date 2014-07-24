@@ -2,7 +2,8 @@
   JReferenceType argType=(JReferenceType)x.getExpr().getType();
   JReferenceType toType=x.getTestType();
   assert(toType == toType.getUnderlyingType());
-  if (program.typeOracle.canTriviallyCast(argType,toType) || (program.typeOracle.willCrossCastLikeJso(argType) && program.typeOracle.willCrossCastLikeJso(toType))) {
+  boolean isTrivialCast=program.typeOracle.canTriviallyCast(argType,toType) || (program.typeOracle.willCrossCastLikeJso(argType) && program.typeOracle.willCrossCastLikeJso(toType));
+  if (pruneTrivialCasts && isTrivialCast) {
     JNullLiteral nullLit=program.getLiteralNull();
     JBinaryOperation eq=new JBinaryOperation(x.getSourceInfo(),program.getTypePrimitiveBoolean(),JBinaryOperator.NEQ,x.getExpr(),nullLit);
     ctx.replaceMe(eq);
