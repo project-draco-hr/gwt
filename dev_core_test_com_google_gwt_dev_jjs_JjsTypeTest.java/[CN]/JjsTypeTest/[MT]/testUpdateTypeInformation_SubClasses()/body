@@ -1,0 +1,17 @@
+{
+  JClassType baseAll=createClass("IncrementalBaseAll",classObject,false,false);
+  JClassType sub1=createClass("IncrementalSub1",baseAll,false,false);
+  JClassType sub2=createClass("IncrementalSub2",baseAll,false,false);
+  JClassType sub1_2=createClass("IncrementalSub1_2",sub1,false,false);
+  Assert.assertFalse(program.typeOracle.isSubClass(baseAll,sub1));
+  program.typeOracle.updateImmediateTypeRelations(Sets.<JDeclaredType>newHashSet(baseAll,sub1,sub2,sub1_2),Collections.<JDeclaredType>emptySet());
+  Assert.assertTrue(program.typeOracle.isSubClass(baseAll,sub1));
+  Assert.assertTrue(program.typeOracle.isSubClass(baseAll,sub2));
+  Assert.assertTrue(program.typeOracle.isSubClass(baseAll,sub1_2));
+  Assert.assertTrue(program.typeOracle.isSubClass(sub1,sub1_2));
+  sub1_2=createClass("IncrementalSub1_2",baseAll,false,false);
+  program.typeOracle.updateImmediateTypeRelations(Sets.<JDeclaredType>newHashSet(baseAll,sub2,sub1_2),Sets.<JDeclaredType>newHashSet(sub1));
+  Assert.assertFalse(program.typeOracle.isSubClass(baseAll,sub1));
+  Assert.assertTrue(program.typeOracle.isSubClass(baseAll,sub2));
+  Assert.assertTrue(program.typeOracle.isSubClass(baseAll,sub1_2));
+}

@@ -1,0 +1,18 @@
+{
+  JClassType baseAll=createClass("IncrementalBaseAll",classObject,false,false);
+  JClassType sub1=createClass("IncrementalSub1",baseAll,false,false);
+  JClassType sub2=createClass("IncrementalSub2",baseAll,false,false);
+  JClassType sub1_2=createClass("IncrementalSub1_2",sub1,false,false);
+  Assert.assertFalse(program.typeOracle.isSuperClass(sub1,baseAll));
+  program.typeOracle.updateImmediateTypeRelations(Sets.<JDeclaredType>newHashSet(baseAll,sub1,sub2,sub1_2),Collections.<JDeclaredType>emptySet());
+  Assert.assertTrue(program.typeOracle.isSuperClass(sub1,baseAll));
+  Assert.assertTrue(program.typeOracle.isSuperClass(sub2,baseAll));
+  Assert.assertTrue(program.typeOracle.isSuperClass(sub1_2,baseAll));
+  Assert.assertTrue(program.typeOracle.isSuperClass(sub1_2,sub1));
+  sub1_2=createClass("IncrementalSub1_2",baseAll,false,false);
+  program.typeOracle.updateImmediateTypeRelations(Sets.<JDeclaredType>newHashSet(baseAll,sub2,sub1_2),Sets.<JDeclaredType>newHashSet(sub1));
+  Assert.assertFalse(program.typeOracle.isSuperClass(sub1,baseAll));
+  Assert.assertTrue(program.typeOracle.isSuperClass(sub2,baseAll));
+  Assert.assertFalse(program.typeOracle.isSuperClass(sub1_2,sub1));
+  Assert.assertTrue(program.typeOracle.isSuperClass(sub1_2,baseAll));
+}

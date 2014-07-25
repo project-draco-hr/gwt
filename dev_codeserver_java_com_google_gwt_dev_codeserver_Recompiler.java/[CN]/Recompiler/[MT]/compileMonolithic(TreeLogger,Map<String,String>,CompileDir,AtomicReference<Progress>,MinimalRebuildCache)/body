@@ -1,0 +1,17 @@
+{
+  progress.set(new Progress.Compiling(moduleName.get(),compilesDone,0,2,"Loading modules"));
+  CompilerOptions loadOptions=new CompilerOptionsImpl(compileDir,originalModuleName,options);
+  compilerContext=compilerContextBuilder.options(loadOptions).build();
+  ModuleDef module=loadModule(compileLogger,bindingProperties);
+  String newModuleName=module.getName();
+  moduleName.set(newModuleName);
+  progress.set(new Progress.Compiling(newModuleName,compilesDone,1,2,"Compiling"));
+  CompilerOptions runOptions=new CompilerOptionsImpl(compileDir,newModuleName,options);
+  compilerContext=compilerContextBuilder.options(runOptions).build();
+  boolean success=new Compiler(runOptions,rebuildCache).run(compileLogger,module);
+  if (success) {
+    publishedCompileDir=compileDir;
+  }
+  lastBuild.set(compileDir);
+  return success;
+}
