@@ -1,0 +1,15 @@
+{
+  final Set<JMethod> calledMethods=Sets.newHashSet();
+  new JVisitor(){
+    @Override public void endVisit(    JMethodCall x,    Context ctx){
+      calledMethods.add(x.getTarget());
+    }
+  }
+.accept(classLiteralInitMethod);
+  for (  String createForMethodName : ImmutableList.of("Class.createForClass","Class.createForPrimitive","Class.createForInterface","Class.createForEnum")) {
+    if (!calledMethods.contains(program.getIndexedMethod(createForMethodName))) {
+      return false;
+    }
+  }
+  return true;
+}
