@@ -4,11 +4,6 @@
     throw new RuntimeException("invalid request (shouldn't happen): " + target);
   }
   String rootDir=SOURCEMAP_PATH + moduleName + "/";
-  if (!target.startsWith(rootDir)) {
-    response.sendError(HttpServletResponse.SC_NOT_FOUND);
-    logger.log(TreeLogger.WARN,"returned not found for request: " + target);
-    return;
-  }
   String rest=target.substring(rootDir.length());
   if (rest.isEmpty()) {
     sendDirectoryListPage(moduleName,response);
@@ -16,14 +11,17 @@
  else   if (rest.endsWith("/")) {
     sendFileListPage(moduleName,rest,response);
   }
- else   if (rest.equals("gwtSourceMap.json")) {
-    sendSourceMap(moduleName,request,response);
-  }
  else   if (rest.endsWith(".java")) {
     sendSourceFile(moduleName,rest,request.getQueryString(),response);
   }
  else {
-    response.sendError(HttpServletResponse.SC_NOT_FOUND);
-    logger.log(TreeLogger.WARN,"returned not found for request: " + target);
+    String strongName=getStrongNameFromSourcemapFilename(rest);
+    if (strongName != null) {
+      sendSourceMap(moduleName,strongName,request,response);
+    }
+ else {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND);
+      logger.log(TreeLogger.WARN,"returned not found for request: " + target);
+    }
   }
 }
