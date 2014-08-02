@@ -1,0 +1,50 @@
+{
+  NamedRange programRange=new NamedRange("Program");
+  NamedRange someModelARange=new NamedRange("com.some.app.SomeAModel");
+  NamedRange someModelBRange=new NamedRange("com.some.app.SomeBModel");
+  NamedRange someControllerRange=new NamedRange("com.some.app.SomeController");
+  NamedRange entryPointRange=new NamedRange("com.some.app.EntryPoint");
+  List<NamedRange> classRanges=Lists.newArrayList(someModelARange,someModelBRange,someControllerRange,entryPointRange);
+  StatementRangesBuilder srb=new StatementRangesBuilder();
+  StringBuilder sb=new StringBuilder();
+  appendStatement(sb,srb,"<preamble>");
+  appendStatement(sb,srb,"<java.lang.Object />");
+  appendStatement(sb,srb,"<java.lang.Class />");
+  appendStatement(sb,srb,"</preamble>");
+{
+    programRange.setStartPosition(sb.length());
+    appendTypeStatement(sb,srb,someModelARange,"<com.some.app.SomeModelA>");
+    appendTypeStatement(sb,srb,someModelBRange,"<com.some.app.SomeModelB>");
+    appendTypeStatement(sb,srb,someControllerRange,"<com.some.app.SomeController>");
+    appendTypeStatement(sb,srb,entryPointRange,"<com.some.app.EntryPoint>");
+    programRange.setEndPosition(sb.length());
+  }
+  appendStatement(sb,srb,"<epilogue>");
+  appendStatement(sb,srb,"<Some Bootstrap Code>");
+  appendStatement(sb,srb,"</epilogue>");
+  String originalJs=sb.toString();
+  MinimalRebuildCache minimalRebuildCache=new MinimalRebuildCache();
+  PermutationRebuildCache permutationRebuildCache=minimalRebuildCache.getPermutationRebuildCache(1);
+  Map<String,String> superClassesByClass=minimalRebuildCache.getImmediateTypeRelations().getSuperClassesByClass();
+  superClassesByClass.put("java.lang.Class","java.lang.Object");
+  superClassesByClass.put("com.some.app.SomeAModel","java.lang.Object");
+  superClassesByClass.put("com.some.app.SomeBModel","java.lang.Object");
+  superClassesByClass.put("com.some.app.SomeController","java.lang.Object");
+  superClassesByClass.put("com.some.app.EntryPoint","java.lang.Object");
+  minimalRebuildCache.setRootTypeNames(Lists.newArrayList("com.some.app.EntryPoint"));
+  permutationRebuildCache.addTypeReference("com.some.app.EntryPoint","com.some.app.SomeController");
+  permutationRebuildCache.addTypeReference("com.some.app.SomeController","com.some.app.SomeBModel");
+  permutationRebuildCache.addTypeReference("com.some.app.SomeController","com.some.app.SomeAModel");
+  JsTypeLinker jsTypeLinker=new JsTypeLinker(TreeLogger.NULL,new JsNoopTransformer(originalJs,srb.build(),null),classRanges,programRange,permutationRebuildCache,new JTypeOracle(null,minimalRebuildCache,true));
+  jsTypeLinker.exec();
+  assertEquals("<preamble><java.lang.Object /><java.lang.Class /></preamble>" + "<com.some.app.EntryPoint>" + "<com.some.app.SomeModelA>"+ "<com.some.app.SomeModelB>"+ "<com.some.app.SomeController>"+ "<epilogue><Some Bootstrap Code></epilogue>",jsTypeLinker.getJs());
+  superClassesByClass.put("com.some.app.SomeAModel","com.some.app.SomeBModel");
+  jsTypeLinker=new JsTypeLinker(TreeLogger.NULL,new JsNoopTransformer(originalJs,srb.build(),null),classRanges,programRange,permutationRebuildCache,new JTypeOracle(null,minimalRebuildCache,true));
+  jsTypeLinker.exec();
+  assertEquals("<preamble><java.lang.Object /><java.lang.Class /></preamble>" + "<com.some.app.EntryPoint>" + "<com.some.app.SomeModelB>"+ "<com.some.app.SomeModelA>"+ "<com.some.app.SomeController>"+ "<epilogue><Some Bootstrap Code></epilogue>",jsTypeLinker.getJs());
+  permutationRebuildCache.removeReferencesFrom("com.some.app.SomeController");
+  permutationRebuildCache.addTypeReference("com.some.app.SomeController","com.some.app.SomeBModel");
+  jsTypeLinker=new JsTypeLinker(TreeLogger.NULL,new JsNoopTransformer(originalJs,srb.build(),null),classRanges,programRange,permutationRebuildCache,new JTypeOracle(null,minimalRebuildCache,true));
+  jsTypeLinker.exec();
+  assertEquals("<preamble><java.lang.Object /><java.lang.Class /></preamble>" + "<com.some.app.EntryPoint>" + "<com.some.app.SomeModelB>"+ "<com.some.app.SomeController>"+ "<epilogue><Some Bootstrap Code></epilogue>",jsTypeLinker.getJs());
+}

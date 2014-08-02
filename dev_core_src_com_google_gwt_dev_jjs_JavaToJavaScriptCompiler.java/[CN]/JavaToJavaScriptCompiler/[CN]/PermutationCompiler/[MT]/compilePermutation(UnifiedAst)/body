@@ -23,6 +23,10 @@
     optimizeJava();
     Map<JType,JLiteral> typeIdLiteralsByType=normalizeSemantics();
     postNormalizationOptimizeJava();
+    if (options.shouldCompilePerFile()) {
+      PermutationRebuildCache permutationRebuildCache=getMinimalRebuildCache().getPermutationRebuildCache(permutation.getId());
+      TypeReferencesRecorder.exec(jprogram,permutationRebuildCache);
+    }
     jprogram.typeOracle.recomputeAfterOptimizations(jprogram.getDeclaredTypes());
     javaEvent.end();
     Event javaScriptEvent=SpeedTracerLogger.start(CompilerEventType.PERMUTATION_JAVASCRIPT);
