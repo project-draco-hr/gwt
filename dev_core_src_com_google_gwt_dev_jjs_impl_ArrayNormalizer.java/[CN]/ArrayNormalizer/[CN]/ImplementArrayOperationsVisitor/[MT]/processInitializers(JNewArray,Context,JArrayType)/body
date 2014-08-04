@@ -1,0 +1,15 @@
+{
+  SourceInfo sourceInfo=x.getSourceInfo();
+  JMethodCall call=new JMethodCall(sourceInfo,null,initValues,arrayType);
+  JClassLiteral leafTypeClassLiteral=new JClassLiteral(sourceInfo,arrayType.getLeafType());
+  leafTypeClassLiteral.setField(program.getClassLiteralField(arrayType.getLeafType()));
+  JExpression oneDimensionalCastMap=getOrCreateCastMap(sourceInfo,program.getOrCreateArrayType(arrayType.getLeafType(),1));
+  JRuntimeTypeReference elementTypeIds=getElementRuntimeTypeReference(sourceInfo,arrayType);
+  JsonArray initList=new JsonArray(sourceInfo,program.getJavaScriptObject());
+  JIntLiteral leafElementTypeCategory=getTypeCategoryLiteral(arrayType.getElementType());
+  for (int i=0; i < x.initializers.size(); ++i) {
+    initList.getExprs().add(x.initializers.get(i));
+  }
+  call.addArgs(leafTypeClassLiteral,oneDimensionalCastMap,elementTypeIds,leafElementTypeCategory,initList,program.getLiteralInt(arrayType.getDims()));
+  ctx.replaceMe(call);
+}
