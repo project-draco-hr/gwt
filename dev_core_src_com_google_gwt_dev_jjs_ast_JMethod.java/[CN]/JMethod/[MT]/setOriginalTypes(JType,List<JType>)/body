@@ -5,16 +5,7 @@
   originalReturnType=returnType;
   originalParamTypes=Lists.normalize(paramTypes);
   if (enclosingType != null) {
-    String jsniSig=JProgram.getJsniSig(this);
-    Set<String> set=JProgram.traceMethods.get(enclosingType.getName());
-    if (set != null && (set.contains(name) || set.contains(jsniSig) || set.contains(TRACE_METHOD_WILDCARD))) {
-      trace=true;
-    }
-    if (!trace && enclosingType != null) {
-      set=JProgram.traceMethods.get(enclosingType.getShortName());
-      if (set != null && (set.contains(name) || set.contains(jsniSig) || set.contains(TRACE_METHOD_WILDCARD))) {
-        trace=true;
-      }
-    }
+    String jsniSignature=getJsniSignature(false,true);
+    trace=shouldTraceMethod(enclosingType.getShortName(),jsniSignature) || shouldTraceMethod(enclosingType.getName(),jsniSignature);
   }
 }
