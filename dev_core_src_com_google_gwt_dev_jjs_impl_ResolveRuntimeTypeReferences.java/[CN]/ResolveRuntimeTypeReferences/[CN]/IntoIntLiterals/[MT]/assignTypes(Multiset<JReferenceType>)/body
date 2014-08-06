@@ -2,8 +2,17 @@
   assignId(program.getJavaScriptObject());
   assignId(program.getTypeJavaLangObject());
   assignId(program.getTypeJavaLangString());
-  ImmutableMultiset<JReferenceType> typesOrderedByFrequency=Multisets.copyHighestCountFirst(typesWithReferenceCounts);
-  for (  JType type : typesOrderedByFrequency.elementSet()) {
-    assignId(type);
+  if (typeOrder == TypeOrder.FREQUENCY) {
+    ImmutableMultiset<JReferenceType> typesOrderedByFrequency=Multisets.copyHighestCountFirst(typesWithReferenceCounts);
+    for (    JType type : typesOrderedByFrequency.elementSet()) {
+      assignId(type);
+    }
+  }
+ else {
+    List<JType> typesOrderedAlphabetically=Lists.<JType>newArrayList(typesWithReferenceCounts.elementSet());
+    Collections.sort(typesOrderedAlphabetically,HasName.BY_NAME_COMPARATOR);
+    for (    JType type : typesOrderedAlphabetically) {
+      assignId(type);
+    }
   }
 }

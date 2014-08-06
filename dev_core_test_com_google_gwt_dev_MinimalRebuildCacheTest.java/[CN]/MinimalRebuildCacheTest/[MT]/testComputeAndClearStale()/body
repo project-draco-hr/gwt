@@ -1,0 +1,26 @@
+{
+  minimalRebuildCache.setAllCompilationUnitNames(TreeLogger.NULL,Sets.newHashSet("Foo","Bar","Baz"));
+  minimalRebuildCache.recordNestedTypeName("Foo","Foo");
+  minimalRebuildCache.recordNestedTypeName("Foo","Foo$Inner");
+  minimalRebuildCache.recordNestedTypeName("Bar","Bar");
+  minimalRebuildCache.recordNestedTypeName("Bar","Bar$Inner");
+  minimalRebuildCache.recordNestedTypeName("Baz","Baz");
+  minimalRebuildCache.recordNestedTypeName("Baz","Baz$Inner");
+  PermutationRebuildCache permutationRebuildCache=minimalRebuildCache.getPermutationRebuildCache(0);
+  permutationRebuildCache.setJsForType(TreeLogger.NULL,"Foo","Some Js for Foo");
+  permutationRebuildCache.setJsForType(TreeLogger.NULL,"Foo$Inner","Some Js for Foo");
+  permutationRebuildCache.setJsForType(TreeLogger.NULL,"Bar","Some Js for Bar");
+  permutationRebuildCache.setJsForType(TreeLogger.NULL,"Bar$Inner","Some Js for Bar");
+  permutationRebuildCache.setJsForType(TreeLogger.NULL,"Baz","Some Js for Baz");
+  permutationRebuildCache.setJsForType(TreeLogger.NULL,"Baz$Inner","Some Js for Baz");
+  permutationRebuildCache.addTypeReference("Bar","Foo");
+  minimalRebuildCache.getImmediateTypeRelations().getSuperClassesByClass().put("Baz","Foo");
+  minimalRebuildCache.setModifiedCompilationUnitNames(TreeLogger.NULL,Sets.newHashSet("Foo"));
+  minimalRebuildCache.clearStaleTypeJsAndStatements(TreeLogger.NULL,new JTypeOracle(null,minimalRebuildCache,true));
+  assertNull(permutationRebuildCache.getJs("Foo"));
+  assertNull(permutationRebuildCache.getJs("Foo$Inner"));
+  assertNull(permutationRebuildCache.getJs("Bar"));
+  assertNull(permutationRebuildCache.getJs("Baz"));
+  assertNotNull(permutationRebuildCache.getJs("Bar$Inner"));
+  assertNotNull(permutationRebuildCache.getJs("Baz$Inner"));
+}

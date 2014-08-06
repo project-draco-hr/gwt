@@ -1,0 +1,15 @@
+{
+  List<MockResource> originalResources=Lists.newArrayList(sharedResources);
+  originalResources.add(originalResource);
+  List<MockResource> modifiedResources=Lists.newArrayList(sharedResources);
+  modifiedResources.add(modifiedResource);
+  MinimalRebuildCache relinkMinimalRebuildCache=new MinimalRebuildCache();
+  File relinkApplicationDir=Files.createTempDir();
+  String originalAppFromScratchJs=compileToJs(relinkApplicationDir,moduleName,originalResources,relinkMinimalRebuildCache);
+  String modifiedAppRelinkedJs=compileToJs(relinkApplicationDir,moduleName,Lists.<MockResource>newArrayList(modifiedResource),relinkMinimalRebuildCache);
+  MinimalRebuildCache fromScratchMinimalRebuildCache=new MinimalRebuildCache();
+  File fromScratchApplicationDir=Files.createTempDir();
+  String modifiedAppFromScratchJs=compileToJs(fromScratchApplicationDir,moduleName,modifiedResources,fromScratchMinimalRebuildCache);
+  assertFalse(originalAppFromScratchJs.equals(modifiedAppRelinkedJs));
+  assertTrue(modifiedAppRelinkedJs.equals(modifiedAppFromScratchJs));
+}

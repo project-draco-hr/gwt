@@ -1,0 +1,20 @@
+{
+  if (immediateTypeRelations.isEmpty()) {
+    return Sets.newHashSet();
+  }
+  Set<String> staleTypeNames=Sets.newHashSet();
+  Set<String> modifiedTypeNames=computeModifiedTypeNames();
+{
+    staleTypeNames.addAll(modifiedTypeNames);
+    appendSubTypes(staleTypeNames,modifiedTypeNames,typeOracle);
+    ImmutableList<String> modifiedTypeAndSubTypeNames=ImmutableList.copyOf(staleTypeNames);
+    appendReferencingTypes(staleTypeNames,modifiedTypeAndSubTypeNames);
+    staleTypeNames.removeAll(JProgram.SYNTHETIC_TYPE_NAMES);
+  }
+  logger.log(TreeLogger.DEBUG,"known modified types = " + modifiedTypeNames);
+  logger.log(TreeLogger.DEBUG,"clearing cached JS for resulting stale types = " + staleTypeNames);
+  for (  String staleTypeName : staleTypeNames) {
+    clearJsAndStatements(staleTypeName);
+  }
+  return staleTypeNames;
+}
