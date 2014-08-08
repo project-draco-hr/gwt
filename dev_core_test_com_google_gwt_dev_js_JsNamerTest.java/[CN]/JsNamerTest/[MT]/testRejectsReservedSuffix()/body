@@ -1,0 +1,12 @@
+{
+  assertEquals("function foo_0_g$(){return 42}\n",rename(parseJs("function foo() { return 42; }"),JsOutputOption.PRETTY,true));
+  try {
+    String functionName="foo" + JsPersistentPrettyNamer.RESERVED_IDENT_SUFFIX;
+    JsProgram jsProgram=parseJs("function " + functionName + "() { return 42; }");
+    jsProgram.getScope().findExistingName(functionName).setObfuscatable(false);
+    rename(jsProgram,JsOutputOption.PRETTY,true);
+    fail("Naming an unobfuscatable identifier containing the reserved suffix should have " + "thrown an exception in JsPersistentPrettyNamer.");
+  }
+ catch (  IllegalNameException e) {
+  }
+}

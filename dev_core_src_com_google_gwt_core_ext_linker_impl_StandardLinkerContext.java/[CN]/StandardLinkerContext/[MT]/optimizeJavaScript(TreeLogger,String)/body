@@ -18,11 +18,12 @@ catch (  JsParserException e) {
   }
   JsSymbolResolver.exec(jsProgram);
   JsUnusedFunctionRemover.exec(jsProgram);
+  try {
 switch (jjsOptions.getOutput()) {
 case OBFUSCATED:
-    TopFunctionStringInterner.exec(jsProgram);
-  JsObfuscateNamer.exec(jsProgram,null);
-break;
+      TopFunctionStringInterner.exec(jsProgram);
+    JsObfuscateNamer.exec(jsProgram,null);
+  break;
 case PRETTY:
 JsPrettyNamer.exec(jsProgram,null);
 break;
@@ -32,6 +33,11 @@ JsVerboseNamer.exec(jsProgram,null);
 break;
 default :
 throw new InternalCompilerException("Unknown output mode");
+}
+}
+ catch (IllegalNameException e) {
+logger.log(TreeLogger.ERROR,e.getMessage(),e);
+throw new UnableToCompleteException();
 }
 DefaultTextOutput out=new DefaultTextOutput(jjsOptions.getOutput().shouldMinimize());
 JsSourceGenerationVisitor v=new JsSourceGenerationVisitor(out);
