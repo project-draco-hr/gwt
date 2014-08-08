@@ -1,0 +1,36 @@
+{
+  final String code=Joiner.on("\n").join(lines);
+  MockResourceOracle sourceOracle=new MockResourceOracle();
+  sourceOracle.addOrReplace(new MockJavaResource("test.EntryPoint"){
+    @Override public CharSequence getContent(){
+      return code;
+    }
+  }
+);
+  sourceOracle.add(JavaAstConstructor.getCompilerTypes());
+  sourceOracle.add(additionalResources);
+  PrecompileTaskOptions options=new PrecompileTaskOptionsImpl();
+  options.setOutput(JsOutputOption.PRETTY);
+  options.setRunAsyncEnabled(false);
+  CompilerContext context=new CompilerContext.Builder().options(options).minimalRebuildCache(new MinimalRebuildCache()).build();
+  ConfigProps config=new ConfigProps(Arrays.asList(recordFileNamesProp,recordLineNumbersProp));
+  CompilationState state=CompilationStateBuilder.buildFrom(logger,context,sourceOracle.getResources(),null);
+  JProgram jProgram=AstConstructor.construct(logger,state,options,config);
+  jProgram.addEntryMethod(findMethod(jProgram,"onModuleLoad"));
+  if (inline) {
+    MethodInliner.exec(jProgram);
+  }
+  ComputeCastabilityInformation.exec(jProgram,false);
+  ComputeInstantiatedJsoInterfaces.exec(jProgram);
+  ImplementCastsAndTypeChecks.exec(jProgram,false);
+  ArrayNormalizer.exec(jProgram,false);
+  Map<JType,JLiteral> typeIdsByType=ResolveRuntimeTypeReferences.IntoIntLiterals.exec(jProgram);
+  Map<StandardSymbolData,JsName> symbolTable=new TreeMap<StandardSymbolData,JsName>(new SymbolData.ClassIdentComparator());
+  BindingProperty stackMode=new BindingProperty("compiler.stackMode");
+  stackMode.addDefinedValue(new ConditionNone(),"EMULATED");
+  PermProps props=new PermProps(Arrays.asList(new BindingProps(new BindingProperty[]{stackMode},new String[]{"EMULATED"},config)));
+  JsProgram jsProgram=new JsProgram();
+  JavaToJavaScriptMap jjsmap=GenerateJavaScriptAST.exec(logger,jProgram,jsProgram,context,typeIdsByType,symbolTable,props).getLeft();
+  JsStackEmulator.exec(jProgram,jsProgram,props,jjsmap);
+  return jsProgram;
+}

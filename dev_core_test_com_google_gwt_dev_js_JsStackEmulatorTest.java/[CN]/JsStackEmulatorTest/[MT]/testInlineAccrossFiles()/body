@@ -1,0 +1,13 @@
+{
+  recordFileNamesProp.setValue("true");
+  recordLineNumbersProp.setValue("true");
+  inline=true;
+  Resource someClassJavaResource=new MockJavaResource("test.SomeClass"){
+    @Override public CharSequence getContent(){
+      return Joiner.on('\n').join("package test;","public class SomeClass {","  public static String inlineable() { return Object.class.getName(); }","}");
+    }
+  }
+;
+  JsProgram program=compileClass(new Resource[]{someClassJavaResource},"package test;","public class EntryPoint {","  public static void onModuleLoad() {","    String b = SomeClass.inlineable();","  }","}");
+  checkOnModuleLoad(program,"function onModuleLoad(){" + "var stackIndex;$stack[stackIndex=++$stackDepth]=onModuleLoad;" + "$location[stackIndex]='EntryPoint.java:'+'3',$clinit_EntryPoint();"+ "var b;"+ "$location[stackIndex]='EntryPoint.java:'+'4',b=Ljava_lang_Object_2_classLit.getName();"+ "$stackDepth=stackIndex-1}");
+}
