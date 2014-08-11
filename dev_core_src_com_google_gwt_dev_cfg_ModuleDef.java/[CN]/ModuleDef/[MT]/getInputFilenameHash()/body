@@ -1,0 +1,20 @@
+{
+  List<String> filenames=new ArrayList<String>();
+  filenames.addAll(gwtXmlPathByModuleName.values());
+  for (  Resource resource : getResourcesNewerThan(Integer.MIN_VALUE)) {
+    filenames.add(resource.getLocation());
+  }
+  Collections.sort(filenames);
+  MessageDigest digest;
+  try {
+    digest=MessageDigest.getInstance("SHA-1");
+  }
+ catch (  NoSuchAlgorithmException e) {
+    throw new RuntimeException("SHA-1 unavailable",e);
+  }
+  for (  String filename : filenames) {
+    digest.update(filename.getBytes(Charsets.UTF_8));
+  }
+  byte[] bytes=digest.digest();
+  return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8)| bytes[3];
+}

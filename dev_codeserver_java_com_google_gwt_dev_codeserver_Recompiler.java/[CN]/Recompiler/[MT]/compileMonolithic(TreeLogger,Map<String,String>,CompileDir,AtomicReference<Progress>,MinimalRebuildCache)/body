@@ -5,12 +5,21 @@
   ModuleDef module=loadModule(compileLogger,bindingProperties);
   String newModuleName=module.getName();
   moduleName.set(newModuleName);
+  InputSummary input=new InputSummary(bindingProperties,module);
+  if (input.equals(lastBuildInput)) {
+    compileLogger.log(Type.INFO,"skipped compile because no input files have changed");
+    return true;
+  }
   progress.set(new Progress.Compiling(newModuleName,compilesDone,1,2,"Compiling"));
   CompilerOptions runOptions=new CompilerOptionsImpl(compileDir,newModuleName,options);
   compilerContext=compilerContextBuilder.options(runOptions).build();
   boolean success=new Compiler(runOptions,rebuildCache).run(compileLogger,module);
   if (success) {
     publishedCompileDir=compileDir;
+    lastBuildInput=input;
+  }
+ else {
+    lastBuildInput=null;
   }
   lastBuild.set(compileDir);
   return success;
