@@ -1,0 +1,20 @@
+{
+  assertEquals(0,FooResourceGenerator.runCount);
+  CompilerOptions compilerOptions=new CompilerOptionsImpl();
+  List<MockResource> sharedResources=Lists.newArrayList(generatorModuleResource,generatorEntryPointResource,fooInterfaceResource);
+  JsOutputOption output=JsOutputOption.PRETTY;
+  List<MockResource> originalResources=Lists.newArrayList(sharedResources);
+  originalResources.add(nonJsoFooResource);
+  List<MockResource> modifiedResources=Lists.newArrayList(sharedResources);
+  modifiedResources.add(nonJsoFooResource);
+  MinimalRebuildCache relinkMinimalRebuildCache=new MinimalRebuildCache();
+  File relinkApplicationDir=Files.createTempDir();
+  compileToJs(compilerOptions,relinkApplicationDir,"com.foo.SimpleModule",originalResources,relinkMinimalRebuildCache,output);
+  assertEquals(1,FooResourceGenerator.runCount);
+  File barFile=new File(relinkApplicationDir.getPath() + File.separator + "com.foo.SimpleModule"+ File.separator+ "bar.txt");
+  assertTrue(barFile.exists());
+  compileToJs(compilerOptions,relinkApplicationDir,"com.foo.SimpleModule",Lists.<MockResource>newArrayList(nonJsoFooResource),relinkMinimalRebuildCache,output);
+  assertEquals(1,FooResourceGenerator.runCount);
+  barFile=new File(relinkApplicationDir.getPath() + File.separator + "com.foo.SimpleModule"+ File.separator+ "bar.txt");
+  assertTrue(barFile.exists());
+}
