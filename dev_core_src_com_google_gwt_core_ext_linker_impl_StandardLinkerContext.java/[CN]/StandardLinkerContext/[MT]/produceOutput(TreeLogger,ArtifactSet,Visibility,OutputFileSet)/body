@@ -12,16 +12,19 @@
         partialPath=partialPath.substring(1);
       }
     }
+    OutputStream artifactStream=null;
     try {
-      OutputStream artifactStream=out.openForWrite(partialPath,artifact.getLastModified());
+      artifactStream=new BufferedOutputStream(out.openForWrite(partialPath,artifact.getLastModified()));
       artifact.writeTo(artifactLogger,artifactStream);
-      artifactStream.close();
     }
  catch (    IOException e) {
       artifactLogger.log(TreeLogger.ERROR,"Fatal error emitting artifact: " + artifact.getPartialPath(),e);
       if (visibility != Visibility.Private) {
         throw new UnableToCompleteException();
       }
+    }
+ finally {
+      Utility.close(artifactStream);
     }
   }
 }
