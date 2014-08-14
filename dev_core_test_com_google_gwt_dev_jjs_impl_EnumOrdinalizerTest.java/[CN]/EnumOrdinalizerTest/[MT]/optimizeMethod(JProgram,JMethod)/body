@@ -1,24 +1,22 @@
 {
   boolean didChange=false;
-  AstDumper.maybeDumpAST(program,"EnumOrdinalizerTest_start");
+  program.addEntryMethod(findMainMethod(program));
   if (runMakeCallsStatic) {
     didChange=MakeCallsStatic.exec(new JJSOptionsImpl(),program).didChange() || didChange;
-    AstDumper.maybeDumpAST(program,"EnumOrdinalizerTest_after_makeCallsStatic");
   }
   if (runTypeTightener) {
     didChange=TypeTightener.exec(program).didChange() || didChange;
-    AstDumper.maybeDumpAST(program,"EnumOrdinalizerTest_after_typeTightener");
   }
   if (runMethodCallTightener) {
     didChange=MethodCallTightener.exec(program).didChange() || didChange;
-    AstDumper.maybeDumpAST(program,"EnumOrdinalizerTest_after_methodCallTightener");
   }
   if (runMethodInliner) {
     didChange=MethodInliner.exec(program).didChange() || didChange;
-    AstDumper.maybeDumpAST(program,"EnumOrdinalizerTest_after_methodInliner");
+  }
+  if (runPruner) {
+    didChange=Pruner.exec(program,true).didChange() || didChange;
   }
   didChange=EnumOrdinalizer.exec(program).didChange() || didChange;
-  AstDumper.maybeDumpAST(program,"EnumOrdinalizerTest_after_EnumOrdinalizer");
   if (performCastReplacement) {
     ComputeCastabilityInformation.exec(program,false);
     ComputeInstantiatedJsoInterfaces.exec(program);

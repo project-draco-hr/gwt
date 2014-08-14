@@ -6,9 +6,12 @@
     blackListIfEnumExpression(x.getInstance());
   }
  else   if (x.getTarget().isStatic()) {
-    String methodName=x.getTarget().getName();
-    if (methodName.equals("valueOf") || methodName.equals("values")) {
-      blackListIfEnum(x.getTarget().getEnclosingType(),x.getSourceInfo());
+    JMethod target=x.getTarget();
+    maybeBlackListDueToStaticCall(x.getSourceInfo(),target);
+  }
+  if (x.getTarget().isNative()) {
+    for (    JParameter parameter : x.getTarget().getParams()) {
+      blackListIfEnum(parameter.getType(),x.getSourceInfo());
     }
   }
   super.endVisit(x,ctx);
