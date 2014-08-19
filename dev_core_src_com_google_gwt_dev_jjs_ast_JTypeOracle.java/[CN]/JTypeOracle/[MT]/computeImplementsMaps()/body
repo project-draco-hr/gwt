@@ -1,0 +1,17 @@
+{
+  implementedInterfacesByClass.clear();
+  Multimap<String,String> superTypesByType=HashMultimap.create();
+  superTypesByType.putAll(immediateTypeRelations.immediateImplementedInterfacesByClass);
+  superTypesByType.putAll(Multimaps.forMap(immediateTypeRelations.immediateSuperclassesByClass));
+  superTypesByType.putAll(immediateTypeRelations.immediateSuperInterfacesByInterface);
+  Multimap<String,String> superTypesByTypeClosure=HashMultimap.create();
+  transitiveClosure(superTypesByType,superTypesByTypeClosure);
+  implementedInterfacesByClass.putAll(Multimaps.filterEntries(superTypesByTypeClosure,new Predicate<Entry<String,String>>(){
+    @Override public boolean apply(    Entry<String,String> typeTypeEntry){
+      return allClasses.contains(typeTypeEntry.getKey()) && !allClasses.contains(typeTypeEntry.getValue());
+    }
+  }
+));
+  classesByImplementingInterface.clear();
+  Multimaps.invertFrom(implementedInterfacesByClass,classesByImplementingInterface);
+}

@@ -4,27 +4,13 @@
       JClassType jClassType=(JClassType)type;
       JClassType superClass=jClassType.getSuperClass();
       if (superClass != null) {
-        immediateTypeRelations.superClassesByClass.put(jClassType.getName(),superClass.getName());
+        immediateTypeRelations.immediateSuperclassesByClass.put(jClassType.getName(),superClass.getName());
       }
-      List<JInterfaceType> list=jClassType.getImplements();
-      if (!list.isEmpty()) {
-        Set<String> hashSet=new HashSet<String>();
-        for (        JInterfaceType jInterfaceType : list) {
-          hashSet.add(jInterfaceType.getName());
-        }
-        immediateTypeRelations.implementedIntfsByClass.put(type.getName(),hashSet);
-      }
+      immediateTypeRelations.immediateImplementedInterfacesByClass.putAll(type.getName(),Iterables.transform(jClassType.getImplements(),TYPE_TO_NAME));
     }
  else     if (type instanceof JInterfaceType) {
       JInterfaceType currentIntf=(JInterfaceType)type;
-      List<JInterfaceType> intfImplements=currentIntf.getImplements();
-      if (!intfImplements.isEmpty()) {
-        Set<String> hashSet=new HashSet<String>();
-        for (        JInterfaceType jInterfaceType : intfImplements) {
-          hashSet.add(jInterfaceType.getName());
-        }
-        immediateTypeRelations.superIntfsByIntf.put(type.getName(),hashSet);
-      }
+      immediateTypeRelations.immediateSuperInterfacesByInterface.putAll(type.getName(),Iterables.transform(currentIntf.getImplements(),TYPE_TO_NAME));
     }
   }
 }

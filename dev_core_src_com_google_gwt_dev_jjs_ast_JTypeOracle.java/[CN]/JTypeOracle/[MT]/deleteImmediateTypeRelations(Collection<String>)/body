@@ -1,7 +1,11 @@
 {
-  for (  String typeName : typeNames) {
-    immediateTypeRelations.superClassesByClass.remove(typeName);
-    immediateTypeRelations.implementedIntfsByClass.remove(typeName);
-    immediateTypeRelations.superIntfsByIntf.remove(typeName);
+  Predicate<Entry<String,String>> inToDeleteSet=new Predicate<Entry<String,String>>(){
+    @Override public boolean apply(    Entry<String,String> typeTypeEntry){
+      return typeNames.contains(typeTypeEntry.getKey()) || typeNames.contains(typeTypeEntry.getValue());
+    }
   }
+;
+  Maps.filterEntries(immediateTypeRelations.immediateSuperclassesByClass,inToDeleteSet).clear();
+  Multimaps.filterEntries(immediateTypeRelations.immediateImplementedInterfacesByClass,inToDeleteSet).clear();
+  Multimaps.filterEntries(immediateTypeRelations.immediateSuperInterfacesByInterface,inToDeleteSet).clear();
 }
