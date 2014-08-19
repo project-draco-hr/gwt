@@ -2,44 +2,15 @@
   if (val == null) {
     throw new NullPointerException("null string");
   }
-  char[] charVal=val.toCharArray();
-  int i;
-  int j;
-  int digit;
-  if ((charVal.length < 27) || (charVal.length > 45)) {
+  String[] extractedValues=parseValue(val);
+  if (extractedValues == null) {
     throw new IllegalArgumentException("bad string format");
   }
-  for (i=0; (i < chPrecision.length) && (charVal[i] == chPrecision[i]); i++) {
+  try {
+    this.precision=Integer.parseInt(extractedValues[1]);
+    this.roundingMode=RoundingMode.valueOfExplicit(extractedValues[2]);
   }
-  if (i < chPrecision.length) {
+ catch (  RuntimeException re) {
     throw new IllegalArgumentException("bad string format");
   }
-  digit=Character.digit(charVal[i],10);
-  if (digit == -1) {
-    throw new IllegalArgumentException("bad string format");
-  }
-  this.precision=this.precision * 10 + digit;
-  i++;
-  do {
-    digit=Character.digit(charVal[i],10);
-    if (digit == -1) {
-      if (charVal[i] == ' ') {
-        i++;
-        break;
-      }
-      throw new IllegalArgumentException("bad string format");
-    }
-    this.precision=this.precision * 10 + digit;
-    if (this.precision < 0) {
-      throw new IllegalArgumentException("bad string format");
-    }
-    i++;
-  }
- while (true);
-  for (j=0; (j < chRoundingMode.length) && (charVal[i] == chRoundingMode[j]); i++, j++) {
-  }
-  if (j < chRoundingMode.length) {
-    throw new IllegalArgumentException("bad string format");
-  }
-  this.roundingMode=RoundingMode.valueOfExplicit(String.valueOf(charVal,i,charVal.length - i));
 }
