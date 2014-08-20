@@ -1,0 +1,20 @@
+{
+  Map<String,JMethod> methodsBySignature=methodsBySignatureForType.get(type);
+  if (methodsBySignature == null) {
+    methodsBySignature=Maps.newHashMap();
+    JClassType superClass=type.getSuperClass();
+    Map<String,JMethod> parentMethods=superClass == null ? Collections.<String,JMethod>emptyMap() : getOrCreateInstanceMethodsBySignatureForType(type.getSuperClass());
+    for (    JMethod method : parentMethods.values()) {
+      if (method.canBePolymorphic()) {
+        methodsBySignature.put(method.getSignature(),method);
+      }
+    }
+    for (    JMethod method : type.getMethods()) {
+      if (!method.isStatic()) {
+        methodsBySignature.put(method.getSignature(),method);
+      }
+    }
+    methodsBySignatureForType.put(type,methodsBySignature);
+  }
+  return methodsBySignature;
+}

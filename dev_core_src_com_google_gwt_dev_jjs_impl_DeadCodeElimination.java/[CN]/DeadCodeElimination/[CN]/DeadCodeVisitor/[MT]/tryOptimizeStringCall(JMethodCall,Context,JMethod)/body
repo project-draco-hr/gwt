@@ -44,28 +44,31 @@
       return;
     }
   }
+  Method actual=getStringMethod(method,paramTypes);
+  if (actual == null) {
+    Arrays.fill(paramTypes,Object.class);
+    actual=getStringMethod(method,paramTypes);
+  }
+  if (actual == null) {
+    return;
+  }
+  Object result=null;
   try {
-    Method actual=String.class.getMethod(method.getName(),paramTypes);
-    if (actual == null) {
-      return;
-    }
-    Object result=actual.invoke(instance,paramValues);
-    if (result instanceof String) {
-      ctx.replaceMe(program.getStringLiteral(x.getSourceInfo(),(String)result));
-    }
- else     if (result instanceof Boolean) {
-      ctx.replaceMe(program.getLiteralBoolean(((Boolean)result).booleanValue()));
-    }
- else     if (result instanceof Character) {
-      ctx.replaceMe(program.getLiteralChar(((Character)result).charValue()));
-    }
- else     if (result instanceof Integer) {
-      ctx.replaceMe(program.getLiteralInt(((Integer)result).intValue()));
-    }
+    result=actual.invoke(instance,paramValues);
   }
- catch (  RuntimeException e) {
-    throw e;
+ catch (  Exception e) {
+    return;
   }
-catch (  Exception e) {
+  if (result instanceof String) {
+    ctx.replaceMe(program.getStringLiteral(x.getSourceInfo(),(String)result));
+  }
+ else   if (result instanceof Boolean) {
+    ctx.replaceMe(program.getLiteralBoolean(((Boolean)result).booleanValue()));
+  }
+ else   if (result instanceof Character) {
+    ctx.replaceMe(program.getLiteralChar(((Character)result).charValue()));
+  }
+ else   if (result instanceof Integer) {
+    ctx.replaceMe(program.getLiteralInt(((Integer)result).intValue()));
   }
 }

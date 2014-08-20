@@ -1,2 +1,26 @@
 {
+  if (x.isVolatile() || !x.canBePolymorphic()) {
+    return;
+  }
+  JType instanceType=x.getInstance().getType().getUnderlyingType();
+  if (!(instanceType instanceof JClassType)) {
+    return;
+  }
+  JMethod method=x.getTarget();
+  if (instanceType == method.getEnclosingType()) {
+    return;
+  }
+  JMethod foundMethod=program.typeOracle.getInstanceMethodBySignature((JClassType)instanceType,method.getSignature());
+  if (foundMethod == null || !foundMethod.canBePolymorphic()) {
+    return;
+  }
+  if (foundMethod == method) {
+    return;
+  }
+  if (!foundMethod.getOverriddenMethods().contains(method)) {
+    return;
+  }
+  JMethodCall call=new JMethodCall(x.getSourceInfo(),x.getInstance(),foundMethod);
+  call.addArgs(x.getArgs());
+  ctx.replaceMe(call);
 }
