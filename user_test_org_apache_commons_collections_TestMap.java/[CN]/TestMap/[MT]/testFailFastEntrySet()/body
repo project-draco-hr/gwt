@@ -1,0 +1,28 @@
+{
+  if (!isAddRemoveModifiable()) {
+    return;
+  }
+  if (!isFailFastExpected()) {
+    return;
+  }
+  resetFull();
+  Iterator<Map.Entry> it=map.entrySet().iterator();
+  final Map.Entry val=it.next();
+  map.remove(val.getKey());
+  try {
+    it.next();
+    fail();
+  }
+ catch (  ConcurrentModificationException expected) {
+  }
+  resetFull();
+  it=map.entrySet().iterator();
+  it.next();
+  map.clear();
+  try {
+    it.next();
+    fail();
+  }
+ catch (  ConcurrentModificationException expected) {
+  }
+}
