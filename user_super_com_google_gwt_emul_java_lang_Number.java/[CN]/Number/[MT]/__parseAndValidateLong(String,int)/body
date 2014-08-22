@@ -1,9 +1,9 @@
 {
   if (s == null) {
-    throw new NumberFormatException("null");
+    throw NumberFormatException.forNullInputString();
   }
   if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX) {
-    throw new NumberFormatException("radix " + radix + " out of range");
+    throw NumberFormatException.forRadix(radix);
   }
   final String orig=s;
   int length=s.length();
@@ -26,21 +26,10 @@
   if (length > __ParseLong.maxLengthForRadix[radix]) {
     throw NumberFormatException.forInputString(orig);
   }
-  int maxNumericDigit='0' + Math.min(radix,10);
-  int maxLowerCaseDigit=radix + 'a' - 10;
-  int maxUpperCaseDigit=radix + 'A' - 10;
   for (int i=0; i < length; i++) {
-    char c=s.charAt(i);
-    if (c >= '0' && c < maxNumericDigit) {
-      continue;
+    if (Character.digit(s.charAt(i),radix) == -1) {
+      throw NumberFormatException.forInputString(orig);
     }
-    if (c >= 'a' && c < maxLowerCaseDigit) {
-      continue;
-    }
-    if (c >= 'A' && c < maxUpperCaseDigit) {
-      continue;
-    }
-    throw NumberFormatException.forInputString(orig);
   }
   long toReturn=0;
   int maxDigits=__ParseLong.maxDigitsForRadix[radix];
@@ -60,7 +49,7 @@
     length-=maxDigits;
     if (!firstTime) {
       if (toReturn < minValue) {
-        throw new NumberFormatException(s);
+        throw NumberFormatException.forInputString(orig);
       }
       toReturn*=radixPower;
     }
