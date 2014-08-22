@@ -6,22 +6,17 @@
   for (  com.google.gwt.core.ext.typeinfo.JClassType singleJsoIntf : typeOracle.getSingleJsoImplInterfaces()) {
     allRootTypes.add(typeOracle.getSingleJsoImpl(singleJsoIntf).getQualifiedSourceName());
   }
-  String jsExportAnn="com.google.gwt.core.client.js.JsExport";
-  nextType:   for (  com.google.gwt.dev.javac.typemodel.JClassType type : typeOracle.getTypes()) {
-    for (    com.google.gwt.dev.javac.typemodel.JMethod meth : type.getMethods()) {
-      for (      Annotation ann : meth.getAnnotations()) {
-        if (ann.annotationType().getName().equals(jsExportAnn)) {
+  if (jprogram.typeOracle.isInteropEnabled()) {
+    nextType:     for (    com.google.gwt.dev.javac.typemodel.JClassType type : typeOracle.getTypes()) {
+      for (      Annotation ann : type.getAnnotations()) {
+        if (ann.annotationType().getName().equals(JS_EXPORT_ANN)) {
           allRootTypes.add(type.getQualifiedSourceName());
           continue nextType;
         }
       }
-    }
-    for (    JConstructor meth : type.getConstructors()) {
-      for (      Annotation ann : meth.getAnnotations()) {
-        if (ann.annotationType().getName().equals(jsExportAnn)) {
-          allRootTypes.add(type.getQualifiedSourceName());
-          continue nextType;
-        }
+      if (isJsType(type)) {
+        allRootTypes.add(type.getQualifiedSourceName());
+        continue nextType;
       }
     }
   }
