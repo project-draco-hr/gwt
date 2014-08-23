@@ -17,9 +17,12 @@
     }
     response.setHeader("Content-Encoding","gzip");
   }
-  if (target.endsWith(".cache.js")) {
-    String strongName=target.replaceFirst("^.*/(.+).cache.js$","$1");
-    response.setHeader("X-SourceMap",sourceMapLocationForModule(moduleName,strongName));
+  Matcher match=CACHE_JS_FILE.matcher(target);
+  if (match.matches()) {
+    String strongName=match.group(1);
+    String template=SourceHandler.sourceMapLocationTemplate(moduleName);
+    String sourceMapUrl=template.replace("__HASH__",strongName);
+    response.setHeader("X-SourceMap",sourceMapUrl);
   }
   response.setHeader("Access-Control-Allow-Origin","*");
   String mimeType=guessMimeType(target);

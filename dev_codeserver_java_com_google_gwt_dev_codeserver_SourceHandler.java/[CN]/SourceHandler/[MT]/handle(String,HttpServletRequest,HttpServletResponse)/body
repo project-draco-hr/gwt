@@ -8,6 +8,10 @@
   if (rest.isEmpty()) {
     sendDirectoryListPage(moduleName,response);
   }
+ else   if (rest.equals("gwtSourceMap.json")) {
+    ModuleState moduleState=modules.get(moduleName);
+    sendSourceMap(moduleName,moduleState.findSourceMapForOnePermutation(),request,response);
+  }
  else   if (rest.endsWith("/")) {
     sendFileListPage(moduleName,rest,response);
   }
@@ -17,7 +21,9 @@
  else {
     String strongName=getStrongNameFromSourcemapFilename(rest);
     if (strongName != null) {
-      sendSourceMap(moduleName,strongName,request,response);
+      ModuleState moduleState=modules.get(moduleName);
+      File sourceMap=moduleState.findSourceMap(strongName).getAbsoluteFile();
+      sendSourceMap(moduleName,sourceMap,request,response);
     }
  else {
       response.sendError(HttpServletResponse.SC_NOT_FOUND);
