@@ -10,5 +10,19 @@
       return null;
     }
   }
-  return null;
+  String generatedClassName;
+  try {
+    generatedClassName=Util.readStreamAsString(context.getResourcesOracle().getResource("com/foo/generatedClassName.txt").openContents()).trim();
+    PrintWriter pw=context.tryCreate(logger,"com.foo",generatedClassName);
+    if (pw != null) {
+      pw.write("package com.foo;");
+      pw.write("public class " + generatedClassName + " {}");
+      pw.close();
+      context.commit(logger,pw);
+    }
+    return "com.foo." + generatedClassName;
+  }
+ catch (  IOException e) {
+    return "";
+  }
 }

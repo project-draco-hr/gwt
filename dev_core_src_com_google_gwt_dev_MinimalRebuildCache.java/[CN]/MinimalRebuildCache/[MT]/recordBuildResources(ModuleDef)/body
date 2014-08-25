@@ -1,0 +1,19 @@
+{
+  Set<Resource> currentResources=module.getBuildResourceOracle().getResources();
+  modifiedResourcePaths.clear();
+  Set<String> currentResourcePaths=Sets.newHashSet();
+  for (  Resource currentResource : currentResources) {
+    currentResourcePaths.add(currentResource.getPath());
+    Long lastKnownModified=lastModifiedByResourcePath.put(currentResource.getPath(),currentResource.getLastModified());
+    if (!Objects.equal(lastKnownModified,currentResource.getLastModified())) {
+      modifiedResourcePaths.add(currentResource.getPath());
+    }
+  }
+{
+    SetView<String> removedResourcePaths=Sets.difference(lastModifiedByResourcePath.keySet(),currentResourcePaths);
+    modifiedResourcePaths.addAll(removedResourcePaths);
+    for (    String removedResourcePath : removedResourcePaths) {
+      lastModifiedByResourcePath.remove(removedResourcePath);
+    }
+  }
+}

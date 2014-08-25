@@ -1,0 +1,32 @@
+{
+  String propFile=prefix;
+  if (!locale.isDefault()) {
+    propFile+="_" + locale.getAsString();
+  }
+  propFile+=".properties";
+  InputStream str=null;
+  LocalizedProperties props=new LocalizedProperties();
+  try {
+    str=ResourceLocatorImpl.tryFindResourceAsStream(logger,resourceOracle,propFile);
+    if (str != null) {
+      props.load(str,"UTF-8");
+      return props;
+    }
+  }
+ catch (  UnsupportedEncodingException e) {
+    return null;
+  }
+catch (  IOException e) {
+    return null;
+  }
+ finally {
+    if (str != null) {
+      try {
+        str.close();
+      }
+ catch (      IOException e) {
+      }
+    }
+  }
+  return null;
+}

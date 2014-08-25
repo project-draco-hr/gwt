@@ -6,11 +6,11 @@
   String lastDefaultCurrencyCode=null;
   for (int i=searchList.size(); i-- > 0; ) {
     GwtLocale search=searchList.get(i);
-    LocalizedProperties newExtra=getProperties(CURRENCY_EXTRA_PREFIX,search);
+    LocalizedProperties newExtra=getProperties(logger,CURRENCY_EXTRA_PREFIX,search,context.getResourcesOracle());
     if (newExtra != null) {
       currencyExtra=newExtra;
     }
-    Map<String,String> currencyData=getCurrencyData(search);
+    Map<String,String> currencyData=getCurrencyData(logger,search,context.getResourcesOracle());
     Set<String> keySet=currencyData.keySet();
     String[] currencies=new String[keySet.size()];
     keySet.toArray(currencies);
@@ -19,7 +19,7 @@
       String extraData=currencyExtra == null ? null : currencyExtra.getProperty(currencyCode);
       allCurrencyData.put(currencyCode,new CurrencyInfo(currencyCode,currencyData.get(currencyCode),extraData));
     }
-    String defCurrencyCode=getDefaultCurrency(search);
+    String defCurrencyCode=getDefaultCurrency(logger,search,context.getResourcesOracle());
     if (defCurrencyCode == null && keySet.contains(lastDefaultCurrencyCode)) {
       defCurrencyCode=lastDefaultCurrencyCode;
     }

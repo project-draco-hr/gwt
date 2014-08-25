@@ -10,12 +10,16 @@
     ImmutableList<String> modifiedTypeAndSubTypeNames=ImmutableList.copyOf(staleTypeNames);
     appendReferencingTypes(staleTypeNames,modifiedTypeAndSubTypeNames);
     appendReferencingTypes(staleTypeNames,jsoStatusChangedTypeNames);
+    appendTypesThatRebindTypes(staleTypeNames,computeReboundTypesAffectedByModifiedResources());
     staleTypeNames.removeAll(JProgram.SYNTHETIC_TYPE_NAMES);
   }
-  logger.log(TreeLogger.DEBUG,"known modified types = " + modifiedTypeNames);
-  logger.log(TreeLogger.DEBUG,"clearing cached JS for resulting stale types = " + staleTypeNames);
+  if (logger.isLoggable(TreeLogger.DEBUG)) {
+    logger.log(TreeLogger.DEBUG,"known modified types = " + modifiedTypeNames);
+    logger.log(TreeLogger.DEBUG,"known modified resources = " + modifiedResourcePaths);
+    logger.log(TreeLogger.DEBUG,"clearing cached output for resulting stale types = " + staleTypeNames);
+  }
   for (  String staleTypeName : staleTypeNames) {
-    clearJsAndStatements(staleTypeName);
+    clearCachedTypeOutput(staleTypeName);
   }
   return staleTypeNames;
 }
