@@ -1,0 +1,23 @@
+{
+  assertEquals(0,CauseStringRebindGenerator.runCount);
+  assertEquals(0,CauseShortRebindGenerator.runCount);
+  assertEquals(0,FooResourceGenerator.runCount);
+  CompilerOptions compilerOptions=new CompilerOptionsImpl();
+  List<MockResource> sharedResources=Lists.newArrayList(cascadingGeneratorModuleResource,generatorEntryPointResource,classNameToGenerateResource);
+  JsOutputOption output=JsOutputOption.PRETTY;
+  List<MockResource> originalResources=Lists.newArrayList(sharedResources);
+  MinimalRebuildCache relinkMinimalRebuildCache=new MinimalRebuildCache();
+  File relinkApplicationDir=Files.createTempDir();
+  compileToJs(compilerOptions,relinkApplicationDir,"com.foo.SimpleModule",originalResources,relinkMinimalRebuildCache,output);
+  assertEquals(1,CauseStringRebindGenerator.runCount);
+  assertEquals(1,CauseShortRebindGenerator.runCount);
+  assertEquals(1,FooResourceGenerator.runCount);
+  compileToJs(compilerOptions,relinkApplicationDir,"com.foo.SimpleModule",Lists.<MockResource>newArrayList(),relinkMinimalRebuildCache,output);
+  assertEquals(1,CauseStringRebindGenerator.runCount);
+  assertEquals(1,CauseShortRebindGenerator.runCount);
+  assertEquals(1,FooResourceGenerator.runCount);
+  compileToJs(compilerOptions,relinkApplicationDir,"com.foo.SimpleModule",Lists.<MockResource>newArrayList(classNameToGenerateResource),relinkMinimalRebuildCache,output);
+  assertEquals(2,CauseStringRebindGenerator.runCount);
+  assertEquals(2,CauseShortRebindGenerator.runCount);
+  assertEquals(2,FooResourceGenerator.runCount);
+}
