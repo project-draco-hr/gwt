@@ -1,0 +1,16 @@
+{
+  assertEquals(0,BarReferencesFooGenerator.runCount);
+  CompilerOptions compilerOptions=new CompilerOptionsImpl();
+  List<MockResource> sharedResources=Lists.newArrayList(barReferencesFooGeneratorModuleResource,generatorEntryPointResource);
+  JsOutputOption output=JsOutputOption.PRETTY;
+  List<MockResource> originalResources=Lists.newArrayList(sharedResources);
+  originalResources.add(fooResource);
+  MinimalRebuildCache relinkMinimalRebuildCache=new MinimalRebuildCache();
+  File relinkApplicationDir=Files.createTempDir();
+  compileToJs(compilerOptions,relinkApplicationDir,"com.foo.SimpleModule",originalResources,relinkMinimalRebuildCache,output);
+  assertEquals(1,BarReferencesFooGenerator.runCount);
+  compileToJs(compilerOptions,relinkApplicationDir,"com.foo.SimpleModule",Lists.<MockResource>newArrayList(),relinkMinimalRebuildCache,output);
+  assertEquals(1,BarReferencesFooGenerator.runCount);
+  compileToJs(compilerOptions,relinkApplicationDir,"com.foo.SimpleModule",Lists.<MockResource>newArrayList(fooResource),relinkMinimalRebuildCache,output);
+  assertEquals(2,BarReferencesFooGenerator.runCount);
+}

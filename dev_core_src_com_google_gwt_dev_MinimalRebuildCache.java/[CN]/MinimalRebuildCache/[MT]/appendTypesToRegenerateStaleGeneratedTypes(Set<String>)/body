@@ -1,0 +1,11 @@
+{
+  Set<String> generatedTypeNames=reboundTypeNamesByGeneratedTypeName.keySet();
+  Set<String> staleGeneratedTypeNames=Sets.intersection(staleTypeNames,generatedTypeNames);
+  do {
+    Set<String> generatorTriggeringTypes=computeTypesThatRebindTypes(computeReboundTypesThatGenerateTypes(staleGeneratedTypeNames));
+    staleTypeNames.addAll(generatorTriggeringTypes);
+    staleGeneratedTypeNames=Sets.intersection(generatorTriggeringTypes,generatedTypeNames);
+    staleGeneratedTypeNames.removeAll(staleTypeNames);
+  }
+ while (!staleGeneratedTypeNames.isEmpty());
+}
