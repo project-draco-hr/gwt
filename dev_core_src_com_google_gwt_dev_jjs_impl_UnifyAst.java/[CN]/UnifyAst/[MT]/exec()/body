@@ -11,19 +11,7 @@
     }
   }
   if (compilePerFile) {
-    for (    String staleTypeName : staleTypeNames) {
-      JDeclaredType staleType=internalFindType(staleTypeName,binaryNameBasedTypeLocator,false);
-      if (staleType == null) {
-        continue;
-      }
-      fullFlowIntoType(staleType);
-    }
-    Set<String> subTypeNames=program.typeOracle.getSubTypeNames(JProgram.JAVASCRIPTOBJECT);
-    if (subTypeNames != null) {
-      for (      String jsoSubclassTypeName : subTypeNames) {
-        internalFindType(jsoSubclassTypeName,binaryNameBasedTypeLocator,false);
-      }
-    }
+    fullFlowIntoStaleTypes();
   }
  else   if (isLibraryCompile) {
     Set<String> internalNames=ImmutableSet.copyOf(compiledClassesByInternalName.keySet());
@@ -64,7 +52,12 @@
     }
   }
   mainLoop();
-  logger.log(TreeLogger.INFO,"Unification traversed " + liveFieldsAndMethods.size() + " fields and methods and "+ program.getDeclaredTypes().size()+ " types. "+ program.getModuleDeclaredTypes().size()+ " are considered part of the current module and "+ fullFlowTypes.size()+ " had all of their fields and methods traversed.");
+  if (compilePerFile) {
+    logger.log(TreeLogger.INFO,"Unification traversed " + liveFieldsAndMethods.size() + " fields and methods and "+ program.getDeclaredTypes().size()+ " types. "+ program.getModuleDeclaredTypes().size()+ " are considered part of the current module and "+ fullFlowTypes.size()+ " had all of their fields and methods traversed.");
+    if (!staleTypeNames.isEmpty()) {
+      logger.log(TreeLogger.WARN,"Some stale types (" + staleTypeNames + ") should have been but were not reprocessed. This is likely "+ "a bug. Please report it to the GWT team.");
+    }
+  }
   if (compilerContext.shouldCompileMonolithic()) {
     pruneDeadFieldsAndMethods();
   }
