@@ -3,11 +3,11 @@
     Socket s=new Socket(options.getCompileHost(),options.getCompilePort());
     logger.log(TreeLogger.DEBUG,"Socket opened");
     ObjectOutputStream out=new ObjectOutputStream(s.getOutputStream());
-    ObjectInputStream in=new ObjectInputStream(s.getInputStream());
+    ObjectInputStream in=new StringInterningObjectInputStream(s.getInputStream());
     out.writeUTF(options.getCookie());
     out.flush();
     File astFile=(File)in.readObject();
-    ObjectInputStream astIn=new ObjectInputStream(new FileInputStream(astFile));
+    ObjectInputStream astIn=new StringInterningObjectInputStream(new FileInputStream(astFile));
     UnifiedAst ast=(UnifiedAst)astIn.readObject();
     ast.prepare();
     logger.log(TreeLogger.SPAM,"Created new UnifiedAst instance");
