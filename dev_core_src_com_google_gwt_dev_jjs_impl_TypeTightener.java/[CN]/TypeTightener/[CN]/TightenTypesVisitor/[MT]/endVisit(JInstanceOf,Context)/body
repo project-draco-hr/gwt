@@ -11,34 +11,27 @@
   if (fromType == null) {
     fromType=(JReferenceType)argType;
   }
-  boolean triviallyTrue=false;
-  boolean triviallyFalse=false;
-  JTypeOracle typeOracle=program.typeOracle;
-  if (fromType == program.getTypeNull()) {
-    triviallyFalse=true;
-  }
- else   if (typeOracle.canTriviallyCast(fromType,toType)) {
-    triviallyTrue=true;
-  }
- else   if (!typeOracle.isInstantiatedType(toType)) {
-    triviallyFalse=true;
-  }
- else   if (!typeOracle.canTheoreticallyCast(fromType,toType)) {
-    triviallyFalse=true;
-  }
-  if (triviallyTrue) {
+  AnalysisResult analysisResult=staticallyEvaluateInstanceOf(fromType,toType);
+switch (analysisResult) {
+case TRUE:
     JNullLiteral nullLit=program.getLiteralNull();
-    JBinaryOperation neq=new JBinaryOperation(x.getSourceInfo(),program.getTypePrimitiveBoolean(),JBinaryOperator.NEQ,x.getExpr(),nullLit);
-    ctx.replaceMe(neq);
-  }
- else   if (triviallyFalse) {
-    ctx.replaceMe(program.getLiteralBoolean(false));
-  }
- else {
-    JReferenceType concreteType=getSingleConcreteType(toType);
-    if (concreteType != null) {
-      JInstanceOf newOp=new JInstanceOf(x.getSourceInfo(),concreteType,x.getExpr());
-      ctx.replaceMe(newOp);
-    }
-  }
+  JBinaryOperation neq=new JBinaryOperation(x.getSourceInfo(),program.getTypePrimitiveBoolean(),JBinaryOperator.NEQ,x.getExpr(),nullLit);
+ctx.replaceMe(neq);
+break;
+case FALSE:
+JExpression result=program.getLiteralBoolean(false);
+if (x.getExpr().hasSideEffects()) {
+result=new JMultiExpression(x.getSourceInfo(),x.getExpr(),result);
+}
+ctx.replaceMe(result);
+break;
+case UNKNOWN:
+default :
+JReferenceType concreteType=getSingleConcreteType(toType);
+if (concreteType != null) {
+JInstanceOf newOp=new JInstanceOf(x.getSourceInfo(),concreteType,x.getExpr());
+ctx.replaceMe(newOp);
+}
+break;
+}
 }
