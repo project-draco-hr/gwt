@@ -4,5 +4,14 @@
   for (  String modifiedCompilationUnitName : modifiedCompilationUnitNames) {
     modifiedTypeNames.addAll(nestedTypeNamesByUnitTypeName.get(modifiedCompilationUnitName));
   }
+  Multimap<String,String> generatedTypeNameByReboundTypeNames=HashMultimap.create();
+  Multimaps.invertFrom(reboundTypeNamesByGeneratedTypeName,generatedTypeNameByReboundTypeNames);
+  Set<String> affectedReboundTypeNames=computeReboundTypesAffectedByModifiedResources();
+  for (  String affectedReboundTypeName : affectedReboundTypeNames) {
+    Collection<String> generatedCompilationUnitNames=generatedTypeNameByReboundTypeNames.get(affectedReboundTypeName);
+    for (    String generatedCompilationUnitName : generatedCompilationUnitNames) {
+      modifiedTypeNames.addAll(nestedTypeNamesByUnitTypeName.get(generatedCompilationUnitName));
+    }
+  }
   return modifiedTypeNames;
 }
