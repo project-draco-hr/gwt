@@ -5,7 +5,13 @@
     if (!typeInBlacklist(blacklistedEnums,enclosingType)) {
       JNewInstance newEnum=new JNewInstance(x);
       List<JExpression> args=new ArrayList<JExpression>(x.getArgs());
-      args.set(0,JNullLiteral.INSTANCE);
+      if (closureMode) {
+        JMethodCall makeEnum=new JMethodCall(x.getSourceInfo(),null,makeEnumName,args.get(0));
+        args.set(0,makeEnum);
+      }
+ else {
+        args.set(0,JNullLiteral.INSTANCE);
+      }
       newEnum.addArgs(args);
       ctx.replaceMe(newEnum);
     }
