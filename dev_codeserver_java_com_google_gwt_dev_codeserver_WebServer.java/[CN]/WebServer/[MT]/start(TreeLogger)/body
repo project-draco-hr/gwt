@@ -1,0 +1,27 @@
+{
+  SelectChannelConnector connector=new SelectChannelConnector();
+  connector.setHost(bindAddress);
+  connector.setPort(port);
+  connector.setReuseAddress(false);
+  connector.setSoLingerTime(0);
+  Server newServer=new Server();
+  newServer.addConnector(connector);
+  ServletContextHandler newHandler=new ServletContextHandler(ServletContextHandler.SESSIONS);
+  newHandler.setContextPath("/");
+  newHandler.addServlet(new ServletHolder(new HttpServlet(){
+    @Override protected void doGet(    HttpServletRequest request,    HttpServletResponse response) throws ServletException, IOException {
+      handleRequest(request.getPathInfo(),request,response,logger);
+    }
+  }
+),"/*");
+  newHandler.addFilter(GzipFilter.class,"/*",EnumSet.allOf(DispatcherType.class));
+  newServer.setHandler(newHandler);
+  try {
+    newServer.start();
+  }
+ catch (  Exception e) {
+    logger.log(TreeLogger.ERROR,"cannot start web server",e);
+    throw new UnableToCompleteException();
+  }
+  this.server=newServer;
+}

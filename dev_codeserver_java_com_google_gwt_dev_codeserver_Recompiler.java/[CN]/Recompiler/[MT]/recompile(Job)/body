@@ -1,0 +1,21 @@
+{
+  Job.Result result;
+  try {
+    if (options.shouldCompilePerFile()) {
+      result=compile(job,minimalRebuildCache);
+    }
+ else {
+      result=compile(job,new MinimalRebuildCache());
+    }
+  }
+ catch (  UnableToCompleteException e) {
+    job.getLogger().log(TreeLogger.Type.WARN,"recompile failed");
+    result=new Result(job,null,e);
+  }
+catch (  Throwable error) {
+    job.getLogger().log(TreeLogger.Type.WARN,"recompile failed",error);
+    result=new Result(job,null,error);
+  }
+  job.onFinished(result);
+  return result;
+}

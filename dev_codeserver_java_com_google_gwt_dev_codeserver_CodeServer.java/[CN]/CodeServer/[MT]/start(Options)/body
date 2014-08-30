@@ -1,9 +1,12 @@
 {
-  PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
-  logger.setMaxDetail(options.getLogLevel());
-  Modules modules=makeModules(options,logger);
-  SourceHandler sourceHandler=new SourceHandler(modules,logger);
-  WebServer webServer=new WebServer(sourceHandler,modules,options.getBindAddress(),options.getPort(),logger);
-  webServer.start();
+  PrintWriterTreeLogger topLogger=new PrintWriterTreeLogger();
+  topLogger.setMaxDetail(options.getLogLevel());
+  TreeLogger startupLogger=topLogger.branch(Type.INFO,"Super Dev Mode starting up");
+  Modules modules=makeModules(options,startupLogger);
+  SourceHandler sourceHandler=new SourceHandler(modules);
+  ProgressTable progressTable=new ProgressTable();
+  JobRunner runner=new JobRunner(progressTable,modules);
+  WebServer webServer=new WebServer(sourceHandler,modules,runner,progressTable,options.getBindAddress(),options.getPort());
+  webServer.start(topLogger);
   return webServer;
 }
