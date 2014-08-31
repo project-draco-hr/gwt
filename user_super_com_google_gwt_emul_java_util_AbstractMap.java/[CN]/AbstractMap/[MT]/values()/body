@@ -1,27 +1,29 @@
 {
-  final Set<Entry<K,V>> entrySet=entrySet();
   return new AbstractCollection<V>(){
+    @Override public void clear(){
+      AbstractMap.this.clear();
+    }
     @Override public boolean contains(    Object value){
       return containsValue(value);
     }
     @Override public Iterator<V> iterator(){
-      final Iterator<Entry<K,V>> outerIter=entrySet.iterator();
+      final Iterator<Entry<K,V>> outerIter=entrySet().iterator();
       return new Iterator<V>(){
-        public boolean hasNext(){
+        @Override public boolean hasNext(){
           return outerIter.hasNext();
         }
-        public V next(){
-          V value=outerIter.next().getValue();
-          return value;
+        @Override public V next(){
+          Entry<K,V> entry=outerIter.next();
+          return entry.getValue();
         }
-        public void remove(){
+        @Override public void remove(){
           outerIter.remove();
         }
       }
 ;
     }
     @Override public int size(){
-      return entrySet.size();
+      return AbstractMap.this.size();
     }
   }
 ;
