@@ -2,6 +2,20 @@
   JBinaryOperator op=x.getOp();
   JExpression lhs=x.getLhs();
   JExpression rhs=x.getRhs();
+  if (isNonEmptyMultiExpression(lhs)) {
+    List<JExpression> expressions=((JMultiExpression)lhs).getExpressions();
+    JMultiExpression result=new JMultiExpression(lhs.getSourceInfo(),expressions.subList(0,expressions.size() - 1));
+    result.addExpressions(new JBinaryOperation(x.getSourceInfo(),x.getType(),x.getOp(),expressions.get(expressions.size() - 1),rhs));
+    ctx.replaceMe(result);
+    return;
+  }
+  if (isNonEmptyMultiExpression(rhs) && lhs instanceof JValueLiteral) {
+    List<JExpression> expressions=((JMultiExpression)rhs).getExpressions();
+    JMultiExpression result=new JMultiExpression(rhs.getSourceInfo(),expressions.subList(0,expressions.size() - 1));
+    result.addExpressions(new JBinaryOperation(x.getSourceInfo(),x.getType(),x.getOp(),lhs,expressions.get(expressions.size() - 1)));
+    ctx.replaceMe(result);
+    return;
+  }
   if ((lhs instanceof JValueLiteral) && (rhs instanceof JValueLiteral)) {
     if (evalOpOnLiterals(op,(JValueLiteral)lhs,(JValueLiteral)rhs,ctx)) {
       return;

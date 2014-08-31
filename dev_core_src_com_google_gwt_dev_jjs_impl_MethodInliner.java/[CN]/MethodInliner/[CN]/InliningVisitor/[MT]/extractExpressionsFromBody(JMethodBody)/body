@@ -1,0 +1,26 @@
+{
+  List<JExpression> expressions=Lists.newArrayList();
+  CloneCalleeExpressionVisitor cloner=new CloneCalleeExpressionVisitor();
+  for (  JStatement stmt : body.getStatements()) {
+    if (stmt instanceof JExpressionStatement) {
+      JExpressionStatement exprStmt=(JExpressionStatement)stmt;
+      JExpression expr=exprStmt.getExpr();
+      JExpression clone=cloner.cloneExpression(expr);
+      expressions.add(clone);
+    }
+ else     if (stmt instanceof JReturnStatement) {
+      JReturnStatement returnStatement=(JReturnStatement)stmt;
+      JExpression expr=returnStatement.getExpr();
+      if (expr != null) {
+        JExpression clone=cloner.cloneExpression(expr);
+        clone=maybeCast(clone,body.getMethod().getType());
+        expressions.add(clone);
+      }
+      break;
+    }
+ else {
+      return null;
+    }
+  }
+  return expressions;
+}

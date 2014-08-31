@@ -2,6 +2,13 @@
   if (x.getOp().isModifying()) {
     lvalues.remove(x.getArg());
   }
+  if (isNonEmptyMultiExpression(x.getArg())) {
+    List<JExpression> expressions=((JMultiExpression)x.getArg()).getExpressions();
+    JMultiExpression result=new JMultiExpression(x.getArg().getSourceInfo(),expressions.subList(0,expressions.size() - 1));
+    result.addExpressions(new JPostfixOperation(x.getSourceInfo(),x.getOp(),expressions.get(expressions.size() - 1)));
+    ctx.replaceMe(result);
+    return;
+  }
   if (ignoringExpressionOutput.contains(x)) {
     JPrefixOperation newOp=new JPrefixOperation(x.getSourceInfo(),x.getOp(),x.getArg());
     ctx.replaceMe(newOp);

@@ -1,0 +1,22 @@
+{
+  int numberOfExpressions=expressions.size();
+  JExpression result=expressions.get(numberOfExpressions - 1);
+  numberOfExpressions=expressions.size();
+  if (numberOfExpressions == 0) {
+    return new JMultiExpression(SourceOrigin.UNKNOWN);
+  }
+  expressions=Lists.newArrayList(Collections2.filter(expressions.subList(0,numberOfExpressions - 1),Predicates.and(Predicates.notNull(),new Predicate<JExpression>(){
+    @Override public boolean apply(    JExpression expression){
+      return expression.hasSideEffects();
+    }
+  }
+)));
+  if (result != null && (!ignoringResult || result.hasSideEffects())) {
+    expressions.add(result);
+  }
+  if (expressions.size() == 1) {
+    return expressions.iterator().next();
+  }
+  SourceInfo info=expressions.size() > 0 ? expressions.get(0).getSourceInfo() : SourceOrigin.UNKNOWN;
+  return new JMultiExpression(info,expressions);
+}

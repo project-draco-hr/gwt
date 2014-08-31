@@ -1,25 +1,25 @@
 {
   JMethod method=x.getTarget();
   if (program.isJsTypePrototype(method.getEnclosingType())) {
-    return false;
+    return InlineResult.BLACKLIST;
   }
   if (!method.isStatic() || method.isNative()) {
-    return false;
+    return InlineResult.BLACKLIST;
   }
   if (!program.isInliningAllowed(method)) {
-    return false;
+    return InlineResult.BLACKLIST;
   }
   JMethodBody body=(JMethodBody)method.getBody();
   List<JStatement> stmts=body.getStatements();
   if (method.getEnclosingType() != null && method.getEnclosingType().getClinitMethod() == method && !stmts.isEmpty()) {
-    return false;
+    return InlineResult.BLACKLIST;
   }
   if (!body.getLocals().isEmpty()) {
-    return false;
+    return InlineResult.BLACKLIST;
   }
-  JMultiExpression multi=createMultiExpressionFromBody(body,ignoringReturnValueFor == x);
-  if (multi == null || !tryInlineExpression(x,ctx,multi)) {
-    return false;
+  List<JExpression> expressions=extractExpressionsFromBody(body);
+  if (expressions == null) {
+    return InlineResult.BLACKLIST;
   }
-  return true;
+  return tryInlineBody(x,ctx,expressions,expressionsWhoseValuesAreIgnored.contains(x));
 }

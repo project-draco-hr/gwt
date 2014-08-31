@@ -14,16 +14,16 @@
   AnalysisResult analysisResult=staticallyEvaluateInstanceOf(fromType,toType);
 switch (analysisResult) {
 case TRUE:
-    JNullLiteral nullLit=program.getLiteralNull();
-  JBinaryOperation neq=new JBinaryOperation(x.getSourceInfo(),program.getTypePrimitiveBoolean(),JBinaryOperator.NEQ,x.getExpr(),nullLit);
-ctx.replaceMe(neq);
-break;
+    if (x.getExpr().getType().canBeNull()) {
+      JBinaryOperation neq=new JBinaryOperation(x.getSourceInfo(),program.getTypePrimitiveBoolean(),JBinaryOperator.NEQ,x.getExpr(),program.getLiteralNull());
+      ctx.replaceMe(neq);
+    }
+ else {
+      ctx.replaceMe(JjsUtils.createOptimizedMultiExpression(x.getExpr(),program.getLiteralBoolean(true)));
+    }
+  break;
 case FALSE:
-JExpression result=program.getLiteralBoolean(false);
-if (x.getExpr().hasSideEffects()) {
-result=new JMultiExpression(x.getSourceInfo(),x.getExpr(),result);
-}
-ctx.replaceMe(result);
+ctx.replaceMe(JjsUtils.createOptimizedMultiExpression(x.getExpr(),program.getLiteralBoolean(false)));
 break;
 case UNKNOWN:
 default :

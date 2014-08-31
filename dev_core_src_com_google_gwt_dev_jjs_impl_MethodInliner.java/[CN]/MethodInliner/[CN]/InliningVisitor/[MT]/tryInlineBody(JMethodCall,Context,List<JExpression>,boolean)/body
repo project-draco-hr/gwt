@@ -1,0 +1,41 @@
+{
+  if (isTooComplexToInline(bodyAsExpressionList,ignoringReturn)) {
+    return InlineResult.BLACKLIST;
+  }
+  ExpressionAnalyzer targetAnalyzer=new ExpressionAnalyzer();
+  targetAnalyzer.accept(bodyAsExpressionList);
+  if (targetAnalyzer.hasAssignmentToParameter()) {
+    return InlineResult.BLACKLIST;
+  }
+  RecursionCheckVisitor recursionCheckVisitor=new RecursionCheckVisitor(x.getTarget());
+  recursionCheckVisitor.accept(bodyAsExpressionList);
+  if (recursionCheckVisitor.isRecursive()) {
+    return InlineResult.BLACKLIST;
+  }
+  if (x.getTarget().getParams().size() != x.getArgs().size()) {
+    return InlineResult.DO_NOT_BLACKLIST;
+  }
+  OrderVisitor orderVisitor=new OrderVisitor(x.getTarget().getParams());
+  orderVisitor.accept(bodyAsExpressionList);
+  if (orderVisitor.checkResults() == SideEffectCheck.NO_REFERENCES) {
+    List<JExpression> expressions=expressionsIncludingArgs(x);
+    expressions.addAll(bodyAsExpressionList);
+    replaceMeAndRecordModification(ctx,JjsUtils.createOptimizedMultiExpression(ignoringReturn,expressions));
+    return InlineResult.DO_NOT_BLACKLIST;
+  }
+  if (orderVisitor.checkResults() == SideEffectCheck.FAILS) {
+    for (    JExpression arg : x.getArgs()) {
+      ExpressionAnalyzer argAnalyzer=new ExpressionAnalyzer();
+      argAnalyzer.accept(arg);
+      if (argAnalyzer.hasAssignment() || argAnalyzer.accessesField() || argAnalyzer.createsObject()|| argAnalyzer.canThrowException()) {
+        return InlineResult.DO_NOT_BLACKLIST;
+      }
+    }
+  }
+  ParameterReplacer replacer=new ParameterReplacer(x);
+  replacer.accept(bodyAsExpressionList);
+  bodyAsExpressionList.add(0,x.getInstance());
+  bodyAsExpressionList.add(1,createClinitCall(x));
+  replaceMeAndRecordModification(ctx,JjsUtils.createOptimizedMultiExpression(ignoringReturn,bodyAsExpressionList));
+  return InlineResult.DO_NOT_BLACKLIST;
+}

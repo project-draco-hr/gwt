@@ -1,11 +1,6 @@
 {
   new FixNameClashesVisitor().accept(program);
-  if (optimize) {
-    new CanObserveSubclassUninitializedFieldsVisitor().accept(program);
-  }
- else {
-    assumeAllClassesCanObserveUninitializedSubclassFields(program);
-  }
+  uninitializedValuePotentiallyObservable=optimize ? ComputePotentiallyObservableUninitializedValues.analyze(program) : Predicates.<JField>alwaysTrue();
   new FindNameOfTargets().accept(program);
   new SortVisitor().accept(program);
   if (hasWholeWorldKnowledge) {
