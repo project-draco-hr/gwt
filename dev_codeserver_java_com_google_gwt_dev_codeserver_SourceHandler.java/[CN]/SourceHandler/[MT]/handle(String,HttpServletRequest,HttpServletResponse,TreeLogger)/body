@@ -3,26 +3,30 @@
   if (moduleName == null) {
     throw new RuntimeException("invalid request (shouldn't happen): " + target);
   }
+  Outbox box=outboxes.findByModuleName(moduleName);
+  if (box == null) {
+    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    logger.log(TreeLogger.WARN,"unknown module; returned not found for request: " + target);
+    return;
+  }
   String rootDir=SOURCEMAP_PATH + moduleName + "/";
   String rest=target.substring(rootDir.length());
   if (rest.isEmpty()) {
     sendDirectoryListPage(moduleName,response,logger);
   }
  else   if (rest.equals("gwtSourceMap.json")) {
-    ModuleState moduleState=modules.get(moduleName);
-    sendSourceMap(moduleName,moduleState.findSourceMapForOnePermutation(),request,response,logger);
+    sendSourceMap(moduleName,box.findSourceMapForOnePermutation(),request,response,logger);
   }
  else   if (rest.endsWith("/")) {
     sendFileListPage(moduleName,rest,response,logger);
   }
  else   if (rest.endsWith(".java")) {
-    sendSourceFile(moduleName,rest,request.getQueryString(),response,logger);
+    sendSourceFile(box,rest,request.getQueryString(),response,logger);
   }
  else {
     String strongName=getStrongNameFromSourcemapFilename(rest);
     if (strongName != null) {
-      ModuleState moduleState=modules.get(moduleName);
-      File sourceMap=moduleState.findSourceMap(strongName).getAbsoluteFile();
+      File sourceMap=box.findSourceMap(strongName).getAbsoluteFile();
       sendSourceMap(moduleName,sourceMap,request,response,logger);
     }
  else {
