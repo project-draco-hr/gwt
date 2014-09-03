@@ -1,0 +1,36 @@
+{
+  System.setProperty(GWT_PERSISTENTUNITCACHE,"false");
+  Thread.sleep(1001);
+  TreeLogger logger=TreeLogger.NULL;
+  File outputDir=new File(applicationDir.getPath() + File.separator + moduleName);
+  if (outputDir.exists()) {
+    Util.recursiveDelete(outputDir,true);
+  }
+  ResourceLoader resourceLoader=ResourceLoaders.forClassLoader(Thread.currentThread());
+  resourceLoader=ResourceLoaders.forPathAndFallback(ImmutableList.of(applicationDir),resourceLoader);
+  compilerOptions.setCompilePerFile(true);
+  compilerOptions.setWarDir(applicationDir);
+  compilerOptions.setModuleNames(ImmutableList.of(moduleName));
+  compilerOptions.setOutput(output);
+  CompilerContext compilerContext=new CompilerContext.Builder().options(compilerOptions).minimalRebuildCache(minimalRebuildCache).build();
+  for (  MockResource applicationResource : applicationResources) {
+    writeResourceTo(applicationResource,applicationDir);
+  }
+  ModuleDefLoader.clearModuleCache();
+  ModuleDefLoader.loadFromResources(logger,compilerContext,moduleName,resourceLoader,true);
+  Compiler compiler=new Compiler(compilerOptions,minimalRebuildCache);
+  compiler.run(logger);
+  File outputJsFile=null;
+  outputDir=new File(applicationDir.getPath() + File.separator + moduleName);
+  if (outputDir.exists()) {
+    for (    File outputFile : outputDir.listFiles()) {
+      if (outputFile.getPath().endsWith(".cache.js")) {
+        outputJsFile=outputFile;
+        break;
+      }
+    }
+  }
+  assertNotNull(outputJsFile);
+  assertEquals(expectedStaleTypeNames,minimalRebuildCache.getStaleTypeNames());
+  return Files.toString(outputJsFile,Charsets.UTF_8);
+}

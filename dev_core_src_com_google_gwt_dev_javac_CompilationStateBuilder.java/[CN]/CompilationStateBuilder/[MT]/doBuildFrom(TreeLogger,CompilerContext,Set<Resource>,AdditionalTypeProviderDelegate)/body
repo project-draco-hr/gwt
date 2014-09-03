@@ -3,16 +3,9 @@
   List<CompilationUnitBuilder> builders=Lists.newArrayList();
   Map<CompilationUnitBuilder,CompilationUnit> cachedUnits=Maps.newIdentityHashMap();
   CompileMoreLater compileMoreLater=new CompileMoreLater(compilerContext,compilerDelegate);
-  Set<String> modifiedCompilationUnitNames=Sets.newHashSet();
-  Set<String> allCompilationUnitNames=Sets.newHashSet();
   for (  Resource resource : resources) {
     CompilationUnitBuilder builder=CompilationUnitBuilder.create(resource);
     CompilationUnit cachedUnit=unitCache.find(resource.getPathPrefix() + resource.getPath());
-    String compilationUnitName=Shared.getTypeName(resource);
-    allCompilationUnitNames.add(compilationUnitName);
-    if (cachedUnit == null || cachedUnit.getLastModified() != resource.getLastModified()) {
-      modifiedCompilationUnitNames.add(compilationUnitName);
-    }
     if (cachedUnit != null && cachedUnit.getLastModified() != resource.getLastModified()) {
       unitCache.remove(cachedUnit);
       if (cachedUnit instanceof CachedCompilationUnit && cachedUnit.getContentId().equals(builder.getContentId())) {
@@ -30,9 +23,6 @@
     }
     builders.add(builder);
   }
-  MinimalRebuildCache minimalRebuildCache=compilerContext.getMinimalRebuildCache();
-  minimalRebuildCache.setModifiedCompilationUnitNames(logger,modifiedCompilationUnitNames);
-  minimalRebuildCache.setAllCompilationUnitNames(logger,allCompilationUnitNames);
   int cachedSourceCount=cachedUnits.size();
   int sourceCount=resources.size();
   if (logger.isLoggable(TreeLogger.TRACE)) {

@@ -1,0 +1,22 @@
+{
+  deletedResourcePaths.clear();
+  modifiedResourcePaths.clear();
+  Set<String> currentResourcePaths=Sets.newHashSet();
+  for (  Entry<String,Long> entry : currentModifiedByResourcePath.entrySet()) {
+    String currentResourcePath=entry.getKey();
+    Long currentResourceModified=entry.getValue();
+    currentResourcePaths.add(currentResourcePath);
+    Long lastKnownModified=lastModifiedByResourcePath.put(currentResourcePath,currentResourceModified);
+    if (!Objects.equal(lastKnownModified,currentResourceModified)) {
+      modifiedResourcePaths.add(currentResourcePath);
+    }
+  }
+{
+    Set<String> removedResourcePaths=Sets.newHashSet(Sets.difference(lastModifiedByResourcePath.keySet(),currentResourcePaths));
+    deletedResourcePaths.addAll(removedResourcePaths);
+    modifiedResourcePaths.addAll(removedResourcePaths);
+    for (    String removedResourcePath : removedResourcePaths) {
+      lastModifiedByResourcePath.remove(removedResourcePath);
+    }
+  }
+}

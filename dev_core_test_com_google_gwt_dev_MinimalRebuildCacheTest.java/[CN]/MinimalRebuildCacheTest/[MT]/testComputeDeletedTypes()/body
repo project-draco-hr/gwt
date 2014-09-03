@@ -1,11 +1,13 @@
 {
-  minimalRebuildCache.setAllCompilationUnitNames(TreeLogger.NULL,Sets.newHashSet("Foo","Bar","Baz"));
+  Map<String,Long> currentModifiedBySourcePath=new ImmutableMap.Builder<String,Long>().put("Foo.java",0L).put("Bar.java",0L).put("Baz.java",0L).build();
+  minimalRebuildCache.recordDiskSourceResources(currentModifiedBySourcePath);
   minimalRebuildCache.recordNestedTypeName("Foo","Foo");
   minimalRebuildCache.recordNestedTypeName("Foo","Foo$Inner");
   minimalRebuildCache.recordNestedTypeName("Bar","Bar");
   minimalRebuildCache.recordNestedTypeName("Bar","Bar$Inner");
   minimalRebuildCache.recordNestedTypeName("Baz","Baz");
   minimalRebuildCache.recordNestedTypeName("Baz","Baz$Inner");
-  minimalRebuildCache.setAllCompilationUnitNames(TreeLogger.NULL,Sets.newHashSet("Foo","Bar"));
+  Map<String,Long> laterModifiedBySourcePath=new ImmutableMap.Builder<String,Long>().put("Foo.java",0L).put("Bar.java",0L).build();
+  minimalRebuildCache.recordDiskSourceResources(laterModifiedBySourcePath);
   assertEquals(Sets.newHashSet("Baz","Baz$Inner"),minimalRebuildCache.computeDeletedTypeNames());
 }

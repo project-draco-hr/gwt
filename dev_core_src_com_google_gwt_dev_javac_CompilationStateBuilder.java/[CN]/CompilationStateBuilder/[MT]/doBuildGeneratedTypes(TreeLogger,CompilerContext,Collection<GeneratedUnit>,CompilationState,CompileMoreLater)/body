@@ -2,14 +2,10 @@
   UnitCache unitCache=compilerContext.getUnitCache();
   List<CompilationUnitBuilder> builders=Lists.newArrayList();
   Map<CompilationUnitBuilder,CompilationUnit> cachedUnits=Maps.newIdentityHashMap();
-  Set<String> modifiedCompilationUnitNames=Sets.newHashSet();
   for (  GeneratedUnit generatedUnit : generatedUnits) {
     CompilationUnitBuilder builder=CompilationUnitBuilder.create(generatedUnit);
     CompilationUnit cachedUnit=unitCache.find(builder.getContentId());
-    if (cachedUnit == null) {
-      modifiedCompilationUnitNames.add(generatedUnit.getTypeName());
-    }
- else     if (cachedUnit != null) {
+    if (cachedUnit != null) {
       if (!cachedUnit.isError()) {
         cachedUnits.put(builder,cachedUnit);
         compileMoreLater.addValidUnit(cachedUnit);
@@ -18,7 +14,9 @@
     }
     builders.add(builder);
   }
-  compilerContext.getMinimalRebuildCache().addModifiedCompilationUnitNames(logger,modifiedCompilationUnitNames);
+  if (compilerContext.getOptions().shouldCompilePerFile()) {
+    compilerContext.getMinimalRebuildCache().recordGeneratedUnits(generatedUnits);
+  }
   compilationState.incrementGeneratedSourceCount(builders.size() + cachedUnits.size());
   compilationState.incrementCachedGeneratedSourceCount(cachedUnits.size());
   return compileMoreLater.compile(logger,compilerContext,builders,cachedUnits,CompilerEventType.JDT_COMPILER_CSB_GENERATED);
