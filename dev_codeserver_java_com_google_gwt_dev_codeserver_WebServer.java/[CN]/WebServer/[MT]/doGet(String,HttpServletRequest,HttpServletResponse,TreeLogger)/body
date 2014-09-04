@@ -18,13 +18,13 @@
   if (target.startsWith("/recompile/")) {
     setHandled(request);
     String moduleName=target.substring("/recompile/".length());
-    Outbox outbox=outboxes.findByModuleName(moduleName);
+    Outbox outbox=outboxes.findByOutputModuleName(moduleName);
     if (outbox == null) {
       response.sendError(HttpServletResponse.SC_NOT_FOUND);
       logger.log(TreeLogger.WARN,"not found: " + target);
       return;
     }
-    Job job=new Job(outbox.getModuleName(),getBindingProperties(request),logger);
+    Job job=new Job(outbox,getBindingProperties(request),logger);
     runner.submit(job);
     boolean ok=job.waitForResult().isOk();
     JsonObject config=outboxes.getConfig();
@@ -35,7 +35,7 @@
   if (target.startsWith("/log/")) {
     setHandled(request);
     String moduleName=target.substring("/log/".length());
-    File file=outboxes.findByModuleName(moduleName).getCompileLog();
+    File file=outboxes.findByOutputModuleName(moduleName).getCompileLog();
     sendLogPage(moduleName,file,response);
     return;
   }

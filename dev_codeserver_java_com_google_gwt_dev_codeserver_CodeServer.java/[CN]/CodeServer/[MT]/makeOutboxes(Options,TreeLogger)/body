@@ -1,11 +1,14 @@
 {
   File workDir=ensureWorkDir(options);
   logger.log(Type.INFO,"workDir: " + workDir);
+  int nextOutboxId=1;
   OutboxTable outboxes=new OutboxTable(options);
   for (  String moduleName : options.getModuleNames()) {
     AppSpace appSpace=AppSpace.create(new File(workDir,moduleName));
     Recompiler recompiler=new Recompiler(appSpace,moduleName,options);
-    outboxes.addOutbox(new Outbox(recompiler,options.getNoPrecompile(),logger));
+    String outboxId=moduleName + "_" + nextOutboxId;
+    nextOutboxId++;
+    outboxes.addOutbox(new Outbox(outboxId,recompiler,options.getNoPrecompile(),logger));
   }
   return outboxes;
 }

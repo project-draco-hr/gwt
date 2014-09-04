@@ -1,0 +1,28 @@
+{
+  long startTime=System.currentTimeMillis();
+  CompileDir compileDir=makeCompileDir(++compilesDone,job.getLogger());
+  TreeLogger compileLogger=makeCompileLogger(compileDir,job.getLogger());
+  ModuleDef module=loadModule(compileLogger);
+  String newModuleName=module.getName();
+  outputModuleName.set(newModuleName);
+  lastBuild.set(compileDir);
+  try {
+    File outputDir=new File(compileDir.getWarDir().getCanonicalPath() + "/" + getOutputModuleName());
+    if (!outputDir.exists()) {
+      if (!outputDir.mkdir()) {
+        compileLogger.log(TreeLogger.Type.WARN,"cannot create directory: " + outputDir);
+      }
+    }
+    String moduleScript=PageUtil.loadResource(Recompiler.class,"nomodule.nocache.js");
+    moduleScript=moduleScript.replace("__MODULE_NAME__",getOutputModuleName());
+    PageUtil.writeFile(outputDir.getCanonicalPath() + "/" + getOutputModuleName()+ ".nocache.js",moduleScript);
+  }
+ catch (  IOException e) {
+    compileLogger.log(TreeLogger.Type.ERROR,"Error creating uncompiled module.",e);
+  }
+  long elapsedTime=System.currentTimeMillis() - startTime;
+  compileLogger.log(TreeLogger.Type.INFO,"Module setup completed in " + elapsedTime + " ms");
+  Result result=new Result(job,compileDir,null);
+  job.onFinished(result);
+  return result;
+}
