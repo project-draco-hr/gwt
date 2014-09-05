@@ -1,16 +1,9 @@
 {
-  Set<Range> rangeSet=mappings.keySet();
-  Range[] ranges=rangeSet.toArray(new Range[rangeSet.size()]);
-  Arrays.sort(ranges,Range.DEPENDENCY_ORDER_COMPARATOR);
-  for (  Range r : ranges) {
-    SourceInfo info=mappings.get(r);
-    if (info == SourceOrigin.UNKNOWN || info.getFileName() == null || info.getStartLine() < 0) {
-      continue;
-    }
-    if (r.getStartLine() == 0 || r.getEndLine() == 0) {
-      continue;
-    }
-    output.addMapping(r,info,getJavaName(info));
+  List<Range> ranges=Lists.newArrayList(mappings.getRanges());
+  Collections.sort(ranges,Range.DEPENDENCY_ORDER_COMPARATOR);
+  for (  Range range : ranges) {
+    SourceInfo info=range.getSourceInfo();
+    output.addMapping(range,getJavaName(info));
   }
   output.flush();
 }

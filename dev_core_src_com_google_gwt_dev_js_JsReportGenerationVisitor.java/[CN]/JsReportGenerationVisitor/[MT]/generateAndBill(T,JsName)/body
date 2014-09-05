@@ -1,5 +1,5 @@
 {
-  previousChildKey=null;
+  previousRange=null;
   if (!(node instanceof JsNode)) {
     return super.generateAndBill(node,nameToBillTo);
   }
@@ -35,14 +35,22 @@
     parentStack.add((JsNode)node);
   }
   T toReturn=super.generateAndBill(node,nameToBillTo);
-  if (willReportRange) {
-    parentStack.remove(parentStack.size() - 1);
+  if (!willReportRange) {
+    return toReturn;
   }
-  if (out.getPosition() > beforePosition && willReportRange) {
-    SourceInfo info=((JsNode)node).getSourceInfo();
-    Range javaScriptRange=new Range(beforePosition,out.getPosition(),beforeLine,beforeColumn,out.getLine(),out.getColumn());
-    sourceInfoMap.put(javaScriptRange,info);
-    previousChildKey=javaScriptRange;
+  parentStack.remove(parentStack.size() - 1);
+  SourceInfo info=((JsNode)node).getSourceInfo();
+  Range range=new Range(beforePosition,out.getPosition(),beforeLine,beforeColumn,out.getLine(),out.getColumn(),info);
+  if (out.getPosition() <= beforePosition || beforeLine < 0 || out.getLine() < 0) {
+    return toReturn;
   }
+  if (info == SourceOrigin.UNKNOWN || info.getFileName() == null || info.getStartLine() < 0) {
+    return toReturn;
+  }
+  if (previousRange != null && previousRange.contains(range)) {
+    return toReturn;
+  }
+  ranges.add(range);
+  previousRange=range;
   return toReturn;
 }
