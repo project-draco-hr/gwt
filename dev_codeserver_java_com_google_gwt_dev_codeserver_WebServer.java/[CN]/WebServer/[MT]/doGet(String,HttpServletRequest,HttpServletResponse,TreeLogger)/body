@@ -5,14 +5,14 @@
   }
   if (target.equals("/")) {
     setHandled(request);
-    JsonObject config=outboxes.getConfig();
-    PageUtil.sendJsonAndHtml("config",config,"frontpage.html",response,logger);
+    JsonObject json=jsonExporter.exportFrontPageVars();
+    PageUtil.sendJsonAndHtml("config",json,"frontpage.html",response,logger);
     return;
   }
   if (target.equals("/dev_mode_on.js")) {
     setHandled(request);
-    JsonObject config=outboxes.getConfig();
-    PageUtil.sendJsonAndJavaScript("__gwt_codeserver_config",config,"dev_mode_on.js",response,logger);
+    JsonObject json=jsonExporter.exportDevModeOnVars();
+    PageUtil.sendJsonAndJavaScript("__gwt_codeserver_config",json,"dev_mode_on.js",response,logger);
     return;
   }
   if (target.startsWith("/recompile/")) {
@@ -26,10 +26,9 @@
     }
     Job job=new Job(outbox,getBindingProperties(request),logger);
     runner.submit(job);
-    boolean ok=job.waitForResult().isOk();
-    JsonObject config=outboxes.getConfig();
-    config.put("status",ok ? "ok" : "failed");
-    sendJsonResult(config,request,response,logger);
+    Job.Result result=job.waitForResult();
+    JsonObject json=jsonExporter.exportRecompileResponse(result);
+    sendJsonResult(json,request,response,logger);
     return;
   }
   if (target.startsWith("/log/")) {
@@ -61,7 +60,7 @@
       json.put("status","idle");
     }
  else {
-      json=progress.toJsonObject();
+      json=jsonExporter.exportProgressResponse(progress);
     }
     sendJsonResult(json,request,response,logger);
     return;

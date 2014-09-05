@@ -1,9 +1,10 @@
 {
-  Outbox module=outboxes.findByOutputModuleName(moduleName);
-  if (module == null) {
+  Outbox box=outboxes.findByOutputModuleName(moduleName);
+  if (box == null) {
     response.sendError(HttpServletResponse.SC_NOT_FOUND);
     logger.log(TreeLogger.WARN,"module not found: " + moduleName);
     return;
   }
-  PageUtil.sendJsonAndHtml("config",module.getTemplateVariables(),"modulepage.html",response,logger);
+  JsonObject json=jsonExporter.exportModulePageVars(box);
+  PageUtil.sendJsonAndHtml("config",json,"modulepage.html",response,logger);
 }

@@ -1,15 +1,6 @@
 {
-  SourceMap map=loadSourceMap(moduleName);
-  JsonObject config=new JsonObject();
-  config.put("moduleName",moduleName);
-  config.put("directory",rest);
-  JsonArray files=new JsonArray();
-  for (  String name : map.getSourceFilesInDirectory(rest)) {
-    JsonObject file=new JsonObject();
-    file.put("name",name);
-    file.put("link",name + "?html");
-    files.add(file);
-  }
-  config.put("files",files);
-  PageUtil.sendJsonAndHtml("config",config,"filelist.html",response,logger);
+  Outbox box=outboxes.findByOutputModuleName(moduleName);
+  SourceMap map=SourceMap.load(box.findSourceMapForOnePermutation());
+  JsonObject json=exporter.exportSourceMapFileListVars(box,map,rest);
+  PageUtil.sendJsonAndHtml("config",json,"filelist.html",response,logger);
 }
