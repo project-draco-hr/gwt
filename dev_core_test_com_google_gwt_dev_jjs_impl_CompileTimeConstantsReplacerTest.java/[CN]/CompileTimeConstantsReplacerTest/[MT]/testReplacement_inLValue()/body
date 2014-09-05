@@ -1,0 +1,10 @@
+{
+  addSnippetClassDecl("static class B {" + " final static int f1 = 1;" + " int m() { "+ "   if (f1 == 1) "+ "     return 1; "+ "   else "+ "     return 2;"+ " } "+ "}");
+  Result result=optimize("void","int i = B.f1; int[] a = new int[] {1, 2, 3}; a[B.f1] = 1;");
+  result.into("int i = 1; int[] a = new int[] {1, 2, 3}; a[1] = 1;");
+  JDeclaredType bType=result.findClass("test.EntryPoint.B");
+  assertTrue("f1 not found as l-value of declaration statement",findMethod(bType,"$clinit").getBody().toString().contains("final static int f1 = 1"));
+  assertTrue("f1 in condition was not replaced",findMethod(bType,"m").getBody().toString().contains("1 == 1"));
+  assertEquals("incorrect modifiers for f1","final static int f1",findField(bType,"f1").toString());
+  assertNoCompileTimeConstants(result.getOptimizedProgram());
+}

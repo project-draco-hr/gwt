@@ -1,7 +1,8 @@
 {
   JMethod target=x.getTarget();
-  if (target.isStatic() && x.getInstance() != null) {
-    ignoringExpressionOutput.remove(x.getInstance());
+  JExpression instance=x.getInstance();
+  if (target.isStatic() && instance != null) {
+    ignoringExpressionOutput.remove(instance);
   }
   int paramCount=target.getParams().size();
   for (int i=paramCount; i < x.getArgs().size(); ++i) {
@@ -13,7 +14,7 @@
     }
   }
   JDeclaredType targetType=target.getEnclosingType();
-  if (targetType == program.getTypeJavaLangString() || (x.getInstance() != null && x.getInstance().getType().getUnderlyingType() == program.getTypeJavaLangString())) {
+  if (targetType == program.getTypeJavaLangString() || (instance != null && instance.getType().getUnderlyingType() == program.getTypeJavaLangString())) {
     tryOptimizeStringCall(x,ctx,target);
   }
  else   if (JProgram.isClinit(target)) {
@@ -26,5 +27,8 @@
   }
  else   if (target == isScriptMethod) {
     ctx.replaceMe(JBooleanLiteral.TRUE);
+  }
+ else   if (target == enumOrdinalMethod) {
+    maybeReplaceWithOrdinalValue(instance,ctx);
   }
 }

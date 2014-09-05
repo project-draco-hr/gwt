@@ -1,18 +1,29 @@
 {
+  if (x.getField() == enumOrdinalField) {
+    maybeReplaceWithOrdinalValue(x.getInstance(),ctx);
+    return;
+  }
   JLiteral literal=tryGetConstant(x);
   if (literal == null && !ignoringExpressionOutput.contains(x)) {
     return;
   }
-  JMultiExpression multi=new JMultiExpression(x.getSourceInfo());
+  List<JExpression> exprs=Lists.newArrayList();
   JExpression instance=x.getInstance();
   if (instance != null) {
-    multi.addExpressions(instance);
+    exprs.add(instance);
   }
-  if (x.hasClinit()) {
-    multi.addExpressions(createClinitCall(x.getSourceInfo(),x.getField().getEnclosingType()));
+  if (x.hasClinit() && !x.getField().isCompileTimeConstant()) {
+    exprs.add(createClinitCall(x.getSourceInfo(),x.getField().getEnclosingType()));
   }
   if (literal != null) {
-    multi.addExpressions(literal);
+    exprs.add(literal);
   }
-  ctx.replaceMe(this.accept(multi));
+  JExpression replacement;
+  if (exprs.size() == 1) {
+    replacement=exprs.get(0);
+  }
+ else {
+    replacement=new JMultiExpression(x.getSourceInfo(),exprs);
+  }
+  ctx.replaceMe(this.accept(replacement));
 }
