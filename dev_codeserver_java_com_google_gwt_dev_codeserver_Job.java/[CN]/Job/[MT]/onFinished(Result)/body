@@ -2,6 +2,15 @@
   if (table == null || !table.isActive(this)) {
     throw new IllegalStateException("compile job is not active: " + id);
   }
+  if (recompileListenerFailure == null) {
+    try {
+      recompileListener.finishedCompile(inputModuleName,compileId,newResult.isOk());
+    }
+ catch (    Exception e) {
+      getLogger().log(TreeLogger.Type.WARN,"recompile listener threw exception",e);
+      recompileListenerFailure=e;
+    }
+  }
   result.set(newResult);
   if (newResult.isOk()) {
     table.publish(new Progress(this,Status.SERVING),getLogger());

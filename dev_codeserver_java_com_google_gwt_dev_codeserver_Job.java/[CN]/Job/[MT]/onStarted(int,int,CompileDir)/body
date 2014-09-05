@@ -1,0 +1,20 @@
+{
+  if (totalSteps < 0) {
+    throw new IllegalArgumentException("totalSteps should not be negative: " + totalSteps);
+  }
+  if (table == null || !table.isActive(this)) {
+    throw new IllegalStateException("compile job is not active: " + id);
+  }
+  if (this.totalSteps >= 0) {
+    throw new IllegalStateException("onStarted already called for " + id);
+  }
+  this.totalSteps=totalSteps;
+  this.compileId=compileId;
+  try {
+    recompileListener.startedCompile(inputModuleName,compileId,compileDir);
+  }
+ catch (  Exception e) {
+    getLogger().log(TreeLogger.Type.WARN,"recompile listener threw exception",e);
+    recompileListenerFailure=e;
+  }
+}
