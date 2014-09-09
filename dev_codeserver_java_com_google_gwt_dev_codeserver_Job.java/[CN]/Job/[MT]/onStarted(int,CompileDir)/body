@@ -1,0 +1,15 @@
+{
+  if (table == null || !table.isActive(this)) {
+    throw new IllegalStateException("compile job is not active: " + id);
+  }
+  this.compileId=compileId;
+  this.compileDir=compileDir;
+  try {
+    recompileListener.startedCompile(inputModuleName,compileId,compileDir);
+  }
+ catch (  Exception e) {
+    getLogger().log(TreeLogger.Type.WARN,"recompile listener threw exception",e);
+    listenerFailure=e;
+  }
+  publish(makeEvent(Status.COMPILING));
+}
