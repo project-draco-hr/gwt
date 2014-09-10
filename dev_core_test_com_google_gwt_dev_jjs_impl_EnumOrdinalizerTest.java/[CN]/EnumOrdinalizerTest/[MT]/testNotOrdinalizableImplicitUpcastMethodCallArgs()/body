@@ -1,8 +1,9 @@
 {
   setupFruitEnum();
   addSnippetClassDecl("public static String getEnumString(Enum myEnum) {","  int ord = myEnum.ordinal();","  String retString = \"\";","  for (int i = 0;i<ord;i++) {","    retString += \"-\";","  }","  retString += myEnum.name();","  return retString;","}");
-  optimize("void","String stringApple = getEnumString(Fruit.APPLE);");
+  Result result=optimize("void","String stringApple = getEnumString(Fruit.APPLE);");
   EnumOrdinalizer.Tracker tracker=EnumOrdinalizer.getTracker();
   assertTrue(tracker.isVisited("test.EntryPoint$Fruit"));
   assertFalse(tracker.isOrdinalized("test.EntryPoint$Fruit"));
+  assertAllEnumOrdinalizedReferencesReplaced(result.getOptimizedProgram(),tracker);
 }

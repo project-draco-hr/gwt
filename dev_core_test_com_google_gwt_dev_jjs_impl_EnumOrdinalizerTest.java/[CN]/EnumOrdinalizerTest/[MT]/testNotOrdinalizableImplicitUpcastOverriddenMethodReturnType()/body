@@ -8,10 +8,11 @@
   addSnippetClassDecl("public enum EnumClass1 implements EnumInterface {","  CONST1;","}");
   addSnippetClassDecl("public enum EnumClass2 implements EnumInterface {","  CONST2;","}");
   addSnippetClassDecl("public static void testEnumClass(AbstractClass abstractClass) {","  EnumInterface enumClass = abstractClass.getEnumClass();","}");
-  optimize("void","EntryPoint ep = new EntryPoint();","AbstractClass abstractClass1 = ep.new CustomClass1();","AbstractClass abstractClass2 = ep.new CustomClass2();","testEnumClass(abstractClass1);","testEnumClass(abstractClass2);");
+  Result result=optimize("void","EntryPoint ep = new EntryPoint();","AbstractClass abstractClass1 = ep.new CustomClass1();","AbstractClass abstractClass2 = ep.new CustomClass2();","testEnumClass(abstractClass1);","testEnumClass(abstractClass2);");
   EnumOrdinalizer.Tracker tracker=EnumOrdinalizer.getTracker();
   assertTrue(tracker.isVisited("test.EntryPoint$EnumClass1"));
   assertFalse(tracker.isOrdinalized("test.EntryPoint$EnumClass1"));
   assertTrue(tracker.isVisited("test.EntryPoint$EnumClass2"));
   assertFalse(tracker.isOrdinalized("test.EntryPoint$EnumClass2"));
+  assertAllEnumOrdinalizedReferencesReplaced(result.getOptimizedProgram(),tracker);
 }

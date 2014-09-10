@@ -2,7 +2,8 @@
   setupFruitEnum();
   addSnippetClassDecl("public static Fruit getResolvedFruit(Fruit fruit) {","  if (fruit == Fruit.APPLE) {","    return Fruit.ORANGE;","  } else { ","    return Fruit.APPLE;","  }","}");
   addSnippetClassDecl("public static int switchMethodCall(Fruit fruit) {","  int retVal = 0;","  switch (getResolvedFruit(fruit)) {","    case APPLE: retVal = 12; break;","    case ORANGE:retVal = 73; break;","  }","  return retVal;","}");
-  optimize("void","int i = switchMethodCall(Fruit.APPLE);","Fruit fruit = Fruit.ORANGE;","int j = switchMethodCall(fruit);");
+  Result result=optimize("void","int i = switchMethodCall(Fruit.APPLE);","Fruit fruit = Fruit.ORANGE;","int j = switchMethodCall(fruit);");
   EnumOrdinalizer.Tracker tracker=EnumOrdinalizer.getTracker();
   assertTrue(tracker.isOrdinalized("test.EntryPoint$Fruit"));
+  assertAllEnumOrdinalizedReferencesReplaced(result.getOptimizedProgram(),tracker);
 }

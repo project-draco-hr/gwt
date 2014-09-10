@@ -1,0 +1,11 @@
+{
+  new JVisitor(){
+    @Override public void endVisit(    JFieldRef x,    Context ctx){
+      assertTrue(x.getField() + " was not replaced everywhere",ctx.isLvalue() || !tracker.isOrdinalized(x.getEnclosingType().getName()));
+    }
+    @Override public void endVisit(    JDeclarationStatement x,    Context ctx){
+      assertTrue(x.getVariableRef().getTarget() + " was not replaced everywhere",x.getInitializer() instanceof JValueLiteral || !(x.getVariableRef() instanceof JFieldRef) || !tracker.isOrdinalized(((JFieldRef)x.getVariableRef()).getField().getEnclosingType().getName()));
+    }
+  }
+.accept(program);
+}

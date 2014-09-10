@@ -1,8 +1,9 @@
 {
   setupFruitEnum();
   addSnippetClassDecl("public static native void passEnumToJsniMethod(Fruit myEnum) /*-{","   myEnum == null; }-*/;");
-  optimize("void","passEnumToJsniMethod(Fruit.APPLE);");
+  Result result=optimize("void","passEnumToJsniMethod(Fruit.APPLE);");
   EnumOrdinalizer.Tracker tracker=EnumOrdinalizer.getTracker();
   assertTrue(tracker.isVisited("test.EntryPoint$Fruit"));
   assertFalse(tracker.isOrdinalized("test.EntryPoint$Fruit"));
+  assertAllEnumOrdinalizedReferencesReplaced(result.getOptimizedProgram(),tracker);
 }

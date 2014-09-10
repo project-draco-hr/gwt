@@ -1,8 +1,9 @@
 {
   setupFruitEnum();
-  addSnippetClassDecl("public static boolean testIsNull(Fruit fruit) {","  if (fruit == null) {","    return true;","  } else {","    return false;","  }","}");
-  optimize("void","Fruit fruit = Fruit.APPLE;","boolean isNull = testIsNull(fruit) || testIsNull(Fruit.ORANGE);");
+  addSnippetClassDecl("public static boolean testIsNull(Fruit fruit) {","  if (fruit == null) {","    return true;","    } else {","    return false;","    }","}");
+  Result result=optimize("void","Fruit fruit = Fruit.APPLE;","boolean isNull = testIsNull(fruit) || testIsNull(Fruit.ORANGE);");
   EnumOrdinalizer.Tracker tracker=EnumOrdinalizer.getTracker();
   assertTrue(tracker.isVisited("test.EntryPoint$Fruit"));
   assertFalse(tracker.isOrdinalized("test.EntryPoint$Fruit"));
+  assertAllEnumOrdinalizedReferencesReplaced(result.getOptimizedProgram(),tracker);
 }
