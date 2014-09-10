@@ -1,0 +1,30 @@
+{
+  job.onProgress("Loading modules");
+  CompilerOptions loadOptions=new CompilerOptionsImpl(compileDir,inputModuleName,options);
+  compilerContext=compilerContextBuilder.options(loadOptions).build();
+  ModuleDef module=loadModule(compileLogger);
+  Map<String,String> bindingProperties=restrictPermutations(compileLogger,module,job.getBindingProperties());
+  String newModuleName=module.getName();
+  outputModuleName.set(newModuleName);
+  InputSummary input=new InputSummary(bindingProperties,module);
+  if (input.equals(lastBuildInput)) {
+    compileLogger.log(Type.INFO,"skipped compile because no input files have changed");
+    job.setCompileStrategy(CompileStrategy.SKIPPED);
+    return true;
+  }
+  job.onProgress("Compiling");
+  CompilerOptions runOptions=new CompilerOptionsImpl(compileDir,newModuleName,options);
+  compilerContext=compilerContextBuilder.options(runOptions).build();
+  MinimalRebuildCache minimalRebuildCache=getOrCreateMinimalRebuildCache(bindingProperties);
+  job.setCompileStrategy(minimalRebuildCache.isPopulated() ? CompileStrategy.INCREMENTAL : CompileStrategy.FULL);
+  boolean success=new Compiler(runOptions,minimalRebuildCache).run(compileLogger,module);
+  if (success) {
+    publishedCompileDir=compileDir;
+    lastBuildInput=input;
+  }
+ else {
+    lastBuildInput=null;
+  }
+  lastBuild.set(compileDir);
+  return success;
+}
