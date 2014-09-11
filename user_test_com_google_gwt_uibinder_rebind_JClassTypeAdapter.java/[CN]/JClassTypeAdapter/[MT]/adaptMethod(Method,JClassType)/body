@@ -3,21 +3,21 @@
   addCommonAbstractMethodBehaviour(realMethod,method,enclosingType);
   addAnnotationBehaviour(realMethod,method);
   addGenericsBehaviour(realMethod,method);
-  expect(method.isStatic()).andStubReturn(Modifier.isStatic(realMethod.getModifiers()));
-  expect(method.getReturnType()).andStubAnswer(new IAnswer<JType>(){
-    public JType answer() throws Throwable {
+  when(method.isStatic()).thenReturn(Modifier.isStatic(realMethod.getModifiers()));
+  when(method.getReturnType()).thenAnswer(new Answer<JType>(){
+    @Override public JType answer(    InvocationOnMock invocation) throws Throwable {
       return adaptType(realMethod.getReturnType());
     }
   }
 );
-  expect(method.getParameters()).andStubAnswer(new IAnswer<JParameter[]>(){
-    public JParameter[] answer() throws Throwable {
+  when(method.getParameters()).thenAnswer(new Answer<JParameter[]>(){
+    @Override public JParameter[] answer(    InvocationOnMock invocation) throws Throwable {
       return adaptParameters(realMethod.getParameterTypes(),realMethod.getParameterAnnotations(),method);
     }
   }
 );
-  expect(method.getThrows()).andStubAnswer(new IAnswer<JClassType[]>(){
-    public JClassType[] answer() throws Throwable {
+  when(method.getThrows()).thenAnswer(new Answer<JClassType[]>(){
+    @Override public JClassType[] answer(    InvocationOnMock invocation) throws Throwable {
       Class<?>[] realThrows=realMethod.getExceptionTypes();
       JClassType[] gwtThrows=new JClassType[realThrows.length];
       for (int i=0; i < realThrows.length; i++) {
@@ -27,6 +27,5 @@
     }
   }
 );
-  EasyMock.replay(method);
   return method;
 }

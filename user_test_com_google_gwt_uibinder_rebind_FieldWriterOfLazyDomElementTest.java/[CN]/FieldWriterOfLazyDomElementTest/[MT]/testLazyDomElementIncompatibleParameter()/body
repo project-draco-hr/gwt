@@ -1,16 +1,14 @@
 {
-  JParameterizedType parameterClass=control.createMock(JParameterizedType.class);
-  expect(ownerFieldType.isParameterized()).andReturn(parameterClass);
-  JClassType arg=control.createMock(JClassType.class);
-  expect(parameterClass.getTypeArgs()).andReturn(new JClassType[]{arg});
-  expect(templateFieldType.isAssignableTo(arg)).andReturn(false);
-  expect(parameterClass.getQualifiedSourceName()).andStubReturn(QUALIFIED_SOURCE_NAME);
-  control.replay();
+  JParameterizedType parameterClass=mock(JParameterizedType.class);
+  when(ownerFieldType.isParameterized()).thenReturn(parameterClass);
+  JClassType arg=mock(JClassType.class);
+  when(parameterClass.getTypeArgs()).thenReturn(new JClassType[]{arg});
+  when(templateFieldType.isAssignableTo(arg)).thenReturn(false);
+  when(parameterClass.getQualifiedSourceName()).thenReturn(QUALIFIED_SOURCE_NAME);
   try {
-    FieldWriter field=new FieldWriterOfLazyDomElement(null,templateFieldType,ownerField,MortalLogger.NULL);
+    new FieldWriterOfLazyDomElement(null,templateFieldType,ownerField,MortalLogger.NULL);
     fail("Expected exception not thrown.");
   }
  catch (  UnableToCompleteException utce) {
   }
-  control.verify();
 }

@@ -10,8 +10,8 @@
   final JClassType finalType=type;
   adaptedClasses.put(clazz,type);
   addAnnotationBehaviour(clazz,type);
-  expect(type.getMethods()).andStubAnswer(new IAnswer<JMethod[]>(){
-    public JMethod[] answer() throws Throwable {
+  when(type.getMethods()).thenAnswer(new Answer<JMethod[]>(){
+    @Override public JMethod[] answer(    InvocationOnMock invocation) throws Throwable {
       Method[] realMethods=clazz.getDeclaredMethods();
       JMethod[] methods=new JMethod[realMethods.length];
       for (int i=0; i < realMethods.length; i++) {
@@ -21,8 +21,8 @@
     }
   }
 );
-  expect(type.getConstructors()).andStubAnswer(new IAnswer<JConstructor[]>(){
-    public JConstructor[] answer() throws Throwable {
+  when(type.getConstructors()).thenAnswer(new Answer<JConstructor[]>(){
+    @Override public JConstructor[] answer(    InvocationOnMock invocation) throws Throwable {
       Constructor<?>[] realConstructors=clazz.getDeclaredConstructors();
       JConstructor[] constructors=new JConstructor[realConstructors.length];
       for (int i=0; i < realConstructors.length; i++) {
@@ -32,8 +32,8 @@
     }
   }
 );
-  expect(type.getFields()).andStubAnswer(new IAnswer<JField[]>(){
-    public JField[] answer() throws Throwable {
+  when(type.getFields()).thenAnswer(new Answer<JField[]>(){
+    @Override public JField[] answer(    InvocationOnMock invocation) throws Throwable {
       Field[] realFields=clazz.getDeclaredFields();
       JField[] fields=new JField[realFields.length];
       for (int i=0; i < realFields.length; i++) {
@@ -43,29 +43,29 @@
     }
   }
 );
-  expect(type.getName()).andStubReturn(clazz.getName());
-  expect(type.getQualifiedSourceName()).andStubReturn(clazz.getCanonicalName());
-  expect(type.getSimpleSourceName()).andStubReturn(clazz.getSimpleName());
+  when(type.getName()).thenReturn(clazz.getName());
+  when(type.getQualifiedSourceName()).thenReturn(clazz.getCanonicalName());
+  when(type.getSimpleSourceName()).thenReturn(clazz.getSimpleName());
   int modifiers=clazz.getModifiers();
-  expect(type.isAbstract()).andStubReturn(Modifier.isAbstract(modifiers));
-  expect(type.isFinal()).andStubReturn(Modifier.isFinal(modifiers));
-  expect(type.isPublic()).andStubReturn(Modifier.isPublic(modifiers));
-  expect(type.isProtected()).andStubReturn(Modifier.isProtected(modifiers));
-  expect(type.isPrivate()).andStubReturn(Modifier.isPrivate(modifiers));
-  expect(type.isArray()).andStubReturn(null);
-  expect(type.isEnum()).andStubReturn(null);
-  expect(type.isPrimitive()).andStubReturn(null);
-  expect(type.isClassOrInterface()).andStubReturn(type);
+  when(type.isAbstract()).thenReturn(Modifier.isAbstract(modifiers));
+  when(type.isFinal()).thenReturn(Modifier.isFinal(modifiers));
+  when(type.isPublic()).thenReturn(Modifier.isPublic(modifiers));
+  when(type.isProtected()).thenReturn(Modifier.isProtected(modifiers));
+  when(type.isPrivate()).thenReturn(Modifier.isPrivate(modifiers));
+  when(type.isArray()).thenReturn(null);
+  when(type.isEnum()).thenReturn(null);
+  when(type.isPrimitive()).thenReturn(null);
+  when(type.isClassOrInterface()).thenReturn(type);
   if (clazz.isInterface()) {
-    expect(type.isClass()).andStubReturn(null);
-    expect(type.isInterface()).andStubReturn(type);
+    when(type.isClass()).thenReturn(null);
+    when(type.isInterface()).thenReturn(type);
   }
  else {
-    expect(type.isClass()).andStubReturn(type);
-    expect(type.isInterface()).andStubReturn(null);
+    when(type.isClass()).thenReturn(type);
+    when(type.isInterface()).thenReturn(null);
   }
-  expect(type.getEnclosingType()).andStubAnswer(new IAnswer<JClassType>(){
-    public JClassType answer() throws Throwable {
+  when(type.getEnclosingType()).thenAnswer(new Answer<JClassType>(){
+    @Override public JClassType answer(    InvocationOnMock invocation) throws Throwable {
       Class<?> enclosingClass=clazz.getEnclosingClass();
       if (enclosingClass == null) {
         return null;
@@ -74,8 +74,8 @@
     }
   }
 );
-  expect(type.getSuperclass()).andStubAnswer(new IAnswer<JClassType>(){
-    public JClassType answer() throws Throwable {
+  when(type.getSuperclass()).thenAnswer(new Answer<JClassType>(){
+    @Override public JClassType answer(    InvocationOnMock invocation) throws Throwable {
       Class<?> superclass=clazz.getSuperclass();
       if (superclass == null) {
         return null;
@@ -84,6 +84,5 @@
     }
   }
 );
-  EasyMock.replay(type);
   return type;
 }

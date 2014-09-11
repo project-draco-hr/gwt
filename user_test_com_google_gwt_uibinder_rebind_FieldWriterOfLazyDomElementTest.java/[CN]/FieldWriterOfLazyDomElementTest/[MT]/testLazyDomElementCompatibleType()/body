@@ -1,15 +1,13 @@
 {
-  JParameterizedType parameterClass=control.createMock(JParameterizedType.class);
-  expect(ownerFieldType.isParameterized()).andReturn(parameterClass);
-  JClassType arg=control.createMock(JClassType.class);
-  expect(parameterClass.getTypeArgs()).andReturn(new JClassType[]{arg});
-  expect(templateFieldType.isAssignableTo(arg)).andReturn(true);
-  expect(parameterClass.getQualifiedSourceName()).andStubReturn(QUALIFIED_SOURCE_NAME);
-  expect(arg.getQualifiedSourceName()).andReturn(ARG_QUALIFIED_SOURCE_NAME);
-  control.replay();
+  JParameterizedType parameterClass=mock(JParameterizedType.class);
+  when(ownerFieldType.isParameterized()).thenReturn(parameterClass);
+  JClassType arg=mock(JClassType.class);
+  when(parameterClass.getTypeArgs()).thenReturn(new JClassType[]{arg});
+  when(templateFieldType.isAssignableTo(arg)).thenReturn(true);
+  when(parameterClass.getQualifiedSourceName()).thenReturn(QUALIFIED_SOURCE_NAME);
+  when(arg.getQualifiedSourceName()).thenReturn(ARG_QUALIFIED_SOURCE_NAME);
   FieldWriter field=new FieldWriterOfLazyDomElement(null,templateFieldType,ownerField,MortalLogger.NULL);
   assertSame(parameterClass,field.getAssignableType());
   assertSame(parameterClass,field.getInstantiableType());
   assertEquals(QUALIFIED_SOURCE_NAME + "<" + ARG_QUALIFIED_SOURCE_NAME+ ">",field.getQualifiedSourceName());
-  control.verify();
 }

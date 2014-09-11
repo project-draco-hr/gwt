@@ -4,17 +4,17 @@
     final Class<?> realParameterType=parameterTypes[i];
     JParameter parameter=createMock(JParameter.class);
     parameters[i]=parameter;
-    expect(parameter.getEnclosingMethod()).andStubReturn(method);
-    expect(parameter.getType()).andStubAnswer(new IAnswer<JType>(){
-      public JType answer() throws Throwable {
+    when(parameter.getEnclosingMethod()).thenReturn(method);
+    when(parameter.getType()).thenAnswer(new Answer<JType>(){
+      @Override public JType answer(      InvocationOnMock invocation) throws Throwable {
         return adaptType(realParameterType);
       }
     }
 );
     final Annotation[] annotations=parameterAnnotations[i];
-    expect(parameter.isAnnotationPresent(isA(Class.class))).andStubAnswer(new IAnswer<Boolean>(){
-      public Boolean answer() throws Throwable {
-        Class<? extends Annotation> annotationClass=(Class<? extends Annotation>)EasyMock.getCurrentArguments()[0];
+    when(parameter.isAnnotationPresent(any(Class.class))).thenAnswer(new Answer<Boolean>(){
+      @Override public Boolean answer(      InvocationOnMock invocation) throws Throwable {
+        Class<? extends Annotation> annotationClass=(Class<? extends Annotation>)invocation.getArguments()[0];
         for (        Annotation annotation : annotations) {
           if (annotation.equals(annotationClass)) {
             return true;
@@ -24,9 +24,9 @@
       }
     }
 );
-    expect(parameter.getAnnotation(isA(Class.class))).andStubAnswer(new IAnswer<Annotation>(){
-      public Annotation answer() throws Throwable {
-        Class<? extends Annotation> annotationClass=(Class<? extends Annotation>)EasyMock.getCurrentArguments()[0];
+    when(parameter.getAnnotation(any(Class.class))).thenAnswer(new Answer<Annotation>(){
+      @Override public Annotation answer(      InvocationOnMock invocation) throws Throwable {
+        Class<? extends Annotation> annotationClass=(Class<? extends Annotation>)invocation.getArguments()[0];
         for (        Annotation annotation : annotations) {
           if (annotation.equals(annotationClass)) {
             return annotation;
@@ -36,7 +36,6 @@
       }
     }
 );
-    EasyMock.replay(parameter);
   }
   return parameters;
 }
