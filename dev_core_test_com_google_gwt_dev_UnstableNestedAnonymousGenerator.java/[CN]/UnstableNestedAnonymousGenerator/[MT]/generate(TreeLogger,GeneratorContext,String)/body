@@ -1,0 +1,38 @@
+{
+  PrintWriter pw=context.tryCreate(logger,"com.foo","NestedAnonymousClasses");
+  if (pw != null) {
+    OutputVersion outputVersion=outputVersionOrder.removeFirst();
+    pw.println("package com.foo;");
+    pw.println("public class NestedAnonymousClasses {");
+    if (outputVersion == OutputVersion.A) {
+      insertClassDefinitionOne(pw);
+      insertClassDefinitionTwo(pw);
+    }
+ else {
+      insertClassDefinitionTwo(pw);
+      insertClassDefinitionOne(pw);
+    }
+    pw.println("  void run() {");
+    pw.println("    new Object() {");
+    pw.println("      void run() {");
+    pw.println("        new Object() {");
+    pw.println("          void run() {");
+    if (outputVersion == OutputVersion.A) {
+      pw.println("ClassOne classOne = new ClassOne();");
+      pw.println("ClassTwo classTwo = new ClassTwo();");
+    }
+ else {
+      pw.println("ClassTwo classTwo = new ClassTwo();");
+      pw.println("ClassOne classOne = new ClassOne();");
+    }
+    pw.println("          }");
+    pw.println("        };");
+    pw.println("      }");
+    pw.println("    };");
+    pw.println("  }");
+    pw.println("}");
+    pw.flush();
+    context.commit(logger,pw);
+  }
+  return "com.foo.NestedAnonymousClasses";
+}

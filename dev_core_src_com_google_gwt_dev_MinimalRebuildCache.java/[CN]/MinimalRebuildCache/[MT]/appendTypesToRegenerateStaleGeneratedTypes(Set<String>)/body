@@ -3,8 +3,10 @@
   Set<String> staleGeneratedCompilationUnitNames=Sets.intersection(computeCompilationUnitNames(staleTypeNames),generatedCompilationUnitNames);
   boolean discoveredMoreStaleTypes;
   do {
-    Set<String> generatorTriggeringTypes=computeTypesThatRebindTypes(computeReboundTypesThatGenerateTypes(staleGeneratedCompilationUnitNames));
+    Set<String> reboundTypesThatGenerateTheStaleCompilationUnits=computeReboundTypesThatGenerateTypes(staleGeneratedCompilationUnitNames);
+    Set<String> generatorTriggeringTypes=computeTypesThatRebindTypes(reboundTypesThatGenerateTheStaleCompilationUnits);
     discoveredMoreStaleTypes=staleTypeNames.addAll(generatorTriggeringTypes);
+    staleTypeNames.addAll(computeNestedTypeNames(computeCompilationUnitsGeneratedForReboundTypes(reboundTypesThatGenerateTheStaleCompilationUnits)));
     staleGeneratedCompilationUnitNames=Sets.intersection(computeCompilationUnitNames(generatorTriggeringTypes),generatedCompilationUnitNames);
   }
  while (discoveredMoreStaleTypes);

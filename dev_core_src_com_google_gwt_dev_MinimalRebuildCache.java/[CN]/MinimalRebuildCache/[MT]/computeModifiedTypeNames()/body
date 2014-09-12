@@ -1,17 +1,8 @@
 {
   Set<String> modifiedTypeNames=Sets.newHashSet();
-  modifiedTypeNames.addAll(modifiedCompilationUnitNames);
-  for (  String modifiedCompilationUnitName : modifiedCompilationUnitNames) {
-    modifiedTypeNames.addAll(nestedTypeNamesByUnitTypeName.get(modifiedCompilationUnitName));
-  }
-  Multimap<String,String> generatedCompilationUnitNamesByReboundTypeNames=HashMultimap.create();
-  Multimaps.invertFrom(reboundTypeNamesByGeneratedCompilationUnitNames,generatedCompilationUnitNamesByReboundTypeNames);
+  modifiedTypeNames.addAll(computeNestedTypeNames(modifiedCompilationUnitNames));
   Set<String> affectedReboundTypeNames=computeReboundTypesAffectedByModifiedResources();
-  for (  String affectedReboundTypeName : affectedReboundTypeNames) {
-    Collection<String> generatedCompilationUnitNames=generatedCompilationUnitNamesByReboundTypeNames.get(affectedReboundTypeName);
-    for (    String generatedCompilationUnitName : generatedCompilationUnitNames) {
-      modifiedTypeNames.addAll(nestedTypeNamesByUnitTypeName.get(generatedCompilationUnitName));
-    }
-  }
+  Set<String> assumedModifiedGeneratedCompilationUnitNames=computeCompilationUnitsGeneratedForReboundTypes(affectedReboundTypeNames);
+  modifiedTypeNames.addAll(computeNestedTypeNames(assumedModifiedGeneratedCompilationUnitNames));
   return modifiedTypeNames;
 }
