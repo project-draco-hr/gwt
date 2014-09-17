@@ -1,0 +1,29 @@
+{
+  try {
+    String outputModuleName=module.getName();
+    File outputDir=new File(compileDir.getWarDir().getCanonicalPath() + "/" + outputModuleName);
+    if (!outputDir.exists()) {
+      if (!outputDir.mkdir()) {
+        compileLogger.log(Type.WARN,"cannot create directory: " + outputDir);
+      }
+    }
+    ResourceOracleImpl publicResources=module.getPublicResourceOracle();
+    for (    String pathName : publicResources.getPathNames()) {
+      File file=new File(outputDir,pathName);
+      File parent=file.getParentFile();
+      if (!parent.isDirectory() && !parent.mkdirs()) {
+        compileLogger.log(Type.ERROR,"cannot create directory: " + parent);
+        throw new UnableToCompleteException();
+      }
+      Files.copy(publicResources.getResourceAsStream(pathName),file.toPath());
+    }
+    String stubJs=generateStub(module,compileLogger);
+    PageUtil.writeFile(outputDir.getCanonicalPath() + "/" + outputModuleName+ ".nocache.js",stubJs);
+  }
+ catch (  IOException e) {
+    compileLogger.log(Type.ERROR,"Error creating stub compile directory.",e);
+    UnableToCompleteException wrapped=new UnableToCompleteException();
+    wrapped.initCause(e);
+    throw wrapped;
+  }
+}

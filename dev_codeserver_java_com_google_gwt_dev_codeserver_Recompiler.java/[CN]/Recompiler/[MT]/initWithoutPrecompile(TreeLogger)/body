@@ -7,23 +7,9 @@
   CompilerOptions loadOptions=new CompilerOptionsImpl(compileDir,inputModuleName,options);
   compilerContext=compilerContextBuilder.options(loadOptions).unitCache(Compiler.getOrCreateUnitCache(logger,loadOptions)).build();
   module.getCompilationState(compileLogger,compilerContext);
-  String newModuleName=module.getName();
-  outputModuleName.set(newModuleName);
+  setUpCompileDir(compileDir,module,compileLogger);
+  outputModuleName.set(module.getName());
   lastBuild.set(compileDir);
-  try {
-    File outputDir=new File(compileDir.getWarDir().getCanonicalPath() + "/" + getOutputModuleName());
-    if (!outputDir.exists()) {
-      if (!outputDir.mkdir()) {
-        compileLogger.log(TreeLogger.Type.WARN,"cannot create directory: " + outputDir);
-      }
-    }
-    String moduleScript=PageUtil.loadResource(Recompiler.class,"nomodule.nocache.js");
-    moduleScript=moduleScript.replace("__MODULE_NAME__",getOutputModuleName());
-    PageUtil.writeFile(outputDir.getCanonicalPath() + "/" + getOutputModuleName()+ ".nocache.js",moduleScript);
-  }
- catch (  IOException e) {
-    compileLogger.log(TreeLogger.Type.ERROR,"Error creating uncompiled module.",e);
-  }
   long elapsedTime=System.currentTimeMillis() - startTime;
   compileLogger.log(TreeLogger.Type.INFO,"Module setup completed in " + elapsedTime + " ms");
   return new Result(compileDir,null);
