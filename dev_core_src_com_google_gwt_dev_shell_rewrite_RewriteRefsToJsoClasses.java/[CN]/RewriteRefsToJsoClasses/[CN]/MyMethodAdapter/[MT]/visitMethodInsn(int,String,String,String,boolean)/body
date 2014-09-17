@@ -1,0 +1,16 @@
+{
+  if (jsoDescriptors.contains(owner)) {
+    if (opcode == Opcodes.INVOKEVIRTUAL) {
+      owner=mapper.findOriginalDeclaringClass(owner,name + desc);
+    }
+    if (!owner.equals("java/lang/Object")) {
+      if (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKESPECIAL) {
+        opcode=Opcodes.INVOKESTATIC;
+        desc=HostedModeClassRewriter.addSyntheticThisParam(owner,desc);
+        name+="$";
+      }
+      owner+="$";
+    }
+  }
+  super.visitMethodInsn(opcode,owner,name,desc,dintf);
+}

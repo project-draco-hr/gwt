@@ -1,0 +1,34 @@
+{
+  Map<String,String> mirroredMethods=mirrorMap.get(owner);
+  if (mirroredMethods == null) {
+    super.visitMethodInsn(opcode,owner,name,desc,dintf);
+    return;
+  }
+  String mirrorClassMethod=mirroredMethods.get(name);
+  if (mirrorClassMethod == null) {
+    super.visitMethodInsn(opcode,owner,name,desc,dintf);
+    return;
+  }
+  String[] temp=mirrorClassMethod.split(":");
+  if (temp.length < 2) {
+    super.visitMethodInsn(opcode,owner,name,desc,dintf);
+    return;
+  }
+  String mirrorClass=temp[0];
+  String mirrorMethod=temp[1];
+  if (className.equals(mirrorClass.replace("/","."))) {
+    super.visitMethodInsn(opcode,owner,name,desc,dintf);
+    return;
+  }
+  if (opcode == Opcodes.INVOKESTATIC) {
+    super.visitMethodInsn(opcode,mirrorClass,mirrorMethod,desc,dintf);
+    return;
+  }
+  final Type[] argTypes=Type.getArgumentTypes(desc);
+  final Type[] newArgTypes=new Type[argTypes.length + 1];
+  newArgTypes[0]=Type.getType("L" + owner + ";");
+  System.arraycopy(argTypes,0,newArgTypes,1,argTypes.length);
+  String newDesc=Type.getMethodDescriptor(Type.getReturnType(desc),newArgTypes);
+  super.visitMethodInsn(Opcodes.INVOKESTATIC,mirrorClass,mirrorMethod,newDesc,dintf);
+  return;
+}
