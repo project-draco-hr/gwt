@@ -38,14 +38,11 @@
     w.write("assert %1$s != null : \"UiField %1$s with 'provided = true' was null\";",name);
   }
   w.write("// Setup section.");
-  for (  String s : statements) {
-    w.write(s);
-  }
-  String attachedVar=null;
+  writeStatements(w,statements);
   if (attachStatements.size() > 0) {
     w.newline();
-    w.write("// Attach section.");
     if (outputAttachDetachCallbacks) {
+      w.write("// Attach section.");
       w.write("%s.wrapInitializationCallback = ",getName());
       w.indent();
       w.indent();
@@ -53,26 +50,27 @@
       w.outdent();
       w.write("@Override public void execute() {");
       w.indent();
-    }
- else {
-      attachedVar=getNextAttachVar();
-      String elementToAttach=getInstantiableType().isAssignableTo(getDomElement(typeOracle)) ? name : name + ".getElement()";
-      w.write("UiBinderUtil.TempAttachment %s = UiBinderUtil.attachToDom(%s);",attachedVar,elementToAttach);
-    }
-    for (    String s : attachStatements) {
-      w.write(s);
-    }
-    if (outputAttachDetachCallbacks) {
+      writeStatements(w,attachStatements);
       w.outdent();
       w.write("}");
       w.outdent();
       w.write("};");
     }
-  }
-  w.newline();
-  if (attachedVar != null) {
-    w.write("// Detach section.");
-    w.write("%s.detach();",attachedVar);
+ else {
+      String attachedVar="__attachRecord__";
+      w.write("{");
+      w.indent();
+      w.write("// Attach section.");
+      String elementToAttach=getInstantiableType().isAssignableTo(getDomElement(typeOracle)) ? name : name + ".getElement()";
+      w.write("UiBinderUtil.TempAttachment %s = UiBinderUtil.attachToDom(%s);",attachedVar,elementToAttach);
+      w.newline();
+      writeStatements(w,attachStatements);
+      w.newline();
+      w.write("// Detach section.");
+      w.write("%s.detach();",attachedVar);
+      w.outdent();
+      w.write("}");
+    }
   }
   if (detachStatements.size() > 0) {
     if (outputAttachDetachCallbacks) {
@@ -84,9 +82,7 @@
       w.write("@Override public void execute() {");
       w.indent();
     }
-    for (    String s : detachStatements) {
-      w.write(s);
-    }
+    writeStatements(w,detachStatements);
     if (outputAttachDetachCallbacks) {
       w.outdent();
       w.write("}");
