@@ -18,13 +18,12 @@
   if (target.startsWith("/recompile/")) {
     setHandled(request);
     String moduleName=target.substring("/recompile/".length());
-    Outbox outbox=outboxes.findByOutputModuleName(moduleName);
-    if (outbox == null) {
-      response.sendError(HttpServletResponse.SC_NOT_FOUND);
-      logger.log(TreeLogger.WARN,"not found: " + target);
+    Outbox box=outboxes.findByOutputModuleName(moduleName);
+    if (box == null) {
+      PageUtil.sendUnavailable(response,logger,"No such module: " + moduleName);
       return;
     }
-    Job job=outbox.makeJob(getBindingProperties(request),logger);
+    Job job=box.makeJob(getBindingProperties(request),logger);
     runner.submit(job);
     Job.Result result=job.waitForResult();
     JsonObject json=jsonExporter.exportRecompileResponse(result);
@@ -34,8 +33,16 @@
   if (target.startsWith("/log/")) {
     setHandled(request);
     String moduleName=target.substring("/log/".length());
-    File file=outboxes.findByOutputModuleName(moduleName).getCompileLog();
-    sendLogPage(moduleName,file,response);
+    Outbox box=outboxes.findByOutputModuleName(moduleName);
+    if (box == null) {
+      PageUtil.sendUnavailable(response,logger,"No such module: " + moduleName);
+    }
+ else     if (box.containsStubCompile()) {
+      PageUtil.sendUnavailable(response,logger,"This module hasn't been compiled yet.");
+    }
+ else {
+      sendLogPage(box,response);
+    }
     return;
   }
   if (target.equals("/favicon.ico")) {

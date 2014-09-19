@@ -1,10 +1,14 @@
 {
   int secondSlash=target.indexOf('/',1);
   String moduleName=target.substring(1,secondSlash);
-  Outbox outbox=outboxes.findByOutputModuleName(moduleName);
-  File file=outbox.getOutputFile(target);
+  Outbox box=outboxes.findByOutputModuleName(moduleName);
+  if (box == null) {
+    PageUtil.sendUnavailable(response,logger,"No such module: " + moduleName);
+    return;
+  }
+  File file=box.getOutputFile(target);
   if (!file.isFile()) {
-    file=outbox.getOutputFile(target + ".gz");
+    file=box.getOutputFile(target + ".gz");
     if (!file.isFile()) {
       response.sendError(HttpServletResponse.SC_NOT_FOUND);
       logger.log(TreeLogger.WARN,"not found: " + file.toString());

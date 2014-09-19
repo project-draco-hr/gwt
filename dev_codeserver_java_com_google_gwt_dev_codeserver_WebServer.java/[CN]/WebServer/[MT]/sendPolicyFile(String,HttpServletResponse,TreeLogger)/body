@@ -9,14 +9,10 @@
     response.sendError(HttpServletResponse.SC_NOT_FOUND);
     return;
   }
-  for (  String moduleName : outboxes.getOutputModuleNames()) {
-    Outbox module=outboxes.findByOutputModuleName(moduleName);
-    File policy=module.getOutputFile(moduleName + "/" + rest);
-    if (policy.isFile()) {
-      PageUtil.sendFile("text/plain",policy,response);
-      return;
-    }
+  File policy=outboxes.findPolicyFile(rest);
+  if (policy == null) {
+    PageUtil.sendUnavailable(response,logger,"Policy file not found: " + rest);
+    return;
   }
-  logger.log(TreeLogger.Type.WARN,"policy file not found: " + rest);
-  response.sendError(HttpServletResponse.SC_NOT_FOUND);
+  PageUtil.sendFile("text/plain",policy,response);
 }
