@@ -1,0 +1,50 @@
+{
+  CellTree cellTree=(CellTree)tree;
+  TreeNode root=cellTree.getRootTreeNode();
+  final String cellTreeKeyboardSelectedItemStyleName=cellTree.getStyle().cellTreeKeyboardSelectedItem();
+  TreeNode l1Node=root.setChildOpen(0,true);
+  CellTreeNodeView<?> l1View=cellTree.rootNode.getChildNode(0);
+  TreeNode l2Node=l1Node.setChildOpen(0,true);
+  CellTreeNodeView<?> l2View=l1View.getChildNode(0);
+  TreeNode l3Node=l2Node.setChildOpen(0,true);
+  CellTreeNodeView<?> l3View=l2View.getChildNode(0);
+  ((CellTreeNodeView.TreeNodeImpl)l3Node).flush();
+  CellTreeNodeView<?> l4View=l3View.getChildNode(0);
+  TreeNode l4Node=l4View.getTreeNode();
+  cellTree.setKeyboardSelectedTreeNode(l2Node,0,true);
+  assertEquals(l3View,cellTree.getKeyboardSelectedNode());
+  assertEquals(l3Node,cellTree.getKeyboardSelectedTreeNode());
+  assertTrue(CellTreeNodeView.getSelectionElement(l3View.getElement()).getClassName().indexOf(cellTreeKeyboardSelectedItemStyleName) >= 0);
+  cellTree.setKeyboardSelectedTreeNode(l3Node,0,true);
+  assertEquals(l4View,cellTree.getKeyboardSelectedNode());
+  assertEquals(l4Node,cellTree.getKeyboardSelectedTreeNode());
+  assertTrue(CellTreeNodeView.getSelectionElement(l4View.getElement()).getClassName().indexOf(cellTreeKeyboardSelectedItemStyleName) >= 0);
+  l1Node.setChildOpen(0,false);
+  ((CellTreeNodeView.TreeNodeImpl)l1Node).flush();
+  try {
+    cellTree.setKeyboardSelectedTreeNode(l3Node,0,true);
+    fail("should have thrown");
+  }
+ catch (  IllegalStateException e) {
+    assertEquals(e.getMessage(),"TreeNode no longer exists.");
+  }
+  try {
+    cellTree.setKeyboardSelectedTreeNode(l2Node,0,true);
+    fail("should have thrown");
+  }
+ catch (  IllegalStateException e) {
+    assertEquals(e.getMessage(),"TreeNode no longer exists.");
+  }
+  cellTree.setKeyboardSelectedTreeNode(l1Node,0,true);
+  CellTree anotherTree=createAbstractCellTree(model,root.getValue());
+  l1Node=anotherTree.getRootTreeNode().setChildOpen(0,true);
+  ((CellTreeNodeView.TreeNodeImpl)l1Node).flush();
+  anotherTree.setKeyboardSelectedTreeNode(l1Node,0,true);
+  try {
+    cellTree.setKeyboardSelectedTreeNode(l1Node,0,true);
+    fail("should have thrown");
+  }
+ catch (  IllegalArgumentException e) {
+    assertEquals(e.getMessage(),"The tree node does not belong to the tree.");
+  }
+}
