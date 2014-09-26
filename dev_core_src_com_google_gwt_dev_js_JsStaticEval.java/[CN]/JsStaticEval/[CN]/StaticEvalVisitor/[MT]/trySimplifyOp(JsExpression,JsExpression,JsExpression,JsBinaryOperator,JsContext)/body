@@ -1,0 +1,47 @@
+{
+  SourceInfo info=original.getSourceInfo();
+  if (op == JsBinaryOperator.ADD && (arg1 instanceof JsStringLiteral || arg2 instanceof JsStringLiteral)) {
+    StringBuilder result=new StringBuilder();
+    if (appendLiteral(result,(JsValueLiteral)arg1) && appendLiteral(result,(JsValueLiteral)arg2)) {
+      ctx.replaceMe(new JsStringLiteral(info,result.toString()));
+    }
+    return;
+  }
+  if (arg1 instanceof JsNumberLiteral && arg2 instanceof JsNumberLiteral) {
+    double num1=((JsNumberLiteral)arg1).getValue();
+    double num2=((JsNumberLiteral)arg2).getValue();
+    Object result;
+switch (op) {
+case ADD:
+      result=Ieee754_64_Arithmetic.add(num1,num2);
+    break;
+case SUB:
+  result=Ieee754_64_Arithmetic.subtract(num1,num2);
+break;
+case MUL:
+result=Ieee754_64_Arithmetic.multiply(num1,num2);
+break;
+case DIV:
+result=Ieee754_64_Arithmetic.divide(num1,num2);
+break;
+case MOD:
+result=Ieee754_64_Arithmetic.mod(num1,num2);
+break;
+case LT:
+result=Ieee754_64_Arithmetic.lt(num1,num2);
+break;
+case LTE:
+result=Ieee754_64_Arithmetic.le(num1,num2);
+break;
+case GT:
+result=Ieee754_64_Arithmetic.gt(num1,num2);
+break;
+case GTE:
+result=Ieee754_64_Arithmetic.ge(num1,num2);
+break;
+default :
+throw new InternalCompilerException("Can't handle simplify of op " + op);
+}
+ctx.replaceMe(result instanceof Double ? new JsNumberLiteral(info,((Double)result).doubleValue()) : JsBooleanLiteral.get(((Boolean)result).booleanValue()));
+}
+}
