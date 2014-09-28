@@ -3,6 +3,7 @@
   CompilerOptions loadOptions=new CompilerOptionsImpl(compileDir,inputModuleName,options);
   compilerContext=compilerContextBuilder.options(loadOptions).build();
   ModuleDef module=loadModule(compileLogger);
+  String recompileJs=generateModuleRecompileJs(module,compileLogger);
   Map<String,String> bindingProperties=restrictPermutations(compileLogger,module,job.getBindingProperties());
   String newModuleName=module.getName();
   outputModuleName.set(newModuleName);
@@ -24,6 +25,8 @@
     publishedCompileDir=compileDir;
     lastBuildInput=input;
     saveKnownGoodMinimalRebuildCache(bindingProperties,mutableMinimalRebuildCache);
+    String moduleName=outputModuleName.get();
+    writeRecompileNoCacheJs(new File(publishedCompileDir.getWarDir(),moduleName),moduleName,recompileJs,compileLogger);
   }
  else {
     lastBuildInput=null;
