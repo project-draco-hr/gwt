@@ -1,7 +1,7 @@
 {
   boolean changed=false;
   for (int i=0; i < program.getFragmentCount(); i++) {
-    JsBlock fragment=program.getFragmentBlock(i);
+    JsProgramFragment fragment=program.getFragment(i);
     DuplicateFunctionBodyRecorder dfbr=new DuplicateFunctionBodyRecorder();
     dfbr.accept(fragment);
     Map<JsFunction,JsName> newNamesByHoistedFunction=Maps.newHashMap();
@@ -14,7 +14,7 @@
       JsFunction newFunc=new JsFunction(dupMethod.getSourceInfo(),program.getScope(),newName,dupMethod.isFromJava());
       newFunc.setBody(dupMethod.getBody());
       newFunc.getParameters().addAll(dupMethod.getParameters());
-      fragment.getStatements().add(newFunc.makeStmt());
+      fragment.getGlobalBlock().getStatements().add(newFunc.makeStmt());
       newNamesByHoistedFunction.put(dupMethod,newName);
     }
     ReplaceDuplicateInvocationNameRefs rdup=new ReplaceDuplicateInvocationNameRefs(dfbr.getDuplicateMap(),dfbr.getBlacklist(),dupMethodMap,newNamesByHoistedFunction);
