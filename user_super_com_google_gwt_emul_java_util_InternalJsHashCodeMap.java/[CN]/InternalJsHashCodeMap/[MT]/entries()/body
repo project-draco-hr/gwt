@@ -17,22 +17,18 @@
       return false;
     }
     @Override public Entry<K,V> next(){
-      if (!hasNext()) {
-        throw new NoSuchElementException();
-      }
+      checkElement(hasNext());
       lastChain=chain;
       lastEntry=chain[itemIndex++];
       return lastEntry;
     }
     @Override public void remove(){
-      if (lastChain == null) {
-        throw new IllegalStateException();
-      }
+      checkState(lastEntry != null);
       InternalJsHashCodeMap.this.remove(lastEntry.getKey());
       if (chain == lastChain && chain.length != 1) {
         itemIndex--;
       }
-      lastChain=null;
+      lastEntry=null;
     }
   }
 ;
