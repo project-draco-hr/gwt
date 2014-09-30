@@ -15,12 +15,15 @@
   job.onProgress("Compiling");
   CompilerOptions runOptions=new CompilerOptionsImpl(compileDir,newModuleName,options);
   compilerContext=compilerContextBuilder.options(runOptions).build();
-  MinimalRebuildCache minimalRebuildCache=getOrCreateMinimalRebuildCache(bindingProperties);
-  job.setCompileStrategy(minimalRebuildCache.isPopulated() ? CompileStrategy.INCREMENTAL : CompileStrategy.FULL);
-  boolean success=new Compiler(runOptions,minimalRebuildCache).run(compileLogger,module);
+  MinimalRebuildCache knownGoodMinimalRebuildCache=getKnownGoodMinimalRebuildCache(bindingProperties);
+  job.setCompileStrategy(knownGoodMinimalRebuildCache.isPopulated() ? CompileStrategy.INCREMENTAL : CompileStrategy.FULL);
+  MinimalRebuildCache mutableMinimalRebuildCache=new MinimalRebuildCache();
+  mutableMinimalRebuildCache.copyFrom(knownGoodMinimalRebuildCache);
+  boolean success=new Compiler(runOptions,mutableMinimalRebuildCache).run(compileLogger,module);
   if (success) {
     publishedCompileDir=compileDir;
     lastBuildInput=input;
+    saveKnownGoodMinimalRebuildCache(bindingProperties,mutableMinimalRebuildCache);
   }
  else {
     lastBuildInput=null;

@@ -1,0 +1,20 @@
+{
+  PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
+  logger.setMaxDetail(TreeLogger.ERROR);
+  File sourcePath=Files.createTempDir();
+  Options options=new Options();
+  options.parseArgs(new String[]{"-incremental","-src",sourcePath.getAbsolutePath(),"com.foo.SimpleModule"});
+  List<MockResource> originalResources=Lists.newArrayList(simpleModuleResource,referencesBarEntryPointResource,barReferencesBazResource,bazReferencesFooResource,fooResource);
+  writeResourcesTo(originalResources,sourcePath);
+  Recompiler recompiler=new Recompiler(AppSpace.create(Files.createTempDir()),"com.foo.SimpleModule",options);
+  Outbox outbox=new Outbox("Transactional Cache",recompiler,options,logger);
+  OutboxTable outboxes=new OutboxTable();
+  outboxes.addOutbox(outbox);
+  JobRunner runner=new JobRunner(new JobEventTable(),outboxes);
+  Result result=compileWithChanges(logger,runner,outbox,sourcePath,Lists.<MockResource>newArrayList());
+  assertTrue(result.isOk());
+  result=compileWithChanges(logger,runner,outbox,sourcePath,Lists.<MockResource>newArrayList(nonCompilableFooResource));
+  assertFalse(result.isOk());
+  result=compileWithChanges(logger,runner,outbox,sourcePath,Lists.<MockResource>newArrayList(referencesBarEntryPointResource));
+  assertFalse(result.isOk());
+}
