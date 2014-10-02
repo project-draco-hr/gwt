@@ -1,0 +1,15 @@
+{
+  int secondSlash=target.indexOf('/',1);
+  if (secondSlash < 1) {
+    return new ErrorPage("invalid URL for policy file: " + target);
+  }
+  String rest=target.substring(secondSlash + 1);
+  if (rest.contains("/") || !rest.endsWith(".gwt.rpc")) {
+    return new ErrorPage("invalid name for policy file: " + rest);
+  }
+  File fileToSend=outboxes.findPolicyFile(rest);
+  if (fileToSend == null) {
+    return new ErrorPage("Policy file not found: " + rest);
+  }
+  return Responses.newFileResponse("text/plain",fileToSend);
+}

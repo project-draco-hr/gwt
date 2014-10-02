@@ -1,5 +1,18 @@
 {
   if (request.getMethod().equalsIgnoreCase("get")) {
-    doGet(target,request,response,logger);
+    TreeLogger logger=parentLogger.branch(Type.TRACE,"GET " + target);
+    Response page=doGet(target,request,logger);
+    if (page == null) {
+      logger.log(Type.WARN,"not handled: " + target);
+      return;
+    }
+    setHandled(request);
+    if (!target.endsWith(".cache.js")) {
+      response.setHeader("Cache-Control","no-cache, no-store, max-age=0, must-revalidate");
+      response.setHeader("Pragma","no-cache");
+      response.setHeader("Expires",TIME_IN_THE_PAST);
+      response.setDateHeader("Date",new Date().getTime());
+    }
+    page.send(request,response,logger);
   }
 }

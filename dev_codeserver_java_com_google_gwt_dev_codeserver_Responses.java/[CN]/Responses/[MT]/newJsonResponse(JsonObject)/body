@@ -1,0 +1,28 @@
+{
+  return new Response(){
+    @Override public void send(    HttpServletRequest request,    HttpServletResponse response,    TreeLogger logger) throws IOException {
+      response.setStatus(HttpServletResponse.SC_OK);
+      response.setHeader("Cache-control","no-cache");
+      PrintWriter out=response.getWriter();
+      String callbackExpression=request.getParameter("_callback");
+      if (callbackExpression == null) {
+        response.setContentType("application/json");
+        json.write(out);
+      }
+ else {
+        response.setContentType("application/javascript");
+        if (SAFE_CALLBACK.matcher(callbackExpression).matches()) {
+          out.print("/* API response */ " + callbackExpression + "(");
+          json.write(out);
+          out.println(");");
+        }
+ else {
+          logger.log(TreeLogger.ERROR,"invalid callback: " + callbackExpression);
+          out.print("alert('invalid callback parameter');\n");
+          json.write(out);
+        }
+      }
+    }
+  }
+;
+}

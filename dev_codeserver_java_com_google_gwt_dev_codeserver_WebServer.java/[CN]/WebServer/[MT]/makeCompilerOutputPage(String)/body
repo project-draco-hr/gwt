@@ -1,0 +1,51 @@
+{
+  int secondSlash=target.indexOf('/',1);
+  String moduleName=target.substring(1,secondSlash);
+  Outbox box=outboxes.findByOutputModuleName(moduleName);
+  if (box == null) {
+    return new ErrorPage("No such module: " + moduleName);
+  }
+  final String contentEncoding;
+  File file=box.getOutputFile(target);
+  if (!file.isFile()) {
+    file=box.getOutputFile(target + ".gz");
+    if (!file.isFile()) {
+      return new ErrorPage("not found: " + file.toString());
+    }
+    contentEncoding="gzip";
+  }
+ else {
+    contentEncoding=null;
+  }
+  final String sourceMapUrl;
+  Matcher match=CACHE_JS_FILE.matcher(target);
+  if (match.matches()) {
+    String strongName=match.group(1);
+    String template=SourceHandler.sourceMapLocationTemplate(moduleName);
+    sourceMapUrl=template.replace("__HASH__",strongName);
+  }
+ else {
+    sourceMapUrl=null;
+  }
+  String mimeType=guessMimeType(target);
+  final Response barePage=Responses.newFileResponse(mimeType,file);
+  return new Response(){
+    @Override public void send(    HttpServletRequest request,    HttpServletResponse response,    TreeLogger logger) throws IOException {
+      response.setHeader("Access-Control-Allow-Origin","*");
+      if (sourceMapUrl != null) {
+        response.setHeader("X-SourceMap",sourceMapUrl);
+        response.setHeader("SourceMap",sourceMapUrl);
+      }
+      if (contentEncoding != null) {
+        if (!request.getHeader("Accept-Encoding").contains("gzip")) {
+          response.sendError(HttpServletResponse.SC_NOT_IMPLEMENTED);
+          logger.log(TreeLogger.WARN,"client doesn't accept gzip; bailing");
+          return;
+        }
+        response.setHeader("Content-Encoding","gzip");
+      }
+      barePage.send(request,response,logger);
+    }
+  }
+;
+}

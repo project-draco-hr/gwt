@@ -1,0 +1,37 @@
+{
+  String moduleName=getModuleNameFromRequest(target);
+  if (moduleName == null) {
+    throw new RuntimeException("invalid request (shouldn't happen): " + target);
+  }
+  Outbox box=outboxes.findByOutputModuleName(moduleName);
+  if (box == null) {
+    return new ErrorPage("No such module: " + moduleName);
+  }
+ else   if (box.containsStubCompile()) {
+    return new ErrorPage("This module hasn't been compiled yet.");
+  }
+  String rootDir=SOURCEMAP_PATH + moduleName + "/";
+  String rest=target.substring(rootDir.length());
+  if (rest.isEmpty()) {
+    return makeDirectoryListPage(box);
+  }
+ else   if (rest.equals("gwtSourceMap.json")) {
+    return makeSourceMapPage(moduleName,box.findSourceMapForOnePermutation(),request);
+  }
+ else   if (rest.endsWith("/")) {
+    return sendFileListPage(box,rest);
+  }
+ else   if (rest.endsWith(".java")) {
+    return makeSourcePage(box,rest,request.getQueryString(),logger);
+  }
+ else {
+    String strongName=getStrongNameFromSourcemapFilename(rest);
+    if (strongName != null) {
+      File sourceMap=box.findSourceMap(strongName).getAbsoluteFile();
+      return makeSourceMapPage(moduleName,sourceMap,request);
+    }
+ else {
+      return new ErrorPage("page not found");
+    }
+  }
+}

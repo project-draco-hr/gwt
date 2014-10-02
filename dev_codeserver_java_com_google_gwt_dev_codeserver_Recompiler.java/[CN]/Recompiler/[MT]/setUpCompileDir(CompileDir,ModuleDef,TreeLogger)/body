@@ -15,10 +15,10 @@
         compileLogger.log(Type.ERROR,"cannot create directory: " + parent);
         throw new UnableToCompleteException();
       }
-      Files.copy(publicResources.getResourceAsStream(pathName),file.toPath());
+      Files.asByteSink(file).writeFrom(publicResources.getResourceAsStream(pathName));
     }
     String nocacheJs=generateModuleRecompileJs(module,compileLogger);
-    PageUtil.writeFile(outputDir.getCanonicalPath() + "/" + outputModuleName+ ".nocache.js",nocacheJs);
+    Files.write(nocacheJs,new File(outputDir.getCanonicalPath() + "/" + outputModuleName+ ".nocache.js"),Charsets.UTF_8);
     writeRecompileNoCacheJs(outputDir,outputModuleName,nocacheJs,compileLogger);
   }
  catch (  IOException e) {

@@ -1,0 +1,77 @@
+{
+  if (target.equals("/")) {
+    JsonObject json=jsonExporter.exportFrontPageVars();
+    return Pages.newHtmlPage("config",json,"frontpage.html");
+  }
+  if (target.equals("/dev_mode_on.js")) {
+    JsonObject json=jsonExporter.exportDevModeOnVars();
+    return Responses.newJavascriptResponse("__gwt_codeserver_config",json,"dev_mode_on.js");
+  }
+  if (target.startsWith("/recompile/")) {
+    String moduleName=target.substring("/recompile/".length());
+    Outbox box=outboxes.findByOutputModuleName(moduleName);
+    if (box == null) {
+      return new ErrorPage("No such module: " + moduleName);
+    }
+    Job job=box.makeJob(getBindingProperties(request),logger);
+    runner.submit(job);
+    Job.Result result=job.waitForResult();
+    JsonObject json=jsonExporter.exportRecompileResponse(result);
+    return Responses.newJsonResponse(json);
+  }
+  if (target.startsWith("/log/")) {
+    String moduleName=target.substring("/log/".length());
+    Outbox box=outboxes.findByOutputModuleName(moduleName);
+    if (box == null) {
+      return new ErrorPage("No such module: " + moduleName);
+    }
+ else     if (box.containsStubCompile()) {
+      return new ErrorPage("This module hasn't been compiled yet.");
+    }
+ else {
+      return makeLogPage(box);
+    }
+  }
+  if (target.equals("/favicon.ico")) {
+    InputStream faviconStream=getClass().getResourceAsStream("favicon.ico");
+    if (faviconStream == null) {
+      return new ErrorPage("icon not found");
+    }
+    return Responses.newBinaryStreamResponse("image/x-icon",faviconStream);
+  }
+  if (target.equals("/policies/")) {
+    return makePolicyIndexPage();
+  }
+  if (target.equals("/progress")) {
+    JobEvent event=eventTable.getCompilingJobEvent();
+    JsonObject json;
+    if (event == null) {
+      json=new JsonObject();
+      json.put("status","idle");
+    }
+ else {
+      json=jsonExporter.exportProgressResponse(event);
+    }
+    return Responses.newJsonResponse(json);
+  }
+  Matcher matcher=SAFE_MODULE_PATH.matcher(target);
+  if (matcher.matches()) {
+    return makeModulePage(matcher.group(1));
+  }
+  matcher=SAFE_DIRECTORY_PATH.matcher(target);
+  if (matcher.matches() && SourceHandler.isSourceMapRequest(target)) {
+    return handler.handle(target,request,logger);
+  }
+  matcher=SAFE_FILE_PATH.matcher(target);
+  if (matcher.matches()) {
+    if (SourceHandler.isSourceMapRequest(target)) {
+      return handler.handle(target,request,logger);
+    }
+    if (target.startsWith("/policies/")) {
+      return makePolicyFilePage(target);
+    }
+    return makeCompilerOutputPage(target);
+  }
+  logger.log(TreeLogger.WARN,"ignored get request: " + target);
+  return null;
+}

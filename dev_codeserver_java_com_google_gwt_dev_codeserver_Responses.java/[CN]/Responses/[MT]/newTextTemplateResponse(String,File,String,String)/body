@@ -1,0 +1,27 @@
+{
+  if (!file.isFile()) {
+    return new ErrorPage("file not found: " + file.toString());
+  }
+  return new Response(){
+    @Override public void send(    HttpServletRequest request,    HttpServletResponse response,    TreeLogger logger) throws IOException {
+      BufferedReader reader=Files.newReader(file,Charsets.UTF_8);
+      try {
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType(mimeType);
+        PrintWriter out=response.getWriter();
+        while (true) {
+          String line=reader.readLine();
+          if (line == null) {
+            break;
+          }
+          line=line.replace(templateVariable,replacement);
+          out.println(line);
+        }
+      }
+  finally {
+        reader.close();
+      }
+    }
+  }
+;
+}
