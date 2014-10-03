@@ -1,2 +1,21 @@
 {
+  StringBuilder b=new StringBuilder();
+  String strongName=result == null ? "" : result.getStrongName();
+  String modulePrefix=getModulePrefix(logger,context,strongName,length);
+  modulePrefix=JsSourceUtils.condenseAndRemoveLineBreaks(modulePrefix);
+  b.append(modulePrefix);
+  if (js.charAt(0) != '\n') {
+    b.append('\n');
+  }
+  b.append(js);
+  String suffix=getModuleSuffix(logger,context);
+  if (suffix == null) {
+    suffix=getModuleSuffix2(logger,context,strongName);
+    if (suffix == null) {
+      logger.log(Type.ERROR,"Neither getModuleSuffix nor getModuleSuffix2 were overridden in " + "linker: " + getClass().getName());
+      throw new UnableToCompleteException();
+    }
+  }
+  b.append(suffix);
+  return wrapPrimaryFragment(logger,context,b.toString(),artifacts,result);
 }
