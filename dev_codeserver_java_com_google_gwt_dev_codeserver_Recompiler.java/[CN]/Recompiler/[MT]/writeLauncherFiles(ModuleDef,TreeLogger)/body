@@ -1,0 +1,30 @@
+{
+  File launcherDir=options.getLauncherDir();
+  if (launcherDir == null) {
+    return;
+  }
+  File moduleDir=new File(launcherDir + "/" + module.getName());
+  if (!moduleDir.isDirectory()) {
+    if (!moduleDir.mkdirs()) {
+      compileLogger.log(Type.ERROR,"Can't create launcher dir for module: " + moduleDir);
+      throw new UnableToCompleteException();
+    }
+  }
+  try {
+    String stub=generateStubNocacheJs(module.getName());
+    final File noCacheJs=new File(moduleDir,module.getName() + ".nocache.js");
+    Files.write(stub,noCacheJs,Charsets.UTF_8);
+    final File noCacheJsGz=new File(noCacheJs.getPath() + ".gz");
+    if (noCacheJsGz.exists()) {
+      if (!noCacheJsGz.delete()) {
+        compileLogger.log(Type.ERROR,"cannot delete file: " + noCacheJsGz);
+        throw new UnableToCompleteException();
+      }
+    }
+    writePublicResources(moduleDir,module,compileLogger);
+  }
+ catch (  IOException e) {
+    compileLogger.log(Type.ERROR,"Can't update launcher dir",e);
+    throw new UnableToCompleteException();
+  }
+}

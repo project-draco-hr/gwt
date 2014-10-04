@@ -7,16 +7,7 @@
         compileLogger.log(Type.WARN,"cannot create directory: " + outputDir);
       }
     }
-    ResourceOracleImpl publicResources=module.getPublicResourceOracle();
-    for (    String pathName : publicResources.getPathNames()) {
-      File file=new File(outputDir,pathName);
-      File parent=file.getParentFile();
-      if (!parent.isDirectory() && !parent.mkdirs()) {
-        compileLogger.log(Type.ERROR,"cannot create directory: " + parent);
-        throw new UnableToCompleteException();
-      }
-      Files.asByteSink(file).writeFrom(publicResources.getResourceAsStream(pathName));
-    }
+    writePublicResources(outputDir,module,compileLogger);
     String nocacheJs=generateModuleRecompileJs(module,compileLogger);
     Files.write(nocacheJs,new File(outputDir.getCanonicalPath() + "/" + outputModuleName+ ".nocache.js"),Charsets.UTF_8);
     writeRecompileNoCacheJs(outputDir,outputModuleName,nocacheJs,compileLogger);

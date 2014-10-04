@@ -1,0 +1,12 @@
+{
+  ResourceOracleImpl publicResources=module.getPublicResourceOracle();
+  for (  String pathName : publicResources.getPathNames()) {
+    File file=new File(moduleOutputDir,pathName);
+    File parent=file.getParentFile();
+    if (!parent.isDirectory() && !parent.mkdirs()) {
+      compileLogger.log(Type.ERROR,"cannot create directory: " + parent);
+      throw new UnableToCompleteException();
+    }
+    Files.asByteSink(file).writeFrom(publicResources.getResourceAsStream(pathName));
+  }
+}
