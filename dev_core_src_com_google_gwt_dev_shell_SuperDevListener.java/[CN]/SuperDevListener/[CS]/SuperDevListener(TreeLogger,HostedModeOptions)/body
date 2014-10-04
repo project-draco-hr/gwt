@@ -1,51 +1,9 @@
 {
-  List<String> args=new ArrayList<String>();
   this.logger=treeLogger;
   this.options=options;
-  int port=options.getCodeServerPort();
-  if (port < 0 || port == 9997) {
-    port=9876;
-  }
- else   if (port == 0) {
-    try {
-      ServerSocket serverSocket=new ServerSocket(0);
-      port=serverSocket.getLocalPort();
-      serverSocket.close();
-    }
- catch (    IOException e) {
-      logger.log(TreeLogger.ERROR,"Unable to get an unnused port.");
-      throw new RuntimeException(e);
-    }
-  }
-  codeServerPort=port;
-  System.setProperty("gwt.codeserver.port",String.valueOf(codeServerPort));
-  args.add("-noprecompile");
-  args.add("-port");
-  args.add(String.valueOf(codeServerPort));
-  args.add("-sourceLevel");
-  args.add(String.valueOf(options.getSourceLevel()));
-  if (options.getBindAddress() != null) {
-    args.add("-bindAddress");
-    args.add(options.getBindAddress());
-  }
-  if (options.getWorkDir() != null) {
-    args.add("-workDir");
-    args.add(String.valueOf(options.getWorkDir()));
-  }
-  if (options.getLogLevel() != null) {
-    args.add("-logLevel");
-    args.add(String.valueOf(options.getLogLevel()));
-  }
-  if (options.getJsInteropMode() != JsInteropMode.NONE) {
-    args.add("-XjsInteropMode");
-    args.add(options.getJsInteropMode().toString());
-  }
-  if (!options.isIncrementalCompileEnabled()) {
-    args.add("-noincremental");
-  }
-  for (  String mod : options.getModuleNames()) {
-    args.add(mod);
-  }
+  this.codeServerPort=chooseCodeServerPort(treeLogger,options);
+  ensureModuleBaseDir(options);
+  List<String> args=makeCodeServerArgs(options,codeServerPort);
   final String[] codeServerArgs=args.toArray(new String[0]);
   logger.log(Type.INFO,"Runing CodeServer with parameters: " + args);
   final Method mainMethod;
