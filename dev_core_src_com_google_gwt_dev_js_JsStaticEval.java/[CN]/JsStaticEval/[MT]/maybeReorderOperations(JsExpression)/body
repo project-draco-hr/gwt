@@ -1,0 +1,15 @@
+{
+  if (!(x instanceof JsBinaryOperation)) {
+    return x;
+  }
+  JsBinaryOperation expr=(JsBinaryOperation)x;
+  JsBinaryOperator outerOp=expr.getOperator();
+  if (!REORDERABLE_OPERATORS.contains(outerOp)) {
+    return expr;
+  }
+  if (!(expr.getArg2() instanceof JsBinaryOperation) || ((JsBinaryOperation)expr.getArg2()).getOperator() != outerOp) {
+    return expr;
+  }
+  JsBinaryOperation leftExpr=(JsBinaryOperation)expr.getArg2();
+  return new JsBinaryOperation(x.getSourceInfo(),leftExpr.getOperator(),maybeReorderOperations(new JsBinaryOperation(x.getSourceInfo(),outerOp,expr.getArg1(),leftExpr.getArg1())),leftExpr.getArg2());
+}

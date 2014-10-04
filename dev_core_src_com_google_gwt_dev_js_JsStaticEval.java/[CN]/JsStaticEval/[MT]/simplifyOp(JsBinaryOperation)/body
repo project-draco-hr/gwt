@@ -1,11 +1,14 @@
 {
-  SourceInfo info=original.getSourceInfo();
+  SourceInfo info=expr.getSourceInfo();
+  JsExpression arg1=expr.getArg1();
+  JsExpression arg2=expr.getArg2();
+  JsBinaryOperator op=expr.getOperator();
   if (op == JsBinaryOperator.ADD && (arg1 instanceof JsStringLiteral || arg2 instanceof JsStringLiteral)) {
     StringBuilder result=new StringBuilder();
     if (appendLiteral(result,(JsValueLiteral)arg1) && appendLiteral(result,(JsValueLiteral)arg2)) {
-      ctx.replaceMe(new JsStringLiteral(info,result.toString()));
+      return new JsStringLiteral(info,result.toString());
     }
-    return;
+    return expr;
   }
   if (arg1 instanceof JsNumberLiteral && arg2 instanceof JsNumberLiteral) {
     double num1=((JsNumberLiteral)arg1).getValue();
@@ -42,6 +45,7 @@ break;
 default :
 throw new InternalCompilerException("Can't handle simplify of op " + op);
 }
-ctx.replaceMe(result instanceof Double ? new JsNumberLiteral(info,((Double)result).doubleValue()) : JsBooleanLiteral.get(((Boolean)result).booleanValue()));
+return result instanceof Double ? new JsNumberLiteral(info,((Double)result).doubleValue()) : JsBooleanLiteral.get(((Boolean)result).booleanValue());
 }
+return expr;
 }

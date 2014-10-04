@@ -2,22 +2,21 @@
   JsBinaryOperator op=x.getOperator();
   JsExpression arg1=x.getArg1();
   JsExpression arg2=x.getArg2();
-  if (MATH_ASSOCIATIVE.contains(op) && trySimplifyAssociativeExpression(x,ctx)) {
-  }
- else   if (op == JsBinaryOperator.AND) {
-    shortCircuitAnd(arg1,arg2,ctx);
+  JsExpression result=x;
+  if (op == JsBinaryOperator.AND) {
+    result=shortCircuitAnd(x);
   }
  else   if (op == JsBinaryOperator.OR) {
-    shortCircuitOr(arg1,arg2,ctx);
+    result=shortCircuitOr(x);
   }
  else   if (op == JsBinaryOperator.COMMA) {
-    trySimplifyComma(arg1,arg2,ctx);
+    result=trySimplifyComma(x);
   }
  else   if (op == JsBinaryOperator.EQ || op == JsBinaryOperator.REF_EQ) {
-    trySimplifyEqAndRefEq(x,arg1,arg2,ctx);
+    result=simplifyEqAndRefEq(x);
   }
  else   if (op == JsBinaryOperator.NEQ || op == JsBinaryOperator.REF_NEQ) {
-    trySimplifyNeAndRefNe(x,arg1,arg2,ctx);
+    result=simplifyNeAndRefNe(x);
   }
  else   if (arg1 instanceof JsValueLiteral && arg2 instanceof JsValueLiteral) {
 switch (op) {
@@ -30,10 +29,14 @@ case GT:
 case GTE:
 case LT:
 case LTE:
-      trySimplifyOp(x,arg1,arg2,op,ctx);
+      result=simplifyOp(x);
     break;
 default :
   break;
 }
+}
+result=maybeReorderOperations(result);
+if (result != x) {
+ctx.replaceMe(result);
 }
 }
