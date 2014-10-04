@@ -1,0 +1,31 @@
+{
+  maybePrintOpenBrace();
+  StringBuilder propertyBuilder=new StringBuilder();
+  if (insideNoFlipNode) {
+    propertyBuilder.append(NO_FLIP);
+    propertyBuilder.append(' ');
+  }
+  propertyBuilder.append(x.getName());
+  propertyBuilder.append(": ");
+  propertyBuilder.append(printValuesList(x.getValues().getValues(),false));
+  if (x.isImportant()) {
+    propertyBuilder.append(IMPORTANT);
+  }
+  String cssProperty=propertyBuilder.toString();
+  try {
+    new GssParser(new SourceCode(null,"body{" + cssProperty + "}")).parse();
+  }
+ catch (  GssParserException e) {
+    if (lenient) {
+      treeLogger.log(Type.WARN,"The following rule is not valid and will be skipped: " + cssProperty);
+      return false;
+    }
+ else {
+      treeLogger.log(Type.ERROR,"The following rule is not valid. " + cssProperty);
+      throw new Css2GssConversionException("Invalid css rule",e);
+    }
+  }
+  out.print(cssProperty);
+  semiColon();
+  return true;
+}

@@ -1,0 +1,16 @@
+{
+  when(cssDef.getKey()).thenReturn("myConstant");
+  when(cssUrl.getKey()).thenReturn("my_constant");
+  when(cssEval.getKey()).thenReturn("my-constant");
+  DefCollectorVisitor defCollectorVisitor=new DefCollectorVisitor(true,treeLogger);
+  defCollectorVisitor.visit(cssDef,null);
+  defCollectorVisitor.visit(cssUrl,null);
+  defCollectorVisitor.visit(cssEval,null);
+  Map<String,String> mapping=defCollectorVisitor.getDefMapping();
+  assertTrue(mapping.containsKey("myConstant"));
+  assertTrue(mapping.containsKey("my_constant"));
+  assertTrue(mapping.containsKey("my-constant"));
+  assertEquals("MY_CONSTANT",mapping.get("myConstant"));
+  assertEquals("MY_CONSTANT__RENAMED__0",mapping.get("my_constant"));
+  assertEquals("MY_CONSTANT__RENAMED__1",mapping.get("my-constant"));
+}

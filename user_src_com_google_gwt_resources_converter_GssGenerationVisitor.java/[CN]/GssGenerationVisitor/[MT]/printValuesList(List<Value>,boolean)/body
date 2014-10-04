@@ -1,0 +1,31 @@
+{
+  StringBuilder builder=new StringBuilder();
+  for (  Value value : values) {
+    if (value.isSpaceRequired() && builder.length() != 0) {
+      builder.append(' ');
+    }
+    String expression=value.toCss();
+    if (value.isIdentValue() != null && cssToGssConstantMapping.containsKey(expression)) {
+      expression=cssToGssConstantMapping.get(expression);
+    }
+ else     if (value.isExpressionValue() != null) {
+      expression=value.getExpression();
+    }
+ else     if (value.isDotPathValue() != null) {
+      DotPathValue dotPathValue=value.isDotPathValue();
+      if (insideUrlNode) {
+        expression=dotPathValue.getPath();
+      }
+ else {
+        if (Strings.isNullOrEmpty(dotPathValue.getSuffix())) {
+          expression=String.format(VALUE,dotPathValue.getPath());
+        }
+ else {
+          expression=String.format(VALUE_WITH_SUFFIX,dotPathValue.getPath(),dotPathValue.getSuffix());
+        }
+      }
+    }
+    builder.append(unescape(expression));
+  }
+  return builder.toString();
+}

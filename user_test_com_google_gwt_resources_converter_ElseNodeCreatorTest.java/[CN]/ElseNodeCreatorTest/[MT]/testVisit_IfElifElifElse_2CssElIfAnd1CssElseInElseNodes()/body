@@ -1,0 +1,18 @@
+{
+  CssIf elifNode0=mockCssIf(0);
+  CssIf elifNode1=mockCssIf(1);
+  when(elifNode0.getElseNodes()).thenReturn(Arrays.<CssNode>asList(elifNode1));
+  CssNode elseRule=new CssRule();
+  when(elifNode1.getElseNodes()).thenReturn(Arrays.<CssNode>asList(elseRule));
+  elseNodes.add(elifNode0);
+  elseNodeCreator.visit(cssIf,null);
+  assertEquals(3,elseNodes.size());
+  assertTrue(elseNodes.get(0) instanceof CssElIf);
+  assertTrue(elseNodes.get(1) instanceof CssElIf);
+  assertTrue(elseNodes.get(2) instanceof CssElse);
+  verify((CssElIf)elseNodes.get(0),elifNode0);
+  verify((CssElIf)elseNodes.get(1),elifNode1);
+  CssElse newElseNode=(CssElse)elseNodes.get(2);
+  assertEquals(1,newElseNode.getNodes().size());
+  assertTrue(newElseNode.getNodes().contains(elseRule));
+}
