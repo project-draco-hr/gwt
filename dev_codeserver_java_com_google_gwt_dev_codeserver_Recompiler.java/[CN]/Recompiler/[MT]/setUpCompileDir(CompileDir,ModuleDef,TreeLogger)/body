@@ -8,9 +8,11 @@
       }
     }
     writePublicResources(outputDir,module,compileLogger);
-    String nocacheJs=generateModuleRecompileJs(module,compileLogger);
-    Files.write(nocacheJs,new File(outputDir.getCanonicalPath() + "/" + outputModuleName+ ".nocache.js"),Charsets.UTF_8);
-    writeRecompileNoCacheJs(outputDir,outputModuleName,nocacheJs,compileLogger);
+    String stub=generateStubNocacheJs(module.getName());
+    File noCacheJs=new File(outputDir.getCanonicalPath(),module.getName() + ".nocache.js");
+    Files.write(stub,noCacheJs,Charsets.UTF_8);
+    String recompileNoCache=generateModuleRecompileJs(module,compileLogger);
+    writeRecompileNoCacheJs(outputDir,outputModuleName,recompileNoCache,compileLogger);
   }
  catch (  IOException e) {
     compileLogger.log(Type.ERROR,"Error creating stub compile directory.",e);
