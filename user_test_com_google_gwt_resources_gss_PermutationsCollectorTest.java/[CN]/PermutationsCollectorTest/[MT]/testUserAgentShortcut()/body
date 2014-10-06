@@ -1,0 +1,11 @@
+{
+  CssTree cssTree=parseAndBuildTree(lines("@if (is('custom.one', 'foo') && is('ie6')) {","  .foo {","    padding: 5px;"," }","}"));
+  ErrorManager errorManager=mock(ErrorManager.class);
+  PermutationsCollector visitor=new PermutationsCollector(cssTree.getMutatingVisitController(),errorManager);
+  visitor.runPass();
+  verify(errorManager,never()).report(any(GssError.class));
+  List<String> permutationAxis=visitor.getPermutationAxes();
+  assertEquals(2,permutationAxis.size());
+  assertTrue(permutationAxis.contains("custom.one"));
+  assertTrue(permutationAxis.contains("user.agent"));
+}

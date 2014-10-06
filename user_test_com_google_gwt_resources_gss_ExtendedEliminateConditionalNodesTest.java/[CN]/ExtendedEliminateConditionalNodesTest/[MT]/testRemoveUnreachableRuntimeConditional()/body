@@ -1,0 +1,8 @@
+{
+  CssTree cssTree=parseAndBuildTree(lines("@if (is('foo', 'BAR')) {","  .foo {","    padding: 5px;","  }","}","@elseif (eval('com.foo.bar()')) {","  @if (eval('com.foo.FOO')) {","    .foo {","      padding: 15px;","    }","  }","  @else{","    .foo {","      padding: 15px;","    }","  }","}"));
+  Set<String> trueConditions=Sets.newHashSet("foo:BAR");
+  ExtendedEliminateConditionalNodes visitor=new ExtendedEliminateConditionalNodes(cssTree.getMutatingVisitController(),trueConditions,cssRuntimeConditionalBlockNodes);
+  visitor.runPass();
+  String expectedTreeToString="[[.foo]{[padding:[5px]]}]";
+  assertEquals(expectedTreeToString,cssTree.getRoot().getBody().toString());
+}

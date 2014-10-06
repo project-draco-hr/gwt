@@ -1,0 +1,10 @@
+{
+  CssTree cssTree=parseAndBuildTree(lines("@if (eval('com.foo.BAR')) {","  @external foo;","}"));
+  ErrorManager errorManager=mock(ErrorManager.class);
+  ValidateRuntimeConditionalNode visitor=new ValidateRuntimeConditionalNode(cssTree.getMutatingVisitController(),errorManager,lenient);
+  visitor.runPass();
+  VerificationMode error=lenient ? never() : times(1);
+  VerificationMode warning=lenient ? times(1) : never();
+  verify(errorManager,error).report(any(GssError.class));
+  verify(errorManager,warning).reportWarning(any(GssError.class));
+}

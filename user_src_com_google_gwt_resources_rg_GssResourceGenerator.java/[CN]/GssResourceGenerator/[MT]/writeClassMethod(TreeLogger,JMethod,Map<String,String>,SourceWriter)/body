@@ -1,0 +1,20 @@
+{
+  if (!isReturnTypeString(userMethod.getReturnType().isClass())) {
+    logger.log(Type.ERROR,"The return type of the method [" + userMethod.getName() + "] must "+ "be java.lang.String.");
+    throw new UnableToCompleteException();
+  }
+  if (userMethod.getParameters().length > 0) {
+    logger.log(Type.ERROR,"The method [" + userMethod.getName() + "] shouldn't contain any "+ "parameters");
+    throw new UnableToCompleteException();
+  }
+  String name=getClassName(userMethod);
+  String value=substitutionMap.get(name);
+  if (value == null) {
+    logger.log(Type.ERROR,"The following style class [" + name + "] is missing from the source"+ " CSS file");
+    return false;
+  }
+ else {
+    writeSimpleGetter(userMethod,"\"" + value + "\"",sw);
+  }
+  return true;
+}

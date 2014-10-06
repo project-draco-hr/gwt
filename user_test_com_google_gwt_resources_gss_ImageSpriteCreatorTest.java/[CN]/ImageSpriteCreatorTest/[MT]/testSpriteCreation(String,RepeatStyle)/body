@@ -1,0 +1,22 @@
+{
+  CssTree cssTree=parseAndBuildTree(lines(".someClassWithSprite { ","  color: white;","  gwt-sprite: 'imageResource';","  background-color: black;","}"));
+  when(methodByPathHelper.getMethodByPath(any(ResourceContext.class),anyList(),any(JClassType.class))).thenReturn(imageMethod);
+  if (repeatStyle != null) {
+    ImageOptions imageOptions=mock(ImageOptions.class);
+    when(imageOptions.repeatStyle()).thenReturn(repeatStyle);
+    when(imageMethod.getAnnotation(ImageOptions.class)).thenReturn(imageOptions);
+  }
+  ImageSpriteCreator visitor=new ImageSpriteCreator(cssTree.getMutatingVisitController(),resourceContext,errorManager,methodByPathHelper);
+  visitor.runPass();
+  verify(errorManager,never()).report(any(GssError.class));
+  String widthRule="[/* @alternate */]width:[ImageSpriteCreatorTest.this.imageResource()" + ".getWidth() + \"px\"], ";
+  String heightRule="[/* @alternate */]height:[ImageSpriteCreatorTest.this.imageResource()" + ".getHeight() + \"px\"], ";
+  if (repeatStyle == RepeatStyle.Horizontal || repeatStyle == RepeatStyle.Both) {
+    widthRule="";
+  }
+  if (repeatStyle == RepeatStyle.Vertical || repeatStyle == RepeatStyle.Both) {
+    heightRule="";
+  }
+  String cssTreeStringExpected="[" + "[.someClassWithSprite]{" + "[color:[white], " + heightRule + widthRule+ "[/* @alternate */]overflow:[hidden], "+ "[/* @alternate */]background:"+ "[url(ImageSpriteCreatorTest.this.imageResource().getSafeUri().asString()), "+ "\"-\" + ImageSpriteCreatorTest.this.imageResource().getLeft() + \"px\", "+ "\"-\" + ImageSpriteCreatorTest.this.imageResource().getTop() + \"px\",  "+ ""+ repeat+ "], "+ "background-color:[black]]"+ "}]";
+  assertEquals(cssTreeStringExpected,cssTree.getRoot().getBody().toString());
+}

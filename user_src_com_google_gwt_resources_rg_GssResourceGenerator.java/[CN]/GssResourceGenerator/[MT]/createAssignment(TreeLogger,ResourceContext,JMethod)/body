@@ -1,0 +1,16 @@
+{
+  ExtendedCssTree extendedCssTree=cssTreeMap.get(method);
+  RenamingResult renamingResult=doClassRenaming(extendedCssTree.tree,method,logger,context);
+  ConstantDefinitions constantDefinitions=optimize(extendedCssTree,context,true,true,logger);
+  checkErrors();
+  Set<String> externalClasses=revertRenamingOfExternalClasses(extendedCssTree.tree,renamingResult.mapping);
+  checkErrors();
+  validateExternalClasses(externalClasses,renamingResult.externalClassCandidate,method,logger);
+  SourceWriter sw=new StringSourceWriter();
+  sw.println("new " + method.getReturnType().getQualifiedSourceName() + "() {");
+  sw.indent();
+  writeMethods(logger,context,method,sw,constantDefinitions,extendedCssTree.originalConstantNameMapping,renamingResult.mapping);
+  sw.outdent();
+  sw.println("}");
+  return sw.toString();
+}

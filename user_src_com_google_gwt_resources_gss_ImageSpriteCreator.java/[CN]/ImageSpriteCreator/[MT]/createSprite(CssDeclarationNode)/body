@@ -1,0 +1,45 @@
+{
+  List<CssValueNode> valuesNodes=declaration.getPropertyValue().getChildren();
+  if (valuesNodes.size() != 1) {
+    errorManager.report(new GssError(SPRITE_PROPERTY_NAME + " must have exactly one value",declaration.getSourceCodeLocation()));
+    return;
+  }
+  String imageResource=valuesNodes.get(0).getValue();
+  JMethod imageMethod;
+  try {
+    imageMethod=methodByPathHelper.getMethodByPath(context,getPathElement(imageResource),imageResourceType);
+  }
+ catch (  NotFoundException e) {
+    errorManager.report(new GssError("Unable to find ImageResource method " + imageResource + " in "+ context.getClientBundleType().getQualifiedSourceName()+ " : "+ e.getMessage(),declaration.getSourceCodeLocation()));
+    return;
+  }
+  ImageOptions options=imageMethod.getAnnotation(ImageOptions.class);
+  RepeatStyle repeatStyle=options != null ? options.repeatStyle() : RepeatStyle.None;
+  Builder<CssDeclarationNode> listBuilder=ImmutableList.builder();
+  SourceCodeLocation sourceCodeLocation=declaration.getSourceCodeLocation();
+  String repeatText;
+switch (repeatStyle) {
+case None:
+    repeatText=" no-repeat";
+  listBuilder.add(buildHeightDeclaration(imageResource,sourceCodeLocation));
+listBuilder.add(buildWidthDeclaration(imageResource,sourceCodeLocation));
+break;
+case Horizontal:
+repeatText=" repeat-x";
+listBuilder.add(buildHeightDeclaration(imageResource,sourceCodeLocation));
+break;
+case Vertical:
+repeatText=" repeat-y";
+listBuilder.add(buildWidthDeclaration(imageResource,sourceCodeLocation));
+break;
+case Both:
+repeatText=" repeat";
+break;
+default :
+errorManager.report(new GssError("Unknown repeatStyle " + repeatStyle,sourceCodeLocation));
+return;
+}
+listBuilder.add(buildOverflowDeclaration(sourceCodeLocation));
+listBuilder.add(buildBackgroundDeclaration(imageResource,repeatText,sourceCodeLocation));
+visitController.replaceCurrentBlockChildWith(listBuilder.build(),false);
+}

@@ -1,0 +1,16 @@
+{
+  JType methodType;
+  try {
+    methodType=methodByPathHelper.getReturnType(context,pathElements);
+  }
+ catch (  NotFoundException e) {
+    String message=e.getMessage() != null ? e.getMessage() : "Invalid path";
+    errorManager.report(new GssError(message,location));
+    throw new GssFunctionException(message,e);
+  }
+  if (!dataResourceType.isAssignableFrom((JClassType)methodType) && !imageResourceType.isAssignableFrom((JClassType)methodType)) {
+    String message="Invalid method type for url substitution: " + methodType + ". "+ "Only DataResource and ImageResource are supported.";
+    errorManager.report(new GssError(message,location));
+    throw new GssFunctionException(message);
+  }
+}

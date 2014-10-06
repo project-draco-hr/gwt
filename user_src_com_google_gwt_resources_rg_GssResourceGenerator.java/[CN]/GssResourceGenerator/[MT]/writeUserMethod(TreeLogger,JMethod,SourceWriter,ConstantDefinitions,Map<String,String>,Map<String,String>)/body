@@ -1,0 +1,23 @@
+{
+  String className=getClassName(userMethod);
+  if (substitutionMap.containsKey(className)) {
+    return writeClassMethod(logger,userMethod,substitutionMap,sw);
+  }
+  CssDefinitionNode definitionNode;
+  String methodName=userMethod.getName();
+  if (originalConstantNameMapping.containsKey(methodName)) {
+    String constantName=originalConstantNameMapping.get(methodName);
+    definitionNode=constantDefinitions.getConstantDefinition(constantName);
+  }
+ else {
+    definitionNode=constantDefinitions.getConstantDefinition(methodName);
+    if (definitionNode == null) {
+      definitionNode=constantDefinitions.getConstantDefinition(toUpperCase(methodName));
+    }
+  }
+  if (definitionNode != null) {
+    return writeDefMethod(definitionNode,logger,userMethod,sw);
+  }
+  logger.log(Type.ERROR,"The following method [" + userMethod.getName() + "()] doesn't match a constant"+ " nor a style class. You could fix that by adding ."+ className+ " {}");
+  return false;
+}

@@ -1,0 +1,36 @@
+{
+  boolean runtimeEvaluationNodeFound=false;
+  List<CssConditionalRuleNode> newChildren=new ArrayList<CssConditionalRuleNode>(block.numChildren());
+  for (  CssConditionalRuleNode currentConditional : block.childIterable()) {
+    if (currentConditional.getType() == Type.ELSE) {
+      newChildren.add(currentConditional);
+      break;
+    }
+    if (currentConditional instanceof CssRuntimeConditionalRuleNode) {
+      runtimeEvaluationNodeFound=true;
+      newChildren.add(currentConditional);
+      continue;
+    }
+    BooleanExpressionEvaluator evaluator=new BooleanExpressionEvaluator(currentConditional.getCondition(),trueConditions);
+    CssBooleanExpressionNode result=evaluator.evaluate();
+    boolean isTrue=CssBooleanExpressionNode.Type.TRUE_CONSTANT.equals(result.getValue());
+    if (!isTrue) {
+    }
+ else     if (!runtimeEvaluationNodeFound) {
+      visitController.replaceCurrentBlockChildWith(currentConditional.getBlock().getChildren(),true);
+      return true;
+    }
+ else {
+      CssConditionalRuleNode newNode=new CssConditionalRuleNode(Type.ELSE,currentConditional.getName(),null,currentConditional.getBlock());
+      newChildren.add(newNode);
+      break;
+    }
+  }
+  CssConditionalBlockNode newNode=new CssConditionalBlockNode();
+  for (  CssConditionalRuleNode child : newChildren) {
+    newNode.addChildToBack(child);
+  }
+  visitController.replaceCurrentBlockChildWith(Lists.newArrayList(newNode),true);
+  alreadyTreatedNode.add(newNode);
+  return true;
+}

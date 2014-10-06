@@ -1,0 +1,8 @@
+{
+  CssTree cssTree=parseAndBuildTree(lines("@if (evaluate('com.foo.BAR')) {","  .foo {","    padding: 5px;","  }","}"));
+  ErrorManager errorManager=mock(ErrorManager.class);
+  PermutationsCollector visitor=new PermutationsCollector(cssTree.getMutatingVisitController(),errorManager);
+  visitor.runPass();
+  verify(errorManager).report(any(GssError.class));
+  assertEquals(0,visitor.getPermutationAxes().size());
+}

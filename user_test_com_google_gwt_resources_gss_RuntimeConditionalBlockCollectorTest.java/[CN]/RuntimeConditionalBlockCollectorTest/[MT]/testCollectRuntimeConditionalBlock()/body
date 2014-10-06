@@ -1,0 +1,7 @@
+{
+  CssTree cssTree=parseAndBuildTree(lines("@if (eval('com.foo.BAR')) {","  .foo {","    padding: 5px;","  }","  @if (is('ie9')) {","    .foo {","      padding: 55px;","    }","  }","}","@elseif (eval('com.foo.bar()')) {","  @if (eval('com.foo.FOO')) {","    .foo {","      padding: 15px;","    }","  }","  @else{","    .foo {","      padding: 15px;","    }","  }","}","@if (is('ie6')) {","  .foo {","    padding: 25px;","  }","}","@elseif (eval('com.foo.BAR')) {","  .foo {","    padding: 35px;","  }","}"));
+  RuntimeConditionalBlockCollector visitor=new RuntimeConditionalBlockCollector(cssTree.getMutatingVisitController());
+  visitor.runPass();
+  Set<CssConditionalBlockNode> runtimeConditionalNodes=visitor.getRuntimeConditionalBlock();
+  assertEquals(3,runtimeConditionalNodes.size());
+}

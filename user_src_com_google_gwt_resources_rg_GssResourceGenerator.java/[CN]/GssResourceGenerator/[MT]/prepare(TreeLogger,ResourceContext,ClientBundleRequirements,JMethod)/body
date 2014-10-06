@@ -1,0 +1,45 @@
+{
+  if (method.getReturnType().isInterface() == null) {
+    logger.log(TreeLogger.ERROR,"Return type must be an interface");
+    throw new UnableToCompleteException();
+  }
+  URL[] resourceUrls=ResourceGeneratorUtil.findResources(logger,context,method);
+  if (resourceUrls.length == 0) {
+    logger.log(TreeLogger.ERROR,"At least one source must be specified");
+    throw new UnableToCompleteException();
+  }
+  final long lastModified=ResourceGeneratorUtil.getLastModified(resourceUrls,logger);
+  final List<URL> resources=Lists.newArrayList(resourceUrls);
+  maybeInvalidateCacheFor(resources,lastModified,logger);
+  ExtendedCssTree extTree;
+  try {
+    extTree=TREE_CACHE.get(resources,new Callable<ExtendedCssTree>(){
+      @Override public ExtendedCssTree call() throws Exception {
+        ExtendedCssTree tree=parseResources(resources,logger);
+        LAST_MODIFIED_CACHE.put(resources,lastModified);
+        return tree;
+      }
+    }
+);
+  }
+ catch (  ExecutionException e) {
+    if (e.getCause() instanceof UnableToCompleteException) {
+      throw (UnableToCompleteException)e.getCause();
+    }
+ else {
+      logger.log(Type.ERROR,"Unexpected error occurred",e.getCause());
+      throw new UnableToCompleteException();
+    }
+  }
+  ExtendedCssTree finalTree=new ExtendedCssTree(deepCopy(extTree.tree),extTree.permutationAxes,extTree.originalConstantNameMapping);
+  cssTreeMap.put(method,finalTree);
+  for (  String permutationAxis : extTree.permutationAxes) {
+    try {
+      context.getRequirements().addPermutationAxis(permutationAxis);
+    }
+ catch (    BadPropertyValueException e) {
+      logger.log(TreeLogger.ERROR,"Unknown deferred-binding property " + permutationAxis,e);
+      throw new UnableToCompleteException();
+    }
+  }
+}

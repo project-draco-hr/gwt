@@ -1,0 +1,25 @@
+{
+  Map<String,String> replacements=replacementsByClassAndMethod.get(cssResource);
+  if (replacements == null) {
+    replacements=new HashMap<String,String>();
+    replacementsByClassAndMethod.put(cssResource,replacements);
+    String resourcePrefix=resourcePrefixBuilder.get(cssResource.getQualifiedSourceName());
+    SubstitutionMap prefixingSubstitutionMap=new PrefixingSubstitutionMap(new MinimalSubstitutionMap(),obfuscationPrefix + resourcePrefix + "_");
+    for (    JMethod method : cssResource.getOverridableMethods()) {
+      if (method == getNameMethod || method == getTextMethod || method == ensuredInjectedMethod) {
+        continue;
+      }
+      String styleClass=getClassName(method);
+      if (replacementsForSharedMethods.containsKey(method)) {
+        replacements.put(styleClass,replacementsForSharedMethods.get(method));
+      }
+ else {
+        String obfuscatedClassName=prefixingSubstitutionMap.get(styleClass);
+        String replacement=obfuscationStyle.getPrettyName(styleClass,cssResource,obfuscatedClassName);
+        replacements.put(styleClass,replacement);
+        maybeHandleSharedMethod(method,replacement);
+      }
+    }
+  }
+  return replacements;
+}

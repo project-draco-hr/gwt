@@ -1,0 +1,16 @@
+{
+  HashSet<String> styleClassSet=Sets.newHashSet("prefix","prefix-class1","prefi-notexternal","external");
+  ExternalClassesCollector externalClassesCollector=createAndInitExternalClassesCollector();
+  when(atRuleNameNode.getValue()).thenReturn("external");
+  List<CssValueNode> parameters=Lists.newArrayList(literalNode("external"),stringNode("prefix*"));
+  when(atRuleParameters.getValues()).thenReturn(parameters);
+  externalClassesCollector.leaveUnknownAtRule(cssUnknownAtRuleNode);
+  verify(cssUnknownAtRuleNode).getParameters();
+  verify(atRuleParameters).getValues();
+  verify(mutatingVisitController).removeCurrentNode();
+  Set<String> externalClasses=externalClassesCollector.getExternalClassNames(styleClassSet);
+  assertEquals(3,externalClasses.size());
+  assertTrue(externalClasses.contains("prefix"));
+  assertTrue(externalClasses.contains("prefix-class1"));
+  assertTrue(externalClasses.contains("external"));
+}

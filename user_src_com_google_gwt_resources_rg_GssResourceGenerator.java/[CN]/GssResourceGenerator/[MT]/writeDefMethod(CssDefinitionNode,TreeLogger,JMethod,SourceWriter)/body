@@ -1,0 +1,45 @@
+{
+  String name=userMethod.getName();
+  JClassType classReturnType=userMethod.getReturnType().isClass();
+  List<CssValueNode> params=definitionNode.getParameters();
+  if (params.size() != 1 && !isReturnTypeString(classReturnType)) {
+    logger.log(TreeLogger.ERROR,"@def rule " + name + " must define exactly one value or return type must be String");
+    return false;
+  }
+  String returnExpr;
+  if (isReturnTypeString(classReturnType)) {
+    List<String> returnValues=new ArrayList<String>();
+    for (    CssValueNode valueNode : params) {
+      returnValues.add(Generator.escape(valueNode.toString()));
+    }
+    returnExpr="\"" + Joiner.on(" ").join(returnValues) + "\"";
+  }
+ else {
+    JPrimitiveType returnType=userMethod.getReturnType().isPrimitive();
+    if (returnType == null) {
+      logger.log(TreeLogger.ERROR,name + ": Return type must be primitive type " + "or String for @def accessors");
+      return false;
+    }
+    CssValueNode valueNode=params.get(0);
+    if (!(valueNode instanceof CssNumericNode)) {
+      logger.log(TreeLogger.ERROR,"The value of the constant defined by @" + name + " is not a"+ " numeric");
+      return false;
+    }
+    String numericValue=((CssNumericNode)valueNode).getNumericPart();
+    if (returnType == JPrimitiveType.INT || returnType == JPrimitiveType.LONG) {
+      returnExpr="" + Long.parseLong(numericValue);
+    }
+ else     if (returnType == JPrimitiveType.FLOAT) {
+      returnExpr=numericValue + "F";
+    }
+ else     if (returnType == JPrimitiveType.DOUBLE) {
+      returnExpr="" + numericValue;
+    }
+ else {
+      logger.log(TreeLogger.ERROR,returnType.getQualifiedSourceName() + " is not a valid primitive return type for @def accessors");
+      return false;
+    }
+  }
+  writeSimpleGetter(userMethod,returnExpr,sw);
+  return true;
+}

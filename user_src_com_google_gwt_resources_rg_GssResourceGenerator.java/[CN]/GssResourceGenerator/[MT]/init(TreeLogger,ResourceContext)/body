@@ -1,0 +1,42 @@
+{
+  cssTreeMap=new IdentityHashMap<JMethod,ExtendedCssTree>();
+  errorManager=new LoggerErrorManager(logger);
+  allowedNonStandardFunctions=new HashSet<String>();
+  allowedAtRules=Sets.newHashSet(ExternalClassesCollector.EXTERNAL_AT_RULE);
+  try {
+    PropertyOracle propertyOracle=context.getGeneratorContext().getPropertyOracle();
+    ConfigurationProperty styleProp=propertyOracle.getConfigurationProperty(KEY_STYLE);
+    obfuscationStyle=CssObfuscationStyle.getObfuscationStyle(styleProp.getValues().get(0));
+    obfuscationPrefix=getObfuscationPrefix(propertyOracle,context);
+    ConfigurationProperty allowedAtRuleProperty=propertyOracle.getConfigurationProperty(ALLOWED_AT_RULE);
+    allowedAtRules.addAll(allowedAtRuleProperty.getValues());
+    ConfigurationProperty allowedFunctionsProperty=propertyOracle.getConfigurationProperty(ALLOWED_FUNCTIONS);
+    allowedNonStandardFunctions.addAll(allowedFunctionsProperty.getValues());
+    allowLegacy="true".equals(propertyOracle.getConfigurationProperty(KEY_LEGACY).getValues().get(0));
+    lenientConversion=allowLegacy && "lenient".equals(propertyOracle.getConfigurationProperty(KEY_CONVERSION_MODE).getValues().get(0));
+    ClientBundleRequirements requirements=context.getRequirements();
+    requirements.addConfigurationProperty(KEY_STYLE);
+    requirements.addConfigurationProperty(KEY_OBFUSCATION_PREFIX);
+    requirements.addConfigurationProperty(ALLOWED_AT_RULE);
+    requirements.addConfigurationProperty(ALLOWED_FUNCTIONS);
+    requirements.addConfigurationProperty(KEY_LEGACY);
+    requirements.addConfigurationProperty(KEY_CONVERSION_MODE);
+  }
+ catch (  BadPropertyValueException e) {
+    logger.log(TreeLogger.ERROR,"Unable to query module property",e);
+    throw new UnableToCompleteException();
+  }
+  TypeOracle typeOracle=context.getGeneratorContext().getTypeOracle();
+  JClassType cssResourceInterface=typeOracle.findType(CssResource.class.getCanonicalName());
+  JClassType resourcePrototypeInterface=typeOracle.findType(ResourcePrototype.class.getCanonicalName());
+  try {
+    getTextMethod=cssResourceInterface.getMethod("getText",new JType[0]);
+    ensuredInjectedMethod=cssResourceInterface.getMethod("ensureInjected",new JType[0]);
+    getNameMethod=resourcePrototypeInterface.getMethod("getName",new JType[0]);
+  }
+ catch (  NotFoundException e) {
+    logger.log(TreeLogger.ERROR,"Unable to lookup methods from CssResource and " + "ResourcePrototype interface",e);
+    throw new UnableToCompleteException();
+  }
+  initReplacement(context);
+}

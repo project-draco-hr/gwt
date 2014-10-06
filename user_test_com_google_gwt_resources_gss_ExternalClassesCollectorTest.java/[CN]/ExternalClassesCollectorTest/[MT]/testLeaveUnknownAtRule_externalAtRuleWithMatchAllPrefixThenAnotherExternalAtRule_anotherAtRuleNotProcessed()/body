@@ -1,0 +1,15 @@
+{
+  ExternalClassesCollector externalClassesCollector=createAndInitExternalClassesCollector();
+  when(atRuleNameNode.getValue()).thenReturn("external");
+  List<CssValueNode> parameters=Lists.newArrayList(stringNode("*"));
+  when(atRuleParameters.getValues()).thenReturn(parameters);
+  externalClassesCollector.leaveUnknownAtRule(cssUnknownAtRuleNode);
+  reset(mutatingVisitController);
+  CssUnknownAtRuleNode secondAtRuleNode=mock(CssUnknownAtRuleNode.class);
+  CssLiteralNode secondAtRuleNameNode=mock(CssLiteralNode.class);
+  when(secondAtRuleNameNode.getValue()).thenReturn("external");
+  when(secondAtRuleNode.getName()).thenReturn(secondAtRuleNameNode);
+  externalClassesCollector.leaveUnknownAtRule(secondAtRuleNode);
+  verify(secondAtRuleNode,never()).getParameters();
+  verify(mutatingVisitController).removeCurrentNode();
+}

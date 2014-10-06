@@ -1,0 +1,9 @@
+{
+  CssTree cssTree=parseAndBuildTree(lines("@if (eval('com.foo.BAR')) {","  .foo {","    padding: 5px;","  }","  @if (is('ie9')) {","    .foo {","      padding: 55px;","    }","  }","}","@elseif (eval('com.foo.bar()')) {","  @if (eval('com.foo.FOO')) {","    .foo {","      padding: 15px;","    }","  }","  @else{","    .foo {","      padding: 15px;","    }","  }","}","@if (is('ie6')) {","  .foo {","    padding: 25px;","  }","}","@elseif (eval('com.foo.BAR')) {","  .foo {","    padding: 35px;","  }","}"));
+  ErrorManager errorManager=mock(ErrorManager.class);
+  boolean lenient=false;
+  ValidateRuntimeConditionalNode visitor=new ValidateRuntimeConditionalNode(cssTree.getMutatingVisitController(),errorManager,lenient);
+  visitor.runPass();
+  verify(errorManager,never()).report(any(GssError.class));
+  verify(errorManager,never()).reportWarning(any(GssError.class));
+}

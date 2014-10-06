@@ -1,0 +1,19 @@
+{
+  ExternalClassesCollector externalClassesCollector=new ExternalClassesCollector(cssTree.getMutatingVisitController(),errorManager);
+  externalClassesCollector.runPass();
+  Set<String> styleClassSet=styleClassesMapping.keySet();
+  Set<String> externalClasses=externalClassesCollector.getExternalClassNames(styleClassSet);
+  final Map<String,String> revertMap=new HashMap<String,String>(externalClasses.size());
+  for (  String external : externalClasses) {
+    revertMap.put(styleClassesMapping.get(external),external);
+    styleClassesMapping.put(external,external);
+  }
+  SubstitutionMap revertExternalClasses=new SubstitutionMap(){
+    @Override public String get(    String key){
+      return revertMap.get(key);
+    }
+  }
+;
+  new CssClassRenaming(cssTree.getMutatingVisitController(),revertExternalClasses,null).runPass();
+  return externalClasses;
+}

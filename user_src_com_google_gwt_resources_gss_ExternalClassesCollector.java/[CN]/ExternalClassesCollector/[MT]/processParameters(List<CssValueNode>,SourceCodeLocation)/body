@@ -1,0 +1,26 @@
+{
+  for (  CssValueNode value : values) {
+    if (value instanceof CssCompositeValueNode) {
+      processParameters(((CssCompositeValueNode)value).getValues(),sourceCodeLocation);
+    }
+ else     if (value instanceof CssStringNode) {
+      String selector=((CssStringNode)value).getConcreteValue();
+      if (STAR_SUFFIX.equals(selector)) {
+        matchAll=true;
+        return;
+      }
+ else       if (selector.endsWith(STAR_SUFFIX)) {
+        externalClassPrefixes.add(selector.substring(0,selector.length() - 1));
+      }
+ else {
+        externalClassNames.add(selector);
+      }
+    }
+ else     if (value instanceof CssLiteralNode) {
+      externalClassNames.add(value.getValue());
+    }
+ else {
+      errorManager.report(new GssError("External at-rule invalid. The following terms is not " + "accepted in an external at-rule [" + value.getValue() + "]",sourceCodeLocation));
+    }
+  }
+}

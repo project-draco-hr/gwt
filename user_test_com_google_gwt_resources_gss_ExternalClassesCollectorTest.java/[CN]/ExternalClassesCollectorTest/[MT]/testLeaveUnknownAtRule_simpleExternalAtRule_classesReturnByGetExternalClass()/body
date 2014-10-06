@@ -1,0 +1,15 @@
+{
+  HashSet<String> styleClassSet=Sets.newHashSet();
+  ExternalClassesCollector externalClassesCollector=createAndInitExternalClassesCollector();
+  when(atRuleNameNode.getValue()).thenReturn("external");
+  List<CssValueNode> parameters=Lists.newArrayList(literalNode("externalClass"),literalNode("externalClass2"));
+  when(atRuleParameters.getValues()).thenReturn(parameters);
+  externalClassesCollector.leaveUnknownAtRule(cssUnknownAtRuleNode);
+  verify(cssUnknownAtRuleNode).getParameters();
+  verify(atRuleParameters).getValues();
+  verify(mutatingVisitController).removeCurrentNode();
+  Set<String> externalClasses=externalClassesCollector.getExternalClassNames(styleClassSet);
+  assertEquals(2,externalClasses.size());
+  assertTrue(externalClasses.contains("externalClass"));
+  assertTrue(externalClasses.contains("externalClass2"));
+}

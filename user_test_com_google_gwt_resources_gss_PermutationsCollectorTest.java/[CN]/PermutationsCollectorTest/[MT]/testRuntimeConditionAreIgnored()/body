@@ -1,0 +1,10 @@
+{
+  CssTree cssTree=parseAndBuildTree(lines("@if (eval('com.foo.BAR')) {","  .foo {","    padding: 5px;","  }","}","@elseif (eval('com.foo.bar()')) {","  @if (is('custom.one', 'foo')) {","    .foo {","      padding: 15px;","    }","  }","  @else{","    .foo {","      padding: 15px;","    }","  }","}"));
+  ErrorManager errorManager=mock(ErrorManager.class);
+  PermutationsCollector visitor=new PermutationsCollector(cssTree.getMutatingVisitController(),errorManager);
+  visitor.runPass();
+  verify(errorManager,never()).report(any(GssError.class));
+  List<String> permutationAxis=visitor.getPermutationAxes();
+  assertEquals(1,permutationAxis.size());
+  assertTrue(permutationAxis.contains("custom.one"));
+}

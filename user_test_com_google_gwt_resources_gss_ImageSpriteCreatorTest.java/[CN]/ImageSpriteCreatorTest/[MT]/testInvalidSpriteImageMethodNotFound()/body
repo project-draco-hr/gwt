@@ -1,0 +1,8 @@
+{
+  CssTree cssTree=parseAndBuildTree(lines(".someClassWithSprite { ","  gwt-sprite: imageResource;","}"));
+  when(resourceContext.getClientBundleType()).thenReturn(mock(JClassType.class));
+  when(methodByPathHelper.getMethodByPath(any(ResourceContext.class),anyList(),any(JClassType.class))).thenThrow(new NotFoundException(""));
+  ImageSpriteCreator visitor=new ImageSpriteCreator(cssTree.getMutatingVisitController(),resourceContext,errorManager,methodByPathHelper);
+  visitor.runPass();
+  verify(errorManager).report(any(GssError.class));
+}
