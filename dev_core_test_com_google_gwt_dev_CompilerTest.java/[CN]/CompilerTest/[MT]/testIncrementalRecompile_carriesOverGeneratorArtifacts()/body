@@ -1,17 +1,17 @@
 {
   assertEquals(0,FooResourceGenerator.runCount);
   CompilerOptions compilerOptions=new CompilerOptionsImpl();
-  List<MockResource> sharedResources=Lists.newArrayList(resourceReadingGeneratorModuleResource,generatorEntryPointResource,fooInterfaceResource,classNameToGenerateResource);
+  List<MockResource> sharedResources=Lists.newArrayList(resourceReadingGeneratorModuleResource,referencesBarAndGeneratorEntryPointResource,classNameToGenerateResource,barReferencesFooResource);
   JsOutputOption output=JsOutputOption.PRETTY;
   List<MockResource> originalResources=Lists.newArrayList(sharedResources);
-  originalResources.add(nonJsoFooResource);
+  originalResources.add(fooResource);
   MinimalRebuildCache relinkMinimalRebuildCache=new MinimalRebuildCache();
   File relinkApplicationDir=Files.createTempDir();
   compileToJs(compilerOptions,relinkApplicationDir,"com.foo.SimpleModule",originalResources,relinkMinimalRebuildCache,emptySet,output);
   assertEquals(1,FooResourceGenerator.runCount);
   File barFile=new File(relinkApplicationDir.getPath() + File.separator + "com.foo.SimpleModule"+ File.separator+ "bar.txt");
   assertTrue(barFile.exists());
-  compileToJs(compilerOptions,relinkApplicationDir,"com.foo.SimpleModule",Lists.<MockResource>newArrayList(nonJsoFooResource),relinkMinimalRebuildCache,stringSet("com.foo.Foo"),output);
+  compileToJs(compilerOptions,relinkApplicationDir,"com.foo.SimpleModule",Lists.<MockResource>newArrayList(fooResource),relinkMinimalRebuildCache,stringSet("com.foo.Foo","com.foo.Bar"),output);
   assertEquals(1,FooResourceGenerator.runCount);
   barFile=new File(relinkApplicationDir.getPath() + File.separator + "com.foo.SimpleModule"+ File.separator+ "bar.txt");
   assertTrue(barFile.exists());

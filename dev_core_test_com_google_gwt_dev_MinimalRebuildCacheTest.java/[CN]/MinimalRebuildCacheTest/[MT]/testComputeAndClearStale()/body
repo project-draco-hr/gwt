@@ -15,8 +15,13 @@
   minimalRebuildCache.setJsForType(TreeLogger.NULL,"Baz$Inner","Some Js for Baz");
   minimalRebuildCache.addTypeReference("Bar","Foo");
   minimalRebuildCache.getImmediateTypeRelations().getImmediateSuperclassesByClass().put("Baz","Foo");
+  minimalRebuildCache.addTypeReference("Foo","Foo$Inner");
+  minimalRebuildCache.addTypeReference("Bar","Bar$Inner");
+  minimalRebuildCache.addTypeReference("Baz","Baz$Inner");
   Map<String,Long> laterModifiedBySourcePath=new ImmutableMap.Builder<String,Long>().put("Foo.java",9999L).put("Bar.java",0L).put("Baz.java",0L).build();
   minimalRebuildCache.recordDiskSourceResources(laterModifiedBySourcePath);
+  minimalRebuildCache.setRootTypeNames(Sets.newHashSet("Foo","Bar","Baz"));
+  minimalRebuildCache.computeReachableTypeNames();
   minimalRebuildCache.computeAndClearStaleTypesCache(TreeLogger.NULL,new JTypeOracle(null,minimalRebuildCache,true));
   assertNull(minimalRebuildCache.getJs("Foo"));
   assertNull(minimalRebuildCache.getJs("Foo$Inner"));
