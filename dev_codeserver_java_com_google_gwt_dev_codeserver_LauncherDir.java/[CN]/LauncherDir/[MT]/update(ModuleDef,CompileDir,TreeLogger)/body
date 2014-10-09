@@ -1,0 +1,32 @@
+{
+  File moduleDir=new File(launcherDir + "/" + module.getName());
+  if (!moduleDir.isDirectory()) {
+    if (!moduleDir.mkdirs()) {
+      logger.log(Type.ERROR,"Can't create launcher dir for module: " + moduleDir);
+      throw new UnableToCompleteException();
+    }
+  }
+  try {
+    String stub=generateStubNocacheJs(module.getName(),options);
+    final File noCacheJs=new File(moduleDir,module.getName() + ".nocache.js");
+    Files.write(stub,noCacheJs,Charsets.UTF_8);
+    final File noCacheJsGz=new File(noCacheJs.getPath() + ".gz");
+    if (noCacheJsGz.exists()) {
+      if (!noCacheJsGz.delete()) {
+        logger.log(Type.ERROR,"cannot delete file: " + noCacheJsGz);
+        throw new UnableToCompleteException();
+      }
+    }
+    writePublicResources(moduleDir,module,logger);
+    for (    PolicyFile policyFile : compileDir.readRpcPolicyManifest(module.getName())) {
+      String filename=policyFile.getName();
+      File src=new File(compileDir.getWarDir(),module.getName() + "/" + filename);
+      File dest=new File(moduleDir,filename);
+      Files.copy(src,dest);
+    }
+  }
+ catch (  IOException e) {
+    logger.log(Type.ERROR,"Can't update launcher dir",e);
+    throw new UnableToCompleteException();
+  }
+}

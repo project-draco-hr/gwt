@@ -1,0 +1,23 @@
+{
+  File manifest=new File(getExtraDir(),outputModuleName + "/rpcPolicyManifest/manifest.txt");
+  if (!manifest.isFile()) {
+    return Lists.newArrayList();
+  }
+  String text=Files.toString(manifest,Charsets.UTF_8);
+  List<PolicyFile> result=Lists.newArrayList();
+  for (  String line : text.split("\n")) {
+    line=line.trim();
+    if (line.isEmpty() || line.startsWith("#")) {
+      continue;
+    }
+    String[] fields=line.split(", ");
+    if (fields.length < 2) {
+      continue;
+    }
+    String serviceName=fields[0];
+    String policyFileName=fields[1];
+    PolicyFile policy=new PolicyFile(policyFileName,serviceName,outputModuleName);
+    result.add(policy);
+  }
+  return result;
+}

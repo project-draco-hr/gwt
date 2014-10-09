@@ -10,30 +10,21 @@
       out.startTag("body");
       out.startTag("h1").text("Policy Files").endTag("h1").nl();
       for (      Outbox box : outboxes.getOutboxes()) {
-        File manifest=box.getExtraFile("rpcPolicyManifest/manifest.txt");
-        if (manifest.isFile()) {
+        List<PolicyFile> policies=box.readRpcPolicyManifest();
+        if (!policies.isEmpty()) {
           out.startTag("h2").text(box.getOutputModuleName()).endTag("h2").nl();
           out.startTag("table").nl();
-          String text=Files.toString(manifest,Charsets.UTF_8);
-          for (          String line : text.split("\n")) {
-            line=line.trim();
-            if (line.isEmpty() || line.startsWith("#")) {
-              continue;
-            }
-            String[] fields=line.split(", ");
-            if (fields.length < 2) {
-              continue;
-            }
-            String serviceName=fields[0];
-            String policyFileName=fields[1];
-            String serviceUrl=SourceHandler.SOURCEMAP_PATH + box.getOutputModuleName() + "/"+ serviceName.replace('.','/')+ ".java";
-            String policyUrl="/policies/" + policyFileName;
+          for (          PolicyFile policy : policies) {
             out.startTag("tr");
             out.startTag("td");
-            out.startTag("a","href=",serviceUrl).text(serviceName).endTag("a");
+            out.startTag("a","href=",policy.getServiceSourceUrl());
+            out.text(policy.getServiceName());
+            out.endTag("a");
             out.endTag("td");
             out.startTag("td");
-            out.startTag("a","href=",policyUrl).text(policyFileName).endTag("a");
+            out.startTag("a","href=",policy.getUrl());
+            out.text(policy.getName());
+            out.endTag("a");
             out.endTag("td");
             out.endTag("tr").nl();
           }
