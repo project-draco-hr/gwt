@@ -17,14 +17,9 @@
     ImplementCastsAndTypeChecks.exec(jprogram,options.isCastCheckingDisabled(),shouldOptimize());
     ArrayNormalizer.exec(jprogram,options.isCastCheckingDisabled());
     EqualityNormalizer.exec(jprogram);
-    if (options.useDetailedTypeIds()) {
-      return ResolveRuntimeTypeReferences.IntoStringLiterals.exec(jprogram);
-    }
- else {
-      TypeOrder typeIdOrder=options.isIncrementalCompileEnabled() ? TypeOrder.ALPHABETICAL : TypeOrder.FREQUENCY;
-      IntTypeIdGenerator typeIdGenerator=options.isIncrementalCompileEnabled() ? compilerContext.getMinimalRebuildCache().getIntTypeIdGenerator() : new IntTypeIdGenerator();
-      return ResolveRuntimeTypeReferences.IntoIntLiterals.exec(jprogram,typeIdOrder,typeIdGenerator);
-    }
+    TypeMapper<?> typeMapper=getTypeMapper();
+    ResolveRuntimeTypeReferences.exec(jprogram,typeMapper,getTypeOrder());
+    return typeMapper;
   }
   finally {
     event.end();

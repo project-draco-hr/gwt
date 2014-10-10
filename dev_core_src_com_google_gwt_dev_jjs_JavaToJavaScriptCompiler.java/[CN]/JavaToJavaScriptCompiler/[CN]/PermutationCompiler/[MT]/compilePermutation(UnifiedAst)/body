@@ -23,13 +23,13 @@
     maybeRecordTypeReferences(false);
     CompileTimeConstantsReplacer.exec(jprogram);
     optimizeJava();
-    Map<JType,JLiteral> typeIdLiteralsByType=normalizeSemantics();
+    TypeMapper<?> typeMapper=normalizeSemantics();
     postNormalizationOptimizeJava();
     maybeRecordTypeReferences(true);
     jprogram.typeOracle.recomputeAfterOptimizations(jprogram.getDeclaredTypes());
     javaEvent.end();
     Event javaScriptEvent=SpeedTracerLogger.start(CompilerEventType.PERMUTATION_JAVASCRIPT);
-    Pair<? extends JavaToJavaScriptMap,Set<JsNode>> jjsMapAndInlineableFunctions=GenerateJavaScriptAST.exec(logger,jprogram,jsProgram,compilerContext,typeIdLiteralsByType,symbolTable,props);
+    Pair<? extends JavaToJavaScriptMap,Set<JsNode>> jjsMapAndInlineableFunctions=GenerateJavaScriptAST.exec(logger,jprogram,jsProgram,compilerContext,typeMapper,symbolTable,props);
     JavaToJavaScriptMap jjsmap=jjsMapAndInlineableFunctions.getLeft();
     if (System.getProperty("gwt.coverage") != null) {
       CoverageInstrumentor.exec(jsProgram,instrumentableLines);
