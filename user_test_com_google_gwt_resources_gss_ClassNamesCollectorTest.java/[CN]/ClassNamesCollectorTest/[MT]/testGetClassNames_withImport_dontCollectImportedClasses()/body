@@ -1,0 +1,22 @@
+{
+  List<CssClassSelectorNode> classSelectorNodes=createClassSelectorNodes("class1","class2","class3","Imported-class","ImportedFakeClass","otherImport-class");
+  whenVisitorControllerVisitTreeThenVisitAllNodes(classSelectorNodes);
+  Set<JClassType> importedType=new HashSet<JClassType>();
+  JClassType importedClassType=mock(JClassType.class);
+  when(importedClassType.getSimpleSourceName()).thenReturn("Imported");
+  importedType.add(importedClassType);
+  JClassType importedWithPrefixClassType=mock(JClassType.class);
+  when(importedWithPrefixClassType.getSimpleSourceName()).thenReturn("ImportedWithPrefix");
+  ImportedWithPrefix importedWithPrefixAnnotation=mock(ImportedWithPrefix.class);
+  when(importedWithPrefixAnnotation.value()).thenReturn("otherImport");
+  when(importedWithPrefixClassType.getAnnotation(ImportedWithPrefix.class)).thenReturn(importedWithPrefixAnnotation);
+  importedType.add(importedWithPrefixClassType);
+  Set<String> classNames=classNamesCollector.getClassNames(cssTree,importedType);
+  assertEquals(4,classNames.size());
+  assertTrue(classNames.contains("class1"));
+  assertTrue(classNames.contains("class2"));
+  assertTrue(classNames.contains("class3"));
+  assertTrue(classNames.contains("ImportedFakeClass"));
+  assertFalse(classNames.contains("otherImport-class"));
+  assertFalse(classNames.contains("Imported-class"));
+}
