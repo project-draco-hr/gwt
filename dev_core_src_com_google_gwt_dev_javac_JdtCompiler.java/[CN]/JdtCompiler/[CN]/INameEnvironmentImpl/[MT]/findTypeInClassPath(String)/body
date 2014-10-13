@@ -7,7 +7,7 @@
   try {
     openStream=resource.openStream();
     ClassFileReader classFileReader=ClassFileReader.read(openStream,resource.toExternalForm(),true);
-    return new NameEnvironmentAnswer(classFileReader,null);
+    return internalName.equals(CharOperation.charToString(classFileReader.getName())) ? new NameEnvironmentAnswer(classFileReader,null) : null;
   }
  catch (  IOException e) {
     return null;
@@ -16,8 +16,6 @@ catch (  ClassFormatException e) {
     return null;
   }
  finally {
-    if (openStream != null) {
-      Utility.close(openStream);
-    }
+    Utility.close(openStream);
   }
 }
