@@ -9,17 +9,6 @@
   setupConnector(connector,bindAddress,port);
   server.addConnector(connector);
   WebAppContext wac=createWebAppContext(logger,appRootDir);
-  try {
-    String className="org.eclipse.jetty.annotations.AnnotationConfiguration";
-    Class.forName(className,false,this.getClass().getClassLoader());
-    wac.setResourceBase(appRootDir.getAbsolutePath());
-    ArrayList<String> confs=new ArrayList<String>(Arrays.asList(wac.getConfigurationClasses()));
-    confs.add(className);
-    wac.setConfigurationClasses(confs.toArray(new String[confs.size()]));
-  }
- catch (  ClassNotFoundException ignored) {
-    branch.log(TreeLogger.INFO,"To enable Servlet 3.0 annotations add jetty-annotations.jar to your classpath.");
-  }
   RequestLogHandler logHandler=new RequestLogHandler();
   logHandler.setRequestLog(new JettyRequestLogger(logger,getBaseLogLevel()));
   logHandler.setHandler(wac);
