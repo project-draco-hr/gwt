@@ -28,7 +28,46 @@
       String sourceMapString=Util.readStreamAsString(se.getContents(logger));
       String strongName=permMap.get(se.getPermutationId());
       String partialPath=strongName + "_sourceMap" + se.getFragment()+ ".json";
-      artifacts.add(emitSourceMapString(logger,sourceMapString,partialPath));
+      int fragment=se.getFragment();
+      ScriptFragmentEditsArtifact editArtifact=null;
+      for (      ScriptFragmentEditsArtifact mp : artifacts.find(ScriptFragmentEditsArtifact.class)) {
+        if (mp.getStrongName().equals(strongName) && mp.getFragment() == fragment) {
+          editArtifact=mp;
+          artifacts.remove(editArtifact);
+          break;
+        }
+      }
+      SyntheticArtifact emArt=null;
+      if (editArtifact == null) {
+        emArt=emitSourceMapString(logger,sourceMapString,partialPath);
+      }
+ else {
+        SourceMapGeneratorV3 sourceMapGenerator=new SourceMapGeneratorV3();
+        if (se.getSourceRoot() != null) {
+          sourceMapGenerator.setSourceRoot(se.getSourceRoot());
+        }
+        try {
+          int totalPrefixLines=0;
+          for (          ScriptFragmentEditsArtifact.EditOperation op : editArtifact.editOperations) {
+            if (op.getOp() == ScriptFragmentEditsArtifact.Edit.PREFIX) {
+              totalPrefixLines+=op.getNumLines();
+            }
+          }
+          sourceMapGenerator.mergeMapSection(totalPrefixLines,0,sourceMapString,new ExtensionMergeAction(){
+            @Override public Object merge(            String extKey,            Object oldVal,            Object newVal){
+              return newVal;
+            }
+          }
+);
+          StringWriter stringWriter=new StringWriter();
+          sourceMapGenerator.appendTo(stringWriter,"sourceMap");
+          emArt=emitSourceMapString(logger,stringWriter.toString(),partialPath);
+        }
+ catch (        Exception e) {
+          logger.log(TreeLogger.Type.WARN,"Can't write source map " + partialPath,e);
+        }
+      }
+      artifacts.add(emArt);
       artifacts.remove(se);
     }
     writeSourceMapsEvent.end();

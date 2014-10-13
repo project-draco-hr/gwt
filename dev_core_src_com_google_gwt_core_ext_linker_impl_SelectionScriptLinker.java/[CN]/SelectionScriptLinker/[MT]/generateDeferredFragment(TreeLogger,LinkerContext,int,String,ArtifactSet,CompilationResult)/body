@@ -1,2 +1,20 @@
 {
+  StringBuilder b=new StringBuilder();
+  String strongName=result == null ? "" : result.getStrongName();
+  String prefix=getDeferredFragmentPrefix(logger,context,fragment);
+  b.append(prefix);
+  b.append(js);
+  String suffix=getDeferredFragmentSuffix(logger,context,fragment);
+  if (suffix == null) {
+    suffix=getDeferredFragmentSuffix2(logger,context,fragment,strongName);
+    if (suffix == null) {
+      logger.log(Type.ERROR,"Neither getDeferredFragmentSuffix nor getDeferredFragmentSuffix2 " + "were overridden in linker: " + getClass().getName());
+      throw new UnableToCompleteException();
+    }
+  }
+  b.append(suffix);
+  SymbolMapsLinker.ScriptFragmentEditsArtifact editsArtifact=new SymbolMapsLinker.ScriptFragmentEditsArtifact(strongName,fragment);
+  editsArtifact.prefixLines(prefix);
+  artifacts.add(editsArtifact);
+  return wrapDeferredFragment(logger,context,fragment,b.toString(),artifacts);
 }

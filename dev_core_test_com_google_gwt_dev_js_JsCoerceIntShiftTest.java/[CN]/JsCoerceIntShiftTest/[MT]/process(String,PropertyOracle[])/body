@@ -1,3 +1,10 @@
 {
-  return optimize(js,new JsCoerceIntShiftProxy(oracles).getClass());
+  JsProgram program=new JsProgram();
+  List<JsStatement> expected=JsParser.parse(SourceOrigin.UNKNOWN,program.getScope(),new StringReader(js));
+  program.getGlobalBlock().getStatements().addAll(expected);
+  JsCoerceIntShift.exec(program,logger,oracles);
+  TextOutput text=new DefaultTextOutput(true);
+  JsVisitor generator=new JsSourceGenerationVisitor(text);
+  generator.accept(program);
+  return text.toString();
 }

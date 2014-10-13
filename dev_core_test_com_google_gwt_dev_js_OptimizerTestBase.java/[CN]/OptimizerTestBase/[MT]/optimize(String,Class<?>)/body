@@ -2,5 +2,12 @@
   JsProgram program=new JsProgram();
   List<JsStatement> expected=JsParser.parse(SourceOrigin.UNKNOWN,program.getScope(),new StringReader(js));
   program.getGlobalBlock().getStatements().addAll(expected);
-  return optimize(program,toExec);
+  for (  Class<?> clazz : toExec) {
+    Method m=clazz.getMethod("exec",JsProgram.class);
+    m.invoke(null,program);
+  }
+  TextOutput text=new DefaultTextOutput(true);
+  JsVisitor generator=new JsSourceGenerationVisitor(text);
+  generator.accept(program);
+  return text.toString();
 }
