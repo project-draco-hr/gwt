@@ -1,29 +1,12 @@
 {
   Class<T> clazz=new Class<T>();
-  if (clazz.isClassMetadataEnabled()) {
-    if (this.isPrimitive()) {
-      clazz.typeName=this.simpleName.substring(1);
-      clazz.canonicalName=clazz.typeName;
-    }
- else {
-      clazz.typeName="L" + this.typeName;
-      clazz.canonicalName=this.typeName.replace('$','.');
-    }
-    clazz.simpleName=this.simpleName;
-    for (int i=0; i < dimensions; i++) {
-      clazz.typeName="[" + clazz.typeName;
-      clazz.canonicalName+="[]";
-      clazz.simpleName+="[]";
-    }
-    if (!this.isPrimitive()) {
-      clazz.typeName+=";";
-    }
-  }
- else {
-    synthesizeClassNamesFromTypeId(clazz,null);
-  }
   clazz.modifiers=ARRAY;
   clazz.superclass=Object.class;
-  clazz.componentType=this;
+  if (dimensions > 1) {
+    clazz.componentType=getClassLiteralForArray(this,dimensions - 1);
+  }
+ else {
+    clazz.componentType=this;
+  }
   return clazz;
 }
