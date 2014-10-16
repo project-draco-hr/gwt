@@ -2,9 +2,12 @@
   try {
     ByteArrayOutputStream baos=new ByteArrayOutputStream();
     OutputStreamWriter osw=new OutputStreamWriter(baos,SerializationPolicyLoader.SERIALIZATION_POLICY_FILE_ENCODING);
-    TypeOracle oracle=ctx.getTypeOracle();
     PrintWriter pw=new PrintWriter(osw);
     JType[] serializableTypes=unionOfTypeArrays(serializationSto.getSerializableTypes(),deserializationSto.getSerializableTypes(),new JType[]{serviceIntf});
+    pw.print(SerializationPolicyLoader.FINAL_FIELDS_KEYWORD);
+    pw.print(", ");
+    pw.print(Shared.shouldSerializeFinalFields(logger,ctx));
+    pw.print('\n');
     for (int i=0; i < serializableTypes.length; ++i) {
       JType type=serializableTypes[i];
       String binaryTypeName=SerializationUtils.getRpcTypeName(type);
@@ -14,7 +17,7 @@
       pw.print(", " + Boolean.toString(serializationSto.isSerializable(type)));
       pw.print(", " + Boolean.toString(serializationSto.maybeInstantiated(type)));
       pw.print(", " + typeStrings.get(type));
-      pw.print(", " + SerializationUtils.getSerializationSignature(oracle,type));
+      pw.print(", " + SerializationUtils.getSerializationSignature(ctx,type));
       pw.print('\n');
       if ((type instanceof JClassType) && ((JClassType)type).isEnhanced()) {
         JField[] fields=((JClassType)type).getFields();

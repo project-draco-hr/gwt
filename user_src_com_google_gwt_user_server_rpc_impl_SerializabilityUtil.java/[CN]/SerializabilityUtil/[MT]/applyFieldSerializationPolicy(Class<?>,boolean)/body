@@ -1,0 +1,16 @@
+{
+  Field[] serializableFields=classSerializableFieldsCache.get(clazz);
+  if (serializableFields == null) {
+    ArrayList<Field> fieldList=new ArrayList<Field>();
+    Field[] fields=clazz.getDeclaredFields();
+    for (    Field field : fields) {
+      if (fieldQualifiesForSerialization(field,includeFinalFields)) {
+        fieldList.add(field);
+      }
+    }
+    serializableFields=fieldList.toArray(new Field[fieldList.size()]);
+    Arrays.sort(serializableFields,0,serializableFields.length,FIELD_COMPARATOR);
+    classSerializableFieldsCache.put(clazz,serializableFields);
+  }
+  return serializableFields;
+}

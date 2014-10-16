@@ -6,6 +6,7 @@
   Map<Class<?>,Boolean> whitelistDeser=new HashMap<Class<?>,Boolean>();
   Map<Class<?>,String> typeIds=new HashMap<Class<?>,String>();
   Map<Class<?>,Set<String>> clientFields=new HashMap<Class<?>,Set<String>>();
+  boolean shouldSerializeFinalFields=false;
   ClassLoader contextClassLoader=Thread.currentThread().getContextClassLoader();
   InputStreamReader isr=new InputStreamReader(inputStream,SERIALIZATION_POLICY_FILE_ENCODING);
   BufferedReader br=new BufferedReader(isr);
@@ -31,6 +32,9 @@
             classNotFoundExceptions.add(ex);
           }
         }
+      }
+ else       if (components[0].equals(FINAL_FIELDS_KEYWORD)) {
+        shouldSerializeFinalFields=Boolean.valueOf(components[1].trim());
       }
  else {
         if (components.length != 2 && components.length != 7) {
@@ -84,5 +88,5 @@
     line=br.readLine();
     lineNum++;
   }
-  return new StandardSerializationPolicy(whitelistSer,whitelistDeser,typeIds,clientFields);
+  return new StandardSerializationPolicy(whitelistSer,whitelistDeser,typeIds,clientFields,shouldSerializeFinalFields);
 }

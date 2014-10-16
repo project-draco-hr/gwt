@@ -1,0 +1,55 @@
+{
+  JParameterizedType parameterizedType=type.isParameterized();
+  if (parameterizedType != null) {
+    generateSerializationSignature(context,parameterizedType.getRawType(),crc);
+    return;
+  }
+  String serializedTypeName=getRpcTypeName(type);
+  crc.update(serializedTypeName.getBytes(Util.DEFAULT_ENCODING));
+  if (excludeImplementationFromSerializationSignature(type)) {
+    return;
+  }
+  JClassType customSerializer=SerializableTypeOracleBuilder.findCustomFieldSerializer(context.getTypeOracle(),type);
+  if (customSerializer != null) {
+    generateSerializationSignature(context,customSerializer,crc);
+  }
+ else   if (type.isArray() != null) {
+    JArrayType isArray=type.isArray();
+    generateSerializationSignature(context,isArray.getComponentType(),crc);
+  }
+ else   if (type.isEnum() != null) {
+    List<JEnumConstant> constants=Arrays.asList(type.isEnum().getEnumConstants());
+    Collections.sort(constants,new Comparator<JEnumConstant>(){
+      @Override public int compare(      JEnumConstant o1,      JEnumConstant o2){
+        int i1=o1.getOrdinal();
+        int i2=o2.getOrdinal();
+        if (i1 < i2) {
+          return -1;
+        }
+ else         if (i1 > i2) {
+          return 1;
+        }
+ else {
+          return 0;
+        }
+      }
+    }
+);
+    for (    JEnumConstant constant : constants) {
+      crc.update(constant.getName().getBytes(Util.DEFAULT_ENCODING));
+    }
+  }
+ else   if (type.isClassOrInterface() != null) {
+    JClassType isClassOrInterface=type.isClassOrInterface();
+    JField[] fields=getSerializableFields(context,isClassOrInterface);
+    for (    JField field : fields) {
+      assert(field != null);
+      crc.update(field.getName().getBytes(Util.DEFAULT_ENCODING));
+      crc.update(getRpcTypeName(field.getType()).getBytes(Util.DEFAULT_ENCODING));
+    }
+    JClassType superClass=isClassOrInterface.getSuperclass();
+    if (superClass != null) {
+      generateSerializationSignature(context,superClass,crc);
+    }
+  }
+}

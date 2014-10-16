@@ -26,7 +26,7 @@ catch (    NoSuchFieldException e) {
     }
     setters=getSetters(instanceClass);
   }
-  Field[] serializableFields=SerializabilityUtil.applyFieldSerializationPolicy(instanceClass);
+  Field[] serializableFields=SerializabilityUtil.applyFieldSerializationPolicy(instanceClass,serializationPolicy);
   for (  Field declField : serializableFields) {
     assert(declField != null);
     if ((clientFieldNames != null) && !clientFieldNames.contains(declField.getName())) {
@@ -41,7 +41,7 @@ catch (    NoSuchFieldException e) {
     }
  else {
       boolean isAccessible=declField.isAccessible();
-      boolean needsAccessOverride=!isAccessible && !Modifier.isPublic(declField.getModifiers());
+      boolean needsAccessOverride=(!isAccessible && !Modifier.isPublic(declField.getModifiers())) || Modifier.isFinal(declField.getModifiers());
       if (needsAccessOverride) {
         declField.setAccessible(true);
       }
