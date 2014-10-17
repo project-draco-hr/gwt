@@ -56,14 +56,14 @@
   cache.cleanup(logger);
   cache.shutdown();
   assertNumCacheFiles(unitCacheDir,1);
+  cache=new PersistentUnitCache(logger,cacheDir);
   MockCompilationUnit lastUnit=null;
   assertTrue(PersistentUnitCache.CACHE_FILE_THRESHOLD > 3);
-  for (int i=2; i <= PersistentUnitCache.CACHE_FILE_THRESHOLD - 1; i++) {
-    cache=new PersistentUnitCache(logger,cacheDir);
+  for (int i=2; i <= PersistentUnitCache.CACHE_FILE_THRESHOLD - 3; i++) {
     lastUnit=new MockCompilationUnit("com.example.Foo","Foo Source" + i);
-    cache.add(lastUnit);
+    Future<Void> addFuture=cache.internalAdd(lastUnit);
+    addFuture.get();
     cache.cleanup(logger);
-    cache.shutdown();
     assertNumCacheFiles(unitCacheDir,i);
   }
   cache=new PersistentUnitCache(logger,cacheDir);
@@ -83,9 +83,18 @@
   assertNotNull(result);
   assertEquals("com.example.Bar",result.getTypeName());
   assertEquals(bar1.getContentId(),result.getContentId());
-  lastUnit=new MockCompilationUnit("com.example.Foo","Foo Source");
+  lastUnit=new MockCompilationUnit("com.example.Baz","Baz Source");
   cache.add(lastUnit);
+  cache.cleanup(logger);
+  lastUnit=new MockCompilationUnit("com.example.Qux","Qux Source");
+  Future<Void> addFuture=cache.internalAdd(lastUnit);
+  addFuture.get();
   cache.cleanup(logger);
   cache.shutdown();
   assertNumCacheFiles(unitCacheDir,1);
+  cache=new PersistentUnitCache(logger,cacheDir);
+  assertNotNull(cache.find("com/example/Foo.java"));
+  assertNotNull(cache.find("com/example/Bar.java"));
+  assertNotNull(cache.find("com/example/Baz.java"));
+  assertNotNull(cache.find("com/example/Qux.java"));
 }
