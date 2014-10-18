@@ -1,44 +1,14 @@
 {
   TreeLogger logger=createTestTreeLogger();
+  String commandPath="com/google/gwt/user/client/Command.java";
+  String messagesPath="com/google/gwt/i18n/client/Messages.java";
+  String userPackage="cpe1.com.google.gwt.user.client";
+  String i18nPackage="cpe2.com.google.gwt.i18n.client";
   ResourceOracleImpl oracle=createResourceOracle(cpe1,cpe2);
   ResourceOracleSnapshot s=refreshAndSnapshot(logger,oracle);
   s.assertCollectionsConsistent(10);
-  s.assertPathIncluded("com/google/gwt/user/client/Command.java",cpe1);
-  s.assertPathIncluded("com/google/gwt/i18n/client/Messages.java",cpe2);
-{
-    AbstractResource res=s.findResourceWithPath("com/google/gwt/user/client/Command.java");
-    BufferedReader rdr=null;
-    try {
-      InputStream is=res.openContents();
-      assertNotNull(is);
-      rdr=new BufferedReader(new InputStreamReader(is));
-      String line=rdr.readLine();
-      while (line != null && !line.startsWith("package")) {
-        line=rdr.readLine();
-      }
-      assertTrue(line != null && line.indexOf("package com.google.gwt.dev.resource.impl.testdata.cpe1.com.google.gwt.user.client;") >= 0);
-    }
-  finally {
-      Utility.close(rdr);
-    }
-  }
-{
-    AbstractResource res=s.findResourceWithPath("com/google/gwt/i18n/client/Messages.java");
-    BufferedReader rdr=null;
-    try {
-      InputStream is=res.openContents();
-      assertNotNull(is);
-      rdr=new BufferedReader(new InputStreamReader(is));
-      String line=rdr.readLine();
-      while (line != null && !line.startsWith("package")) {
-        line=rdr.readLine();
-      }
-      assertTrue(line != null && line.indexOf("package com.google.gwt.dev.resource.impl.testdata.cpe2.com.google.gwt.i18n.client;") >= 0);
-    }
-  finally {
-      Utility.close(rdr);
-    }
-  }
-{
-  }
+  readAndAssertResource(oracle,commandPath,userPackage);
+  readAndAssertResource(oracle,messagesPath,i18nPackage);
+  readAndAssertResource(oracle,"com/google/gwt/i18n/../i18n/client/Messages.java",i18nPackage);
+  assertNull(oracle.getResource("com/google/gwt/i18n/client/DoesntExist.java"));
 }
