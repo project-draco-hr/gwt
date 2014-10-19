@@ -2,5 +2,11 @@
   if (e instanceof Throwable) {
     return e;
   }
-  return getCachableJavaScriptException(e);
+  JavaScriptException jse=getCachedJavaScriptException(e);
+  if (jse == null) {
+    jse=new JavaScriptException(e);
+    StackTraceCreator.captureStackTrace(jse,e);
+    cacheJavaScriptException(e,jse);
+  }
+  return jse;
 }
