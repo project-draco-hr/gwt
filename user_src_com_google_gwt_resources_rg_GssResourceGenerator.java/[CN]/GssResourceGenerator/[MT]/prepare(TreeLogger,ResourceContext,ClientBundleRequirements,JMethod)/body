@@ -11,12 +11,12 @@
   final long lastModified=ResourceGeneratorUtil.getLastModified(resourceUrls,logger);
   final List<URL> resources=Lists.newArrayList(resourceUrls);
   maybeInvalidateCacheFor(resources,lastModified,logger);
-  ExtendedCssTree extTree;
+  CssTreeResult extTree;
   try {
-    extTree=TREE_CACHE.get(resources,new Callable<ExtendedCssTree>(){
-      @Override public ExtendedCssTree call() throws Exception {
-        ExtendedCssTree tree=parseResources(resources,logger);
-        LAST_MODIFIED_CACHE.put(resources,lastModified);
+    extTree=compiledGssTreeCache.get(resources,new Callable<CssTreeResult>(){
+      @Override public CssTreeResult call() throws Exception {
+        CssTreeResult tree=parseResources(resources,logger);
+        lastModifiedCache.put(resources,lastModified);
         return tree;
       }
     }
@@ -31,7 +31,7 @@
       throw new UnableToCompleteException();
     }
   }
-  ExtendedCssTree finalTree=new ExtendedCssTree(deepCopy(extTree.tree),extTree.permutationAxes,extTree.originalConstantNameMapping);
+  CssTreeResult finalTree=new CssTreeResult(deepCopy(extTree.tree),extTree.permutationAxes,extTree.originalConstantNameMapping);
   cssTreeMap.put(method,finalTree);
   for (  String permutationAxis : extTree.permutationAxes) {
     try {

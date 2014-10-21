@@ -1,17 +1,19 @@
 {
-  SortedSet<String> classNames=new TreeSet<String>(styleClassesSet);
   if (matchAll) {
-    return classNames;
+    return ImmutableSet.copyOf(styleClassesSet);
   }
+  SortedSet<String> classNames=new TreeSet<String>(styleClassesSet);
+  Builder<String> externalClassesSetBuilder=ImmutableSet.builder();
+  externalClassesSetBuilder.addAll(externalClassNames);
   for (  String prefix : externalClassPrefixes) {
     for (    String styleClass : classNames.tailSet(prefix)) {
       if (styleClass.startsWith(prefix)) {
-        externalClassNames.add(styleClass);
+        externalClassesSetBuilder.add(styleClass);
       }
  else {
         break;
       }
     }
   }
-  return externalClassNames;
+  return externalClassesSetBuilder.build();
 }
