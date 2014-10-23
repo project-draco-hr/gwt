@@ -1,15 +1,16 @@
 {
-  CssTreeResult cssTreeResult=cssTreeMap.get(method);
-  RenamingResult renamingResult=doClassRenaming(cssTreeResult.tree,method,logger,context);
-  ConstantDefinitions constantDefinitions=optimizeTree(cssTreeResult,context,true,true,logger);
+  CssParsingResult cssParsingResult=cssParsingResultMap.get(method);
+  CssTree cssTree=cssParsingResult.tree;
+  RenamingResult renamingResult=doClassRenaming(cssTree,method,logger,context);
+  ConstantDefinitions constantDefinitions=optimizeTree(cssParsingResult,context,true,true,logger);
   checkErrors();
-  Set<String> externalClasses=revertRenamingOfExternalClasses(cssTreeResult.tree,renamingResult);
+  Set<String> externalClasses=revertRenamingOfExternalClasses(cssTree,renamingResult);
   checkErrors();
   validateExternalClasses(externalClasses,renamingResult.externalClassCandidate,method,logger);
   SourceWriter sw=new StringSourceWriter();
   sw.println("new " + method.getReturnType().getQualifiedSourceName() + "() {");
   sw.indent();
-  writeMethods(logger,context,method,sw,constantDefinitions,cssTreeResult.originalConstantNameMapping,renamingResult.mapping);
+  writeMethods(logger,context,method,sw,constantDefinitions,cssParsingResult.originalConstantNameMapping,renamingResult.mapping);
   sw.outdent();
   sw.println("}");
   return sw.toString();

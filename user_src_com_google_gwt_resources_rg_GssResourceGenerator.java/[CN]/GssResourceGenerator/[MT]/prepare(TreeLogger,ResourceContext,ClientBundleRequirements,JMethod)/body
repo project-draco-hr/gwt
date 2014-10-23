@@ -8,32 +8,9 @@
     logger.log(TreeLogger.ERROR,"At least one source must be specified");
     throw new UnableToCompleteException();
   }
-  final long lastModified=ResourceGeneratorUtil.getLastModified(resourceUrls,logger);
-  final List<URL> resources=Lists.newArrayList(resourceUrls);
-  maybeInvalidateCacheFor(resources,lastModified,logger);
-  CssTreeResult extTree;
-  try {
-    extTree=compiledGssTreeCache.get(resources,new Callable<CssTreeResult>(){
-      @Override public CssTreeResult call() throws Exception {
-        CssTreeResult tree=parseResources(resources,logger);
-        lastModifiedCache.put(resources,lastModified);
-        return tree;
-      }
-    }
-);
-  }
- catch (  ExecutionException e) {
-    if (e.getCause() instanceof UnableToCompleteException) {
-      throw (UnableToCompleteException)e.getCause();
-    }
- else {
-      logger.log(Type.ERROR,"Unexpected error occurred",e.getCause());
-      throw new UnableToCompleteException();
-    }
-  }
-  CssTreeResult finalTree=new CssTreeResult(deepCopy(extTree.tree),extTree.permutationAxes,extTree.originalConstantNameMapping);
-  cssTreeMap.put(method,finalTree);
-  for (  String permutationAxis : extTree.permutationAxes) {
+  CssParsingResult cssParsingResult=parseResources(Lists.newArrayList(resourceUrls),logger);
+  cssParsingResultMap.put(method,cssParsingResult);
+  for (  String permutationAxis : cssParsingResult.permutationAxes) {
     try {
       context.getRequirements().addPermutationAxis(permutationAxis);
     }
