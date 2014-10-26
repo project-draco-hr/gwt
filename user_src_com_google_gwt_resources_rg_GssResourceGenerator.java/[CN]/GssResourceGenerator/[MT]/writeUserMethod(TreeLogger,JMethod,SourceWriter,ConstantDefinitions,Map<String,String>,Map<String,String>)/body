@@ -1,6 +1,6 @@
 {
   String className=getClassName(userMethod);
-  if (substitutionMap.containsKey(className)) {
+  if (substitutionMap.containsKey(className) && isReturnTypeString(userMethod.getReturnType().isClass())) {
     return writeClassMethod(logger,userMethod,substitutionMap,sw);
   }
   CssDefinitionNode definitionNode;
@@ -17,6 +17,10 @@
   }
   if (definitionNode != null) {
     return writeDefMethod(definitionNode,logger,userMethod,sw);
+  }
+  if (substitutionMap.containsKey(className)) {
+    logger.log(Type.ERROR,"The return type of the method [" + userMethod.getName() + "] must "+ "be java.lang.String.");
+    throw new UnableToCompleteException();
   }
   logger.log(Type.ERROR,"The following method [" + userMethod.getName() + "()] doesn't match a constant"+ " nor a style class. You could fix that by adding ."+ className+ " {}");
   return false;
