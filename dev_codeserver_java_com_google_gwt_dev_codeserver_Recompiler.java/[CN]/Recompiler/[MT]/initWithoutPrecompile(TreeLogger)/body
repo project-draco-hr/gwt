@@ -2,17 +2,22 @@
   long startTime=System.currentTimeMillis();
   CompileDir compileDir=outboxDir.makeCompileDir(logger);
   TreeLogger compileLogger=makeCompileLogger(compileDir,logger);
-  ModuleDef module=loadModule(Sets.<String>newHashSet(),compileLogger);
-  logger.log(TreeLogger.INFO,"Loading Java files in " + inputModuleName + ".");
-  CompilerOptions loadOptions=new CompilerOptionsImpl(compileDir,inputModuleName,options);
-  compilerContext=compilerContextBuilder.options(loadOptions).unitCache(Compiler.getOrCreateUnitCache(logger,loadOptions)).build();
-  module.getCompilationState(compileLogger,compilerContext);
-  setUpCompileDir(compileDir,module,compileLogger);
-  if (launcherDir != null) {
-    launcherDir.update(module,compileDir,compileLogger);
+  ModuleDef module;
+  try {
+    module=loadModule(Sets.<String>newHashSet(),compileLogger);
+    logger.log(TreeLogger.INFO,"Loading Java files in " + inputModuleName + ".");
+    CompilerOptions loadOptions=new CompilerOptionsImpl(compileDir,inputModuleName,options);
+    compilerContext=compilerContextBuilder.options(loadOptions).unitCache(Compiler.getOrCreateUnitCache(logger,loadOptions)).build();
+    module.getCompilationState(compileLogger,compilerContext);
+    setUpCompileDir(compileDir,module,compileLogger);
+    if (launcherDir != null) {
+      launcherDir.update(module,compileDir,compileLogger);
+    }
+    outputModuleName.set(module.getName());
   }
-  outputModuleName.set(module.getName());
-  lastBuild.set(compileDir);
+  finally {
+    lastBuild.set(compileDir);
+  }
   long elapsedTime=System.currentTimeMillis() - startTime;
   compileLogger.log(TreeLogger.Type.INFO,"Module setup completed in " + elapsedTime + " ms");
   return new Result(compileDir,module.getName(),null);
