@@ -2,7 +2,7 @@
   TreeLogger logger=TreeLogger.NULL;
   File cacheDir=lastCacheDir=File.createTempFile("persistentCacheTest","");
   File unitCacheDir=mkCacheDir(cacheDir);
-  PersistentUnitCache cache=new PersistentUnitCache(logger,cacheDir);
+  PersistentUnitCache cache=makeUnitCache(cacheDir);
   MockCompilationUnit foo1=new MockCompilationUnit("com.example.Foo","Foo: source1");
   cache.add(foo1);
   MockCompilationUnit bar1=new MockCompilationUnit("com.example.Bar","Bar: source1");
@@ -34,7 +34,7 @@
   cache.cleanup(logger);
   cache.shutdown();
   assertNumCacheFiles(unitCacheDir,1);
-  cache=new PersistentUnitCache(logger,cacheDir);
+  cache=makeUnitCache(cacheDir);
   result=cache.find("com/example/Foo.java");
   assertNotNull(result);
   assertEquals("com.example.Foo",result.getTypeName());
@@ -56,17 +56,18 @@
   cache.cleanup(logger);
   cache.shutdown();
   assertNumCacheFiles(unitCacheDir,1);
-  cache=new PersistentUnitCache(logger,cacheDir);
+  cache=makeUnitCache(cacheDir);
   MockCompilationUnit lastUnit=null;
   assertTrue(PersistentUnitCache.CACHE_FILE_THRESHOLD > 3);
   for (int i=2; i <= PersistentUnitCache.CACHE_FILE_THRESHOLD - 3; i++) {
     lastUnit=new MockCompilationUnit("com.example.Foo","Foo Source" + i);
     Future<Void> addFuture=cache.internalAdd(lastUnit);
     addFuture.get();
-    cache.cleanup(logger);
     assertNumCacheFiles(unitCacheDir,i);
+    cache.cleanup(logger);
+    assertNumCacheFiles(unitCacheDir,i + 1);
   }
-  cache=new PersistentUnitCache(logger,cacheDir);
+  cache=makeUnitCache(cacheDir);
   result=cache.find(lastUnit.getContentId());
   assertNotNull(result);
   assertEquals("com.example.Foo",result.getTypeName());
@@ -92,7 +93,7 @@
   cache.cleanup(logger);
   cache.shutdown();
   assertNumCacheFiles(unitCacheDir,1);
-  cache=new PersistentUnitCache(logger,cacheDir);
+  cache=makeUnitCache(cacheDir);
   assertNotNull(cache.find("com/example/Foo.java"));
   assertNotNull(cache.find("com/example/Bar.java"));
   assertNotNull(cache.find("com/example/Baz.java"));
