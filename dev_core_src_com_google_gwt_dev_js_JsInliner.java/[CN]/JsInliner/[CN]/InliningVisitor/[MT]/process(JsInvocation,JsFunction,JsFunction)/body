@@ -1,12 +1,12 @@
 {
   List<JsStatement> statements;
   if (invokedFunction.getBody() != null) {
-    statements=new ArrayList<JsStatement>(invokedFunction.getBody().getStatements());
+    statements=Lists.newArrayList(invokedFunction.getBody().getStatements());
   }
  else {
     statements=Collections.emptyList();
   }
-  List<JsExpression> hoisted=new ArrayList<JsExpression>(statements.size());
+  List<JsExpression> hoisted=Lists.newArrayListWithCapacity(statements.size());
   JsExpression thisExpr=((JsNameRef)x.getQualifier()).getQualifier();
   HoistedNameVisitor hoistedNameVisitor=new HoistedNameVisitor(callerFunction.getScope(),invokedFunction.getScope());
   boolean sawReturnStatement=false;
@@ -50,18 +50,17 @@
     String ident;
     String base=invokedFunction.getName() + "_" + name.getIdent();
     JsScope scope=callerFunction.getScope();
-    HashMap<String,Integer> startIdent=startIdentForScope.get(scope);
+    Multiset<String> startIdent=startIdentForScope.get(scope);
     if (startIdent == null) {
-      startIdent=new HashMap<String,Integer>();
+      startIdent=HashMultiset.create();
       startIdentForScope.put(scope,startIdent);
     }
-    Integer s=startIdent.get(base);
-    int suffix=(s == null) ? 0 : s.intValue();
+    int suffix=startIdent.count(base);
     do {
       ident=base + "_" + suffix++;
     }
  while (scope.findExistingName(ident) != null);
-    startIdent.put(base,suffix);
+    startIdent.setCount(base,suffix);
     JsName newName=scope.declareName(ident,name.getShortIdent());
     v.setReplacementName(name,newName);
     nameIterator.set(newName);

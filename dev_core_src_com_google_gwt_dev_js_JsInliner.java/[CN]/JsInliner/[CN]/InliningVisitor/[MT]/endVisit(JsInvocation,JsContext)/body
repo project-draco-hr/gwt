@@ -3,20 +3,14 @@
     return;
   }
   JsFunction callerFunction=functionStack.peek();
-  if (!whitelist.contains(callerFunction)) {
-    return;
-  }
   JsFunction invokedFunction=JsUtils.isFunction(x.getQualifier());
   if (invokedFunction == null) {
     return;
   }
-  if (!program.isInliningAllowed(invokedFunction)) {
+  if (!program.isInliningAllowed(invokedFunction) || blacklist.contains(invokedFunction)) {
     return;
   }
   if (invokedFunction.getBody().getStatements().size() > MAX_INLINE_FN_SIZE) {
-    return;
-  }
-  if (blacklist.contains(invokedFunction)) {
     return;
   }
   if (invokedFunction == callerFunction) {
