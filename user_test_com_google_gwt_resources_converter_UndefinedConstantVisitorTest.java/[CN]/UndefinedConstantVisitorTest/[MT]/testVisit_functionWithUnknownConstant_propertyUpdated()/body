@@ -1,0 +1,15 @@
+{
+  CssProperty property=mock(CssProperty.class);
+  when(property.getName()).thenReturn("name");
+  List<Value> arguments=new ArrayList<Value>(5);
+  for (int i=0; i < 5; i++) {
+    arguments.add(new IdentValue("ARGUMENT" + i));
+  }
+  ListValue listValue=new ListValue(arguments);
+  FunctionValue function=new FunctionValue("fct",listValue);
+  when(property.getValues()).thenReturn(new ListValue(Lists.<Value>newArrayList(function)));
+  when(cssRule.getProperties()).thenReturn(Lists.newArrayList(property));
+  UndefinedConstantVisitor undefinedConstantVisitor=new UndefinedConstantVisitor(Sets.newHashSet("ARGUMENT1","ARGUMENT3"),true,treeLogger);
+  undefinedConstantVisitor.visit(cssRule,null);
+  verifyPropertyValueIs(property,"fct(argument0 ARGUMENT1 argument2 ARGUMENT3 argument4)");
+}

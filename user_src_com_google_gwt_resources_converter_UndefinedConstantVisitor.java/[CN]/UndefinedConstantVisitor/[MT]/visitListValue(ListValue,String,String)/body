@@ -1,0 +1,22 @@
+{
+  Preconditions.checkNotNull(values,"values cannot be null");
+  List<Value> cssPropertyValues=values.getValues();
+  List<Value> newValues=new ArrayList<Value>(cssPropertyValues.size());
+  for (  Value value : cssPropertyValues) {
+    if (value.isListValue() != null) {
+      newValues.add(visitListValue(value.isListValue(),cssPropertyName,selector));
+    }
+ else     if (value.isFunctionValue() != null) {
+      FunctionValue functionValue=value.isFunctionValue();
+      ListValue listValue=visitListValue(functionValue.getValues(),cssPropertyName,selector);
+      newValues.add(new FunctionValue(functionValue.getName(),listValue));
+    }
+ else     if (value.isIdentValue() != null) {
+      newValues.add(visitIdentValue(value.isIdentValue(),cssPropertyName,selector));
+    }
+ else {
+      newValues.add(value);
+    }
+  }
+  return new ListValue(newValues);
+}
