@@ -1,6 +1,5 @@
 {
   this.logger=treeLogger;
-  this.options=options;
   this.codeServerPort=chooseCodeServerPort(treeLogger,options);
   ensureModuleBaseDir(options);
   List<String> args=makeCodeServerArgs(options,codeServerPort);
@@ -22,10 +21,15 @@ catch (  NoSuchMethodException e) {
   listenThread=new Thread(){
     public void run(){
       try {
+        long startTime=System.currentTimeMillis();
         mainMethod.invoke(null,new Object[]{codeServerArgs});
+        long elapsedTime=System.currentTimeMillis() - startTime;
+        logger.log(Type.INFO,"Code server started in " + elapsedTime + " ms");
+        codeServerReady.set(null);
       }
  catch (      Exception e) {
         logger.log(TreeLogger.ERROR,"Unable to run superdev codeServer.",e);
+        codeServerReady.setException(e);
       }
     }
   }
