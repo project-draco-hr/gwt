@@ -1,0 +1,14 @@
+{
+  File rootDirectory=Files.createTempDir();
+  File fooFile=createFileIn("Foo.java",rootDirectory);
+  ChangedFileAccumulator changedFileAccumulator=new ChangedFileAccumulator(rootDirectory.toPath());
+  assertTrue(changedFileAccumulator.getAndClearChangedFiles().isEmpty());
+  for (int i=0; i < 5; i++) {
+    fooFile.setLastModified(i * 1000);
+    waitForFileEvents();
+    List<File> modifiedFiles=changedFileAccumulator.getAndClearChangedFiles();
+    assertEquals(1,modifiedFiles.size());
+    assertTrue(modifiedFiles.get(0).getPath().endsWith("Foo.java"));
+  }
+  changedFileAccumulator.shutdown();
+}

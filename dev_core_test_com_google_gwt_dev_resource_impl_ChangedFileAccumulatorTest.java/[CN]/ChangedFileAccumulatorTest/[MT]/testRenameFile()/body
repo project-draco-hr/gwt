@@ -1,0 +1,15 @@
+{
+  File rootDirectory=Files.createTempDir();
+  File subDirectory=createDirectoryIn("subdir",rootDirectory);
+  File originalFile=createFileIn("OriginalName.java",subDirectory);
+  File renamedFile=new File(subDirectory,"Renamed.java");
+  ChangedFileAccumulator changedFileAccumulator=new ChangedFileAccumulator(rootDirectory.toPath());
+  assertTrue(changedFileAccumulator.getAndClearChangedFiles().isEmpty());
+  originalFile.renameTo(renamedFile);
+  waitForFileEvents();
+  List<File> modifiedFiles=changedFileAccumulator.getAndClearChangedFiles();
+  assertEquals(2,modifiedFiles.size());
+  assertTrue(modifiedFiles.get(0).getPath().endsWith("OriginalName.java"));
+  assertTrue(modifiedFiles.get(1).getPath().endsWith("Renamed.java"));
+  changedFileAccumulator.shutdown();
+}
