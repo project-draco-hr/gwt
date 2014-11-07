@@ -1,0 +1,23 @@
+{
+  Map<AbstractResource,ResourceResolution> resolutionsByResource=resolutionsByResourcePerPathPrefixSet.get(pathPrefixSet);
+  Collection<File> changedFiles=DirectoryPathPrefixChangeManager.getAndClearChangedFiles(this,pathPrefixSet);
+  for (  File changedFile : changedFiles) {
+    String changedRelativePath=Util.makeRelativePath(dir,changedFile);
+    FileResource resource=FileResource.create(this,changedRelativePath,changedFile);
+    if (!changedFile.exists()) {
+      if (resolutionsByResource.containsKey(resource)) {
+        resolutionsByResource.remove(resource);
+      }
+      continue;
+    }
+    ResourceResolution resourceResolution=pathPrefixSet.includesResource(changedRelativePath);
+    if (resourceResolution != null) {
+      Messages.INCLUDING_FILE.log(logger,changedRelativePath,null);
+      resolutionsByResource.put(resource,resourceResolution);
+    }
+ else {
+      Messages.EXCLUDING_FILE.log(logger,changedRelativePath,null);
+    }
+  }
+  return resolutionsByResource;
+}

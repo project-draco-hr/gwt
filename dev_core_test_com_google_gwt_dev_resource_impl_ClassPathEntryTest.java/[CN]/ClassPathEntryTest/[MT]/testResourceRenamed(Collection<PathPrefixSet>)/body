@@ -1,0 +1,18 @@
+{
+  File tempDir=Files.createTempDir();
+  File fileToRename=new File(tempDir,"ToRename.java");
+  fileToRename.createNewFile();
+  DirectoryClassPathEntry cpe=new DirectoryClassPathEntry(tempDir);
+  for (  PathPrefixSet pathPrefixSet : pathPrefixSets) {
+    Map<AbstractResource,ResourceResolution> foundResources=cpe.findApplicableResources(TreeLogger.NULL,pathPrefixSet);
+    assertEquals(1,foundResources.size());
+    assertEquals("ToRename.java",foundResources.keySet().iterator().next().getPath());
+  }
+  fileToRename.renameTo(new File(tempDir,"Renamed.java"));
+  Thread.sleep(10);
+  for (  PathPrefixSet pathPrefixSet : pathPrefixSets) {
+    Map<AbstractResource,ResourceResolution> foundResources=cpe.findApplicableResources(TreeLogger.NULL,pathPrefixSet);
+    assertEquals(1,foundResources.size());
+    assertEquals("Renamed.java",foundResources.keySet().iterator().next().getPath());
+  }
+}

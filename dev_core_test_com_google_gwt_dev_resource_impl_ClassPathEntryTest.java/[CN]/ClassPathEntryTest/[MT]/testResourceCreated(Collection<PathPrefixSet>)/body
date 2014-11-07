@@ -1,0 +1,16 @@
+{
+  File tempDir=Files.createTempDir();
+  DirectoryClassPathEntry cpe=new DirectoryClassPathEntry(tempDir);
+  for (  PathPrefixSet pathPrefixSet : pathPrefixSets) {
+    Map<AbstractResource,ResourceResolution> foundResources=cpe.findApplicableResources(TreeLogger.NULL,pathPrefixSet);
+    assertTrue(foundResources.isEmpty());
+  }
+  File createdFile=new File(tempDir,"Created.java");
+  createdFile.createNewFile();
+  Thread.sleep(10);
+  for (  PathPrefixSet pathPrefixSet : pathPrefixSets) {
+    Map<AbstractResource,ResourceResolution> foundResources=cpe.findApplicableResources(TreeLogger.NULL,pathPrefixSet);
+    assertEquals(1,foundResources.size());
+    assertEquals("Created.java",foundResources.keySet().iterator().next().getPath());
+  }
+}

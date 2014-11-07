@@ -1,0 +1,17 @@
+{
+  File tempDir=Files.createTempDir();
+  File fileToDelete=new File(tempDir,"ToDelete.java");
+  fileToDelete.createNewFile();
+  DirectoryClassPathEntry cpe=new DirectoryClassPathEntry(tempDir);
+  for (  PathPrefixSet pathPrefixSet : pathPrefixSets) {
+    Map<AbstractResource,ResourceResolution> foundResources=cpe.findApplicableResources(TreeLogger.NULL,pathPrefixSet);
+    assertEquals(1,foundResources.size());
+    assertEquals("ToDelete.java",foundResources.keySet().iterator().next().getPath());
+  }
+  fileToDelete.delete();
+  Thread.sleep(10);
+  for (  PathPrefixSet pathPrefixSet : pathPrefixSets) {
+    Map<AbstractResource,ResourceResolution> foundResources=cpe.findApplicableResources(TreeLogger.NULL,pathPrefixSet);
+    assertTrue(foundResources.isEmpty());
+  }
+}

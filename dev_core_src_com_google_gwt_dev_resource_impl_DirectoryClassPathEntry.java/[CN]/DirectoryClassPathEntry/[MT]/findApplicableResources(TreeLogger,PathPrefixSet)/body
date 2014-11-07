@@ -1,5 +1,20 @@
 {
-  Map<AbstractResource,ResourceResolution> results=new IdentityHashMap<AbstractResource,ResourceResolution>();
-  descendToFindResources(logger,Lists.create(pathPrefixSet),Lists.create(results),dir,"");
-  return results;
+  ensureListening(logger,pathPrefixSet);
+  if (listeningFailed) {
+    return scanRecursiveDirectory(logger,pathPrefixSet);
+  }
+  boolean haveCachedResults=resolutionsByResourcePerPathPrefixSet.containsKey(pathPrefixSet);
+  if (!haveCachedResults) {
+    return scanRecursiveDirectory(logger,pathPrefixSet);
+  }
+ else {
+    try {
+      return scanChangedFiles(logger,pathPrefixSet);
+    }
+ catch (    ExecutionException e) {
+      listeningFailed=true;
+      logger.log(TreeLogger.WARN,"The attempt to retrieve accumulated file changes in " + dir + " failed. Will fall back on full directory scans.");
+      return scanRecursiveDirectory(logger,pathPrefixSet);
+    }
+  }
 }
