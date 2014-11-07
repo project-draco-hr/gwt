@@ -8,7 +8,10 @@
   linkerClasses=new ArrayList<Class<? extends Linker>>();
   for (  Class<? extends Linker> linkerClass : module.getActiveLinkers()) {
     Order order=linkerClass.getAnnotation(LinkerOrder.class).value();
-    assert(order != null);
+    if (order == null) {
+      logger.log(Type.ERROR,linkerClass.getName() + " has no @LinkerOrder annotation");
+      throw new UnableToCompleteException();
+    }
     if (order == Order.PRE) {
       linkerClasses.add(linkerClass);
     }
