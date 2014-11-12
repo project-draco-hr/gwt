@@ -6,6 +6,10 @@
   this.resourceLoader.set(resources);
   ModuleDef moduleDef=ModuleDefLoader.loadFromResources(logger,compilerContext,inputModuleName,resources,true);
   compilerContext=compilerContextBuilder.module(moduleDef).build();
+  for (  BindingProperty bindingProperty : moduleDef.getProperties().getBindingProperties()) {
+    String[] allowedValues=bindingProperty.getAllowedValues(bindingProperty.getRootCondition());
+    bindingProperty.setRootGeneratedValues(allowedValues);
+  }
   ConfigProps config=new ConfigProps(moduleDef);
   if (IFrameLinker.class.isAssignableFrom(moduleDef.getActivePrimaryLinker())) {
     moduleDef.addLinker("xsiframe");
@@ -37,9 +41,5 @@
   overrideBinding(moduleDef,"compiler.useSourceMaps","true");
   overrideBinding(moduleDef,"compiler.useSymbolMaps","false");
   overrideBinding(moduleDef,"superdevmode","on");
-  for (  String propertyName : propertyNames) {
-    BindingProperty bindingProp=moduleDef.getProperties().findBindingProp(propertyName);
-    bindingProp.setRootGeneratedValues(bindingProp.getDefinedValues());
-  }
   return moduleDef;
 }

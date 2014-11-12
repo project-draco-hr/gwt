@@ -19,6 +19,20 @@
     JsonObject json=jsonExporter.exportRecompileResponse(result);
     return Responses.newJsonResponse(json);
   }
+  if (target.startsWith("/recompile-requester/")) {
+    String moduleName=target.substring("/recompile-requester/".length());
+    Outbox box=outboxes.findByOutputModuleName(moduleName);
+    if (box == null) {
+      return new ErrorPage("No such module: " + moduleName);
+    }
+    try {
+      String recompileJs=runner.getRecompileJs(logger,box);
+      return Responses.newJavascriptResponse(recompileJs);
+    }
+ catch (    ExecutionException e) {
+      return new ErrorPage("Failed to generate the Js recompile requester.");
+    }
+  }
   if (target.startsWith("/log/")) {
     String moduleName=target.substring("/log/".length());
     Outbox box=outboxes.findByOutputModuleName(moduleName);
