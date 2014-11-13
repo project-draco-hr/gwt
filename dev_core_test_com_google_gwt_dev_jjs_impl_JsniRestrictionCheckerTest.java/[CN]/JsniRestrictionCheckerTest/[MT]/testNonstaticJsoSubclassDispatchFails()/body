@@ -1,0 +1,11 @@
+{
+  addSnippetImport("com.google.gwt.core.client.JavaScriptObject");
+  addSnippetClassDecl("static class Buggy {","  static final class Foo extends com.google.gwt.core.client.JavaScriptObject {","    protected Foo() { };","    void foo() { };","  }","  native void jsniMeth(Object o) /*-{","    new Object().@Buggy.Foo::foo()();","  }-*/;","}");
+  try {
+    optimize("void","new Buggy().jsniMeth(null);");
+    fail("JsniRestrictionChecker should have prevented non-static JSO subclass " + "dispatch in a JSNI method.");
+  }
+ catch (  Exception e) {
+    assertTrue(e.getCause() instanceof UnableToCompleteException);
+  }
+}
