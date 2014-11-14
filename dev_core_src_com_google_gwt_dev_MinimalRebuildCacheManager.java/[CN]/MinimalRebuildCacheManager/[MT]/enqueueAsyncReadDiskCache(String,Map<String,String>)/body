@@ -1,0 +1,29 @@
+{
+  return executorService.submit(new Callable<MinimalRebuildCache>(){
+    @Override public MinimalRebuildCache call(){
+      File minimalRebuildCacheFile=computeMinimalRebuildCacheFile(moduleName,bindingProperties);
+      if (minimalRebuildCacheFile.exists()) {
+        ObjectInputStream objectInputStream=null;
+        try {
+          objectInputStream=new ObjectInputStream(new BufferedInputStream(new FileInputStream(minimalRebuildCacheFile)));
+          return (MinimalRebuildCache)objectInputStream.readObject();
+        }
+ catch (        IOException e) {
+          logger.log(TreeLogger.WARN,"Unable to read the rebuild cache in " + minimalRebuildCacheFile + ".");
+          Utility.close(objectInputStream);
+          minimalRebuildCacheFile.delete();
+        }
+catch (        ClassNotFoundException e) {
+          logger.log(TreeLogger.WARN,"Unable to read the rebuild cache in " + minimalRebuildCacheFile + ".");
+          Utility.close(objectInputStream);
+          minimalRebuildCacheFile.delete();
+        }
+ finally {
+          Utility.close(objectInputStream);
+        }
+      }
+      return null;
+    }
+  }
+);
+}

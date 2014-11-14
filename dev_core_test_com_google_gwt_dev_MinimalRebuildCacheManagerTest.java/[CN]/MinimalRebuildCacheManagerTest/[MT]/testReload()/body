@@ -1,0 +1,26 @@
+{
+  File cacheDir=Files.createTempDir();
+  String moduleName="com.google.FooModule";
+  MinimalRebuildCacheManager minimalRebuildCacheManager=new MinimalRebuildCacheManager(TreeLogger.NULL,cacheDir);
+  Map<String,String> bindingProperites=Maps.<String,String>newHashMap();
+  minimalRebuildCacheManager.deleteCaches();
+  MinimalRebuildCache startingCache=minimalRebuildCacheManager.getCache(moduleName,bindingProperites);
+  Map<String,Long> currentModifiedBySourcePath=new ImmutableMap.Builder<String,Long>().put("Foo.java",0L).put("Bar.java",0L).put("Baz.java",0L).build();
+  startingCache.recordDiskSourceResources(currentModifiedBySourcePath);
+  startingCache.recordNestedTypeName("Foo","Foo");
+  startingCache.setJsForType(TreeLogger.NULL,"Foo","Some Js for Foo");
+  startingCache.addTypeReference("Bar","Foo");
+  startingCache.getImmediateTypeRelations().getImmediateSuperclassesByClass().put("Baz","Foo");
+  startingCache.addTypeReference("Foo","Foo$Inner");
+  Map<String,Long> laterModifiedBySourcePath=new ImmutableMap.Builder<String,Long>().put("Foo.java",9999L).put("Bar.java",0L).put("Baz.java",0L).build();
+  startingCache.recordDiskSourceResources(laterModifiedBySourcePath);
+  startingCache.setRootTypeNames(Sets.newHashSet("Foo","Bar","Baz"));
+  startingCache.computeReachableTypeNames();
+  startingCache.computeAndClearStaleTypesCache(TreeLogger.NULL,new JTypeOracle(null,startingCache,true));
+  minimalRebuildCacheManager.putCache(moduleName,bindingProperites,startingCache);
+  assertTrue(minimalRebuildCacheManager.shutdown());
+  MinimalRebuildCacheManager reloadedMinimalRebuildCacheManager=new MinimalRebuildCacheManager(TreeLogger.NULL,cacheDir);
+  MinimalRebuildCache reloadedCache=reloadedMinimalRebuildCacheManager.syncReadDiskCache(moduleName,bindingProperites);
+  assertFalse(startingCache == reloadedCache);
+  assertTrue(startingCache.hasSameContent(reloadedCache));
+}
