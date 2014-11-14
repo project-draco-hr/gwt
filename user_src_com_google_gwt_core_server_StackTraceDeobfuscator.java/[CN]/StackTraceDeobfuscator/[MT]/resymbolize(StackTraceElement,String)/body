@@ -1,7 +1,7 @@
 {
   String declaringClass=null;
   String methodName=null;
-  String filename=null;
+  String fileName=null;
   int lineNumber=-1;
   int fragmentId=-1;
   String steFilename=ste.getFileName();
@@ -32,7 +32,10 @@
         declaringClass=ste.getClassName();
         methodName=ste.getMethodName();
       }
-      filename="Unknown".equals(parts[3]) ? null : parts[3].substring(parts[3].lastIndexOf('/') + 1);
+      fileName=ste.getFileName();
+      if (fileName == null || !fileName.endsWith(".java")) {
+        fileName="Unknown".equals(parts[3]) ? null : parts[3].substring(parts[3].lastIndexOf('/') + 1);
+      }
       lineNumber=ste.getLineNumber();
       if (lineNumber == LINE_NUMBER_UNKNOWN || (sourceMapCapable && column == -1)) {
         lineNumber=Integer.parseInt(parts[4]);
@@ -64,13 +67,13 @@
           declaringClass=mappingForLine.getOriginalFile();
           methodName=mappingForLine.getIdentifier();
         }
-        filename=mappingForLine.getOriginalFile();
+        fileName=mappingForLine.getOriginalFile();
         lineNumber=mappingForLine.getLineNumber();
       }
     }
   }
   if (declaringClass != null) {
-    return new StackTraceElement(declaringClass,methodName,filename,lineNumber);
+    return new StackTraceElement(declaringClass,methodName,fileName,lineNumber);
   }
   return ste;
 }
