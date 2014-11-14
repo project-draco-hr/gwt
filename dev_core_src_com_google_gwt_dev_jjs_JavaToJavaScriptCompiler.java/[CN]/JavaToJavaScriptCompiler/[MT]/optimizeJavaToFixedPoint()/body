@@ -7,6 +7,7 @@
   boolean atMaxLevel=options.getOptimizationLevel() == OptionOptimize.OPTIMIZE_LEVEL_MAX;
   int passLimit=atMaxLevel ? MAX_PASSES : options.getOptimizationLevel();
   float minChangeRate=atMaxLevel ? FIXED_POINT_CHANGE_RATE : EFFICIENT_CHANGE_RATE;
+  OptimizerContext optimizerCtx=new OptimizerContext(jprogram);
   while (true) {
     passCount++;
     if (passCount > passLimit) {
@@ -17,7 +18,7 @@
       throw new InterruptedException();
     }
     AstDumper.maybeDumpAST(jprogram);
-    OptimizerStats stats=optimizeJavaOneTime("Pass " + passCount,nodeCount);
+    OptimizerStats stats=optimizeJavaOneTime("Pass " + passCount,nodeCount,optimizerCtx);
     allOptimizerStats.add(stats);
     lastNodeCount=nodeCount;
     nodeCount=jprogram.getNodeCount();

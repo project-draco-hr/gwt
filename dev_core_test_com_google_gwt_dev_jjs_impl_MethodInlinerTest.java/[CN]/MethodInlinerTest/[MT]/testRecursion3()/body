@@ -1,0 +1,7 @@
+{
+  addSnippetClassDecl("static int fun1(int a) { return a<=0 ? a : fun2(a-1)+a; }");
+  addSnippetClassDecl("static int fun2(int a) { return a<=0 ? a : fun1(a-1)+a; }");
+  Result result=optimize("int","return fun1(0);");
+  assertEquals("static int fun1(int a){\n" + "  return a <= 0 ? a : (a - 1 <= 0 ? a - 1 : EntryPoint.fun1(a - 1 - 1) + a - 1) + a;\n" + "}",result.findMethod("fun1").toSource());
+  assertEquals("static int fun2(int a){\n" + "  return a <= 0 ? a : EntryPoint.fun1(a - 1) + a;\n" + "}",result.findMethod("fun2").toSource());
+}

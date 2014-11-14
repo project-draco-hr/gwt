@@ -1,0 +1,8 @@
+{
+  addSnippetClassDecl("static boolean test1(int a)" + "{ return true; }");
+  addSnippetClassDecl("static int fun1(int a)" + "{ if (test1(a)) { return a; }" + "else {switch(a) { case 1: a++; break; default: a=a+2; break; }; return a; }"+ "}");
+  addSnippetClassDecl("static int fun2(int a)" + "{return fun1(a);}");
+  Result result=optimize("int","return fun2(0);");
+  assertEquals("static int fun1(int a){\n" + "  return a;\n}",result.findMethod("fun1").toSource());
+  assertEquals("static int fun2(int a){\n" + "  return a;\n}",result.findMethod("fun2").toSource());
+}

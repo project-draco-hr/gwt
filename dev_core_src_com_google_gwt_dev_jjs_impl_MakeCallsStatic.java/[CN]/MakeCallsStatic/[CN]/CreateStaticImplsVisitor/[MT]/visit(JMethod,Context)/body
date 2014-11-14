@@ -46,10 +46,14 @@
     rewriter.accept(jsFunc.getBody());
   }
  else {
-    RewriteMethodBody rewriter=new RewriteMethodBody(thisParam,varMap);
+    RewriteMethodBody rewriter=new RewriteMethodBody(thisParam,varMap,optimizerCtx);
     rewriter.accept(movedBody);
   }
   program.putStaticImpl(x,newMethod);
   enclosingType.getMethods().add(myIndexInClass + 1,newMethod);
+  if (optimizerCtx != null) {
+    optimizerCtx.markModifiedMethod(x);
+    optimizerCtx.markModifiedMethod(newMethod);
+  }
   return false;
 }

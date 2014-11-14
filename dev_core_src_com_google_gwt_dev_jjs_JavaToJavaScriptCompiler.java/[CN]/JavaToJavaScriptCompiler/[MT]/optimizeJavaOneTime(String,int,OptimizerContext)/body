@@ -1,0 +1,21 @@
+{
+  Event optimizeEvent=SpeedTracerLogger.start(CompilerEventType.OPTIMIZE,"phase","loop");
+  jprogram.typeOracle.recomputeAfterOptimizations(jprogram.getDeclaredTypes());
+  OptimizerStats stats=new OptimizerStats(passName);
+  stats.add(Pruner.exec(jprogram,true,optimizerCtx).recordVisits(numNodes));
+  stats.add(Finalizer.exec(jprogram,optimizerCtx).recordVisits(numNodes));
+  stats.add(MakeCallsStatic.exec(jprogram,options.shouldAddRuntimeChecks(),optimizerCtx).recordVisits(numNodes));
+  stats.add(TypeTightener.exec(jprogram,optimizerCtx).recordVisits(numNodes));
+  stats.add(MethodCallTightener.exec(jprogram,optimizerCtx).recordVisits(numNodes));
+  stats.add(MethodCallSpecializer.exec(jprogram,optimizerCtx).recordVisits(numNodes));
+  stats.add(DeadCodeElimination.exec(jprogram,optimizerCtx).recordVisits(numNodes));
+  stats.add(MethodInliner.exec(jprogram,optimizerCtx).recordVisits(numNodes));
+  if (options.shouldInlineLiteralParameters()) {
+    stats.add(SameParameterValueOptimizer.exec(jprogram,optimizerCtx).recordVisits(numNodes));
+  }
+  if (options.shouldOrdinalizeEnums()) {
+    stats.add(EnumOrdinalizer.exec(jprogram).recordVisits(numNodes));
+  }
+  optimizeEvent.end();
+  return stats;
+}

@@ -1,0 +1,9 @@
+{
+  addSnippetClassDecl("static int fun1(int a) { return a; }");
+  addSnippetClassDecl("static int fun2(int a, int b) { return a + b; }");
+  addSnippetClassDecl("static int fun3(int a) { return 1 + fun1(a); }");
+  addSnippetClassDecl("static int fun4() {","  int a = 1;","  int b = 2;","  return fun1(a) + fun2(a, b); }");
+  Result result=optimize("int","return fun3(1) + fun4();");
+  assertEquals("static int fun3(int a){\n" + "  return 1 + a;\n" + "}",result.findMethod("fun3").toSource());
+  assertEquals("static int fun4(){\n" + "  int a = 1;\n" + "  int b = 2;\n"+ "  return a + a + b;\n}",result.findMethod("fun4").toSource());
+}
