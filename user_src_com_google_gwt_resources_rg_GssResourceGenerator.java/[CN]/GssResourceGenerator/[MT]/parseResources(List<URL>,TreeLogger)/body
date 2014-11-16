@@ -18,7 +18,23 @@
     for (    URL stylesheet : resources) {
       TreeLogger branchLogger=logger.branch(TreeLogger.DEBUG,"Parsing GSS stylesheet " + stylesheet.toExternalForm());
       try {
-        String fileContent=Resources.asByteSource(stylesheet).asCharSource(Charsets.UTF_8).read();
+        ByteSource byteSource=Resources.asByteSource(stylesheet);
+        Charset charset=Charsets.UTF_8;
+        String styleSheetCharset=extractCharset(byteSource,logger);
+        if (styleSheetCharset != null) {
+          try {
+            charset=Charset.forName(styleSheetCharset);
+          }
+ catch (          UnsupportedCharsetException e) {
+            logger.log(Type.ERROR,"Unsupported charset found: " + styleSheetCharset);
+            throw new UnableToCompleteException();
+          }
+        }
+        String fileContent=byteSource.asCharSource(charset).read();
+        if (styleSheetCharset != null) {
+          int charsetAtRuleLength=CHARSET_MIN_LENGTH + styleSheetCharset.length();
+          fileContent=Strings.repeat(" ",charsetAtRuleLength) + fileContent.substring(charsetAtRuleLength);
+        }
         sourceCodes.add(new SourceCode(stylesheet.getFile(),fileContent));
         continue;
       }
