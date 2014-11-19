@@ -1,14 +1,17 @@
 {
+  logger.log(Type.INFO,"Cleanup called");
   awaitUnitCacheMapLoad();
   if (backgroundService.isShutdown()) {
+    logger.log(TreeLogger.TRACE,"Skipped cleanup");
     return;
   }
   boolean shouldRotate=addedSinceLastCleanup > 0;
   logger.log(TreeLogger.TRACE,"Added " + addedSinceLastCleanup + " units to cache since last cleanup.");
   addedSinceLastCleanup=0;
   try {
-    File[] cacheFiles=getCacheFiles(cacheDirectory,true);
-    if (cacheFiles.length < CACHE_FILE_THRESHOLD) {
+    List<File> cacheFiles=cacheDir.listCacheFilesToLoad();
+    logger.log(TreeLogger.TRACE,cacheFiles.size() + " persistent unit files in directory");
+    if (cacheFiles.size() < CACHE_FILE_THRESHOLD) {
       if (shouldRotate) {
         startRotating();
       }
@@ -26,6 +29,7 @@ catch (      TimeoutException ex) {
         return;
       }
     }
+    logger.log(Type.INFO,"Cleaning up persistent unit cache files");
 synchronized (unitMap) {
       for (      UnitCacheEntry unitCacheEntry : unitMap.values()) {
         if (unitCacheEntry.getOrigin() == UnitOrigin.ARCHIVE) {
@@ -34,7 +38,21 @@ synchronized (unitMap) {
         addImpl(unitCacheEntry);
       }
     }
-    purgeTaskStatus=backgroundService.submit(purgeOldCacheFilesTask,Boolean.TRUE);
+    purgeTaskStatus=backgroundService.submit(new Runnable(){
+      @Override public void run(){
+        try {
+          cacheDir.deleteClosedCacheFiles();
+          cacheDir.rotate();
+        }
+ catch (        UnableToCompleteException e) {
+          backgroundService.shutdownNow();
+        }
+ finally {
+          purgeInProgress.set(false);
+        }
+      }
+    }
+,Boolean.TRUE);
   }
  catch (  ExecutionException ex) {
     throw new InternalCompilerException("Error purging cache",ex);

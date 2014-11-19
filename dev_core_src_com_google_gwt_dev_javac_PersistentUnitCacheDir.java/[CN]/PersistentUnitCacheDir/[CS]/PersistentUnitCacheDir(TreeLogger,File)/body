@@ -1,0 +1,21 @@
+{
+  this.logger=logger;
+  try {
+    parentDir=parentDir.getCanonicalFile();
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.WARN,"Can't get canonical directory for " + parentDir.getAbsolutePath(),e);
+    throw new UnableToCompleteException();
+  }
+  dir=chooseCacheDir(parentDir);
+  if (!dir.isDirectory() && !dir.mkdirs()) {
+    logger.log(TreeLogger.WARN,"Can't create directory: " + dir.getAbsolutePath());
+    throw new UnableToCompleteException();
+  }
+  if (!dir.canRead()) {
+    logger.log(Type.WARN,"Can't read directory: " + dir.getAbsolutePath());
+    throw new UnableToCompleteException();
+  }
+  logger.log(TreeLogger.TRACE,"Persistent unit cache dir set to: " + dir.getAbsolutePath());
+  openFile=new OpenFile(logger,createEmptyCacheFile(logger,dir));
+}
