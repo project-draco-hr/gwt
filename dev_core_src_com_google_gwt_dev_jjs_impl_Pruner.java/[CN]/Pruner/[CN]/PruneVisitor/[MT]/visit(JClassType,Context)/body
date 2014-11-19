@@ -1,29 +1,10 @@
 {
   assert(referencedTypes.contains(type));
-  for (int i=0; i < type.getFields().size(); ++i) {
-    JField field=type.getFields().get(i);
-    if (!referencedNonTypes.contains(field)) {
-      fieldWasRemoved(field);
-      type.removeField(i);
-      madeChanges();
-      --i;
-    }
-  }
-  for (int i=0; i < type.getMethods().size(); ++i) {
-    JMethod method=type.getMethods().get(i);
-    if (!referencedNonTypes.contains(method)) {
-      if (i > 0) {
-        methodWasRemoved(method);
-        type.removeMethod(i);
-        methodWasRemoved(program.getStaticImpl(method));
-        program.removeStaticImplMapping(method);
-        madeChanges();
-        --i;
-      }
-    }
- else {
-      accept(method);
-    }
+  Predicate<JNode> notReferenced=Predicates.not(Predicates.in(referencedNonTypes));
+  removeFields(notReferenced,type);
+  removeMethods(notReferenced,type);
+  for (  JMethod method : type.getMethods()) {
+    accept(method);
   }
   return false;
 }
