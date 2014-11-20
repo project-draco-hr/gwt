@@ -2,6 +2,18 @@
   for (  JMethod entryMethod : program.getEntryMethods()) {
     flowInto(entryMethod);
   }
+  List<String> rootTypeBinaryNames=new ArrayList<String>();
+  for (  String rootTypeSourceName : rootTypeSourceNames) {
+    JDeclaredType rootType=internalFindType(rootTypeSourceName,sourceNameBasedTypeLocator,true);
+    if (rootType == null) {
+      continue;
+    }
+    rootTypeBinaryNames.add(rootType.getName());
+    if (jsInteropEnabled && (isJsType(rootType) || hasAnyExports(rootType))) {
+      fullFlowIntoType(rootType);
+    }
+  }
+  minimalRebuildCache.setRootTypeNames(rootTypeBinaryNames);
   for (  JClassType type : program.codeGenTypes) {
     for (    JMethod method : type.getMethods()) {
       flowInto(method);
@@ -21,13 +33,7 @@
       if (type == null) {
         continue;
       }
-      instantiate(type);
-      for (      JField field : type.getFields()) {
-        flowInto(field);
-      }
-      for (      JMethod method : type.getMethods()) {
-        flowInto(method);
-      }
+      fullFlowIntoType(type);
     }
   }
   instantiate(program.getTypeJavaLangString());
