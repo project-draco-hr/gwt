@@ -59,7 +59,9 @@
   }
   mainLoop();
   if (incrementalCompile) {
-    logger.log(TreeLogger.INFO,"Unification traversed " + liveFieldsAndMethods.size() + " fields and methods and "+ program.getDeclaredTypes().size()+ " types. "+ program.getModuleDeclaredTypes().size()+ " are considered part of the current module and "+ fullFlowTypes.size()+ " had all of their fields and methods traversed.");
+    int declaredTypesInModule=program.getModuleDeclaredTypes().size();
+    MetricName.DECLARED_TYPES_IN_MODULE.setAmount(logger,declaredTypesInModule);
+    logger.log(TreeLogger.INFO,"Unification traversed " + liveFieldsAndMethods.size() + " fields and methods and "+ program.getDeclaredTypes().size()+ " types. "+ declaredTypesInModule+ " are considered part of the current module and "+ fullFlowTypes.size()+ " had all of their fields and methods traversed.");
     Set<String> remainingStaleTypeNames=computeRemainingStaleTypeNames();
     if (!remainingStaleTypeNames.isEmpty()) {
       logger.log(TreeLogger.WARN,"Some stale types (" + remainingStaleTypeNames + ") were not reprocessed as was expected. This is either a compiler bug or a "+ "Generator has legitimately stopped creating these types.");

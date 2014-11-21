@@ -5,7 +5,20 @@
   job.onSubmitted(table);
   executor.submit(new Runnable(){
     @Override public void run(){
-      recompile(job,outboxes);
+      try {
+        recompile(job);
+      }
+ catch (      Throwable t) {
+        if (!job.isDone()) {
+          try {
+            job.onFinished(new Job.Result(null,null,t));
+            return;
+          }
+ catch (          Throwable t2) {
+          }
+        }
+        t.printStackTrace();
+      }
     }
   }
 );
