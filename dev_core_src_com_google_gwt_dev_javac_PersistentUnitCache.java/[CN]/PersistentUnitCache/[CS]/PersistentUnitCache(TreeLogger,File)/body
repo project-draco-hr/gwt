@@ -1,3 +1,32 @@
 {
-  this.backgroundService=new BackgroundService(logger,parentDir,this);
+  this.logger=logger;
+  cacheDir=new PersistentUnitCacheDir(logger,parentDir);
+  backgroundService=Executors.newSingleThreadExecutor();
+  Runtime.getRuntime().addShutdownHook(new Thread(){
+    @Override public void run(){
+      try {
+        Future<Boolean> status=backgroundService.submit(shutdownThreadTask,Boolean.TRUE);
+        status.get(5,TimeUnit.SECONDS);
+      }
+ catch (      InterruptedException e) {
+      }
+catch (      RejectedExecutionException e) {
+      }
+catch (      ExecutionException e) {
+        logger.log(TreeLogger.ERROR,"Error during shutdown",e);
+      }
+catch (      TimeoutException e) {
+      }
+ finally {
+        backgroundService.shutdownNow();
+      }
+    }
+  }
+);
+  unitMapLoadStatus=backgroundService.submit(new Runnable(){
+    @Override public void run(){
+      loadUnitMap();
+    }
+  }
+);
 }

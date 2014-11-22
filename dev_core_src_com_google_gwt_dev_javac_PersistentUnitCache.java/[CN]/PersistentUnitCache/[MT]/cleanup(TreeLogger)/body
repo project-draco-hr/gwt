@@ -1,26 +1,62 @@
 {
-  logger.log(Type.TRACE,"PersistentUnitCache cleanup requested");
-  backgroundService.waitForCacheToLoad();
+  logger.log(Type.TRACE,"Cleanup called");
+  awaitUnitCacheMapLoad();
   if (backgroundService.isShutdown()) {
-    logger.log(TreeLogger.TRACE,"Skipped PersistentUnitCache cleanup because it's shut down");
+    logger.log(TreeLogger.TRACE,"Skipped cleanup");
     return;
   }
-  if (!cleanupInProgress.tryAcquire()) {
-    return;
+  boolean shouldRotate=addedSinceLastCleanup > 0;
+  logger.log(TreeLogger.TRACE,"Added " + addedSinceLastCleanup + " units to cache since last cleanup.");
+  addedSinceLastCleanup=0;
+  try {
+    List<File> cacheFiles=cacheDir.listCacheFilesToLoad();
+    logger.log(TreeLogger.TRACE,cacheFiles.size() + " persistent unit files in directory");
+    if (cacheFiles.size() < CACHE_FILE_THRESHOLD) {
+      if (shouldRotate) {
+        startRotating();
+      }
+      return;
+    }
+    boolean inProgress=purgeInProgress.getAndSet(true);
+    if (inProgress) {
+      try {
+        purgeTaskStatus.get(0,TimeUnit.NANOSECONDS);
+      }
+ catch (      InterruptedException ex) {
+        Thread.currentThread().interrupt();
+      }
+catch (      TimeoutException ex) {
+        return;
+      }
+    }
+    logger.log(Type.TRACE,"Cleaning up persistent unit cache files");
+synchronized (unitMap) {
+      for (      UnitCacheEntry unitCacheEntry : unitMap.values()) {
+        if (unitCacheEntry.getOrigin() == UnitOrigin.ARCHIVE) {
+          continue;
+        }
+        addImpl(unitCacheEntry);
+      }
+    }
+    purgeTaskStatus=backgroundService.submit(new Runnable(){
+      @Override public void run(){
+        try {
+          cacheDir.deleteClosedCacheFiles();
+          cacheDir.rotate();
+        }
+ catch (        UnableToCompleteException e) {
+          backgroundService.shutdownNow();
+        }
+ finally {
+          purgeInProgress.set(false);
+        }
+      }
+    }
+,Boolean.TRUE);
   }
-  int addCallCount=newUnitsSinceLastCleanup.getAndSet(0);
-  logger.log(TreeLogger.TRACE,"Added " + addCallCount + " units to PersistentUnitCache since last cleanup");
-  if (addCallCount == 0) {
-    logger.log(TreeLogger.TRACE,"Skipped PersistentUnitCache because no units were added");
-    cleanupInProgress.release();
-    return;
+ catch (  ExecutionException ex) {
+    throw new InternalCompilerException("Error purging cache",ex);
   }
-  int closedCount=backgroundService.getClosedCacheFileCount();
-  if (closedCount < CACHE_FILE_THRESHOLD) {
-    logger.log(TreeLogger.TRACE,"Rotating PersistentUnitCache file because only " + closedCount + " files were added.");
-    backgroundService.asyncRotate(cleanupInProgress);
-    return;
+catch (  RejectedExecutionException ex) {
   }
-  logger.log(Type.TRACE,"Compacting persistent unit cache files");
-  backgroundService.asyncCompact(getUnitsToSaveToDisk(),cleanupInProgress);
 }
