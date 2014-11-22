@@ -1,0 +1,45 @@
+{
+  FileInputStream fis=null;
+  BufferedInputStream bis=null;
+  ObjectInputStream inputStream=null;
+  boolean ok=false;
+  int unitsLoaded=0;
+  try {
+    fis=new FileInputStream(cacheFile);
+    bis=new BufferedInputStream(fis);
+    inputStream=new StringInterningObjectInputStream(bis);
+    while (true) {
+      CachedCompilationUnit unit=(CachedCompilationUnit)inputStream.readObject();
+      if (unit == null) {
+        logger.log(Type.WARN,"unexpected null in cache file: " + cacheFile);
+        break;
+      }
+      if (unit.getTypesSerializedVersion() != GwtAstBuilder.getSerializationVersion()) {
+        continue;
+      }
+      destination.maybeAddLoadedUnit(unit);
+      unitsLoaded++;
+    }
+  }
+ catch (  EOFException ignored) {
+    ok=true;
+  }
+catch (  IOException e) {
+    logger.log(TreeLogger.TRACE,"Ignoring and deleting cache log " + cacheFile.getAbsolutePath() + " due to read error.",e);
+  }
+catch (  ClassNotFoundException e) {
+    logger.log(TreeLogger.TRACE,"Ignoring and deleting cache log " + cacheFile.getAbsolutePath() + " due to deserialization error.",e);
+  }
+ finally {
+    Utility.close(inputStream);
+    Utility.close(bis);
+    Utility.close(fis);
+  }
+  if (ok) {
+    logger.log(TreeLogger.TRACE,"Loaded " + unitsLoaded + " units from cache file: "+ cacheFile.getName());
+  }
+ else {
+    deleteUnlessOpen(cacheFile);
+    logger.log(TreeLogger.TRACE,"Loaded " + unitsLoaded + " units from invalid cache file before deleting it: "+ cacheFile.getName());
+  }
+}
