@@ -1,0 +1,23 @@
+{
+  Map<JsName,JsLiteral> internedLiteralByVariableName;
+  try {
+switch (options.getOutput()) {
+case OBFUSCATED:
+      internedLiteralByVariableName=runObfuscateNamer(props);
+    break;
+case PRETTY:
+  internedLiteralByVariableName=runPrettyNamer(props.getConfigProps(),jjsmap);
+break;
+case DETAILED:
+internedLiteralByVariableName=runDetailedNamer(props.getConfigProps());
+break;
+default :
+throw new InternalCompilerException("Unknown output mode");
+}
+}
+ catch (IllegalNameException e) {
+logger.log(TreeLogger.ERROR,e.getMessage(),e);
+throw new UnableToCompleteException();
+}
+return internedLiteralByVariableName == null ? ImmutableMap.<JsName,JsLiteral>of() : internedLiteralByVariableName;
+}
