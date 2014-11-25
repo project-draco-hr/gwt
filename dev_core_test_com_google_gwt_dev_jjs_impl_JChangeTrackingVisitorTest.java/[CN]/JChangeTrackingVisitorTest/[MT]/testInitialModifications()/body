@@ -1,0 +1,19 @@
+{
+  addSnippetClassDecl("static class A {","  public int field;","  public A(int f) { field = f; }","  public void fun () { for(int i = 3; i < 4; i++) i = 8; }","}");
+  JProgram program=compileSnippet("void","");
+  OptimizerContext optimizerCtx=new OptimizerContext(program);
+  int countMethod=0;
+  int countField=0;
+  for (  JDeclaredType type : program.getModuleDeclaredTypes()) {
+    for (    JMethod method : type.getMethods()) {
+      assertTrue(optimizerCtx.getModifiedMethodsSince(0).contains(method));
+    }
+    for (    JField field : type.getFields()) {
+      assertTrue(optimizerCtx.getModifiedFieldsSince(0).contains(field));
+    }
+    countMethod+=type.getMethods().size();
+    countField+=type.getFields().size();
+  }
+  assertEquals(countMethod,optimizerCtx.getModifiedMethodsSince(0).size());
+  assertEquals(countField,optimizerCtx.getModifiedFieldsSince(0).size());
+}

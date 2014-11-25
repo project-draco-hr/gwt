@@ -1,0 +1,9 @@
+{
+  addSnippetClassDecl("static class A {","public int field1;","public double field2;","public void fun(int a) { a++; }","}");
+  JProgram program=compileSnippet("void","");
+  SetVariableOfIntToLongByEnterVisitor setVariableOfIntToLongByEnterVisitor=new SetVariableOfIntToLongByEnterVisitor(new OptimizerContext(program));
+  setVariableOfIntToLongByEnterVisitor.accept(program);
+  assertEquals("long field1",findField(program.getFromTypeMap("test.EntryPoint$A"),"field1").toString());
+  assertEquals("double field2",findField(program.getFromTypeMap("test.EntryPoint$A"),"field2").toString());
+  assertEquals("public void fun(long a);\n",findMethod(program.getFromTypeMap("test.EntryPoint$A"),"fun").toString());
+}

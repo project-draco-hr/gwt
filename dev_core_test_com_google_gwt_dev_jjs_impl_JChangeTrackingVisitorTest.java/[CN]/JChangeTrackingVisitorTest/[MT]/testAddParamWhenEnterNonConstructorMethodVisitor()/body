@@ -1,0 +1,8 @@
+{
+  addSnippetClassDecl("static class A {","  public int field;","  public A(int f) { field = f; }","  public void fun () { for(int i = 3; i < 4; i++) i = 8; }","}");
+  JProgram program=compileSnippet("void","");
+  AddParamWhenEnterNonConstructorMethodVisitor addParamsWhenEnterNonConstructorMethodVisitor=new AddParamWhenEnterNonConstructorMethodVisitor(new OptimizerContext(program));
+  addParamsWhenEnterNonConstructorMethodVisitor.accept(program);
+  assertEquals("public void fun(int _newParam_enter);\n",findMethod(program.getFromTypeMap("test.EntryPoint$A"),"fun").toString());
+  assertEquals("public EntryPoint$A(int f);\n",findMethod(program.getFromTypeMap("test.EntryPoint$A"),"EntryPoint$A").toString());
+}
