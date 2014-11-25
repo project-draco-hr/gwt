@@ -19,6 +19,17 @@
     JsonObject json=jsonExporter.exportRecompileResponse(result);
     return Responses.newJsonResponse(json);
   }
+  if (target.startsWith("/clean")) {
+    JsonObject json=null;
+    try {
+      runner.clean(logger);
+      json=jsonExporter.exportOk("Cleaned disk caches.");
+    }
+ catch (    ExecutionException e) {
+      json=jsonExporter.exportError(e.getMessage());
+    }
+    return Responses.newJsonResponse(json);
+  }
   if (target.startsWith("/recompile-requester/")) {
     String moduleName=target.substring("/recompile-requester/".length());
     Outbox box=outboxes.findByOutputModuleName(moduleName);

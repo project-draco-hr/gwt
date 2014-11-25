@@ -17,15 +17,18 @@
   job.onProgress("Compiling");
   CompilerOptions runOptions=new CompilerOptionsImpl(compileDir,newModuleName,options);
   compilerContext=compilerContextBuilder.options(runOptions).build();
-  MinimalRebuildCache knownGoodMinimalRebuildCache=getKnownGoodMinimalRebuildCache(bindingProperties);
-  job.setCompileStrategy(knownGoodMinimalRebuildCache.isPopulated() ? CompileStrategy.INCREMENTAL : CompileStrategy.FULL);
-  MinimalRebuildCache mutableMinimalRebuildCache=new MinimalRebuildCache();
-  mutableMinimalRebuildCache.copyFrom(knownGoodMinimalRebuildCache);
-  boolean success=new Compiler(runOptions,mutableMinimalRebuildCache).run(compileLogger,module);
+  MinimalRebuildCache minimalRebuildCache=new NullRebuildCache();
+  if (options.isIncrementalCompileEnabled()) {
+    minimalRebuildCache=minimalRebuildCacheManager.getCache(inputModuleName,bindingProperties);
+  }
+  job.setCompileStrategy(minimalRebuildCache.isPopulated() ? CompileStrategy.INCREMENTAL : CompileStrategy.FULL);
+  boolean success=new Compiler(runOptions,minimalRebuildCache).run(compileLogger,module);
   if (success) {
     publishedCompileDir=compileDir;
     lastBuildInput=input;
-    saveKnownGoodMinimalRebuildCache(bindingProperties,mutableMinimalRebuildCache);
+    if (options.isIncrementalCompileEnabled()) {
+      minimalRebuildCacheManager.putCache(inputModuleName,bindingProperties,minimalRebuildCache);
+    }
     String moduleName=outputModuleName.get();
     writeRecompileNoCacheJs(new File(publishedCompileDir.getWarDir(),moduleName),moduleName,recompileJs,compileLogger);
     if (launcherDir != null) {

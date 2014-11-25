@@ -2,9 +2,12 @@
   PrintWriterTreeLogger topLogger=new PrintWriterTreeLogger();
   topLogger.setMaxDetail(options.getLogLevel());
   TreeLogger startupLogger=topLogger.branch(Type.INFO,"Super Dev Mode starting up");
-  OutboxTable outboxes=makeOutboxes(options,startupLogger);
+  File baseCacheDir=DiskCachingUtil.computePreferredCacheDir(options.getModuleNames(),startupLogger);
+  UnitCache unitCache=UnitCacheSingleton.get(startupLogger,null,baseCacheDir);
+  MinimalRebuildCacheManager minimalRebuildCacheManager=new MinimalRebuildCacheManager(topLogger,baseCacheDir);
+  OutboxTable outboxes=makeOutboxes(options,startupLogger,unitCache,minimalRebuildCacheManager);
   JobEventTable eventTable=new JobEventTable();
-  JobRunner runner=new JobRunner(eventTable);
+  JobRunner runner=new JobRunner(eventTable,minimalRebuildCacheManager);
   JsonExporter exporter=new JsonExporter(options,outboxes);
   SourceHandler sourceHandler=new SourceHandler(outboxes,exporter);
   WebServer webServer=new WebServer(sourceHandler,exporter,outboxes,runner,eventTable,options.getBindAddress(),options.getPort());

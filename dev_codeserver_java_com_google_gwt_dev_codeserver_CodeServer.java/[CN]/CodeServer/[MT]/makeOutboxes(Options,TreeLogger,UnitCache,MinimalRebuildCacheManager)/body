@@ -1,0 +1,15 @@
+{
+  File workDir=ensureWorkDir(options);
+  logger.log(Type.INFO,"workDir: " + workDir);
+  LauncherDir launcherDir=LauncherDir.maybeCreate(options);
+  int nextOutboxId=1;
+  OutboxTable outboxes=new OutboxTable();
+  for (  String moduleName : options.getModuleNames()) {
+    OutboxDir outboxDir=OutboxDir.create(new File(workDir,moduleName),logger);
+    Recompiler recompiler=new Recompiler(outboxDir,launcherDir,moduleName,options,unitCache,minimalRebuildCacheManager);
+    String outboxId=moduleName + "_" + nextOutboxId;
+    nextOutboxId++;
+    outboxes.addOutbox(new Outbox(outboxId,recompiler,options,logger));
+  }
+  return outboxes;
+}

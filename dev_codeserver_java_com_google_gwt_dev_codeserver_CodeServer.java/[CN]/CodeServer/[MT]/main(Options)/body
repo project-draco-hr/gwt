@@ -4,7 +4,10 @@
     logger.setMaxDetail(options.getLogLevel());
     OutboxTable outboxes;
     try {
-      outboxes=makeOutboxes(options,logger);
+      File baseCacheDir=DiskCachingUtil.computePreferredCacheDir(options.getModuleNames(),logger);
+      UnitCache unitCache=UnitCacheSingleton.get(logger,null,baseCacheDir);
+      MinimalRebuildCacheManager minimalRebuildCacheManager=new MinimalRebuildCacheManager(logger,baseCacheDir);
+      outboxes=makeOutboxes(options,logger,unitCache,minimalRebuildCacheManager);
     }
  catch (    Throwable t) {
       t.printStackTrace();
