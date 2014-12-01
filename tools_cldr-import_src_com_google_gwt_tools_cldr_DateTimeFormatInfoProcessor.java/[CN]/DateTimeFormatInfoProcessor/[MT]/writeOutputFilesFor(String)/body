@@ -1,0 +1,26 @@
+{
+  Set<GwtLocale> localesToPrint=localeData.getNonEmptyLocales();
+  writeVersionFile(clientShared + "/impl/cldr/DateTimeFormatInfo.versions.txt",localesToPrint);
+  for (  GwtLocale locale : localesToPrint) {
+    if (locale.isDefault() && "client".equals(clientShared)) {
+      continue;
+    }
+    String packageName="com.google.gwt.i18n." + clientShared;
+    if (!locale.isDefault()) {
+      packageName+=".impl.cldr";
+    }
+    String className;
+    if (locale.isDefault()) {
+      className="DefaultDateTimeFormatInfo";
+    }
+ else {
+      className="DateTimeFormatInfoImpl" + localeSuffix(locale);
+    }
+    String path=clientShared + "/";
+    if (!locale.isDefault()) {
+      path+="impl/cldr/";
+    }
+    path+=className + ".java";
+    writeOneJavaFile(path,packageName,className,locale);
+  }
+}

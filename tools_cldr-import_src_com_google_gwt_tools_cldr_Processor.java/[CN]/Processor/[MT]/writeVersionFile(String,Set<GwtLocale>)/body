@@ -1,0 +1,29 @@
+{
+  Map<String,GwtLocale> byName=new HashMap<String,GwtLocale>();
+  for (  GwtLocale locale : locales) {
+    String name=locale.getAsString();
+    if (byName.containsKey(name)) {
+      throw new RuntimeException("more than one locale with name: " + name);
+    }
+    byName.put(name,locale);
+  }
+  List<String> names=new ArrayList<String>(byName.keySet());
+  Collections.sort(names);
+  PrintWriter out=createOutputFile(path);
+  out.println("cldrVersion=" + CLDRFile.GEN_VERSION);
+  out.println();
+  for (  String name : names) {
+    Map<String,String> props=localeData.getEntries("version",byName.get(name));
+    List<String> keys=new ArrayList<String>(props.keySet());
+    Collections.sort(keys);
+    for (    String key : keys) {
+      String value=props.get(key);
+      if (!name.isEmpty()) {
+        key=name + "." + key;
+      }
+      out.println(key + "=" + value);
+    }
+    out.println();
+  }
+  out.close();
+}

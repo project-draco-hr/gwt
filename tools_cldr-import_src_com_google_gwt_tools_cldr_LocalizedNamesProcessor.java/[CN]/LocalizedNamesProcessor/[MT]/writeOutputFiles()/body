@@ -1,5 +1,8 @@
 {
-  for (  GwtLocale locale : localeData.getNonEmptyLocales("territory")) {
+  Set<GwtLocale> localesToPrint=localeData.getNonEmptyLocales("territory");
+  String cldrDir="client/impl/cldr/";
+  writeVersionFile(cldrDir + "LocalizedNames.versions.txt",localesToPrint);
+  for (  GwtLocale locale : localesToPrint) {
     Map<String,String> namesMap=localeData.getEntries("territory",locale);
     List<String> regionCodesWithNames=new ArrayList<String>();
     for (    String regionCode : namesMap.keySet()) {
@@ -14,8 +17,16 @@
     }
     Collections.sort(regionCodesWithNames);
     if (locale.isDefault()) {
-      generateDefaultLocale(locale,namesMap,regionCodesWithNames,sortOrder,likelyOrder);
+      generateDefaultLocale("client/DefaultLocalizedNames.java",locale,namesMap,regionCodesWithNames,sortOrder,likelyOrder);
     }
-    generateLocale(locale,namesMap,regionCodesWithNames,sortOrder,likelyOrder);
+    String localePart=locale.getAsString();
+    if (localePart == null || localePart.isEmpty()) {
+      localePart="";
+    }
+ else {
+      localePart="_" + localePart;
+    }
+    String path=cldrDir + "LocalizedNamesImpl" + localePart+ "."+ "java";
+    generateLocale(path,locale,namesMap,regionCodesWithNames,sortOrder,likelyOrder);
   }
 }

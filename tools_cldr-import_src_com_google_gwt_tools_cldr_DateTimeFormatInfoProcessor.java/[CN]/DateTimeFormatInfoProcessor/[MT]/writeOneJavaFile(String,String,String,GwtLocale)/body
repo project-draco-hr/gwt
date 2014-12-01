@@ -1,33 +1,11 @@
 {
-  String myClass;
-  String pathSuffix;
-  if (locale.isDefault()) {
-    if ("client".equals(clientShared)) {
-      return;
-    }
-    myClass="DefaultDateTimeFormatInfo";
-    pathSuffix="/";
-  }
- else {
-    myClass="DateTimeFormatInfoImpl" + localeSuffix(locale);
-    pathSuffix="/impl/cldr/";
-  }
   GwtLocale parent=localeData.inheritsFrom(locale);
-  PrintWriter pw=createOutputFile(clientShared + pathSuffix + myClass+ ".java");
+  PrintWriter pw=createOutputFile(path);
   printHeader(pw);
-  pw.print("package com.google.gwt.i18n." + clientShared);
+  pw.print("package " + packageName + ";");
   setOverrides(true);
-  if (!locale.isDefault()) {
-    pw.print(".impl.cldr");
-  }
-  pw.println(";");
   pw.println();
   pw.println("// DO NOT EDIT - GENERATED FROM CLDR AND ICU DATA");
-  pw.println("//  cldrVersion=" + CLDRFile.GEN_VERSION);
-  Map<String,String> map=localeData.getEntries("version",locale);
-  for (  Map.Entry<String,String> entry : map.entrySet()) {
-    pw.println("//  " + entry.getKey() + "="+ entry.getValue());
-  }
   pw.println();
   if (locale.isDefault()) {
     pw.println("/**");
@@ -44,7 +22,7 @@
     pw.println(" * Implementation of DateTimeFormatInfo for the \"" + locale + "\" locale.");
     pw.println(" */");
   }
-  pw.print("public class " + myClass);
+  pw.print("public class " + className);
   if (locale.isDefault()) {
     pw.print(" implements " + DateTimeFormatInfo.class.getSimpleName());
   }
