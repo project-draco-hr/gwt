@@ -1,5 +1,8 @@
 {
-  OptimizerStats stats=new DeadCodeElimination(program).execImpl(program,optimizerCtx);
+  Iterable<JMethod> modifiedMethods=optimizerCtx.getModifiedMethodsSince(optimizerCtx.getLastStepFor(NAME));
+  OptimizerStats stats=new DeadCodeElimination(program).execImpl(modifiedMethods,optimizerCtx);
+  optimizerCtx.setLastStepFor(NAME,optimizerCtx.getOptimizationStep());
   optimizerCtx.incOptimizationStep();
+  JavaAstVerifier.assertProgramIsConsistent(program);
   return stats;
 }

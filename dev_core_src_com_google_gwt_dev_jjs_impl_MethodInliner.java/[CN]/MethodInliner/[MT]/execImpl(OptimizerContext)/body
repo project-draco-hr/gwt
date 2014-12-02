@@ -1,23 +1,21 @@
 {
   OptimizerStats stats=new OptimizerStats(NAME);
-  int lastStep=optimizerCtx.getLastStepFor(NAME);
   while (true) {
     InliningVisitor inliner=new InliningVisitor(optimizerCtx);
-    Set<JMethod> modifiedMethods=optimizerCtx.getModifiedMethodsSince(lastStep);
+    Set<JMethod> modifiedMethods=optimizerCtx.getModifiedMethodsSince(optimizerCtx.getLastStepFor(NAME));
     Set<JMethod> affectedMethods=affectedMethods(modifiedMethods,optimizerCtx);
     for (    JMethod method : affectedMethods) {
       inliner.accept(method);
     }
     stats.recordModified(inliner.getNumMods());
-    lastStep=optimizerCtx.getOptimizationStep();
+    optimizerCtx.setLastStepFor(NAME,optimizerCtx.getOptimizationStep());
     optimizerCtx.incOptimizationStep();
     if (!inliner.didChange()) {
       break;
     }
-    OptimizerStats dceStats=DeadCodeElimination.exec(program,optimizerCtx.getModifiedMethodsAt(lastStep),optimizerCtx);
+    OptimizerStats dceStats=DeadCodeElimination.exec(program,optimizerCtx);
     stats.recordModified(dceStats.getNumMods());
   }
-  optimizerCtx.setLastStepFor(NAME,optimizerCtx.getOptimizationStep());
   JavaAstVerifier.assertProgramIsConsistent(program);
   return stats;
 }

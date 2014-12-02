@@ -1,22 +1,23 @@
 {
   boolean didChange=false;
   program.addEntryMethod(findMainMethod(program));
+  OptimizerContext optimizerContext=new FullOptimizerContext(program);
   if (runMakeCallsStatic) {
-    didChange=MakeCallsStatic.exec(program,false).didChange() || didChange;
+    didChange=MakeCallsStatic.exec(program,false,optimizerContext).didChange() || didChange;
   }
   if (runTypeTightener) {
-    didChange=TypeTightener.exec(program).didChange() || didChange;
+    didChange=TypeTightener.exec(program,optimizerContext).didChange() || didChange;
   }
   if (runMethodCallTightener) {
-    didChange=MethodCallTightener.exec(program).didChange() || didChange;
+    didChange=MethodCallTightener.exec(program,optimizerContext).didChange() || didChange;
   }
   if (runMethodInliner) {
-    didChange=MethodInliner.exec(program).didChange() || didChange;
+    didChange=MethodInliner.exec(program,optimizerContext).didChange() || didChange;
   }
   if (runPruner) {
-    didChange=Pruner.exec(program,true).didChange() || didChange;
+    didChange=Pruner.exec(program,true,optimizerContext).didChange() || didChange;
   }
-  didChange=EnumOrdinalizer.exec(program).didChange() || didChange;
+  didChange=EnumOrdinalizer.exec(program,optimizerContext).didChange() || didChange;
   if (performCastReplacement) {
     ComputeCastabilityInformation.exec(program,false);
     ComputeInstantiatedJsoInterfaces.exec(program);
