@@ -1,14 +1,25 @@
 {
-  if (args.length != 1) {
-    printUsage();
-    System.exit(-1);
+  Options options=Options.parseOrQuit(args);
+  if (options.singleFile) {
+    try {
+      System.out.println(convertFile(options.resource));
+      System.exit(0);
+    }
+ catch (    Exception e) {
+      e.printStackTrace();
+      System.exit(-1);
+    }
   }
-  try {
-    System.out.println(new Css2Gss(args[0]).toGss());
+  List<File> filesToConvert=getAllCssFiles(options.resource,options.recurse);
+  for (  File cssFile : filesToConvert) {
+    try {
+      String gss=convertFile(cssFile);
+      writeGss(gss,cssFile);
+      System.out.println("Converted " + cssFile.getAbsolutePath());
+    }
+ catch (    Exception e) {
+      System.err.println("Failed to convert " + cssFile.getAbsolutePath());
+      e.printStackTrace();
+    }
   }
- catch (  Exception e) {
-    e.printStackTrace();
-    System.exit(-1);
-  }
-  System.exit(0);
 }
