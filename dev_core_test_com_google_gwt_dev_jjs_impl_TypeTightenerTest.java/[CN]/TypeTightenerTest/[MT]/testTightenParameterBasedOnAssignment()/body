@@ -1,0 +1,9 @@
+{
+  addSnippetClassDecl("static class A { }");
+  addSnippetClassDecl("static class B extends A { }");
+  addSnippetClassDecl("static class C extends B { }");
+  addSnippetClassDecl("static class D extends B { }");
+  addSnippetClassDecl("static void test(A a) { }");
+  Result result=optimize("void","C c = new C(); D d = new D(); test(c); test(d);");
+  assertEquals("static void test(EntryPoint$B a);\n",result.findMethod("test").toString());
+}

@@ -1,0 +1,9 @@
+{
+  addSnippetClassDecl("static class A {}");
+  addSnippetClassDecl("static class B extends A {}");
+  addSnippetClassDecl("static class Test1 { public void fun(A a) {} }");
+  addSnippetClassDecl("static class Test2 extends Test1 {public void fun (A a) {} }");
+  Result result=optimize("void","B b = new B();" + "Test1 test1 = new Test1();" + "test1.fun(b);");
+  assertEquals("public void fun(EntryPoint$B a);\n",OptimizerTestBase.findMethod(result.findClass("EntryPoint$Test1"),"fun").toString());
+  assertEquals("public void fun(EntryPoint$B a);\n",OptimizerTestBase.findMethod(result.findClass("EntryPoint$Test2"),"fun").toString());
+}
