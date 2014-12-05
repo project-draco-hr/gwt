@@ -1,0 +1,21 @@
+{
+  for (  GwtLocale locale : allLocales.keySet()) {
+    Map<String,String> map=getMap("version",locale);
+    InputFile file=inputFactory.load(allLocales.get(locale));
+    XPathParts parts=new XPathParts();
+    for (    String path : file.listPaths("//ldml/identity")) {
+      String fullXPath=file.getFullXPath(path);
+      if (fullXPath == null) {
+        fullXPath=path;
+      }
+      parts.set(fullXPath);
+      Map<String,String> attr=parts.getAttributes(2);
+      if (attr == null) {
+        continue;
+      }
+      for (      Map.Entry<String,String> entry : attr.entrySet()) {
+        map.put(entry.getKey(),entry.getValue());
+      }
+    }
+  }
+}

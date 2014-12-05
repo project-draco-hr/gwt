@@ -26,25 +26,13 @@ catch (    ClassCastException e) {
       System.err.println("Ignoring " + procName + " ("+ thrown+ ")");
     }
   }
-  Factory cldrFactory=Factory.make(sourceDir,".*");
-  Set<String> locales=cldrFactory.getAvailable();
-  if (restrictLocales != null) {
-    Set<String> newLocales=new HashSet<String>();
-    newLocales.add("root");
-    for (    String locale : restrictLocales.split(",")) {
-      if (!locales.contains(locale)) {
-        System.err.println("Ignoring non-existent locale " + locale);
-        continue;
-      }
-      newLocales.add(locale);
-    }
-    locales=newLocales;
-  }
+  InputFactory cldrFactory=new InputFactory(sourceDir);
+  List<String> locales=cldrFactory.chooseLocales(restrictLocales);
   System.out.println("Processing " + locales.size() + " locales");
   File outputDir=new File(targetDir);
   LocaleData localeData=new LocaleData(factory,locales);
   for (  Class<? extends Processor> processorClass : processorClasses) {
-    Constructor<? extends Processor> ctor=processorClass.getConstructor(File.class,Factory.class,LocaleData.class);
+    Constructor<? extends Processor> ctor=processorClass.getConstructor(File.class,InputFactory.class,LocaleData.class);
     Processor processor=ctor.newInstance(outputDir,cldrFactory,localeData);
     processor.run();
   }

@@ -1,0 +1,25 @@
+{
+  Map<String,String> map=getMap(category,locale);
+  InputFile cldr=cldrFactory.load(allLocales.get(locale));
+  XPathParts parts=new XPathParts();
+  for (  String path : cldr.listPaths(prefix)) {
+    String fullXPath=cldr.getFullXPath(path);
+    if (fullXPath == null) {
+      fullXPath=path;
+    }
+    parts.set(fullXPath);
+    if (parts.containsAttribute("alt")) {
+      continue;
+    }
+    Map<String,String> attr=parts.findAttributes(tag);
+    if (attr == null) {
+      continue;
+    }
+    String value=cldr.getStringValue(path);
+    boolean draft=parts.containsAttribute("draft");
+    String key=keyAttribute != null ? attr.get(keyAttribute) : "value";
+    if (!draft || !map.containsKey(key)) {
+      map.put(key,value);
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  InputFile supp=cldrFactory.getSupplementalData();
+  Map<String,String> map=new HashMap<String,String>();
+  XPathParts parts=new XPathParts();
+  for (  String path : supp.listPaths(prefix)) {
+    parts.set(supp.getFullXPath(path));
+    Map<String,String> attr=parts.findAttributes(tag);
+    if (attr == null || attr.get("alt") != null) {
+      continue;
+    }
+    String key=attr.get(keyAttribute);
+    String territories=attr.get("territories");
+    String draft=attr.get("draft");
+    for (    String territory : territories.split(" ")) {
+      if (draft == null || !map.containsKey(territory)) {
+        map.put(territory,key);
+      }
+    }
+  }
+  if (regionLanguageData != null) {
+    summarizeTerritoryEntries(category,regionLanguageData,tag,map);
+  }
+}
