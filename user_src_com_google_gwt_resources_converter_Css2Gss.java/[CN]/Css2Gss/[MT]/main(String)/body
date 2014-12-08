@@ -10,9 +10,13 @@
       System.exit(-1);
     }
   }
-  List<File> filesToConvert=getAllCssFiles(options.resource,options.recurse);
+  Collection<File> filesToConvert=FileUtils.listFiles(options.resource,new String[]{"css"},options.recurse);
   for (  File cssFile : filesToConvert) {
     try {
+      if (doesCorrespondingGssFileExists(cssFile)) {
+        System.out.println("GSS file already exists - will not convert, file: " + cssFile.getAbsolutePath());
+        continue;
+      }
       String gss=convertFile(cssFile);
       writeGss(gss,cssFile);
       System.out.println("Converted " + cssFile.getAbsolutePath());
