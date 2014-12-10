@@ -24,11 +24,10 @@
       logger.log(TreeLogger.ERROR,"Module has no entry points defined",null);
       throw new UnableToCompleteException();
     }
-    ArtifactSet generatedArtifacts=new ArtifactSet();
-    DistillerRebindPermutationOracle rpo=new DistillerRebindPermutationOracle(compilerContext,compilationState,generatedArtifacts,allPermutations);
-    compilationState=null;
     PrecompilationMetricsArtifact precompilationMetrics=jjsOptions.isCompilerMetricsEnabled() ? new PrecompilationMetricsArtifact(permutationBase) : null;
-    UnifiedAst unifiedAst=JavaToJavaScriptCompiler.precompile(logger,compilerContext,rpo,declEntryPts,null,rpo.getPermutationCount() == 1,precompilationMetrics);
+    PrecompilationContext precompilationContext=PrecompilationContextCreator.create(compilerContext,compilationState,propertyCombinations,declEntryPts,null,precompilationMetrics);
+    compilationState=null;
+    UnifiedAst unifiedAst=JavaToJavaScriptCompiler.precompile(logger,compilerContext,precompilationContext);
     if (jjsOptions.isCompilerMetricsEnabled()) {
       ModuleMetricsArtifact moduleMetrics=new ModuleMetricsArtifact();
       moduleMetrics.setSourceFiles(module.getAllSourceFiles());
@@ -36,7 +35,7 @@
       moduleMetrics.setElapsedMilliseconds(moduleLoadFinished - startTimeMilliseconds);
       unifiedAst.setModuleMetrics(moduleMetrics);
     }
-    List<Permutation> permutations=new ArrayList<Permutation>(Arrays.asList(rpo.getPermutations()));
+    List<Permutation> permutations=new ArrayList<Permutation>(Arrays.asList(precompilationContext.getPermutations()));
     mergeCollapsedPermutations(permutations);
     SortedMap<RebindAnswersPermutationKey,Permutation> merged=new TreeMap<RebindAnswersPermutationKey,Permutation>();
     SortedSet<String> liveRebindRequests=unifiedAst.getRebindRequests();
@@ -53,15 +52,15 @@
     permutations.clear();
     permutations.addAll(merged.values());
     if (jjsOptions.isCompilerMetricsEnabled()) {
-      int[] ids=new int[allPermutations.size()];
-      for (int i=0; i < allPermutations.size(); i++) {
+      int[] ids=new int[propertyCombinations.size()];
+      for (int i=0; i < propertyCombinations.size(); i++) {
         ids[i]=permutationBase + i;
       }
       precompilationMetrics.setPermutationIds(ids);
       precompilationMetrics.setElapsedMilliseconds(System.currentTimeMillis() - startTimeMilliseconds);
       unifiedAst.setPrecompilationMetrics(precompilationMetrics);
     }
-    return new Precompilation(unifiedAst,permutations,permutationBase,generatedArtifacts);
+    return new Precompilation(unifiedAst,permutations,permutationBase,precompilationContext.getGeneratorArtifacts());
   }
  catch (  UnableToCompleteException e) {
     return null;

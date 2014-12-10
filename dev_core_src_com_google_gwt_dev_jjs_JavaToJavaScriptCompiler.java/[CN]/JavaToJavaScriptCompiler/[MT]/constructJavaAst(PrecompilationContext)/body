@@ -1,0 +1,14 @@
+{
+  RebindPermutationOracle rpo=precompilationContext.getRebindPermutationOracle();
+  CompilationState compilationState=rpo.getCompilationState();
+  Memory.maybeDumpMemory("CompStateBuilt");
+  recordJsoTypes(compilationState.getTypeOracle());
+  unifyJavaAst(precompilationContext);
+  if (options.isSoycEnabled() || options.isJsonSoycEnabled()) {
+    SourceInfoCorrelator.exec(jprogram);
+  }
+  rpo.clear();
+  Set<String> deletedTypeNames=options.isIncrementalCompileEnabled() ? getMinimalRebuildCache().computeDeletedTypeNames() : Sets.<String>newHashSet();
+  jprogram.typeOracle.computeBeforeAST(StandardTypes.createFrom(jprogram),jprogram.getDeclaredTypes(),jprogram.getModuleDeclaredTypes(),deletedTypeNames);
+  return compilationState;
+}

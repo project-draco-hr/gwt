@@ -1,0 +1,42 @@
+{
+  ModuleDef module=compilerContext.getModule();
+  final ArtifactSet generatorArtifacts=new ArtifactSet();
+  final Permutation[] permutations=new Permutation[propertyCombinations.size()];
+  final RebindOracle[] rebindOracles=new RebindOracle[propertyCombinations.size()];
+  final StandardGeneratorContext generatorContext=new StandardGeneratorContext(compilerContext,compilationState,generatorArtifacts,true);
+  BindingProperty[] orderedProperties=propertyCombinations.getOrderedProperties();
+  ConfigurationProperties configurationProperties=new ConfigurationProperties(module);
+  Deque<Rule> rules=module.getRules();
+  for (int i=0; i < propertyCombinations.size(); ++i) {
+    BindingProperties bindingProperties=new BindingProperties(orderedProperties,propertyCombinations.getOrderedPropertyValues(i),configurationProperties);
+    rebindOracles[i]=new StandardRebindOracle(bindingProperties.toPropertyOracle(),rules,generatorContext);
+    permutations[i]=new Permutation(i,bindingProperties);
+  }
+  RebindPermutationOracle rebindPermutationOracle=new RebindPermutationOracle(){
+    @Override public void clear(){
+      generatorContext.clear();
+    }
+    @Override public String[] getAllPossibleRebindAnswers(    TreeLogger logger,    String requestTypeName) throws UnableToCompleteException {
+      String msg="Computing all possible rebind results for '" + requestTypeName + "'";
+      logger=logger.branch(TreeLogger.DEBUG,msg,null);
+      Set<String> answers=Sets.newHashSet();
+      Event getAllRebindsEvent=SpeedTracerLogger.start(CompilerEventType.GET_ALL_REBINDS);
+      for (int i=0; i < permutations.length; ++i) {
+        String resultTypeName=rebindOracles[i].rebind(logger,requestTypeName);
+        answers.add(resultTypeName);
+        permutations[i].putRebindAnswer(requestTypeName,resultTypeName);
+      }
+      String[] result=Util.toArray(String.class,answers);
+      getAllRebindsEvent.end();
+      return result;
+    }
+    @Override public CompilationState getCompilationState(){
+      return compilationState;
+    }
+    @Override public StandardGeneratorContext getGeneratorContext(){
+      return generatorContext;
+    }
+  }
+;
+  return new PrecompilationContext(rebindPermutationOracle,entryPoints,additionalRootTypes,permutations,generatorArtifacts,precompilationMetricsArtifact);
+}

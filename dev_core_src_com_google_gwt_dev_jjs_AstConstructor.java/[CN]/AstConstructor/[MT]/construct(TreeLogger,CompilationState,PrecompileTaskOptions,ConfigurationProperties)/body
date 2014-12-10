@@ -1,7 +1,7 @@
 {
   InternalCompilerException.preload();
   CompilerContext compilerContext=new CompilerContext.Builder().options(options).minimalRebuildCache(new NullRebuildCache()).build();
-  RebindPermutationOracle rpo=new RebindPermutationOracle(){
+  PrecompilationContext precompilationContext=new PrecompilationContext(new RebindPermutationOracle(){
     @Override public void clear(){
     }
     @Override public String[] getAllPossibleRebindAnswers(    TreeLogger logger,    String sourceTypeName) throws UnableToCompleteException {
@@ -14,10 +14,10 @@
       return null;
     }
   }
-;
+);
   JProgram jprogram=new JProgram(compilerContext.getMinimalRebuildCache());
   JsProgram jsProgram=new JsProgram();
-  UnifyAst unifyAst=new UnifyAst(logger,compilerContext,jprogram,jsProgram,rpo);
+  UnifyAst unifyAst=new UnifyAst(logger,compilerContext,jprogram,jsProgram,precompilationContext);
   unifyAst.buildEverything();
   jprogram.typeOracle.computeBeforeAST(StandardTypes.createFrom(jprogram),jprogram.getDeclaredTypes(),jprogram.getModuleDeclaredTypes());
   FixAssignmentsToUnboxOrCast.exec(jprogram);

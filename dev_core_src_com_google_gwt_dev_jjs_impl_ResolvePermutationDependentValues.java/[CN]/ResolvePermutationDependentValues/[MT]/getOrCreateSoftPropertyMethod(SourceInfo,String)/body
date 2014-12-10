@@ -1,0 +1,14 @@
+{
+  JMethod toReturn=softPermutationMethods.get(propertyName);
+  if (toReturn != null) {
+    return toReturn;
+  }
+  Multimap<String,Integer> resultsToPermutations=PropertyAndBindingInfo.getPermutationIdsByPropertyName(permutationPropertyAndBindingInfo,propertyName);
+  List<String> propertyValues=Lists.newArrayList(resultsToPermutations.keySet());
+  return createReboundValueSelectorMethod(info,"property_",propertyName,program.getTypeJavaLangString(),propertyValues,FluentIterable.from(propertyValues).transform(new Function<String,JExpression>(){
+    @Override public JExpression apply(    String s){
+      return program.getLiteral(info,s);
+    }
+  }
+).toList(),resultsToPermutations);
+}

@@ -1,0 +1,12 @@
+{
+  List<String> propertyValues=props.getConfigurationProperties().getStrings(x.getRequestedValue());
+  String propertyValue=propertyValues.isEmpty() ? null : Joiner.on(",").join(propertyValues);
+  if (propertyValue != null) {
+    return program.getLiteral(x.getSourceInfo(),propertyValue);
+  }
+  if (isSoftPermutationProperty(x.getRequestedValue())) {
+    JMethod method=getOrCreateSoftPropertyMethod(x.getSourceInfo(),x.getRequestedValue());
+    return new JMethodCall(x.getSourceInfo(),null,method);
+  }
+  return program.getLiteral(x.getSourceInfo(),computePropertyValue(x.getRequestedValue(),x.getDefaultValue()));
+}
