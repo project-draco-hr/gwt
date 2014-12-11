@@ -1,5 +1,8 @@
 {
   methodsByModificationStep.get(modificationStepByMethod.count(method)).remove(method);
   modificationStepByMethod.remove(method);
-  callGraph.removeMethod(method);
+  Set<JMethod> calleeMethods=callGraph.removeCallerMethod(method);
+  deletedSubCallGraphs.get(optimizationStep).addCallerMethod(method,Sets.difference(calleeMethods,callGraph.getCallees(Collections.singleton(method))));
+  addedSubCallGraphs.get(optimizationStep).addCallerMethod(method,Sets.difference(callGraph.getCallees(Collections.singleton(method)),calleeMethods));
+  fieldReferencesGraph.removeMethod(method);
 }

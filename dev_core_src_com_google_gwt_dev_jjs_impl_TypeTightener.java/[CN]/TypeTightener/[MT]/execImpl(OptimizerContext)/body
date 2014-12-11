@@ -2,10 +2,21 @@
   OptimizerStats stats=new OptimizerStats(NAME);
   RecordVisitor recorder=new RecordVisitor();
   recorder.record(program);
+  int lastStep=optimizerCtx.getLastStepFor(NAME);
+  optimizerCtx.setLastStepFor(NAME,optimizerCtx.getOptimizationStep());
   while (true) {
     TightenTypesVisitor tightener=new TightenTypesVisitor(optimizerCtx);
-    tightener.accept(program);
+    Set<JMethod> affectedMethods=computeAffectedMethods(optimizerCtx,lastStep);
+    Set<JField> affectedFields=computeAffectedFields(optimizerCtx,lastStep);
+    for (    JField field : affectedFields) {
+      tightener.accept(field);
+    }
+    for (    JMethod method : affectedMethods) {
+      tightener.accept(method);
+    }
     stats.recordModified(tightener.getNumMods());
+    lastStep=optimizerCtx.getOptimizationStep();
+    optimizerCtx.incOptimizationStep();
     if (!tightener.didChange()) {
       break;
     }
@@ -13,6 +24,7 @@
   if (stats.didChange()) {
     FixDanglingRefsVisitor fixer=new FixDanglingRefsVisitor(optimizerCtx);
     fixer.accept(program);
+    optimizerCtx.incOptimizationStep();
     JavaAstVerifier.assertProgramIsConsistent(program);
   }
   return stats;

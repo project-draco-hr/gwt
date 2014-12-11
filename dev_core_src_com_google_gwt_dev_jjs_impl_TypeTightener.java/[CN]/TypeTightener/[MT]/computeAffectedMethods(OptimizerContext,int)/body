@@ -1,0 +1,21 @@
+{
+  Set<JMethod> modifiedMethods=optimizerCtx.getModifiedMethodsSince(lastStep);
+  Set<JField> modifiedFields=optimizerCtx.getModifiedFieldsSince(lastStep);
+  Set<JMethod> affectedMethods=Sets.newLinkedHashSet();
+  affectedMethods.addAll(optimizerCtx.getCallers(modifiedMethods));
+  affectedMethods.addAll(optimizerCtx.getCallees(modifiedMethods));
+  affectedMethods.addAll(optimizerCtx.getRemovedCalleeMethodsSince(lastStep));
+  for (  JMethod method : modifiedMethods) {
+    affectedMethods.addAll(calledMethodsByMethodCallArg.get(method));
+  }
+  for (  JMethod method : modifiedMethods) {
+    affectedMethods.addAll(program.typeOracle.getOverriddenMethodsOf(method));
+    affectedMethods.addAll(program.typeOracle.getOverridingMethodsOf(method));
+  }
+  affectedMethods.addAll(optimizerCtx.getMethodsByReferencedFields(modifiedFields));
+  for (  JField field : modifiedFields) {
+    affectedMethods.addAll(calledMethodsByFieldRefArg.get(field));
+  }
+  affectedMethods.addAll(modifiedMethods);
+  return affectedMethods;
+}
