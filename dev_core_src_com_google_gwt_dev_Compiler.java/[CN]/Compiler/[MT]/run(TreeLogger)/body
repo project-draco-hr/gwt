@@ -2,7 +2,11 @@
   ModuleDef[] modules=new ModuleDef[options.getModuleNames().size()];
   int i=0;
   for (  String moduleName : options.getModuleNames()) {
-    modules[i++]=ModuleDefLoader.loadFromClassPath(logger,compilerContext,moduleName,true);
+    ModuleDef module=ModuleDefLoader.loadFromClassPath(logger,compilerContext,moduleName,true);
+    modules[i++]=module;
+    if (!maybeRestrictProperties(logger,module,options.getProperties())) {
+      return false;
+    }
   }
   return run(logger,modules);
 }
