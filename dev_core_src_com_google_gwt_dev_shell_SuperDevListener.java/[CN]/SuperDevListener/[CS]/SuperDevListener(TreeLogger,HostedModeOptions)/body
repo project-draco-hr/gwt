@@ -2,38 +2,5 @@
   this.logger=treeLogger;
   this.codeServerPort=chooseCodeServerPort(treeLogger,options);
   ensureModuleBaseDir(options);
-  List<String> args=makeCodeServerArgs(options,codeServerPort);
-  final String[] codeServerArgs=args.toArray(new String[0]);
-  logger.log(Type.INFO,"Runing CodeServer with parameters: " + args);
-  final Method mainMethod;
-  try {
-    Class<?> clazz=Class.forName("com.google.gwt.dev.codeserver.CodeServer");
-    mainMethod=clazz.getMethod("main",String[].class);
-  }
- catch (  ClassNotFoundException e) {
-    logger.log(TreeLogger.ERROR,"Unable to find main() method for Super Dev Mode " + "code server. Hint: verify that gwt-codeserver.jar is in your classpath.");
-    throw new RuntimeException(e);
-  }
-catch (  NoSuchMethodException e) {
-    logger.log(TreeLogger.ERROR,"Unable to run superdev codeServer.",e);
-    throw new RuntimeException(e);
-  }
-  listenThread=new Thread(){
-    public void run(){
-      try {
-        long startTime=System.currentTimeMillis();
-        mainMethod.invoke(null,new Object[]{codeServerArgs});
-        long elapsedTime=System.currentTimeMillis() - startTime;
-        logger.log(Type.INFO,"Code server started in " + elapsedTime + " ms");
-        codeServerReady.set(null);
-      }
- catch (      Exception e) {
-        logger.log(TreeLogger.ERROR,"Unable to run superdev codeServer.",e);
-        codeServerReady.setException(e);
-      }
-    }
-  }
-;
-  listenThread.setName("SuperDevMode code server listener");
-  listenThread.setDaemon(true);
+  codeServerArgs=makeCodeServerArgs(options,codeServerPort);
 }
