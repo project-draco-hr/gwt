@@ -1,22 +1,11 @@
 {
-  File f=null;
-  try {
-    f=File.createTempFile("com.google.gwt.dev.javac.impl.FileResourceTest",".tmp");
-    f.deleteOnExit();
-    Util.writeStringAsFile(f,"contents 1");
-  }
- catch (  IOException e) {
-    fail("Failed to create test file");
-  }
-  File dir=f.getParentFile();
-  DirectoryClassPathEntry cpe=new DirectoryClassPathEntry(dir);
-  FileResource r=FileResource.create(cpe,f.getName(),f);
+  File f=createTempFile();
+  FileResource r=FileResource.of(f.getName(),f);
   assertEquals(f.getAbsoluteFile().toURI().toString(),r.getLocation());
   assertEquals(f.getName(),r.getPath());
   f.delete();
-  InputStream in=null;
   try {
-    in=r.openContents();
+    r.openContents();
     fail("Open contents unexpectedly succeeded.");
   }
  catch (  IOException expected) {
