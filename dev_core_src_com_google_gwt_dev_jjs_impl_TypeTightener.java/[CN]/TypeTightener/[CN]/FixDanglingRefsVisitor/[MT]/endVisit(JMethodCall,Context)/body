@@ -1,19 +1,18 @@
 {
   JExpression instance=x.getInstance();
   JMethod method=x.getTarget();
-  boolean isStatic=method.isStatic();
   boolean isStaticImpl=program.isStaticImpl(method);
-  if (isStatic && !isStaticImpl && instance != null) {
+  if (method.isStatic() && !isStaticImpl && instance != null) {
     if (!instance.hasSideEffects()) {
       JMethodCall newCall=new JMethodCall(x.getSourceInfo(),null,x.getTarget());
       newCall.addArgs(x.getArgs());
       ctx.replaceMe(newCall);
     }
   }
- else   if (!isStatic && instance.getType() == typeNull) {
+ else   if (isNullReference(method,instance)) {
     ctx.replaceMe(Pruner.transformToNullMethodCall(x,program));
   }
- else   if (isStaticImpl && method.getParams().size() > 0 && method.getParams().get(0).isThis() && x.getArgs().size() > 0 && x.getArgs().get(0).getType() == typeNull) {
+ else   if (isStaticImpl && method.getParams().size() > 0 && method.getParams().get(0).isThis() && x.getArgs().size() > 0 && x.getArgs().get(0).getType() == program.getTypeNull()) {
     ctx.replaceMe(Pruner.transformToNullMethodCall(x,program));
   }
 }
