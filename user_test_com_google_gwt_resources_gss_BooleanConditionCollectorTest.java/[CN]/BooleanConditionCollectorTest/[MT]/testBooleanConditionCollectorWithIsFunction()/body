@@ -1,0 +1,10 @@
+{
+  CssTree cssTree=parseAndBuildTree(lines("@if (FOO && BAR && is('ie8') || is('locale', 'en')) {","  .foo {","    padding: 5px;"," }","}","","@elseif (is(\"custom\", \"foo\")) {","  .foo {","    padding: 15px;"," }","}","@elseif (BAZ) {","  .foo {","    padding: 25px;"," }","}"));
+  BooleanConditionCollector visitor=new BooleanConditionCollector(cssTree.getMutatingVisitController());
+  visitor.runPass();
+  Set<String> booleanConditions=visitor.getBooleanConditions();
+  assertEquals(3,booleanConditions.size());
+  assertTrue(booleanConditions.contains("FOO"));
+  assertTrue(booleanConditions.contains("BAR"));
+  assertTrue(booleanConditions.contains("BAZ"));
+}

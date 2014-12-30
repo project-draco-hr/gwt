@@ -1,0 +1,37 @@
+{
+  File tempFile=null;
+  FileOutputStream fos=null;
+  try {
+    tempFile=File.createTempFile(UUID.randomUUID() + "css_converter","css.tmp");
+    fos=new FileOutputStream(tempFile);
+    IOUtils.write(concatenatedCss,fos);
+    fos.close();
+    ConfigurationPropertyMatcher configurationPropertyMatcher=new ConfigurationPropertyMatcher(context,logger);
+    Css2Gss converter=new Css2Gss(tempFile.toURI().toURL(),logger,lenientConversion,configurationPropertyMatcher);
+    String gss=converter.toGss();
+    if (configurationPropertyMatcher.error) {
+      throw new UnableToCompleteException();
+    }
+    return new ConversionResult(gss,converter.getDefNameMapping());
+  }
+ catch (  Css2GssConversionException e) {
+    String message="An error occurs during the automatic conversion: " + e.getMessage();
+    if (!lenientConversion) {
+      message+="\n You should try to change the faulty css to fix this error. If you are " + "unable to change the css, you can setup the automatic conversion to be lenient. Add " + "the following line to your gwt.xml file: "+ "<set-configuration-property name=\"CssResource.conversionMode\" value=\"lenient\" />";
+    }
+    logger.log(Type.ERROR,message,e);
+    throw new UnableToCompleteException();
+  }
+catch (  IOException e) {
+    logger.log(Type.ERROR,"Error while writing temporary css file",e);
+    throw new UnableToCompleteException();
+  }
+ finally {
+    if (tempFile != null) {
+      tempFile.delete();
+    }
+    if (fos != null) {
+      IOUtils.closeQuietly(fos);
+    }
+  }
+}

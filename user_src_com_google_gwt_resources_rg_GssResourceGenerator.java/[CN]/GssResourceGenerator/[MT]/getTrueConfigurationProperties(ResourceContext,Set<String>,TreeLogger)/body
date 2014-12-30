@@ -1,0 +1,20 @@
+{
+  Builder<String> setBuilder=ImmutableSet.builder();
+  PropertyOracle oracle=context.getGeneratorContext().getPropertyOracle();
+  for (  String property : configurationProperties) {
+    try {
+      ConfigurationProperty confProp=oracle.getConfigurationProperty(property);
+      if (!checkPropertyIsSingleValueAndBoolean(confProp,logger)) {
+        throw new UnableToCompleteException();
+      }
+      if ("true".equals(confProp.getValues().get(0))) {
+        setBuilder.add(property);
+      }
+    }
+ catch (    BadPropertyValueException e1) {
+      logger.log(Type.ERROR,"Unknown configuration property [" + property + "]");
+      throw new UnableToCompleteException();
+    }
+  }
+  return setBuilder.build();
+}

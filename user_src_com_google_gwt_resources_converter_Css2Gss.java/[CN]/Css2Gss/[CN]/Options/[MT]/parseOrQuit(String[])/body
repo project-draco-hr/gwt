@@ -1,27 +1,28 @@
 {
+  if (!validateArgs(args)) {
+    quitEarly(null);
+  }
   Options options=new Options();
-  if (args.length == 1) {
-    options.recurse=false;
-    options.resource=new File(args[0]);
-    verifyResourceExists(options.resource);
-    options.singleFile=!options.resource.isDirectory();
-    return options;
+  int index=0;
+  while (index < args.length - 1) {
+    String arg=args[index++];
+    String nextArg=index < args.length - 1 ? args[index] : null;
+    ArgumentConsumer consumer=argumentConsumers.get(arg);
+    if (consumer == null) {
+      quitEarly("Unknown argument: " + arg);
+    }
+    boolean skipNextArg=consumer.consume(options,nextArg);
+    if (skipNextArg) {
+      index++;
+    }
   }
-  if (args.length != 2) {
-    printUsage();
-    System.exit(-1);
+  options.resource=new File(args[index]);
+  options.singleFile=!options.resource.isDirectory();
+  if (!options.resource.exists()) {
+    quitEarly("File or Directory does not exists: " + options.resource.getAbsolutePath());
   }
-  if (!args[0].trim().equals("-r")) {
-    printUsage();
-    System.exit(-1);
-  }
-  String fileName=args[1];
-  options.recurse=true;
-  options.resource=new File(fileName);
-  verifyResourceExists(options.resource);
-  if (!options.resource.isDirectory()) {
-    System.err.println("When using -r second parameter needs to be a directory");
-    System.exit(-1);
+  if (options.recurse && !options.resource.isDirectory()) {
+    quitEarly("When using -r the last parameter needs to be a directory");
   }
   return options;
 }

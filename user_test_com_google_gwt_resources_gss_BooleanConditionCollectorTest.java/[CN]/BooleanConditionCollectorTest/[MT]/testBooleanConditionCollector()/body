@@ -1,0 +1,9 @@
+{
+  CssTree cssTree=parseAndBuildTree(lines("@if (FOO && BAR) {","  .foo {","    padding: 5px;"," }","}","","@elseif (!FOO || !BAR) {","  .foo {","    padding: 15px;"," }","}"));
+  BooleanConditionCollector visitor=new BooleanConditionCollector(cssTree.getMutatingVisitController());
+  visitor.runPass();
+  Set<String> booleanConditions=visitor.getBooleanConditions();
+  assertEquals(2,booleanConditions.size());
+  assertTrue(booleanConditions.contains("FOO"));
+  assertTrue(booleanConditions.contains("BAR"));
+}

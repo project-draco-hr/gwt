@@ -6,7 +6,8 @@
   new ProcessComponents<Object>(cssTree.getMutatingVisitController(),errorManager).runPass();
   RuntimeConditionalBlockCollector runtimeConditionalBlockCollector=new RuntimeConditionalBlockCollector(cssTree.getVisitController());
   runtimeConditionalBlockCollector.runPass();
-  new ExtendedEliminateConditionalNodes(cssTree.getMutatingVisitController(),getPermutationsConditions(context,cssParsingResult.permutationAxes,logger),runtimeConditionalBlockCollector.getRuntimeConditionalBlock()).runPass();
+  Set<String> trueCompileTimeConditions=ImmutableSet.<String>builder().addAll(getCurrentDeferredBindingProperties(context,cssParsingResult.permutationAxes,logger)).addAll(getTrueConfigurationProperties(context,cssParsingResult.trueConditions,logger)).build();
+  new ExtendedEliminateConditionalNodes(cssTree.getMutatingVisitController(),trueCompileTimeConditions,runtimeConditionalBlockCollector.getRuntimeConditionalBlock()).runPass();
   new ValidateRuntimeConditionalNode(cssTree.getVisitController(),errorManager,lenientConversion).runPass();
   checkErrors();
   CollectConstantDefinitions collectConstantDefinitionsPass=new CollectConstantDefinitions(cssTree);

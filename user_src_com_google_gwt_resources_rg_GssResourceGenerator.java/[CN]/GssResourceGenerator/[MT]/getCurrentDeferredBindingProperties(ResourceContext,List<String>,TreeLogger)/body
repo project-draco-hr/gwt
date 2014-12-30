@@ -1,0 +1,25 @@
+{
+  Builder<String> setBuilder=ImmutableSet.builder();
+  PropertyOracle oracle=context.getGeneratorContext().getPropertyOracle();
+  for (  String permutationAxis : permutationAxes) {
+    String propValue;
+    try {
+      SelectionProperty selProp=oracle.getSelectionProperty(null,permutationAxis);
+      propValue=selProp.getCurrentValue();
+    }
+ catch (    BadPropertyValueException e) {
+      try {
+        ConfigurationProperty confProp=oracle.getConfigurationProperty(permutationAxis);
+        propValue=confProp.getValues().get(0);
+      }
+ catch (      BadPropertyValueException e1) {
+        logger.log(Type.ERROR,"Unknown configuration property [" + permutationAxis + "]");
+        throw new UnableToCompleteException();
+      }
+    }
+    if (propValue != null) {
+      setBuilder.add(permutationAxis + ":" + propValue);
+    }
+  }
+  return setBuilder.build();
+}
