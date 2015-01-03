@@ -5,11 +5,16 @@
   Matcher m=BRACES.matcher(in);
   while (m.find(nextFindStart)) {
     String fieldReference=m.group(1);
-    if (!legalFirstCharacter(fieldReference)) {
-      nextFindStart=m.start() + 2;
+    int start=m.start();
+    if (!isLegalPreviousCharacter(in,start)) {
+      nextFindStart=start + 1;
       continue;
     }
-    String precedingFragment=in.substring(lastMatchEnd,m.start());
+    if (!isLegalFirstCharacter(fieldReference)) {
+      nextFindStart=start + 2;
+      continue;
+    }
+    String precedingFragment=in.substring(lastMatchEnd,start);
     precedingFragment=handleFragment(precedingFragment,delegate);
     b.append(precedingFragment);
     if (fieldManager != null) {
