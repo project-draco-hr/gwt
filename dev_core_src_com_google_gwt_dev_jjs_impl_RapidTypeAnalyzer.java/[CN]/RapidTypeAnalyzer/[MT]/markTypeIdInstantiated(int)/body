@@ -1,0 +1,29 @@
+{
+  if (!instantiatedTypeIds.get(typeId)) {
+    instantiatedTypeIds.set(typeId);
+    markTypeIdReachable(typeId);
+    IntArrayList memberMethodIds=analyzableTypeEnvironment.getMemberMethodIdsIn(typeId);
+    if (memberMethodIds != null) {
+      for (int i=0; i < memberMethodIds.size(); i++) {
+        int memberMethodId=memberMethodIds.get(i);
+        IntArrayList overriddenMethodIds=analyzableTypeEnvironment.getOverriddenMethodIds(memberMethodId);
+        if (overriddenMethodIds != null) {
+          for (int j=0; j < overriddenMethodIds.size(); j++) {
+            int overriddenMethodId=overriddenMethodIds.get(j);
+            knownOverridingMethodIdsByOverriddenMethodId.put(overriddenMethodId,memberMethodId);
+          }
+        }
+      }
+      for (int i=0; i < memberMethodIds.size(); i++) {
+        int memberMethodId=memberMethodIds.get(i);
+        if (overidingMethodIdsOfReachableMethods.get(memberMethodId)) {
+          markMethodIdReachable(memberMethodId,true);
+        }
+      }
+    }
+    int superTypeId=analyzableTypeEnvironment.getSuperTypeId(typeId);
+    if (superTypeId != -1) {
+      markTypeIdInstantiated(superTypeId);
+    }
+  }
+}

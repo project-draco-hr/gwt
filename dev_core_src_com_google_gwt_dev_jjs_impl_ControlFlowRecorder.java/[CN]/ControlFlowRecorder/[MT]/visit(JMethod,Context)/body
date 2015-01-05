@@ -1,0 +1,19 @@
+{
+  String typeName=x.getEnclosingType().getName();
+  currentMethodName=computeName(x);
+  if (bannedMethodNames.contains(currentMethodName)) {
+    return false;
+  }
+  stringAnalyzableTypeEnvironment.recordTypeEnclosesMethod(typeName,currentMethodName);
+  for (  JMethod overriddenMethod : program.typeOracle.getOverriddenMethodsOf(x)) {
+    String overriddenMethodName=computeName(overriddenMethod);
+    stringAnalyzableTypeEnvironment.recordMethodOverridesMethod(currentMethodName,overriddenMethodName);
+  }
+  if (program.typeOracle.isExportedMethod(x) || program.typeOracle.isJsTypeMethod(x)) {
+    if (x.isStatic() || x.isConstructor()) {
+      stringAnalyzableTypeEnvironment.recordExportedStaticReferenceInType(typeName);
+    }
+    stringAnalyzableTypeEnvironment.recordExportedMethodInType(currentMethodName,typeName);
+  }
+  return true;
+}

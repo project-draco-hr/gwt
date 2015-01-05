@@ -1,18 +1,42 @@
 {
-  Set<String> openTypeNames=Sets.newHashSet(rootTypeNames);
-  Set<String> reachableTypeNames=Sets.newHashSet();
-  while (!openTypeNames.isEmpty()) {
-    Iterator<String> iterator=openTypeNames.iterator();
-    String toProcessTypeName=iterator.next();
-    iterator.remove();
-    reachableTypeNames.add(toProcessTypeName);
-    Collection<String> referencedTypes=referencedTypeNamesByTypeName.get(toProcessTypeName);
-    for (    String referencedType : referencedTypes) {
-      if (reachableTypeNames.contains(referencedType)) {
-        continue;
-      }
-      openTypeNames.add(referencedType);
+  RapidTypeAnalyzer rapidTypeAnalyzer=new RapidTypeAnalyzer(typeEnvironment);
+  for (  String immortalCodegenTypeName : JProgram.IMMORTAL_CODEGEN_TYPES_SET) {
+    int immortalCodegenTypeId=typeEnvironment.getTypeIdByName(immortalCodegenTypeName);
+    rapidTypeAnalyzer.markTypeIdReachable(immortalCodegenTypeId);
+    rapidTypeAnalyzer.markMemberMethodIdsReachable(immortalCodegenTypeId);
+  }
+  IntArrayList enclosingTypeIds=typeEnvironment.getEnclosingTypeIdsOfExportedMethods();
+  for (int i=0; i < enclosingTypeIds.size(); i++) {
+    int enclosingTypeId=enclosingTypeIds.get(i);
+    IntArrayList exportedMethodIds=typeEnvironment.getExportedMemberMethodIdsIn(enclosingTypeId);
+    if (exportedMethodIds == null) {
+      continue;
     }
+    for (int j=0; j < exportedMethodIds.size(); j++) {
+      int exportedMethodId=exportedMethodIds.get(j);
+      rapidTypeAnalyzer.markMethodIdReachable(exportedMethodId,false);
+    }
+  }
+  IntArrayList typeIdsWithExportedStaticReferences=typeEnvironment.getTypeIdsWithExportedStaticReferences();
+  for (int i=0; i < typeIdsWithExportedStaticReferences.size(); i++) {
+    int typeId=typeIdsWithExportedStaticReferences.get(i);
+    rapidTypeAnalyzer.markTypeIdReachable(typeId);
+    String typeName=typeEnvironment.getTypeNameById(typeId);
+    int typeClinitMethodId=typeEnvironment.getMethodIdByName(typeName + "::$clinit()");
+    rapidTypeAnalyzer.markMethodIdReachable(typeClinitMethodId,false);
+  }
+  IntArrayList entryMethodIds=typeEnvironment.getEntryMethodIds();
+  for (int i=0; i < entryMethodIds.size(); i++) {
+    int entryMethodId=entryMethodIds.get(i);
+    int typeId=typeEnvironment.getEnclosingTypeId(entryMethodId);
+    rapidTypeAnalyzer.markTypeIdReachable(typeId);
+    rapidTypeAnalyzer.markMemberMethodIdsReachable(typeId);
+  }
+  IntArrayList reachableTypeIds=rapidTypeAnalyzer.computeReachableTypeIds();
+  Set<String> reachableTypeNames=Sets.newHashSet();
+  for (int i=0; i < reachableTypeIds.size(); i++) {
+    int reachableTypeId=reachableTypeIds.get(i);
+    reachableTypeNames.add(typeEnvironment.getTypeNameById(reachableTypeId));
   }
   copyCollection(reachableTypeNames,lastReachableTypeNames);
   return reachableTypeNames;

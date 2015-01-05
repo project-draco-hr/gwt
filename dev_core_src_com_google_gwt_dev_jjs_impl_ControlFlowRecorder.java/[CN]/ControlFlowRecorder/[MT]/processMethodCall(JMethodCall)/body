@@ -1,0 +1,15 @@
+{
+  JMethod targetMethod=x.getTarget();
+  String calleeMethodName=computeName(targetMethod);
+  stringAnalyzableTypeEnvironment.recordMethodCallsMethod(currentMethodName,calleeMethodName);
+  if (targetMethod.isStatic()) {
+    String typeName=targetMethod.getEnclosingType().getName();
+    stringAnalyzableTypeEnvironment.recordStaticReferenceInMethod(typeName,currentMethodName);
+    maybeRecordClinitCall(typeName);
+  }
+  if (targetMethod.isConstructor()) {
+    String typeName=targetMethod.getEnclosingType().getName();
+    stringAnalyzableTypeEnvironment.recordMethodInstantiatesType(currentMethodName,typeName);
+    maybeRecordClinitCall(typeName);
+  }
+}
