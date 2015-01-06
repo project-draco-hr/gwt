@@ -1,2 +1,53 @@
 {
+  if (jsniMethodBody.getClassRefs().size() == 0) {
+    return;
+  }
+  final Multimap<String,JsniClassLiteral> jsniClassLiteralsByJsniReference=ArrayListMultimap.create();
+  final JMethod getClassLiteralForArrayMethod=program.getIndexedMethod("Array.getClassLiteralForArray");
+  final String getClassLiteralForArrayMethodIdent="@" + getClassLiteralForArrayMethod.getJsniSignature(true,false);
+  boolean areThereArrayClassLiterals=false;
+  for (  JsniClassLiteral jsniClassLiteral : jsniMethodBody.getClassRefs()) {
+    if (jsniClassLiteral.getRefType() instanceof JArrayType) {
+      areThereArrayClassLiterals=true;
+    }
+ else {
+      resolveClassLiteral(jsniClassLiteral);
+    }
+    jsniClassLiteralsByJsniReference.put(jsniClassLiteral.getIdent(),jsniClassLiteral);
+  }
+  if (!areThereArrayClassLiterals) {
+    return;
+  }
+  final Set<JsniClassLiteral> newClassRefs=Sets.newLinkedHashSet();
+  JsModVisitor replaceJsniClassLiteralVisitor=new JsModVisitor(){
+    @Override public void endVisit(    JsNameRef x,    JsContext ctx){
+      if (!x.isJsniReference()) {
+        return;
+      }
+      if (jsniClassLiteralsByJsniReference.get(x.getIdent()).isEmpty()) {
+        return;
+      }
+      JsniClassLiteral jsniClassLiteral=jsniClassLiteralsByJsniReference.get(x.getIdent()).iterator().next();
+      jsniClassLiteralsByJsniReference.remove(x.getIdent(),jsniClassLiteral);
+      if (jsniClassLiteral.getRefType() instanceof JArrayType) {
+        JArrayType arrayType=(JArrayType)jsniClassLiteral.getRefType();
+        JType leafType=arrayType.getLeafType();
+        jsniClassLiteral=new JsniClassLiteral(jsniClassLiteral.getSourceInfo(),leafType);
+        SourceInfo info=x.getSourceInfo();
+        JsNameRef getArrayClassLiteralMethodNameRef=new JsNameRef(info,getClassLiteralForArrayMethodIdent);
+        JsInvocation invocation=new JsInvocation(info,getArrayClassLiteralMethodNameRef,new JsNameRef(info,jsniClassLiteral.getIdent()),new JsNumberLiteral(info,arrayType.getDims()));
+        resolveClassLiteral(jsniClassLiteral);
+        ctx.replaceMe(invocation);
+      }
+      newClassRefs.add(jsniClassLiteral);
+    }
+  }
+;
+  replaceJsniClassLiteralVisitor.accept(jsniMethodBody.getFunc());
+  if (!replaceJsniClassLiteralVisitor.didChange()) {
+    return;
+  }
+  JsniMethodBody newBody=new JsniMethodBody(jsniMethodBody.getSourceInfo(),jsniMethodBody.getFunc(),Lists.newArrayList(newClassRefs),jsniMethodBody.getJsniFieldRefs(),jsniMethodBody.getJsniMethodRefs(),jsniMethodBody.getUsedStrings());
+  newBody.addJsniRef(new JsniMethodRef(jsniMethodBody.getSourceInfo(),getClassLiteralForArrayMethodIdent,getClassLiteralForArrayMethod,program.getJavaScriptObject()));
+  ctx.replaceMe(newBody);
 }
