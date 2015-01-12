@@ -1,19 +1,4 @@
 {
-  try {
-    Collection<T> matches=Collections2.filter(Arrays.asList(optionsEnumClass.getEnumConstants()),new Predicate<T>(){
-      @Override public boolean apply(      T t){
-        if (allowAbbreviation && value.length() >= ABBREVIATION_MIN_SIZE) {
-          return t.name().startsWith(value);
-        }
-        return t.name().equals(value);
-      }
-    }
-);
-    if (matches.size() == 1) {
-      return matches.iterator().next();
-    }
-  }
- catch (  IllegalArgumentException e) {
-  }
-  return null;
+  List<T> matchedOptions=FluentIterable.from(Arrays.asList(optionsEnumClass.getEnumConstants())).filter(buildMatchPredicate(value)).toList();
+  return matchedOptions.size() == 1 ? matchedOptions.get(0) : null;
 }
