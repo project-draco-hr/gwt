@@ -1,10 +1,7 @@
 {
   sourceNameBasedTypeLocator=new NameBasedTypeLocator(compiledClassesBySourceName){
-    @Override protected CompilationUnit getCompilationUnitFromLibrary(    String sourceName){
-      return compilerContext.getLibraryGroup().getCompilationUnitByTypeSourceName(sourceName);
-    }
     @Override protected boolean hasCompileErrors(    String sourceName){
-      return compilerContext.getGlobalCompilationErrorsIndex().hasCompileErrors(sourceName);
+      return compilerContext.getCompilationErrorsIndex().hasCompileErrors(sourceName);
     }
     @Override protected void logErrorTrace(    TreeLogger branch,    Type logLevel,    String sourceName){
       CompilationProblemReporter.logErrorTrace(branch,logLevel,compilerContext,sourceName,false);
@@ -12,9 +9,6 @@
   }
 ;
   binaryNameBasedTypeLocator=new NameBasedTypeLocator(null){
-    @Override protected CompilationUnit getCompilationUnitFromLibrary(    String binaryName){
-      return compilerContext.getLibraryGroup().getCompilationUnitByTypeBinaryName(binaryName);
-    }
     @Override protected CompilationUnit getCompilationUnitFromSource(    String binaryName){
       return internalNameBasedTypeLocator.getCompilationUnitFromSource(BinaryName.toInternalName(binaryName));
     }
@@ -30,9 +24,6 @@
   }
 ;
   internalNameBasedTypeLocator=new NameBasedTypeLocator(compiledClassesByInternalName){
-    @Override protected CompilationUnit getCompilationUnitFromLibrary(    String internalName){
-      return binaryNameBasedTypeLocator.getCompilationUnitFromLibrary(InternalName.toBinaryName(internalName));
-    }
     @Override protected JDeclaredType getResolvedType(    String internalName){
       return binaryNameBasedTypeLocator.getResolvedType(InternalName.toBinaryName(internalName));
     }

@@ -10,22 +10,7 @@
       return moduleDef;
     }
     ModuleDefLoader loader=new ModuleDefLoader(compilerContext,resources);
-    PrecompileTaskOptions options=compilerContext.getOptions();
-    boolean mergePathPrefixes=!(options.warnMissingDeps() || compilerContext.getOptions().warnOverlappingSource() || compilerContext.getOptions().getMissingDepsFile() != null);
-    ModuleDef module=ModuleDefLoader.doLoadModule(loader,logger,moduleName,resources,compilerContext.shouldCompileMonolithic(),mergePathPrefixes);
-    LibraryWriter libraryWriter=compilerContext.getLibraryWriter();
-    libraryWriter.setLibraryName(module.getCanonicalName());
-    libraryWriter.addDependencyLibraryNames(module.getExternalLibraryCanonicalModuleNames());
-    for (    Resource buildResource : module.getBuildResourceOracle().getResources()) {
-      if (buildResource.getPath().endsWith(".java") || buildResource.getPath().endsWith(".gwt.xml")) {
-        continue;
-      }
-      libraryWriter.addBuildResource(buildResource);
-    }
-    for (    Resource publicResource : module.getPublicResourceOracle().getResources()) {
-      libraryWriter.addPublicResource(publicResource);
-    }
-    return module;
+    return ModuleDefLoader.doLoadModule(loader,logger,moduleName,resources,true,true);
   }
   finally {
     moduleDefLoadFromClassPathEvent.end();

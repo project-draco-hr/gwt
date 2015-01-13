@@ -28,17 +28,6 @@
   if (incrementalCompile) {
     fullFlowIntoRemainingStaleTypes();
   }
- else   if (isLibraryCompile) {
-    Set<String> internalNames=ImmutableSet.copyOf(compiledClassesByInternalName.keySet());
-    for (    String internalName : internalNames) {
-      boolean reportErrors=false;
-      JDeclaredType type=internalFindType(internalName,internalNameBasedTypeLocator,reportErrors);
-      if (type == null) {
-        continue;
-      }
-      fullFlowIntoType(type);
-    }
-  }
   instantiate(program.getTypeJavaLangString());
   flowInto(program.getIndexedMethod("Object.toString"));
   mapApi(program.getTypeJavaLangString());
@@ -72,9 +61,7 @@
     minimalRebuildCache.setProcessedStaleTypeNames(fullFlowTypes);
   }
   computeOverrides();
-  if (compilerContext.shouldCompileMonolithic()) {
-    pruneDeadFieldsAndMethods();
-  }
+  pruneDeadFieldsAndMethods();
   if (errorsFound) {
     throw new UnableToCompleteException();
   }

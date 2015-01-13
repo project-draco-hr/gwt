@@ -3,8 +3,6 @@
     return;
   }
   TreeLogger logger=parentLogger.branch(TreeLogger.DEBUG,"Loading inherited module '" + moduleName + "'",null);
-  LibraryWriter libraryWriter=compilerContext.getLibraryWriter();
-  LibraryGroup libraryGroup=compilerContext.getLibraryGroup();
   if (!ModuleDef.isValidModuleName(moduleName)) {
     logger.log(TreeLogger.ERROR,"Invalid module name: '" + moduleName + "'",null);
     throw new UnableToCompleteException();
@@ -13,10 +11,6 @@
   String slashedModuleName=moduleName.replace('.','/');
   String resName=slashedModuleName + ModuleDefLoader.GWT_MODULE_XML_SUFFIX;
   URL moduleURL=resourceLoader.getResource(resName);
-  if (moduleURL == null && libraryGroup.containsBuildResource(resName)) {
-    moduleURL=libraryGroup.getBuildResourceByPath(resName).getURL();
-  }
-  long lastModified=0;
   if (moduleURL != null) {
     moduleDef.recordModuleGwtXmlFile(moduleName,moduleURL.getPath());
     String externalForm=moduleURL.toExternalForm();
@@ -25,9 +19,7 @@
     }
     try {
       if ((!(externalForm.startsWith("jar:file"))) && (!(externalForm.startsWith("zip:file"))) && (!(externalForm.startsWith("http://")))&& (!(externalForm.startsWith("ftp://")))) {
-        File gwtXmlFile=new File(moduleURL.toURI());
-        lastModified=gwtXmlFile.lastModified();
-        moduleDef.addGwtXmlFile(gwtXmlFile);
+        moduleDef.addGwtXmlFile(new File(moduleURL.toURI()));
       }
     }
  catch (    URISyntaxException e) {
@@ -49,9 +41,6 @@
     r=Util.createReader(logger,moduleURL);
     ModuleDefSchema schema=new ModuleDefSchema(logger,this,moduleName,moduleURL,moduleDir,moduleDef);
     ReflectiveParser.parse(logger,schema,r);
-    if (moduleDef.getTargetLibraryCanonicalModuleNames().contains(moduleName)) {
-      libraryWriter.addBuildResource(new UrlResource(moduleURL,resName,lastModified));
-    }
   }
  catch (  UnableToCompleteException e) {
     throw e;

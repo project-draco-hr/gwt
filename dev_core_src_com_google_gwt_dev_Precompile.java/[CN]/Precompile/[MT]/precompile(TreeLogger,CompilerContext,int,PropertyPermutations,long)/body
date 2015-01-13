@@ -20,8 +20,7 @@
     }
     long moduleLoadFinished=System.currentTimeMillis();
     String[] declEntryPts=module.getEntryPointTypeNames();
-    boolean compileMonolithic=compilerContext.shouldCompileMonolithic();
-    if (compileMonolithic && declEntryPts.length == 0) {
+    if (declEntryPts.length == 0) {
       logger.log(TreeLogger.ERROR,"Module has no entry points defined",null);
       throw new UnableToCompleteException();
     }
@@ -38,23 +37,21 @@
       unifiedAst.setModuleMetrics(moduleMetrics);
     }
     List<Permutation> permutations=new ArrayList<Permutation>(Arrays.asList(rpo.getPermutations()));
-    if (compileMonolithic) {
-      mergeCollapsedPermutations(permutations);
-      SortedMap<RebindAnswersPermutationKey,Permutation> merged=new TreeMap<RebindAnswersPermutationKey,Permutation>();
-      SortedSet<String> liveRebindRequests=unifiedAst.getRebindRequests();
-      for (      Permutation permutation : permutations) {
-        RebindAnswersPermutationKey key=new RebindAnswersPermutationKey(permutation,liveRebindRequests);
-        if (merged.containsKey(key)) {
-          Permutation existing=merged.get(key);
-          existing.mergeFrom(permutation,liveRebindRequests);
-        }
- else {
-          merged.put(key,permutation);
-        }
+    mergeCollapsedPermutations(permutations);
+    SortedMap<RebindAnswersPermutationKey,Permutation> merged=new TreeMap<RebindAnswersPermutationKey,Permutation>();
+    SortedSet<String> liveRebindRequests=unifiedAst.getRebindRequests();
+    for (    Permutation permutation : permutations) {
+      RebindAnswersPermutationKey key=new RebindAnswersPermutationKey(permutation,liveRebindRequests);
+      if (merged.containsKey(key)) {
+        Permutation existing=merged.get(key);
+        existing.mergeFrom(permutation,liveRebindRequests);
       }
-      permutations.clear();
-      permutations.addAll(merged.values());
+ else {
+        merged.put(key,permutation);
+      }
     }
+    permutations.clear();
+    permutations.addAll(merged.values());
     if (jjsOptions.isCompilerMetricsEnabled()) {
       int[] ids=new int[allPermutations.size()];
       for (int i=0; i < allPermutations.size(); i++) {
