@@ -7,6 +7,9 @@
   while (index < args.length - 1) {
     String arg=args[index++];
     String nextArg=index < args.length - 1 ? args[index] : null;
+    if (nextArg == null) {
+      quitEarly("Missing file or directly as last parameter");
+    }
     ArgumentConsumer consumer=argumentConsumers.get(arg);
     if (consumer == null) {
       quitEarly("Unknown argument: " + arg);
@@ -16,7 +19,35 @@
       index++;
     }
   }
-  options.resource=new File(args[index]);
+  if (options.scope != null) {
+    ImmutableSet<String> scopeFileSet=FluentIterable.from(Splitter.on(',').split(options.scope)).toSet();
+    HashSet<URL> set=new HashSet<URL>();
+    for (    String scopeFile : scopeFileSet) {
+      File file=null;
+      if (options.baseDir != null && !scopeFile.startsWith(File.separator)) {
+        file=new File(options.baseDir,scopeFile).getAbsoluteFile();
+      }
+ else {
+        file=new File(scopeFile).getAbsoluteFile();
+      }
+      if (!file.exists() && !file.isFile()) {
+        quitEarly("The scope file '" + file.getAbsolutePath() + "' does not exist");
+      }
+      try {
+        set.add(file.toURI().toURL());
+      }
+ catch (      MalformedURLException e) {
+        quitEarly("Can not create url for scope file: '" + scopeFile + "'");
+      }
+    }
+    options.scopeFiles=ImmutableSet.copyOf(set);
+  }
+  if (options.baseDir != null && !args[index].startsWith(File.separator)) {
+    options.resource=new File(options.baseDir,args[index]).getAbsoluteFile();
+  }
+ else {
+    options.resource=new File(args[index]).getAbsoluteFile();
+  }
   options.singleFile=!options.resource.isDirectory();
   if (!options.resource.exists()) {
     quitEarly("File or Directory does not exists: " + options.resource.getAbsolutePath());
