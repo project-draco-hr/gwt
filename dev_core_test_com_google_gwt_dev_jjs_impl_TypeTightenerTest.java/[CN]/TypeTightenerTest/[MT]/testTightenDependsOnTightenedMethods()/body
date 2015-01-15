@@ -6,8 +6,9 @@
   addSnippetClassDecl("static void fun1(A a) {if (a == null) return;}");
   addSnippetClassDecl("static A fun2() { return test(); }");
   Result result=optimize("void","A a = test();" + "C c = new C(); c.a = test();" + "fun1(test());");
-  assertEquals("static EntryPoint$B fun2();\n",result.findMethod("fun2").toString());
+  assertReturnType(result,"fun2()Ltest/EntryPoint$A;","EntryPoint$B");
+  assertParameterTypes(result,"fun1","EntryPoint$B");
+  ;
   assertEquals("EntryPoint$B a",OptimizerTestBase.findLocal(result.findMethod(MAIN_METHOD_NAME),"a").toString());
   assertEquals("EntryPoint$B a",OptimizerTestBase.findField(result.findClass("EntryPoint$C"),"a").toString());
-  assertEquals("static void fun1(EntryPoint$B a);\n",result.findMethod("fun1").toString());
 }

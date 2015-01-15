@@ -1,0 +1,14 @@
+{
+  final JDeclaredType targetClass=findClass(className);
+  Set<String> actualMethodSignatures=Sets.newHashSet();
+  for (  JMethod method : targetClass.getMethods()) {
+    actualMethodSignatures.add(method.toString());
+  }
+  ImmutableSet<String> expectedMethodSignatures=FluentIterable.from(expectedMethodSnippets).transform(new Function<String,String>(){
+    @Nullable @Override public String apply(    String unqualifiedMethodSignature){
+      return targetClass.getName() + "." + unqualifiedMethodSignature;
+    }
+  }
+).toSet();
+  assertContainsAll(expectedMethodSignatures,actualMethodSignatures);
+}

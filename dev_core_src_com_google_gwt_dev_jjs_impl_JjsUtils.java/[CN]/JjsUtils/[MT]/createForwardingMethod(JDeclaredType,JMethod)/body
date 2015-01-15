@@ -1,19 +1,14 @@
 {
-  JMethod delegate=new JMethod(methodToDelegate.getSourceInfo(),methodToDelegate.getName(),classToBeModified,methodToDelegate.getType(),false,false,false,methodToDelegate.getAccess());
-  delegate.addThrownExceptions(methodToDelegate.getThrownExceptions());
-  delegate.setSynthetic();
-  for (  JParameter p : methodToDelegate.getParams()) {
-    delegate.addParam(new JParameter(p.getSourceInfo(),p.getName(),p.getType(),p.isFinal(),p.isThis(),delegate));
+  JMethod forwardingMethod=createEmptyMethodFromExample(type,methodToDelegateTo,false);
+  if (methodToDelegateTo.isDefaultMethod()) {
+    forwardingMethod.setDefaultMethod();
   }
-  JMethodBody body=new JMethodBody(methodToDelegate.getSourceInfo());
-  JMethodCall delegateCall=new JMethodCall(methodToDelegate.getSourceInfo(),new JThisRef(methodToDelegate.getSourceInfo(),methodToDelegate.getEnclosingType()),methodToDelegate);
-  delegateCall.setStaticDispatchOnly();
-  for (  JParameter p : delegate.getParams()) {
-    delegateCall.addArg(new JParameterRef(p.getSourceInfo(),p));
+  JMethodBody body=(JMethodBody)forwardingMethod.getBody();
+  JMethodCall forwardingCall=new JMethodCall(methodToDelegateTo.getSourceInfo(),new JThisRef(methodToDelegateTo.getSourceInfo(),methodToDelegateTo.getEnclosingType()),methodToDelegateTo);
+  forwardingCall.setStaticDispatchOnly();
+  for (  JParameter p : forwardingMethod.getParams()) {
+    forwardingCall.addArg(new JParameterRef(p.getSourceInfo(),p));
   }
-  body.getBlock().addStmt(delegate.getType() == JPrimitiveType.VOID ? delegateCall.makeStatement() : new JReturnStatement(methodToDelegate.getSourceInfo(),delegateCall));
-  delegate.setBody(body);
-  delegate.freezeParamTypes();
-  classToBeModified.addMethod(delegate);
-  delegate.addOverriddenMethod(methodToDelegate);
+  body.getBlock().addStmt(forwardingMethod.getType() == JPrimitiveType.VOID ? forwardingCall.makeStatement() : new JReturnStatement(methodToDelegateTo.getSourceInfo(),forwardingCall));
+  return forwardingMethod;
 }

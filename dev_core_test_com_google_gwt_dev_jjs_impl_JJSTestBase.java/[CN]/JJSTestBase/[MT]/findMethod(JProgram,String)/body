@@ -1,4 +1,10 @@
 {
-  JDeclaredType mainType=program.getFromTypeMap("test.EntryPoint");
-  return findMethod(mainType,methodName);
+  int lastDot=methodName.lastIndexOf(".");
+  if (lastDot != -1) {
+    String className=methodName.substring(0,lastDot);
+    JDeclaredType clazz=program.getFromTypeMap(className);
+    assertNotNull("Did not find class " + className,clazz);
+    return clazz.findMethod(methodName.substring(lastDot + 1),true);
+  }
+  return findMethod(program.getFromTypeMap("test.EntryPoint"),methodName);
 }

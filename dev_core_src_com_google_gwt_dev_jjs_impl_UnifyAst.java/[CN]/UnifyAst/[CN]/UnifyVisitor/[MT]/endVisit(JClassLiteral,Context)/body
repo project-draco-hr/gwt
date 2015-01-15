@@ -2,25 +2,18 @@
   JType refType=translate(x.getRefType());
   x.resolve(refType);
   if (refType instanceof JArrayType) {
-    JType leafType=((JArrayType)refType).getLeafType();
-    if (leafType instanceof JReferenceType) {
-      refType=leafType;
-    }
+    refType=((JArrayType)refType).getLeafType();
   }
-  if (refType instanceof JClassType) {
-    JClassType classType=(JClassType)refType;
-    JEnumType enumType=classType.isEnumOrSubclass();
-    if (enumType != null) {
-      for (      JMethod method : enumType.getMethods()) {
-        if (method.isStatic()) {
-          if (method.getSignature().startsWith("values()")) {
-            flowInto(method);
-          }
- else           if (method.getSignature().startsWith("valueOf(Ljava/lang/String;)")) {
-            flowInto(method);
-          }
-        }
-      }
+  JEnumType enumType=refType.isEnumOrSubclass();
+  if (enumType == null) {
+    return;
+  }
+  for (  JMethod method : enumType.getMethods()) {
+    if (!method.isStatic()) {
+      continue;
+    }
+    if (method.getSignature().startsWith("values()") || method.getSignature().startsWith("valueOf(Ljava/lang/String;)")) {
+      flowInto(method);
     }
   }
 }

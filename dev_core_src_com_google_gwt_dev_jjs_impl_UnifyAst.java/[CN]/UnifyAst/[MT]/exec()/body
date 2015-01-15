@@ -1,10 +1,10 @@
 {
-  List<String> entryMethodNames=new ArrayList<String>();
+  List<String> entryMethodNames=Lists.newArrayList();
   for (  JMethod entryMethod : program.getEntryMethods()) {
     flowInto(entryMethod);
     entryMethodNames.add(entryMethod.getJsniSignature(true,true));
   }
-  List<String> rootTypeBinaryNames=new ArrayList<String>();
+  List<String> rootTypeBinaryNames=Lists.newArrayList();
   for (  String rootTypeSourceName : rootTypeSourceNames) {
     JDeclaredType rootType=internalFindType(rootTypeSourceName,sourceNameBasedTypeLocator,true);
     if (rootType == null) {
@@ -61,7 +61,9 @@
     minimalRebuildCache.setProcessedStaleTypeNames(fullFlowTypes);
   }
   computeOverrides();
-  pruneDeadFieldsAndMethods();
+  if (!incrementalCompile) {
+    pruneDeadFieldsAndMethods();
+  }
   if (errorsFound) {
     throw new UnableToCompleteException();
   }
