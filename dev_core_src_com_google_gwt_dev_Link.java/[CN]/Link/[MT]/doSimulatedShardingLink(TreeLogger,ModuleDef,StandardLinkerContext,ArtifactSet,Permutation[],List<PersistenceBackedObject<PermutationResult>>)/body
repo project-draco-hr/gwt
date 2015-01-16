@@ -1,0 +1,11 @@
+{
+  ArtifactSet combinedArtifacts=new ArtifactSet();
+  for (int i=0; i < perms.length; ++i) {
+    ArtifactSet newArtifacts=finishPermutation(logger,perms[i],resultFiles.get(i),linkerContext,generatedArtifacts);
+    combinedArtifacts.addAll(newArtifacts);
+  }
+  combinedArtifacts.addAll(linkerContext.getArtifactsForPublicResources(logger,module));
+  ArtifactSet legacyLinkedArtifacts=linkerContext.invokeLegacyLinkers(logger,combinedArtifacts);
+  ArtifactSet thinnedArtifacts=simulateTransferThinning(legacyLinkedArtifacts,linkerContext);
+  return linkerContext.invokeFinalLink(logger,thinnedArtifacts);
+}
