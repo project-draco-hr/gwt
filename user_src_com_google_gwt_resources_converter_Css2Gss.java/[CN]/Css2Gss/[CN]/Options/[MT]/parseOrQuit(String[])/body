@@ -7,9 +7,6 @@
   while (index < args.length - 1) {
     String arg=args[index++];
     String nextArg=index < args.length - 1 ? args[index] : null;
-    if (nextArg == null) {
-      quitEarly("Missing file or directly as last parameter");
-    }
     ArgumentConsumer consumer=argumentConsumers.get(arg);
     if (consumer == null) {
       quitEarly("Unknown argument: " + arg);
@@ -18,6 +15,9 @@
     if (skipNextArg) {
       index++;
     }
+  }
+  if (index == args.length) {
+    quitEarly("Missing file or directly as last parameter");
   }
   if (options.scope != null) {
     ImmutableSet<String> scopeFileSet=FluentIterable.from(Splitter.on(',').split(options.scope)).toSet();
