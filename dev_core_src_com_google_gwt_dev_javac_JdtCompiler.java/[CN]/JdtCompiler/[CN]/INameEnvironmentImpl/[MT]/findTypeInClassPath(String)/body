@@ -1,21 +1,8 @@
 {
-  URL resource=getClassLoader().getResource(internalName + ".class");
-  if (resource == null) {
-    return null;
+  if (cachedClassPathAnswerByInternalName.containsKey(internalName)) {
+    return cachedClassPathAnswerByInternalName.get(internalName);
   }
-  InputStream openStream=null;
-  try {
-    openStream=resource.openStream();
-    ClassFileReader classFileReader=ClassFileReader.read(openStream,resource.toExternalForm(),true);
-    return internalName.equals(CharOperation.charToString(classFileReader.getName())) ? new NameEnvironmentAnswer(classFileReader,null) : null;
-  }
- catch (  IOException e) {
-    return null;
-  }
-catch (  ClassFormatException e) {
-    return null;
-  }
- finally {
-    Utility.close(openStream);
-  }
+  NameEnvironmentAnswer answer=doFindTypeInClassPath(internalName);
+  cachedClassPathAnswerByInternalName.put(internalName,answer);
+  return answer;
 }

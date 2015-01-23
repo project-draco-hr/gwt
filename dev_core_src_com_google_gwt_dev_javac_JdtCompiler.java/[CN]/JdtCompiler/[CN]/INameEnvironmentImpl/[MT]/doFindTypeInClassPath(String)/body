@@ -1,0 +1,31 @@
+{
+  URL resource=getClassLoader().getResource(internalName + ".class");
+  if (resource == null) {
+    return null;
+  }
+  InputStream openStream=null;
+  try {
+    openStream=resource.openStream();
+    ClassFileReader classFileReader=ClassFileReader.read(openStream,resource.toExternalForm(),true);
+    if (internalName.equals(CharOperation.charToString(classFileReader.getName()))) {
+      return new NameEnvironmentAnswer(classFileReader,null);
+    }
+  }
+ catch (  IOException e) {
+  }
+catch (  ClassFormatException e) {
+  }
+ finally {
+    Utility.close(openStream);
+  }
+  if (internalName.equals("java/lang/invoke/LambdaMetafactory")) {
+    try {
+      ClassFileReader cfr=new ClassFileReader(getLambdaMetafactoryBytes(),"synthetic:java/lang/invoke/LambdaMetafactory".toCharArray(),true);
+      return new NameEnvironmentAnswer(cfr,null);
+    }
+ catch (    ClassFormatException e) {
+      e.printStackTrace();
+    }
+  }
+  return null;
+}
