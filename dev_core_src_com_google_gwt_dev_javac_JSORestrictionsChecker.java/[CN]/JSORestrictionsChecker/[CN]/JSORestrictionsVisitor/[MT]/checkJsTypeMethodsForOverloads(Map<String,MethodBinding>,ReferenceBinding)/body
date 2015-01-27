@@ -2,10 +2,6 @@
   if (isJsType(binding)) {
     for (    MethodBinding mb : binding.methods()) {
       String methodName=String.valueOf(mb.selector);
-      if (JdtUtil.getAnnotation(mb,JsInteropUtil.JSNOEXPORT_CLASS) != null) {
-        noExports.put(methodName,mb);
-        continue;
-      }
       if (mb.isConstructor() || mb.isStatic()) {
         continue;
       }
@@ -16,9 +12,6 @@
       }
       if (methodNamesAndSigs.containsKey(methodName)) {
         if (!methodNamesAndSigs.get(methodName).areParameterErasuresEqual(mb)) {
-          if (noExports.containsKey(methodName) && noExports.get(methodName).areParameterErasuresEqual(mb)) {
-            continue;
-          }
           errorOn(mb,ERR_JSTYPE_OVERLOADS_NOT_ALLOWED);
         }
       }
@@ -28,6 +21,6 @@
     }
   }
   for (  ReferenceBinding rb : binding.superInterfaces()) {
-    checkJsTypeMethodsForOverloads(methodNamesAndSigs,noExports,rb);
+    checkJsTypeMethodsForOverloads(methodNamesAndSigs,rb);
   }
 }
