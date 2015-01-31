@@ -1,0 +1,19 @@
+{
+  addSnippetClassDecl("Pojo instance1 = new Pojo(1, 2);");
+  addSnippetClassDecl("Pojo instance2 = new Pojo(3, 4);");
+  String reference="new AcceptsLambda<Integer>().accept(instance1::fooInstance);\n" + "new AcceptsLambda<Integer>().accept(instance2::fooInstance);";
+  assertEqualBlock("(new AcceptsLambda()).accept(new Lambda$fooInstance__IILjava_lang_Integer_2$Type(this.instance1));\n" + "(new AcceptsLambda()).accept(new Lambda$fooInstance__IILjava_lang_Integer_2$Type(this.instance2));",reference);
+  JProgram program=compileSnippet("void",reference,false);
+  JClassType lambdaInnerClass=(JClassType)getType(program,"test.Lambda$fooInstance__IILjava_lang_Integer_2$Type");
+  assertNotNull(lambdaInnerClass);
+  assertEquals(1,Collections.frequency(program.getDeclaredTypes(),lambdaInnerClass));
+  JMethod ctor=findMethod(lambdaInnerClass,"Lambda$fooInstance__IILjava_lang_Integer_2$Type");
+  assertTrue(ctor instanceof JConstructor);
+  assertEquals(1,ctor.getParams().size());
+  assertEquals(lambdaInnerClass.getEnclosingType(),ctor.getOriginalParamTypes().get(0));
+  assertEquals(1,lambdaInnerClass.getFields().size());
+  assertEquals(lambdaInnerClass.getEnclosingType(),lambdaInnerClass.getFields().get(0).getType());
+  assertTrue(lambdaInnerClass.getImplements().contains(program.getFromTypeMap("test.Lambda")));
+  JMethod samMethod=findMethod(lambdaInnerClass,"run");
+  assertEquals("public final Object run(int arg0,int arg1){return this.$$outer_0.fooInstance(arg0,arg1);}",formatSource(samMethod.toSource()));
+}
