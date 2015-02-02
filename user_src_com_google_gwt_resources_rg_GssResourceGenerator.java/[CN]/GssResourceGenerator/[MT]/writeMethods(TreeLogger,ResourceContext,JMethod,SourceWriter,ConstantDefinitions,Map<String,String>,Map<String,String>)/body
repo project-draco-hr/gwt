@@ -1,6 +1,7 @@
 {
   JClassType gssResource=method.getReturnType().isInterface();
   boolean success=true;
+  Map<JMethod,String> methodToClassName=new LinkedHashMap<>();
   for (  JMethod toImplement : gssResource.getOverridableMethods()) {
     if (toImplement == getTextMethod) {
       writeGetText(logger,context,method,sw);
@@ -12,10 +13,11 @@
       writeGetName(method,sw);
     }
  else {
-      success&=writeUserMethod(logger,toImplement,sw,constantDefinitions,originalConstantNameMapping,substitutionMap);
+      success&=writeUserMethod(logger,toImplement,sw,constantDefinitions,originalConstantNameMapping,substitutionMap,methodToClassName);
     }
   }
   if (!success) {
     throw new UnableToCompleteException();
   }
+  return methodToClassName;
 }
