@@ -1,0 +1,19 @@
+{
+  runDeadCodeElimination=false;
+  addSnippetClassDecl("interface I {default int bar() {return 1;} " + "default int foo() {return 1;} }");
+  addSnippetClassDecl("static class A implements I { }");
+  addSnippetClassDecl("interface I2 {default int foo() {return fun();}" + "default int fun() {return 1;}" + "default int goo() {return 0;}"+ "static int s1() { return s2();}"+ "static int s2() { return 0;}"+ "static int s3() { return 1;}"+ "}");
+  Result result=optimize("void","A a = new A(); a.bar(); " + "I2 i = new I2() {}; i.foo(); I2.s1();");
+  assertNotNull(result.findClass("EntryPoint$A"));
+  assertNotNull(result.findClass("EntryPoint$I"));
+  assertNotNull(result.findClass("EntryPoint$I2"));
+  assertNotNull(OptimizerTestBase.findMethod(result.findClass("EntryPoint$I"),"bar"));
+  assertNotNull(OptimizerTestBase.findMethod(result.findClass("EntryPoint$A"),"bar"));
+  assertNull(OptimizerTestBase.findMethod(result.findClass("EntryPoint$I"),"foo"));
+  assertNotNull(OptimizerTestBase.findMethod(result.findClass("EntryPoint$I2"),"foo"));
+  assertNotNull(OptimizerTestBase.findMethod(result.findClass("EntryPoint$I2"),"fun"));
+  assertNull(OptimizerTestBase.findMethod(result.findClass("EntryPoint$I2"),"goo"));
+  assertNotNull(OptimizerTestBase.findMethod(result.findClass("EntryPoint$I2"),"s1"));
+  assertNotNull(OptimizerTestBase.findMethod(result.findClass("EntryPoint$I2"),"s2"));
+  assertNull(OptimizerTestBase.findMethod(result.findClass("EntryPoint$I2"),"s3"));
+}

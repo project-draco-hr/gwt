@@ -1,0 +1,10 @@
+{
+  runDeadCodeElimination=false;
+  addSnippetClassDecl("interface I { int bar(); }");
+  addSnippetClassDecl("static class A implements I { public int bar() { return 1; } }");
+  Result result=optimize("void","A a = new A(); a.bar();");
+  assertNotNull(result.findClass("EntryPoint$I"));
+  assertNotNull(result.findClass("EntryPoint$A"));
+  assertNotNull(OptimizerTestBase.findMethod(result.findClass("EntryPoint$A"),"bar"));
+  assertNull(OptimizerTestBase.findMethod(result.findClass("EntryPoint$I"),"bar"));
+}

@@ -1,0 +1,19 @@
+{
+  JMethod delegate=new JMethod(methodToDelegate.getSourceInfo(),methodToDelegate.getName(),classToBeModified,methodToDelegate.getType(),false,false,false,methodToDelegate.getAccess());
+  delegate.addThrownExceptions(methodToDelegate.getThrownExceptions());
+  delegate.setSynthetic();
+  for (  JParameter p : methodToDelegate.getParams()) {
+    delegate.addParam(new JParameter(p.getSourceInfo(),p.getName(),p.getType(),p.isFinal(),p.isThis(),delegate));
+  }
+  JMethodBody body=new JMethodBody(methodToDelegate.getSourceInfo());
+  JMethodCall delegateCall=new JMethodCall(methodToDelegate.getSourceInfo(),new JThisRef(methodToDelegate.getSourceInfo(),methodToDelegate.getEnclosingType()),methodToDelegate);
+  delegateCall.setStaticDispatchOnly();
+  for (  JParameter p : delegate.getParams()) {
+    delegateCall.addArg(new JParameterRef(p.getSourceInfo(),p));
+  }
+  body.getBlock().addStmt(delegate.getType() == JPrimitiveType.VOID ? delegateCall.makeStatement() : new JReturnStatement(methodToDelegate.getSourceInfo(),delegateCall));
+  delegate.setBody(body);
+  delegate.freezeParamTypes();
+  classToBeModified.addMethod(delegate);
+  delegate.addOverriddenMethod(methodToDelegate);
+}

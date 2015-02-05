@@ -1,0 +1,30 @@
+{
+  if (type.isAbstract()) {
+    return;
+  }
+  Multimap<String,JMethod> overridingMethodsBySignature=LinkedHashMultimap.create();
+  collectSelfAndSuperPolymorphicMethods(type,overridingMethodsBySignature);
+  for (  JMethod method : type.getMethods()) {
+    overridingMethodsBySignature.removeAll(method.getSignature());
+  }
+  nextRef:   for (  Collection<JMethod> notOverriden : overridingMethodsBySignature.asMap().values()) {
+    JMethod defenderMethod=null;
+    for (    JMethod method : notOverriden) {
+      if (!canAccessSuperMethod(type,method)) {
+        continue;
+      }
+      if (method.isDefaultMethod()) {
+        if (defenderMethod == null || method.getOverriddenMethods().contains(defenderMethod)) {
+          defenderMethod=method;
+        }
+        continue;
+      }
+      if (!method.isAbstract()) {
+        continue nextRef;
+      }
+    }
+    if (defenderMethod != null) {
+      JjsUtils.createForwardingMethod(type,defenderMethod);
+    }
+  }
+}

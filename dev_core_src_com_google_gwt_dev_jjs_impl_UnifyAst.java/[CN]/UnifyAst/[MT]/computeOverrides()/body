@@ -1,18 +1,14 @@
 {
-  for (  JDeclaredType type : program.getDeclaredTypes()) {
-    Map<String,Set<JMethod>> collected=new HashMap<String,Set<JMethod>>();
+  for (  final JDeclaredType type : program.getDeclaredTypes()) {
+    Multimap<String,JMethod> collected=LinkedHashMultimap.create();
+    collectSelfAndSuperPolymorphicMethods(type,collected);
     for (    JMethod method : type.getMethods()) {
-      if (method.canBePolymorphic()) {
-        collected.put(method.getSignature(),new LinkedHashSet<JMethod>());
+      if (!method.canBePolymorphic()) {
+        continue;
       }
-    }
-    collectUpRefsInSupers(type,collected);
-    for (    JMethod method : type.getMethods()) {
-      if (method.canBePolymorphic()) {
-        for (        JMethod upref : collected.get(method.getSignature())) {
-          if (canAccessSuperMethod(type,upref)) {
-            method.addOverriddenMethod(upref);
-          }
+      for (      JMethod overridingMethod : collected.get(method.getSignature())) {
+        if (canAccessSuperMethod(type,overridingMethod) && method != overridingMethod) {
+          method.addOverriddenMethod(overridingMethod);
         }
       }
     }

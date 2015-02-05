@@ -1,0 +1,12 @@
+{
+  runDeadCodeElimination=false;
+  addSnippetClassDecl("interface I {default int bar() {int a = 0; return 1;} " + "static int fun(int b) {int a = 0; return 1;} }");
+  Result result=optimize("void","I i = new I() {}; i.bar(); I.fun(0);");
+  assertNotNull(result.findClass("EntryPoint$I"));
+  JMethod bar=OptimizerTestBase.findMethod(result.findClass("EntryPoint$I"),"bar");
+  assertNotNull(bar);
+  assertEquals("public int bar(){\n" + "  0;\n" + "  return 1;\n"+ "}",bar.toSource());
+  JMethod fun=OptimizerTestBase.findMethod(result.findClass("EntryPoint$I"),"fun");
+  assertNotNull(fun);
+  assertEquals("public static int fun(){\n" + "  0;\n" + "  return 1;\n"+ "}",fun.toSource());
+}
