@@ -2,12 +2,11 @@
   logger=logger.branch(TreeLogger.TRACE,"Adding image '" + imageName + "'",null);
   BufferedImage image=null;
   boolean lossy=true;
-  try {
-    MemoryCacheImageInputStream input=new MemoryCacheImageInputStream(imageUrl.openStream());
-    Iterator<ImageReader> it=ImageIO.getImageReaders(input);
+  try (InputStream is=imageUrl.openStream();MemoryCacheImageInputStream imageInputStream=new MemoryCacheImageInputStream(is)){
+    Iterator<ImageReader> it=ImageIO.getImageReaders(imageInputStream);
     readers:     while (it.hasNext()) {
       ImageReader reader=it.next();
-      reader.setInput(input);
+      reader.setInput(imageInputStream);
       int numImages=reader.getNumImages(true);
       if (numImages == 0) {
       }
