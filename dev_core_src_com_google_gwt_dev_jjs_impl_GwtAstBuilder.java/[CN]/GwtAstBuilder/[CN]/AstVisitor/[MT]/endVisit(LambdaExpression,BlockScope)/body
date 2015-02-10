@@ -1,10 +1,17 @@
 {
   TypeBinding binding=x.expectedType();
   MethodBinding samBinding=binding.getSingleAbstractMethod(blockScope,false);
+  assert(samBinding != null && samBinding.isValidBinding());
   JMethod interfaceMethod=typeMap.get(samBinding);
-  JInterfaceType funcType=(JInterfaceType)typeMap.get(binding);
+  JInterfaceType[] funcType;
+  if (binding instanceof IntersectionTypeBinding18) {
+    funcType=processIntersectionTypeForLambda((IntersectionTypeBinding18)binding,blockScope,JdtUtil.signature(samBinding));
+  }
+ else {
+    funcType=new JInterfaceType[]{(JInterfaceType)typeMap.get(binding)};
+  }
   SourceInfo info=makeSourceInfo(x);
-  JClassType innerLambdaClass=createInnerClass(JdtUtil.asDottedString(x.binding.declaringClass.compoundName) + "$" + new String(x.binding.selector),x,funcType,info);
+  JClassType innerLambdaClass=createInnerClass(JdtUtil.asDottedString(x.binding.declaringClass.compoundName) + "$" + new String(x.binding.selector),x,info,funcType);
   JConstructor ctor=new JConstructor(info,innerLambdaClass);
   List<JField> locals=new ArrayList<JField>();
   SyntheticArgumentBinding[] synthArgs=x.outerLocalVariables;

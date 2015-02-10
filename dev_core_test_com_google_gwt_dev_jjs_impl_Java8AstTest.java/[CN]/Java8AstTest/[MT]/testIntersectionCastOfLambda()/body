@@ -1,0 +1,18 @@
+{
+  addSnippetClassDecl("interface I1 { public void foo(); }");
+  addSnippetClassDecl("interface I2 { }");
+  String lambda="Object o = (I2 & I1) () -> {};";
+  assertEqualBlock("Object o=(EntryPoint$I2)(EntryPoint$I1)new EntryPoint$lambda$0$Type();",lambda);
+  JProgram program=compileSnippet("void",lambda,false);
+  assertNotNull(getMethod(program,"lambda$0"));
+  JClassType lambdaInnerClass=(JClassType)getType(program,"test.EntryPoint$lambda$0$Type");
+  assertNotNull(lambdaInnerClass);
+  assertEquals(0,lambdaInnerClass.getFields().size());
+  JMethod ctor=findMethod(lambdaInnerClass,"EntryPoint$lambda$0$Type");
+  assertTrue(ctor instanceof JConstructor);
+  assertEquals(0,ctor.getParams().size());
+  assertTrue(lambdaInnerClass.getImplements().contains(program.getFromTypeMap("test.EntryPoint$I1")));
+  assertTrue(lambdaInnerClass.getImplements().contains(program.getFromTypeMap("test.EntryPoint$I2")));
+  JMethod samMethod=findMethod(lambdaInnerClass,"foo");
+  assertEquals("public final void foo(){EntryPoint.lambda$0();}",formatSource(samMethod.toSource()));
+}

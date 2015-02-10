@@ -1,0 +1,26 @@
+{
+  if (!referenceBinding.isInterface() || !referenceBinding.isValidBinding()) {
+    return null;
+  }
+  List<MethodBinding> abstractMethods=Lists.newLinkedList();
+  for (  ReferenceBinding superInterface : referenceBinding.superInterfaces()) {
+    List<MethodBinding> abstractMethodsFromSupers=getInterfaceAbstractMethods(superInterface,scope);
+    if (abstractMethodsFromSupers != null && abstractMethodsFromSupers.size() > 0) {
+      abstractMethods.addAll(abstractMethodsFromSupers);
+    }
+  }
+  for (  MethodBinding method : referenceBinding.methods()) {
+    if (method == null || method.isStatic() || method.redeclaresPublicObjectMethod(scope)) {
+      continue;
+    }
+    for (    MethodBinding abstractMethodFromSupers : abstractMethods) {
+      if (MethodVerifier.doesMethodOverride(method,abstractMethodFromSupers,scope.environment())) {
+        abstractMethods.remove(abstractMethodFromSupers);
+      }
+    }
+    if (!method.isDefaultMethod()) {
+      abstractMethods.add(method);
+    }
+  }
+  return abstractMethods;
+}
