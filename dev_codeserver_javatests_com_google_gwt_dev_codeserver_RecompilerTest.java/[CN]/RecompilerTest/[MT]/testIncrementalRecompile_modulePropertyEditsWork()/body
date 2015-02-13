@@ -1,0 +1,25 @@
+{
+  PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
+  logger.setMaxDetail(TreeLogger.ERROR);
+  File sourcePath=Files.createTempDir();
+  Options options=new Options();
+  options.parseArgs(new String[]{"-incremental","-src",sourcePath.getAbsolutePath(),"com.foo.PropertyModule"});
+  List<MockResource> originalResources=Lists.newArrayList(propertyIsFooModuleResource,performsRebindEntryPointResource,barReferencesBazResource,bazReferencesFooResource,fooResource);
+  writeResourcesTo(originalResources,sourcePath);
+  File baseCacheDir=Files.createTempDir();
+  UnitCache unitCache=UnitCacheSingleton.get(logger,null,baseCacheDir);
+  MinimalRebuildCacheManager minimalRebuildCacheManager=new MinimalRebuildCacheManager(logger,baseCacheDir);
+  Recompiler recompiler=new Recompiler(OutboxDir.create(Files.createTempDir(),logger),null,"com.foo.PropertyModule",options,unitCache,minimalRebuildCacheManager);
+  Outbox outbox=new Outbox("Transactional Cache",recompiler,options,logger);
+  OutboxTable outboxes=new OutboxTable();
+  outboxes.addOutbox(outbox);
+  JobRunner runner=new JobRunner(new JobEventTable(),minimalRebuildCacheManager);
+  Result result=compileWithChanges(logger,runner,outbox,sourcePath,Lists.<MockResource>newArrayList());
+  assertTrue(result.isOk());
+  File compiledJsFile1=findCompiledJsFile(result);
+  result=compileWithChanges(logger,runner,outbox,sourcePath,Lists.<MockResource>newArrayList(propertyIsBarModuleResource));
+  assertTrue(result.isOk());
+  File compiledJsFile2=findCompiledJsFile(result);
+  assertFalse(compiledJsFile1.equals(compiledJsFile2));
+  assertFalse(compiledJsFile1.getName().equals(compiledJsFile2.getName()));
+}

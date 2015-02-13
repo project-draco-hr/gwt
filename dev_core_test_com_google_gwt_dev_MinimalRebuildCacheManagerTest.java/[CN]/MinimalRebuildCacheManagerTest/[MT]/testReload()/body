@@ -2,9 +2,9 @@
   File cacheDir=Files.createTempDir();
   String moduleName="com.google.FooModule";
   MinimalRebuildCacheManager minimalRebuildCacheManager=new MinimalRebuildCacheManager(TreeLogger.NULL,cacheDir);
-  Map<String,String> bindingProperites=Maps.<String,String>newHashMap();
+  PermutationDescription permutationDescription=new PermutationDescription();
   minimalRebuildCacheManager.deleteCaches();
-  MinimalRebuildCache startingCache=minimalRebuildCacheManager.getCache(moduleName,bindingProperites);
+  MinimalRebuildCache startingCache=minimalRebuildCacheManager.getCache(moduleName,permutationDescription);
   Map<String,Long> currentModifiedBySourcePath=new ImmutableMap.Builder<String,Long>().put("Foo.java",0L).put("Bar.java",0L).put("Baz.java",0L).build();
   startingCache.recordDiskSourceResources(currentModifiedBySourcePath);
   startingCache.recordNestedTypeName("Foo","Foo");
@@ -25,10 +25,10 @@
   typeEnvironment.recordMethodCallsMethod("Bar::run()V","Baz::run()V");
   startingCache.computeReachableTypeNames();
   startingCache.computeAndClearStaleTypesCache(TreeLogger.NULL,new JTypeOracle(null,startingCache,true));
-  minimalRebuildCacheManager.putCache(moduleName,bindingProperites,startingCache);
+  minimalRebuildCacheManager.putCache(moduleName,permutationDescription,startingCache);
   assertTrue(minimalRebuildCacheManager.shutdown());
   MinimalRebuildCacheManager reloadedMinimalRebuildCacheManager=new MinimalRebuildCacheManager(TreeLogger.NULL,cacheDir);
-  MinimalRebuildCache reloadedCache=reloadedMinimalRebuildCacheManager.syncReadDiskCache(moduleName,bindingProperites);
+  MinimalRebuildCache reloadedCache=reloadedMinimalRebuildCacheManager.syncReadDiskCache(moduleName,permutationDescription);
   assertFalse(startingCache == reloadedCache);
   assertTrue(startingCache.hasSameContent(reloadedCache));
 }

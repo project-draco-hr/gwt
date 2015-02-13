@@ -1,0 +1,18 @@
+{
+  String cacheName=computeMinimalRebuildCacheName(moduleName,permutationDescription);
+  MinimalRebuildCache minimalRebuildCache=minimalRebuildCachesByName.getIfPresent(cacheName);
+  if (minimalRebuildCache == null && haveCacheDir()) {
+    minimalRebuildCache=syncReadDiskCache(moduleName,permutationDescription);
+    if (minimalRebuildCache != null) {
+      minimalRebuildCachesByName.put(cacheName,minimalRebuildCache);
+    }
+  }
+  if (minimalRebuildCache == null) {
+    minimalRebuildCache=new MinimalRebuildCache();
+    minimalRebuildCachesByName.put(cacheName,minimalRebuildCache);
+    return minimalRebuildCache;
+  }
+  MinimalRebuildCache mutableMinimalRebuildCache=new MinimalRebuildCache();
+  mutableMinimalRebuildCache.copyFrom(minimalRebuildCache);
+  return mutableMinimalRebuildCache;
+}

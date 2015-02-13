@@ -10,27 +10,36 @@
   Map<String,String> bindingProperties=restrictPermutations(compileLogger,module,job.getBindingProperties());
   String newModuleName=module.getName();
   outputModuleName.set(newModuleName);
-  InputSummary input=new InputSummary(bindingProperties,module);
-  if (input.equals(lastBuildInput)) {
+  PropertyPermutations propertyPermutations=new PropertyPermutations(module.getProperties(),module.getActiveLinkerNames());
+  List<PropertyPermutations> permutationPropertySets=propertyPermutations.collapseProperties();
+  if (options.isIncrementalCompileEnabled() && permutationPropertySets.size() > 1) {
+    compileLogger.log(Type.INFO,"Current binding properties are expanding to more than one permutation " + "but incremental compilation requires that each compile operate on only " + "one permutation.");
+    job.setCompileStrategy(CompileStrategy.SKIPPED);
+    return true;
+  }
+  PropertyPermutations permutationPropertySet=permutationPropertySets.get(0);
+  PermutationDescription permutationDescription=permutationPropertySet.getPermutationDescription(0);
+  InputSummary inputSummary=new InputSummary(bindingProperties,module);
+  if (inputSummary.equals(previousInputSummary)) {
     compileLogger.log(Type.INFO,"skipped compile because no input files have changed");
     job.setCompileStrategy(CompileStrategy.SKIPPED);
     return true;
   }
-  lastBuildInput=null;
+  previousInputSummary=null;
   job.onProgress("Compiling");
   CompilerOptions runOptions=new CompilerOptionsImpl(compileDir,newModuleName,options);
   compilerContext=compilerContextBuilder.options(runOptions).build();
   MinimalRebuildCache minimalRebuildCache=new NullRebuildCache();
   if (options.isIncrementalCompileEnabled()) {
-    minimalRebuildCache=minimalRebuildCacheManager.getCache(inputModuleName,bindingProperties);
+    minimalRebuildCache=minimalRebuildCacheManager.getCache(inputModuleName,permutationDescription);
   }
   job.setCompileStrategy(minimalRebuildCache.isPopulated() ? CompileStrategy.INCREMENTAL : CompileStrategy.FULL);
   boolean success=new Compiler(runOptions,minimalRebuildCache).run(compileLogger,module);
   if (success) {
     publishedCompileDir=compileDir;
-    lastBuildInput=input;
+    previousInputSummary=inputSummary;
     if (options.isIncrementalCompileEnabled()) {
-      minimalRebuildCacheManager.putCache(inputModuleName,bindingProperties,minimalRebuildCache);
+      minimalRebuildCacheManager.putCache(inputModuleName,permutationDescription,minimalRebuildCache);
     }
     String moduleName=outputModuleName.get();
     writeRecompileNoCacheJs(new File(publishedCompileDir.getWarDir(),moduleName),moduleName,recompileJs,compileLogger);
