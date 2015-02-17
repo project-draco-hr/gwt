@@ -1,0 +1,11 @@
+{
+  MockJavaResource interfaceWithDefaultMethod=JavaResourceBase.createMockJavaResource("com.foo.InterfaceWithDefaultMethod","package com.foo;","interface InterfaceWithDefaultMethod {","  default String m() {return null; }","}");
+  MockJavaResource classImplementingInterfaceWithDefaultMethod=JavaResourceBase.createMockJavaResource("com.foo.classImplementingInterfaceWithDefaultMethod","package com.foo;","public class classImplementingInterfaceWithDefaultMethod","    implements InterfaceWithDefaultMethod {","}");
+  MockJavaResource aSubclass=JavaResourceBase.createMockJavaResource("com.foo.ASubclass","package com.foo;","public class ASubclass extends classImplementingInterfaceWithDefaultMethod {","  public String someMethod() {return super.m(); }","}");
+  MockResource moduleResource=JavaResourceBase.createMockResource("com/foo/DefaultMethod.gwt.xml","<module>","  <source path=''/>","  <entry-point class='com.foo.DefaultMethodEntryPoint'/>","</module>");
+  MockJavaResource entryPointResource=JavaResourceBase.createMockJavaResource("com.foo.DefaultMethodEntryPoint","package com.foo;","import com.google.gwt.core.client.EntryPoint;","public class DefaultMethodEntryPoint implements EntryPoint {","  public void onModuleLoad() {","    new ASubclass().someMethod();","  }","}");
+  CompilerOptions compilerOptions=new CompilerOptionsImpl();
+  compilerOptions.setUseDetailedTypeIds(true);
+  compilerOptions.setSourceLevel(SourceLevel.JAVA8);
+  checkRecompiledModifiedApp(compilerOptions,"com.foo.DefaultMethod",Lists.newArrayList(moduleResource,entryPointResource,aSubclass,classImplementingInterfaceWithDefaultMethod,interfaceWithDefaultMethod),aSubclass,aSubclass,stringSet("com.foo.ASubclass","com.foo.DefaultMethodEntryPoint"),output);
+}

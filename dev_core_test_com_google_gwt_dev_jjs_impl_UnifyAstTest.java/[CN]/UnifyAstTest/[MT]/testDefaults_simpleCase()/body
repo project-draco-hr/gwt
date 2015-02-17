@@ -1,0 +1,11 @@
+{
+  final MockJavaResource I1=JavaResourceBase.createMockJavaResource("I1","public interface I1 {","  default void m() {}","}");
+  final MockJavaResource I11=JavaResourceBase.createMockJavaResource("I11","public interface I11 extends I1 {","}");
+  final MockJavaResource A=JavaResourceBase.createMockJavaResource("A","public class A implements I11 {","}");
+  addAll(I1,I11,A);
+  Result result=optimize("void","");
+  JMethod A_m=findMethod(result,"A.m()V");
+  assertFalse(A_m.isAbstract());
+  assertIsForwardingMethod(A_m,findMethod(result,"I1.m()V"));
+  assertOverrides(result,"A.m()V","I1.m()V");
+}

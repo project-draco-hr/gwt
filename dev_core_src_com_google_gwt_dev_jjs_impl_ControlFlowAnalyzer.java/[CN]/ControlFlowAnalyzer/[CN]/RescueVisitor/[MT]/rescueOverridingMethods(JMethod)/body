@@ -2,18 +2,14 @@
   if (method.isStatic()) {
     return;
   }
-  Iterable<JMethod> overriders=overriddingMethodsByOverriddenMethod.get(method);
-  if (overriders == null) {
-    return;
-  }
-  for (  JMethod overrider : overriders) {
-    if (liveFieldsAndMethods.contains(overrider)) {
+  for (  JMethod overridingMethod : method.getOverridingMethods()) {
+    if (liveFieldsAndMethods.contains(overridingMethod)) {
     }
- else     if (instantiatedTypes.contains(overrider.getEnclosingType())) {
-      rescue(overrider);
+ else     if (instantiatedTypes.contains(overridingMethod.getEnclosingType())) {
+      rescue(overridingMethod);
     }
  else {
-      membersToRescueIfTypeIsInstantiated.add(overrider);
+      membersToRescueIfTypeIsInstantiated.add(overridingMethod);
     }
   }
 }

@@ -1,0 +1,16 @@
+{
+  final MockJavaResource I1=JavaResourceBase.createMockJavaResource("I1","public interface I1 {","  void m();","}");
+  final MockJavaResource I11=JavaResourceBase.createMockJavaResource("I11","public interface I11 extends I1 {","}");
+  final MockJavaResource A=JavaResourceBase.createMockJavaResource("A","public abstract class A {","  public abstract void m();","}");
+  final MockJavaResource B=JavaResourceBase.createMockJavaResource("B","public abstract class B extends A {","}");
+  final MockJavaResource C1=JavaResourceBase.createMockJavaResource("C1","public abstract class C1 implements I11 {","}");
+  final MockJavaResource C2=JavaResourceBase.createMockJavaResource("C2","public abstract class C2 extends B implements I11 {","}");
+  addAll(I1,I11,A,B,C1,C2);
+  Result result=optimize("void","");
+  JMethod C1_m=findMethod(result,"C1.m()V");
+  assertTrue(C1_m.isAbstract());
+  assertOverrides(result,"C1.m()V","I1.m()V");
+  JMethod C2_m=findMethod(result,"C2.m()V");
+  assertTrue(C2_m.isAbstract());
+  assertOverrides(result,"C2.m()V","A.m()V","I1.m()V");
+}

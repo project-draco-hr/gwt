@@ -1,0 +1,22 @@
+{
+  Multimap<String,JMethod> interfaceMethodsBySignature=LinkedHashMultimap.create();
+  collectAllSuperInterfaceMethodsBySignature(type,interfaceMethodsBySignature);
+  List<String> signatures=Lists.newArrayList(interfaceMethodsBySignature.keySet());
+  for (  String signature : signatures) {
+    Collection<JMethod> allMethods=interfaceMethodsBySignature.get(signature);
+    Set<JMethod> notOverriddenMethods=Sets.newLinkedHashSet(allMethods);
+    for (    JMethod method : allMethods) {
+      notOverriddenMethods=Sets.difference(notOverriddenMethods,method.getOverriddenMethods());
+    }
+    Set<JMethod> defaultMethods=FluentIterable.from(notOverriddenMethods).filter(new Predicate<JMethod>(){
+      @Override public boolean apply(      JMethod method){
+        return method.isDefaultMethod();
+      }
+    }
+).toSet();
+    Set<JMethod> leafMethods=Sets.newLinkedHashSet(defaultMethods);
+    leafMethods.addAll(notOverriddenMethods);
+    interfaceMethodsBySignature.replaceValues(signature,leafMethods);
+  }
+  return interfaceMethodsBySignature;
+}

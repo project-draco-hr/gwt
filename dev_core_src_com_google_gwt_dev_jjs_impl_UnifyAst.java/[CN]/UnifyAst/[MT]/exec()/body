@@ -60,7 +60,12 @@
     }
     minimalRebuildCache.setProcessedStaleTypeNames(fullFlowTypes);
   }
-  computeOverrides();
+  List<JMethod> newStubMethods=computeOverrides();
+  for (  JMethod method : newStubMethods) {
+    if (instantiatedTypes.contains(method.getEnclosingType()) && virtualMethodsLive.contains(method.getSignature())) {
+      liveFieldsAndMethods.add(method);
+    }
+  }
   if (!incrementalCompile) {
     pruneDeadFieldsAndMethods();
   }
