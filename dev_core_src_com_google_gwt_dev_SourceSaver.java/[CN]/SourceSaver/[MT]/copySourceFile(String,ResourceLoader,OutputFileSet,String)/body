@@ -3,8 +3,12 @@
   if (resource == null) {
     return false;
   }
-  try (InputStream resourceAsStream=Resources.asByteSource(resource).openStream();OutputStream out=dest.openForWrite(destPrefix + path)){
-    ByteStreams.copy(Resources.asByteSource(resource).openStream(),out);
+  OutputStream out=dest.openForWrite(destPrefix + path);
+  try {
+    ByteStreams.copy(Resources.asByteSource(resource),out);
   }
-   return true;
+  finally {
+    out.close();
+  }
+  return true;
 }
