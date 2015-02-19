@@ -12,11 +12,13 @@
   checkErrors();
   CollectConstantDefinitions collectConstantDefinitionsPass=new CollectConstantDefinitions(cssTree);
   collectConstantDefinitionsPass.runPass();
-  ReplaceConstantReferences replaceConstantReferences=new ReplaceConstantReferences(cssTree,collectConstantDefinitionsPass.getConstantDefinitions(),true,errorManager,false);
+  ReplaceConstantReferences replaceConstantReferences=new ReplaceConstantReferences(cssTree,collectConstantDefinitionsPass.getConstantDefinitions(),false,errorManager,false);
   replaceConstantReferences.runPass();
   new ImageSpriteCreator(cssTree.getMutatingVisitController(),context,errorManager).runPass();
   Map<String,GssFunction> gssFunctionMap=new GwtGssFunctionMapProvider(context).get();
   new ResolveCustomFunctionNodes(cssTree.getMutatingVisitController(),errorManager,gssFunctionMap,true,allowedNonStandardFunctions).runPass();
+  collectConstantDefinitionsPass=new CollectAndRemoveConstantDefinitions(cssTree);
+  collectConstantDefinitionsPass.runPass();
   if (simplifyCss) {
     new EliminateEmptyRulesetNodes(cssTree.getMutatingVisitController()).runPass();
     new EliminateUnitsFromZeroNumericValues(cssTree.getMutatingVisitController()).runPass();
