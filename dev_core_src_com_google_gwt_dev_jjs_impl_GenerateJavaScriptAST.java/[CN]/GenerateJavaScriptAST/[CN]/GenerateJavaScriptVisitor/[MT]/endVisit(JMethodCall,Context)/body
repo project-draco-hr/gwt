@@ -55,28 +55,26 @@
   }
  else {
     JsName polyName=polymorphicNames.get(method);
-    JMethod target=x.getTarget();
-    for (    JMethod overrideMethod : target.getOverriddenMethods()) {
+    JMethod targetMethod=x.getTarget();
+    for (    JMethod overrideMethod : targetMethod.getOverriddenMethods()) {
       if (overrideMethod.isJsProperty()) {
         isJsProperty=true;
         break;
       }
     }
-    if (isJsProperty || target.isJsProperty()) {
-      String getter=isGetter(target);
-      String setter=isSetter(target);
-      String has=isHas(target);
-      JType type=target.getType();
-      boolean isFluent=type instanceof JReferenceType && type != program.getTypeJavaLangObject() && typeOracle.canTriviallyCast(x.getTarget().getEnclosingType(),type.getUnderlyingType());
+    if (isJsProperty || targetMethod.isJsProperty()) {
       JsExpression qualExpr=pop();
-      if (getter != null) {
-        result=dispatchAsGetter(x,unnecessaryQualifier,getter,qualExpr);
+      String methodName=targetMethod.getName();
+      if (targetMethod.getParams().size() == 0) {
+        if (startsWithCamelCase(methodName,"has")) {
+          result=createHasDispatch(x,methodName,qualExpr);
+        }
+ else {
+          result=createGetterDispatch(x,unnecessaryQualifier,methodName,qualExpr);
+        }
       }
- else       if (setter != null) {
-        result=dispatchAsSetter(x,jsInvocation,setter,isFluent,qualExpr);
-      }
- else       if (has != null) {
-        result=dispatchAsHas(x,has,qualExpr);
+ else       if (targetMethod.getParams().size() == 1) {
+        result=createSetterDispatch(x,jsInvocation,targetMethod,qualExpr);
       }
  else {
         throw new InternalCompilerException("JsProperty not a setter, getter, or has.");
