@@ -36,6 +36,13 @@
   boolean[] seenFlags=new boolean[numParams];
   final Parameters paramsAccessor=new ParametersImpl(params,seenFlags);
   boolean isSafeHtml=m.getReturnType().getQualifiedSourceName().equals(SAFE_HTML_FQCN);
+  if (!isSafeHtml) {
+    for (    JParameter param : params) {
+      if (param.getType().getQualifiedSourceName().equals(SAFE_HTML_FQCN)) {
+        throw error(logger,"Message methods with SafeHtml arguments can only have SafeHtml return type");
+      }
+    }
+  }
   String template=resourceEntry.getForm(null);
   if (template == null) {
     logger.log(TreeLogger.ERROR,"No default form for method " + m.getName() + "' in "+ m.getEnclosingType()+ " for locale "+ locale,null);
