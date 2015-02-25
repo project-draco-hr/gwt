@@ -6,10 +6,14 @@
       throw new UnsupportedOperationException();
     }
   }
- else   if (jprogram.typeOracle.isJsTypeMethod(x) && isDirectOrTransitiveJsProperty(x)) {
-  }
  else   if (jprogram.typeOracle.isJsTypeMethod(x)) {
-    boolean success=minimalRebuildCache.addJsTypeMemberName(x.getName(),currentType.getName());
+    if (isDirectOrTransitiveJsProperty(x)) {
+      return true;
+    }
+ else     if (x.isSynthetic()) {
+      return true;
+    }
+    boolean success=addJsTypeMemberName(x.getName());
     if (!success) {
       logger.log(TreeLogger.ERROR,String.format("Instance method '%s' can't be exported because the member name '%s' is already taken.",computeReadableSignature(x),x.getName()));
       throw new UnsupportedOperationException();
