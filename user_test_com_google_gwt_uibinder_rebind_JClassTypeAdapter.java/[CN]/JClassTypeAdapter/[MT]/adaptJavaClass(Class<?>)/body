@@ -84,5 +84,104 @@
     }
   }
 );
+  when(type.getImplementedInterfaces()).thenAnswer(new Answer<JClassType[]>(){
+    @Override public JClassType[] answer(    InvocationOnMock invocation) throws Throwable {
+      Class<?>[] interfaces=clazz.getInterfaces();
+      if ((interfaces == null) || (interfaces.length == 0)) {
+        return null;
+      }
+      JClassType[] adaptedInterfaces=new JClassType[interfaces.length];
+      for (int i=0; i < interfaces.length; i++) {
+        adaptedInterfaces[i]=adaptJavaClass(interfaces[i]);
+      }
+      return adaptedInterfaces;
+    }
+  }
+);
+  when(type.getFlattenedSupertypeHierarchy()).thenAnswer(new Answer<Set<JClassType>>(){
+    @Override public Set<JClassType> answer(    InvocationOnMock invocation) throws Throwable {
+      return flatten(clazz);
+    }
+    private Set<JClassType> flatten(    Class<?> clazz){
+      Set<JClassType> flattened=new LinkedHashSet<JClassType>();
+      flattened.add(adaptJavaClass(clazz));
+      for (      Class<?> intf : clazz.getInterfaces()) {
+        flattened.addAll(flatten(intf));
+      }
+      Class<?> superClass=clazz.getSuperclass();
+      if (superClass != null) {
+        flattened.addAll(flatten(superClass));
+      }
+      return flattened;
+    }
+  }
+);
+  when(type.getInheritableMethods()).thenAnswer(new Answer<JMethod[]>(){
+    @Override public JMethod[] answer(    InvocationOnMock invocation) throws Throwable {
+      Map<String,Method> methodsBySignature=new TreeMap<String,Method>();
+      getInheritableMethodsOnSuperinterfacesAndMaybeThisInterface(clazz,methodsBySignature);
+      if (!clazz.isInterface()) {
+        getInheritableMethodsOnSuperclassesAndThisClass(clazz,methodsBySignature);
+      }
+      int size=methodsBySignature.size();
+      if (size == 0) {
+        return new JMethod[0];
+      }
+ else {
+        Iterator<Method> leafMethods=methodsBySignature.values().iterator();
+        JMethod[] jMethods=new JMethod[size];
+        for (int i=0; i < size; i++) {
+          Method method=leafMethods.next();
+          jMethods[i]=adaptMethod(method,adaptJavaClass(method.getDeclaringClass()));
+        }
+        return jMethods;
+      }
+    }
+    protected void getInheritableMethodsOnSuperinterfacesAndMaybeThisInterface(    Class<?> clazz,    Map<String,Method> methodsBySignature){
+      Class<?>[] superIntfs=clazz.getInterfaces();
+      for (      Class<?> superIntf : superIntfs) {
+        getInheritableMethodsOnSuperinterfacesAndMaybeThisInterface(superIntf,methodsBySignature);
+      }
+      Method[] declaredMethods=clazz.getMethods();
+      for (      Method method : declaredMethods) {
+        String sig=computeInternalSignature(method);
+        Method existing=methodsBySignature.get(sig);
+        if (existing != null) {
+          Class<?> existingType=existing.getDeclaringClass();
+          Class<?> thisType=method.getDeclaringClass();
+          if (thisType.isAssignableFrom(existingType)) {
+            continue;
+          }
+        }
+        methodsBySignature.put(sig,method);
+      }
+    }
+    protected void getInheritableMethodsOnSuperclassesAndThisClass(    Class<?> clazz,    Map<String,Method> methodsBySignature){
+      Class<?> superClass=clazz.getSuperclass();
+      if (superClass != null) {
+        getInheritableMethodsOnSuperclassesAndThisClass(superClass,methodsBySignature);
+      }
+      Method[] declaredMethods=clazz.getMethods();
+      for (      Method method : declaredMethods) {
+        if (Modifier.isPrivate(method.getModifiers()) || Modifier.isStatic(method.getModifiers())) {
+          continue;
+        }
+        String sig=computeInternalSignature(method);
+        methodsBySignature.put(sig,method);
+      }
+    }
+    private String computeInternalSignature(    Method method){
+      StringBuilder sb=new StringBuilder();
+      sb.setLength(0);
+      sb.append(method.getName());
+      Class<?>[] params=method.getParameterTypes();
+      for (      Class<?> param : params) {
+        sb.append("/");
+        sb.append(param.getName());
+      }
+      return sb.toString();
+    }
+  }
+);
   return type;
 }

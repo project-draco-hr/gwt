@@ -2,6 +2,7 @@
   writer.getDesignTime().handleUIObject(writer,elem,fieldName);
   final Map<String,String> setterValues=new HashMap<String,String>();
   final Map<String,String> localizedValues=fetchLocalizedAttributeValues(elem,writer);
+  final Map<String,String[]> adderValues=new HashMap<>();
   final Map<String,String> requiredValues=new HashMap<String,String>();
   final Map<String,JType> unfilledRequiredParams=new HashMap<String,JType>();
   final OwnerFieldClass ownerFieldClass=OwnerFieldClass.getFieldClass(type,writer.getLogger(),context);
@@ -60,15 +61,32 @@
     }
  else {
       JMethod setter=ownerFieldClass.getSetter(propertyName);
-      if (setter == null) {
+      if (setter != null) {
+        String n=attribute.getName();
+        String value=elem.consumeAttributeWithDefault(n,null,getParamTypes(setter));
+        if (value == null) {
+          writer.die(elem,"Unable to parse %s.",attribute);
+        }
+        setterValues.put(propertyName,value);
+      }
+ else       if (ADD_PROPERTY_TO_SETTER_MAP.containsKey(propertyName)) {
+        String addMethod=ADD_PROPERTY_TO_SETTER_MAP.get(propertyName);
+        JType stringType=writer.getOracle().findType(String.class.getName());
+        if (ownerFieldClass.getRawType().findMethod(addMethod,new JType[]{stringType}) != null) {
+          String n=attribute.getName();
+          String[] value=elem.consumeStringArrayAttribute(n);
+          if (value == null) {
+            writer.die(elem,"Unable to parse %s.",attribute);
+          }
+          adderValues.put(addMethod,value);
+        }
+ else {
+          writer.die(elem,"Class %s has no appropriate %s() method",elem.getLocalName(),addMethod);
+        }
+      }
+ else {
         writer.die(elem,"Class %s has no appropriate set%s() method",elem.getLocalName(),initialCap(propertyName));
       }
-      String n=attribute.getName();
-      String value=elem.consumeAttributeWithDefault(n,null,getParamTypes(setter));
-      if (value == null) {
-        writer.die(elem,"Unable to parse %s.",attribute);
-      }
-      setterValues.put(propertyName,value);
     }
   }
   if (!unfilledRequiredParams.isEmpty()) {
@@ -100,5 +118,11 @@
     String propertyName=entry.getKey();
     String value=entry.getValue();
     writer.addStatement("%s.set%s(%s);",fieldName,initialCap(propertyName),value);
+  }
+  for (  Map.Entry<String,String[]> entry : adderValues.entrySet()) {
+    String addMethodName=entry.getKey();
+    for (    String s : entry.getValue()) {
+      writer.addStatement("%s.%s(%s);",fieldName,addMethodName,s);
+    }
   }
 }

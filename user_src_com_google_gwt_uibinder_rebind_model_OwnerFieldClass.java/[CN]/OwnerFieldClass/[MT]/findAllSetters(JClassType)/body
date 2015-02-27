@@ -1,23 +1,15 @@
 {
-  Map<String,Collection<JMethod>> allSetters;
-  JClassType superClass=fieldType.getSuperclass();
-  if (superClass != null) {
-    allSetters=findAllSetters(superClass);
-  }
- else {
-    allSetters=new HashMap<String,Collection<JMethod>>();
-  }
-  JMethod[] methods=fieldType.getMethods();
-  for (  JMethod method : methods) {
+  Multimap<String,JMethod> allSetters=LinkedHashMultimap.create();
+  for (  JMethod method : fieldType.getInheritableMethods()) {
     if (!isSetterMethod(method)) {
       continue;
     }
     String propertyName=method.getName().substring(3);
     String beanPropertyName=Introspector.decapitalize(propertyName);
-    addSetter(allSetters,beanPropertyName,method);
+    allSetters.put(beanPropertyName,method);
     String legacyPropertyName=propertyName.substring(0,1).toLowerCase(Locale.ROOT) + propertyName.substring(1);
     if (!legacyPropertyName.equals(beanPropertyName)) {
-      addSetter(allSetters,legacyPropertyName,method);
+      allSetters.put(legacyPropertyName,method);
     }
   }
   return allSetters;
