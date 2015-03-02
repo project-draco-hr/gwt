@@ -2,22 +2,20 @@
   if (jprogram.typeOracle.isExportedMethod(x)) {
     boolean success=minimalRebuildCache.addExportedGlobalName(x.getQualifiedExportName(),currentType.getName());
     if (!success) {
-      logger.log(TreeLogger.ERROR,String.format("Static method '%s' can't be exported because the global name '%s' is already taken.",x.getQualifiedName(),x.getQualifiedExportName()));
-      throw new UnsupportedOperationException();
+      logError("Static method '%s' can't be exported because the global name '%s' is already " + "taken.",x.getQualifiedName(),x.getQualifiedExportName());
     }
   }
  else   if (jprogram.typeOracle.isJsTypeMethod(x)) {
     if (isDirectOrTransitiveJsProperty(x)) {
-      return true;
     }
  else     if (x.isSynthetic()) {
-      return true;
     }
-    boolean success=addJsTypeMemberName(x.getName());
-    if (!success) {
-      logger.log(TreeLogger.ERROR,String.format("Instance method '%s' can't be exported because the member name '%s' is already taken.",x.getQualifiedName(),x.getName()));
-      throw new UnsupportedOperationException();
+ else {
+      boolean success=addJsTypeMemberName(x.getName());
+      if (!success) {
+        logError("Instance method '%s' can't be exported because the member name '%s' is already " + "taken.",x.getQualifiedName(),x.getName());
+      }
     }
   }
-  return true;
+  return false;
 }
