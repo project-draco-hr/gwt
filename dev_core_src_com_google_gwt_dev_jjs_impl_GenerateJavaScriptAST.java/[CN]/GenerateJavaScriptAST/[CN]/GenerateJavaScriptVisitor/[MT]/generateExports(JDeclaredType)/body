@@ -1,0 +1,19 @@
+{
+  TreeLogger branch=logger.branch(TreeLogger.Type.INFO,"Exporting " + x.getName());
+  boolean createdClinit=false;
+  for (  JMethod m : x.getMethods()) {
+    if (typeOracle.isExportedMethod(m)) {
+      createdClinit=maybeHoistClinit(createdClinit,maybeCreateClinitCall(m));
+      exportMember(x,m);
+    }
+  }
+  for (  JField f : x.getFields()) {
+    if (typeOracle.isExportedField(f)) {
+      if (!f.isFinal()) {
+        branch.log(TreeLogger.Type.WARN,"Exporting effectively non-final field " + f.getName() + " is discouraged. Due to the way exporting works, the value of the exported field"+ " will not be reflected across Java&JavaScript border.");
+      }
+      createdClinit=maybeHoistClinit(createdClinit,maybeCreateClinitCall(f,true));
+      exportMember(x,f);
+    }
+  }
+}

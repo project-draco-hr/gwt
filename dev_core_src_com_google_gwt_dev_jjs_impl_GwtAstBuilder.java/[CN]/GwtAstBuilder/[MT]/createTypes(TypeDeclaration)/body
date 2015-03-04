@@ -12,26 +12,26 @@
     }
     name=intern(name);
     JDeclaredType type;
-    String jsPrototype=JsInteropUtil.maybeGetJsTypePrototype(x);
-    JsInteropType interopType=JsInteropUtil.maybeGetJsInteropType(x,jsPrototype);
     if (binding.isClass()) {
-      type=new JClassType(info,name,binding.isAbstract(),binding.isFinal(),interopType);
-      JsInteropUtil.maybeSetJsPrototypeFlag(x,(JClassType)type);
+      type=new JClassType(info,name,binding.isAbstract(),binding.isFinal());
+      ((JClassType)type).setJsPrototypeStub(JsInteropUtil.isJsPrototypeFlag(x));
     }
  else     if (binding.isInterface() || binding.isAnnotationType()) {
-      type=new JInterfaceType(info,name,interopType,jsPrototype);
+      type=new JInterfaceType(info,name);
     }
  else     if (binding.isEnum()) {
       if (binding.isAnonymousType()) {
-        type=new JClassType(info,name,false,true,interopType);
+        type=new JClassType(info,name,false,true);
       }
  else {
-        type=new JEnumType(info,name,binding.isAbstract(),interopType);
+        type=new JEnumType(info,name,binding.isAbstract());
       }
     }
  else {
       throw new InternalCompilerException("ReferenceBinding is not a class, interface, or enum.");
     }
+    type.setJsTypeInfo(JsInteropUtil.isJsType(x),JsInteropUtil.maybeGetJsTypePrototype(x),JsInteropUtil.maybeGetJsNamespace(x));
+    type.setJsExportInfo(JsInteropUtil.isClassWideJsExport(x));
     typeMap.setSourceType(binding,type);
     newTypes.add(type);
     if (x.memberTypes != null) {

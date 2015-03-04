@@ -1,0 +1,18 @@
+{
+  AnnotationBinding jsExport=JdtUtil.getAnnotation(annotations,JSEXPORT_CLASS);
+  if (jsExport != null) {
+    String value=JdtUtil.getAnnotationParameterString(jsExport,"value");
+    setExportInfo(member,value == null ? "" : value);
+  }
+  boolean ignore=JdtUtil.getAnnotation(annotations,JSNOEXPORT_CLASS) != null;
+  if (ignore || !member.isPublic()) {
+    return;
+  }
+  JDeclaredType enclosingType=member.getEnclosingType();
+  if (enclosingType.isJsType() && member.needsVtable()) {
+    member.setJsMemberName(member.getName());
+  }
+  if (enclosingType.isClassWideExport() && !member.needsVtable() && jsExport == null) {
+    setExportInfo(member,"");
+  }
+}

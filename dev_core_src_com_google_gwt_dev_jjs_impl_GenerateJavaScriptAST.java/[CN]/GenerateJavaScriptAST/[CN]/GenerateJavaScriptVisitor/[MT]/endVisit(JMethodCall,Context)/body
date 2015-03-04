@@ -55,17 +55,11 @@
   }
  else {
     JsName polyName=polymorphicNames.get(method);
-    JMethod targetMethod=x.getTarget();
-    for (    JMethod overrideMethod : targetMethod.getOverriddenMethods()) {
-      if (overrideMethod.isJsProperty()) {
-        isJsProperty=true;
-        break;
-      }
-    }
-    if (isJsProperty || targetMethod.isJsProperty()) {
+    isJsProperty=method.isOrOverridesJsProperty();
+    if (isJsProperty) {
       JsExpression qualExpr=pop();
-      String methodName=targetMethod.getName();
-      if (targetMethod.getParams().size() == 0) {
+      String methodName=method.getName();
+      if (method.getParams().size() == 0) {
         if (startsWithCamelCase(methodName,"has")) {
           result=createHasDispatch(x,methodName,qualExpr);
         }
@@ -73,8 +67,8 @@
           result=createGetterDispatch(x,unnecessaryQualifier,methodName,qualExpr);
         }
       }
- else       if (targetMethod.getParams().size() == 1) {
-        result=createSetterDispatch(x,jsInvocation,targetMethod,qualExpr);
+ else       if (method.getParams().size() == 1) {
+        result=createSetterDispatch(x,jsInvocation,method,qualExpr);
       }
  else {
         throw new InternalCompilerException("JsProperty not a setter, getter, or has.");

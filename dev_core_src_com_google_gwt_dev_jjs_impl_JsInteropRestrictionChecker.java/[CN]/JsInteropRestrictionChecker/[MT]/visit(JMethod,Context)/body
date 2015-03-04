@@ -1,20 +1,14 @@
 {
   if (jprogram.typeOracle.isExportedMethod(x)) {
-    boolean success=minimalRebuildCache.addExportedGlobalName(x.getQualifiedExportName(),currentType.getName());
-    if (!success) {
-      logError("Static method '%s' can't be exported because the global name '%s' is already " + "taken.",x.getQualifiedName(),x.getQualifiedExportName());
-    }
+    checkExportName(x);
   }
  else   if (jprogram.typeOracle.isJsTypeMethod(x)) {
-    if (isDirectOrTransitiveJsProperty(x)) {
+    if (x.isOrOverridesJsProperty()) {
     }
  else     if (x.isSynthetic()) {
     }
  else {
-      boolean success=addJsTypeMemberName(x.getName());
-      if (!success) {
-        logError("Instance method '%s' can't be exported because the member name '%s' is already " + "taken.",x.getQualifiedName(),x.getName());
-      }
+      checkJsTypeMethod(x);
     }
   }
   return false;
