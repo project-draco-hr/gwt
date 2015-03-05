@@ -1,0 +1,16 @@
+{
+  addSnippetClassDecl("interface ClickHandler {\n" + "    int onClick(int a);\n" + "  }\n"+ "  private int addClickHandler(ClickHandler clickHandler) {\n"+ "    return clickHandler.onClick(1);\n"+ "  }\n"+ "  private int addClickHandler(int a) {\n"+ "    return addClickHandler(x->{int temp = a; return temp;});\n"+ "  }\n");
+  JProgram program=compileSnippet("int","return addClickHandler(2);",false);
+  JClassType lambdaInnerClass=(JClassType)getType(program,"test.EntryPoint$lambda$0$Type");
+  assertNotNull(lambdaInnerClass);
+  JMethod ctor=findMethod(lambdaInnerClass,"EntryPoint$lambda$0$Type");
+  assertTrue(ctor instanceof JConstructor);
+  assertEquals(1,ctor.getParams().size());
+  assertEquals(JPrimitiveType.INT,ctor.getOriginalParamTypes().get(0));
+  assertEquals(1,lambdaInnerClass.getFields().size());
+  assertEquals(JPrimitiveType.INT,lambdaInnerClass.getFields().get(0).getType());
+  assertEquals("{this.a_0=a_0;}",formatSource(ctor.getBody().toSource()));
+  assertTrue(lambdaInnerClass.getImplements().contains(program.getFromTypeMap("test.EntryPoint$ClickHandler")));
+  JMethod samMethod=findMethod(lambdaInnerClass,"onClick");
+  assertEquals("public final int onClick(int a){return EntryPoint.lambda$0(this.a_0,a);}",formatSource(samMethod.toSource()));
+}
