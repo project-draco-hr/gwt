@@ -1,2 +1,33 @@
 {
+  if (method.isSynthetic()) {
+    return;
+  }
+  String jsMemberName=method.getImmediateOrTransitiveJsMemberName();
+  String qualifiedMethodName=method.getQualifiedName();
+  String typeName=method.getEnclosingType().getName();
+  JsPropertyType jsPropertyType=method.getImmediateOrTransitiveJsPropertyType();
+  if (jsMemberName == null) {
+    logError("'%s' can't be exported because the method overloads multiple methods with " + "different names.",qualifiedMethodName);
+  }
+ else   if (jsPropertyType == JsPropertyType.HAS) {
+  }
+ else   if (jsPropertyType == JsPropertyType.GET) {
+    if (currentJsTypeMethodNameByGetterNames.put(jsMemberName,qualifiedMethodName) != null) {
+      logError("There can't be more than one getter for JS property '%s' in type '%s'.",jsMemberName,typeName);
+    }
+    checkNameCollisionForGetterAndRegular(jsMemberName,typeName);
+  }
+ else   if (jsPropertyType == JsPropertyType.SET) {
+    if (currentJsTypeMethodNameBySetterNames.put(jsMemberName,qualifiedMethodName) != null) {
+      logError("There can't be more than one setter for JS property '%s' in type '%s'.",jsMemberName,typeName);
+    }
+    checkNameCollisionForSetterAndRegular(jsMemberName,typeName);
+  }
+ else {
+    if (currentJsTypeMethodNameByMemberNames.put(jsMemberName,qualifiedMethodName) != null) {
+      logError("'%s' can't be exported because the member name '%s' is already taken.",qualifiedMethodName,jsMemberName);
+    }
+    checkNameCollisionForGetterAndRegular(jsMemberName,typeName);
+    checkNameCollisionForSetterAndRegular(jsMemberName,typeName);
+  }
 }

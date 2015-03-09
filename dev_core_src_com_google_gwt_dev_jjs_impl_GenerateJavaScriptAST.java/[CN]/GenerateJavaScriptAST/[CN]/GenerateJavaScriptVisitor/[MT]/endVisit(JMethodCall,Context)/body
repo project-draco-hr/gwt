@@ -58,35 +58,33 @@
     isJsProperty=method.isOrOverridesJsProperty();
     if (isJsProperty) {
       JsExpression qualExpr=pop();
-      String methodName=method.getName();
-      if (method.getParams().size() == 0) {
-        if (startsWithCamelCase(methodName,"has")) {
-          result=createHasDispatch(x,methodName,qualExpr);
-        }
+switch (method.getImmediateOrTransitiveJsPropertyType()) {
+case HAS:
+        result=createHasDispatch(x,method,qualExpr);
+      break;
+case GET:
+    result=createGetterDispatch(x,unnecessaryQualifier,method,qualExpr);
+  break;
+case SET:
+result=createSetterDispatch(x,jsInvocation,method,qualExpr);
+break;
+default :
+throw new InternalCompilerException("JsProperty not a setter, getter, or has.");
+}
+}
  else {
-          result=createGetterDispatch(x,unnecessaryQualifier,methodName,qualExpr);
-        }
-      }
- else       if (method.getParams().size() == 1) {
-        result=createSetterDispatch(x,jsInvocation,method,qualExpr);
-      }
+if (typeOracle.needsJsInteropBridgeMethod(method)) {
+maybeDispatchViaTrampolineToBridgeMethod(x,method,jsInvocation,unnecessaryQualifier,result,polyName);
+return;
+}
  else {
-        throw new InternalCompilerException("JsProperty not a setter, getter, or has.");
-      }
-    }
- else {
-      if (typeOracle.needsJsInteropBridgeMethod(method)) {
-        maybeDispatchViaTrampolineToBridgeMethod(x,method,jsInvocation,unnecessaryQualifier,result,polyName);
-        return;
-      }
- else {
-        qualifier=polyName.makeRef(x.getSourceInfo());
-        qualifier.setQualifier((JsExpression)pop());
-      }
-    }
-  }
-  if (!isJsProperty) {
-    jsInvocation.setQualifier(qualifier);
-  }
-  push(createCommaExpression(unnecessaryQualifier,result));
+qualifier=polyName.makeRef(x.getSourceInfo());
+qualifier.setQualifier((JsExpression)pop());
+}
+}
+}
+if (!isJsProperty) {
+jsInvocation.setQualifier(qualifier);
+}
+push(createCommaExpression(unnecessaryQualifier,result));
 }
