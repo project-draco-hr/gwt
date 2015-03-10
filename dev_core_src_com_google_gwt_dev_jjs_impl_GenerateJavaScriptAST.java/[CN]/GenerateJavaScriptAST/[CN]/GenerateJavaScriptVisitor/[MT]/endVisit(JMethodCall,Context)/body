@@ -20,6 +20,7 @@
   JsExpression unnecessaryQualifier=null;
   JsExpression result=null;
   boolean isJsProperty=false;
+  boolean isSam=false;
   result=jsInvocation;
   if (method.isStatic()) {
     if (x.getInstance() != null) {
@@ -56,6 +57,7 @@
  else {
     JsName polyName=polymorphicNames.get(method);
     isJsProperty=method.isOrOverridesJsProperty();
+    isSam=method.isOrOverridesJsFunctionMethod();
     if (isJsProperty) {
       JsExpression qualExpr=pop();
 switch (method.getImmediateOrTransitiveJsPropertyType()) {
@@ -72,6 +74,10 @@ default :
 throw new InternalCompilerException("JsProperty not a setter, getter, or has.");
 }
 }
+ else if (isSam) {
+JsExpression qualExpr=pop();
+result=createSAMcallDispatch(x,jsInvocation,qualExpr);
+}
  else {
 if (typeOracle.needsJsInteropBridgeMethod(method)) {
 maybeDispatchViaTrampolineToBridgeMethod(x,method,jsInvocation,unnecessaryQualifier,result,polyName);
@@ -83,7 +89,7 @@ qualifier.setQualifier((JsExpression)pop());
 }
 }
 }
-if (!isJsProperty) {
+if (!isJsProperty && !isSam) {
 jsInvocation.setQualifier(qualifier);
 }
 push(createCommaExpression(unnecessaryQualifier,result));
