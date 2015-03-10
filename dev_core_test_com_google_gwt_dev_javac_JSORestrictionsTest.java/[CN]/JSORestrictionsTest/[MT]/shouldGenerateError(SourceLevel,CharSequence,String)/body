@@ -1,0 +1,14 @@
+{
+  UnitTestTreeLogger.Builder builder=new UnitTestTreeLogger.Builder();
+  builder.setLowestLogLevel(TreeLogger.ERROR);
+  if (expectedErrors != null) {
+    builder.expectError("Errors in \'/mock/Buggy.java\'",null);
+    for (    String e : expectedErrors) {
+      builder.expectError(e,null);
+    }
+  }
+  UnitTestTreeLogger logger=builder.createLogger();
+  StaticJavaResource buggyResource=new StaticJavaResource("Buggy",buggyCode);
+  TypeOracleTestingUtils.buildStandardTypeOracleWith(logger,Collections.<Resource>emptySet(),CompilationStateTestBase.getGeneratedUnits(buggyResource),sourceLevel);
+  logger.assertCorrectLogEntries();
+}
