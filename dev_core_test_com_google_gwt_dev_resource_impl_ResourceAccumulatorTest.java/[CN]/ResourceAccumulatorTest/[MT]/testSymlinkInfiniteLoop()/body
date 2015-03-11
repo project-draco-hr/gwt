@@ -1,0 +1,17 @@
+{
+  File rootDirectory=Files.createTempDir();
+  File subDirectory=Files.createTempDir();
+  ResourceAccumulator resourceAccumulator=new ResourceAccumulator(rootDirectory.toPath(),createInclusivePathPrefixSet());
+  assertTrue(getResources(resourceAccumulator).isEmpty());
+  java.nio.file.Files.createSymbolicLink(new File(rootDirectory,"sublink").toPath(),subDirectory.toPath()).toFile();
+  java.nio.file.Files.createSymbolicLink(new File(subDirectory,"sublink").toPath(),rootDirectory.toPath()).toFile();
+  createFileIn("New.java",subDirectory);
+  waitForFileEvents();
+  try {
+    getResources(resourceAccumulator);
+    fail();
+  }
+ catch (  FileSystemException expected) {
+  }
+  resourceAccumulator.shutdown();
+}

@@ -1,0 +1,12 @@
+{
+  File rootDirectory=Files.createTempDir();
+  File subDirectory=createDirectoryIn("subdir",rootDirectory);
+  ResourceAccumulator resourceAccumulator=new ResourceAccumulator(rootDirectory.toPath(),createInclusivePathPrefixSet());
+  assertTrue(getResources(resourceAccumulator).isEmpty());
+  createFileIn("New.java",subDirectory);
+  waitForFileEvents();
+  List<AbstractResource> resources=getResources(resourceAccumulator);
+  assertEquals(1,resources.size());
+  assertTrue(resources.get(0).getPath().endsWith("New.java"));
+  resourceAccumulator.shutdown();
+}

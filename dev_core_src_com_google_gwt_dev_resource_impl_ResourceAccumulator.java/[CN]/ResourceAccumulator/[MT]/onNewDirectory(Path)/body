@@ -1,0 +1,15 @@
+{
+  String relativePath=getRelativePath(directory);
+  if (!relativePath.isEmpty() && !getPathPrefixSet().includesDirectory(relativePath)) {
+    return;
+  }
+  if (WATCH_FILE_CHANGES) {
+    directory.register(watchService,ENTRY_CREATE,ENTRY_DELETE);
+  }
+  try (DirectoryStream<Path> stream=Files.newDirectoryStream(directory)){
+    for (    Path child : stream) {
+      childPathsByParentPath.put(directory,child);
+      onNewPath(child);
+    }
+  }
+ }

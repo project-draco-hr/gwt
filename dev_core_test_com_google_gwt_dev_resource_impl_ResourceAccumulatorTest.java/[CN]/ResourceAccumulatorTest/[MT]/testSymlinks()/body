@@ -1,0 +1,15 @@
+{
+  File scratchDirectory=Files.createTempDir();
+  File newFile=createFileIn("New.java",scratchDirectory);
+  File rootDirectory=Files.createTempDir();
+  File subDirectory=Files.createTempDir();
+  ResourceAccumulator resourceAccumulator=new ResourceAccumulator(rootDirectory.toPath(),createInclusivePathPrefixSet());
+  assertTrue(getResources(resourceAccumulator).isEmpty());
+  java.nio.file.Files.createSymbolicLink(new File(rootDirectory,"sublink").toPath(),subDirectory.toPath()).toFile();
+  java.nio.file.Files.createSymbolicLink(new File(subDirectory,"New.java").toPath(),newFile.toPath()).toFile();
+  waitForFileEvents();
+  List<AbstractResource> resources=getResources(resourceAccumulator);
+  assertEquals(1,resources.size());
+  assertTrue(resources.get(0).getPath().endsWith("sublink/New.java"));
+  resourceAccumulator.shutdown();
+}

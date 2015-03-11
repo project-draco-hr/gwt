@@ -1,23 +1,9 @@
 {
-  if (!WATCH_FILE_CHANGES) {
-    return scanRecursiveDirectory(logger,pathPrefixSet);
+  try {
+    return ResourceAccumulatorManager.get(this,pathPrefixSet).getResources();
   }
-  ensureListening(logger,pathPrefixSet);
-  if (listeningFailed) {
-    return scanRecursiveDirectory(logger,pathPrefixSet);
-  }
-  boolean haveCachedResults=resolutionsByResourcePerPathPrefixSet.containsKey(pathPrefixSet);
-  if (!haveCachedResults) {
-    return scanRecursiveDirectory(logger,pathPrefixSet);
-  }
- else {
-    try {
-      return scanChangedFiles(logger,pathPrefixSet);
-    }
- catch (    ExecutionException e) {
-      listeningFailed=true;
-      logger.log(TreeLogger.WARN,"The attempt to retrieve accumulated file changes in " + dir + " failed. Will fall back on full directory scans.");
-      return scanRecursiveDirectory(logger,pathPrefixSet);
-    }
+ catch (  IOException e) {
+    logger.log(TreeLogger.WARN,"The attempt to retrieve files in " + dir + " failed.",e);
+    return Maps.newLinkedHashMap();
   }
 }
