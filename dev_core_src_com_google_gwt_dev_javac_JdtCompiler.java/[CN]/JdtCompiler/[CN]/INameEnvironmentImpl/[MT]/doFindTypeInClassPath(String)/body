@@ -1,22 +1,14 @@
 {
   URL resource=getClassLoader().getResource(internalName + ".class");
-  if (resource == null) {
-    return null;
-  }
-  InputStream openStream=null;
-  try {
-    openStream=resource.openStream();
-    ClassFileReader classFileReader=ClassFileReader.read(openStream,resource.toExternalForm(),true);
-    if (internalName.equals(CharOperation.charToString(classFileReader.getName()))) {
-      return new NameEnvironmentAnswer(classFileReader,null);
+  if (resource != null) {
+    try (InputStream openStream=resource.openStream()){
+      ClassFileReader classFileReader=ClassFileReader.read(openStream,resource.toExternalForm(),true);
+      if (internalName.equals(CharOperation.charToString(classFileReader.getName()))) {
+        return new NameEnvironmentAnswer(classFileReader,null);
+      }
     }
-  }
- catch (  IOException e) {
-  }
-catch (  ClassFormatException e) {
-  }
- finally {
-    Utility.close(openStream);
+ catch (    IOException|ClassFormatException e) {
+    }
   }
   if (internalName.equals("java/lang/invoke/LambdaMetafactory")) {
     try {
