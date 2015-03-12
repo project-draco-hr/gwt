@@ -1,14 +1,15 @@
 {
-  if (type instanceof JReferenceType) {
-    JReferenceType refType=(JReferenceType)type;
-    if (refType.isAbstract()) {
-      JClassType singleConcrete=getSingleConcrete(refType.getUnderlyingType(),implementors);
-      assert(singleConcrete == null || program.typeOracle.isInstantiatedType(singleConcrete));
-      if (singleConcrete == null) {
-        return null;
-      }
-      return refType.canBeNull() ? singleConcrete : singleConcrete.getNonNull();
+  if (!(type instanceof JReferenceType)) {
+    return null;
+  }
+  JReferenceType refType=(JReferenceType)type;
+  if (refType.isAbstract()) {
+    JReferenceType singleConcrete=getSingleConcrete(implementors.get(refType.getUnderlyingType()));
+    assert(singleConcrete == null || program.typeOracle.isInstantiatedType(singleConcrete));
+    if (singleConcrete == null) {
+      return null;
     }
+    return refType.canBeNull() ? singleConcrete : singleConcrete.strengthenToNonNull();
   }
   return null;
 }

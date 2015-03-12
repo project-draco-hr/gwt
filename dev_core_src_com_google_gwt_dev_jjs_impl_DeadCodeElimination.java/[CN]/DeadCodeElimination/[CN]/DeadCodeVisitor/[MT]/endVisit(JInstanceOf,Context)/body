@@ -2,5 +2,20 @@
   if (ignoringExpressionOutput.contains(x)) {
     ctx.replaceMe(x.getExpr());
     ignoringExpressionOutput.remove(x);
+    return;
   }
+  if (!(x.getExpr().getType() instanceof JReferenceType)) {
+    return;
+  }
+  AnalysisResult analysisResult=staticallyEvaluateInstanceOf((JReferenceType)x.getExpr().getType(),x.getTestType());
+switch (analysisResult) {
+case TRUE:
+    ctx.replaceMe(JjsUtils.createOptimizedNotNullComparison(program,x.getSourceInfo(),x.getExpr()));
+  break;
+case FALSE:
+ctx.replaceMe(JjsUtils.createOptimizedMultiExpression(x.getExpr(),program.getLiteralBoolean(false)));
+break;
+case UNKNOWN:
+default :
+}
 }

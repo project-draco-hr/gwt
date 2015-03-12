@@ -1,2 +1,18 @@
 {
+  if (!thisType.canBeNull() && !thatType.canBeNull()) {
+    JReferenceType nulllableGeneralizer=generalizeTypes(thisType.weakenToNullable(),thatType.weakenToNullable());
+    return nulllableGeneralizer.strengthenToNonNull();
+  }
+  thisType=thisType.weakenToNullable();
+  thatType=thatType.weakenToNullable();
+  if (thatType.isNullType()) {
+    return thisType;
+  }
+  if (thisType.isNullType()) {
+    return thatType;
+  }
+  if (thisType == thatType) {
+    return thisType;
+  }
+  return generalizeUnderlyingTypes(thisType.getUnderlyingType(),thatType.getUnderlyingType());
 }

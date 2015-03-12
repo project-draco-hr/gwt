@@ -6,21 +6,11 @@
   if (!(instanceType instanceof JClassType)) {
     return;
   }
-  JMethod method=x.getTarget();
-  if (instanceType == method.getEnclosingType()) {
-    return;
+  JMethodCall newCall=maybeUpgradeToNonPolymorphicCall(x);
+  if (newCall.canBePolymorphic()) {
+    newCall=maybeTightenMethodCall(newCall);
   }
-  JMethod foundMethod=program.typeOracle.getInstanceMethodBySignature((JClassType)instanceType,method.getSignature());
-  if (foundMethod == null || !foundMethod.canBePolymorphic()) {
-    return;
+  if (newCall != x) {
+    ctx.replaceMe(newCall);
   }
-  if (foundMethod == method) {
-    return;
-  }
-  if (!foundMethod.getOverriddenMethods().contains(method)) {
-    return;
-  }
-  JMethodCall call=new JMethodCall(x.getSourceInfo(),x.getInstance(),foundMethod);
-  call.addArgs(x.getArgs());
-  ctx.replaceMe(call);
 }

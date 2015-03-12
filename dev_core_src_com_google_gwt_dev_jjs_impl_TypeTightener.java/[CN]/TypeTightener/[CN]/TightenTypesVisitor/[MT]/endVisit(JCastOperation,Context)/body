@@ -1,40 +1,27 @@
 {
-  JType argType=x.getExpr().getType();
-  if (!(x.getCastType() instanceof JReferenceType) || !(argType instanceof JReferenceType)) {
+  JType argumentType=x.getExpr().getType();
+  if (!(x.getCastType() instanceof JReferenceType) || !(argumentType instanceof JReferenceType)) {
     return;
   }
   JReferenceType toType=getSingleConcreteType(x.getCastType());
   if (toType == null) {
     toType=(JReferenceType)x.getCastType();
   }
-  JReferenceType fromType=getSingleConcreteType(argType);
+  JReferenceType fromType=getSingleConcreteType(argumentType);
   if (fromType == null) {
-    fromType=(JReferenceType)argType;
+    fromType=(JReferenceType)argumentType;
   }
-  boolean triviallyTrue=false;
-  boolean triviallyFalse=false;
-  JTypeOracle typeOracle=program.typeOracle;
-  if (typeOracle.canTriviallyCast(fromType,toType)) {
-    triviallyTrue=true;
-  }
- else   if (!typeOracle.isInstantiatedType(toType)) {
-    triviallyFalse=true;
-  }
- else   if (!typeOracle.canTheoreticallyCast(fromType,toType)) {
-    triviallyFalse=true;
-  }
-  if (triviallyTrue) {
+  if (program.typeOracle.castSucceedsTrivially(fromType,toType)) {
     ctx.replaceMe(x.getExpr());
+    return;
   }
- else   if (triviallyFalse && toType != program.getTypeNull()) {
-    JCastOperation newOp=new JCastOperation(x.getSourceInfo(),program.getTypeNull(),x.getExpr());
+  if ((!program.typeOracle.isInstantiatedType(toType) || program.typeOracle.castFailsTrivially(fromType,toType)) && toType != JReferenceType.NULL_TYPE) {
+    ctx.replaceMe(new JCastOperation(x.getSourceInfo(),JReferenceType.NULL_TYPE,x.getExpr()));
+    return;
+  }
+  JReferenceType tighterType=getSingleConcreteType(toType);
+  if (tighterType != null && tighterType != toType) {
+    JCastOperation newOp=new JCastOperation(x.getSourceInfo(),tighterType,x.getExpr());
     ctx.replaceMe(newOp);
-  }
- else {
-    JReferenceType tighterType=getSingleConcreteType(toType);
-    if (tighterType != null && tighterType != toType) {
-      JCastOperation newOp=new JCastOperation(x.getSourceInfo(),tighterType,x.getExpr());
-      ctx.replaceMe(newOp);
-    }
   }
 }

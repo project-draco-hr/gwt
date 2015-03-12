@@ -1,0 +1,48 @@
+{
+  if (!fromType.canBeNull() && toType.isNullType()) {
+    return true;
+  }
+  fromType=fromType.getUnderlyingType();
+  toType=toType.getUnderlyingType();
+  if (fromType == toType || isJavaLangObject(toType)) {
+    return false;
+  }
+  if (canCrossCastLikeJso(fromType) && canCrossCastLikeJso(toType)) {
+    return false;
+  }
+  if (castSucceedsTrivially(fromType,toType)) {
+    return false;
+  }
+  if (fromType instanceof JArrayType) {
+    JArrayType fromArrayType=(JArrayType)fromType;
+    if (toType instanceof JArrayType) {
+      JArrayType toArrayType=(JArrayType)toType;
+      JType fromLeafType=fromArrayType.getLeafType();
+      JType toLeafType=toArrayType.getLeafType();
+      int fromDims=fromArrayType.getDims();
+      int toDims=toArrayType.getDims();
+      if (fromDims < toDims && !isJavaLangObject(fromLeafType) && !fromLeafType.isNullType()) {
+        return true;
+      }
+      if (fromDims == toDims && fromLeafType instanceof JReferenceType && toLeafType instanceof JReferenceType) {
+        return castFailsTrivially((JReferenceType)fromLeafType,(JReferenceType)toLeafType);
+      }
+    }
+  }
+ else   if (fromType instanceof JClassType) {
+    JClassType cType=(JClassType)fromType;
+    if (toType instanceof JClassType) {
+      return !isSubClass(cType,(JClassType)toType);
+    }
+ else     if (toType instanceof JInterfaceType) {
+      return !potentialInterfaceByClass.containsEntry(cType.getName(),toType.getName());
+    }
+  }
+ else   if (fromType instanceof JInterfaceType) {
+    JInterfaceType fromInterfaceType=(JInterfaceType)fromType;
+    if (toType instanceof JClassType) {
+      return !potentialInterfaceByClass.containsEntry(toType.getName(),fromInterfaceType.getName());
+    }
+  }
+  return false;
+}

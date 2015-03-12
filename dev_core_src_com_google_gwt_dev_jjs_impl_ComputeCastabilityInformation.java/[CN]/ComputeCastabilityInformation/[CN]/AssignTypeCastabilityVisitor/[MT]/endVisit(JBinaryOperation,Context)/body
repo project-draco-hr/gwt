@@ -1,25 +1,26 @@
 {
-  if (x.getOp().isAssignment() && x.getLhs() instanceof JArrayRef) {
-    JArrayRef lhsArrayRef=(JArrayRef)x.getLhs();
-    JType elementType=lhsArrayRef.getType();
-    if (elementType instanceof JNullType) {
-      return;
-    }
-    if (!(elementType instanceof JReferenceType)) {
-      return;
-    }
-    if (elementType.isFinal()) {
-      return;
-    }
-    JType rhsType=x.getRhs().getType();
-    assert(rhsType instanceof JReferenceType);
-    JArrayType lhsArrayType=lhsArrayRef.getArrayType();
-    for (    JArrayType arrayType : instantiatedArrayTypes) {
-      if (typeOracle.canTheoreticallyCast(arrayType,lhsArrayType)) {
-        JType itElementType=arrayType.getElementType();
-        if (itElementType instanceof JReferenceType) {
-          recordCast(itElementType,x.getRhs());
-        }
+  if (!x.getOp().isAssignment() || !(x.getLhs() instanceof JArrayRef)) {
+    return;
+  }
+  JArrayRef lhsArrayRef=(JArrayRef)x.getLhs();
+  JType elementType=lhsArrayRef.getType();
+  if (elementType.isNullType()) {
+    return;
+  }
+  if (!(elementType instanceof JReferenceType)) {
+    return;
+  }
+  if (elementType.isFinal()) {
+    return;
+  }
+  JType rhsType=x.getRhs().getType();
+  assert(rhsType instanceof JReferenceType);
+  JArrayType lhsArrayType=lhsArrayRef.getArrayType();
+  for (  JArrayType arrayType : instantiatedArrayTypes) {
+    if (!typeOracle.castFailsTrivially(arrayType,lhsArrayType)) {
+      JType itElementType=arrayType.getElementType();
+      if (itElementType instanceof JReferenceType) {
+        recordCast(itElementType,x.getRhs());
       }
     }
   }

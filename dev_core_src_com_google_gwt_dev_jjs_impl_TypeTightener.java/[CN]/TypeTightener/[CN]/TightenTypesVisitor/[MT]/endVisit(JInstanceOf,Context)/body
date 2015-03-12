@@ -3,35 +3,8 @@
   if (!(argType instanceof JReferenceType)) {
     return;
   }
-  JReferenceType toType=getSingleConcreteType(x.getTestType());
-  if (toType == null) {
-    toType=x.getTestType();
+  JReferenceType concreteType=getSingleConcreteType(x.getTestType());
+  if (concreteType != null) {
+    ctx.replaceMe(new JInstanceOf(x.getSourceInfo(),concreteType.getUnderlyingType(),x.getExpr()));
   }
-  JReferenceType fromType=getSingleConcreteType(argType);
-  if (fromType == null) {
-    fromType=(JReferenceType)argType;
-  }
-  AnalysisResult analysisResult=staticallyEvaluateInstanceOf(fromType,toType);
-switch (analysisResult) {
-case TRUE:
-    if (x.getExpr().getType().canBeNull()) {
-      JBinaryOperation neq=new JBinaryOperation(x.getSourceInfo(),program.getTypePrimitiveBoolean(),JBinaryOperator.NEQ,x.getExpr(),program.getLiteralNull());
-      ctx.replaceMe(neq);
-    }
- else {
-      ctx.replaceMe(JjsUtils.createOptimizedMultiExpression(x.getExpr(),program.getLiteralBoolean(true)));
-    }
-  break;
-case FALSE:
-ctx.replaceMe(JjsUtils.createOptimizedMultiExpression(x.getExpr(),program.getLiteralBoolean(false)));
-break;
-case UNKNOWN:
-default :
-JReferenceType concreteType=getSingleConcreteType(toType);
-if (concreteType != null) {
-JInstanceOf newOp=new JInstanceOf(x.getSourceInfo(),concreteType,x.getExpr());
-ctx.replaceMe(newOp);
-}
-break;
-}
 }

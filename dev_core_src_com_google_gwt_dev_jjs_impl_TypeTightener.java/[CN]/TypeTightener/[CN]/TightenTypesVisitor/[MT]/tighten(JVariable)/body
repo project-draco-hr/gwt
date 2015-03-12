@@ -2,43 +2,28 @@
   if (!(x.getType() instanceof JReferenceType)) {
     return;
   }
-  JReferenceType refType=(JReferenceType)x.getType();
-  if (refType == program.getTypeNull()) {
+  JReferenceType varType=(JReferenceType)x.getType();
+  if (varType.isNullType()) {
     return;
   }
-  if (!program.typeOracle.isInstantiatedType(refType)) {
-    x.setType(program.getTypeNull());
+  if (!program.typeOracle.isInstantiatedType(varType)) {
+    x.setType(JReferenceType.NULL_TYPE);
     madeChanges();
     return;
   }
-  JReferenceType leafType=getSingleConcreteType(refType);
+  JReferenceType leafType=getSingleConcreteType(varType);
   if (leafType != null) {
     x.setType(leafType);
     madeChanges();
     return;
   }
-  List<JReferenceType> typeList=Lists.newArrayList();
-  Collection<JExpression> myAssignments=assignments.get(x);
-  if (myAssignments != null) {
-    for (    JExpression expr : myAssignments) {
-      JType type=expr.getType();
-      if (!(type instanceof JReferenceType)) {
-        return;
-      }
-      typeList.add((JReferenceType)type);
-    }
+  Collection<JReferenceType> assignmentTypes=getAssignmentsIfValid(x);
+  if (assignmentTypes == null) {
+    return;
   }
-  if (x instanceof JParameter) {
-    Collection<JParameter> myParams=paramUpRefs.get(x);
-    if (myParams != null) {
-      for (      JParameter param : myParams) {
-        typeList.add((JReferenceType)param.getType());
-      }
-    }
-  }
-  JReferenceType resultType=program.strengthenType(refType,typeList);
-  if (refType != resultType) {
-    x.setType(resultType);
+  JReferenceType strengthenedType=strongerType(varType,Iterables.concat(assignmentTypes,JjsUtils.getExpressionTypes(paramUpRefs.get(x))));
+  if (varType != strengthenedType) {
+    x.setType(strengthenedType);
     madeChanges();
   }
 }
