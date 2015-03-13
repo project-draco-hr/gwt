@@ -13,19 +13,21 @@
   }
  else   if (jsPropertyType == JsPropertyType.GET) {
     if (currentJsTypeMethodNameByGetterNames.put(jsMemberName,qualifiedMethodName) != null) {
-      logError("There can't be more than one getter for JS property '%s' in type '%s'.",jsMemberName,typeName);
+      logError("There can't be more than one getter for JsProperty '%s' in type '%s'.",jsMemberName,typeName);
     }
     checkNameCollisionForGetterAndRegular(jsMemberName,typeName);
+    checkInconsistentPropertyType(jsMemberName,typeName,method.getOriginalReturnType());
   }
  else   if (jsPropertyType == JsPropertyType.SET) {
     if (currentJsTypeMethodNameBySetterNames.put(jsMemberName,qualifiedMethodName) != null) {
-      logError("There can't be more than one setter for JS property '%s' in type '%s'.",jsMemberName,typeName);
+      logError("There can't be more than one setter for JsProperty '%s' in type '%s'.",jsMemberName,typeName);
     }
     checkNameCollisionForSetterAndRegular(jsMemberName,typeName);
+    checkInconsistentPropertyType(jsMemberName,typeName,Iterables.getOnlyElement(method.getParams()).getType());
   }
  else {
     if (currentJsTypeMethodNameByMemberNames.put(jsMemberName,qualifiedMethodName) != null) {
-      logError("'%s' can't be exported because the member name '%s' is already taken.",qualifiedMethodName,jsMemberName);
+      logError("Method '%s' can't be exported in type '%s' because the member name " + "'%s' is already taken.",qualifiedMethodName,currentType.getName(),jsMemberName);
     }
     checkNameCollisionForGetterAndRegular(jsMemberName,typeName);
     checkNameCollisionForSetterAndRegular(jsMemberName,typeName);

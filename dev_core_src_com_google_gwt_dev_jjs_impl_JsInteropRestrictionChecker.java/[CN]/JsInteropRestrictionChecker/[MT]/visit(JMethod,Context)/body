@@ -9,8 +9,15 @@
  else   if (jprogram.typeOracle.isJsTypeMethod(x)) {
     checkJsTypeMethod(x);
   }
-  if (jprogram.typeOracle.isJsPropertyMethod(x) && !jprogram.typeOracle.isJsType(x.getEnclosingType())) {
-    logError("Method '%s' can't be explicitly annotated @JsProperty since enclosing type '%s' " + "is not explicitly annotated @JsType. If the method is already overriding " + "a JsProperty method then there is no need to restate the annotation.",x.getName(),x.getEnclosingType().getName());
+  if (currentType == x.getEnclosingType()) {
+    if (jprogram.typeOracle.isJsPropertyMethod(x) && !jprogram.typeOracle.isJsType(currentType)) {
+      if (currentType instanceof JInterfaceType) {
+        logError("Method '%s' can't be a JsProperty since interface '%s' is not a JsType.",x.getName(),x.getEnclosingType().getName());
+      }
+ else {
+        logError("Method '%s' can't be a JsProperty since '%s' " + "is not an interface.",x.getName(),x.getEnclosingType().getName());
+      }
+    }
   }
   return false;
 }
