@@ -1,0 +1,11 @@
+{
+  final MockJavaResource SpecializedImpl=JavaResourceBase.createMockJavaResource("test.SpecializedImpl","package test;","import com.google.gwt.core.client.impl.SpecializeMethod;","public class SpecializedImpl<K> extends Impl<K> implements I {","  @SpecializeMethod(params = {String.class}, target = \"putString\")","  public void put(K k) { }","  public void putString(String k) { }","}");
+  final MockJavaResource Impl=JavaResourceBase.createMockJavaResource("test.Impl","package test;","public class Impl<K> {","  public void put(K k) { }","  public void m() { }","}");
+  final MockJavaResource I=JavaResourceBase.createMockJavaResource("test.I","package test;","public interface I {","  public void m();","}");
+  addAll(I,SpecializedImpl,Impl);
+  Result result=optimize("void","new SpecializedImpl<String>().put(\"2\");");
+  JClassType testImplClass=(JClassType)result.findClass("test.SpecializedImpl");
+  String mSignature="m()V";
+  JMethod testImplChild_putString=findMethod(result,"test.SpecializedImpl." + mSignature);
+  assertSame(testImplChild_putString,result.getOptimizedProgram().typeOracle.getInstanceMethodBySignature(testImplClass,mSignature));
+}
