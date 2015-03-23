@@ -4,7 +4,9 @@
   nestedHiddenDir.mkdir();
   File javaFile=new File(nestedHiddenDir,"ShouldNotBeFound.java");
   javaFile.createNewFile();
+  List<Map<AbstractResource,ResourceResolution>> foundFiles=Lists.<Map<AbstractResource,ResourceResolution>>newArrayList();
+  foundFiles.add(Maps.<AbstractResource,ResourceResolution>newHashMap());
   DirectoryClassPathEntry cpe=new DirectoryClassPathEntry(tempDir);
-  Map<AbstractResource,ResourceResolution> resources=cpe.findApplicableResources(TreeLogger.NULL,createInclusivePathPrefixSet());
-  assertTrue(resources.isEmpty());
+  cpe.descendToFindResources(TreeLogger.NULL,Lists.newArrayList(createInclusivePathPrefixSet()),foundFiles,tempDir,"");
+  assertTrue(foundFiles.get(0).isEmpty());
 }

@@ -1,0 +1,15 @@
+{
+  File rootDirectory=Files.createTempDir();
+  File subDirectory=Files.createTempDir();
+  ChangedFileAccumulator changedFileAccumulator=new ChangedFileAccumulator(rootDirectory.toPath());
+  assertTrue(changedFileAccumulator.getAndClearChangedFiles().isEmpty());
+  java.nio.file.Files.createSymbolicLink(new File(rootDirectory,"sublink").toPath(),subDirectory.toPath()).toFile();
+  java.nio.file.Files.createSymbolicLink(new File(subDirectory,"sublink").toPath(),rootDirectory.toPath()).toFile();
+  createFileIn("New.java",subDirectory);
+  waitForFileEvents();
+  List<File> modifiedFiles=changedFileAccumulator.getAndClearChangedFiles();
+  assertEquals(2,modifiedFiles.size());
+  assertTrue(modifiedFiles.get(0).getPath().endsWith("sublink"));
+  assertTrue(modifiedFiles.get(1).getPath().endsWith("New.java"));
+  changedFileAccumulator.shutdown();
+}
