@@ -1,0 +1,19 @@
+{
+  this.logger=logger;
+  this.blacklistedEnums=blacklistedEnums;
+  this.enumNameMethod=jprogram.getIndexedMethod("Enum.name");
+  this.enumToStringMethod=jprogram.getIndexedMethod("Enum.toString");
+  this.classType=jprogram.getIndexedType("Class");
+  this.enumType=jprogram.getIndexedType("Enum");
+  this.stringType=jprogram.getIndexedType("String");
+  JMethod foundMethod=null;
+  List<JMethod> enumMethods=enumType.getMethods();
+  for (  JMethod enumMethod : enumMethods) {
+    List<JParameter> params=enumMethod.getParams();
+    if (enumMethod.getName().equals("valueOf") && params.size() == 2 && params.get(0).getType() == classType && params.get(1).getType() == stringType) {
+      foundMethod=enumMethod;
+      break;
+    }
+  }
+  this.enumValueOfMethod=foundMethod;
+}

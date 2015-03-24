@@ -1,0 +1,45 @@
+{
+  try {
+    jprogram=new JProgram(compilerContext.getMinimalRebuildCache());
+    jprogram.typeOracle.setOptimize(options.getOptimizationLevel() > OptionOptimize.OPTIMIZE_LEVEL_DRAFT);
+    jprogram.typeOracle.setJsInteropMode(options.getJsInteropMode());
+    jsProgram=new JsProgram();
+    if (additionalRootTypes == null) {
+      additionalRootTypes=Empty.STRINGS;
+    }
+    if (entryPointTypeNames.length + additionalRootTypes.length == 0) {
+      throw new IllegalArgumentException("entry point(s) required");
+    }
+    CompilationState compilationState=constructJavaAst(rpo,entryPointTypeNames,additionalRootTypes);
+    JsniRestrictionChecker.exec(logger,jprogram);
+    JsInteropRestrictionChecker.exec(logger,jprogram,getMinimalRebuildCache());
+    logTypeOracleMetrics(precompilationMetrics,compilationState);
+    Memory.maybeDumpMemory("AstOnly");
+    AstDumper.maybeDumpAST(jprogram);
+    ConfigProps configProps=new ConfigProps(module);
+    EnumNameObfuscator.exec(jprogram,logger,configProps);
+    ReplaceDefenderMethodReferences.exec(jprogram);
+    FixAssignmentsToUnboxOrCast.exec(jprogram);
+    if (options.isEnableAssertions()) {
+      AssertionNormalizer.exec(jprogram);
+    }
+ else {
+      AssertionRemover.exec(jprogram);
+    }
+    if (module != null && options.isRunAsyncEnabled()) {
+      ReplaceRunAsyncs.exec(logger,jprogram);
+      ConfigProps config=new ConfigProps(module);
+      CodeSplitters.pickInitialLoadSequence(logger,jprogram,config);
+    }
+    ImplementClassLiteralsAsFields.exec(jprogram);
+    optimizeJava(singlePermutation);
+    logAstTypeMetrics(precompilationMetrics);
+    Event createUnifiedAstEvent=SpeedTracerLogger.start(CompilerEventType.CREATE_UNIFIED_AST);
+    UnifiedAst result=new UnifiedAst(options,new AST(jprogram,jsProgram),singlePermutation,RecordRebinds.exec(jprogram));
+    createUnifiedAstEvent.end();
+    return result;
+  }
+ catch (  Throwable e) {
+    throw CompilationProblemReporter.logAndTranslateException(logger,e);
+  }
+}

@@ -1,0 +1,15 @@
+{
+  JConstructor target=x.getTarget();
+  JClassType enclosingType=target.getEnclosingType();
+  if (enclosingType.isEnumOrSubclass() == null) {
+    return;
+  }
+  if (typeInBlacklist(blacklistedEnums,enclosingType)) {
+    return;
+  }
+  JNewInstance newEnum=new JNewInstance(x);
+  List<JExpression> args=Lists.newArrayList(x.getArgs());
+  args.set(0,closureMode ? new JMethodCall(x.getSourceInfo(),null,makeEnumName,args.get(0)) : JNullLiteral.INSTANCE);
+  newEnum.addArgs(args);
+  ctx.replaceMe(newEnum);
+}

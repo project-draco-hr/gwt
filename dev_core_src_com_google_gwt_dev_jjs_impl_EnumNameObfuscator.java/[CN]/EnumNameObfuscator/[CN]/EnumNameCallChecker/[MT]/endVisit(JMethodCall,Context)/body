@@ -1,0 +1,22 @@
+{
+  JMethod target=x.getTarget();
+  JDeclaredType type=target.getEnclosingType();
+  if (!(type instanceof JClassType)) {
+    return;
+  }
+  JClassType cType=(JClassType)type;
+  if (typeInBlacklist(blacklistedEnums,cType)) {
+    return;
+  }
+  if (target == enumNameMethod || target == enumToStringMethod || target == enumValueOfMethod) {
+    warn(x);
+    return;
+  }
+  if (cType.isEnumOrSubclass() != null) {
+    return;
+  }
+  List<JParameter> params=target.getParams();
+  if (target.getName().equals("valueOf") && params.size() == 1 && params.get(0).getType() == stringType) {
+    warn(x);
+  }
+}
