@@ -1,0 +1,40 @@
+{
+  if (!onePermutation) {
+    return artifacts;
+  }
+  ArtifactSet updatedArtifacts=new ArtifactSet(artifacts);
+  for (  final CompilationResult compilationResult : artifacts.find(CompilationResult.class)) {
+    final String closureHelpers=getClosureHelpers(logger);
+    DelegatingCompilationResult updatedResult=new DelegatingCompilationResult(ClosureHelpersLinker.class,compilationResult){
+      String rewrittenJs[]=null;
+      StatementRanges ranges[]=null;
+      @Override public String[] getJavaScript(){
+        if (rewrittenJs == null) {
+          rewrittenJs=compilationResult.getJavaScript().clone();
+          rewrittenJs[0]=closureHelpers + rewrittenJs[0];
+        }
+        return rewrittenJs;
+      }
+      @Override public StatementRanges[] getStatementRanges(){
+        if (ranges == null) {
+          ranges=compilationResult.getStatementRanges().clone();
+          StatementRanges oldStmtRange=ranges[0];
+          StatementRangesBuilder builder=new StatementRangesBuilder();
+          builder.addStartPosition(0);
+          builder.addEndPosition(closureHelpers.length());
+          builder.append(oldStmtRange);
+          ranges[0]=builder.build();
+        }
+        return ranges;
+      }
+    }
+;
+    updatedArtifacts.remove(compilationResult);
+    updatedArtifacts.add(updatedResult);
+    SymbolMapsLinker.ScriptFragmentEditsArtifact editArtifact=new SymbolMapsLinker.ScriptFragmentEditsArtifact(null,0);
+    editArtifact.prefixLines(closureHelpers);
+    updatedArtifacts.add(editArtifact);
+    break;
+  }
+  return updatedArtifacts;
+}
