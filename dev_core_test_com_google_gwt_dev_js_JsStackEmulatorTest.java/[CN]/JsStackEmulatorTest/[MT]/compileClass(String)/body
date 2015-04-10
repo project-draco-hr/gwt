@@ -12,7 +12,7 @@
   options.setOutput(JsOutputOption.PRETTY);
   options.setRunAsyncEnabled(false);
   CompilerContext context=new CompilerContext.Builder().options(options).minimalRebuildCache(new MinimalRebuildCache()).build();
-  ConfigProps config=new ConfigProps(Arrays.asList(recordFileNamesProp,recordLineNumbersProp));
+  ConfigurationProperties config=new ConfigurationProperties(Arrays.asList(recordFileNamesProp,recordLineNumbersProp));
   CompilationState state=CompilationStateBuilder.buildFrom(logger,context,sourceOracle.getResources(),null);
   JProgram jProgram=AstConstructor.construct(logger,state,options,config);
   jProgram.addEntryMethod(findMethod(jProgram,"onModuleLoad"));
@@ -29,9 +29,9 @@
   Map<StandardSymbolData,JsName> symbolTable=new TreeMap<StandardSymbolData,JsName>(new SymbolData.ClassIdentComparator());
   BindingProperty stackMode=new BindingProperty("compiler.stackMode");
   stackMode.addDefinedValue(new ConditionNone(),"EMULATED");
-  PermProps props=new PermProps(Arrays.asList(new BindingProps(new BindingProperty[]{stackMode},new String[]{"EMULATED"},config)));
+  PermutationProperties properties=new PermutationProperties(Arrays.asList(new BindingProperties(new BindingProperty[]{stackMode},new String[]{"EMULATED"},config)));
   JsProgram jsProgram=new JsProgram();
-  JavaToJavaScriptMap jjsmap=GenerateJavaScriptAST.exec(logger,jProgram,jsProgram,context,typeMapper,symbolTable,props).getLeft();
-  JsStackEmulator.exec(jProgram,jsProgram,props,jjsmap);
+  JavaToJavaScriptMap jjsmap=GenerateJavaScriptAST.exec(logger,jProgram,jsProgram,context,typeMapper,symbolTable,properties).getLeft();
+  JsStackEmulator.exec(jProgram,jsProgram,properties,jjsmap);
   return jsProgram;
 }

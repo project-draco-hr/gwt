@@ -1,0 +1,20 @@
+{
+  Set<BindingProperty> bindingProperties=new LinkedHashSet<BindingProperty>(properties.getBindingProperties());
+  Map<String,BindingProperty> evaluationOrder=new LinkedHashMap<String,BindingProperty>(bindingProperties.size());
+  while (!bindingProperties.isEmpty()) {
+    boolean changed=false;
+    for (Iterator<BindingProperty> it=bindingProperties.iterator(); it.hasNext(); ) {
+      BindingProperty prop=it.next();
+      Set<String> deps=prop.getRequiredProperties();
+      if (evaluationOrder.keySet().containsAll(deps)) {
+        it.remove();
+        evaluationOrder.put(prop.getName(),prop);
+        changed=true;
+      }
+    }
+    if (!changed) {
+      throw new IllegalStateException("Cycle detected within remaining property dependencies " + bindingProperties.toString());
+    }
+  }
+  return evaluationOrder.values().toArray(new BindingProperty[evaluationOrder.size()]);
+}

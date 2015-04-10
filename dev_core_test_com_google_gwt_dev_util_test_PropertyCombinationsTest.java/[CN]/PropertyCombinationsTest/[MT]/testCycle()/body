@@ -1,0 +1,22 @@
+{
+  ModuleDef md=new ModuleDef("testCycle");
+  Properties properties=md.getProperties();
+{
+    BindingProperty bindingProperty=properties.createBinding("A");
+    bindingProperty.addDefinedValue(bindingProperty.getRootCondition(),"a1");
+    bindingProperty.addDefinedValue(bindingProperty.getRootCondition(),"a2");
+    bindingProperty.addDefinedValue(new ConditionWhenPropertyIs("B","b3"),"a3");
+  }
+{
+    BindingProperty bindingProperty=properties.createBinding("B");
+    bindingProperty.addDefinedValue(bindingProperty.getRootCondition(),"b1");
+    bindingProperty.addDefinedValue(bindingProperty.getRootCondition(),"b2");
+    bindingProperty.addDefinedValue(new ConditionWhenPropertyIs("A","a3"),"b3");
+  }
+  try {
+    new PropertyCombinations(properties,md.getActiveLinkerNames());
+    fail();
+  }
+ catch (  IllegalStateException e) {
+  }
+}

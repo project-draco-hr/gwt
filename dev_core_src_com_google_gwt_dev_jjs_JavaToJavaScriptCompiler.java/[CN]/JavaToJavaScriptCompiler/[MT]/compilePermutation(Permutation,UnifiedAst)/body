@@ -1,10 +1,10 @@
 {
-  Event jjsCompilePermutationEvent=SpeedTracerLogger.start(CompilerEventType.JJS_COMPILE_PERMUTATION,"name",permutation.getProps().prettyPrint());
+  Event jjsCompilePermutationEvent=SpeedTracerLogger.start(CompilerEventType.JJS_COMPILE_PERMUTATION,"name",permutation.getProperties().prettyPrint());
   long permStartMs=System.currentTimeMillis();
   try {
     Event javaEvent=SpeedTracerLogger.start(CompilerEventType.PERMUTATION_JAVA);
     long startTimeMs=System.currentTimeMillis();
-    PermProps props=permutation.getProps();
+    PermutationProperties properties=permutation.getProperties();
     int permutationId=permutation.getId();
     AST ast=unifiedAst.getFreshAst();
     jprogram=ast.getJProgram();
@@ -26,7 +26,7 @@
     jprogram.typeOracle.recomputeAfterOptimizations(jprogram.getDeclaredTypes());
     javaEvent.end();
     Event javaScriptEvent=SpeedTracerLogger.start(CompilerEventType.PERMUTATION_JAVASCRIPT);
-    Pair<? extends JavaToJavaScriptMap,Set<JsNode>> jjsMapAndInlineableFunctions=GenerateJavaScriptAST.exec(logger,jprogram,jsProgram,compilerContext,typeMapper,symbolTable,props);
+    Pair<? extends JavaToJavaScriptMap,Set<JsNode>> jjsMapAndInlineableFunctions=GenerateJavaScriptAST.exec(logger,jprogram,jsProgram,compilerContext,typeMapper,symbolTable,properties);
     JavaToJavaScriptMap jjsmap=jjsMapAndInlineableFunctions.getLeft();
     if (System.getProperty("gwt.coverage") != null) {
       CoverageInstrumentor.exec(jsProgram,instrumentableLines);
@@ -39,12 +39,12 @@
     EvalFunctionsAtTopScope.exec(jsProgram,jjsmap);
     final Set<JsNode> inlinableJsFunctions=jjsMapAndInlineableFunctions.getRight();
     optimizeJs(inlinableJsFunctions);
-    JsStackEmulator.exec(jprogram,jsProgram,props,jjsmap);
-    Pair<SyntheticArtifact,MultipleDependencyGraphRecorder> dependenciesAndRecorder=splitJsIntoFragments(props,permutationId,jjsmap);
-    Map<JsName,JsLiteral> internedLiteralByVariableName=renameJsSymbols(props,jjsmap);
-    JsBreakUpLargeVarStatements.exec(jsProgram,props.getConfigProps());
+    JsStackEmulator.exec(jprogram,jsProgram,properties,jjsmap);
+    Pair<SyntheticArtifact,MultipleDependencyGraphRecorder> dependenciesAndRecorder=splitJsIntoFragments(properties,permutationId,jjsmap);
+    Map<JsName,JsLiteral> internedLiteralByVariableName=renameJsSymbols(properties,jjsmap);
+    JsBreakUpLargeVarStatements.exec(jsProgram,properties.getConfigurationProperties());
     List<JsSourceMap> sourceInfoMaps=new ArrayList<JsSourceMap>();
-    boolean isSourceMapsEnabled=props.isTrueInAnyPermutation("compiler.useSourceMaps");
+    boolean isSourceMapsEnabled=properties.isTrueInAnyPermutation("compiler.useSourceMaps");
     String[] jsFragments=new String[jsProgram.getFragmentCount()];
     StatementRanges[] ranges=new StatementRanges[jsFragments.length];
     SizeBreakdown[] sizeBreakdowns=options.isJsonSoycEnabled() || options.isSoycEnabled() || options.isCompilerMetricsEnabled() ? new SizeBreakdown[jsFragments.length] : null;

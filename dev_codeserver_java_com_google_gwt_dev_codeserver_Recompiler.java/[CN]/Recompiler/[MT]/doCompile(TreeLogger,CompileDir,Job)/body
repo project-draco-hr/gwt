@@ -10,14 +10,14 @@
   Map<String,String> bindingProperties=restrictPermutations(compileLogger,module,job.getBindingProperties());
   String newModuleName=module.getName();
   outputModuleName.set(newModuleName);
-  PropertyPermutations propertyPermutations=new PropertyPermutations(module.getProperties(),module.getActiveLinkerNames());
-  List<PropertyPermutations> permutationPropertySets=propertyPermutations.collapseProperties();
+  PropertyCombinations propertyCombinations=new PropertyCombinations(module.getProperties(),module.getActiveLinkerNames());
+  List<PropertyCombinations> permutationPropertySets=propertyCombinations.collapseProperties();
   if (options.isIncrementalCompileEnabled() && permutationPropertySets.size() > 1) {
     compileLogger.log(Type.INFO,"Current binding properties are expanding to more than one permutation " + "but incremental compilation requires that each compile operate on only " + "one permutation.");
     job.setCompileStrategy(CompileStrategy.SKIPPED);
     return true;
   }
-  PropertyPermutations permutationPropertySet=permutationPropertySets.get(0);
+  PropertyCombinations permutationPropertySet=permutationPropertySets.get(0);
   PermutationDescription permutationDescription=permutationPropertySet.getPermutationDescription(0);
   InputSummary inputSummary=new InputSummary(bindingProperties,module);
   if (inputSummary.equals(previousInputSummary)) {

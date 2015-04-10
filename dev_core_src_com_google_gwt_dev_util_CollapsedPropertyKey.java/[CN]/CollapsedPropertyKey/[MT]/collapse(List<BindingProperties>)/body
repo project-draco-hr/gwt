@@ -1,0 +1,18 @@
+{
+  SortedSetMultimap<String,String> propertyValuesByPropertyName=TreeMultimap.create();
+  for (  BindingProperties bindingProperties : allPropertiesSets) {
+    BindingProperty[] properties=bindingProperties.getOrderedProps();
+    String[] values=bindingProperties.getOrderedPropValues();
+    for (int i=0; i < properties.length; i++) {
+      BindingProperty property=properties[i];
+      String value=values[i];
+      propertyValuesByPropertyName.put(property.getName(),value);
+      for (      Set<String> collapsedValues : property.getCollapsedValuesSets()) {
+        if (collapsedValues.contains(value)) {
+          propertyValuesByPropertyName.putAll(property.getName(),collapsedValues);
+        }
+      }
+    }
+  }
+  return propertyValuesByPropertyName.toString();
+}

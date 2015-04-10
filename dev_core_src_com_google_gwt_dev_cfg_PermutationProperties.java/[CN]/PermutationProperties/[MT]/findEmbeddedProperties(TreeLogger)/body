@@ -1,0 +1,25 @@
+{
+  Set<String> propsWanted=Sets.newTreeSet(getConfigurationProperties().getStrings("js.embedded.properties"));
+  SortedSet<String> propsToSave=Sets.newTreeSet();
+  for (  BindingProperty prop : getBindingProperties()) {
+    String name=prop.getName();
+    if (propsWanted.remove(name)) {
+      propsToSave.add(name);
+    }
+  }
+  if (!propsWanted.isEmpty()) {
+    TreeLogger branch=logger.branch(Type.WARN,propsWanted.size() + "properties listed in js.embedded.properties are undefined");
+    for (    String prop : propsWanted) {
+      branch.log(Type.WARN,"undefined property: '" + prop + "'");
+    }
+  }
+  List<ImmutableMap<String,String>> result=Lists.newArrayList();
+  for (  BindingProperties properties : getSoftProperties()) {
+    ImmutableMap.Builder<String,String> values=ImmutableMap.builder();
+    for (    String key : propsToSave) {
+      values.put(key,properties.getString(key,null));
+    }
+    result.add(values.build());
+  }
+  return ImmutableList.copyOf(result);
+}

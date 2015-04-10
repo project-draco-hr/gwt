@@ -1,0 +1,29 @@
+{
+  ModuleDef md=new ModuleDef("testTwoDimensionPerm");
+  Properties properties=md.getProperties();
+{
+    BindingProperty bindingProperty=properties.createBinding("user.agent");
+    bindingProperty.addDefinedValue(bindingProperty.getRootCondition(),"moz");
+    bindingProperty.addDefinedValue(bindingProperty.getRootCondition(),"ie6");
+    bindingProperty.addDefinedValue(bindingProperty.getRootCondition(),"opera");
+    bindingProperty.addCollapsedValues("moz","ie6","opera");
+  }
+{
+    BindingProperty bindingProperty=properties.createBinding("debug");
+    bindingProperty.addDefinedValue(bindingProperty.getRootCondition(),"false");
+    bindingProperty.addDefinedValue(bindingProperty.getRootCondition(),"true");
+  }
+  PropertyCombinations permutations=new PropertyCombinations(md.getProperties(),md.getActiveLinkerNames());
+  List<PropertyCombinations> collapsed=permutations.collapseProperties();
+  assertEquals("size",2,collapsed.size());
+  Iterator<String[]> it=collapsed.get(0).iterator();
+  assertEquals(Arrays.asList("false","ie6"),Arrays.asList(it.next()));
+  assertEquals(Arrays.asList("false","moz"),Arrays.asList(it.next()));
+  assertEquals(Arrays.asList("false","opera"),Arrays.asList(it.next()));
+  assertFalse(it.hasNext());
+  it=collapsed.get(1).iterator();
+  assertEquals(Arrays.asList("true","ie6"),Arrays.asList(it.next()));
+  assertEquals(Arrays.asList("true","moz"),Arrays.asList(it.next()));
+  assertEquals(Arrays.asList("true","opera"),Arrays.asList(it.next()));
+  assertFalse(it.hasNext());
+}
