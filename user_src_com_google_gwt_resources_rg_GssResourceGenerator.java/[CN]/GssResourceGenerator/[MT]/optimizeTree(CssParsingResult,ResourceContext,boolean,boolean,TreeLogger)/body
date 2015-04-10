@@ -10,15 +10,13 @@
   new ExtendedEliminateConditionalNodes(cssTree.getMutatingVisitController(),trueCompileTimeConditions,runtimeConditionalBlockCollector.getRuntimeConditionalBlock()).runPass();
   new ValidateRuntimeConditionalNode(cssTree.getVisitController(),errorManager,isLenientConversion()).runPass();
   checkErrors();
+  CollectConstantDefinitions collectConstantDefinitionsPass=new CollectConstantDefinitions(cssTree);
+  collectConstantDefinitionsPass.runPass();
+  ReplaceConstantReferences replaceConstantReferences=new ReplaceConstantReferences(cssTree,collectConstantDefinitionsPass.getConstantDefinitions(),true,errorManager,false);
+  replaceConstantReferences.runPass();
   new ImageSpriteCreator(cssTree.getMutatingVisitController(),context,errorManager).runPass();
   Map<String,GssFunction> gssFunctionMap=new GwtGssFunctionMapProvider(context).get();
   new ResolveCustomFunctionNodes(cssTree.getMutatingVisitController(),errorManager,gssFunctionMap,true,allowedNonStandardFunctions).runPass();
-  CollectConstantDefinitions collectConstantDefinitionsPass=new CollectConstantDefinitions(cssTree);
-  collectConstantDefinitionsPass.runPass();
-  ReplaceConstantReferences replaceConstantReferences=new ReplaceConstantReferences(cssTree,collectConstantDefinitionsPass.getConstantDefinitions(),false,errorManager,false);
-  replaceConstantReferences.runPass();
-  collectConstantDefinitionsPass=new CollectAndRemoveConstantDefinitions(cssTree);
-  collectConstantDefinitionsPass.runPass();
   if (simplifyCss) {
     new EliminateEmptyRulesetNodes(cssTree.getMutatingVisitController()).runPass();
     new EliminateUnitsFromZeroNumericValues(cssTree.getMutatingVisitController()).runPass();
