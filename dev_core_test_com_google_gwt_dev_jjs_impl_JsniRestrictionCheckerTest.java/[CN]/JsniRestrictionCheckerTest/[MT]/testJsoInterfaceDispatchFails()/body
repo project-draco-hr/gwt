@@ -1,11 +1,5 @@
 {
   addSnippetImport("com.google.gwt.core.client.JavaScriptObject");
   addSnippetClassDecl("static class Buggy {","  interface IFoo {","    void foo();","  }","  static final class Foo extends JavaScriptObject implements IFoo {","    protected Foo() { };","    public void foo() { };","  }","  native void jsniMeth(Object o) /*-{","    new Object().@Buggy.IFoo::foo()();","  }-*/;","}");
-  try {
-    optimize("void","new Buggy().jsniMeth(null);");
-    fail("JsniRestrictionChecker should have prevented JSO interface dispatch in a JSNI method.");
-  }
- catch (  Exception e) {
-    assertTrue(e.getCause() instanceof UnableToCompleteException);
-  }
+  assertCompileFails("new Buggy().jsniMeth(null);","JSNI method test.EntryPoint$Buggy.jsniMeth(Ljava/lang/Object;)V attempts to call " + "method test.EntryPoint$Buggy$IFoo.foo()V on an instance which might be a " + "JavaScriptObject. Such a method call is only allowed in pure Java "+ "(non-JSNI) functions.");
 }

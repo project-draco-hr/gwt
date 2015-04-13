@@ -1,0 +1,19 @@
+{
+  UnitTestTreeLogger.Builder builder=new UnitTestTreeLogger.Builder();
+  builder.setLowestLogLevel(TreeLogger.WARN);
+  if (expectedWarnings != null) {
+    for (    String expectedWarning : expectedWarnings) {
+      builder.expectWarn(expectedWarning,null);
+    }
+  }
+  UnitTestTreeLogger errorLogger=builder.createLogger();
+  try {
+    optimize(errorLogger,"void",code);
+  }
+ catch (  UnableToCompleteException e) {
+    fail("Compile failed");
+  }
+ finally {
+    errorLogger.assertCorrectLogEntries();
+  }
+}
