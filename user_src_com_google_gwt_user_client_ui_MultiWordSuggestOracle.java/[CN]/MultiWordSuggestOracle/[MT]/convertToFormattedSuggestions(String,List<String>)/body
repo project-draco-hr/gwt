@@ -2,33 +2,44 @@
   List<MultiWordSuggestion> suggestions=new ArrayList<MultiWordSuggestion>();
   for (int i=0; i < candidates.size(); i++) {
     String candidate=candidates.get(i);
-    int cursor=0;
-    int index=0;
-    String formattedSuggestion=toRealSuggestions.get(candidate);
-    SafeHtmlBuilder accum=new SafeHtmlBuilder();
-    String[] searchWords=query.split(WHITESPACE_STRING);
-    while (true) {
-      WordBounds wordBounds=findNextWord(candidate,searchWords,index);
-      if (wordBounds == null) {
-        break;
-      }
-      if (wordBounds.startIndex == 0 || WHITESPACE_CHAR == candidate.charAt(wordBounds.startIndex - 1)) {
-        String part1=formattedSuggestion.substring(cursor,wordBounds.startIndex);
-        String part2=formattedSuggestion.substring(wordBounds.startIndex,wordBounds.endIndex);
-        cursor=wordBounds.endIndex;
-        accum.appendEscaped(part1);
-        accum.appendHtmlConstant("<strong>");
-        accum.appendEscaped(part2);
-        accum.appendHtmlConstant("</strong>");
-      }
-      index=wordBounds.endIndex;
+    List<String> realSuggestions=toRealSuggestions.get(candidate);
+    TreeSet<String> realSuggestionsSet=new TreeSet<>();
+    if (suggestAllMatchingWords) {
+      realSuggestionsSet.addAll(realSuggestions);
     }
-    if (cursor == 0) {
-      continue;
+ else {
+      realSuggestionsSet.add(realSuggestions.get(0));
     }
-    accum.appendEscaped(formattedSuggestion.substring(cursor));
-    MultiWordSuggestion suggestion=createSuggestion(formattedSuggestion,accum.toSafeHtml().asString());
-    suggestions.add(suggestion);
+    Iterator<String> realSuggestionsIterator=realSuggestionsSet.iterator();
+    while (realSuggestionsIterator.hasNext()) {
+      int cursor=0;
+      int index=0;
+      String formattedSuggestion=realSuggestionsIterator.next();
+      SafeHtmlBuilder accum=new SafeHtmlBuilder();
+      String[] searchWords=query.split(WHITESPACE_STRING);
+      while (true) {
+        WordBounds wordBounds=findNextWord(candidate,searchWords,index);
+        if (wordBounds == null) {
+          break;
+        }
+        if (wordBounds.startIndex == 0 || WHITESPACE_CHAR == candidate.charAt(wordBounds.startIndex - 1)) {
+          String part1=formattedSuggestion.substring(cursor,wordBounds.startIndex);
+          String part2=formattedSuggestion.substring(wordBounds.startIndex,wordBounds.endIndex);
+          cursor=wordBounds.endIndex;
+          accum.appendEscaped(part1);
+          accum.appendHtmlConstant("<strong>");
+          accum.appendEscaped(part2);
+          accum.appendHtmlConstant("</strong>");
+        }
+        index=wordBounds.endIndex;
+      }
+      if (cursor == 0) {
+        continue;
+      }
+      accum.appendEscaped(formattedSuggestion.substring(cursor));
+      MultiWordSuggestion suggestion=createSuggestion(formattedSuggestion,accum.toSafeHtml().asString());
+      suggestions.add(suggestion);
+    }
   }
   return suggestions;
 }
