@@ -1,10 +1,15 @@
 {
+  String namespace=member.getExportNamespace();
   if (namespace.equals(lastExportedNamespace)) {
     return;
   }
   lastExportedNamespace=namespace;
+  SourceInfo sourceInfo=member.getSourceInfo();
   JsInvocation provideCall=new JsInvocation(sourceInfo);
   provideCall.setQualifier(provideFunc.makeRef(sourceInfo));
   provideCall.getArguments().add(new JsStringLiteral(sourceInfo,namespace));
+  if (ctor != null) {
+    provideCall.getArguments().add(ctor);
+  }
   exportStmts.add(createAssignment(globalTemp.makeRef(sourceInfo),provideCall).makeStmt());
 }
