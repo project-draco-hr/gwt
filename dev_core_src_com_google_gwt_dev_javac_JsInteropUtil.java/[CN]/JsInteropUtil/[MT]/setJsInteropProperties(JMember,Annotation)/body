@@ -1,8 +1,14 @@
 {
+  String namespace=null;
+  AnnotationBinding jsNamespace=JdtUtil.getAnnotation(annotations,JSNAMESPACE_CLASS);
+  if (jsNamespace != null) {
+    namespace=JdtUtil.getAnnotationParameterString(jsNamespace,"value");
+  }
   AnnotationBinding jsExport=JdtUtil.getAnnotation(annotations,JSEXPORT_CLASS);
   if (jsExport != null) {
     String value=JdtUtil.getAnnotationParameterString(jsExport,"value");
-    setExportInfo(member,value == null ? "" : value);
+    String exportName=Strings.isNullOrEmpty(value) ? computeExportName(member) : value;
+    member.setExportInfo(namespace,exportName);
   }
   boolean ignore=JdtUtil.getAnnotation(annotations,JSNOEXPORT_CLASS) != null;
   if (ignore || !member.isPublic()) {
@@ -13,6 +19,6 @@
     member.setJsMemberName(member.getName());
   }
   if (enclosingType.isClassWideExport() && !member.needsVtable() && jsExport == null) {
-    setExportInfo(member,"");
+    member.setExportInfo(namespace,computeExportName(member));
   }
 }
