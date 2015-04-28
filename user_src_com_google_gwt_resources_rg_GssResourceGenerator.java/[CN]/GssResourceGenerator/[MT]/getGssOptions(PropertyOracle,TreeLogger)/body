@@ -1,0 +1,31 @@
+{
+  boolean gssEnabled;
+  boolean gssDefaultInUiBinder;
+  AutoConversionMode conversionMode;
+  try {
+    ConfigurationProperty enableGssProp=propertyOracle.getConfigurationProperty(KEY_ENABLE_GSS);
+    String enableGss=enableGssProp.getValues().get(0);
+    gssEnabled=Boolean.parseBoolean(enableGss);
+  }
+ catch (  BadPropertyValueException ex) {
+    logger.log(Type.ERROR,"Unable to determine if GSS need to be used");
+    throw new UnableToCompleteException();
+  }
+  try {
+    conversionMode=Enum.valueOf(AutoConversionMode.class,propertyOracle.getConfigurationProperty(KEY_CONVERSION_MODE).getValues().get(0).toUpperCase(Locale.ROOT));
+  }
+ catch (  BadPropertyValueException ex) {
+    logger.log(Type.ERROR,"Unable to conversion mode for GSS");
+    throw new UnableToCompleteException();
+  }
+  try {
+    ConfigurationProperty uiBinderGssDefaultProp=propertyOracle.getConfigurationProperty(KEY_GSS_DEFAULT_IN_UIBINDER);
+    String uiBinderGssDefaultValue=uiBinderGssDefaultProp.getValues().get(0);
+    gssDefaultInUiBinder=Boolean.parseBoolean(uiBinderGssDefaultValue);
+  }
+ catch (  BadPropertyValueException ex) {
+    logger.log(Type.ERROR,"Unable to determine default for GSS in UiBinder");
+    throw new UnableToCompleteException();
+  }
+  return new GssOptions(gssEnabled,conversionMode,gssDefaultInUiBinder);
+}
