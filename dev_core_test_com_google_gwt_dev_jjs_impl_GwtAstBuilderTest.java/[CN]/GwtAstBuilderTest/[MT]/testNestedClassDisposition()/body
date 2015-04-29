@@ -1,6 +1,6 @@
 {
   sourceLevel=SourceLevel.JAVA8;
-  sources.add(JavaResourceBase.createMockJavaResource("test.NestedClasses","package test;","public class NestedClasses {","  static class StaticNestedClass {}","  class InnerNestedClass {}","  interface Lambda { void run(); }","  public static void referencedMethod() {}","  public void m() {","    class LocalClass {}","    Object anonymousInner = new Object(){};","    Lambda lambda = () -> {};","    Lambda methodRef = NestedClasses::referencedMethod;","  }","}"));
+  sources.add(JavaResourceBase.createMockJavaResource("test.NestedClasses","package test;","public class NestedClasses {","  static class StaticNestedClass {}","  class InnerNestedClass {}","  interface Lambda { void run(); }","  public static void referencedMethod() {}","  public void m() {","    class LocalClass {}","    Object anonymousInner = new Object(){};","    Lambda lambda = () -> {};","    Lambda methodRef = NestedClasses::referencedMethod;","    new Lambda(){","      public void run(){","        Lambda lambda = () -> {};","      }","    };","  }","}"));
   JProgram program=compileProgram("test.NestedClasses");
   JDeclaredType staticNested=program.getFromTypeMap("test.NestedClasses$StaticNestedClass");
   assertEquals(JDeclaredType.NestedClassDisposition.STATIC,staticNested.getClassDisposition());
@@ -16,4 +16,6 @@
   assertEquals(JDeclaredType.NestedClassDisposition.LAMBDA,referenceNested.getClassDisposition());
   JDeclaredType topLevel=program.getFromTypeMap("test.NestedClasses");
   assertEquals(JDeclaredType.NestedClassDisposition.TOP_LEVEL,topLevel.getClassDisposition());
+  JDeclaredType lambdaNestedInner=program.getFromTypeMap("test.NestedClasses$2$lambda$0$Type");
+  assertEquals(JDeclaredType.NestedClassDisposition.LAMBDA,lambdaNestedInner.getClassDisposition());
 }
