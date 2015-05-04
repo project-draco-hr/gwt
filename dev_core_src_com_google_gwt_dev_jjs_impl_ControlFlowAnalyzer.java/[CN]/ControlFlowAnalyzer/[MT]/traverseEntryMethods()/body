@@ -2,13 +2,20 @@
   for (  JMethod method : program.getEntryMethods()) {
     traverseFrom(method);
   }
-  for (  JMethod method : program.typeOracle.getExportedMethods()) {
-    rescuer.rescue(method.getEnclosingType(),true,true);
-    traverseFrom(method);
-  }
-  for (  JField field : program.typeOracle.getExportedFields()) {
-    rescuer.rescue(field.getEnclosingType(),true,true);
-    rescuer.rescue(field);
+  List<JDeclaredType> declaredTypes=program.getDeclaredTypes();
+  for (  JDeclaredType type : declaredTypes) {
+    for (    JMethod method : type.getMethods()) {
+      if (program.typeOracle.isExportedMethod(method)) {
+        rescuer.rescue(method.getEnclosingType(),true,true);
+        traverseFrom(method);
+      }
+    }
+    for (    JField field : type.getFields()) {
+      if (program.typeOracle.isExportedField(field)) {
+        rescuer.rescue(field.getEnclosingType(),true,true);
+        rescuer.rescue(field);
+      }
+    }
   }
   if (program.getRunAsyncs().size() > 0) {
     traverseFrom(asyncFragmentOnLoad);
