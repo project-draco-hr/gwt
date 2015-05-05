@@ -1,0 +1,27 @@
+{
+  List<JMethod> exportedCtors=FluentIterable.from(x.getMethods()).filter(new Predicate<JMethod>(){
+    @Override public boolean apply(    JMethod m){
+      return m.isExported() && m instanceof JConstructor;
+    }
+  }
+).toList();
+  if (exportedCtors.isEmpty()) {
+    return;
+  }
+  if (exportedCtors.size() > 1) {
+    logError("More than one constructor exported for %s.",x.getName());
+  }
+  final JConstructor exportedCtor=(JConstructor)exportedCtors.get(0);
+  if (!exportedCtor.getExportName().isEmpty()) {
+    logError("Constructor '%s' cannot have an export name.",exportedCtor.getQualifiedName());
+  }
+  boolean anyNonDelegatingConstructor=Iterables.any(x.getMethods(),new Predicate<JMethod>(){
+    @Override public boolean apply(    JMethod method){
+      return method != exportedCtor && method instanceof JConstructor && !isDelegatingToConstructor((JConstructor)method,exportedCtor);
+    }
+  }
+);
+  if (anyNonDelegatingConstructor) {
+    logError("Constructor '%s' can only be exported if all constructors in the class are " + "delegating to it.",exportedCtor.getQualifiedName());
+  }
+}
