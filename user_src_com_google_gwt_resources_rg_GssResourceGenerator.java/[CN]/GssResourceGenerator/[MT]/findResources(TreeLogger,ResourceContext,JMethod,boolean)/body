@@ -1,0 +1,31 @@
+{
+  boolean isSourceAnnotationUsed=method.getAnnotation(Source.class) != null;
+  if (!isSourceAnnotationUsed) {
+    String[] extensions=gssEnabled ? new String[]{".gss",".css"} : new String[]{".css",".gss"};
+    return ResourceGeneratorUtil.findResources(logger,context,method,extensions);
+  }
+  URL[] originalResources=ResourceGeneratorUtil.findResources(logger,context,method);
+  URL[] resourcesToUse=new URL[originalResources.length];
+  String preferredExtension=gssEnabled ? ".gss" : ".css";
+  String[] sourceFiles=method.getAnnotation(Source.class).value();
+  for (int i=0; i < sourceFiles.length; i++) {
+    String original=sourceFiles[i];
+    if (!original.endsWith(preferredExtension) && original.length() > 4) {
+      String preferredFile=original.substring(0,original.length() - 4) + preferredExtension;
+      String path=method.getEnclosingType().getPackage().getName().replace('.','/') + '/';
+      URL preferredUrl=ResourceGeneratorUtil.tryFindResource(logger,context.getGeneratorContext(),context,path + preferredFile);
+      if (preferredUrl == null) {
+        preferredUrl=ResourceGeneratorUtil.tryFindResource(logger,context.getGeneratorContext(),context,preferredFile);
+      }
+      if (preferredUrl == null) {
+        return originalResources;
+      }
+      logger.log(Type.INFO,"Preferred resource file found: " + preferredFile + ". This file "+ "will be used in replacement of "+ original);
+      resourcesToUse[i]=preferredUrl;
+    }
+ else {
+      return originalResources;
+    }
+  }
+  return resourcesToUse;
+}
