@@ -3,14 +3,14 @@
     return false;
   }
   currentJsTypeProcessedMethods.addAll(x.getOverriddenMethods());
-  if (currentType == x.getEnclosingType() && jprogram.typeOracle.isExportedMethod(x)) {
+  if (currentType == x.getEnclosingType() && x.isExported()) {
     checkExportName(x);
   }
- else   if (jprogram.typeOracle.isJsTypeMethod(x)) {
+ else   if (x.isOrOverridesJsTypeMethod()) {
     checkJsTypeMethod(x);
   }
   if (currentType == x.getEnclosingType()) {
-    if (jprogram.typeOracle.isJsPropertyMethod(x) && !jprogram.typeOracle.isJsType(currentType)) {
+    if (x.isJsPropertyAccessor() && !currentType.isJsType()) {
       if (currentType instanceof JInterfaceType) {
         logError("Method '%s' can't be a JsProperty since interface '%s' is not a JsType.",x.getName(),x.getEnclosingType().getName());
       }

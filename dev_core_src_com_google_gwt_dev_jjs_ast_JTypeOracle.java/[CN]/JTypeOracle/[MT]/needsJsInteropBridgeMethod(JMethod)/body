@@ -1,14 +1,11 @@
 {
-  if (!isJsInteropEnabled()) {
-    return false;
-  }
   List<JParameter> xParams=x.getParams();
-  if (isJsTypeMethod(x)) {
+  if (x.isOrOverridesJsTypeMethod()) {
     for (    JMethod other : x.getEnclosingType().getMethods()) {
       if (other == x) {
         continue;
       }
-      if (isJsTypeMethod(other) && x.getName().equals(other.getName())) {
+      if (other.isOrOverridesJsTypeMethod() && x.getName().equals(other.getName())) {
         List<JParameter> otherParams=other.getParams();
         if (otherParams.size() == xParams.size()) {
           for (int i=0; i < otherParams.size(); i++) {
@@ -24,14 +21,14 @@
       }
     }
   }
-  if (x.needsVtable() && isJsTypeMethod(x)) {
+  if (x.needsVtable() && x.isOrOverridesJsTypeMethod()) {
     for (    JMethod override : x.getOverriddenMethods()) {
-      if (!isJsTypeMethod(override)) {
+      if (!override.isOrOverridesJsTypeMethod()) {
         return true;
       }
     }
   }
-  if (isJsTypeMethod(x) || isExportedMethod(x)) {
+  if (x.isOrOverridesJsTypeMethod() || x.isExported()) {
     if (x.getOriginalReturnType() == JPrimitiveType.LONG) {
       return true;
     }

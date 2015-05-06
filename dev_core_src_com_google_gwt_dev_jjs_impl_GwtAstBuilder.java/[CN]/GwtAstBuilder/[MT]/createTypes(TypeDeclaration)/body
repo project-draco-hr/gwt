@@ -14,7 +14,9 @@
     JDeclaredType type;
     if (binding.isClass()) {
       type=new JClassType(info,name,binding.isAbstract(),binding.isFinal());
-      ((JClassType)type).setJsPrototypeStub(JsInteropUtil.isJsPrototypeFlag(x));
+      if (isJsInteropEnabled) {
+        ((JClassType)type).setJsPrototypeStub(JsInteropUtil.isJsPrototypeFlag(x));
+      }
     }
  else     if (binding.isInterface() || binding.isAnnotationType()) {
       type=new JInterfaceType(info,name);
@@ -30,7 +32,9 @@
  else {
       throw new InternalCompilerException("ReferenceBinding is not a class, interface, or enum.");
     }
-    JsInteropUtil.maybeSetJsInteropProperties(type,x.annotations);
+    if (isJsInteropEnabled) {
+      JsInteropUtil.maybeSetJsInteropProperties(type,x.annotations);
+    }
     JdtUtil.setClassDispositionFromBinding(binding,type);
     typeMap.setSourceType(binding,type);
     newTypes.add(type);
