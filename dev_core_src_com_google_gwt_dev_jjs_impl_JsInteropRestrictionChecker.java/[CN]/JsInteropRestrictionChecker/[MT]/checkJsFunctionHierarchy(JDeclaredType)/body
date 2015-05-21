@@ -1,11 +1,28 @@
 {
-  SortedSet<String> implementedJsFunctions=FluentIterable.from(jprogram.typeOracle.getImplementedJsFunctions(type)).transform(new Function<JInterfaceType,String>(){
-    @Override public String apply(    JInterfaceType type){
-      return type.getName();
-    }
+  if (!type.isOrExtendsJsFunction()) {
+    return;
   }
-).toSortedSet(Ordering.natural());
-  if (implementedJsFunctions.size() > 1) {
-    logError("'%s' implements more than one JsFunction interfaces: %s",type.getName(),implementedJsFunctions);
+  List<JInterfaceType> implementedInterfaces=type.getImplements();
+  if (type.isJsFunction()) {
+    if (implementedInterfaces.size() > 0) {
+      logError("JsFunction '%s' cannot extend other interfaces.",type);
+    }
+    if (type.isJsType()) {
+      logError("'%s' cannot be both a JsFunction and a JsType at the same time.",type);
+    }
+    return;
+  }
+  if (type instanceof JInterfaceType) {
+    logError("Interface '%s' cannot extend a JsFunction interface.",type);
+    return;
+  }
+  if (implementedInterfaces.size() != 1) {
+    logError("JsFunction implementation '%s' cannot implement more than one interface.",type);
+  }
+  if (type.isJsType()) {
+    logError("'%s' cannot be both a JsFunction implementation and a JsType at the same time.",type);
+  }
+  if (type.getSuperClass() != jprogram.getTypeJavaLangObject()) {
+    logError("JsFunction implementation '%s' cannot extend a class.",type);
   }
 }
