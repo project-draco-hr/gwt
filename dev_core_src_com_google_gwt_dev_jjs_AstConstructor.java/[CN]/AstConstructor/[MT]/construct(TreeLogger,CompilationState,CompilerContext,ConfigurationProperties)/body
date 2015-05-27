@@ -1,0 +1,37 @@
+{
+  InternalCompilerException.preload();
+  PrecompilationContext precompilationContext=new PrecompilationContext(new RebindPermutationOracle(){
+    @Override public void clear(){
+    }
+    @Override public String[] getAllPossibleRebindAnswers(    TreeLogger logger,    String sourceTypeName) throws UnableToCompleteException {
+      return new String[0];
+    }
+    @Override public CompilationState getCompilationState(){
+      return state;
+    }
+    @Override public StandardGeneratorContext getGeneratorContext(){
+      return null;
+    }
+  }
+);
+  JProgram jprogram=new JProgram(compilerContext.getMinimalRebuildCache());
+  JsProgram jsProgram=new JsProgram();
+  UnifyAst unifyAst=new UnifyAst(logger,compilerContext,jprogram,jsProgram,precompilationContext);
+  unifyAst.buildEverything();
+  jprogram.typeOracle.computeBeforeAST(StandardTypes.createFrom(jprogram),jprogram.getDeclaredTypes(),jprogram.getModuleDeclaredTypes());
+  FixAssignmentsToUnboxOrCast.exec(jprogram);
+  if (compilerContext.getOptions().isEnableAssertions()) {
+    AssertionNormalizer.exec(jprogram);
+  }
+ else {
+    AssertionRemover.exec(jprogram);
+  }
+  if (compilerContext.getOptions().isRunAsyncEnabled()) {
+    ReplaceRunAsyncs.exec(logger,jprogram);
+    if (config != null) {
+      CodeSplitters.pickInitialLoadSequence(logger,jprogram,config);
+    }
+  }
+  ImplementClassLiteralsAsFields.exec(jprogram);
+  return jprogram;
+}

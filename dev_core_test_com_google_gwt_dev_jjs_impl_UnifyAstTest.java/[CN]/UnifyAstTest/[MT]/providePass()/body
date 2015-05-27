@@ -1,0 +1,22 @@
+{
+  return new Pass(){
+    private Result result=null;
+    @Override public boolean run(    TreeLogger logger,    MockJavaResource buggyResource,    MockJavaResource extraResource){
+      addAll(buggyResource,extraResource);
+      try {
+        result=optimize(logger,"void","new SomeClass().m();");
+      }
+ catch (      UnableToCompleteException e) {
+        return false;
+      }
+      return true;
+    }
+    @Override public boolean classAvailable(    String className){
+      return result != null && result.findClass(className) != null;
+    }
+    @Override public String getTopErrorMessage(    Type logLevel,    MockJavaResource resource){
+      return (logLevel == Type.WARN ? "Warnings" : "Errors") + " in '" + resource.getPath()+ "'";
+    }
+  }
+;
+}

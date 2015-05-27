@@ -1,0 +1,23 @@
+{
+  return new Pass(){
+    private TypeOracle oracle=null;
+    @Override public boolean run(    TreeLogger logger,    MockJavaResource buggyResource,    MockJavaResource extraResource){
+      Set<Resource> resources=Sets.newHashSet();
+      addLongCheckingCups(resources);
+      Set<GeneratedUnit> generatedUnits=CompilationStateTestBase.getGeneratedUnits(buggyResource);
+      if (extraResource != null) {
+        generatedUnits.addAll(CompilationStateTestBase.getGeneratedUnits(extraResource));
+      }
+      CompilationState state=TypeOracleTestingUtils.buildCompilationStateWith(logger,resources,generatedUnits);
+      oracle=state.getTypeOracle();
+      return !state.hasErrors();
+    }
+    @Override public boolean classAvailable(    String className){
+      return oracle.findType(className) != null;
+    }
+    @Override public String getTopErrorMessage(    Type logLevel,    MockJavaResource resource){
+      return (logLevel == Type.WARN ? "Warnings" : "Errors") + " in '" + resource.getLocation()+ "'";
+    }
+  }
+;
+}

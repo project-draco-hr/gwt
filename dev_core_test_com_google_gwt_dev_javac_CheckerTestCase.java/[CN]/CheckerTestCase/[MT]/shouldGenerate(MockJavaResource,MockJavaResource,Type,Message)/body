@@ -1,21 +1,25 @@
 {
   UnitTestTreeLogger.Builder b=new UnitTestTreeLogger.Builder();
   b.setLowestLogLevel(logLevel);
-  if (messages.length != 0) {
-    b.expect(logLevel,(logLevel == Type.WARN ? "Warnings" : "Errors") + " in '" + buggyCode.getLocation()+ "'",null);
+  Pass pass=providePass();
+  String topLevelMessage=pass.getTopErrorMessage(logLevel,buggyCode);
+  if (messages.length != 0 && topLevelMessage != null) {
+    b.expect(logLevel,topLevelMessage,null);
   }
   for (  Message message : messages) {
     final String fullMessage="Line " + message.line + ": "+ message.message;
     b.expect(message.logLevel,fullMessage,null);
   }
   UnitTestTreeLogger logger=b.createLogger();
-  TypeOracle oracle=buildOracle(logger,buggyCode,extraCode);
+  boolean result=pass.run(logger,buggyCode,extraCode);
   logger.assertCorrectLogEntries();
   String className=buggyCode.getTypeName();
   if (messages.length != 0 && logLevel == TreeLogger.ERROR) {
-    assertNull("Buggy compilation unit not removed from type oracle",oracle.findType(className));
+    assertFalse("Compilation unit " + className + " not removed"+ " but should have been removed.",pass.classAvailable(className));
   }
  else {
-    assertNotNull("Buggy compilation unit removed with only a warning",oracle.findType(className));
+    assertTrue("Compilation unit " + className + " was removed but shouldnt have.",pass.classAvailable(className));
   }
+  boolean expectingErrors=messages.length != 0 && logLevel == Type.ERROR;
+  assertEquals(!expectingErrors,result);
 }

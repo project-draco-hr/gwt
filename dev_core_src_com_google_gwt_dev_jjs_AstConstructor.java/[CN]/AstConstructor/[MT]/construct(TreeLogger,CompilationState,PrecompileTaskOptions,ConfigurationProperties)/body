@@ -1,38 +1,4 @@
 {
-  InternalCompilerException.preload();
   CompilerContext compilerContext=new CompilerContext.Builder().options(options).minimalRebuildCache(new NullRebuildCache()).build();
-  PrecompilationContext precompilationContext=new PrecompilationContext(new RebindPermutationOracle(){
-    @Override public void clear(){
-    }
-    @Override public String[] getAllPossibleRebindAnswers(    TreeLogger logger,    String sourceTypeName) throws UnableToCompleteException {
-      return new String[0];
-    }
-    @Override public CompilationState getCompilationState(){
-      return state;
-    }
-    @Override public StandardGeneratorContext getGeneratorContext(){
-      return null;
-    }
-  }
-);
-  JProgram jprogram=new JProgram(compilerContext.getMinimalRebuildCache());
-  JsProgram jsProgram=new JsProgram();
-  UnifyAst unifyAst=new UnifyAst(logger,compilerContext,jprogram,jsProgram,precompilationContext);
-  unifyAst.buildEverything();
-  jprogram.typeOracle.computeBeforeAST(StandardTypes.createFrom(jprogram),jprogram.getDeclaredTypes(),jprogram.getModuleDeclaredTypes());
-  FixAssignmentsToUnboxOrCast.exec(jprogram);
-  if (options.isEnableAssertions()) {
-    AssertionNormalizer.exec(jprogram);
-  }
- else {
-    AssertionRemover.exec(jprogram);
-  }
-  if (options.isRunAsyncEnabled()) {
-    ReplaceRunAsyncs.exec(logger,jprogram);
-    if (config != null) {
-      CodeSplitters.pickInitialLoadSequence(logger,jprogram,config);
-    }
-  }
-  ImplementClassLiteralsAsFields.exec(jprogram);
-  return jprogram;
+  return construct(logger,state,compilerContext,config);
 }
