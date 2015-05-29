@@ -1,12 +1,13 @@
 {
-  addSnippetClassDecl("int field1, field2;");
-  addSnippetClassDecl("class Pojo2 {","  public Pojo2(int x, int y) {","  }","  public int someMethod() { ","    return field1 + field2; ","  }","}");
+  addSnippetClassDecl("int field1, field2;","class Pojo2 {","  public Pojo2(int x, int y) {","  }","  public int someMethod() { ","    return field1 + field2; ","  }","}");
   String lambda="new AcceptsLambda<Pojo2>().accept(Pojo2::new);";
-  assertEqualBlock("(new AcceptsLambda()).accept(" + "new Lambda$$test$EntryPoint$Pojo2$EntryPoint$Pojo2__Ltest_EntryPoint_2IIV$Type(this));",lambda);
+  String generatedInnerClassName=JjsUtils.classNamePrefixForMethodReference("test","test.EntryPoint","test.Lambda","test.EntryPoint$Pojo2","EntryPoint$Pojo2",false) + "__Ltest_EntryPoint_2IIV$Type";
+  String simpleLambdaInnerClassName=generatedInnerClassName.substring("test.".length());
+  assertEqualBlock("(new AcceptsLambda()).accept(new " + simpleLambdaInnerClassName + "(this));",lambda);
   JProgram program=compileSnippet("void",lambda,false);
-  JClassType lambdaInnerClass=(JClassType)getType(program,"test.Lambda$$test$EntryPoint$Pojo2$EntryPoint$Pojo2__Ltest_EntryPoint_2IIV$Type");
+  JClassType lambdaInnerClass=(JClassType)getType(program,generatedInnerClassName);
   assertNotNull(lambdaInnerClass);
-  JMethod ctor=findMethod(lambdaInnerClass,"Lambda$$test$EntryPoint$Pojo2$EntryPoint$Pojo2__Ltest_EntryPoint_2IIV$Type");
+  JMethod ctor=findMethod(lambdaInnerClass,simpleLambdaInnerClassName);
   assertTrue(ctor instanceof JConstructor);
   assertEquals(1,ctor.getParams().size());
   assertEquals(1,lambdaInnerClass.getFields().size());

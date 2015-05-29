@@ -1,10 +1,12 @@
 {
   String lambda="new AcceptsLambda<String>().accept2(String::equalsIgnoreCase);";
-  assertEqualBlock("(new AcceptsLambda()).accept2(" + "new Lambda2$$java$lang$String$equalsIgnoreCase__Ljava_lang_String_2Z$Type());",lambda);
+  String generatedInnerClassName=JjsUtils.classNamePrefixForMethodReference("test","test.EntryPoint","test.Lambda2","java.lang.String","equalsIgnoreCase",false) + "__Ljava_lang_String_2Z$Type";
+  String simpleLambdaInnerClassName=generatedInnerClassName.substring("test.".length());
+  assertEqualBlock("(new AcceptsLambda()).accept2(new " + simpleLambdaInnerClassName + " ());",lambda);
   JProgram program=compileSnippet("void",lambda,false);
-  JClassType lambdaInnerClass=(JClassType)getType(program,"test.Lambda2$$java$lang$String$equalsIgnoreCase__Ljava_lang_String_2Z$Type");
+  JClassType lambdaInnerClass=(JClassType)getType(program,generatedInnerClassName);
   assertNotNull(lambdaInnerClass);
-  JMethod ctor=findMethod(lambdaInnerClass,"Lambda2$$java$lang$String$equalsIgnoreCase__Ljava_lang_String_2Z$Type");
+  JMethod ctor=findMethod(lambdaInnerClass,simpleLambdaInnerClassName);
   assertTrue(ctor instanceof JConstructor);
   assertEquals(0,ctor.getParams().size());
   assertEquals(0,lambdaInnerClass.getFields().size());

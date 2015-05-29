@@ -1,0 +1,7 @@
+{
+  MockJavaResource interfaceF=JavaResourceBase.createMockJavaResource("test.F","package test;","@FunctionalInterface","public interface F {","  boolean eval();","}");
+  MockJavaResource classOne=JavaResourceBase.createMockJavaResource("test.ClassOne","package test;","public class ClassOne {","  public boolean m() { return true; }","  public static boolean evaluateF(F f) { return f.eval(); }","  public boolean evaluateM() {","    ClassOne a = new ClassOne();","    return evaluateF(this::m);","  }","}");
+  String entryPointClass=Joiner.on('\n').join("package test;","public class EntryPoint {","  public static void onModuleLoad() {","    ClassOne classOne = new ClassOne();","    ClassOne.evaluateF(classOne::m);","    new ClassOne().evaluateM();","  }","}");
+  addAll(interfaceF,classOne);
+  compileSnippetToJS(entryPointClass);
+}

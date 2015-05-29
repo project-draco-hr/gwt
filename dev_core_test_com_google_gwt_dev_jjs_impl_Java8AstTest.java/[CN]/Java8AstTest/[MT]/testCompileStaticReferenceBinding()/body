@@ -1,12 +1,14 @@
 {
   addSnippetClassDecl("public static Integer foo(int x, int y) { return x + y; }");
   String lambda="new AcceptsLambda<Integer>().accept(EntryPoint::foo);";
-  assertEqualBlock("(new AcceptsLambda()).accept(new Lambda$$test$EntryPoint$foo__IILjava_lang_Integer_2$Type());",lambda);
+  String generatedInnerClassName=JjsUtils.classNamePrefixForMethodReference("test","test.EntryPoint","test.Lambda","test.EntryPoint","foo",false) + "__IILjava_lang_Integer_2$Type";
+  String simpleLambdaInnerClassName=generatedInnerClassName.substring("test.".length());
+  assertEqualBlock("(new AcceptsLambda()).accept(new " + simpleLambdaInnerClassName + "());",lambda);
   JProgram program=compileSnippet("void",lambda,false);
   assertNotNull(getMethod(program,"foo"));
-  JClassType lambdaInnerClass=(JClassType)getType(program,"test.Lambda$$test$EntryPoint$foo__IILjava_lang_Integer_2$Type");
+  JClassType lambdaInnerClass=(JClassType)getType(program,generatedInnerClassName);
   assertNotNull(lambdaInnerClass);
-  JMethod ctor=findMethod(lambdaInnerClass,"Lambda$$test$EntryPoint$foo__IILjava_lang_Integer_2$Type");
+  JMethod ctor=findMethod(lambdaInnerClass,simpleLambdaInnerClassName);
   assertTrue(ctor instanceof JConstructor);
   assertEquals(0,ctor.getParams().size());
   assertEquals(0,lambdaInnerClass.getFields().size());
