@@ -1,0 +1,7 @@
+{
+  MockJavaResource classA=JavaResourceBase.createMockJavaResource("com.foo.A","package com.foo;","public class A {","  public A() { ","    Class c = void.class; ","    c = int.class; ","    c = boolean.class;","    c = short.class;","    c = byte.class;","    c = long.class;","    c = float.class;","    c = double.class;","  }","}");
+  MockJavaResource classB=JavaResourceBase.createMockJavaResource("com.foo.B","package com.foo;","public class B {","  public B() {  }","  public void m () { new A(); }","}");
+  MockJavaResource classC=JavaResourceBase.createMockJavaResource("com.foo.C","package com.foo;","import com.google.gwt.core.client.EntryPoint;","public class C implements EntryPoint {","  public void onModuleLoad() {","      new B().m();","  }","}");
+  MockResource moduleResource=JavaResourceBase.createMockResource("com/foo/PrimitiveClassLiteralReference.gwt.xml","<module>","  <source path=''/>","  <entry-point class='com.foo.C'/>","</module>");
+  checkRecompiledModifiedApp("com.foo.PrimitiveClassLiteralReference",Lists.newArrayList(moduleResource,classA,classB),classC,classC,stringSet(getEntryMethodHolderTypeName("com.foo.PrimitiveClassLiteralReference"),"com.foo.C"),output);
+}

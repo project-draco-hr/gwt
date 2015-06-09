@@ -1,0 +1,8 @@
+{
+  MockJavaResource interfaceA=JavaResourceBase.createMockJavaResource("com.foo.A","package com.foo;","interface A {"," static String b = \"\";","}");
+  MockJavaResource classBSansLiteralReference=JavaResourceBase.createMockJavaResource("com.foo.B","package com.foo;","public class B {","}");
+  MockJavaResource classBWithLiteralReference=JavaResourceBase.createMockJavaResource("com.foo.B","package com.foo;","public class B {","  public B() { Class c = A.class; }","}");
+  MockJavaResource classC=JavaResourceBase.createMockJavaResource("com.foo.C","package com.foo;","import com.google.gwt.core.client.EntryPoint;","public class C implements EntryPoint {","  public void onModuleLoad() {","    if (A.b == null) ","      new B();","  }","}");
+  MockResource moduleResource=JavaResourceBase.createMockResource("com/foo/ClassLiteralReference.gwt.xml","<module>","  <source path=''/>","  <entry-point class='com.foo.C'/>","</module>");
+  checkRecompiledModifiedApp("com.foo.ClassLiteralReference",Lists.newArrayList(moduleResource,interfaceA,classC),classBSansLiteralReference,classBWithLiteralReference,stringSet("com.foo.B","com.foo.C"),output);
+}
