@@ -1,0 +1,12 @@
+{
+  MockJavaResource someJsFunction=JavaResourceBase.createMockJavaResource("com.foo.SomeJsFunction","package com.foo;","import com.google.gwt.core.client.js.JsFunction;","@JsFunction","public interface SomeJsFunction {","  void m();","}");
+  MockJavaResource jsFunctionInterfaceImplementation=JavaResourceBase.createMockJavaResource("com.foo.Impl","package com.foo;","public class Impl implements SomeJsFunction {","  public void m() { SomeInterface.class.getName(); } ","}");
+  MockJavaResource someInterface=JavaResourceBase.createMockJavaResource("com.foo.SomeInterface","package com.foo;","public interface SomeInterface {","}");
+  MockJavaResource testEntryPoint=JavaResourceBase.createMockJavaResource("com.foo.TestEntryPoint","package com.foo;","import com.google.gwt.core.client.EntryPoint;","public class TestEntryPoint implements EntryPoint {","  private static native void f(SomeJsFunction f) /*-{}-*/;","  public void onModuleLoad() {","    f(new Impl());","  }","}");
+  MockResource moduleResource=JavaResourceBase.createMockResource("com/foo/TestEntryPoint.gwt.xml","<module>","  <source path=''/>","  <entry-point class='com.foo.TestEntryPoint'/>","</module>");
+  CompilerOptions compilerOptions=new CompilerOptionsImpl();
+  compilerOptions.setJsInteropMode(OptionJsInteropMode.Mode.JS);
+  String js=compileToJs(compilerOptions,Files.createTempDir(),testEntryPoint.getTypeName(),Lists.newArrayList(moduleResource,testEntryPoint,someJsFunction,jsFunctionInterfaceImplementation,someInterface),new MinimalRebuildCache(),emptySet,JsOutputOption.DETAILED);
+  String classliteralHolderVarName=JjsUtils.mangleMemberName("com.google.gwt.lang.ClassLiteralHolder",JjsUtils.classLiteralFieldNameFromJavahTypeSignatureName(JjsUtils.javahSignatureFromName(someInterface.getTypeName())));
+  assertTrue(js.contains("var " + classliteralHolderVarName + " = "));
+}
