@@ -1,0 +1,32 @@
+{
+  if (type == null) {
+    return;
+  }
+  type=type.getUnderlyingType();
+  boolean doVisit=false;
+  if (isInstantiated && instantiatedTypes.add(type)) {
+    maybeRescueClassLiteral(type);
+    doVisit=true;
+  }
+  if (referencedTypes.add(type)) {
+    doVisit=true;
+  }
+  if (!doVisit) {
+    return;
+  }
+  accept(type);
+  if (!program.typeOracle.isJsType(type) && !program.typeOracle.isJsFunction(type)) {
+    return;
+  }
+  JDeclaredType declaredType=(JDeclaredType)type;
+  for (  JMethod method : declaredType.getMethods()) {
+    if (method.isJsTypeMember() || method.isJsFunctionMethod()) {
+      rescue(method);
+    }
+  }
+  for (  JField field : declaredType.getFields()) {
+    if (field.isJsTypeMember()) {
+      rescue(field);
+    }
+  }
+}

@@ -2,8 +2,11 @@
   if (method == null) {
     return;
   }
-  if (!liveFieldsAndMethods.contains(method)) {
-    liveFieldsAndMethods.add(method);
+  if (liveFieldsAndMethods.add(method)) {
+    JDeclaredType enclosingType=method.getEnclosingType();
+    if (enclosingType instanceof JInterfaceType && (method.isJsTypeMember() || method.isJsFunctionMethod())) {
+      rescue(enclosingType,true);
+    }
     membersToRescueIfTypeIsInstantiated.remove(method);
     if (dependencyRecorder != null) {
       curMethodStack.add(method);
@@ -13,22 +16,19 @@
     if (dependencyRecorder != null) {
       curMethodStack.remove(curMethodStack.size() - 1);
     }
-    if (method.isNative() || method.isOrOverridesJsTypeMethod() || method.isOrOverridesJsFunctionMethod()) {
+    if (method.isNative()) {
       maybeRescueJavaScriptObjectPassingIntoJava(method.getType());
     }
-    if (method.isExported() || method.isOrOverridesJsTypeMethod() || method.isOrOverridesJsFunctionMethod()) {
+    if (method.isExported() || method.isJsTypeMember() || method.isJsFunctionMethod()) {
       for (      JParameter param : method.getParams()) {
         rescue(param);
-        if (canBeInstantiatedInJavaScript(param.getType())) {
-          rescue((JReferenceType)param.getType(),true,true);
-        }
       }
     }
     rescueOverridingMethods(method);
     if (method == getClassMethod) {
       rescueClassLiteralsIfGetClassIsLive();
     }
-    if (program.isJsTypePrototype(method.getEnclosingType())) {
+    if (program.isJsTypePrototype(enclosingType)) {
       for (      JParameter param : method.getParams()) {
         rescue(param);
       }
