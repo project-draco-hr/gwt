@@ -3,10 +3,6 @@
     return;
   }
   if (liveFieldsAndMethods.add(method)) {
-    JDeclaredType enclosingType=method.getEnclosingType();
-    if (enclosingType instanceof JInterfaceType && (method.isJsTypeMember() || method.isJsFunctionMethod())) {
-      rescue(enclosingType,true);
-    }
     membersToRescueIfTypeIsInstantiated.remove(method);
     if (dependencyRecorder != null) {
       curMethodStack.add(method);
@@ -28,7 +24,7 @@
     if (method == getClassMethod) {
       rescueClassLiteralsIfGetClassIsLive();
     }
-    if (program.isJsTypePrototype(enclosingType)) {
+    if (program.isJsTypePrototype(method.getEnclosingType())) {
       for (      JParameter param : method.getParams()) {
         rescue(param);
       }
