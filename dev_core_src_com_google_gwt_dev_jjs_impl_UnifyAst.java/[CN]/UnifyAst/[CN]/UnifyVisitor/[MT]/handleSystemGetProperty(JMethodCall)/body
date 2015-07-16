@@ -3,8 +3,8 @@
   JExpression propertyNameExpression=gwtGetPropertyCall.getArgs().get(0);
   boolean defaultVersionCalled=gwtGetPropertyCall.getArgs().size() == 2;
   JExpression defaultValueExpression=defaultVersionCalled ? gwtGetPropertyCall.getArgs().get(1) : null;
-  if (!(propertyNameExpression instanceof JStringLiteral) || (defaultVersionCalled && !(defaultValueExpression instanceof JStringLiteral))) {
-    error(gwtGetPropertyCall,"Only string constants may be used as arguments to System.getProperty()");
+  if (!(propertyNameExpression instanceof JStringLiteral)) {
+    error(gwtGetPropertyCall,"Only string constants may be used as property name in System.getProperty()");
     return null;
   }
   String propertyName=((JStringLiteral)propertyNameExpression).getValue();
@@ -16,6 +16,8 @@
     error(gwtGetPropertyCall,"Property '" + propertyName + "' is multivalued. "+ "Multivalued properties are not supported by System.getProperty().");
     return null;
   }
-  String defaultValue=defaultValueExpression == null ? null : ((JStringLiteral)defaultValueExpression).getValue();
-  return JPermutationDependentValue.createRuntimeProperty(program,gwtGetPropertyCall.getSourceInfo(),propertyName,defaultValue);
+  if (defaultValueExpression != null) {
+    defaultValueExpression=accept(defaultValueExpression);
+  }
+  return JPermutationDependentValue.createRuntimeProperty(program,gwtGetPropertyCall.getSourceInfo(),propertyName,defaultValueExpression);
 }
