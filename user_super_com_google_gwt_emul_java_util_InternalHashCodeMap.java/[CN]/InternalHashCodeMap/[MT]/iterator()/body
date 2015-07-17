@@ -1,0 +1,36 @@
+{
+  return new Iterator<Map.Entry<K,V>>(){
+    final InternalJsIterator<Object> chains=backingMap.entries();
+    int itemIndex=0;
+    Entry<K,V>[] chain=newEntryChain();
+    Entry<K,V>[] lastChain=null;
+    Entry<K,V> lastEntry=null;
+    @Override public boolean hasNext(){
+      if (itemIndex < chain.length) {
+        return true;
+      }
+      InternalJsIteratorEntry<Object> current=chains.next();
+      if (!current.done()) {
+        chain=unsafeCastToArray(current.getValue());
+        itemIndex=0;
+        return true;
+      }
+      return false;
+    }
+    @Override public Entry<K,V> next(){
+      checkElement(hasNext());
+      lastChain=chain;
+      lastEntry=chain[itemIndex++];
+      return lastEntry;
+    }
+    @Override public void remove(){
+      checkState(lastEntry != null);
+      InternalHashCodeMap.this.remove(lastEntry.getKey());
+      if (chain == lastChain && chain.length != 1) {
+        itemIndex--;
+      }
+      lastEntry=null;
+    }
+  }
+;
+}
