@@ -12,26 +12,27 @@
     logger.setMaxDetail(TreeLogger.ERROR);
     new com.google.gwt.dev.Compiler(options).run(logger);
     String parentDir=options.getExtraDir() + "/" + benchmark;
-    for (    Map<String,SimpleSymbolData> symbolDataBySymbolName : loadSymbolMaps(new File(parentDir + "/symbolMaps/"))) {
-      assertTrue(!symbolDataBySymbolName.isEmpty());
-      assertNotNull(symbolDataBySymbolName.get(JSE_METHOD));
-      assertTrue(symbolDataBySymbolName.get(JSE_METHOD).isMethod());
-      assertFalse(symbolDataBySymbolName.get(JSE_METHOD).isField());
-      assertFalse(symbolDataBySymbolName.get(JSE_METHOD).isClass());
-      assertNotNull(symbolDataBySymbolName.get(JSE_FIELD));
-      assertTrue(symbolDataBySymbolName.get(JSE_FIELD).isField());
-      assertFalse(symbolDataBySymbolName.get(JSE_FIELD).isMethod());
-      assertFalse(symbolDataBySymbolName.get(JSE_FIELD).isClass());
-      assertNotNull(symbolDataBySymbolName.get(JSE_CLASS));
-      assertTrue(symbolDataBySymbolName.get(JSE_CLASS).isClass());
-      assertFalse(symbolDataBySymbolName.get(JSE_CLASS).isField());
-      assertFalse(symbolDataBySymbolName.get(JSE_CLASS).isMethod());
+    for (    Map<String,SimpleSymbolData> symbolDataByJsniIdentifier : loadSymbolMaps(new File(parentDir + "/symbolMaps/"))) {
+      assertTrue(!symbolDataByJsniIdentifier.isEmpty());
+      assertNotNull(symbolDataByJsniIdentifier.get(JSE_METHOD));
+      assertTrue(symbolDataByJsniIdentifier.get(JSE_METHOD).isMethod());
+      assertFalse(symbolDataByJsniIdentifier.get(JSE_METHOD).isField());
+      assertFalse(symbolDataByJsniIdentifier.get(JSE_METHOD).isClass());
+      assertNotNull(symbolDataByJsniIdentifier.get(JSE_FIELD));
+      assertTrue(symbolDataByJsniIdentifier.get(JSE_FIELD).isField());
+      assertFalse(symbolDataByJsniIdentifier.get(JSE_FIELD).isMethod());
+      assertFalse(symbolDataByJsniIdentifier.get(JSE_FIELD).isClass());
+      assertNotNull(symbolDataByJsniIdentifier.get(JSE_CLASS));
+      assertTrue(symbolDataByJsniIdentifier.get(JSE_CLASS).isClass());
+      assertFalse(symbolDataByJsniIdentifier.get(JSE_CLASS).isField());
+      assertFalse(symbolDataByJsniIdentifier.get(JSE_CLASS).isMethod());
       if (optimizeLevel == OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
-        assertNotNull(symbolDataBySymbolName.get(UNINSTANTIABLE_CLASS));
+        assertNotNull(symbolDataByJsniIdentifier.get(UNINSTANTIABLE_CLASS));
       }
  else {
-        assertNull(symbolDataBySymbolName.get(UNINSTANTIABLE_CLASS));
+        assertNull(symbolDataByJsniIdentifier.get(UNINSTANTIABLE_CLASS));
       }
+      assertSymbolUniquenessForMethods(symbolDataByJsniIdentifier);
     }
   }
   finally {
