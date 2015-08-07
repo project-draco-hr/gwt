@@ -19,8 +19,8 @@
   JsNameRef qualifier=null;
   JsExpression unnecessaryQualifier=null;
   JsExpression result=null;
-  boolean isJsProperty=false;
-  boolean isSam=false;
+  boolean isJsPropertyAccessor=false;
+  boolean isJsFunction=false;
   result=jsInvocation;
   if (method.isStatic()) {
     if (x.getInstance() != null) {
@@ -56,22 +56,22 @@
   }
  else {
     JsName polyName=polymorphicNames.get(method);
-    isJsProperty=method.isOrOverridesJsProperty();
-    isSam=method.isOrOverridesJsFunctionMethod();
-    if (isJsProperty) {
+    isJsPropertyAccessor=method.isOrOverridesJsPropertyAccessor();
+    isJsFunction=method.isOrOverridesJsFunctionMethod();
+    if (isJsPropertyAccessor) {
       JsExpression qualExpr=pop();
-switch (method.getImmediateOrTransitiveJsPropertyType()) {
-case GET:
+switch (method.getJsPropertyAccessorType()) {
+case GETTER:
         result=createGetterDispatch(x,unnecessaryQualifier,method,qualExpr);
       break;
-case SET:
+case SETTER:
     result=createSetterDispatch(x,jsInvocation,method,qualExpr);
   break;
 default :
 throw new InternalCompilerException("JsProperty not a setter or getter.");
 }
 }
- else if (isSam) {
+ else if (isJsFunction) {
 JsExpression qualExpr=pop();
 result=createSAMcallDispatch(x,jsInvocation,qualExpr);
 }
@@ -86,7 +86,7 @@ qualifier.setQualifier((JsExpression)pop());
 }
 }
 }
-if (!isJsProperty && !isSam) {
+if (!isJsPropertyAccessor && !isJsFunction) {
 jsInvocation.setQualifier(qualifier);
 }
 push(createCommaExpression(unnecessaryQualifier,result));

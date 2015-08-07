@@ -3,14 +3,14 @@
   JsNew newOp=new JsNew(x.getSourceInfo(),ctorName.makeRef(x.getSourceInfo()));
   popList(newOp.getArguments(),x.getArgs().size());
   JsExpression newExpr=newOp;
-  JMethod sam=typeOracle.getJsFunctionMethod(x.getClassType());
-  if (sam != null) {
+  if (x.getClassType().isJsFunctionImplementation()) {
     JsFunction makeLambdaFunc=indexedFunctions.get("JavaClassHierarchySetupUtil.makeLambdaFunction");
-    JsNameRef samFuncNameRef=polymorphicNames.get(sam).makeRef(x.getSourceInfo());
+    JMethod jsFunctionMethod=getJsFunctionMethod(x.getClassType());
+    JsNameRef funcNameRef=polymorphicNames.get(jsFunctionMethod).makeRef(x.getSourceInfo());
     JsNameRef protoRef=prototype.makeRef(x.getSourceInfo());
-    samFuncNameRef.setQualifier(protoRef);
+    funcNameRef.setQualifier(protoRef);
     protoRef.setQualifier(ctorName.makeRef(x.getSourceInfo()));
-    newExpr=new JsInvocation(x.getSourceInfo(),makeLambdaFunc,samFuncNameRef,newOp);
+    newExpr=new JsInvocation(x.getSourceInfo(),makeLambdaFunc,funcNameRef,newOp);
   }
   push(newExpr);
 }

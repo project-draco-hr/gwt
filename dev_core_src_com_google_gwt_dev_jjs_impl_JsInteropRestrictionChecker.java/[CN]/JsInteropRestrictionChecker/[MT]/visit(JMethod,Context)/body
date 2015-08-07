@@ -3,11 +3,14 @@
     return false;
   }
   currentJsTypeProcessedMethods.addAll(x.getOverriddenMethods());
-  if (currentType == x.getEnclosingType() && x.isExported()) {
-    checkExportName(x);
+  if (!x.isOrOverridesJsMethod()) {
+    return false;
   }
- else   if (x.isOrOverridesJsTypeMethod()) {
+  if (x.needsVtable()) {
     checkJsTypeMethod(x);
+  }
+ else   if (currentType == x.getEnclosingType()) {
+    checkExportName(x);
   }
   if (currentType == x.getEnclosingType()) {
     if (x.isJsPropertyAccessor() && !currentType.isJsType()) {

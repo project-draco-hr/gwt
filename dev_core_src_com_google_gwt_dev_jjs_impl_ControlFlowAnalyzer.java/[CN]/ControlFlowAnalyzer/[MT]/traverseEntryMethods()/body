@@ -4,17 +4,17 @@
   }
   List<JDeclaredType> declaredTypes=program.getDeclaredTypes();
   for (  JDeclaredType type : declaredTypes) {
-    if (type instanceof JInterfaceType && (type.isJsType() || type.isJsFunction())) {
+    if (type.canBeImplementedExternally()) {
       rescuer.rescue(type,true);
     }
     for (    JMethod method : type.getMethods()) {
-      if (method.isExported()) {
+      if (method.isJsInteropEntryPoint()) {
         rescuer.rescue(method.getEnclosingType(),true);
         traverseFrom(method);
       }
     }
     for (    JField field : type.getFields()) {
-      if (field.isExported()) {
+      if (field.isJsInteropEntryPoint()) {
         rescuer.rescue(field.getEnclosingType(),true);
         rescuer.rescue(field);
       }

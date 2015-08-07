@@ -2,14 +2,14 @@
   if (method.isSynthetic() && !method.isForwarding()) {
     return;
   }
-  String jsMemberName=method.getImmediateOrTransitiveJsMemberName();
+  String jsMemberName=method.getJsName();
   String qualifiedMethodName=method.getQualifiedName();
   String typeName=method.getEnclosingType().getName();
-  JsPropertyType jsPropertyType=method.getImmediateOrTransitiveJsPropertyType();
+  JsPropertyAccessorType accessorType=method.getJsPropertyAccessorType();
   if (jsMemberName == null) {
     logError("'%s' can't be exported because the method overloads multiple methods with " + "different names.",qualifiedMethodName);
   }
-  if (jsPropertyType == JsPropertyType.GET) {
+  if (accessorType == JsPropertyAccessorType.GETTER) {
     if (!method.getParams().isEmpty() || method.getType() == JPrimitiveType.VOID) {
       logError("There can't be void return type or any parameters for the JsProperty getter" + " '%s'.",qualifiedMethodName);
       return;
@@ -25,7 +25,7 @@
     checkNameCollisionForGetterAndRegular(jsMemberName,typeName);
     checkInconsistentPropertyType(jsMemberName,typeName,method.getOriginalReturnType());
   }
- else   if (jsPropertyType == JsPropertyType.SET) {
+ else   if (accessorType == JsPropertyAccessorType.SETTER) {
     if (method.getParams().size() != 1 || method.getType() != JPrimitiveType.VOID) {
       logError("There needs to be single parameter and void return type for the JsProperty setter" + " '%s'.",qualifiedMethodName);
       return;
@@ -37,7 +37,7 @@
     checkNameCollisionForSetterAndRegular(jsMemberName,typeName);
     checkInconsistentPropertyType(jsMemberName,typeName,Iterables.getOnlyElement(method.getParams()).getType());
   }
- else   if (jsPropertyType == JsPropertyType.UNDEFINED) {
+ else   if (accessorType == JsPropertyAccessorType.UNDEFINED) {
     logError("JsProperty '%s' doesn't follow Java Bean naming conventions.",qualifiedMethodName);
   }
  else {

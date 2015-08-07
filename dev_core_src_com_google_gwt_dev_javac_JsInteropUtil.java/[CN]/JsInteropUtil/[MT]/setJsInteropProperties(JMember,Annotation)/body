@@ -1,16 +1,16 @@
 {
   String namespace=maybeGetJsNamespace(annotations);
-  String exportName=maybeGetJsExportName(annotations,computeExportName(member));
-  member.setExportInfo(namespace,exportName);
+  String exportName=maybeGetJsExportName(annotations,computeName(member));
+  member.setJsMemberInfo(namespace,exportName,exportName != null);
   boolean ignore=JdtUtil.getAnnotation(annotations,JSNOEXPORT_CLASS) != null;
-  if (ignore || !member.isPublic()) {
+  if (ignore || !member.isPublic() || exportName != null) {
     return;
   }
   JDeclaredType enclosingType=member.getEnclosingType();
   if (enclosingType.isJsType() && member.needsVtable()) {
-    member.setJsMemberName(member.getName());
+    member.setJsMemberInfo(namespace,computeName(member),true);
   }
-  if (enclosingType.isClassWideExport() && !member.needsVtable() && exportName == null) {
-    member.setExportInfo(namespace,computeExportName(member));
+  if (enclosingType.isClassWideExport() && !member.needsVtable()) {
+    member.setJsMemberInfo(namespace,computeName(member),true);
   }
 }

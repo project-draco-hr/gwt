@@ -9,11 +9,11 @@
     String overriddenMethodName=computeName(overriddenMethod);
     stringAnalyzableTypeEnvironment.recordMethodOverridesMethod(currentMethodName,overriddenMethodName);
   }
-  if (x.isExported() || x.isOrOverridesJsTypeMethod() || x.isOrOverridesJsFunctionMethod()) {
+  if (x.canBeCalledExternally()) {
     stringAnalyzableTypeEnvironment.recordExportedMethodInType(currentMethodName,typeName);
-    if (x.isStatic() || x.isConstructor()) {
-      stringAnalyzableTypeEnvironment.recordExportedStaticReferenceInType(typeName);
-    }
+  }
+  if (x.isJsInteropEntryPoint()) {
+    stringAnalyzableTypeEnvironment.recordExportedStaticReferenceInType(typeName);
   }
   if (x.isConstructor()) {
     recordCurrentMethodInstantiatesType(x.getEnclosingType());
