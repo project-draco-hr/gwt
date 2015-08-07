@@ -1,0 +1,11 @@
+{
+  addSnippetClassDecl("interface I { int foo(Integer i); }");
+  addSnippetClassDecl("class A {\n" + "int a() {\n" + "  int[] x = new int[] {42};\n"+ "  class B {\n"+ "    void b() {\n"+ "      I i = new I(){\n"+ "        public int foo(Integer arg){\n"+ "          Runnable r = () ->{\n"+ "            new Runnable() {\n"+ "              public void run() {\n"+ "                Lambda<Integer> l = (a, b) -> x[0] = x[0] + a + b + arg;\n"+ "                x[0] = l.run(1, 2);\n"+ "              }\n"+ "            }.run();\n"+ "          };\n"+ "          r.run();\n"+ "          return x[0];\n"+ "        }\n"+ "      };\n"+ "      i.foo(1);\n"+ "    }\n"+ "  }\n"+ "  B b = new B();\n"+ "  b.b();\n"+ "  return x[0];\n"+ "}\n"+ "}\n");
+  String snippet="A a = new A();";
+  JProgram program=compileSnippet("void",snippet,false);
+  JClassType lambdaOuter=(JClassType)getType(program,"test.EntryPoint$A$1B$1$1");
+  assertNotNull(lambdaOuter);
+  JMethod lambdaOuterMethod=findMethod(lambdaOuter,"run");
+  assertNotNull(lambdaOuterMethod);
+  assertEquals("public void run(){" + "Lambda l=new EntryPoint$A$1B$1$1$lambda$0$Type(this.val$x2,this.val$arg3);" + "this.val$x2[0]=((Integer)l.run(1,2)).intValue();"+ "}",formatSource(lambdaOuterMethod.toSource()));
+}
