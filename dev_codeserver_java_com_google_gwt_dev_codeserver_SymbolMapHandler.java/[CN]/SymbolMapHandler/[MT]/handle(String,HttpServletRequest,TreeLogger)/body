@@ -1,0 +1,31 @@
+{
+  String moduleName=getModuleNameFromRequest(target);
+  if (moduleName == null) {
+    throw new RuntimeException("invalid request (shouldn't happen): " + target);
+  }
+  Outbox box=outboxes.findByOutputModuleName(moduleName);
+  if (box == null) {
+    return new ErrorPage("No such module: " + moduleName);
+  }
+ else   if (box.containsStubCompile()) {
+    return new ErrorPage("This module hasn't been compiled yet.");
+  }
+  String rootDir=SYMBOLMAP_PATH + moduleName + "/";
+  String rest=target.substring(rootDir.length());
+  if (rest.isEmpty()) {
+    return new ErrorPage("Missing permutation id");
+  }
+ else   if (rest.endsWith("/")) {
+    return new ErrorPage("Can not list directory");
+  }
+ else {
+    String strongName=getStrongNameFromSymbolmapFilename(rest);
+    if (strongName != null) {
+      File symbolMap=box.findSymbolMap(strongName).getAbsoluteFile();
+      return Responses.newFileResponse("text/plain",symbolMap);
+    }
+ else {
+      return new ErrorPage("page not found");
+    }
+  }
+}
