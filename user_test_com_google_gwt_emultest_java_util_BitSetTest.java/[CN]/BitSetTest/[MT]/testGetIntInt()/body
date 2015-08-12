@@ -1,0 +1,41 @@
+{
+  BitSet set=new BitSet();
+  set.set(1);
+  assertFalse(set.get(1,1).get(0));
+  assertTrue(set.get(1,2).get(0));
+  assertTrue(set.get(0,2).get(1));
+  set.set(32);
+  set.set(50);
+  set.set(BIG_NUMBER);
+  BitSet subSet=set.get(0,BIG_NUMBER);
+  checkValues(subSet,1,32,50);
+  subSet=set.get(1,BIG_NUMBER);
+  checkValues(subSet,0,31,49);
+  subSet=set.get(2,BIG_NUMBER + 1);
+  checkValues(subSet,30,48,BIG_NUMBER - 2);
+  subSet=set.get(32,BIG_NUMBER * 2);
+  checkValues(subSet,0,18,BIG_NUMBER - 32);
+  assertEquals(3,subSet.cardinality());
+  subSet=set.get(0,BIG_NUMBER + 1);
+  assertEquals(set,subSet);
+  set=new BitSet();
+  for (int i=8; i < 33; i++) {
+    set.set(i);
+  }
+  for (int i=0; i < 33; i++) {
+    assertTrue(set.get(i,i).isEmpty());
+  }
+  try {
+    set.get(-1,2);
+    fail("exception expected");
+  }
+ catch (  IndexOutOfBoundsException expected) {
+  }
+  try {
+    set.get(3,1);
+    fail("exception expected");
+  }
+ catch (  IndexOutOfBoundsException expected) {
+  }
+  set.get(2,2);
+}

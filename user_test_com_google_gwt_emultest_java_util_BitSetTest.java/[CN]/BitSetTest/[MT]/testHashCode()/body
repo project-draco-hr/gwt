@@ -1,0 +1,32 @@
+{
+  int testSize=25;
+  HashSet<Integer> hashValues=new HashSet<>();
+  int collisions=0;
+  hashValues.add(new BitSet().hashCode());
+  BitSet set=new BitSet();
+  set.set(testSize + 1);
+  assertTrue(hashValues.add(set.hashCode()));
+  set.set(0);
+  assertTrue(hashValues.add(set.hashCode()));
+  set=new BitSet();
+  set.set(0);
+  assertTrue(hashValues.add(set.hashCode()));
+  for (int multiple=1; multiple < 33; multiple++) {
+    set=new BitSet();
+    set.set(0);
+    for (int i=multiple; i < testSize; i+=multiple) {
+      set.set(i);
+      if (i != 0) {
+        if (hashValues.add(set.hashCode()) == false) {
+          collisions++;
+        }
+        set.set(testSize + 1);
+        if (hashValues.add(set.hashCode()) == false) {
+          collisions++;
+        }
+        set.clear(testSize + 1);
+      }
+    }
+  }
+  assertEquals(0,collisions);
+}

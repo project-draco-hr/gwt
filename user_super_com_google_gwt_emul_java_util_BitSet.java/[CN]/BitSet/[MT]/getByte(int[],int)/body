@@ -1,0 +1,19 @@
+{
+  int wordIndex=wordIndex(bitIndex);
+  if (wordIndex >= words.length) {
+    return 0;
+  }
+  int bitOffset=bitOffset(bitIndex);
+  int word=wordAt(words,wordIndex);
+  int b=(word >>> bitOffset);
+  int leftBits=Byte.SIZE - BITS_PER_WORD + bitOffset;
+  if (leftBits > 0 && wordIndex + 1 < words.length) {
+    word=wordAt(words,wordIndex + 1);
+    if (word != 0) {
+      word&=~(WORD_MASK << leftBits);
+      word<<=(Byte.SIZE - leftBits);
+      b|=word;
+    }
+  }
+  return (byte)(b & 0xff);
+}

@@ -1,0 +1,29 @@
+{
+  checkRange(fromIndex,toIndex);
+  if (fromIndex == toIndex) {
+    return;
+  }
+  int length=length();
+  if (fromIndex >= length) {
+    setInternal(array,fromIndex,toIndex);
+    return;
+  }
+  if (toIndex >= length) {
+    setInternal(array,length,toIndex);
+    toIndex=length;
+  }
+  int first=wordIndex(fromIndex);
+  int last=wordIndex(toIndex);
+  int startBit=bitOffset(fromIndex);
+  int endBit=bitOffset(toIndex);
+  if (first == last) {
+    flipMaskedWord(array,first,startBit,endBit);
+  }
+ else {
+    flipMaskedWord(array,first,startBit,BITS_PER_WORD);
+    flipMaskedWord(array,last,0,endBit);
+    for (int i=first + 1; i < last; i++) {
+      array[i]=~wordAt(array,i) & WORD_MASK;
+    }
+  }
+}

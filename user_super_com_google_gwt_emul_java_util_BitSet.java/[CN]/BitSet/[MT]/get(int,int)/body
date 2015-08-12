@@ -1,0 +1,41 @@
+{
+  checkRange(fromIndex,toIndex);
+  int length=length();
+  if (length <= fromIndex || fromIndex == toIndex) {
+    return new BitSet(0);
+  }
+  toIndex=Math.min(toIndex,length);
+  int rightShift=bitOffset(fromIndex);
+  if (rightShift == 0) {
+    int subFrom=wordIndex(fromIndex);
+    int subTo=wordIndex(toIndex + BITS_PER_WORD);
+    int[] subArray=Arrays.copyOfRange(array,subFrom,subTo);
+    int leftOvers=bitOffset(toIndex);
+    maskOutWord(subArray,subTo - subFrom - 1,leftOvers,BITS_PER_WORD);
+    return new BitSet(subArray);
+  }
+  int first=wordIndex(fromIndex);
+  int last=wordIndex(toIndex);
+  int[] subArray=new int[last - first + 1];
+  if (first == last) {
+    int end=32 - bitOffset(toIndex);
+    int word=wordAt(array,first);
+    subArray[0]=(word << end) >>> (rightShift + end);
+  }
+ else {
+    int word=wordAt(array,first);
+    int current=word >>> rightShift;
+    int subIndex=0;
+    int leftShift=BITS_PER_WORD - rightShift;
+    for (int i=first + 1; i <= last; i++) {
+      word=wordAt(array,i);
+      current|=word << leftShift;
+      subArray[subIndex++]=current & WORD_MASK;
+      current=word >>> rightShift;
+    }
+    int end=32 - bitOffset(toIndex);
+    current=(current << (rightShift + end)) >>> (rightShift + end);
+    subArray[subIndex]=current & WORD_MASK;
+  }
+  return new BitSet(subArray);
+}

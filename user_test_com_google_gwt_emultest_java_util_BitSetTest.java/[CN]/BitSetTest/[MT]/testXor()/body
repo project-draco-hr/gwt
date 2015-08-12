@@ -1,0 +1,37 @@
+{
+  Pattern exclusiveMultiples=new Pattern(){
+    @Override public boolean contains(    int i){
+      return (i % 2 == 0) ^ (i % 3 == 0);
+    }
+  }
+;
+  BitSet setA=createSetOfMultiples(2);
+  BitSet setB=createSetOfMultiples(3);
+  setA.xor(setB);
+  checkPattern(setA,exclusiveMultiples);
+  setA.xor(new BitSet());
+  checkPattern(setA,exclusiveMultiples);
+  BitSet trueSet=new BitSet(TEST_SIZE * 2);
+  trueSet.set(0,TEST_SIZE * 2);
+  setA.xor(trueSet);
+  checkPattern(setA,new Pattern(){
+    @Override public boolean contains(    int i){
+      return !((i % 2 == 0) ^ (i % 3 == 0));
+    }
+  }
+);
+  for (int i=TEST_SIZE; i < TEST_SIZE * 2; i++) {
+    assertTrue(setA.get(i));
+  }
+  setA.xor(setA);
+  assertTrue(setA.isEmpty());
+  setB.xor((BitSet)setB.clone());
+  assertTrue(setB.isEmpty());
+  setA=new BitSet();
+  setA.set(2);
+  setB=new BitSet();
+  setB.set(1);
+  setB.set(3);
+  setA.xor(setB);
+  checkRange(setA,1,4);
+}
