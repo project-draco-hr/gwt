@@ -1,0 +1,15 @@
+{
+  String input, expected;
+  input=Joiner.on('\n').join("function setP(t, p) {}","function b1(o) {  setP(o, 1); setP(o, 2);  } b1({});");
+  expected=Joiner.on('\n').join("function b1(o){}","b1({});");
+  verifyOptimized(expected,input);
+  input=Joiner.on('\n').join("function set(arr, p,  v) { arr[p] = v; }","function b1(arr) {  set(arr, \"X\", 1); set(arr, \"Y\", 1);  } b1({});");
+  expected=Joiner.on('\n').join("function b1(arr){arr['X']=1;arr['Y']=1}","b1({});");
+  verifyOptimized(expected,input);
+  input=Joiner.on('\n').join("function setP(t, p) {t.a=p; }","function b1(o) {  setP(o, 1); setP(o, 2);  } b1({});");
+  expected=Joiner.on('\n').join("function b1(o){o.a=1; o.a=2;}","b1({});");
+  verifyOptimized(expected,input);
+  input=Joiner.on('\n').join("function getP(t) {return t.a; }","function b1(o) {  getP(o) == getP(o);  } b1({});");
+  expected=Joiner.on('\n').join("function b1(o){o.a==o.a;}","b1({});");
+  verifyOptimized(expected,input);
+}
