@@ -1,0 +1,25 @@
+{
+  JsName callName=objectScope.declareName("call");
+  callName.setObfuscatable(false);
+  JsNameRef qualifiedMethodName=callName.makeRef(x.getSourceInfo());
+  if (method.isConstructor()) {
+    qualifiedMethodName.setQualifier(names.get(method).makeRef(x.getSourceInfo()));
+  }
+ else {
+    final JDeclaredType superMethodTargetType=method.getEnclosingType();
+    JsInvocation getPrototypeCall=constructInvocation(x.getSourceInfo(),"JavaClassHierarchySetupUtil.getClassPrototype",convertJavaLiteral(typeMapper.get(superMethodTargetType)));
+    methodsForJsInlining.add(currentMethod);
+    JsNameRef methodNameRef=polymorphicNames.get(method).makeRef(x.getSourceInfo());
+    methodNameRef.setQualifier(getPrototypeCall);
+    qualifiedMethodName.setQualifier(methodNameRef);
+  }
+  JsInvocation jsInvocation=new JsInvocation(x.getSourceInfo(),qualifiedMethodName);
+  jsInvocation.getArguments().add((JsExpression)pop());
+  jsInvocation.getArguments().addAll(args);
+  if (program.isJsTypePrototype(method.getEnclosingType())) {
+    return dispatchToSuperPrototype(x,method,qualifiedMethodName,jsInvocation);
+  }
+ else {
+    return jsInvocation;
+  }
+}
