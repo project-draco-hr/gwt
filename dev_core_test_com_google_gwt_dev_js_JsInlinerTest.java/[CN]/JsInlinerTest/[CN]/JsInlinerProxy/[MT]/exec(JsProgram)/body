@@ -3,6 +3,16 @@
   new JsVisitor(){
     @Override public void endVisit(    JsFunction x,    JsContext ctx){
       inlineableFunctions.add(x);
+      JsName functionName=x.getName();
+      if (functionName == null) {
+        return;
+      }
+      if (functionName.getIdent().endsWith("_forceInline")) {
+        x.setInliningMode(InliningMode.FORCE_INLINE);
+      }
+ else       if (functionName.getIdent().endsWith("_doNotInline")) {
+        x.setInliningMode(InliningMode.DO_NOT_INLINE);
+      }
     }
   }
 .accept(program);

@@ -1,0 +1,9 @@
+{
+  String input, expected;
+  input=Joiner.on('\n').join("function uniqueId_forceInline(id) {return jsinterop.closure.getUniqueId(id);}","function b1() { uniqueId_forceInline('a'); uniqueId_forceInline('b');  } b1();");
+  expected=Joiner.on('\n').join("function a(){jsinterop.closure.getUniqueId('a');jsinterop.closure.getUniqueId('b')}","a();");
+  verifyOptimizedObfuscated(expected,input);
+  input=Joiner.on('\n').join("function uniqueId_doNotInline(id) {return jsinterop.closure.getUniqueId(id);}","function b1() { uniqueId_doNotInline('a'); uniqueId_doNotInline('b');  } b1();");
+  expected=Joiner.on('\n').join("function b(a){return jsinterop.closure.getUniqueId(a)}","function c(){b('a');b('b')}","c();");
+  verifyOptimizedObfuscated(expected,input);
+}

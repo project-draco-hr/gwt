@@ -37,6 +37,9 @@
     EvalFunctionsAtTopScope.exec(jsProgram,jjsmap);
     final Set<JsNode> inlinableJsFunctions=jjsMapAndInlineableFunctions.getRight();
     optimizeJs(inlinableJsFunctions);
+    if (options.getOptimizationLevel() > OptionOptimize.OPTIMIZE_LEVEL_DRAFT) {
+      JsForceInliningChecker.check(logger,jjsmap,jsProgram);
+    }
     JsStackEmulator.exec(jprogram,jsProgram,properties,jjsmap);
     Pair<SyntheticArtifact,MultipleDependencyGraphRecorder> dependenciesAndRecorder=splitJsIntoFragments(properties,permutationId,jjsmap);
     Map<JsName,JsLiteral> internedLiteralByVariableName=renameJsSymbols(properties,jjsmap);

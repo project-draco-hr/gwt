@@ -5,7 +5,6 @@
   new SortVisitor().accept(program);
   if (!incremental) {
     new RecordCrossClassCallsAndConstructorLiveness().accept(program);
-    new RecordJSInlinableMethods().accept(program);
   }
   contructTypeToClassLiteralDeclarationMap();
   CreateNamesAndScopesVisitor creator=new CreateNamesAndScopesVisitor();
@@ -15,5 +14,6 @@
   jsProgram.setIndexedFields(indexedFields);
   jsProgram.setIndexedFunctions(indexedFunctions);
   JavaToJavaScriptMap jjsMap=new JavaToJavaScriptMapImpl(program.getDeclaredTypes(),names,typeForStatMap,vtableInitForMethodMap);
-  return Pair.create(jjsMap,generator.functionsForJsInlining);
+  Set<JsNode> functionsForJsInlining=incremental ? Collections.<JsNode>emptySet() : new CollectJsFunctionsForInlining().getFunctionsForJsInlining();
+  return Pair.create(jjsMap,functionsForJsInlining);
 }
