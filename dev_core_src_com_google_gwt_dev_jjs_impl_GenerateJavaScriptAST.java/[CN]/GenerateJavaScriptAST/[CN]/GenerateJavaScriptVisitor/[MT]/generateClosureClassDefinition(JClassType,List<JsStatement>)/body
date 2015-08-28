@@ -1,12 +1,10 @@
 {
   JsName classVar=declareSynthesizedClosureConstructor(x,globalStmts);
-  generateCallToDefineClass(x,globalStmts,Arrays.asList(classVar.makeRef(x.getSourceInfo())));
+  generateInlinedDefineClass(x,globalStmts,classVar);
   for (  JMethod method : getPotentiallyAliveConstructors(x)) {
-    JsNameRef lhs=prototype.makeRef(method.getSourceInfo());
-    lhs.setQualifier(names.get(method).makeRef(method.getSourceInfo()));
-    JsNameRef rhsProtoRef=getPrototypeQualifierOf(method);
-    JsExprStmt stmt=createAssignment(lhs,rhsProtoRef).makeStmt();
-    globalStmts.add(stmt);
-    vtableInitForMethodMap.put(stmt,method);
+    JsNameRef googInherits=JsUtils.createQualifiedNameRef(GOOG_INHERITS,x.getSourceInfo());
+    JsExprStmt callGoogInherits=new JsInvocation(x.getSourceInfo(),googInherits,names.get(method).makeRef(method.getSourceInfo()),names.get(method.getEnclosingType()).makeRef(method.getSourceInfo())).makeStmt();
+    globalStmts.add(callGoogInherits);
+    vtableInitForMethodMap.put(callGoogInherits,method);
   }
 }

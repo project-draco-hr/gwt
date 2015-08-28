@@ -1,11 +1,15 @@
 {
+  if (program.isRepresentedAsNativeJsPrimitive(x) && program.typeOracle.isInstantiatedType(x)) {
+    setupCastMapForUnboxedType(x,globalStmts,program.getRepresentedAsNativeTypesDispatchMap().get(x).getCastMapField());
+    return;
+  }
+  if (hasNoVTable(x)) {
+    return;
+  }
   generateClassDefinition(x,globalStmts);
   generateVTables(x,globalStmts);
   if (x == program.getTypeJavaLangObject()) {
     generateToStringAlias(x,globalStmts);
-    for (    Map.Entry<JClassType,DispatchType> nativeRepresentedType : program.getRepresentedAsNativeTypesDispatchMap().entrySet()) {
-      setupCastMapForUnboxedType(nativeRepresentedType.getKey(),globalStmts,nativeRepresentedType.getValue().getCastMapField());
-    }
     globalStmts.add(constructInvocation(x.getSourceInfo(),"JavaClassHierarchySetupUtil.modernizeBrowser").makeStmt());
   }
 }
