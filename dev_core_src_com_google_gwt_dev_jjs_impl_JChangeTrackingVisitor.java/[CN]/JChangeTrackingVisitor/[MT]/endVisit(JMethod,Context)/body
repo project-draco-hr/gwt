@@ -1,7 +1,15 @@
 {
   exit(x,ctx);
-  if (methodModified) {
-    optimizerCtx.markModified(x);
-  }
   currentMethod=null;
+  if (!methodModified) {
+    return;
+  }
+  optimizerCtx.markModified(x);
+  if (JProgram.isClinit(x) || JProgram.isInit(x)) {
+    for (    JField potentiallyModifiedField : x.getEnclosingType().getFields()) {
+      if (potentiallyModifiedField.isStatic() && JProgram.isClinit(x) || !potentiallyModifiedField.isStatic() && !JProgram.isClinit(x)) {
+        optimizerCtx.markModified(potentiallyModifiedField);
+      }
+    }
+  }
 }
