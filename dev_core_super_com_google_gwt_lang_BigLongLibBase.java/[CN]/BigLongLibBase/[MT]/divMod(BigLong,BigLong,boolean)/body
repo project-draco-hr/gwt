@@ -1,0 +1,63 @@
+{
+  if (isZero(b)) {
+    throw new ArithmeticException("divide by zero");
+  }
+  if (isZero(a)) {
+    if (computeRemainder) {
+      remainder=create();
+    }
+    return create();
+  }
+  if (isMinValue(b)) {
+    return divModByMinValue(a,computeRemainder);
+  }
+  boolean negative=false;
+  if (isNegative(b)) {
+    b=BigLongLib.neg(b);
+    negative=!negative;
+  }
+  int bpower=powerOfTwo(b);
+  boolean aIsNegative=false;
+  boolean aIsMinValue=false;
+  boolean aIsCopy=false;
+  if (isMinValue(a)) {
+    aIsMinValue=true;
+    aIsNegative=true;
+    if (bpower == -1) {
+      a=create(BigLongLib.Const.MAX_VALUE);
+      aIsCopy=true;
+      negative=!negative;
+    }
+ else {
+      BigLong c=BigLongLib.shr(a,bpower);
+      if (negative) {
+        negate(c);
+      }
+      if (computeRemainder) {
+        remainder=create();
+      }
+      return c;
+    }
+  }
+ else   if (isNegative(a)) {
+    aIsNegative=true;
+    a=BigLongLib.neg(a);
+    aIsCopy=true;
+    negative=!negative;
+  }
+  if (bpower != -1) {
+    return divModByShift(a,bpower,negative,aIsNegative,computeRemainder);
+  }
+  if (BigLongLib.compare(a,b) < 0) {
+    if (computeRemainder) {
+      if (aIsNegative) {
+        remainder=BigLongLib.neg(a);
+      }
+ else {
+        remainder=create(a);
+      }
+    }
+    return create();
+  }
+  return divModHelper(aIsCopy ? a : create(a),b,negative,aIsNegative,aIsMinValue,computeRemainder);
+}
