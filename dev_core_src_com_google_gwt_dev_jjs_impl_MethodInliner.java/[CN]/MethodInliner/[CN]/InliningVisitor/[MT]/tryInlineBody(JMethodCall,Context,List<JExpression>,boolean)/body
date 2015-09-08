@@ -15,6 +15,15 @@
   if (x.getTarget().getParams().size() != x.getArgs().size()) {
     return InlineResult.DO_NOT_BLACKLIST;
   }
+  boolean hasSideEffects=x.hasSideEffects();
+  if (!hasSideEffects) {
+    new JModVisitor(){
+      @Override public void endVisit(      JMethodCall x,      Context ctx){
+        x.markSideEffectFree();
+      }
+    }
+.accept(bodyAsExpressionList);
+  }
   OrderVisitor orderVisitor=new OrderVisitor(x.getTarget().getParams());
   orderVisitor.accept(bodyAsExpressionList);
   if (orderVisitor.checkResults() == SideEffectCheck.NO_REFERENCES) {
@@ -31,15 +40,6 @@
         return InlineResult.DO_NOT_BLACKLIST;
       }
     }
-  }
-  boolean hasSideEffects=x.hasSideEffects();
-  if (!hasSideEffects) {
-    new JModVisitor(){
-      @Override public void endVisit(      JMethodCall x,      Context ctx){
-        x.markSideEffectFree();
-      }
-    }
-.accept(bodyAsExpressionList);
   }
   ParameterReplacer replacer=new ParameterReplacer(x);
   replacer.accept(bodyAsExpressionList);
