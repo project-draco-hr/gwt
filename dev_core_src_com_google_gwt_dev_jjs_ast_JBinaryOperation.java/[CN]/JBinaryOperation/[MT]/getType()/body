@@ -1,8 +1,10 @@
 {
+  JType resultType=this.type;
   if (isAssignment()) {
-    return getLhs().getType();
+    resultType=getLhs().getType();
   }
- else {
-    return type;
+  if (op != JBinaryOperator.ASG && resultType instanceof JReferenceType) {
+    resultType=((JReferenceType)resultType).strengthenToNonNull().strengthenToExact();
   }
+  return resultType;
 }
