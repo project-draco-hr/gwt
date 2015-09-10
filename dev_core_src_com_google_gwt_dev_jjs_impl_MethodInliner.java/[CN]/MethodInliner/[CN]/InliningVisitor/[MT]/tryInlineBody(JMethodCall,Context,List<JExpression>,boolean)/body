@@ -15,36 +15,37 @@
   if (x.getTarget().getParams().size() != x.getArgs().size()) {
     return InlineResult.DO_NOT_BLACKLIST;
   }
-  boolean hasSideEffects=x.hasSideEffects();
-  if (!hasSideEffects) {
-    new JModVisitor(){
-      @Override public void endVisit(      JMethodCall x,      Context ctx){
-        x.markSideEffectFree();
-      }
-    }
-.accept(bodyAsExpressionList);
-  }
   OrderVisitor orderVisitor=new OrderVisitor(x.getTarget().getParams());
   orderVisitor.accept(bodyAsExpressionList);
-  if (orderVisitor.checkResults() == SideEffectCheck.NO_REFERENCES) {
-    List<JExpression> expressions=expressionsIncludingArgs(x);
-    expressions.addAll(bodyAsExpressionList);
-    ctx.replaceMe(JjsUtils.createOptimizedMultiExpression(ignoringReturn,expressions));
-    return InlineResult.DO_NOT_BLACKLIST;
-  }
-  if (orderVisitor.checkResults() == SideEffectCheck.FAILS) {
-    for (    JExpression arg : x.getArgs()) {
-      ExpressionAnalyzer argAnalyzer=new ExpressionAnalyzer();
-      argAnalyzer.accept(arg);
-      if (argAnalyzer.hasAssignment() || argAnalyzer.accessesField() || argAnalyzer.createsObject()|| argAnalyzer.canThrowException()) {
-        return InlineResult.DO_NOT_BLACKLIST;
-      }
+switch (orderVisitor.checkResults()) {
+case NO_REFERENCES:
+    if (!x.hasSideEffects()) {
+      markCallsAsSideEffectFree(bodyAsExpressionList);
     }
-  }
-  ParameterReplacer replacer=new ParameterReplacer(x);
-  replacer.accept(bodyAsExpressionList);
-  bodyAsExpressionList.add(0,x.getInstance());
-  bodyAsExpressionList.add(1,createClinitCall(x));
-  ctx.replaceMe(JjsUtils.createOptimizedMultiExpression(ignoringReturn,bodyAsExpressionList));
-  return InlineResult.DO_NOT_BLACKLIST;
+  new LocalVariableExtruder(getCurrentMethod()).accept(bodyAsExpressionList);
+List<JExpression> expressions=expressionsIncludingArgs(x);
+expressions.addAll(bodyAsExpressionList);
+ctx.replaceMe(JjsUtils.createOptimizedMultiExpression(ignoringReturn,expressions));
+return InlineResult.DO_NOT_BLACKLIST;
+case FAILS:
+for (JExpression arg : x.getArgs()) {
+ExpressionAnalyzer argAnalyzer=new ExpressionAnalyzer();
+argAnalyzer.accept(arg);
+if (argAnalyzer.hasAssignment() || argAnalyzer.accessesField() || argAnalyzer.createsObject()|| argAnalyzer.canThrowException()) {
+return InlineResult.DO_NOT_BLACKLIST;
+}
+}
+case CORRECT_ORDER:
+default :
+if (!x.hasSideEffects()) {
+markCallsAsSideEffectFree(bodyAsExpressionList);
+}
+new LocalVariableExtruder(getCurrentMethod()).accept(bodyAsExpressionList);
+ParameterReplacer replacer=new ParameterReplacer(x);
+replacer.accept(bodyAsExpressionList);
+bodyAsExpressionList.add(0,x.getInstance());
+bodyAsExpressionList.add(1,createClinitCall(x));
+ctx.replaceMe(JjsUtils.createOptimizedMultiExpression(ignoringReturn,bodyAsExpressionList));
+return InlineResult.DO_NOT_BLACKLIST;
+}
 }

@@ -4,7 +4,7 @@
   addSnippetClassDecl("static int fun2(int a) { return 1 + fun1(a); }");
   addSnippetClassDecl("static int fun3() {","  int a = 1;","  int b = 2;","  a = a + fun1(a);","  return a + fun1(b); }");
   Result result=optimize("int","return fun2(1);");
-  assertEquals("static int fun1(int a){\n" + "  EntryPoint.fun0(a);\n" + "  return 2 + a;\n"+ "}",result.findMethod("fun1").toSource());
-  assertEquals("static int fun2(int a){\n" + "  return (EntryPoint.fun0(a), 1 + 2 + a);\n}",result.findMethod("fun2").toSource());
-  assertEquals("static int fun3(){\n" + "  int a = 1;\n" + "  int b = 2;\n"+ "  a = a + ((EntryPoint.fun0(a), 2 + a));\n"+ "  return a + ((EntryPoint.fun0(b), 2 + b));\n}",result.findMethod("fun3").toSource());
+  assertEquals("static int fun1(int a){ EntryPoint.fun0(a); return 2 + a; }",getCanonicalSource(result.findMethod("fun1")));
+  assertEquals("static int fun2(int a){ return (EntryPoint.fun0(a), 1 + 2 + a); }",getCanonicalSource(result.findMethod("fun2")));
+  assertEquals("static int fun3(){ int a = 1; int b = 2;" + " a = a + ((EntryPoint.fun0(a), 2 + a));" + " return a + ((EntryPoint.fun0(b), 2 + b)); }",getCanonicalSource(result.findMethod("fun3")));
 }

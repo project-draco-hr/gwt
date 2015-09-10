@@ -1,0 +1,7 @@
+{
+  addSnippetImport(DoNotInline.class.getCanonicalName());
+  addSnippetClassDecl("static int fun() { int a = 1; return a; }");
+  addSnippetClassDecl("@DoNotInline static int caller() { fun(); return 1; }");
+  Result result=optimize("int","return caller();");
+  assertEquals("static int caller(){ a = 1; return 1; }",getCanonicalSource(result.findMethod("caller")));
+}
