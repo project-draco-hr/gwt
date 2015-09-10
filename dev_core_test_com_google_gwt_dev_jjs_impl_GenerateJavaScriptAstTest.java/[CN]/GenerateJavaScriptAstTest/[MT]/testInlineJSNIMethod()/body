@@ -1,16 +1,6 @@
 {
-  StringBuilder code=new StringBuilder();
-  code.append("package test;\n");
-  code.append("import com.google.gwt.core.client.GWT;\n");
-  code.append("import com.google.gwt.core.client.RunAsyncCallback;\n");
-  code.append("public class EntryPoint {\n");
-  code.append("  public static native void inlinableJSNI() /*-{ $wnd; }-*/; ");
-  code.append("  public static void functionA() { onModuleLoad(); }\n");
-  code.append("  public static void onModuleLoad() {\n");
-  code.append("    inlinableJSNI();");
-  code.append("  }\n");
-  code.append("}\n");
-  Set<JsNode> functionForJsInlining=compileSnippetToJS(code.toString()).getRight();
+  String code=Joiner.on('\n').join("package test;","import com.google.gwt.core.client.GWT;","import com.google.gwt.core.client.RunAsyncCallback;","public class EntryPoint {","  public static native void inlinableJSNI() /*-{ $wnd; }-*/; ","  public static void functionA() { onModuleLoad(); }","  public static void onModuleLoad() {","    inlinableJSNI();","  }","}");
+  Set<JsNode> functionForJsInlining=compileSnippetToJS(code).getRight();
   assertContainsAll(functionForJsInlining,"onModuleLoad","inlinableJSNI");
   assertDoesNotContainsAny(functionForJsInlining,"functionA");
 }

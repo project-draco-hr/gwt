@@ -1,11 +1,12 @@
 {
-  Set<String> remainingFunctions=Sets.newHashSet(functionNames);
+  Set<String> remainingFunctions=Sets.newHashSet(functionNamesorContents);
   for (  JsFunction function : Iterables.filter(functionsForJsInlining,JsFunction.class)) {
     JsName name=function.getName();
     if (name == null) {
+      remainingFunctions.remove(function.toString().replaceAll("\\s+"," ").trim());
       continue;
     }
     remainingFunctions.remove(name.getShortIdent());
   }
-  assertTrue("{" + (Joiner.on(",").join(remainingFunctions)) + "} marked for consideration in "+ "JsInliner",remainingFunctions.isEmpty());
+  assertTrue("{" + (Joiner.on(",").join(remainingFunctions)) + "} not marked for consideration in "+ "JsInliner",remainingFunctions.isEmpty());
 }
