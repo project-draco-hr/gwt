@@ -3,7 +3,6 @@
     final InternalJsIterator<Object> chains=backingMap.entries();
     int itemIndex=0;
     Entry<K,V>[] chain=newEntryChain();
-    Entry<K,V>[] lastChain=null;
     Entry<K,V> lastEntry=null;
     @Override public boolean hasNext(){
       if (itemIndex < chain.length) {
@@ -19,15 +18,13 @@
     }
     @Override public Entry<K,V> next(){
       checkElement(hasNext());
-      lastChain=chain;
       lastEntry=chain[itemIndex++];
       return lastEntry;
     }
     @Override public void remove(){
       checkState(lastEntry != null);
-      boolean isLastChain=itemIndex == lastChain.length;
       InternalHashCodeMap.this.remove(lastEntry.getKey());
-      if (!isLastChain) {
+      if (itemIndex != 0) {
         itemIndex--;
       }
       lastEntry=null;
