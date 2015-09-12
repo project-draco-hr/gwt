@@ -1,24 +1,20 @@
 {
   JExpression typeId=getRuntimeTypeReference(x);
   JClassType superClass=x.getSuperClass();
-  JExpression superTypeId=(superClass == null) ? JNullLiteral.INSTANCE : getRuntimeTypeReference(x.getSuperClass());
-  JInterfaceType jsPrototypeIntf=JProgram.maybeGetJsTypeFromPrototype(superClass);
-  String jsPrototype=jsPrototypeIntf != null ? jsPrototypeIntf.getJsPrototype() : null;
-  if (x.isJsFunctionImplementation()) {
-    jsPrototype="Function";
-  }
+  JExpression superTypeId=(superClass == null) ? JNullLiteral.INSTANCE : getRuntimeTypeReference(superClass);
+  String jsPrototype=getSuperPrototype(x);
   List<JsExpression> defineClassArguments=Lists.newArrayList();
   defineClassArguments.add(convertJavaLiteral(typeId));
-  if (jsPrototype == null) {
-    defineClassArguments.add(convertJavaLiteral(superTypeId));
-  }
- else {
-    defineClassArguments.add(createJsQualifier(jsPrototype,x.getSourceInfo()));
-  }
-  JsExpression castMap=generateCastableTypeMap(x);
-  defineClassArguments.add(castMap);
+  defineClassArguments.add(jsPrototype == null ? convertJavaLiteral(superTypeId) : createJsQualifier(jsPrototype,x.getSourceInfo()));
+  defineClassArguments.add(generateCastableTypeMap(x));
   defineClassArguments.addAll(constructorArgs);
   JsStatement defineClassStatement=constructInvocation(x.getSourceInfo(),"JavaClassHierarchySetupUtil.defineClass",defineClassArguments).makeStmt();
   globalStmts.add(defineClassStatement);
   typeForStatMap.put(defineClassStatement,x);
+  if (jsPrototype != null) {
+    JExpression objectTypeId=getRuntimeTypeReference(program.getTypeJavaLangObject());
+    JsStatement statement=constructInvocation(x.getSourceInfo(),"JavaClassHierarchySetupUtil.copyObjectMethods",convertJavaLiteral(objectTypeId)).makeStmt();
+    globalStmts.add(statement);
+    typeForStatMap.put(statement,x);
+  }
 }

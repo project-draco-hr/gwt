@@ -1,2 +1,17 @@
 {
+  JMethod method=curMethod.method;
+  JsniMethod jsniMethod=jsniMethods.get(x);
+  if (jsniMethod == null) {
+    return;
+  }
+  SourceInfo info=method.getSourceInfo();
+  JsFunction jsFunction=jsniMethod.function();
+  JsniMethodBody body=new JsniMethodBody(info);
+  method.setBody(body);
+  jsFunction.setFromJava(true);
+  body.setFunc(jsFunction);
+  JsParameterResolver localResolver=new JsParameterResolver(jsFunction);
+  localResolver.accept(jsFunction);
+  JsniReferenceCollector jsniReferenceCollector=new JsniReferenceCollector(body);
+  jsniReferenceCollector.accept(jsFunction);
 }

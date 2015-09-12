@@ -15,7 +15,7 @@
     if (method.isNative()) {
       maybeRescueJavaScriptObjectPassingIntoJava(method.getType());
     }
-    if (method.canBeCalledExternally()) {
+    if (method.canBeCalledExternally() || method.canBeImplementedExternally()) {
       for (      JParameter param : method.getParams()) {
         rescue(param);
       }
@@ -23,11 +23,6 @@
     rescueOverridingMethods(method);
     if (method == getClassMethod) {
       rescueClassLiteralsIfGetClassIsLive();
-    }
-    if (program.isJsTypePrototype(method.getEnclosingType())) {
-      for (      JParameter param : method.getParams()) {
-        rescue(param);
-      }
     }
     if (method.getSpecialization() != null) {
       rescue(method.getSpecialization().getTargetMethod());
