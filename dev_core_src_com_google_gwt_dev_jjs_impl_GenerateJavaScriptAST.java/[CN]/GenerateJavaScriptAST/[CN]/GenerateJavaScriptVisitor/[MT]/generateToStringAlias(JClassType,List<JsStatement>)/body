@@ -1,19 +1,8 @@
 {
-  JMethod toStringMeth=program.getIndexedMethod("Object.toString");
-  if (x.getMethods().contains(toStringMeth)) {
-    SourceInfo sourceInfo=x.getSourceInfo();
-    JsNameRef lhs=createNativeToStringRef(getPrototypeQualifierOf(x,sourceInfo));
-    JsNameRef toStringRef=new JsNameRef(sourceInfo,polymorphicNames.get(toStringMeth));
-    toStringRef.setQualifier(new JsThisRef(sourceInfo));
-    JsInvocation call=new JsInvocation(sourceInfo,toStringRef);
-    JsReturn jsReturn=new JsReturn(sourceInfo,call);
-    JsFunction rhs=new JsFunction(sourceInfo,topScope);
-    JsBlock body=new JsBlock(sourceInfo);
-    body.getStatements().add(jsReturn);
-    rhs.setBody(body);
-    JsExpression asg=createAssignment(lhs,rhs);
-    JsExprStmt stmt=asg.makeStmt();
-    globalStmts.add(stmt);
-    typeForStatMap.put(stmt,program.getTypeJavaLangObject());
+  JMethod toStringMethod=program.getIndexedMethod("Object.toString");
+  if (x.getMethods().contains(toStringMethod)) {
+    JsName toStringName=objectScope.declareName("toString");
+    toStringName.setObfuscatable(false);
+    generateVTableAlias(globalStmts,toStringMethod,toStringName);
   }
 }
