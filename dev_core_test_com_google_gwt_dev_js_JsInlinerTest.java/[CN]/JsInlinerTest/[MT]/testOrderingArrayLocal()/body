@@ -1,12 +1,5 @@
 {
-  StringBuilder code=new StringBuilder();
-  code.append("function clinit() { clinit = null; }");
-  code.append("function callee(arg) { var array; return array[0] + arg; }");
-  code.append("function caller() { callee((clinit(),2)); }");
-  code.append("caller();");
-  StringBuilder expected=new StringBuilder();
-  expected.append("function clinit() { clinit = null; }");
-  expected.append("function caller() { var array; array[0] + (clinit(), 2); }");
-  expected.append("caller();");
-  verifyOptimized(expected.toString(),code.toString());
+  String code=Joiner.on('\n').join("function clinit() { clinit = null; }","function callee(arg) { var array; return array[0] + arg; }","function caller() { callee((clinit(),2)); }","caller();");
+  String expected=Joiner.on('\n').join("function clinit() { clinit = null; }","function caller() { var array; array[0] + (clinit(), 2); }","caller();");
+  verifyOptimized(expected,code);
 }

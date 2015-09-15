@@ -18,7 +18,7 @@
     if (h == null) {
       return x;
     }
-    hoistedNameVisitor.accept(statement);
+    hoistedNameVisitor.accept(h);
     if (isReturnStatement(statement)) {
       sawReturnStatement=true;
       hoisted.add(h);
@@ -28,6 +28,9 @@
     }
   }
   List<JsName> hoistedNames=hoistedNameVisitor.getHoistedNames();
+  if (hoistedNames.size() != 0 && callerFunction == programFunction) {
+    return x;
+  }
   if (!sawReturnStatement) {
     hoisted.add(new JsNameRef(x.getSourceInfo(),JsRootScope.INSTANCE.getUndefined()));
   }
