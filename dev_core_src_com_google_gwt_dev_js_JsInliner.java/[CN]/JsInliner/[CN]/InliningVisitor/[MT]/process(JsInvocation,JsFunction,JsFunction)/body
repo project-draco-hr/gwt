@@ -6,37 +6,34 @@
  else {
     statements=Collections.emptyList();
   }
-  List<JsExpression> hoisted=Lists.newArrayListWithCapacity(statements.size());
+  List<JsExpression> inlinableBodyAsExpression=Lists.newArrayListWithCapacity(statements.size());
   JsExpression thisExpr=((JsNameRef)x.getQualifier()).getQualifier();
-  HoistedNameVisitor hoistedNameVisitor=new HoistedNameVisitor(callerFunction.getScope(),invokedFunction.getScope());
+  ExtrudedNamesCollector extrudedNamesCollector=new ExtrudedNamesCollector(callerFunction.getScope(),invokedFunction.getScope());
   boolean sawReturnStatement=false;
   for (  JsStatement statement : statements) {
     if (sawReturnStatement) {
       return x;
     }
-    JsExpression h=hoistedExpression(statement);
-    if (h == null) {
+    JsExpression statementAsExpression=convertToExpression(statement);
+    if (statementAsExpression == null) {
       return x;
     }
-    hoistedNameVisitor.accept(h);
-    if (isReturnStatement(statement)) {
-      sawReturnStatement=true;
-      hoisted.add(h);
-    }
- else     if (hasSideEffects(Collections.singletonList(h))) {
-      hoisted.add(h);
+    sawReturnStatement|=isReturnStatement(statement);
+    if (sawReturnStatement || statementAsExpression.hasSideEffects()) {
+      extrudedNamesCollector.accept(statementAsExpression);
+      inlinableBodyAsExpression.add(statementAsExpression);
     }
   }
-  List<JsName> hoistedNames=hoistedNameVisitor.getHoistedNames();
-  if (hoistedNames.size() != 0 && callerFunction == programFunction) {
+  List<JsName> extrudedNames=extrudedNamesCollector.getExtrudedNames();
+  if (extrudedNames.size() != 0 && callerFunction == programFunction) {
     return x;
   }
   if (!sawReturnStatement) {
-    hoisted.add(new JsNameRef(x.getSourceInfo(),JsRootScope.INSTANCE.getUndefined()));
+    inlinableBodyAsExpression.add(new JsNameRef(x.getSourceInfo(),JsRootScope.INSTANCE.getUndefined()));
   }
-  assert(hoisted.size() > 0);
+  assert(inlinableBodyAsExpression.size() > 0);
   SourceInfo sourceInfo=x.getSourceInfo();
-  ListIterator<JsExpression> i=hoisted.listIterator(hoisted.size());
+  ListIterator<JsExpression> i=inlinableBodyAsExpression.listIterator(inlinableBodyAsExpression.size());
   JsExpression op=i.previous();
   while (i.hasPrevious()) {
     JsBinaryOperation outerOp=new JsBinaryOperation(sourceInfo,JsBinaryOperator.COMMA);
@@ -47,36 +44,22 @@
   if (!isInlinable(callerFunction,invokedFunction,thisExpr,x.getArguments(),op)) {
     return x;
   }
-  NameRefReplacerVisitor v=new NameRefReplacerVisitor(thisExpr,x.getArguments(),invokedFunction.getParameters());
-  for (ListIterator<JsName> nameIterator=hoistedNames.listIterator(); nameIterator.hasNext(); ) {
+  NameRefReplacerVisitor nameRefReplacer=new NameRefReplacerVisitor(thisExpr,x.getArguments(),invokedFunction.getParameters());
+  for (ListIterator<JsName> nameIterator=extrudedNames.listIterator(); nameIterator.hasNext(); ) {
     JsName name=nameIterator.next();
-    String ident;
-    String base=invokedFunction.getName() + "_" + name.getIdent();
-    JsScope scope=callerFunction.getScope();
-    Multiset<String> startIdent=startIdentForScope.get(scope);
-    if (startIdent == null) {
-      startIdent=HashMultiset.create();
-      startIdentForScope.put(scope,startIdent);
-    }
-    int suffix=startIdent.count(base);
-    do {
-      ident=base + "_" + suffix++;
-    }
- while (scope.findExistingName(ident) != null);
-    startIdent.setCount(base,suffix);
-    JsName newName=scope.declareName(ident,name.getShortIdent());
-    v.setReplacementName(name,newName);
+    JsName newName=getUnusedName(callerFunction.getScope(),invokedFunction.getName() + "_" + name.getIdent(),name.getShortIdent());
+    nameRefReplacer.setReplacementName(name,newName);
     nameIterator.set(newName);
   }
-  op=v.accept(op);
-  op=(new CommaNormalizer(hoistedNames)).accept(op);
+  op=nameRefReplacer.accept(op);
+  op=(new CommaNormalizer(extrudedNames)).accept(op);
+  if (callerFunction == programFunction && extrudedNames.size() > 0) {
+    return x;
+  }
   if (invokedFunction.getInliningMode() != InliningMode.FORCE_INLINE && isTooComplexToInline(x,op) && isInvokedMoreThanOnce(invokedFunction)) {
     return x;
   }
-  if (callerFunction == programFunction && hoistedNames.size() > 0) {
-    return x;
-  }
-  newLocalVariableStack.peek().addAll(hoistedNames);
+  newLocalVariableStack.peek().addAll(extrudedNames);
   invocationCountingVisitor.removeCountsFor(x);
   invocationCountingVisitor.accept(op);
   return op;
