@@ -1,5 +1,35 @@
 {
-  String[] jsArrayString=split0(regex,maxMatch);
-  ArrayStamper.stampJavaTypeInfo(jsArrayString,new String[0]);
-  return jsArrayString;
+  Object compiled=createRegExp(regex,"g");
+  String[] out=new String[0];
+  int count=0;
+  String trail=this;
+  String lastTrail=null;
+  while (true) {
+    Object matchObj=execRegExp(compiled,trail);
+    if (matchObj == null || trail == "" || (count == (maxMatch - 1) && maxMatch > 0)) {
+      out[count]=trail;
+      break;
+    }
+ else {
+      out[count]=trail.substring(0,getMatchIndex(matchObj));
+      trail=trail.substring(getMatchIndex(matchObj) + getMatchLength(matchObj,0),trail.length());
+      resetRegExpLastIndex(compiled);
+      if (lastTrail == trail) {
+        out[count]=trail.substring(0,1);
+        trail=trail.substring(1);
+      }
+      lastTrail=trail;
+      count++;
+    }
+  }
+  if (maxMatch == 0 && this.length() > 0) {
+    int lastNonEmpty=out.length;
+    while (lastNonEmpty > 0 && out[lastNonEmpty - 1] == "") {
+      --lastNonEmpty;
+    }
+    if (lastNonEmpty < out.length) {
+      ArrayHelper.setLength(out,lastNonEmpty);
+    }
+  }
+  return out;
 }
