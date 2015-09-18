@@ -22,19 +22,11 @@
  else   if (x.isStaticDispatchOnly()) {
     result=dispatchToSuper(x,method,args);
   }
- else   if (method.isOrOverridesJsPropertyAccessor()) {
-    result=dispatchToJsProperty(x,method,args);
-  }
- else   if (method.isOrOverridesJsMethod()) {
-    result=dispatchToJsMethod(x,method,args);
-  }
  else   if (method.isOrOverridesJsFunctionMethod()) {
-    result=dispatchToJsFunction(x,args);
+    result=dispatchToJsFunction(args,x.getSourceInfo());
   }
  else {
-    JsNameRef methodName=polymorphicNames.get(method).makeRef(x.getSourceInfo());
-    methodName.setQualifier((JsExpression)pop());
-    result=new JsInvocation(x.getSourceInfo(),methodName,args);
+    result=dispatchToInstanceMethod(method,args,x.getSourceInfo());
   }
   push(result);
 }
