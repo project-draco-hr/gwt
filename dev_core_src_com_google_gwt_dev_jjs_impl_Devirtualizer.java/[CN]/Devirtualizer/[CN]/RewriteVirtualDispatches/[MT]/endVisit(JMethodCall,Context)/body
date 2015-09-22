@@ -1,10 +1,13 @@
 {
   JMethod method=x.getTarget();
-  if (!mightNeedDevirtualization(method)) {
+  if (!method.needsVtable()) {
     return;
   }
-  JType instanceType=x.getInstance().getType().getUnderlyingType();
-  if (instanceType != program.getTypeJavaLangObject() && !program.typeOracle.canBeJavaScriptObject(instanceType) && !(program.isRepresentedAsNativeJsPrimitive(instanceType)) && !(instanceType instanceof JArrayType) && !isSuperOfRepresentedAsNativeType(instanceType) || x.isStaticDispatchOnly() && !method.getEnclosingType().isJsoType()) {
+  JReferenceType instanceType=(JReferenceType)x.getInstance().getType().getUnderlyingType();
+  if (!mightNeedDevirtualization(method,instanceType)) {
+    return;
+  }
+  if (x.isStaticDispatchOnly() && !method.getEnclosingType().isJsoType()) {
     return;
   }
   ensureDevirtualVersionExists(method);
