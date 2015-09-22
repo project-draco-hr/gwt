@@ -1,20 +1,11 @@
 {
-  String name=x.getName();
-  String mangleName=mangleName(x);
+  JsName jsName;
   if (x.isStatic()) {
-    JsName jsName=topScope.declareName(mangleName,name);
-    names.put(x,jsName);
-    recordSymbol(x,jsName);
+    jsName=topScope.declareName(mangleName(x),x.getName());
   }
  else {
-    JsName jsName;
-    if (x.isJsProperty()) {
-      jsName=scopeStack.peek().declareUnobfuscatableName(name);
-    }
- else {
-      jsName=scopeStack.peek().declareName(mangleName,name);
-    }
-    names.put(x,jsName);
-    recordSymbol(x,jsName);
+    jsName=x.isJsProperty() ? scopeStack.peek().declareUnobfuscatableName(x.getJsName()) : scopeStack.peek().declareName(mangleName(x),x.getName());
   }
+  names.put(x,jsName);
+  recordSymbol(x,jsName);
 }

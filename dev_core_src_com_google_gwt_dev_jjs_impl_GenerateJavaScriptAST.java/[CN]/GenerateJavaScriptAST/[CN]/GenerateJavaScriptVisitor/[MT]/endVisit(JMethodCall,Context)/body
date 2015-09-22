@@ -15,18 +15,19 @@
       method=clinitTarget.getClinitMethod();
     }
   }
+  JsExpression qualifier=(JsExpression)(x.getInstance() != null ? pop() : null);
   JsExpression result;
   if (method.isStatic()) {
-    result=dispatchToStatic(x,method,args);
+    result=dispatchToStatic(qualifier,method,args,x.getSourceInfo());
   }
  else   if (x.isStaticDispatchOnly()) {
-    result=dispatchToSuper(x,method,args);
+    result=dispatchToSuper(qualifier,method,args,x.getSourceInfo());
   }
  else   if (method.isOrOverridesJsFunctionMethod()) {
-    result=dispatchToJsFunction(args,x.getSourceInfo());
+    result=dispatchToJsFunction(qualifier,args,x.getSourceInfo());
   }
  else {
-    result=dispatchToInstanceMethod(method,args,x.getSourceInfo());
+    result=dispatchToInstanceMethod(qualifier,method,args,x.getSourceInfo());
   }
   push(result);
 }

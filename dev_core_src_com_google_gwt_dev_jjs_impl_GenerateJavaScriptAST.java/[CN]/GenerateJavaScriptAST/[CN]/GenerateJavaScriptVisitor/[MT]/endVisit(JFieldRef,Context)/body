@@ -1,20 +1,5 @@
 {
-  JField field=x.getField();
-  JsName jsFieldName=names.get(field);
-  JsNameRef nameRef=jsFieldName.makeRef(x.getSourceInfo());
-  JsExpression curExpr=nameRef;
-  JsInvocation jsInvocation=maybeCreateClinitCall(field,false);
-  if (jsInvocation != null) {
-    curExpr=createCommaExpression(jsInvocation,curExpr);
-  }
-  if (x.getInstance() != null) {
-    JsExpression qualifier=pop();
-    if (field.isStatic()) {
-      curExpr=createCommaExpression(qualifier,curExpr);
-    }
- else {
-      nameRef.setQualifier(qualifier);
-    }
-  }
-  push(curExpr);
+  JsExpression qualifier=(JsExpression)(x.getInstance() != null ? pop() : null);
+  boolean isStatic=x.getField().isStatic();
+  push(isStatic ? dispatchToStaticField(x,qualifier) : dispatchToInstanceField(x,qualifier));
 }
