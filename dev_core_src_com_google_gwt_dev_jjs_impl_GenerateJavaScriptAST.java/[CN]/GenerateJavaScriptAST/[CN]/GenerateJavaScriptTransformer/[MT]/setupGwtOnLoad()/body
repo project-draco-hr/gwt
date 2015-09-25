@@ -1,0 +1,16 @@
+{
+  final SourceInfo sourceInfo=SourceOrigin.UNKNOWN;
+  JsStatement entryVars=constructFunctionCallStatement(topScope.declareName("$entry"),"ModuleUtils.registerEntry");
+  getGlobalStatements().add(entryVars);
+  JsName gwtOnLoad=topScope.findExistingUnobfuscatableName("gwtOnLoad");
+  JsVar varGwtOnLoad=new JsVar(sourceInfo,gwtOnLoad);
+  varGwtOnLoad.setInitExpr(createAssignment(gwtOnLoad.makeRef(sourceInfo),indexedFunctions.get("ModuleUtils.gwtOnLoad").getName().makeRef(sourceInfo)));
+  getGlobalStatements().add(new JsVars(sourceInfo,varGwtOnLoad));
+  List<JsExpression> arguments=Lists.newArrayList();
+  for (  JMethod entryPointMethod : program.getEntryMethods()) {
+    JsFunction entryFunction=getJsFunctionFor(entryPointMethod);
+    arguments.add(entryFunction.getName().makeRef(sourceInfo));
+  }
+  JsStatement createGwtOnLoadFunctionCall=constructInvocation("ModuleUtils.addInitFunctions",arguments).makeStmt();
+  getGlobalStatements().add(createGwtOnLoadFunctionCall);
+}

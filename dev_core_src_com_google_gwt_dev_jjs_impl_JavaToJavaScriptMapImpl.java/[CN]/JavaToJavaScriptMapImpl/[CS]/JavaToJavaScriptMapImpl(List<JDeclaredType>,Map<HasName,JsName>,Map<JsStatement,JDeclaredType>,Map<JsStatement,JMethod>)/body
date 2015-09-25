@@ -1,0 +1,31 @@
+{
+  Map<JsName,JMethod> methodsByJsName=Maps.newHashMap();
+  Map<JsName,JField> staticFieldsByJsName=Maps.newHashMap();
+  Map<JsName,JClassType> typesByContructorJsName=Maps.newHashMap();
+  for (  JDeclaredType type : types) {
+    JsName typeName=names.get(type);
+    if (type instanceof JClassType && typeName != null) {
+      typesByContructorJsName.put(typeName,(JClassType)type);
+    }
+    for (    JField field : type.getFields()) {
+      if (field.isStatic()) {
+        JsName fieldName=names.get(field);
+        if (fieldName != null) {
+          staticFieldsByJsName.put(fieldName,field);
+        }
+      }
+    }
+    for (    JMethod method : type.getMethods()) {
+      JsName methodName=names.get(method);
+      if (methodName != null) {
+        methodsByJsName.put(methodName,method);
+      }
+    }
+  }
+  this.names=names;
+  this.fieldForName=staticFieldsByJsName;
+  this.methodForName=methodsByJsName;
+  this.typeForConstructorName=typesByContructorJsName;
+  this.typeForStatement=typeForStatement;
+  this.methodForStatement=methodForStatement;
+}

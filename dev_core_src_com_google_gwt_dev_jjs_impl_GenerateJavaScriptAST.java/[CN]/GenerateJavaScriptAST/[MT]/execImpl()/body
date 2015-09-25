@@ -1,5 +1,4 @@
 {
-  new FixNameClashesVisitor().accept(program);
   uninitializedValuePotentiallyObservable=optimize ? ComputePotentiallyObservableUninitializedValues.analyze(program) : Predicates.<JField>alwaysTrue();
   new FindNameOfTargets().accept(program);
   new SortVisitor().accept(program);
@@ -7,13 +6,11 @@
     new RecordCrossClassCallsAndConstructorLiveness().accept(program);
   }
   contructTypeToClassLiteralDeclarationMap();
-  CreateNamesAndScopesVisitor creator=new CreateNamesAndScopesVisitor();
-  creator.accept(program);
-  GenerateJavaScriptVisitor generator=new GenerateJavaScriptVisitor();
-  generator.accept(program);
+  new CreateNamesAndScopesVisitor().accept(program);
+  new GenerateJavaScriptTransformer().transform(program);
   jsProgram.setIndexedFields(indexedFields);
   jsProgram.setIndexedFunctions(indexedFunctions);
-  JavaToJavaScriptMap jjsMap=new JavaToJavaScriptMapImpl(program.getDeclaredTypes(),names,typeForStatMap,vtableInitForMethodMap);
+  JavaToJavaScriptMap jjsMap=new JavaToJavaScriptMapImpl(program.getDeclaredTypes(),names,javaTypeByGlobalStatement,methodByGlobalStatement);
   Set<JsNode> functionsForJsInlining=incremental ? Collections.<JsNode>emptySet() : new CollectJsFunctionsForInlining().getFunctionsForJsInlining();
   return Pair.create(jjsMap,functionsForJsInlining);
 }

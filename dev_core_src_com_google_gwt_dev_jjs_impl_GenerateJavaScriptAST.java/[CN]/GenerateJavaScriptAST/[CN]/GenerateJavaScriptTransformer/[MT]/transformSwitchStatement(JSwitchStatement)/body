@@ -1,0 +1,21 @@
+{
+  JsSwitch jsSwitch=new JsSwitch(switchStatement.getSourceInfo());
+  jsSwitch.setExpr(transform(switchStatement.getExpr()));
+  List<JStatement> bodyStmts=switchStatement.getBody().getStatements();
+  List<JsStatement> curStatements=null;
+  for (  JStatement stmt : bodyStmts) {
+    if (stmt instanceof JCaseStatement) {
+      JsSwitchMember switchMember=transform((JNode)stmt);
+      jsSwitch.getCases().add(switchMember);
+      curStatements=switchMember.getStmts();
+    }
+ else {
+      assert(curStatements != null);
+      JsStatement newStmt=transform(stmt);
+      if (newStmt != null) {
+        curStatements.add(newStmt);
+      }
+    }
+  }
+  return jsSwitch;
+}

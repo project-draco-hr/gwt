@@ -1,0 +1,18 @@
+{
+  if (!isMethodPotentiallyCalledAcrossClasses(method)) {
+    return null;
+  }
+  JDeclaredType enclosingType=method.getEnclosingType();
+  if (method.canBePolymorphic() || (program.isStaticImpl(method) && !enclosingType.isJsoType())) {
+    return null;
+  }
+  if (enclosingType == null || !enclosingType.hasClinit()) {
+    return null;
+  }
+  if (JProgram.isClinit(method)) {
+    return null;
+  }
+  JMethod clinitMethod=enclosingType.getClinitTarget().getClinitMethod();
+  SourceInfo sourceInfo=method.getSourceInfo();
+  return new JsInvocation(sourceInfo,names.get(clinitMethod).makeRef(sourceInfo));
+}

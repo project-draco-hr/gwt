@@ -1,0 +1,20 @@
+{
+  JsVars vars=new JsVars(jsProgram.getSourceInfo());
+  vars.add(new JsVar(jsProgram.getSourceInfo(),globalTemp));
+  addVarsIfNotEmpty(vars);
+  generateImmortalTypes(vars);
+  Set<JDeclaredType> alreadyProcessed=Sets.<JDeclaredType>newLinkedHashSet(program.immortalCodeGenTypes);
+  alreadyProcessed.add(program.getTypeClassLiteralHolder());
+  alreadyRan.addAll(alreadyProcessed);
+  List<JDeclaredType> classLiteralSupportClasses=computeClassLiteralsSupportClasses(program,alreadyProcessed);
+  classLiteralSupportClasses.removeAll(alreadyProcessed);
+  for (  JDeclaredType type : classLiteralSupportClasses) {
+    transform(type);
+  }
+  generateClassLiterals(classLiteralSupportClasses);
+  installClassLiterals(classLiteralSupportClasses);
+  addTypeDefinitionStatement(program.getIndexedType("JavaClassHierarchySetupUtil"),constructInvocation(program.getSourceInfo(),"JavaClassHierarchySetupUtil.modernizeBrowser").makeStmt());
+  Set<JDeclaredType> preambleTypes=Sets.newLinkedHashSet(alreadyProcessed);
+  preambleTypes.addAll(classLiteralSupportClasses);
+  return preambleTypes;
+}

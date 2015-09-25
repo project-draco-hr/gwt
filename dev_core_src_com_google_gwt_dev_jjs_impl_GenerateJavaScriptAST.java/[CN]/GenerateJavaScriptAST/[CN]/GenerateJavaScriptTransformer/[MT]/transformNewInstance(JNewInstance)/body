@@ -1,0 +1,11 @@
+{
+  SourceInfo sourceInfo=newInstance.getSourceInfo();
+  JConstructor ctor=newInstance.getTarget();
+  JsName ctorName=names.get(ctor);
+  JsNew newExpr=ctor.isJsNative() ? new JsNew(sourceInfo,createJsQualifier(ctor.getQualifiedJsName(),sourceInfo)) : new JsNew(sourceInfo,ctorName.makeRef(sourceInfo));
+  transformInto(newInstance.getArgs(),newExpr.getArguments());
+  if (newInstance.getClassType().isJsFunctionImplementation()) {
+    return constructJsFunctionObject(sourceInfo,newInstance.getClassType(),ctorName,newExpr);
+  }
+  return newExpr;
+}

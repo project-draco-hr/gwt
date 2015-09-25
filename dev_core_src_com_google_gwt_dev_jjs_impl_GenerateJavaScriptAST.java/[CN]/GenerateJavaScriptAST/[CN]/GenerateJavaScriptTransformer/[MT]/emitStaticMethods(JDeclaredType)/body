@@ -1,0 +1,20 @@
+{
+  for (  JMethod method : type.getMethods()) {
+    if (method.needsVtable()) {
+      continue;
+    }
+    JsFunction function=transform(method);
+    if (function == null) {
+      continue;
+    }
+    if (JProgram.isClinit(method)) {
+      if (type.getClinitTarget() == type) {
+        handleClinit(type,function);
+      }
+ else {
+        continue;
+      }
+    }
+    emitMethodImplementation(method,function.getName().makeRef(function.getSourceInfo()),function.makeStmt());
+  }
+}

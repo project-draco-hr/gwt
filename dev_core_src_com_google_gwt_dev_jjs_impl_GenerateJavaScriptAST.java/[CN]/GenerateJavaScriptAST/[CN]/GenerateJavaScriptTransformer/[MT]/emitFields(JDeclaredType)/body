@@ -1,0 +1,25 @@
+{
+  JsVars vars=new JsVars(type.getSourceInfo());
+  for (  JField field : type.getFields()) {
+    JsExpression initializer=null;
+    if (initializeAtTopScope(field)) {
+      initializer=transform(field.getLiteralInitializer());
+    }
+ else     if (field.getType().getDefaultValue() == JNullLiteral.INSTANCE) {
+    }
+ else {
+      initializer=transform(field.getType().getDefaultValue());
+    }
+    JsName name=names.get(field);
+    if (field.isStatic()) {
+      JsVar var=new JsVar(type.getSourceInfo(),name);
+      var.setInitExpr(initializer);
+      vars.add(var);
+    }
+ else     if (initializer != null) {
+      JsNameRef fieldRef=name.makeQualifiedRef(field.getSourceInfo(),getPrototypeQualifierOf(field));
+      addTypeDefinitionStatement(type,createAssignment(fieldRef,initializer).makeStmt());
+    }
+  }
+  addVarsIfNotEmpty(vars);
+}

@@ -1,0 +1,11 @@
+{
+  JsName classVar=declareSynthesizedClosureConstructor(type);
+  generateInlinedDefineClass(type,classVar);
+  for (  JMethod method : getPotentiallyAliveConstructors(type)) {
+    SourceInfo typeSourceInfo=type.getSourceInfo();
+    JsNameRef googInherits=JsUtils.createQualifiedNameRef(GOOG_INHERITS,typeSourceInfo);
+    SourceInfo methodSourceInfo=method.getSourceInfo();
+    JsExprStmt callGoogInherits=new JsInvocation(typeSourceInfo,googInherits,names.get(method).makeRef(methodSourceInfo),names.get(method.getEnclosingType()).makeRef(methodSourceInfo)).makeStmt();
+    addMethodDefinitionStatement(method,callGoogInherits);
+  }
+}

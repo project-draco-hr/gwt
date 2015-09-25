@@ -1,0 +1,13 @@
+{
+  if (declarationStatement.getInitializer() == null) {
+    return null;
+  }
+  JVariable target=declarationStatement.getVariableRef().getTarget();
+  if (target instanceof JField && initializeAtTopScope((JField)target)) {
+    return null;
+  }
+  JsExpression initializer=transform(declarationStatement.getInitializer());
+  JsNameRef localRef=transform(declarationStatement.getVariableRef());
+  SourceInfo info=declarationStatement.getSourceInfo();
+  return JsUtils.createAssignment(info,localRef,initializer).makeStmt();
+}

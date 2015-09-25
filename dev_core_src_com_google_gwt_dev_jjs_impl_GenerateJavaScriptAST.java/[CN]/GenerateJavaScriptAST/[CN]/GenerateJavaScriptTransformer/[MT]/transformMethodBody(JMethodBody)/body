@@ -1,0 +1,19 @@
+{
+  JsBlock body=transform(methodBody.getBlock());
+  JsFunction function=jsFunctionsByJavaMethodBody.get(methodBody);
+  function.setBody(body);
+  JsVars vars=new JsVars(methodBody.getSourceInfo());
+  Set<String> alreadySeen=Sets.newHashSet();
+  for (  JLocal local : methodBody.getLocals()) {
+    JsName name=names.get(local);
+    String ident=name.getIdent();
+    if (!alreadySeen.contains(ident) && !catchParamIdentifiers.contains(name)) {
+      alreadySeen.add(ident);
+      vars.add(new JsVar(methodBody.getSourceInfo(),name));
+    }
+  }
+  if (!vars.isEmpty()) {
+    function.getBody().getStatements().add(0,vars);
+  }
+  return function;
+}

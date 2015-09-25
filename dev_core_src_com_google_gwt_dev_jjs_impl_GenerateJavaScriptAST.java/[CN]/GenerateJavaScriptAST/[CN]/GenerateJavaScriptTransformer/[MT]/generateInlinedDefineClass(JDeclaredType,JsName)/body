@@ -1,0 +1,22 @@
+{
+  if (type instanceof JInterfaceType) {
+    return;
+  }
+  JClassType superClass=type.getSuperClass();
+  String jsPrototype=getSuperPrototype(type);
+  SourceInfo info=type.getSourceInfo();
+  JsNameRef parentCtor=jsPrototype != null ? createJsQualifier(jsPrototype,info) : superClass != null ? names.get(superClass).makeRef(info) : null;
+  if (parentCtor != null) {
+    JsNameRef googInherits=JsUtils.createQualifiedNameRef(GOOG_INHERITS,info);
+    JsExprStmt callGoogInherits=new JsInvocation(info,googInherits,classVar.makeRef(info),parentCtor).makeStmt();
+    addTypeDefinitionStatement(type,callGoogInherits);
+  }
+  if (type == program.getTypeJavaLangObject()) {
+    setupTypeMarkerOnJavaLangObjectPrototype(type);
+  }
+  setupCastMapOnPrototype(type);
+  if (jsPrototype != null) {
+    JsStatement statement=constructInvocation(info,"JavaClassHierarchySetupUtil.copyObjectProperties",getPrototypeQualifierOf(program.getTypeJavaLangObject(),info),getPrototypeQualifierOf(type,info)).makeStmt();
+    addTypeDefinitionStatement(type,statement);
+  }
+}

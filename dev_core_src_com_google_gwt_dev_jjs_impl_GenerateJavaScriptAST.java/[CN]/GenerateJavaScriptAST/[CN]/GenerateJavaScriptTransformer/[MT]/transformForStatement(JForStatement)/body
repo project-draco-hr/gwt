@@ -1,0 +1,16 @@
+{
+  JsFor result=new JsFor(forStatement.getSourceInfo());
+  JsExpression initExpr=null;
+  List<JsExprStmt> initStmts=transform(forStatement.getInitializers());
+  for (int i=0; i < initStmts.size(); ++i) {
+    JsExprStmt initStmt=initStmts.get(i);
+    if (initStmt != null) {
+      initExpr=JsUtils.createCommaExpression(initExpr,initStmt.getExpression());
+    }
+  }
+  result.setInitExpr(initExpr);
+  result.setCondition(transform(forStatement.getCondition()));
+  result.setIncrExpr(transform(forStatement.getIncrements()));
+  result.setBody(jsEmptyIfNull(forStatement.getSourceInfo(),transform(forStatement.getBody())));
+  return result;
+}

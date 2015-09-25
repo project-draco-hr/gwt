@@ -1,0 +1,24 @@
+{
+  JsNameRef methodNameRef;
+  if (method.isConstructor()) {
+    if (method.isJsNative()) {
+      return JsNullLiteral.INSTANCE;
+    }
+    methodNameRef=names.get(method).makeRef(sourceInfo);
+  }
+ else {
+    JDeclaredType superClass=method.getEnclosingType();
+    if (method.isJsNative()) {
+      methodNameRef=createJsQualifier(method.getQualifiedJsName(),sourceInfo);
+    }
+ else {
+      JsExpression protoRef=getPrototypeQualifierViaLookup(superClass,sourceInfo);
+      methodNameRef=polymorphicNames.get(method).makeQualifiedRef(sourceInfo,protoRef);
+    }
+  }
+  JsNameRef qualifiedMethodName=call.makeQualifiedRef(sourceInfo,methodNameRef);
+  JsInvocation jsInvocation=new JsInvocation(sourceInfo,qualifiedMethodName);
+  jsInvocation.getArguments().add(instance);
+  jsInvocation.getArguments().addAll(args);
+  return jsInvocation;
+}

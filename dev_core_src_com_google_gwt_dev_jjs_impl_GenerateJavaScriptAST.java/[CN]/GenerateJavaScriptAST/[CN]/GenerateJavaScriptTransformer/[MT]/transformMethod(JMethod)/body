@@ -1,0 +1,23 @@
+{
+  if (method.isAbstract()) {
+    return generateAbstractMethodDefinition(method);
+  }
+ else   if (doesNotHaveConcreteImplementation(method)) {
+    return null;
+  }
+  currentMethod=method;
+  JsFunction function=transform(method.getBody());
+  function.setInliningMode(method.getInliningMode());
+  if (!method.isNative()) {
+    transformInto(method.getParams(),function.getParameters());
+  }
+  JsInvocation jsInvocation=maybeCreateClinitCall(method);
+  if (jsInvocation != null) {
+    function.getBody().getStatements().add(0,jsInvocation.makeStmt());
+  }
+  if (JProgram.isClinit(method)) {
+    function.markAsClinit();
+  }
+  currentMethod=null;
+  return function;
+}

@@ -1,0 +1,17 @@
+{
+  JsTry jsTry=new JsTry(tryStatement.getSourceInfo());
+  jsTry.setTryBlock(transform(tryStatement.getTryBlock()));
+  int size=tryStatement.getCatchClauses().size();
+  assert(size < 2);
+  if (size == 1) {
+    JBlock block=tryStatement.getCatchClauses().get(0).getBlock();
+    JsCatch jsCatch=catchMap.get(block);
+    jsCatch.setBody(transform(block));
+    jsTry.getCatches().add(jsCatch);
+  }
+  JsBlock finallyBlock=transform(tryStatement.getFinallyBlock());
+  if (finallyBlock != null && finallyBlock.getStatements().size() > 0) {
+    jsTry.setFinallyBlock(finallyBlock);
+  }
+  return jsTry;
+}

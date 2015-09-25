@@ -1,0 +1,25 @@
+{
+  JMethod method=methodCall.getTarget();
+  if (JProgram.isClinit(method)) {
+    JDeclaredType type=method.getEnclosingType();
+    JDeclaredType clinitTarget=type.getClinitTarget();
+    if (clinitTarget == null) {
+      return JsNullLiteral.INSTANCE;
+    }
+    method=clinitTarget.getClinitMethod();
+  }
+  JsExpression qualifier=transform(methodCall.getInstance());
+  List<JsExpression> args=transform(methodCall.getArgs());
+  if (method.isStatic()) {
+    return dispatchToStatic(qualifier,method,args,methodCall.getSourceInfo());
+  }
+ else   if (methodCall.isStaticDispatchOnly()) {
+    return dispatchToSuper(qualifier,method,args,methodCall.getSourceInfo());
+  }
+ else   if (method.isOrOverridesJsFunctionMethod()) {
+    return dispatchToJsFunction(qualifier,args,methodCall.getSourceInfo());
+  }
+ else {
+    return dispatchToInstanceMethod(qualifier,method,args,methodCall.getSourceInfo());
+  }
+}

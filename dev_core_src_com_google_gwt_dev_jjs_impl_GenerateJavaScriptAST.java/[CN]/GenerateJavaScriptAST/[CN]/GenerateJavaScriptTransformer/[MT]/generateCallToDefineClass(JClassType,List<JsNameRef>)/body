@@ -1,0 +1,17 @@
+{
+  JExpression typeId=getRuntimeTypeReference(x);
+  JClassType superClass=x.getSuperClass();
+  JExpression superTypeId=(superClass == null) ? JNullLiteral.INSTANCE : getRuntimeTypeReference(superClass);
+  String jsPrototype=getSuperPrototype(x);
+  List<JsExpression> defineClassArguments=Lists.newArrayList();
+  defineClassArguments.add(convertJavaLiteral(typeId));
+  defineClassArguments.add(jsPrototype == null ? convertJavaLiteral(superTypeId) : createJsQualifier(jsPrototype,x.getSourceInfo()));
+  defineClassArguments.add(generateCastableTypeMap(x));
+  defineClassArguments.addAll(constructorArgs);
+  JsStatement defineClassStatement=constructInvocation(x.getSourceInfo(),"JavaClassHierarchySetupUtil.defineClass",defineClassArguments).makeStmt();
+  addTypeDefinitionStatement(x,defineClassStatement);
+  if (jsPrototype != null) {
+    JsStatement statement=constructInvocation(x.getSourceInfo(),"JavaClassHierarchySetupUtil.copyObjectProperties",getPrototypeQualifierViaLookup(program.getTypeJavaLangObject(),x.getSourceInfo()),globalTemp.makeRef(x.getSourceInfo())).makeStmt();
+    addTypeDefinitionStatement(x,statement);
+  }
+}
