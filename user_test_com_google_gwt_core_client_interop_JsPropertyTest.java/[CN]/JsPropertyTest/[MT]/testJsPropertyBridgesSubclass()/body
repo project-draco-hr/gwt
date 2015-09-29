@@ -1,0 +1,22 @@
+{
+  MyNativeJsTypeInterface object=new MyNativeJsTypeInterfaceImplNeedingBridgeSubclass();
+  object.setX(3);
+  assertEquals(3 + 150,object.getX());
+  OtherAccidentalImplementer simple=(OtherAccidentalImplementer)object;
+  simple.setX(3);
+  assertEquals(3 + GET_X + SET_X,simple.getX());
+  assertEquals(3 + GET_X + SET_X,getProperty(object,"x"));
+  assertEquals(3 + SET_X,((MyNativeJsTypeInterfaceImplNeedingBridgeSubclass)object).y);
+  assertEquals(0,((OtherAccidentalImplementer)object).x);
+  setProperty(object,"x",4);
+  assertEquals(4 + GET_X + SET_X,simple.getX());
+  assertEquals(4 + GET_X + SET_X,getProperty(object,"x"));
+  assertEquals(4 + SET_X,((MyNativeJsTypeInterfaceImplNeedingBridgeSubclass)object).y);
+  assertEquals(0,((OtherAccidentalImplementer)object).x);
+  MyNativeJsTypeInterfaceImplNeedingBridgeSubclass subclass=(MyNativeJsTypeInterfaceImplNeedingBridgeSubclass)object;
+  subclass.setParentX(5);
+  assertEquals(8 + SET_PARENT_X,simple.sum(3));
+  assertEquals(9 + SET_PARENT_X + GET_PARENT_X+ SET_X,subclass.getXPlusY());
+  assertEquals(4 + SET_X,((MyNativeJsTypeInterfaceImplNeedingBridgeSubclass)object).y);
+  assertEquals(5 + SET_PARENT_X,((OtherAccidentalImplementer)object).x);
+}

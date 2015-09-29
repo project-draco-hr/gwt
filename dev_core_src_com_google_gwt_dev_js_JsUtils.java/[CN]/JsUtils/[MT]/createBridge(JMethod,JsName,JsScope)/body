@@ -7,10 +7,11 @@
   }
   JsNameRef ref=polyName.makeRef(sourceInfo);
   ref.setQualifier(new JsThisRef(sourceInfo));
-  JsInvocation invocation=new JsInvocation(sourceInfo,ref);
+  List<JsExpression> args=Lists.newArrayList();
   for (  JsParameter p : bridge.getParameters()) {
-    invocation.getArguments().add(p.getName().makeRef(sourceInfo));
+    args.add(p.getName().makeRef(sourceInfo));
   }
+  JsExpression invocation=createInvocationOrPropertyAccess(sourceInfo,method.getJsPropertyAccessorType(),ref,args);
   JsBlock block=new JsBlock(sourceInfo);
   if (method.getType() == JPrimitiveType.VOID) {
     block.getStatements().add(invocation.makeStmt());

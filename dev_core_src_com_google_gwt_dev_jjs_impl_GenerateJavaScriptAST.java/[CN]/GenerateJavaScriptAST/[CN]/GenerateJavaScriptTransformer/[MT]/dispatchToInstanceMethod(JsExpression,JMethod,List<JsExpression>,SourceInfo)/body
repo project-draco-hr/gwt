@@ -1,12 +1,5 @@
 {
-  JsNameRef reference=method.isJsPropertyAccessor() ? new JsNameRef(sourceInfo,method.getJsName()) : polymorphicNames.get(method).makeRef(sourceInfo);
-  reference.setQualifier(instance);
-switch (method.getJsPropertyAccessorType()) {
-case SETTER:
-    return createAssignment(reference,args.get(0));
-case GETTER:
-  return reference;
-default :
-return new JsInvocation(sourceInfo,reference,args);
-}
+  JsNameRef reference=polymorphicNames.get(method).makeQualifiedRef(sourceInfo,instance);
+  JsPropertyAccessorType propertyAccessorType=method.getJsPropertyAccessorType();
+  return JsUtils.createInvocationOrPropertyAccess(sourceInfo,propertyAccessorType,reference,args);
 }
