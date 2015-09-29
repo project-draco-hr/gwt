@@ -1,16 +1,11 @@
 {
-  JsObjectLiteral baseline=new JsObjectLiteral(info);
-  List<JsPropertyInitializer> properties=baseline.getPropertyInitializers();
+  JsObjectLiteral.Builder baselineBuilder=JsObjectLiteral.builder().setSourceInfo(info);
   for (  String filename : instrumentableLines.keySet()) {
-    JsPropertyInitializer pair=new JsPropertyInitializer(info);
-    pair.setLabelExpr(new JsStringLiteral(info,filename));
-    JsObjectLiteral lines=new JsObjectLiteral(info);
-    List<JsPropertyInitializer> coverage=lines.getPropertyInitializers();
+    JsObjectLiteral.Builder linesBuilder=JsObjectLiteral.builder().setSourceInfo(info);
     for (    int line : instrumentableLines.get(filename)) {
-      coverage.add(new JsPropertyInitializer(info,new JsNumberLiteral(info,line),new JsNumberLiteral(info,0)));
+      linesBuilder.add(new JsNumberLiteral(info,line),new JsNumberLiteral(info,0));
     }
-    pair.setValueExpr(lines);
-    properties.add(pair);
+    baselineBuilder.add(new JsStringLiteral(info,filename),linesBuilder.build());
   }
-  return baseline;
+  return baselineBuilder.build();
 }

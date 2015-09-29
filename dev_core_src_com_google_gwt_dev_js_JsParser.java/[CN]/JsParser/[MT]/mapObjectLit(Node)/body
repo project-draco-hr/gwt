@@ -1,5 +1,5 @@
 {
-  JsObjectLiteral toLit=new JsObjectLiteral(makeSourceInfo(objLitNode));
+  JsObjectLiteral.Builder objectLiteralBuilder=JsObjectLiteral.builder().setSourceInfo(makeSourceInfo(objLitNode));
   Node fromPropInit=objLitNode.getFirstChild();
   while (fromPropInit != null) {
     Node fromLabelExpr=fromPropInit;
@@ -10,9 +10,8 @@
       throw createParserException("Expected an init expression for: " + toLabelExpr,objLitNode);
     }
     JsExpression toValueExpr=mapExpression(fromValueExpr);
-    JsPropertyInitializer toPropInit=new JsPropertyInitializer(makeSourceInfo(fromLabelExpr),toLabelExpr,toValueExpr);
-    toLit.getPropertyInitializers().add(toPropInit);
+    objectLiteralBuilder.add(makeSourceInfo(fromLabelExpr),toLabelExpr,toValueExpr);
     fromPropInit=fromPropInit.getNext();
   }
-  return toLit;
+  return objectLiteralBuilder.build();
 }
