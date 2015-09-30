@@ -1,0 +1,29 @@
+{
+  currentJsTypeProcessedMethods=Sets.newHashSet();
+  currentJsTypePropertyTypeByName=Maps.newHashMap();
+  currentJsTypeMethodNameByMemberNames=Maps.newHashMap();
+  currentJsTypeMethodNameByGetterNames=Maps.newHashMap();
+  currentJsTypeMethodNameBySetterNames=Maps.newHashMap();
+  currentType=type;
+  minimalRebuildCache.removeJsInteropNames(type.getName());
+  if (type.isJsNative()) {
+    checkJsNative(type);
+  }
+  if (type.isJsFunction()) {
+    checkJsFunction(type);
+  }
+ else   if (type.isJsFunctionImplementation()) {
+    checkJsFunctionImplementation(type);
+  }
+ else {
+    checkConstructors(type);
+  }
+  for (; type != null; type=type.getSuperClass()) {
+    for (    JField field : type.getFields()) {
+      checkField(field);
+    }
+    for (    JMethod method : type.getMethods()) {
+      checkMethod(method);
+    }
+  }
+}

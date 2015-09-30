@@ -1,0 +1,23 @@
+{
+  if (!currentJsTypeProcessedMethods.add(x)) {
+    return;
+  }
+  currentJsTypeProcessedMethods.addAll(x.getOverriddenMethods());
+  if (!x.isOrOverridesJsMethod()) {
+    return;
+  }
+  if (x.needsVtable()) {
+    checkJsTypeMethod(x);
+  }
+ else   if (currentType == x.getEnclosingType()) {
+    checkExportName(x);
+  }
+  if (currentType == x.getEnclosingType() && x.isJsPropertyAccessor() && !currentType.isJsType()) {
+    if (currentType instanceof JInterfaceType) {
+      logError("Method '%s' can't be a JsProperty since interface '%s' is not a JsType.",x.getName(),x.getEnclosingType().getName());
+    }
+ else {
+      logError("Method '%s' can't be a JsProperty since '%s' " + "is not an interface.",x.getName(),x.getEnclosingType().getName());
+    }
+  }
+}
