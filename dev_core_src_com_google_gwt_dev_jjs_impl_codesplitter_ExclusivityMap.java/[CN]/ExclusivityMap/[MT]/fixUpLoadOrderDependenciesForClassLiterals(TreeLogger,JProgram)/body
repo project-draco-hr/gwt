@@ -9,11 +9,11 @@
     if (!field.isStatic()) {
       continue;
     }
-    Fragment classLiteralFragment=getFragment(fragmentForField,field);
+    Fragment classLiteralFragment=fragmentForField.get(field);
     JExpression initializer=field.getInitializer();
     for (    String string : stringsIn(initializer)) {
       numClassLitStrings++;
-      Fragment stringFrag=getFragment(fragmentForString,string);
+      Fragment stringFrag=fragmentForString.get(string);
       if (!fragmentsAreConsistent(classLiteralFragment,stringFrag)) {
         numFixups++;
         fragmentForString.put(string,NOT_EXCLUSIVE);
@@ -21,7 +21,7 @@
     }
     for (    JClassLiteral superclassClassLiteral : classLiteralsIn(initializer)) {
       JField superclassClassLiteralField=superclassClassLiteral.getField();
-      Fragment superclassClassLiteralFragment=getFragment(fragmentForField,superclassClassLiteralField);
+      Fragment superclassClassLiteralFragment=fragmentForField.get(superclassClassLiteralField);
       if (!fragmentsAreConsistent(classLiteralFragment,superclassClassLiteralFragment)) {
         numClassLiteralFixups++;
         fragmentForField.put(superclassClassLiteralField,NOT_EXCLUSIVE);

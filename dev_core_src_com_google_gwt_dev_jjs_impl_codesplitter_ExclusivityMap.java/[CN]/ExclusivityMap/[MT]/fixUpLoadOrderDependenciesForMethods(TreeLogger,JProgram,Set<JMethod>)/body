@@ -1,12 +1,12 @@
 {
   int numFixups=0;
   for (  JDeclaredType type : jprogram.getDeclaredTypes()) {
-    Fragment typeFrag=getFragment(fragmentForType,type);
-    if (!typeFrag.isExclusive()) {
+    Fragment typeFrag=fragmentForType.get(type);
+    if (typeFrag == null || !typeFrag.isExclusive()) {
       continue;
     }
     for (    JMethod method : type.getMethods()) {
-      if (method.needsVtable() && methodsInJavaScript.contains(method) && typeFrag != getFragment(fragmentForMethod,method)) {
+      if (method.needsVtable() && methodsInJavaScript.contains(method) && typeFrag != fragmentForMethod.get(method)) {
         fragmentForType.put(type,NOT_EXCLUSIVE);
         numFixups++;
         break;
