@@ -1,0 +1,19 @@
+{
+  List<JStatement> statements=FluentIterable.from(((JMethodBody)constructor.getBody()).getStatements()).filter(new Predicate<JStatement>(){
+    @Override public boolean apply(    JStatement statement){
+      JClassType type=constructor.getEnclosingType();
+      if (isImplicitSuperCall(statement,type.getSuperClass())) {
+        return false;
+      }
+      if (isEmptyInitCall(statement,type)) {
+        return false;
+      }
+      if (statement instanceof JDeclarationStatement) {
+        return ((JDeclarationStatement)statement).getInitializer() != null;
+      }
+      return true;
+    }
+  }
+).toList();
+  return statements.isEmpty();
+}
