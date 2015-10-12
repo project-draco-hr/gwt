@@ -1,16 +1,16 @@
 {
-  JClassType superClass=x.getSuperClass();
+  JClassType superClass=type.getSuperClass();
   JExpression superTypeId=(superClass == null) ? JNullLiteral.INSTANCE : getRuntimeTypeReference(superClass);
-  String jsPrototype=getSuperPrototype(x);
+  String jsPrototype=getSuperPrototype(type);
   List<JsExpression> defineClassArguments=Lists.newArrayList();
-  defineClassArguments.add(transform(getRuntimeTypeReference(x)));
-  defineClassArguments.add(jsPrototype == null ? transform(superTypeId) : createJsQualifier(jsPrototype,x.getSourceInfo()));
-  defineClassArguments.add(generateCastableTypeMap(x));
+  defineClassArguments.add(transform(getRuntimeTypeReference(type)));
+  defineClassArguments.add(jsPrototype == null ? transform(superTypeId) : createJsQualifier(jsPrototype,type.getSourceInfo()));
+  defineClassArguments.add(generateCastableTypeMap(type));
   defineClassArguments.addAll(constructorArgs);
-  JsStatement defineClassStatement=constructInvocation(x.getSourceInfo(),"JavaClassHierarchySetupUtil.defineClass",defineClassArguments).makeStmt();
-  addTypeDefinitionStatement(x,defineClassStatement);
+  JsStatement defineClassStatement=constructInvocation(type.getSourceInfo(),"JavaClassHierarchySetupUtil.defineClass",defineClassArguments).makeStmt();
+  addTypeDefinitionStatement(type,defineClassStatement);
   if (jsPrototype != null) {
-    JsStatement statement=constructInvocation(x.getSourceInfo(),"JavaClassHierarchySetupUtil.copyObjectProperties",getPrototypeQualifierViaLookup(program.getTypeJavaLangObject(),x.getSourceInfo()),globalTemp.makeRef(x.getSourceInfo())).makeStmt();
-    addTypeDefinitionStatement(x,statement);
+    JsStatement statement=constructInvocation(type.getSourceInfo(),"JavaClassHierarchySetupUtil.copyObjectProperties",getPrototypeQualifierViaLookup(program.getTypeJavaLangObject(),type.getSourceInfo()),globalTemp.makeRef(type.getSourceInfo())).makeStmt();
+    addTypeDefinitionStatement(type,statement);
   }
 }
