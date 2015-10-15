@@ -9,6 +9,9 @@
     namespace=indexOf == -1 ? "" : jsPrototype.substring(0,indexOf);
     exportName=jsPrototype.substring(indexOf + 1);
   }
-  type.setJsTypeInfo(jsType != null,isJsNative,namespace,exportName,exportName != null);
-  type.setJsFunctionInfo(JdtUtil.getAnnotation(annotations,JSFUNCTION_CLASS) != null);
+  boolean isJsType=jsType != null;
+  boolean isClassWideExport=exportName != null;
+  boolean isJsFunction=JdtUtil.getAnnotation(annotations,JSFUNCTION_CLASS) != null;
+  boolean canBeImplementedExternally=(type instanceof JInterfaceType && (isJsType || isJsFunction)) || (type instanceof JClassType && isJsNative);
+  type.setJsTypeInfo(isJsType,isJsNative,isJsFunction,namespace,exportName,isClassWideExport,canBeImplementedExternally);
 }
