@@ -1,6 +1,5 @@
 {
   SourceInfo sourceInfo=x.getSourceInfo();
-  JMethodCall call=new JMethodCall(sourceInfo,null,initValues,arrayType);
   JExpression classLitExpression=program.createArrayClassLiteralExpression(x.getSourceInfo(),x.getLeafTypeClassLiteral(),arrayType.getDims());
   JExpression castableTypeMap=getOrCreateCastMap(sourceInfo,arrayType);
   JRuntimeTypeReference elementTypeIds=getElementRuntimeTypeReference(sourceInfo,arrayType);
@@ -9,6 +8,8 @@
   for (int i=0; i < x.initializers.size(); ++i) {
     initList.getExprs().add(x.initializers.get(i));
   }
+  JMethodCall call=new JMethodCall(sourceInfo,null,initValues);
+  call.overrideReturnType(arrayType);
   call.addArgs(classLitExpression,castableTypeMap,elementTypeIds,leafElementTypeCategory,initList);
   ctx.replaceMe(call);
 }
