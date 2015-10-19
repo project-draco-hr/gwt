@@ -1,0 +1,9 @@
+{
+  CompilerOptions compilerOptions=new CompilerOptionsImpl();
+  compilerOptions.setUseDetailedTypeIds(true);
+  compilerOptions.setJsInteropMode(OptionJsInteropMode.Mode.JS);
+  MockJavaResource jsPropertyIFooResource=JavaResourceBase.createMockJavaResource("com.foo.IFoo","package com.foo;","import com.google.gwt.core.client.js.JsProperty;","import com.google.gwt.core.client.js.JsType;","@JsType public interface IFoo {","  @JsProperty int getX();","  @JsProperty int getY();","}");
+  MockJavaResource regularIFooResource=JavaResourceBase.createMockJavaResource("com.foo.IFoo","package com.foo;","import com.google.gwt.core.client.js.JsType;","@JsType public interface IFoo {","  int getX();","  int getY();","}");
+  MockJavaResource fooResource=JavaResourceBase.createMockJavaResource("com.foo.Foo","package com.foo;","import com.google.gwt.core.client.js.JsExport;","@JsExport public class Foo implements IFoo {","  @Override public int getX() { return 0; }","  @Override public int getY() { return 0; }","}");
+  checkRecompiledModifiedApp(compilerOptions,"com.foo.SimpleModule",Lists.newArrayList(simpleModuleResource,emptyEntryPointResource,fooResource,jsTypeBarResource),regularIFooResource,jsPropertyIFooResource,stringSet("com.foo.Bar","com.foo.Foo","com.foo.IFoo"),JsOutputOption.DETAILED);
+}

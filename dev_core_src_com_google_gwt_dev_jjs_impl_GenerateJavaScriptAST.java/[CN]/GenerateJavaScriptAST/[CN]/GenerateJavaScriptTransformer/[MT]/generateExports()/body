@@ -1,22 +1,35 @@
 {
-  if (exportedMembersByExportName.isEmpty()) {
-    return;
+  Map<String,Object> exportedMembersByExportName=new TreeMap<String,Object>();
+  Set<JDeclaredType> hoistedClinits=Sets.newHashSet();
+  JsInteropExportsGenerator exportGenerator=closureCompilerFormatEnabled ? new ClosureJsInteropExportsGenerator(getGlobalStatements(),names) : new DefaultJsInteropExportsGenerator(getGlobalStatements(),globalTemp,indexedFunctions);
+  for (  JDeclaredType type : program.getDeclaredTypes()) {
+    if (type.isJsNative()) {
+      continue;
+    }
+    if (type.isJsType() && !type.getClassDisposition().isLocalType()) {
+      exportedMembersByExportName.put(type.getQualifiedJsName(),type);
+    }
+    for (    JMethod method : type.getMethods()) {
+      if (method.isJsInteropEntryPoint()) {
+        exportedMembersByExportName.put(method.getQualifiedJsName(),method);
+      }
+    }
+    for (    JField field : type.getFields()) {
+      if (field.isJsInteropEntryPoint()) {
+        if (!field.isFinal()) {
+          logger.log(TreeLogger.Type.WARN,"Exporting effectively non-final field " + field.getQualifiedName() + ". Due to the way exporting works, the value of the"+ " exported field will not be reflected across Java/JavaScript border.");
+        }
+        exportedMembersByExportName.put(field.getQualifiedJsName(),field);
+      }
+    }
   }
-  JsInteropExportsGenerator exportGenerator;
-  if (closureCompilerFormatEnabled) {
-    exportGenerator=new ClosureJsInteropExportsGenerator(getGlobalStatements(),names);
-  }
- else {
-    exportGenerator=new DefaultJsInteropExportsGenerator(getGlobalStatements(),globalTemp,indexedFunctions);
-  }
-  Set<JDeclaredType> generatedClinits=Sets.newHashSet();
   for (  Object exportedEntity : exportedMembersByExportName.values()) {
     if (exportedEntity instanceof JDeclaredType) {
       exportGenerator.exportType((JDeclaredType)exportedEntity);
     }
  else {
       JMember member=(JMember)exportedEntity;
-      maybeHoistClinit(generatedClinits,member);
+      maybeHoistClinit(hoistedClinits,member);
       exportGenerator.exportMember(member,names.get(member).makeRef(member.getSourceInfo()));
     }
   }
