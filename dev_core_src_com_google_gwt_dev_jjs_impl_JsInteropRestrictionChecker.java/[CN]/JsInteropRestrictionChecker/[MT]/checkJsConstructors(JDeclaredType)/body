@@ -1,0 +1,24 @@
+{
+  List<JMethod> jsConstructors=FluentIterable.from(x.getMethods()).filter(new Predicate<JMethod>(){
+    @Override public boolean apply(    JMethod m){
+      return m.isJsConstructor();
+    }
+  }
+).toList();
+  if (jsConstructors.isEmpty()) {
+    return;
+  }
+  if (jsConstructors.size() > 1) {
+    logError("More than one JsConstructor exists for %s.",x.getName());
+  }
+  final JConstructor jsConstructor=(JConstructor)jsConstructors.get(0);
+  boolean anyNonDelegatingConstructor=Iterables.any(x.getMethods(),new Predicate<JMethod>(){
+    @Override public boolean apply(    JMethod method){
+      return method != jsConstructor && method instanceof JConstructor && !isDelegatingToConstructor((JConstructor)method,jsConstructor);
+    }
+  }
+);
+  if (anyNonDelegatingConstructor) {
+    logError("Constructor '%s' can be a JsConstructor only if all constructors in the class are " + "delegating to it.",jsConstructor.getQualifiedName());
+  }
+}

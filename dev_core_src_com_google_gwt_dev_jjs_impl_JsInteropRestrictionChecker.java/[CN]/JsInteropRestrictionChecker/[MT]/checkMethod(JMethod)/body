@@ -1,8 +1,8 @@
 {
-  if (!currentJsTypeProcessedMethods.add(x)) {
+  if (!currentProcessedMethods.add(x)) {
     return;
   }
-  currentJsTypeProcessedMethods.addAll(x.getOverriddenMethods());
+  currentProcessedMethods.addAll(x.getOverriddenMethods());
   if (x.isJsNative()) {
     checkNativeJsMember(x);
   }
@@ -10,17 +10,9 @@
     return;
   }
   if (x.needsDynamicDispatch()) {
-    checkJsTypeMethod(x);
+    checkJsMethod(x);
   }
  else   if (!x.isJsNative() && currentType == x.getEnclosingType()) {
-    checkExportName(x);
-  }
-  if (currentType == x.getEnclosingType() && x.isJsPropertyAccessor() && !currentType.isJsType()) {
-    if (currentType instanceof JInterfaceType) {
-      logError("Method '%s' can't be a JsProperty since interface '%s' is not a JsType.",x.getName(),x.getEnclosingType().getName());
-    }
- else {
-      logError("Method '%s' can't be a JsProperty since '%s' " + "is not an interface.",x.getName(),x.getEnclosingType().getName());
-    }
+    checkGlobalName(x);
   }
 }
