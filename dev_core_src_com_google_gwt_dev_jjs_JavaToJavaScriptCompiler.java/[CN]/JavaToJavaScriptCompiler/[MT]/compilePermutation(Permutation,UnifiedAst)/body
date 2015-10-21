@@ -28,7 +28,7 @@
     Pair<? extends JavaToJavaScriptMap,Set<JsNode>> jjsMapAndInlineableFunctions=GenerateJavaScriptAST.exec(logger,jprogram,jsProgram,compilerContext,typeMapper,symbolTable,properties);
     JavaToJavaScriptMap jjsmap=jjsMapAndInlineableFunctions.getLeft();
     if (CoverageInstrumentor.isCoverageEnabled()) {
-      CoverageInstrumentor.exec(jsProgram,instrumentableLines);
+      CoverageInstrumentor.exec(jprogram,jsProgram,jjsmap,instrumentableLines);
     }
     JsNormalizer.exec(jsProgram);
     JsSymbolResolver.exec(jsProgram);
@@ -38,9 +38,10 @@
         logger.log(TreeLogger.Type.WARN,"Namespace option is not compatible with CodeSplitter, turning it off.");
       }
  else {
-        JsNamespaceChooser.exec(jsProgram,jjsmap);
+        JsNamespaceChooser.exec(jprogram,jsProgram,jjsmap);
       }
     }
+    Pair<SyntheticArtifact,MultipleDependencyGraphRecorder> dependenciesAndRecorder=splitJsIntoFragments(properties,permutationId,jjsmap);
     EvalFunctionsAtTopScope.exec(jsProgram,jjsmap);
     final Set<JsNode> inlinableJsFunctions=jjsMapAndInlineableFunctions.getRight();
     optimizeJs(inlinableJsFunctions);
@@ -48,8 +49,8 @@
       JsForceInliningChecker.check(logger,jjsmap,jsProgram);
     }
     JsStackEmulator.exec(jprogram,jsProgram,properties,jjsmap);
-    Pair<SyntheticArtifact,MultipleDependencyGraphRecorder> dependenciesAndRecorder=splitJsIntoFragments(properties,permutationId,jjsmap);
     Map<JsName,JsLiteral> internedLiteralByVariableName=renameJsSymbols(properties,jjsmap);
+    HandleCrossFragmentReferences.exec(jsProgram,properties);
     JsBreakUpLargeVarStatements.exec(jsProgram,properties.getConfigurationProperties());
     if (!options.isIncrementalCompileEnabled()) {
       JavaScriptVerifier.verify(jsProgram,jjsmap);

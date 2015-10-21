@@ -6,11 +6,8 @@
     final JClassType barType=new JClassType(nullSourceInfo,"Bar",false,false);
     final JsName barConstructorName=new JsName(null,"Bar","Bar");
     final JConstructor barConstructor=new JConstructor(nullSourceInfo,barType,AccessModifier.PUBLIC);
-    Map<String,JsFunction> functionsByName=new HashMap<String,JsFunction>();
-    functionsByName.put(RuntimeConstants.RUNTIME_DEFINE_CLASS,new JsFunction(nullSourceInfo,new JsRootScope(),DEFINE_CLASS_FUNCTION_NAME));
     final JsExprStmt defineClassStatement=createDefineClassStatement(barConstructorName);
     JsProgram jsProgram=new JsProgram();
-    jsProgram.setIndexedFunctions(functionsByName);
     jsProgram.getGlobalBlock().getStatements().add(defineClassStatement);
     JavaToJavaScriptMap map=new MockJavaToJavaScriptMap(){
       @Override public JMethod nameToMethod(      JsName name){
@@ -27,7 +24,7 @@
       }
     }
 ;
-    fragmentExtractor=new FragmentExtractor(null,jsProgram,map);
+    fragmentExtractor=new FragmentExtractor(jsProgram,map,null,DEFINE_CLASS_FUNCTION_NAME);
     constructorLivePredicate=new MockLivenessPredicate(){
       @Override public boolean isLive(      JDeclaredType type){
         return false;
