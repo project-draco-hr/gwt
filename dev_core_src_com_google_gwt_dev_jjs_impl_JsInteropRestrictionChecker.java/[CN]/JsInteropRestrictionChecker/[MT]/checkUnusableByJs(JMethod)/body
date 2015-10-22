@@ -1,0 +1,14 @@
+{
+  if (!method.canBeCalledExternally() || isUnusableByJsSuppressed(method.getEnclosingType()) || isUnusableByJsSuppressed(method)) {
+    return;
+  }
+  String methodName=method.getQualifiedName();
+  for (  JParameter parameter : method.getParams()) {
+    if (!parameter.getType().canBeReferencedExternally() && !isUnusableByJsSuppressed(parameter)) {
+      logWarning("[unusable-by-js] Type of parameter '%s' in method '%s' is not usable by but exposed to" + " JavaScript",parameter.getName(),methodName);
+    }
+  }
+  if (!method.getType().canBeReferencedExternally()) {
+    logWarning("[unusable-by-js] Return type of '%s' is not usable by but exposed to JavaScript",methodName);
+  }
+}

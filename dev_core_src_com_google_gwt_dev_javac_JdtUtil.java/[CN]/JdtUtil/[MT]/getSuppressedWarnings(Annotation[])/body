@@ -1,0 +1,16 @@
+{
+  if (annotations == null) {
+    return ImmutableSet.of();
+  }
+  AnnotationBinding suppressWarnings=getAnnotation(annotations,SuppressWarnings.class.getName());
+  if (suppressWarnings != null) {
+    StringConstant[] values=JdtUtil.getAnnotationParameterStringConstantArray(suppressWarnings,"value");
+    return FluentIterable.from(Arrays.asList(values)).transform(new Function<StringConstant,String>(){
+      @Override public String apply(      StringConstant value){
+        return value.stringValue();
+      }
+    }
+).toSet();
+  }
+  return ImmutableSet.of();
+}
