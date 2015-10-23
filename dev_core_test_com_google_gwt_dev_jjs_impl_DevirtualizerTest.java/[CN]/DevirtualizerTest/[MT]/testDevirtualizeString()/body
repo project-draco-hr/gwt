@@ -2,11 +2,8 @@
   addSnippetImport("com.google.gwt.lang.Cast");
   addSnippetImport("com.google.gwt.core.client.JavaScriptObject");
   addSnippetClassDecl("static class J1 implements Comparable<J1> {","  public int compareTo(J1 other) { return 1; }","}","static class Jso1 extends JavaScriptObject implements Comparable<Jso1> {","  protected Jso1() { }","  final public int compareTo(Jso1 other) { return 2; }","  public static native Jso1 create() /*-{ return {} }-*/;","}","static Comparable javaVal = new J1();","static Comparable jsoVal = Jso1.create();","static Comparable stringVal = \"string\";","static String aString = \"string\";","static CharSequence stringCharSeq = \"string\";");
-  StringBuilder code=new StringBuilder();
-  code.append("int result = javaVal.compareTo(javaVal) + jsoVal.compareTo(jsoVal) +" + " stringVal.compareTo(stringVal) + stringCharSeq.length() + aString.length();");
-  StringBuilder expected=new StringBuilder();
-  expected.append("int result = ");
-  expected.append(String.format("String.compareTo_%s__I__devirtual$(EntryPoint.javaVal, EntryPoint.javaVal) + " + "String.compareTo_%s__I__devirtual$(EntryPoint.jsoVal, EntryPoint.jsoVal) + " + "String.compareTo_%s__I__devirtual$(EntryPoint.stringVal, EntryPoint.stringVal) + "+ "String.length__I__devirtual$(EntryPoint.stringCharSeq) + "+ "String.length__I__devirtual$(EntryPoint.aString);","Ljava_lang_Object","Ljava_lang_Object","Ljava_lang_Object"));
+  String code=Joiner.on("").join("int result = javaVal.compareTo(javaVal) + jsoVal.compareTo(jsoVal) +"," stringVal.compareTo(stringVal) + stringCharSeq.length() + aString.length();");
+  String expected=String.format(Joiner.on("").join("int result = ","String.compareTo_%s__I__devirtual$(EntryPoint.javaVal, EntryPoint.javaVal) + ","String.compareTo_%s__I__devirtual$(EntryPoint.jsoVal, EntryPoint.jsoVal) + ","String.compareTo_%s__I__devirtual$(EntryPoint.stringVal, EntryPoint.stringVal) + ","String.length__I__devirtual$(EntryPoint.stringCharSeq) + ","String.length__I__devirtual$(EntryPoint.aString);"),"Ljava_lang_Object","Ljava_lang_Object","Ljava_lang_Object");
   Result result=optimize("void",code.toString());
   result.intoString(expected.toString());
 }
