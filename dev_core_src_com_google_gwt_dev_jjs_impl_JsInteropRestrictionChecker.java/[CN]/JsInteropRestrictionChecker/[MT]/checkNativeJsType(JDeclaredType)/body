@@ -1,7 +1,11 @@
 {
   if (type.isEnumOrSubclass() != null) {
     logError("Enum '%s' cannot be a native JsType.",type);
-    return;
+    return false;
+  }
+  if (type.getClassDisposition() == NestedClassDisposition.INNER) {
+    logError("Non static inner class '%s' cannot be a native JsType.",type);
+    return false;
   }
   if (!isClinitEmpty(type)) {
     logError("Native JsType '%s' cannot have static initializer.",type);
@@ -11,4 +15,5 @@
       logError(constructor,"Native JsType constructor %s cannot have non-empty method body.",getMemberDescription(constructor));
     }
   }
+  return true;
 }
