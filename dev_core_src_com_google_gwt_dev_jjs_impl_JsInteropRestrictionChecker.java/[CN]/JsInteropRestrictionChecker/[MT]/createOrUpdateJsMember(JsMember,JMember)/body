@@ -1,0 +1,34 @@
+{
+  if (member instanceof JField) {
+    return new JsMember(member);
+  }
+  JMethod method=(JMethod)member;
+switch (method.getJsPropertyAccessorType()) {
+case GETTER:
+    if (jsMember != null && jsMember.isPropertyAccessor()) {
+      if (jsMember.getter == null || overrides(method,jsMember.getter)) {
+        jsMember.getter=method;
+        jsMember.member=method;
+        return jsMember;
+      }
+    }
+  return new JsMember(method,jsMember == null ? null : jsMember.setter,method);
+case SETTER:
+if (jsMember != null && jsMember.isPropertyAccessor()) {
+  if (jsMember.setter == null || overrides(method,jsMember.setter)) {
+    jsMember.setter=method;
+    jsMember.member=method;
+    return jsMember;
+  }
+}
+return new JsMember(method,method,jsMember == null ? null : jsMember.getter);
+default :
+if (jsMember != null) {
+if (overrides(method,jsMember.member)) {
+jsMember.member=method;
+return jsMember;
+}
+}
+return new JsMember(method);
+}
+}

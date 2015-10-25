@@ -1,0 +1,22 @@
+{
+  if (member.getJsName().equals(JsInteropUtil.INVALID_JSNAME)) {
+    if (member instanceof JMethod && ((JMethod)member).getJsPropertyAccessorType() == JsPropertyAccessorType.UNDEFINED) {
+      logError(member,"JsProperty %s doesn't follow Java Bean naming conventions.",getMemberDescription(member));
+    }
+ else {
+      logError(member,"%s cannot be assigned a different JavaScript name than the method it overrides.",getMemberDescription(member));
+    }
+    return;
+  }
+  JsMember oldMember=localNames.get(member.getJsName());
+  JsMember newMember=createOrUpdateJsMember(oldMember,member);
+  checkJsPropertyAccessor(member,newMember);
+  if (oldMember == null || newMember == oldMember) {
+    localNames.put(member.getJsName(),newMember);
+    return;
+  }
+  if (oldMember.isNativeMethod() && newMember.isNativeMethod()) {
+    return;
+  }
+  logError(member,"%s and %s cannot both use the same JavaScript name '%s'.",getMemberDescription(member),getMemberDescription(oldMember.member),member.getJsName());
+}

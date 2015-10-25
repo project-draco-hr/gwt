@@ -1,0 +1,19 @@
+{
+  if (type == null) {
+    return Maps.newLinkedHashMap();
+  }
+  LinkedHashMap<String,JsMember> memberByLocalMemberNames=collectNames(type.getSuperClass());
+  for (  JField field : type.getFields()) {
+    if (!field.isJsProperty() || !field.needsDynamicDispatch()) {
+      continue;
+    }
+    updateJsMembers(memberByLocalMemberNames,field);
+  }
+  for (  JMethod method : type.getMethods()) {
+    if (!method.isOrOverridesJsMethod() || !method.needsDynamicDispatch() || isSyntheticBridgeMethod(method)) {
+      continue;
+    }
+    updateJsMembers(memberByLocalMemberNames,method);
+  }
+  return memberByLocalMemberNames;
+}

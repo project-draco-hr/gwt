@@ -1,0 +1,14 @@
+{
+  TreeSet<String> filenamesToReport=Sets.newTreeSet(Iterables.concat(errorsByFilename.keySet(),warningsByFilename.keySet()));
+  for (  String fileName : filenamesToReport) {
+    boolean hasErrors=!errorsByFilename.get(fileName).isEmpty();
+    TreeLogger branch=logger.branch(hasErrors ? Type.ERROR : Type.WARN,(hasErrors ? "Errors" : "Warnings") + " in " + fileName);
+    for (    String message : errorsByFilename.get(fileName)) {
+      branch.log(Type.ERROR,message);
+    }
+    for (    String message : warningsByFilename.get(fileName)) {
+      branch.log(Type.WARN,message);
+    }
+  }
+  return !errorsByFilename.isEmpty();
+}

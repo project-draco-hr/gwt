@@ -5,11 +5,14 @@
     }
   }
 ).toList();
+  if (x.isJsNative()) {
+    return;
+  }
   if (jsConstructors.isEmpty()) {
     return;
   }
   if (jsConstructors.size() > 1) {
-    logError("More than one JsConstructor exists for %s.",x.getName());
+    logError(x,"More than one JsConstructor exists for %s.",JjsUtils.getReadableDescription(x));
   }
   final JConstructor jsConstructor=(JConstructor)jsConstructors.get(0);
   boolean anyNonDelegatingConstructor=Iterables.any(x.getMethods(),new Predicate<JMethod>(){
@@ -19,6 +22,6 @@
   }
 );
   if (anyNonDelegatingConstructor) {
-    logError("Constructor '%s' can be a JsConstructor only if all constructors in the class are " + "delegating to it.",jsConstructor.getQualifiedName());
+    logError(jsConstructor,"Constructor %s can be a JsConstructor only if all constructors in the class are " + "delegating to it.",getMemberDescription(jsConstructor));
   }
 }

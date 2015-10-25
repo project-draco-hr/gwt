@@ -1,10 +1,4 @@
 {
-  currentProcessedMethods=Sets.newHashSet();
-  currentLocalNameByMemberNames=Maps.newHashMap();
-  currentJsMethodNameByGetterNames=Maps.newHashMap();
-  currentJsMethodNameBySetterNames=Maps.newHashMap();
-  currentJsPropertyTypeByName=Maps.newHashMap();
-  currentType=type;
   minimalRebuildCache.removeExportedNames(type.getName());
   if (type.isJsNative()) {
     checkNativeJsType(type);
@@ -16,14 +10,14 @@
     checkJsFunctionImplementation(type);
   }
  else {
+    checkJsFunctionSubtype(type);
     checkJsConstructors(type);
   }
-  for (; type != null; type=type.getSuperClass()) {
-    for (    JField field : type.getFields()) {
-      checkField(field);
-    }
-    for (    JMethod method : type.getMethods()) {
-      checkMethod(method);
-    }
+  Map<String,JsMember> localNames=collectNames(type.getSuperClass());
+  for (  JField field : type.getFields()) {
+    checkField(localNames,field);
+  }
+  for (  JMethod method : type.getMethods()) {
+    checkMethod(localNames,method);
   }
 }
