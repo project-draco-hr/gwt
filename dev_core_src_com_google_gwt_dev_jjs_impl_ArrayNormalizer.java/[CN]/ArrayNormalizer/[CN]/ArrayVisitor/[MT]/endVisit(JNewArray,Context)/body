@@ -1,16 +1,14 @@
 {
   JArrayType type=x.getArrayType();
-  if (x.initializers != null) {
-    processInitializers(x,ctx,type);
+  if (x.getInitializers() != null) {
+    ctx.replaceMe(createArrayFromInitializers(x,type));
+    return;
   }
- else {
-    int realDims=x.dims.size();
-    assert(realDims >= 1);
-    if (realDims == 1) {
-      processDim(x,ctx,type);
-    }
- else {
-      processDims(x,ctx,type);
-    }
+  int suppliedDimensions=x.getDimensionExpressions().size();
+  assert(suppliedDimensions >= 1);
+  if (suppliedDimensions == 1) {
+    ctx.replaceMe(initializeUnidimensionalArray(x,type));
+    return;
   }
+  ctx.replaceMe(initializeMultidimensionalArray(x,type));
 }
