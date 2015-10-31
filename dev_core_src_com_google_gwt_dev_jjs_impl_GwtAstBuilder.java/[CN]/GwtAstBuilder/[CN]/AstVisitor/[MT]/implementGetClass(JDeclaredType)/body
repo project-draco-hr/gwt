@@ -1,6 +1,11 @@
 {
   JMethod method=type.getMethods().get(GET_CLASS_METHOD_INDEX);
-  assert(GwtAstBuilder.GET_CLASS_METHOD_NAME.equals(method.getName()));
+  assert(GET_CLASS_METHOD_NAME.equals(method.getName()));
   SourceInfo info=method.getSourceInfo();
-  JjsUtils.replaceMethodBody(method,new JClassLiteral(info,type));
+  if (type.isJsoType()) {
+    JjsUtils.replaceMethodBody(method,new JMethodCall(info,null,CAST_GET_CLASS_METHOD,new JThisRef(info,type)));
+  }
+ else {
+    JjsUtils.replaceMethodBody(method,new JClassLiteral(info,type));
+  }
 }

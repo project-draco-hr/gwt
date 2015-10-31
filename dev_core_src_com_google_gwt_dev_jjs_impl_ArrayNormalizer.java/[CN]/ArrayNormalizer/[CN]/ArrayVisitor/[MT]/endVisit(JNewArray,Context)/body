@@ -1,7 +1,17 @@
 {
   JArrayType type=x.getArrayType();
-  if (x.getInitializers() != null) {
+  List<JExpression> initializers=x.getInitializers();
+  if (initializers != null) {
+    JsonArray initializerArray=new JsonArray(x.getSourceInfo(),type,initializers);
+    if (program.isUntypedArrayType(type)) {
+      ctx.replaceMe(initializerArray);
+      return;
+    }
     ctx.replaceMe(createArrayFromInitializers(x,type));
+    return;
+  }
+  if (program.isUntypedArrayType(type) && type.getDims() == 1) {
+    ctx.replaceMe(new JMethodCall(x.getSourceInfo(),null,program.getIndexedMethod(RuntimeConstants.ARRAY_NEW_ARRAY),x.getDimensionExpressions().get(0)));
     return;
   }
   int suppliedDimensions=x.getDimensionExpressions().size();
