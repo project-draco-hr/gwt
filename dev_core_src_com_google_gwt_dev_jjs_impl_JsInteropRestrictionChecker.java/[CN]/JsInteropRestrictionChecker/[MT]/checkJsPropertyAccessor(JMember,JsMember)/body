@@ -1,11 +1,19 @@
 {
-  if (newMember.setter != null) {
-    checkValidSetter(newMember.setter);
+  if (!(x instanceof JMethod)) {
+    return;
   }
-  if (newMember.getter != null) {
-    checkValidGetter(newMember.getter);
+  JMethod method=(JMethod)x;
+  if (method.getJsPropertyAccessorType() == JsPropertyAccessorType.UNDEFINED) {
+    logError(method,"JsProperty %s should have a correct setter or getter signature.",getMemberDescription(method));
+  }
+  if (method.getJsPropertyAccessorType() == JsPropertyAccessorType.GETTER) {
+    if (method.getType() != JPrimitiveType.BOOLEAN && method.getName().startsWith("is")) {
+      logError(method,"JsProperty %s cannot have a non-boolean return.",getMemberDescription(method));
+    }
   }
   if (newMember.setter != null && newMember.getter != null) {
-    checkJsPropertyGetterConsistentWithSetter(x.getEnclosingType(),newMember.setter,newMember.getter);
+    if (newMember.getter.getType() != newMember.setter.getParams().get(0).getType()) {
+      logError(method,"JsProperty setter %s and getter %s cannot have inconsistent types.",getMemberDescription(newMember.setter),getMemberDescription(newMember.getter));
+    }
   }
 }
