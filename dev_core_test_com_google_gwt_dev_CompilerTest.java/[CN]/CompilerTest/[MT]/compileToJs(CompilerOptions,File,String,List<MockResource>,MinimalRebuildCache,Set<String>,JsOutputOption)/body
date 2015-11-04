@@ -1,46 +1,5 @@
 {
-  System.setProperty(UnitCacheSingleton.GWT_PERSISTENTUNITCACHE,"false");
-  Thread.sleep(1001);
   PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
   logger.setMaxDetail(TreeLogger.ERROR);
-  File outputDir=new File(applicationDir.getPath() + File.separator + moduleName);
-  if (outputDir.exists()) {
-    Util.recursiveDelete(outputDir,true);
-  }
-  ResourceLoader resourceLoader=ResourceLoaders.forClassLoader(Thread.currentThread());
-  resourceLoader=ResourceLoaders.forPathAndFallback(ImmutableList.of(applicationDir),resourceLoader);
-  compilerOptions.setIncrementalCompileEnabled(true);
-  compilerOptions.setJsInteropMode(OptionJsInteropMode.Mode.JS_RC);
-  compilerOptions.setWarDir(applicationDir);
-  compilerOptions.setModuleNames(ImmutableList.of(moduleName));
-  compilerOptions.setOutput(output);
-  for (  MockResource applicationResource : applicationResources) {
-    writeResourceTo(applicationResource,applicationDir);
-  }
-  ModuleDefLoader.clearModuleCache();
-  ModuleDefLoader.loadFromResources(logger,moduleName,resourceLoader,true);
-  Compiler compiler=new Compiler(compilerOptions,minimalRebuildCache);
-  compiler.run(logger);
-  File outputJsFile=null;
-  outputDir=new File(applicationDir.getPath() + File.separator + moduleName);
-  if (outputDir.exists()) {
-    for (    File outputFile : outputDir.listFiles()) {
-      if (outputFile.getPath().endsWith(".cache.js")) {
-        outputJsFile=outputFile;
-        break;
-      }
-    }
-  }
-  if (outputJsFile == null) {
-    throw new UnableToCompleteException();
-  }
-  if (expectedProcessedStaleTypeNames != null) {
-    Set<String> staleTypeNames=new HashSet<>(minimalRebuildCache.getProcessedStaleTypeNames());
-    staleTypeNames.remove("java.lang.Boolean");
-    staleTypeNames.remove("java.lang.Double");
-    staleTypeNames.remove("java.lang.Number");
-    staleTypeNames.remove("java.lang.String");
-    assertEquals(expectedProcessedStaleTypeNames,staleTypeNames);
-  }
-  return Files.toString(outputJsFile,Charsets.UTF_8);
+  return compileToJs(logger,compilerOptions,applicationDir,moduleName,applicationResources,minimalRebuildCache,expectedProcessedStaleTypeNames,output);
 }

@@ -1,0 +1,19 @@
+{
+  MockResource moduleResource=JavaResourceBase.createMockResource("com/foo/NonZeroArgConstructor.gwt.xml","<module>","  <source path=''/>","  <entry-point class='com.foo.NonZeroArgConstructorEntryPoint'/>","</module>");
+  MockJavaResource entryPointResource=JavaResourceBase.createMockJavaResource("com.foo.NonZeroArgConstructorEntryPoint","package com.foo;","import com.google.gwt.core.client.EntryPoint;","public class NonZeroArgConstructorEntryPoint implements EntryPoint {","  public NonZeroArgConstructorEntryPoint(String s) {","  }","  public void onModuleLoad() {","  }","}");
+  MinimalRebuildCache minimalRebuildCache=new MinimalRebuildCache();
+  File applicationDir=Files.createTempDir();
+  CompilerOptions compilerOptions=new CompilerOptionsImpl();
+  UnitTestTreeLogger.Builder builder=new UnitTestTreeLogger.Builder();
+  builder.setLowestLogLevel(TreeLogger.ERROR);
+  builder.expectError(Pattern.compile("Errors in .*"),null);
+  builder.expectError("Line 3: Rebind result 'com.foo.NonZeroArgConstructorEntryPoint' " + "has no default (zero argument) constructors",null);
+  UnitTestTreeLogger errorLogger=builder.createLogger();
+  try {
+    compileToJs(errorLogger,compilerOptions,applicationDir,"com.foo.NonZeroArgConstructor",Lists.newArrayList(moduleResource,entryPointResource),minimalRebuildCache,emptySet,JsOutputOption.OBFUSCATED);
+    fail("Compile should have failed");
+  }
+ catch (  UnableToCompleteException expected) {
+    errorLogger.assertCorrectLogEntries();
+  }
+}
