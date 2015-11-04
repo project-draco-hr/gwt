@@ -1,19 +1,16 @@
 {
-  if (!(x instanceof JMethod)) {
-    return;
+  if (member.getJsMemberType() == JsMemberType.UNDEFINED_ACCESSOR) {
+    logError(member,"JsProperty %s should have a correct setter or getter signature.",getMemberDescription(member));
   }
-  JMethod method=(JMethod)x;
-  if (method.getJsPropertyAccessorType() == JsPropertyAccessorType.UNDEFINED) {
-    logError(method,"JsProperty %s should have a correct setter or getter signature.",getMemberDescription(method));
-  }
-  if (method.getJsPropertyAccessorType() == JsPropertyAccessorType.GETTER) {
-    if (method.getType() != JPrimitiveType.BOOLEAN && method.getName().startsWith("is")) {
-      logError(method,"JsProperty %s cannot have a non-boolean return.",getMemberDescription(method));
+  if (member.getJsMemberType() == JsMemberType.GETTER) {
+    if (member.getType() != JPrimitiveType.BOOLEAN && member.getName().startsWith("is")) {
+      logError(member,"JsProperty %s cannot have a non-boolean return.",getMemberDescription(member));
     }
   }
   if (newMember.setter != null && newMember.getter != null) {
-    if (newMember.getter.getType() != newMember.setter.getParams().get(0).getType()) {
-      logError(method,"JsProperty setter %s and getter %s cannot have inconsistent types.",getMemberDescription(newMember.setter),getMemberDescription(newMember.getter));
+    List<JParameter> setterParams=((JMethod)newMember.setter).getParams();
+    if (newMember.getter.getType() != setterParams.get(0).getType()) {
+      logError(member,"JsProperty setter %s and getter %s cannot have inconsistent types.",getMemberDescription(newMember.setter),getMemberDescription(newMember.getter));
     }
   }
 }

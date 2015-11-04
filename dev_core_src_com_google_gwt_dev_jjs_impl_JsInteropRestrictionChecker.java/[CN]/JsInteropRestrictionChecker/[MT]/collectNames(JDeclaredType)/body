@@ -3,17 +3,10 @@
     return Maps.newLinkedHashMap();
   }
   LinkedHashMap<String,JsMember> memberByLocalMemberNames=collectNames(type.getSuperClass());
-  for (  JField field : type.getFields()) {
-    if (!field.isJsProperty() || !field.needsDynamicDispatch()) {
-      continue;
+  for (  JMember member : type.getMembers()) {
+    if (isCheckedLocalName(member)) {
+      updateJsMembers(memberByLocalMemberNames,member);
     }
-    updateJsMembers(memberByLocalMemberNames,field);
-  }
-  for (  JMethod method : type.getMethods()) {
-    if (!method.isOrOverridesJsMethod() || !method.needsDynamicDispatch() || isSyntheticBridgeMethod(method)) {
-      continue;
-    }
-    updateJsMembers(memberByLocalMemberNames,method);
   }
   return memberByLocalMemberNames;
 }

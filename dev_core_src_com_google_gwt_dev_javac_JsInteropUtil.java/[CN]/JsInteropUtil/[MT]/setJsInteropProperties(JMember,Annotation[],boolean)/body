@@ -1,0 +1,18 @@
+{
+  boolean hasExport=JdtUtil.getAnnotation(annotations,JSEXPORT_CLASS) != null;
+  boolean ignore=JdtUtil.getAnnotation(annotations,JSNOEXPORT_CLASS) != null;
+  if (ignore || (!member.isPublic() && !isNativeConstructor(member)) || !hasExport) {
+    return;
+  }
+  String namespace=maybeGetJsNamespace(annotations);
+  String exportName=maybeGetJsExportName(annotations);
+  JsMemberType memberType=getJsMemberType(member,isPropertyAccessor);
+  member.setJsMemberInfo(memberType,namespace,exportName,hasExport);
+  JDeclaredType enclosingType=member.getEnclosingType();
+  if (enclosingType.isJsType() && member.needsDynamicDispatch()) {
+    member.setJsMemberInfo(memberType,namespace,exportName,true);
+  }
+  if (enclosingType.isClassWideExport() && !member.needsDynamicDispatch()) {
+    member.setJsMemberInfo(memberType,namespace,exportName,true);
+  }
+}
