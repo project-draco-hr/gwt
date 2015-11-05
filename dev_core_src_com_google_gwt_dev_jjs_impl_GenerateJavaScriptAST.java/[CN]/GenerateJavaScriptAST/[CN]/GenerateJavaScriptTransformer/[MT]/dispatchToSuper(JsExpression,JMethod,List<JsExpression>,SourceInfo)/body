@@ -1,20 +1,15 @@
 {
   JsNameRef methodNameRef;
-  if (method.isConstructor()) {
-    if (method.isJsNative()) {
-      return JsNullLiteral.INSTANCE;
-    }
+  if (method.isJsNative()) {
+    methodNameRef=createJsQualifier(method.getQualifiedJsName(),sourceInfo);
+  }
+ else   if (method.isConstructor()) {
     methodNameRef=names.get(method).makeRef(sourceInfo);
   }
  else {
     JDeclaredType superClass=method.getEnclosingType();
-    if (method.isJsNative()) {
-      methodNameRef=createJsQualifier(method.getQualifiedJsName(),sourceInfo);
-    }
- else {
-      JsExpression protoRef=getPrototypeQualifierViaLookup(superClass,sourceInfo);
-      methodNameRef=polymorphicNames.get(method).makeQualifiedRef(sourceInfo,protoRef);
-    }
+    JsExpression protoRef=getPrototypeQualifierViaLookup(superClass,sourceInfo);
+    methodNameRef=polymorphicNames.get(method).makeQualifiedRef(sourceInfo,protoRef);
   }
   JsNameRef qualifiedMethodName=call.makeQualifiedRef(sourceInfo,methodNameRef);
   JsInvocation jsInvocation=new JsInvocation(sourceInfo,qualifiedMethodName);
