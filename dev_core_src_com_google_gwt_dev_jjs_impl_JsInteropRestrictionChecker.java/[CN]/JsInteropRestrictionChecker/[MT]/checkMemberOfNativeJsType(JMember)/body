@@ -3,13 +3,33 @@
     logError(member,"JSNI method %s is not allowed in a native JsType.",getMemberDescription(member));
     return;
   }
-  if (member.isSynthetic() || member.isJsNative() || member.isJsOverlay()) {
+  if (member.isSynthetic() || member.isJsOverlay()) {
     return;
   }
-  if (member.getJsName() == null) {
-    logError(member,"Native JsType member %s is not public or has @JsIgnore.",getMemberDescription(member));
-  }
- else {
-    logError(member,"Native JsType method %s should be native or abstract.",getMemberDescription(member));
-  }
+  JsMemberType jsMemberType=member.getJsMemberType();
+switch (jsMemberType) {
+case CONSTRUCTOR:
+    if (!isConstructorEmpty((JConstructor)member)) {
+      logError(member,"Native JsType constructor %s cannot have non-empty method body.",getMemberDescription(member));
+    }
+  break;
+case METHOD:
+case GETTER:
+case SETTER:
+case UNDEFINED_ACCESSOR:
+JMethod method=(JMethod)member;
+if (!method.isAbstract() && method.getBody() != null) {
+logError(member,"Native JsType method %s should be native or abstract.",getMemberDescription(member));
+}
+break;
+case PROPERTY:
+JField field=(JField)member;
+if (field.hasInitializer()) {
+logError(member,"Native JsType field %s cannot have initializer.",getMemberDescription(member));
+}
+break;
+case NONE:
+logError(member,"Native JsType member %s cannot have @JsIgnore.",getMemberDescription(member));
+break;
+}
 }

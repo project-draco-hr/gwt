@@ -1,19 +1,15 @@
 {
-  List<JStatement> statements=FluentIterable.from(constructor.getBody().getStatements()).filter(new Predicate<JStatement>(){
+  return Iterables.all(constructor.getBody().getStatements(),new Predicate<JStatement>(){
     @Override public boolean apply(    JStatement statement){
       JClassType type=constructor.getEnclosingType();
       if (isImplicitSuperCall(statement,type.getSuperClass())) {
-        return false;
+        return true;
       }
-      if (isEmptyInitCall(statement,type)) {
-        return false;
+      if (isInitCall(statement,type)) {
+        return true;
       }
-      if (statement instanceof JDeclarationStatement) {
-        return ((JDeclarationStatement)statement).getInitializer() != null;
-      }
-      return true;
+      return false;
     }
   }
-).toList();
-  return statements.isEmpty();
+);
 }
