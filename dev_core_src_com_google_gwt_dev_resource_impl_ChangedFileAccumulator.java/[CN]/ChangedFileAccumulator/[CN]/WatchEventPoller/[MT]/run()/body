@@ -24,6 +24,10 @@ synchronized (changedFiles) {
           }
           Path changedFileName=(Path)watchEvent.context();
           Path changedPath=containingDirectory.resolve(changedFileName);
+          if (eventKind == StandardWatchEventKinds.ENTRY_DELETE) {
+            recursivelyRemovePath(changedPath);
+            continue;
+          }
           if (eventKind == StandardWatchEventKinds.ENTRY_CREATE && Files.isDirectory(changedPath)) {
             try {
               recursivelyRegisterListeners(changedPath,true);
@@ -33,6 +37,7 @@ synchronized (changedFiles) {
               return;
             }
           }
+          pathsByParentPath.put(changedPath.getParent(),changedPath);
           changedFiles.add(changedPath.toFile().getAbsoluteFile());
         }
         if (!watchKey.reset()) {
