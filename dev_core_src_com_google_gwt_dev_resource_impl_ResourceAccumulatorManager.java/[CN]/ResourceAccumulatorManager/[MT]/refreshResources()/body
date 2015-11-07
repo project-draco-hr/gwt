@@ -1,0 +1,15 @@
+{
+  Iterator<Entry<DirectoryAndPathPrefix,ResourceAccumulator>> entriesIterator=resourceAccumulators.entrySet().iterator();
+  while (entriesIterator.hasNext()) {
+    Entry<DirectoryAndPathPrefix,ResourceAccumulator> entry=entriesIterator.next();
+    DirectoryAndPathPrefix directoryAndPathPrefix=entry.getKey();
+    ResourceAccumulator resourceAccumulator=entry.getValue();
+    if (directoryAndPathPrefix.isOld()) {
+      resourceAccumulator.shutdown();
+      entriesIterator.remove();
+    }
+ else     if (resourceAccumulator.isWatchServiceActive()) {
+      resourceAccumulator.refreshResources();
+    }
+  }
+}

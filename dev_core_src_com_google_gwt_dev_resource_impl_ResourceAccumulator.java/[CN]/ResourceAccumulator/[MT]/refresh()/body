@@ -1,0 +1,24 @@
+{
+  while (true) {
+    WatchKey watchKey=watchService.poll();
+    if (watchKey == null) {
+      return;
+    }
+    Path parentDir=(Path)watchKey.watchable();
+    for (    WatchEvent<?> watchEvent : watchKey.pollEvents()) {
+      WatchEvent.Kind<?> eventKind=watchEvent.kind();
+      if (eventKind == OVERFLOW) {
+        fullRefresh();
+        return;
+      }
+      Path child=parentDir.resolve((Path)watchEvent.context());
+      if (eventKind == ENTRY_CREATE) {
+        onNewPath(child);
+      }
+ else       if (eventKind == ENTRY_DELETE) {
+        onRemovedPath(child);
+      }
+    }
+    watchKey.reset();
+  }
+}

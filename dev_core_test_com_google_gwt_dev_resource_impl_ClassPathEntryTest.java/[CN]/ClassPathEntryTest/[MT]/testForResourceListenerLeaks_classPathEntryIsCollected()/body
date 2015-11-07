@@ -1,0 +1,13 @@
+{
+  PathPrefixSet pathPrefixSet=createInclusivePathPrefixSet();
+  DirectoryClassPathEntry classPathEntry=new DirectoryClassPathEntry(Files.createTempDir());
+  awaitFullGc();
+  assertEquals(0,ResourceAccumulatorManager.getActiveListenerCount());
+  ResourceAccumulatorManager.getResources(classPathEntry,pathPrefixSet);
+  awaitFullGc();
+  assertEquals(1,ResourceAccumulatorManager.getActiveListenerCount());
+  classPathEntry=null;
+  awaitFullGc();
+  assertEquals(0,ResourceAccumulatorManager.getActiveListenerCount());
+  assertNotNull(pathPrefixSet);
+}
