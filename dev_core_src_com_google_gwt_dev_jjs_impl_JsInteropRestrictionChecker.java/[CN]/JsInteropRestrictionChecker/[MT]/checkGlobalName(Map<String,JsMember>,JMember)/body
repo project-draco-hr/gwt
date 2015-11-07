@@ -1,0 +1,14 @@
+{
+  Pair<JsMember,JsMember> oldAndNewJsMember=updateJsMembers(ownGlobalNames,member);
+  JsMember oldJsMember=oldAndNewJsMember.left;
+  JsMember newJsMember=oldAndNewJsMember.right;
+  if (oldJsMember == newJsMember) {
+    checkJsPropertyConsistency(member,newJsMember);
+    return;
+  }
+  String currentGlobalNameDescription=minimalRebuildCache.addExportedGlobalName(member.getQualifiedJsName(),JjsUtils.getReadableDescription(member),member.getEnclosingType().getName());
+  if (currentGlobalNameDescription == null) {
+    return;
+  }
+  logError(member,"%s cannot be exported because the global name '%s' is already taken by '%s'.",getMemberDescription(member),member.getQualifiedJsName(),currentGlobalNameDescription);
+}
