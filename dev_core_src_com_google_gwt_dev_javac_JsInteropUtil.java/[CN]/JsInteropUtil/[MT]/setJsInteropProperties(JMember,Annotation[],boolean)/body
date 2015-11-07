@@ -1,13 +1,16 @@
 {
   boolean hasExport=JdtUtil.getAnnotation(annotations,JSEXPORT_CLASS) != null;
-  boolean ignore=JdtUtil.getAnnotation(annotations,JSNOEXPORT_CLASS) != null;
-  if (ignore || (!member.isPublic() && !isNativeConstructor(member)) || !hasExport) {
-    return;
-  }
+  JsMemberType memberType=getJsMemberType(member,isPropertyAccessor);
   String namespace=maybeGetJsNamespace(annotations);
   String exportName=maybeGetJsExportName(annotations);
-  JsMemberType memberType=getJsMemberType(member,isPropertyAccessor);
-  member.setJsMemberInfo(memberType,namespace,exportName,hasExport);
+  if (hasExport) {
+    member.setJsMemberInfo(memberType,namespace,exportName,true);
+    return;
+  }
+  boolean ignore=JdtUtil.getAnnotation(annotations,JSNOEXPORT_CLASS) != null;
+  if (ignore || (!member.isPublic() && !isNativeConstructor(member)) || hasExport) {
+    return;
+  }
   JDeclaredType enclosingType=member.getEnclosingType();
   if (enclosingType.isJsType() && member.needsDynamicDispatch()) {
     member.setJsMemberInfo(memberType,namespace,exportName,true);
