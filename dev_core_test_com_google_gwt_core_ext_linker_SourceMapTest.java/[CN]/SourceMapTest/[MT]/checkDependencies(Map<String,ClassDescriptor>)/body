@@ -1,20 +1,8 @@
 {
   return new DefaultHandler(){
     Set<Integer> currentDependencies=Sets.newHashSet();
-    String methodName(    String mName){
-      if (mName.startsWith("$") && !mName.equals("$init") && !mName.equals("$clinit")) {
-        return mName.substring(1);
-      }
-      return mName;
-    }
-    boolean compareMethodNames(    String strictName,    String relaxName){
-      if (strictName.equals(relaxName)) {
-        return true;
-      }
-      if (relaxName.startsWith("$") && !relaxName.startsWith("$create")) {
-        return strictName.equals(relaxName.substring(1));
-      }
-      return false;
+    boolean compareMethodNames(    String thisName,    String thatName){
+      return (thisName.replaceFirst("\\$*","").equals(thatName.replaceFirst("\\$*","")));
     }
     @Override public void startElement(    String uri,    String localName,    String qName,    Attributes attributes) throws SAXException {
       super.startElement(uri,localName,qName,attributes);
@@ -22,7 +10,7 @@
         currentDependencies.clear();
         String[] fullName=attributes.getValue("name").split("::");
         for (        MethodDescriptor method : classDescriptorByName.get(fullName[0]).getMethods()) {
-          if (compareMethodNames(method.getName(),methodName(fullName[1]))) {
+          if (compareMethodNames(method.getName(),fullName[1])) {
             currentDependencies.addAll(Ints.asList(method.getDependentPointers()));
           }
         }
@@ -33,7 +21,7 @@
         String[] fullName=attributes.getValue("by").split("::");
         boolean present=false;
         for (        MethodDescriptor method : classDescriptorByName.get(fullName[0]).getMethods()) {
-          if (compareMethodNames(method.getName(),methodName(fullName[1]))) {
+          if (compareMethodNames(method.getName(),fullName[1])) {
             if (currentDependencies.contains(method.getUniqueId())) {
               present=true;
               break;
