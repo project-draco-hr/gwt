@@ -11,9 +11,9 @@
       jsniRef.setResolvedClassName(declaringClassName + originalName.substring(importedClassName.length()));
       return;
     }
-    String fullClassName=declaringClassName + "." + originalName;
+    String fullClassName=JdtUtil.getBinaryName(declaringClass) + "$" + originalName.replace('.','$');
     if (typeResolver.resolveType(fullClassName) != null) {
-      jsniRef.setResolvedClassName(fullClassName);
+      jsniRef.setResolvedClassName(JdtUtil.getSourceName(declaringClass) + "." + originalName);
       return;
     }
     declaringClass=declaringClass.enclosingTypeAt(1);
@@ -25,10 +25,9 @@
       return;
     }
   }
-  String currentPackageClassName=String.valueOf(method.binding.declaringClass.qualifiedPackageName());
-  currentPackageClassName+=(currentPackageClassName.isEmpty() ? "" : ".") + originalName;
-  if (typeResolver.resolveType(currentPackageClassName) != null) {
-    jsniRef.setResolvedClassName(currentPackageClassName);
+  String currentPackageBinaryClassName=JdtUtil.getBinaryName(CharOperation.charToString(method.binding.declaringClass.qualifiedPackageName()),originalName);
+  if (typeResolver.resolveType(currentPackageBinaryClassName) != null) {
+    jsniRef.setResolvedClassName(JdtUtil.getSourceName(CharOperation.charToString(method.binding.declaringClass.qualifiedPackageName()),originalName));
     return;
   }
   List<String> importPackages=Lists.newArrayList("java.lang");
@@ -39,9 +38,9 @@
     importPackages.add(JdtUtil.asDottedString(importReference.getImportName()));
   }
   for (  String importPackage : importPackages) {
-    String fullClassName=importPackage + "." + originalName;
+    String fullClassName=importPackage + "." + originalName.replace('.','$');
     if (typeResolver.resolveType(fullClassName) != null) {
-      jsniRef.setResolvedClassName(fullClassName);
+      jsniRef.setResolvedClassName(importPackage + "." + originalName);
       return;
     }
   }
