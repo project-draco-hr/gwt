@@ -9,7 +9,11 @@
   JsFunction function=transform(method.getBody());
   function.setInliningMode(method.getInliningMode());
   if (!method.isJsniMethod()) {
-    transformInto(method.getParams(),function.getParameters());
+    List<JParameter> parameterList=method.getParams();
+    if (method.isJsMethodVarargs()) {
+      parameterList=parameterList.subList(0,parameterList.size() - 1);
+    }
+    transformInto(parameterList,function.getParameters());
   }
   JsInvocation jsInvocation=maybeCreateClinitCall(method);
   if (jsInvocation != null) {

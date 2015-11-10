@@ -1,0 +1,18 @@
+{
+  if (x.getOp() != JBinaryOperator.ASG || !(x.getLhs() instanceof JArrayRef)) {
+    return null;
+  }
+  JArrayRef arrayRef=(JArrayRef)x.getLhs();
+  JType elementType=arrayRef.getType();
+  JExpression arrayInstance=arrayRef.getInstance();
+  if (elementType.isNullType()) {
+    return null;
+  }
+ else   if (!(elementType instanceof JReferenceType)) {
+    return null;
+  }
+ else   if (!arrayInstance.getType().canBeSubclass() && program.typeOracle.castSucceedsTrivially((JReferenceType)x.getRhs().getType(),(JReferenceType)elementType)) {
+    return null;
+  }
+  return arrayRef;
+}

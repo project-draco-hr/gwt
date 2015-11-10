@@ -1,0 +1,19 @@
+{
+  if (!x.isJsMethodVarargs()) {
+    return false;
+  }
+  varargsParameter=Iterables.getLast(x.getParams());
+  varargsIndex=x.getParams().size() - 1;
+  argumentsCopyVariable=null;
+switch (needsVarargsProcessing(x)) {
+case GENERAL_ACCESS:
+    argumentsCopyVariable=JProgram.createLocal(varargsParameter.getSourceInfo(),varargsParameter.getName(),varargsParameter.getType(),false,(JMethodBody)x.getBody());
+  replacer=new ReplaceVarargsVariable(argumentsCopyVariable);
+return true;
+case OFFSET_ACCESS:
+replacer=new ReindexAccess(varargsIndex);
+return true;
+default :
+return false;
+}
+}

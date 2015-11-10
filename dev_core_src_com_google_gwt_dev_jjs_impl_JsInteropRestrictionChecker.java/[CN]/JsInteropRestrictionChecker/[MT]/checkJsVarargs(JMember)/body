@@ -1,0 +1,16 @@
+{
+  final JMethod method=(JMethod)member;
+  if (!method.isJsniMethod()) {
+    return;
+  }
+  final JsFunction function=((JsniMethodBody)method.getBody()).getFunc();
+  final JsParameter varargParameter=Iterables.getLast(function.getParameters());
+  new JsVisitor(){
+    @Override public void endVisit(    JsNameRef x,    JsContext ctx){
+      if (x.getName() == varargParameter.getName()) {
+        logError(x,"Cannot access vararg parameter '%s' from JSNI in JsMethod %s." + " Use 'arguments' instead.",x.getIdent(),getMemberDescription(method));
+      }
+    }
+  }
+.accept(function);
+}

@@ -2,8 +2,9 @@
   SourceInfo sourceInfo=newInstance.getSourceInfo();
   JConstructor ctor=newInstance.getTarget();
   JsName ctorName=names.get(ctor);
-  JsNew newExpr=ctor.isJsNative() ? new JsNew(sourceInfo,createJsQualifier(ctor.getQualifiedJsName(),sourceInfo)) : new JsNew(sourceInfo,ctorName.makeRef(sourceInfo));
-  transformInto(newInstance.getArgs(),newExpr.getArguments());
+  JsNameRef reference=ctor.isJsNative() ? createJsQualifier(ctor.getQualifiedJsName(),sourceInfo) : ctorName.makeRef(sourceInfo);
+  List<JsExpression> arguments=transform(newInstance.getArgs());
+  JsNew newExpr=(JsNew)JsUtils.createInvocationOrPropertyAccess(InvocationStyle.NEWINSTANCE,sourceInfo,ctor,null,reference,arguments);
   if (newInstance.getClassType().isJsFunctionImplementation()) {
     return constructJsFunctionObject(sourceInfo,newInstance.getClassType(),ctorName,newExpr);
   }

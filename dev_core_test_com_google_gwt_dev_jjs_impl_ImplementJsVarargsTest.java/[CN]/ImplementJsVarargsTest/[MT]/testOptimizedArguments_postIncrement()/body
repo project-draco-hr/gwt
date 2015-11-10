@@ -1,0 +1,6 @@
+{
+  addSnippetImport("jsinterop.annotations.JsType");
+  addSnippetClassDecl("@JsType static class A {","  public static void m(int... obj) { obj[5]++; }","}");
+  Result result=optimize("void","A.m(2);");
+  assertEquals(Joiner.on('\n').join("public static void m(int[] _arguments_){","  {","    int[] obj = new int[][_arguments_.length];","    for (int $i = 0; $i < _arguments_.length; $i++) {","      obj[$i] = _arguments_[$i];","    }","  }","  obj[5]++;","}"),result.findMethod("test.EntryPoint$A.m([I)V").toSource());
+}

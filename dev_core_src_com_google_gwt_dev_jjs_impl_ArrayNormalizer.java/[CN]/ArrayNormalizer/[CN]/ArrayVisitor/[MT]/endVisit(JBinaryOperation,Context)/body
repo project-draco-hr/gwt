@@ -1,20 +1,9 @@
 {
-  if (x.getOp() != JBinaryOperator.ASG || !(x.getLhs() instanceof JArrayRef)) {
-    return;
-  }
-  JArrayRef arrayRef=(JArrayRef)x.getLhs();
-  JType elementType=arrayRef.getType();
-  JExpression arrayInstance=arrayRef.getInstance();
-  if (elementType.isNullType()) {
-    return;
-  }
- else   if (!(elementType instanceof JReferenceType)) {
-    return;
-  }
- else   if (!arrayInstance.getType().canBeSubclass() && program.typeOracle.castSucceedsTrivially((JReferenceType)x.getRhs().getType(),(JReferenceType)elementType)) {
+  JArrayRef arrayRef=needsSetCheck(x);
+  if (arrayRef == null) {
     return;
   }
   JMethodCall call=new JMethodCall(x.getSourceInfo(),null,setCheckMethod);
-  call.addArgs(arrayInstance,arrayRef.getIndexExpr(),x.getRhs());
+  call.addArgs(arrayRef.getInstance(),arrayRef.getIndexExpr(),x.getRhs());
   ctx.replaceMe(call);
 }

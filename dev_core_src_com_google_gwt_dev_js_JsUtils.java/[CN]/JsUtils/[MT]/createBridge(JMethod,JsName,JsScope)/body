@@ -5,13 +5,12 @@
     JsName name=bridge.getScope().declareName(p.getName());
     bridge.getParameters().add(new JsParameter(sourceInfo,name));
   }
-  JsNameRef ref=polyName.makeRef(sourceInfo);
-  ref.setQualifier(new JsThisRef(sourceInfo));
+  JsNameRef reference=polyName.makeQualifiedRef(sourceInfo,new JsThisRef(sourceInfo));
   List<JsExpression> args=Lists.newArrayList();
   for (  JsParameter p : bridge.getParameters()) {
     args.add(p.getName().makeRef(sourceInfo));
   }
-  JsExpression invocation=createInvocationOrPropertyAccess(sourceInfo,method.getJsMemberType(),ref,args);
+  JsExpression invocation=createInvocationOrPropertyAccess(InvocationStyle.NORMAL,sourceInfo,method,reference.getQualifier(),reference,args);
   JsBlock block=new JsBlock(sourceInfo);
   if (method.getType() == JPrimitiveType.VOID) {
     block.getStatements().add(invocation.makeStmt());

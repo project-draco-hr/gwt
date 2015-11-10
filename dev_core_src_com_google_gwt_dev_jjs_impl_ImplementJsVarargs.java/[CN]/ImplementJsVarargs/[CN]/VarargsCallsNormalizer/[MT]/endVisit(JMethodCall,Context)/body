@@ -1,0 +1,21 @@
+{
+  JMethod method=x.getTarget();
+  if (!method.isJsMethodVarargs()) {
+    return;
+  }
+  int varargIndex=method.getParams().size() - 1;
+  JExpression varargArgument=x.getArgs().get(varargIndex);
+  if (varargArgument instanceof JNewArray) {
+    JNewArray varargArray=(JNewArray)varargArgument;
+    if (varargArray.getInitializers() != null) {
+      x.setArg(varargIndex,ArrayNormalizer.getInitializerArray(varargArray));
+      return;
+    }
+  }
+  JExpression instance=x.getInstance();
+  if (x.getTarget().needsDynamicDispatch() && !x.isStaticDispatchOnly() && instance != null && !(instance instanceof JVariableRef)) {
+    SourceInfo sourceInfo=x.getSourceInfo();
+    JLocal tempInstance=JProgram.createLocal(sourceInfo,"$instance",instance.getType(),false,currentMethodBody);
+    ctx.replaceMe(JjsUtils.createOptimizedMultiExpression(new JBinaryOperation(sourceInfo,instance.getType(),JBinaryOperator.ASG,tempInstance.createRef(sourceInfo),instance),new JMethodCall(x,tempInstance.createRef(sourceInfo),x.getArgs())));
+  }
+}
