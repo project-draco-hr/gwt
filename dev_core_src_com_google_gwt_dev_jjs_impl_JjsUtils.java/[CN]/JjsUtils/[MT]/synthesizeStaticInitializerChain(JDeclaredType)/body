@@ -1,0 +1,13 @@
+{
+  List<JStatement> superClinitCalls=Lists.newArrayList();
+  SourceInfo sourceInfo=type.getSourceInfo();
+  JClassType superClass=type.getSuperClass();
+  if (superClass != null) {
+    superClinitCalls.add(new JMethodCall(sourceInfo,null,superClass.getClinitMethod()).makeStatement());
+  }
+  for (  JInterfaceType interfaceType : getSuperInterfacesRequiringInitialization(type)) {
+    superClinitCalls.add(new JMethodCall(sourceInfo,null,interfaceType.getClinitMethod()).makeStatement());
+  }
+  JMethodBody body=(JMethodBody)type.getClinitMethod().getBody();
+  body.getBlock().getStatements().addAll(0,superClinitCalls);
+}
