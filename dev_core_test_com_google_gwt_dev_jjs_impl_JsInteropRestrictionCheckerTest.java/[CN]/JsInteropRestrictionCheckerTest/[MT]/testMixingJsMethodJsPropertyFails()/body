@@ -1,0 +1,6 @@
+{
+  addSnippetImport("jsinterop.annotations.JsMethod");
+  addSnippetImport("jsinterop.annotations.JsProperty");
+  addSnippetClassDecl("public static class Super {","  @JsMethod public int getY() { return 5; }","  @JsProperty public void setZ(int z) {}","}","public static class Buggy extends Super {","  @JsProperty(name = \"getY\") public int getY() { return 6; }","  @JsMethod(name = \"z\") public void setZ(int z) {}","}");
+  assertBuggyFails("Line 10: 'int EntryPoint.Buggy.getY()' and 'int EntryPoint.Super.getY()' cannot " + "both use the same JavaScript name 'getY'.","Line 11: 'void EntryPoint.Buggy.setZ(int)' and 'void EntryPoint.Super.setZ(int)' cannot " + "both use the same JavaScript name 'z'.");
+}
