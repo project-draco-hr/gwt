@@ -1,11 +1,22 @@
 {
   _lbrace();
   boolean sep=false;
-  for (  JsPropertyInitializer element : x.getPropertyInitializers()) {
+  for (  Object element : x.getPropertyInitializers()) {
     sep=_sepCommaOptSpace(sep);
-    accept(element.getLabelExpr());
+    JsPropertyInitializer propInit=(JsPropertyInitializer)element;
+    printLabel: {
+      JsExpression labelExpr=propInit.getLabelExpr();
+      if (labelExpr instanceof JsStringLiteral) {
+        String propName=((JsStringLiteral)labelExpr).getValue();
+        if (JsUtils.isValidJsIdentifier(propName) && !JsProtectedNames.isKeyword(propName)) {
+          p.print(propName);
+          break printLabel;
+        }
+      }
+      accept(labelExpr);
+    }
     _colon();
-    JsExpression valueExpr=element.getValueExpr();
+    JsExpression valueExpr=propInit.getValueExpr();
     _parenPushIfCommaExpr(valueExpr);
     accept(valueExpr);
     _parenPopIfCommaExpr(valueExpr);
