@@ -1,0 +1,13 @@
+{
+  JsObjectLiteral.Builder objectLiteralBuilder=JsObjectLiteral.builder(makeSourceInfo(objectLiteralNode));
+  for (Node propertyComponent=objectLiteralNode.getFirstChild(); propertyComponent != null; propertyComponent=propertyComponent.getNext()) {
+    JsExpression labelExpression=mapExpression(propertyComponent);
+    propertyComponent=propertyComponent.getNext();
+    Node valueNode=propertyComponent;
+    if (valueNode == null) {
+      throw createParserException("Expected an init expression for: " + labelExpression,objectLiteralNode);
+    }
+    objectLiteralBuilder.add(labelExpression.getSourceInfo(),labelExpression,mapExpression(valueNode));
+  }
+  return objectLiteralBuilder.build();
+}
