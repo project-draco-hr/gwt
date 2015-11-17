@@ -1,0 +1,17 @@
+{
+  final Set<JMethod> overridableJavaLangObjectMethods=ImmutableSet.of(program.getIndexedMethodOrNull(RuntimeConstants.OBJECT_EQUALS),program.getIndexedMethodOrNull(RuntimeConstants.OBJECT_HASHCODE),program.getIndexedMethodOrNull(RuntimeConstants.OBJECT_TO_STRING));
+  new JModVisitor(){
+    @Override public void endVisit(    JMethodCall x,    Context ctx){
+      JMethod targetMethod=x.getTarget();
+      if (!targetMethod.isJsNative()) {
+        return;
+      }
+      JMethod overridenMethod=Iterables.getOnlyElement(Sets.intersection(targetMethod.getOverriddenMethods(),overridableJavaLangObjectMethods),null);
+      if (overridenMethod == null) {
+        return;
+      }
+      ctx.replaceMe(new JMethodCall(x.getSourceInfo(),x.getInstance(),overridenMethod,x.getArgs()));
+    }
+  }
+.accept(program);
+}

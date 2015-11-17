@@ -1,0 +1,24 @@
+{
+  new JVisitor(){
+    JClassType superClass;
+    @Override public boolean visit(    JDeclaredType x,    Context ctx){
+      superClass=JjsUtils.getNativeSuperClassOrNull(x);
+      return x instanceof JClassType && superClass != null;
+    }
+    @Override public boolean visit(    JMethod x,    Context ctx){
+      return !x.isSynthetic();
+    }
+    @Override public void endVisit(    JMethodCall x,    Context ctx){
+      JMethod target=x.getTarget();
+      if (!x.isStaticDispatchOnly()) {
+        return;
+      }
+      assert(!target.isStatic());
+      if ((overridesObjectMethod(target) && target.getEnclosingType().isJsNative()) || target.getEnclosingType() == jprogram.getTypeJavaLangObject()) {
+        logError(x,"Cannot use super to call '%s.%s'. 'java.lang.Object' methods in native " + "JsTypes cannot be called using super.",JjsUtils.getReadableDescription(superClass),target.getName());
+        return;
+      }
+    }
+  }
+.accept(jprogram);
+}

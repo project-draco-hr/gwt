@@ -1,0 +1,13 @@
+{
+  assert(type instanceof JClassType);
+  for (  JMethod method : type.getMethods()) {
+    if (!overridesObjectMethod(method) || !method.isSynthetic()) {
+      continue;
+    }
+    for (    JMethod overridenMethod : method.getOverriddenMethods()) {
+      if (overridenMethod.getEnclosingType() instanceof JInterfaceType && overridenMethod.getJsMemberType() != JsMemberType.METHOD) {
+        logError(type,"Native JsType subclass %s can not implement interface %s that declares method '%s' " + "inherited from java.lang.Object.",getDescription(type),getDescription(overridenMethod.getEnclosingType()),overridenMethod.getName());
+      }
+    }
+  }
+}

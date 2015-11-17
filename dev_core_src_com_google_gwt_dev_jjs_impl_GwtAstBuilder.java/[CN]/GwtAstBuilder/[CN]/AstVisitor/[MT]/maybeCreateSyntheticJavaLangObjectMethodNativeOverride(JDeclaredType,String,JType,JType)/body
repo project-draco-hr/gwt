@@ -1,0 +1,24 @@
+{
+  SourceInfo info=type.getSourceInfo();
+  JMethod method=new JMethod(info,name,type,returnType,false,false,false,AccessModifier.PUBLIC);
+  int i=0;
+  for (  JType parameterType : parameterTypes) {
+    method.createParameter(info,"arg" + i++,parameterType);
+  }
+  method.freezeParamTypes();
+  assert(!method.isSynthetic());
+  assert(method.isJsNative());
+  final String signature=method.getJsniSignature(false,false);
+  boolean alreadyExists=Iterables.any(type.getMethods(),new Predicate<JMethod>(){
+    @Override public boolean apply(    JMethod typeMethod){
+      return typeMethod.getJsniSignature(false,false).equals(signature);
+    }
+  }
+);
+  if (alreadyExists) {
+    return;
+  }
+  type.addMethod(method);
+  JsInteropUtil.maybeSetJsInteropProperties(method,generateJsInteropExports);
+  assert(method.getJsMemberType() == JsMemberType.METHOD);
+}
