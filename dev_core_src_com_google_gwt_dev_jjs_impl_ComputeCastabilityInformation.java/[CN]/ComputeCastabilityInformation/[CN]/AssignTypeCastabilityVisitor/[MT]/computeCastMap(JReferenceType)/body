@@ -10,14 +10,14 @@
   if (!typeOracle.isInstantiatedType(type) || type.isJsoType() || type.isJsNative()) {
     return;
   }
-  Set<JReferenceType> castableTypes=new TreeSet<JReferenceType>(HasName.BY_NAME_COMPARATOR);
+  Set<JReferenceType> castableTypes=Sets.newTreeSet(HasName.BY_NAME_COMPARATOR);
   for (  JReferenceType castTargetType : castSourceTypesPerCastTargetType.keySet()) {
     if (!castSucceedsTriviallyJsoSemantics(type,castTargetType)) {
       continue;
     }
     Collection<JReferenceType> castSourceTypes=castSourceTypesPerCastTargetType.get(castTargetType);
     for (    JReferenceType castSourceType : castSourceTypes) {
-      if (castSucceedsTriviallyJsoSemantics(type,castSourceType) || castTargetType.isJsoType()) {
+      if (castSucceedsTriviallyJsoSemantics(type,castSourceType)) {
         boolean isTrivialCast=castTargetType == program.getTypeJavaLangObject() || castTargetType == program.getJavaScriptObject();
         if (recordTrivialCasts || !isTrivialCast) {
           castableTypes.add(castTargetType);
