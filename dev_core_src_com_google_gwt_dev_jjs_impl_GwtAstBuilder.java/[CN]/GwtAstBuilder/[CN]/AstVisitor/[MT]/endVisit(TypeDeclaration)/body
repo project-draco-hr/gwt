@@ -1,7 +1,13 @@
 {
   JDeclaredType type=curClass.type;
   if (type instanceof JClassType) {
-    JjsUtils.synthesizeStaticInitializerChain(type);
+    Iterable<JInterfaceType> interfacesToInitialize=Iterables.transform(JdtUtil.getSuperInterfacesRequiringInitialization(x.binding),new Function<ReferenceBinding,JInterfaceType>(){
+      @Override public JInterfaceType apply(      ReferenceBinding referenceBinding){
+        return (JInterfaceType)typeMap.get(referenceBinding);
+      }
+    }
+);
+    JjsUtils.synthesizeStaticInitializerChain(type,interfacesToInitialize);
   }
   if (isSyntheticGetClassNeeded(x,type) && !type.isAbstract()) {
     implementGetClass(type);
