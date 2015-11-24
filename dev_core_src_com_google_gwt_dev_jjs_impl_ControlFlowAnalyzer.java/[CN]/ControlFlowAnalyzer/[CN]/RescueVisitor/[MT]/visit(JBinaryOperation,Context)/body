@@ -6,29 +6,26 @@
     rescueByConcat(x.getLhs().getType());
     rescueByConcat(x.getRhs().getType());
   }
- else   if (x.getOp() == JBinaryOperator.ASG) {
-    boolean doSkip=false;
-    JExpression lhs=x.getLhs();
-    if (lhs.hasSideEffects() || isVolatileField(lhs)) {
+  JExpression lhs=x.getLhs();
+  if (x.getOp() != JBinaryOperator.ASG || lhs.hasSideEffects() || isVolatileField(lhs)) {
+    return true;
+  }
+  if (lhs instanceof JLocalRef || lhs instanceof JParameterRef) {
+    accept(x.getRhs());
+    return false;
+  }
+ else   if (lhs instanceof JFieldRef) {
+    JFieldRef fieldRef=(JFieldRef)lhs;
+    JField field=fieldRef.getField();
+    if (field.canBeImplementedExternally()) {
+      return true;
     }
- else     if (lhs instanceof JLocalRef) {
-      doSkip=true;
+    JExpression instance=fieldRef.getInstance();
+    if (instance != null) {
+      accept(instance);
     }
- else     if (lhs instanceof JParameterRef) {
-      doSkip=true;
-    }
- else     if (lhs instanceof JFieldRef) {
-      doSkip=true;
-      JFieldRef fieldRef=(JFieldRef)lhs;
-      JExpression instance=fieldRef.getInstance();
-      if (instance != null) {
-        accept(instance);
-      }
-    }
-    if (doSkip) {
-      accept(x.getRhs());
-      return false;
-    }
+    accept(x.getRhs());
+    return false;
   }
   return true;
 }
