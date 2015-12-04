@@ -9,23 +9,22 @@
   JLocal exceptionVariable=newExceptionVariable(x.getSourceInfo());
   JBlock newCatchBlock=new JBlock(catchInfo);
 {
-    JMethodCall call=new JMethodCall(catchInfo,null,wrapMethod);
-    call.addArg(new JLocalRef(catchInfo,exceptionVariable));
-    newCatchBlock.addStmt(JProgram.createAssignmentStmt(catchInfo,new JLocalRef(catchInfo,exceptionVariable),call));
+    JMethodCall call=new JMethodCall(catchInfo,null,wrapMethod,exceptionVariable.makeRef(catchInfo));
+    newCatchBlock.addStmt(JProgram.createAssignmentStmt(catchInfo,exceptionVariable.makeRef(catchInfo),call));
   }
-  JStatement cur=new JThrowStatement(catchInfo,new JLocalRef(catchInfo,exceptionVariable));
+  JStatement cur=new JThrowStatement(catchInfo,exceptionVariable.makeRef(catchInfo));
   for (int i=x.getCatchClauses().size() - 1; i >= 0; i--) {
     JTryStatement.CatchClause clause=x.getCatchClauses().get(i);
     JBlock block=clause.getBlock();
     JLocalRef arg=clause.getArg();
     List<JType> exceptionsTypes=clause.getTypes();
     catchInfo=block.getSourceInfo();
-    JExpression ifTest=new JInstanceOf(catchInfo,(JReferenceType)exceptionsTypes.get(0),new JLocalRef(catchInfo,exceptionVariable));
+    JExpression ifTest=new JInstanceOf(catchInfo,(JReferenceType)exceptionsTypes.get(0),exceptionVariable.makeRef(catchInfo));
     for (int j=1; j < exceptionsTypes.size(); j++) {
-      JExpression orExp=new JInstanceOf(catchInfo,(JReferenceType)exceptionsTypes.get(j),new JLocalRef(catchInfo,exceptionVariable));
+      JExpression orExp=new JInstanceOf(catchInfo,(JReferenceType)exceptionsTypes.get(j),exceptionVariable.makeRef(catchInfo));
       ifTest=new JBinaryOperation(catchInfo,JPrimitiveType.BOOLEAN,JBinaryOperator.OR,ifTest,orExp);
     }
-    JDeclarationStatement declaration=new JDeclarationStatement(catchInfo,arg,new JLocalRef(catchInfo,exceptionVariable));
+    JDeclarationStatement declaration=new JDeclarationStatement(catchInfo,arg,exceptionVariable.makeRef(catchInfo));
     block.addStmt(0,declaration);
     cur=new JIfStatement(catchInfo,ifTest,block,cur);
   }
@@ -33,5 +32,5 @@
   x.getCatchClauses().clear();
   List<JType> newCatchTypes=new ArrayList<JType>(1);
   newCatchTypes.add(exceptionVariable.getType());
-  x.getCatchClauses().add(new JTryStatement.CatchClause(newCatchTypes,new JLocalRef(newCatchBlock.getSourceInfo(),exceptionVariable),newCatchBlock));
+  x.getCatchClauses().add(new JTryStatement.CatchClause(newCatchTypes,exceptionVariable.makeRef(catchInfo),newCatchBlock));
 }

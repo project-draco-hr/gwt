@@ -15,10 +15,10 @@
       List<JStatement> initializers=Lists.newArrayListWithCapacity(3);
       initializers.add(makeDeclaration(info,arrayVar,collection));
       initializers.add(makeDeclaration(info,indexVar,JIntLiteral.get(0)));
-      initializers.add(makeDeclaration(info,maxVar,new JArrayLength(info,new JLocalRef(info,arrayVar))));
-      JExpression condition=new JBinaryOperation(info,JPrimitiveType.BOOLEAN,JBinaryOperator.LT,new JLocalRef(info,indexVar),new JLocalRef(info,maxVar));
-      JExpression increments=new JPrefixOperation(info,JUnaryOperator.INC,new JLocalRef(info,indexVar));
-      elementDecl.initializer=new JArrayRef(info,new JLocalRef(info,arrayVar),new JLocalRef(info,indexVar));
+      initializers.add(makeDeclaration(info,maxVar,new JArrayLength(info,arrayVar.makeRef(info))));
+      JExpression condition=new JBinaryOperation(info,JPrimitiveType.BOOLEAN,JBinaryOperator.LT,indexVar.makeRef(info),maxVar.makeRef(info));
+      JExpression increments=new JPrefixOperation(info,JUnaryOperator.INC,indexVar.makeRef(info));
+      elementDecl.initializer=new JArrayRef(info,arrayVar.makeRef(info),indexVar.makeRef(info));
       body.addStmt(0,elementDecl);
       result=new JForStatement(info,initializers,condition,increments,body);
     }
@@ -32,8 +32,8 @@
       JLocal iteratorVar=JProgram.createLocal(info,(elementVarName + "$iterator"),typeMap.get(javaUtilIterator),false,curMethod.body);
       List<JStatement> initializers=Lists.newArrayListWithCapacity(1);
       initializers.add(makeDeclaration(info,iteratorVar,new JMethodCall(info,collection,typeMap.get(iterator))));
-      JExpression condition=new JMethodCall(info,new JLocalRef(info,iteratorVar),typeMap.get(hasNext));
-      elementDecl.initializer=new JMethodCall(info,new JLocalRef(info,iteratorVar),typeMap.get(next));
+      JExpression condition=new JMethodCall(info,iteratorVar.makeRef(info),typeMap.get(hasNext));
+      elementDecl.initializer=new JMethodCall(info,iteratorVar.makeRef(info),typeMap.get(next));
       if (elementVar.getType() != javaLangObject) {
         TypeBinding collectionElementType=(TypeBinding)collectionElementTypeField.get(x);
         JType toType=typeMap.get(collectionElementType);
