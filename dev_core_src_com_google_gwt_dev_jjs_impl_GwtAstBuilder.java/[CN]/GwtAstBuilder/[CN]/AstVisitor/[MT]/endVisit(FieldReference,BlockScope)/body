@@ -3,17 +3,7 @@
     FieldBinding fieldBinding=x.binding;
     SourceInfo info=makeSourceInfo(x);
     JExpression instance=pop(x.receiver);
-    JExpression expr;
-    if (fieldBinding.declaringClass == null) {
-      if (!LENGTH_FIELD_NAME.equals(String.valueOf(fieldBinding.name))) {
-        throw new InternalCompilerException("Expected [array].length.");
-      }
-      expr=new JArrayLength(info,instance);
-    }
- else {
-      JField field=typeMap.get(fieldBinding);
-      expr=new JFieldRef(info,instance,field,curClass.type);
-    }
+    JExpression expr=createFieldRef(instance,info,fieldBinding);
     if (x.genericCast != null) {
       JType castType=typeMap.get(x.genericCast);
       expr=maybeCast(castType,expr);
