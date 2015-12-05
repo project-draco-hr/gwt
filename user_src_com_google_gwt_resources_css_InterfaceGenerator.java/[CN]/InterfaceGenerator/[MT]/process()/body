@@ -1,10 +1,11 @@
 {
-  CssStylesheet sheet=GenerateCssAst.exec(logger,inputFile.toURI().toURL());
+  CssTree cssTree=createAst(inputFile.toURI().toURL(),logger);
   Set<String> names=new TreeSet<String>(NAME_COMPARATOR);
-  names.addAll(ExtractClassNamesVisitor.exec(sheet));
-  DefsCollector defs=new DefsCollector();
-  defs.accept(sheet);
-  names.addAll(defs.getDefs());
+  names.addAll(new ClassNamesCollector().getClassNames(cssTree));
+  CollectConstantDefinitions collectConstantDefinitionsPass=new CollectConstantDefinitions(cssTree);
+  collectConstantDefinitionsPass.runPass();
+  Collection<String> renamedDefs=renameDefs(collectConstantDefinitionsPass.getConstantDefinitions().getConstantsNames());
+  names.addAll(renamedDefs);
   Set<String> methodNames=new HashSet<String>();
   SourceWriter sw=new StringSourceWriter();
   int lastDot=interfaceName.lastIndexOf('.');

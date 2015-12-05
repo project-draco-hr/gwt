@@ -1,0 +1,15 @@
+{
+  LoggerErrorManager errorManager=new LoggerErrorManager(logger);
+  CssTree cssTree;
+  try {
+    cssTree=new GssParser(GssResourceGenerator.readUrlContent(sourceFileUrl,logger)).parse();
+  }
+ catch (  GssParserException e) {
+    logger.log(TreeLogger.ERROR,"Unable to parse CSS",e);
+    throw new UnableToCompleteException();
+  }
+  new CreateDefinitionNodes(cssTree.getMutatingVisitController(),errorManager).runPass();
+  new CreateForLoopNodes(cssTree.getMutatingVisitController(),errorManager).runPass();
+  new UnrollLoops(cssTree.getMutatingVisitController(),errorManager).runPass();
+  return cssTree;
+}

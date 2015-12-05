@@ -1,0 +1,27 @@
+{
+  TreeLogger branchLogger=logger.branch(TreeLogger.DEBUG,"Reading GSS stylesheet " + fileUrl.toExternalForm());
+  try {
+    ByteSource byteSource=Resources.asByteSource(fileUrl);
+    Charset charset=Charsets.UTF_8;
+    String styleSheetCharset=extractCharset(byteSource);
+    if (styleSheetCharset != null) {
+      try {
+        charset=Charset.forName(styleSheetCharset);
+      }
+ catch (      UnsupportedCharsetException e) {
+        logger.log(Type.ERROR,"Unsupported charset found: " + styleSheetCharset);
+        throw new UnableToCompleteException();
+      }
+    }
+    String fileContent=byteSource.asCharSource(charset).read();
+    if (styleSheetCharset != null) {
+      int charsetAtRuleLength=CHARSET_MIN_LENGTH + styleSheetCharset.length();
+      fileContent=Strings.repeat(" ",charsetAtRuleLength) + fileContent.substring(charsetAtRuleLength);
+    }
+    return new SourceCode(fileUrl.getFile(),fileContent);
+  }
+ catch (  IOException e) {
+    branchLogger.log(TreeLogger.ERROR,"Unable to parse CSS",e);
+  }
+  throw new UnableToCompleteException();
+}
