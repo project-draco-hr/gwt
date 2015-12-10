@@ -3,9 +3,15 @@
     return;
   }
   JMethod method=(JMethod)member;
-  for (  JMethod overriddeMethod : method.getOverriddenMethods()) {
-    if (overriddeMethod.isJsOverlay()) {
-      logError(member,"Method '%s' cannot override a JsOverlay method '%s'.",JjsUtils.getReadableDescription(method),JjsUtils.getReadableDescription(overriddeMethod));
+  if (method.isSynthetic()) {
+    return;
+  }
+  for (  JMethod overriddenMethod : method.getOverriddenMethods()) {
+    if (overriddenMethod.isSynthetic()) {
+      continue;
+    }
+    if (overriddenMethod.isJsOverlay()) {
+      logError(member,"Method '%s' cannot override a JsOverlay method '%s'.",JjsUtils.getReadableDescription(method),JjsUtils.getReadableDescription(overriddenMethod));
       return;
     }
   }
