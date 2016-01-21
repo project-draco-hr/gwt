@@ -5,8 +5,12 @@
   if (thisType.isNullType() || thatType.isNullType()) {
     return JReferenceType.NULL_TYPE;
   }
-  if (thisType.canBeNull() != thatType.canBeNull()) {
-    return strengthenType(thisType.strengthenToNonNull(),thatType.strengthenToNonNull());
+  if (!thisType.canBeNull() || !thatType.canBeNull()) {
+    JReferenceType thisTypeNonNull=thisType.strengthenToNonNull();
+    JReferenceType thatTypeNonNull=thatType.strengthenToNonNull();
+    if (thisType != thisTypeNonNull || thatType != thatTypeNonNull) {
+      return strengthenType(thisTypeNonNull,thatTypeNonNull);
+    }
   }
   if (typeOracle.castSucceedsTrivially(thisType,thatType)) {
     return thisType;
