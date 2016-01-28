@@ -4,14 +4,15 @@
   }
   SourceInfo sourceInfo=varargsParameter.getSourceInfo();
   JBlock preamble=new JBlock(sourceInfo);
+  JArrayType varargsArrayType=(JArrayType)varargsParameter.getType().getUnderlyingType();
   JExpression lengthMinusVarargsIndex=varargsIndex == 0 ? new JArrayLength(sourceInfo,varargsParameter.createRef(sourceInfo)) : new JBinaryOperation(sourceInfo,JPrimitiveType.INT,JBinaryOperator.SUB,new JArrayLength(sourceInfo,varargsParameter.createRef(sourceInfo)),new JIntLiteral(sourceInfo,varargsIndex));
-  JNewArray arrayVariable=JNewArray.createArrayWithDimensionExpressions(sourceInfo,(JArrayType)varargsParameter.getType(),Collections.singletonList(lengthMinusVarargsIndex));
-  arrayVariable.getLeafTypeClassLiteral().setField(program.getClassLiteralField(((JArrayType)varargsParameter.getType()).getLeafType()));
+  JNewArray arrayVariable=JNewArray.createArrayWithDimensionExpressions(sourceInfo,varargsArrayType,Collections.singletonList(lengthMinusVarargsIndex));
+  arrayVariable.getLeafTypeClassLiteral().setField(program.getClassLiteralField(varargsArrayType.getLeafType()));
   preamble.addStmt(new JDeclarationStatement(sourceInfo,argumentsCopyVariable.createRef(sourceInfo),arrayVariable));
   JLocal index=JProgram.createLocal(sourceInfo,"$i",JPrimitiveType.INT,false,x);
   JExpression iPlusVarargsIndex=varargsIndex == 0 ? index.createRef(sourceInfo) : new JBinaryOperation(sourceInfo,JPrimitiveType.INT,JBinaryOperator.ADD,index.createRef(sourceInfo),new JIntLiteral(sourceInfo,varargsIndex));
   JBlock block=new JBlock(sourceInfo);
-  block.addStmt(new JBinaryOperation(sourceInfo,((JArrayType)varargsParameter.getType()).getElementType(),JBinaryOperator.ASG,new JArrayRef(sourceInfo,replacer.replace(varargsParameter.createRef(sourceInfo)),index.createRef(sourceInfo)),new JArrayRef(sourceInfo,varargsParameter.createRef(sourceInfo),iPlusVarargsIndex)).makeStatement());
+  block.addStmt(new JBinaryOperation(sourceInfo,varargsArrayType.getElementType(),JBinaryOperator.ASG,new JArrayRef(sourceInfo,replacer.replace(varargsParameter.createRef(sourceInfo)),index.createRef(sourceInfo)),new JArrayRef(sourceInfo,varargsParameter.createRef(sourceInfo),iPlusVarargsIndex)).makeStatement());
   preamble.addStmt(new JForStatement(sourceInfo,Collections.<JStatement>singletonList(new JDeclarationStatement(sourceInfo,index.createRef(sourceInfo),JIntLiteral.ZERO)),new JBinaryOperation(sourceInfo,JPrimitiveType.INT,JBinaryOperator.LT,index.createRef(sourceInfo),new CloneExpressionVisitor().cloneExpression(lengthMinusVarargsIndex)),new JPostfixOperation(sourceInfo,JUnaryOperator.INC,index.createRef(sourceInfo)),block));
   x.getStatements().add(0,preamble);
 }

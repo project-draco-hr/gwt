@@ -9,8 +9,13 @@
     JNewArray varargArray=(JNewArray)varargArgument;
     if (varargArray.getInitializers() != null) {
       x.setArg(varargIndex,ArrayNormalizer.getInitializerArray(varargArray));
+      madeChanges();
       return;
     }
+  }
+  SourceInfo varargsArgumentsourceInfo=varargArgument.getSourceInfo();
+  if (varargArgument.getType().canBeNull()) {
+    x.setArg(varargIndex,new JMethodCall(varargsArgumentsourceInfo,null,program.getIndexedMethod(RuntimeConstants.ARRAY_ENSURE_NOT_NULL),varargArgument));
   }
   JExpression instance=x.getInstance();
   if (x.getTarget().needsDynamicDispatch() && !x.isStaticDispatchOnly() && instance != null && !(instance instanceof JVariableRef)) {
