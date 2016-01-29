@@ -1,10 +1,11 @@
 {
   JType type=x.getRefType();
-  if (type instanceof JArrayType && !type.isJsNative()) {
+  if (type instanceof JArrayType) {
     JArrayType arrayType=(JArrayType)type;
     JClassLiteral leafTypeClassLiteral=new JClassLiteral(x.getSourceInfo(),arrayType.getLeafType());
     resolveClassLiteral(leafTypeClassLiteral);
-    JExpression arrayClassLiteralExpression=program.createArrayClassLiteralExpression(x.getSourceInfo(),leafTypeClassLiteral,arrayType.getDims());
+    int dims=type.isJsNative() ? 1 : arrayType.getDims();
+    JExpression arrayClassLiteralExpression=program.createArrayClassLiteralExpression(x.getSourceInfo(),leafTypeClassLiteral,dims);
     ctx.replaceMe(arrayClassLiteralExpression);
   }
  else {
