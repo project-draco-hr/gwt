@@ -1,0 +1,11 @@
+{
+  MockJavaResource nativeClassAndSubclass=JavaResourceBase.createMockJavaResource("com.foo.MyNativeSubclass","package com.foo;","import jsinterop.annotations.JsType;","@JsType(isNative=true)","class NativeClass {","}","public class MyNativeSubclass extends NativeClass {","}");
+  MockJavaResource testEntryPoint=JavaResourceBase.createMockJavaResource("com.foo.MyEntryPoint","package com.foo;","import com.foo.MyNativeSubclass;","public class MyEntryPoint extends MyNativeSubclass {","  public void onModuleLoad() {","    Object o = new Object();","    if (MyNativeSubclass.class.getName() == null) ","      o = new MyNativeSubclass();","    o.getClass();","  }","}");
+  MockResource moduleResource=JavaResourceBase.createMockResource("com/foo/MyEntryPoint.gwt.xml","<module>","  <source path=''/>","  <entry-point class='com.foo.MyEntryPoint'/>","</module>");
+  CompilerOptions compilerOptions=new CompilerOptionsImpl();
+  compilerOptions.setEnableAssertions(true);
+  compilerOptions.setGenerateJsInteropExports(true);
+  compilerOptions.setOutput(JsOutputOption.PRETTY);
+  compilerOptions.setOptimizationLevel(9);
+  assertCompileSucceeds(compilerOptions,testEntryPoint.getTypeName(),Lists.newArrayList(moduleResource,nativeClassAndSubclass,testEntryPoint));
+}

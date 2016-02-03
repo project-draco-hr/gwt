@@ -1,0 +1,38 @@
+{
+  File compileWorkDir=Utility.makeTemporaryDirectory(null,moduleName);
+  final CompilerOptionsImpl compilerOptions=new CompilerOptionsImpl(options);
+  PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
+  logger.setMaxDetail(TreeLogger.ERROR);
+  String oldPersistentUnitCacheValue=System.setProperty(UnitCacheSingleton.GWT_PERSISTENTUNITCACHE,"false");
+  try {
+    File applicationDir=Files.createTempDir();
+    Thread.sleep(1001);
+    File outputDir=new File(applicationDir.getPath() + File.separator + moduleName);
+    if (outputDir.exists()) {
+      Util.recursiveDelete(outputDir,true);
+    }
+    ResourceLoader resourceLoader=ResourceLoaders.forClassLoader(Thread.currentThread());
+    resourceLoader=ResourceLoaders.forPathAndFallback(ImmutableList.of(applicationDir),resourceLoader);
+    compilerOptions.setGenerateJsInteropExports(true);
+    compilerOptions.setWarDir(applicationDir);
+    compilerOptions.setModuleNames(ImmutableList.of(moduleName));
+    for (    MockResource applicationResource : applicationResources) {
+      writeResourceTo(applicationResource,applicationDir);
+    }
+    ModuleDefLoader.clearModuleCache();
+    ModuleDefLoader.loadFromResources(logger,moduleName,resourceLoader,true);
+    options.addModuleName(moduleName);
+    options.setWarDir(new File(compileWorkDir,"war"));
+    options.setExtraDir(new File(compileWorkDir,"extra"));
+    new Compiler(options).run(logger);
+  }
+  finally {
+    Util.recursiveDelete(compileWorkDir,false);
+    if (oldPersistentUnitCacheValue == null) {
+      System.clearProperty(UnitCacheSingleton.GWT_PERSISTENTUNITCACHE);
+    }
+ else {
+      System.setProperty(UnitCacheSingleton.GWT_PERSISTENTUNITCACHE,oldPersistentUnitCacheValue);
+    }
+  }
+}
