@@ -3,6 +3,9 @@
   sw.indent();
   for (  AutoBeanMethod method : type.getMethods()) {
     JMethod jmethod=method.getMethod();
+    if (jmethod.isStatic()) {
+      continue;
+    }
     String methodName=jmethod.getName();
     JParameter[] parameters=jmethod.getParameters();
     if (isObjectMethodImplementedByShim(jmethod)) {
@@ -21,9 +24,10 @@
     sw.indent();
 switch (method.getAction()) {
 case GET:
-      sw.println("%s toReturn = %s.this.getWrapped().%s();",ModelUtils.getQualifiedBaseSourceName(jmethod.getReturnType()),type.getSimpleSourceName(),methodName);
-    writeReturnWrapper(sw,type,method);
-  sw.println("return toReturn;");
+      String getValueType=ModelUtils.getQualifiedBaseSourceName(jmethod.getReturnType());
+    sw.println("%s toReturn = (%s) %s.this.getWrapped().%s();",getValueType,getValueType,type.getSimpleSourceName(),methodName);
+  writeReturnWrapper(sw,type,method);
+sw.println("return toReturn;");
 break;
 case SET:
 case SET_BUILDER:
@@ -39,7 +43,8 @@ sw.println("%s.this.getWrapped().%s(%s);",type.getSimpleSourceName(),methodName,
 sw.println("%s.this.call(\"%s\", null%s %s);",type.getSimpleSourceName(),methodName,arguments.length() > 0 ? "," : "",arguments);
 }
  else {
-sw.println("%s toReturn = %s.this.getWrapped().%s(%s);",ModelUtils.ensureBaseType(jmethod.getReturnType()).getQualifiedSourceName(),type.getSimpleSourceName(),methodName,arguments);
+String callValueType=ModelUtils.ensureBaseType(jmethod.getReturnType()).getQualifiedSourceName();
+sw.println("%s toReturn = (%s) %s.this.getWrapped().%s(%s);",callValueType,callValueType,type.getSimpleSourceName(),methodName,arguments);
 writeReturnWrapper(sw,type,method);
 sw.println("%s.this.call(\"%s\", toReturn%s %s);",type.getSimpleSourceName(),methodName,arguments.length() > 0 ? "," : "",arguments);
 sw.println("return toReturn;");
