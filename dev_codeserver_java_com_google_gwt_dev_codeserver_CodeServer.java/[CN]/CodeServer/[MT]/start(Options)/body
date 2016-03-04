@@ -5,13 +5,13 @@
   File baseCacheDir=DiskCachingUtil.computePreferredCacheDir(options.getModuleNames(),startupLogger);
   UnitCache unitCache=UnitCacheSingleton.get(startupLogger,null,baseCacheDir);
   MinimalRebuildCacheManager minimalRebuildCacheManager=new MinimalRebuildCacheManager(topLogger,baseCacheDir);
-  OutboxTable outboxes=makeOutboxes(options,startupLogger,unitCache,minimalRebuildCacheManager);
+  OutboxTable outboxTable=makeOutboxTable(options,startupLogger,unitCache,minimalRebuildCacheManager);
   JobEventTable eventTable=new JobEventTable();
   JobRunner runner=new JobRunner(eventTable,minimalRebuildCacheManager);
-  JsonExporter exporter=new JsonExporter(options,outboxes);
-  SourceHandler sourceHandler=new SourceHandler(outboxes,exporter);
-  SymbolMapHandler symbolMapHandler=new SymbolMapHandler(outboxes);
-  WebServer webServer=new WebServer(sourceHandler,symbolMapHandler,exporter,outboxes,runner,eventTable,options.getBindAddress(),options.getPort());
+  JsonExporter exporter=new JsonExporter(options,outboxTable);
+  SourceHandler sourceHandler=new SourceHandler(outboxTable,exporter);
+  SymbolMapHandler symbolMapHandler=new SymbolMapHandler(outboxTable);
+  WebServer webServer=new WebServer(sourceHandler,symbolMapHandler,exporter,outboxTable,runner,eventTable,options.getBindAddress(),options.getPort());
   webServer.start(topLogger);
   return webServer;
 }

@@ -2,12 +2,12 @@
   if (options.isCompileTest()) {
     PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
     logger.setMaxDetail(options.getLogLevel());
-    OutboxTable outboxes;
+    OutboxTable outboxTable;
     try {
       File baseCacheDir=DiskCachingUtil.computePreferredCacheDir(options.getModuleNames(),logger);
       UnitCache unitCache=UnitCacheSingleton.get(logger,null,baseCacheDir);
       MinimalRebuildCacheManager minimalRebuildCacheManager=new MinimalRebuildCacheManager(logger,baseCacheDir);
-      outboxes=makeOutboxes(options,logger,unitCache,minimalRebuildCacheManager);
+      outboxTable=makeOutboxTable(options,logger,unitCache,minimalRebuildCacheManager);
     }
  catch (    Throwable t) {
       t.printStackTrace();
@@ -19,7 +19,7 @@
     for (int i=0; i < retries; i++) {
       System.out.println("\n### Recompile " + (i + 1) + "\n");
       try {
-        outboxes.defaultCompileAll(logger);
+        outboxTable.defaultCompileAll(logger);
       }
  catch (      Throwable t) {
         t.printStackTrace();
