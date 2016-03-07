@@ -8,6 +8,21 @@
   ServerConnector connector=getConnector(server,logger);
   setupConnector(connector,bindAddress,port);
   server.addConnector(connector);
+  Configuration.ClassList cl=Configuration.ClassList.setServerDefault(server);
+  try {
+    Thread.currentThread().getContextClassLoader().loadClass("org.eclipse.jetty.plus.webapp.PlusConfiguration");
+    cl.addAfter("org.eclipse.jetty.webapp.FragmentConfiguration","org.eclipse.jetty.plus.webapp.EnvConfiguration","org.eclipse.jetty.plus.webapp.PlusConfiguration");
+  }
+ catch (  ClassNotFoundException cnfe) {
+    logger.log(TreeLogger.Type.DEBUG,"jetty-plus isn't on the classpath, JNDI won't work. This might also affect annotations scanning and JSP.");
+  }
+  try {
+    Thread.currentThread().getContextClassLoader().loadClass("org.eclipse.jetty.annotations.AnnotationConfiguration");
+    cl.addBefore("org.eclipse.jetty.webapp.JettyWebXmlConfiguration","org.eclipse.jetty.annotations.AnnotationConfiguration");
+  }
+ catch (  ClassNotFoundException cnfe) {
+    logger.log(TreeLogger.Type.DEBUG,"jetty-annotations isn't on the classpath, annotation scanning won't work. This might also affect annotations scanning.");
+  }
   WebAppContext wac=createWebAppContext(logger,appRootDir);
   RequestLogHandler logHandler=new RequestLogHandler();
   logHandler.setRequestLog(new JettyRequestLogger(logger,getBaseLogLevel()));
