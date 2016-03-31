@@ -1,17 +1,9 @@
 {
   String curPackageName="";
   HtmlInterner interner=new HtmlInterner();
-  for (  String reportMethod : dependencies.keySet()) {
-    interner.intern(getPackageSubstring(reportMethod));
-    interner.intern(getClassSubstring(reportMethod));
-    interner.intern(getMethodSubstring(reportMethod));
-    String depMethod=dependencies.get(reportMethod);
-    while (depMethod != null) {
-      interner.intern(getPackageSubstring(depMethod));
-      interner.intern(getClassSubstring(depMethod));
-      interner.intern(getMethodSubstring(depMethod));
-      depMethod=dependencies.get(depMethod);
-    }
+  for (  Entry<String,String> dependencyEntry : dependencies.entrySet()) {
+    internMethod(interner,dependencyEntry.getKey());
+    internMethod(interner,dependencyEntry.getValue());
   }
   interner.freeze();
   String jsFileName="methodDependencies-" + depGraphName + "-"+ getPermutationId()+ ".js";
