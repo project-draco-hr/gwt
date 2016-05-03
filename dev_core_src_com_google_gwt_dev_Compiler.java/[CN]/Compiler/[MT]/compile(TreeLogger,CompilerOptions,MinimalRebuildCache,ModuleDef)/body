@@ -1,0 +1,73 @@
+{
+  CompilerOptionsImpl options=new CompilerOptionsImpl(compilerOptions);
+  boolean tempWorkDir=false;
+  try {
+    if (options.getWorkDir() == null) {
+      options.setWorkDir(Utility.makeTemporaryDirectory(null,"gwtc"));
+      tempWorkDir=true;
+    }
+    if ((options.isSoycEnabled() || options.isJsonSoycEnabled()) && options.getExtraDir() == null) {
+      options.setExtraDir(new File("extras"));
+    }
+    if (options.isIncrementalCompileEnabled()) {
+      options.setClusterSimilarFunctions(false);
+      options.setOptimizationLevel(OptionOptimize.OPTIMIZE_LEVEL_DRAFT);
+      options.setRunAsyncEnabled(false);
+      options.setNamespace(JsNamespaceOption.NONE);
+    }
+    CompilerContext compilerContext=new CompilerContext.Builder().options(options).minimalRebuildCache(minimalRebuildCache).unitCache(getOrCreateUnitCache(logger,options)).module(moduleDef).build();
+    String moduleName=moduleDef.getCanonicalName();
+    if (options.isValidateOnly()) {
+      if (!Precompile.validate(logger,compilerContext)) {
+        return false;
+      }
+    }
+ else {
+      long beforeCompileMs=System.currentTimeMillis();
+      TreeLogger branch=logger.branch(TreeLogger.INFO,"Compiling module " + moduleName);
+      Precompilation precompilation=Precompile.precompile(branch,compilerContext);
+      if (precompilation == null) {
+        return false;
+      }
+      if (!options.shouldSaveSource()) {
+        precompilation.removeSourceArtifacts(branch);
+      }
+      Event compilePermutationsEvent=SpeedTracerLogger.start(CompilerEventType.COMPILE_PERMUTATIONS);
+      Permutation[] allPerms=precompilation.getPermutations();
+      List<PersistenceBackedObject<PermutationResult>> resultFiles=CompilePerms.makeResultFiles(options.getCompilerWorkDir(moduleName),allPerms,options);
+      CompilePerms.compile(branch,compilerContext,precompilation,allPerms,options.getLocalWorkers(),resultFiles);
+      compilePermutationsEvent.end();
+      ArtifactSet generatedArtifacts=precompilation.getGeneratedArtifacts();
+      PrecompileTaskOptions precompileOptions=precompilation.getUnifiedAst().getOptions();
+      precompilation=null;
+      long afterCompileMs=System.currentTimeMillis();
+      double compileSeconds=(afterCompileMs - beforeCompileMs) / 1000d;
+      branch.log(TreeLogger.INFO,String.format("Compilation succeeded -- %.3fs",compileSeconds));
+      long beforeLinkMs=System.currentTimeMillis();
+      Event linkEvent=SpeedTracerLogger.start(CompilerEventType.LINK);
+      File absPath=new File(options.getWarDir(),moduleDef.getName());
+      absPath=absPath.getAbsoluteFile();
+      String logMessage="Linking into " + absPath;
+      if (options.getExtraDir() != null) {
+        File absExtrasPath=new File(options.getExtraDir(),moduleDef.getName());
+        absExtrasPath=absExtrasPath.getAbsoluteFile();
+        logMessage+="; Writing extras to " + absExtrasPath;
+      }
+      Link.link(logger.branch(TreeLogger.TRACE,logMessage),moduleDef,moduleDef.getPublicResourceOracle(),generatedArtifacts,allPerms,resultFiles,Sets.<PermutationResult>newHashSet(),precompileOptions,options);
+      linkEvent.end();
+      long afterLinkMs=System.currentTimeMillis();
+      double linkSeconds=(afterLinkMs - beforeLinkMs) / 1000d;
+      branch.log(TreeLogger.INFO,String.format("Linking succeeded -- %.3fs",linkSeconds));
+    }
+  }
+ catch (  IOException e) {
+    logger.log(TreeLogger.ERROR,"Unable to create compiler work directory",e);
+    return false;
+  }
+ finally {
+    if (tempWorkDir) {
+      Util.recursiveDelete(options.getWorkDir(),false);
+    }
+  }
+  return true;
+}
