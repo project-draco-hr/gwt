@@ -8,67 +8,32 @@
   if (method.getName().endsWith("hashCode")) {
     return;
   }
+  boolean isStaticImplMethod=program.isStaticImpl(method);
+  JExpression instance=isStaticImplMethod ? x.getArgs().get(0) : x.getInstance();
+  List<JExpression> arguments=isStaticImplMethod ? x.getArgs().subList(1,x.getArgs().size()) : x.getArgs();
   if (method.getName().endsWith("toString")) {
-    if (program.isStaticImpl(method)) {
-      ctx.replaceMe(x.getArgs().get(0));
-    }
- else {
-      ctx.replaceMe(x.getInstance());
+    if (!instance.getType().canBeNull()) {
+      ctx.replaceMe(instance);
     }
     return;
   }
-  int skip=0;
-  Object instance;
-  if (program.isStaticImpl(method)) {
-    method=program.instanceMethodForStaticImpl(method);
-    instance=tryTranslateLiteral(x.getArgs().get(0),String.class);
-    skip=1;
-  }
- else {
-    instance=tryTranslateLiteral(x.getInstance(),String.class);
-  }
-  if (instance == null && !method.isStatic()) {
+  Object instanceLiteral=tryTranslateLiteral(instance,String.class);
+  method=isStaticImplMethod ? program.instanceMethodForStaticImpl(method) : method;
+  if (instanceLiteral == null && !method.isStatic()) {
     return;
   }
-  List<JType> params=method.getOriginalParamTypes();
-  Class<?> paramTypes[]=new Class<?>[params.size()];
-  Object paramValues[]=new Object[params.size()];
-  List<JExpression> args=x.getArgs();
-  for (int i=0; i != params.size(); ++i) {
-    paramTypes[i]=mapType(params.get(i));
-    if (paramTypes[i] == null) {
-      return;
-    }
-    paramValues[i]=tryTranslateLiteral(args.get(i + skip),paramTypes[i]);
-    if (paramValues[i] == null) {
+  int numberOfParameters=method.getOriginalParamTypes().size();
+  Object[] argumentConstantValues=new Object[numberOfParameters];
+  Class<?>[] parametersClasses=new Class<?>[numberOfParameters];
+  for (int i=0; i < numberOfParameters; i++) {
+    parametersClasses[i]=classObjectForType(method.getOriginalParamTypes().get(i));
+    argumentConstantValues[i]=tryTranslateLiteral(arguments.get(i),parametersClasses[i]);
+    if (parametersClasses[i] == null || argumentConstantValues[i] == null) {
       return;
     }
   }
-  Method actual=getStringMethod(method,paramTypes);
-  if (actual == null) {
-    Arrays.fill(paramTypes,Object.class);
-    actual=getStringMethod(method,paramTypes);
-  }
-  if (actual == null) {
-    return;
-  }
-  Object result=null;
-  try {
-    result=actual.invoke(instance,paramValues);
-  }
- catch (  Exception e) {
-    return;
-  }
-  if (result instanceof String) {
-    ctx.replaceMe(program.getStringLiteral(x.getSourceInfo(),(String)result));
-  }
- else   if (result instanceof Boolean) {
-    ctx.replaceMe(program.getLiteralBoolean(((Boolean)result).booleanValue()));
-  }
- else   if (result instanceof Character) {
-    ctx.replaceMe(program.getLiteralChar(((Character)result).charValue()));
-  }
- else   if (result instanceof Integer) {
-    ctx.replaceMe(program.getLiteralInt(((Integer)result).intValue()));
+  JLiteral resultValue=staticallyInvokeStringMethod(method.getName(),instanceLiteral,parametersClasses,argumentConstantValues);
+  if (resultValue != null) {
+    ctx.replaceMe(resultValue);
   }
 }
