@@ -1,0 +1,39 @@
+{
+  final Set<JDeclaredType> typesRequiringTrampolineDispatch=Sets.newHashSet();
+  for (  JDeclaredType type : program.getRepresentedAsNativeTypes()) {
+    collectAllSuperTypes(type,typesRequiringTrampolineDispatch);
+  }
+  new JVisitor(){
+    @Override public boolean visit(    JMethodBody x,    Context ctx){
+      return false;
+    }
+    @Override public boolean visit(    JsniMethodRef x,    Context ctx){
+      checkJsniMethodReference(x);
+      return true;
+    }
+    private void checkJsniMethodReference(    JsniMethodRef jsniMethodReference){
+      JMethod method=jsniMethodReference.getTarget();
+      JDeclaredType enclosingType=method.getEnclosingType();
+      if (isNonStaticJsoClassDispatch(method,enclosingType)) {
+        logError(jsniMethodReference,"Cannot call non-static method %s on an instance which is a " + "subclass of JavaScriptObject. Only static method calls on JavaScriptObject " + "subclasses are allowed in JSNI.",getDescription(method));
+      }
+ else       if (isJsoInterface(enclosingType)) {
+        logError(jsniMethodReference,"Cannot call method %s on an instance which might be a JavaScriptObject. " + "Such a method call is only allowed in pure Java (non-JSNI) functions.",getDescription(method));
+      }
+ else       if (program.isRepresentedAsNativeJsPrimitive(enclosingType) && !method.isStatic() && !method.isConstructor()) {
+        logError(jsniMethodReference,"Cannot call method %s. Instance methods on %s cannot be called from JSNI.",getDescription(method),getDescription(enclosingType));
+      }
+ else       if (typesRequiringTrampolineDispatch.contains(enclosingType) && !method.isStatic() && !method.isConstructor()) {
+        logWarning(jsniMethodReference,"Unsafe call to method %s. Instance methods from %s should " + "not be called on Boolean, Double, String, Array or JSO instances from JSNI.",getDescription(method),getDescription(enclosingType));
+      }
+    }
+    private boolean isJsoInterface(    JDeclaredType type){
+      return program.typeOracle.isSingleJsoImpl(type) || program.typeOracle.isDualJsoInterface(type);
+    }
+  }
+.accept(program);
+  boolean hasErrors=reportErrorsAndWarnings(logger);
+  if (hasErrors) {
+    throw new UnableToCompleteException();
+  }
+}
