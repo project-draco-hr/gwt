@@ -1,0 +1,27 @@
+{
+  final Set<String> devirtualMethodJsniIdentifiers=Sets.newHashSet();
+  for (  JsniMethodRef jsniMethodRef : x.getJsniMethodRefs()) {
+    JMethod target=jsniMethodRef.getTarget();
+    if (target != null && mightNeedDevirtualization(target)) {
+      devirtualMethodJsniIdentifiers.add(jsniMethodRef.getIdent());
+    }
+  }
+  new JsModVisitor(){
+    @Override public void endVisit(    JsInvocation x,    JsContext ctx){
+      if (!(x.getQualifier() instanceof JsNameRef)) {
+        return;
+      }
+      JsNameRef nameRef=(JsNameRef)x.getQualifier();
+      if (!nameRef.isJsniReference()) {
+        return;
+      }
+      if (!devirtualMethodJsniIdentifiers.contains(nameRef.getIdent())) {
+        return;
+      }
+      ctx.replaceMe(new JsInvocation(x.getSourceInfo(),new JsNameRef(nameRef.getSourceInfo(),nameRef.getIdent()),Iterables.concat(Collections.singleton(nameRef.getQualifier()),x.getArguments())));
+      return;
+    }
+  }
+.accept(x.getFunc());
+  return true;
+}
