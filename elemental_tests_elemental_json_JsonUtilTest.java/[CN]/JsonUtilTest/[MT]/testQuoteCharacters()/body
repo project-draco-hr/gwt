@@ -1,0 +1,45 @@
+{
+  for (int i=0; i < 0xffff; i++) {
+    String unencodedString=String.valueOf((char)i);
+    String res=JsonUtil.quote(unencodedString);
+    if (res.equals("\"" + unencodedString + "\"")) {
+      if (i == 0x20 || i == 0x21 || (i >= 0x23 && i <= 0x5b) || i >= 0x5d) {
+      }
+ else {
+        fail("Character " + i + " must be escaped in JSON");
+      }
+    }
+ else {
+      if (res.length() == 4) {
+        char escapedChar=res.charAt(2);
+        if (escapedChar == 'b') {
+          assertEquals('\b',i);
+        }
+ else         if (escapedChar == 't') {
+          assertEquals('\t',i);
+        }
+ else         if (escapedChar == 'n') {
+          assertEquals('\n',i);
+        }
+ else         if (escapedChar == 'f') {
+          assertEquals('\f',i);
+        }
+ else         if (escapedChar == 'r') {
+          assertEquals('\r',i);
+        }
+ else         if (escapedChar == '"') {
+          assertEquals('"',i);
+        }
+ else         if (escapedChar == '\\') {
+          assertEquals('\\',i);
+        }
+ else {
+          fail("Character" + i + " was unexpectedly escaped as "+ escapedChar);
+        }
+      }
+ else {
+        assertTrue("Character " + i + " was incorrectly encoded as "+ res,res.matches("\"\\\\u....\""));
+      }
+    }
+  }
+}
