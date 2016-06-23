@@ -1,27 +1,16 @@
 {
-  List<JMethod> jsConstructors=FluentIterable.from(x.getMethods()).filter(new Predicate<JMethod>(){
-    @Override public boolean apply(    JMethod m){
-      return m.isJsConstructor();
-    }
-  }
-).toList();
-  if (x.isJsNative()) {
+  List<JConstructor> jsConstructors=getJsConstructors(type);
+  if (type.isJsNative()) {
     return;
   }
   if (jsConstructors.isEmpty()) {
     return;
   }
   if (jsConstructors.size() > 1) {
-    logError(x,"More than one JsConstructor exists for %s.",JjsUtils.getReadableDescription(x));
+    logError(type,"More than one JsConstructor exists for %s.",getDescription(type));
   }
   final JConstructor jsConstructor=(JConstructor)jsConstructors.get(0);
-  boolean anyNonDelegatingConstructor=Iterables.any(x.getMethods(),new Predicate<JMethod>(){
-    @Override public boolean apply(    JMethod method){
-      return method != jsConstructor && method instanceof JConstructor && !isDelegatingToConstructor((JConstructor)method,jsConstructor);
-    }
-  }
-);
-  if (anyNonDelegatingConstructor) {
+  if (JjsUtils.getPrimaryConstructor(type) != jsConstructor) {
     logError(jsConstructor,"Constructor %s can be a JsConstructor only if all constructors in the class are " + "delegating to it.",getMemberDescription(jsConstructor));
   }
 }

@@ -1,0 +1,26 @@
+{
+  if (!isJsConstructorSubtype(type)) {
+    return;
+  }
+  if (Iterables.isEmpty(type.getConstructors())) {
+    return;
+  }
+  if (type.isJsNative()) {
+    return;
+  }
+  JClassType superClass=type.getSuperClass();
+  JConstructor superPrimaryConsructor=JjsUtils.getPrimaryConstructor(superClass);
+  if (!superClass.isJsNative() && superPrimaryConsructor == null) {
+    return;
+  }
+  JConstructor primaryConstructor=JjsUtils.getPrimaryConstructor(type);
+  if (primaryConstructor == null) {
+    logError(type,"Class %s should have only one constructor delegating to the superclass since it is " + "subclass of a a type with JsConstructor.",getDescription(type));
+    return;
+  }
+  JConstructor delegatedConstructor=JjsUtils.getDelegatedThisOrSuperConstructor(primaryConstructor);
+  if (delegatedConstructor.isJsConstructor() || delegatedConstructor == superPrimaryConsructor) {
+    return;
+  }
+  logError(primaryConstructor,"Constructor %s can only delegate to super constructor %s since it is a subclass of a " + "type with JsConstructor.",getDescription(primaryConstructor),getDescription(superPrimaryConsructor));
+}

@@ -1,21 +1,20 @@
 {
-  if (x.getExpr() instanceof JMethodCall && !(x.getExpr() instanceof JNewInstance)) {
-    JMethodCall call=(JMethodCall)x.getExpr();
-    if (call.getTarget() instanceof JConstructor) {
-      JConstructor ctor=(JConstructor)call.getTarget();
-      if (ctor.isEmpty() && !ctor.isJsNative()) {
-        if (call.getArgs().isEmpty()) {
-          ctx.removeMe();
-        }
- else         if (call.getArgs().size() == 1) {
-          ctx.replaceMe(call.getArgs().get(0).makeStatement());
-        }
+  JMethodCall call=JjsUtils.getThisOrSuperConstructorCall(x);
+  if (call == null) {
+    return;
+  }
+  JConstructor ctor=(JConstructor)call.getTarget();
+  if (ctor.isEmpty() && !ctor.isJsNative()) {
+    if (call.getArgs().isEmpty()) {
+      ctx.removeMe();
+    }
+ else     if (call.getArgs().size() == 1) {
+      ctx.replaceMe(call.getArgs().get(0).makeStatement());
+    }
  else {
-          JMultiExpression multi=new JMultiExpression(call.getSourceInfo());
-          multi.addExpressions(call.getArgs());
-          ctx.replaceMe(multi.makeStatement());
-        }
-      }
+      JMultiExpression multi=new JMultiExpression(call.getSourceInfo());
+      multi.addExpressions(call.getArgs());
+      ctx.replaceMe(multi.makeStatement());
     }
   }
 }
