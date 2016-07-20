@@ -1,8 +1,12 @@
 {
   JMethod forwardingMethod=createEmptyMethodFromExample(type,methodToDelegateTo,false);
   forwardingMethod.setForwarding();
-  if (methodToDelegateTo.isJsOverlay() && type.isJsNative()) {
-    forwardingMethod.isJsOverlay();
+  if (type.isJsNative()) {
+    if (methodToDelegateTo.isJsNative()) {
+      return forwardingMethod;
+    }
+    forwardingMethod.setJsOverlay();
+    forwardingMethod.setBody(new JMethodBody(methodToDelegateTo.getSourceInfo()));
   }
   JMethodBody body=(JMethodBody)forwardingMethod.getBody();
   JMethodCall forwardingCall=new JMethodCall(methodToDelegateTo.getSourceInfo(),new JThisRef(methodToDelegateTo.getSourceInfo(),type),methodToDelegateTo);
