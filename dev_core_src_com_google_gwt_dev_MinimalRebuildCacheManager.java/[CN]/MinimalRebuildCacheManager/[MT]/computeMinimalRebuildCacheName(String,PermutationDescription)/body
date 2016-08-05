@@ -2,6 +2,13 @@
   String currentWorkingDirectory=System.getProperty("user.dir");
   String compilerVersionHash=CompilerVersion.getHash();
   String permutationDescriptionString=permutationDescription.toString();
-  String consistentHash=StringUtils.toHexString(Md5Utils.getMd5Digest((compilerVersionHash + moduleName + currentWorkingDirectory+ permutationDescriptionString).getBytes()));
+  String optionsDescriptionString=" Options [";
+  String separator="";
+  for (  Map.Entry entry : options.entrySet()) {
+    optionsDescriptionString+=String.format("%s%s = %s",separator,entry.getKey(),entry.getValue());
+    separator=",";
+  }
+  optionsDescriptionString+="]";
+  String consistentHash=StringUtils.toHexString(Md5Utils.getMd5Digest((compilerVersionHash + moduleName + currentWorkingDirectory+ permutationDescriptionString+ optionsDescriptionString).getBytes()));
   return REBUILD_CACHE_PREFIX + "-" + consistentHash;
 }

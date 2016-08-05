@@ -1,0 +1,28 @@
+{
+  String moduleName="com.google.FooModule";
+  Map<String,String> initialCompilerOptions=ImmutableMap.of("option","oldvalue");
+  PermutationDescription permutationDescription=new PermutationDescription();
+  File cacheDir=Files.createTempDir();
+  MinimalRebuildCacheManager minimalRebuildCacheManager=new MinimalRebuildCacheManager(TreeLogger.NULL,cacheDir,initialCompilerOptions);
+  minimalRebuildCacheManager.deleteCaches();
+  MinimalRebuildCache emptyCache=new MinimalRebuildCache();
+  MinimalRebuildCache fooCacheOld=minimalRebuildCacheManager.getCache(moduleName,permutationDescription);
+  assertTrue(emptyCache.hasSameContent(fooCacheOld));
+  fooCacheOld.addTypeReference("Type1","Type2");
+  assertFalse(emptyCache.hasSameContent(fooCacheOld));
+  minimalRebuildCacheManager.enqueueAsyncWriteDiskCache(moduleName,permutationDescription,fooCacheOld);
+  minimalRebuildCacheManager.shutdown();
+  Map<String,String> newCompilerOptions=ImmutableMap.of("option","newvalue");
+  minimalRebuildCacheManager=new MinimalRebuildCacheManager(TreeLogger.NULL,cacheDir,newCompilerOptions);
+  MinimalRebuildCache fooCacheNew=minimalRebuildCacheManager.getCache(moduleName,permutationDescription);
+  assertTrue(emptyCache.hasSameContent(fooCacheNew));
+  assertFalse(fooCacheOld.hasSameContent(fooCacheNew));
+  minimalRebuildCacheManager.enqueueAsyncWriteDiskCache(moduleName,permutationDescription,fooCacheNew);
+  minimalRebuildCacheManager.shutdown();
+  minimalRebuildCacheManager=new MinimalRebuildCacheManager(TreeLogger.NULL,cacheDir,initialCompilerOptions);
+  MinimalRebuildCache fooCacheResetOptions=minimalRebuildCacheManager.getCache(moduleName,permutationDescription);
+  assertTrue(fooCacheOld.hasSameContent(fooCacheResetOptions));
+  minimalRebuildCacheManager.deleteCaches();
+  minimalRebuildCacheManager.shutdown();
+  cacheDir.delete();
+}
