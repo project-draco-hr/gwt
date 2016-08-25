@@ -1,0 +1,17 @@
+{
+  JType returnType=typeMap.get(sourceMethodBinding.returnType);
+  Iterable<JType> parameterTypes=FluentIterable.from(Arrays.asList(sourceMethodBinding.parameters)).transform(new Function<TypeBinding,JType>(){
+    @Override public JType apply(    TypeBinding typeBinding){
+      return typeMap.get(typeBinding.erasure());
+    }
+  }
+);
+  Iterable<JClassType> thrownExceptionTypes=FluentIterable.from(Arrays.asList(sourceMethodBinding.thrownExceptions)).transform(new Function<ReferenceBinding,JClassType>(){
+    @Override public JClassType apply(    ReferenceBinding exceptionReferenceBinding){
+      return (JClassType)typeMap.get(exceptionReferenceBinding.erasure());
+    }
+  }
+);
+  JMethod bridgeMethod=createBridgeMethod(enclosingType,targetMethod,parameterTypes,returnType,thrownExceptionTypes);
+  typeMap.setMethod(sourceMethodBinding,bridgeMethod);
+}
