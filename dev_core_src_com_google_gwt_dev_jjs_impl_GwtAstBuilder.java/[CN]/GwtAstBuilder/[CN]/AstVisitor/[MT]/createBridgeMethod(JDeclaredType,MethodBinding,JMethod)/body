@@ -1,17 +1,37 @@
 {
   JType returnType=typeMap.get(sourceMethodBinding.returnType);
-  Iterable<JType> parameterTypes=FluentIterable.from(Arrays.asList(sourceMethodBinding.parameters)).transform(new Function<TypeBinding,JType>(){
-    @Override public JType apply(    TypeBinding typeBinding){
-      return typeMap.get(typeBinding.erasure());
-    }
+  Iterable<JType> parameterTypes=mapTypes(sourceMethodBinding.parameters);
+  Iterable<JClassType> thrownExceptionTypes=mapTypes(sourceMethodBinding.thrownExceptions);
+  SourceInfo info=targetMethod.getSourceInfo();
+  JMethod bridgeMethod=new JMethod(info,targetMethod.getName(),enclosingType,returnType,false,false,targetMethod.isFinal(),targetMethod.getAccess());
+  bridgeMethod.setBody(new JMethodBody(info));
+  if (enclosingType instanceof JInterfaceType) {
+    bridgeMethod.setDefaultMethod();
   }
-);
-  Iterable<JClassType> thrownExceptionTypes=FluentIterable.from(Arrays.asList(sourceMethodBinding.thrownExceptions)).transform(new Function<ReferenceBinding,JClassType>(){
-    @Override public JClassType apply(    ReferenceBinding exceptionReferenceBinding){
-      return (JClassType)typeMap.get(exceptionReferenceBinding.erasure());
-    }
+  bridgeMethod.setSynthetic();
+  enclosingType.addMethod(bridgeMethod);
+  int paramIndex=0;
+  List<JParameter> implParams=targetMethod.getParams();
+  for (  JType parameterType : parameterTypes) {
+    JParameter parameter=implParams.get(paramIndex++);
+    bridgeMethod.createFinalParameter(parameter.getSourceInfo(),parameter.getName(),parameterType);
   }
-);
-  JMethod bridgeMethod=createBridgeMethod(enclosingType,targetMethod,parameterTypes,returnType,thrownExceptionTypes);
+  for (  JClassType thrownException : thrownExceptionTypes) {
+    bridgeMethod.addThrownException(thrownException);
+  }
+  bridgeMethod.freezeParamTypes();
+  JMethodCall call=new JMethodCall(info,makeThisRef(info),targetMethod);
+  for (int i=0; i < bridgeMethod.getParams().size(); i++) {
+    JParameter param=bridgeMethod.getParams().get(i);
+    call.addArg(maybeCast(implParams.get(i).getType(),param.makeRef(info)));
+  }
+  JMethodBody body=(JMethodBody)bridgeMethod.getBody();
+  if (bridgeMethod.getType() == JPrimitiveType.VOID) {
+    body.getBlock().addStmt(call.makeStatement());
+  }
+ else {
+    body.getBlock().addStmt(call.makeReturnStatement());
+  }
   typeMap.setMethod(sourceMethodBinding,bridgeMethod);
+  return bridgeMethod;
 }
