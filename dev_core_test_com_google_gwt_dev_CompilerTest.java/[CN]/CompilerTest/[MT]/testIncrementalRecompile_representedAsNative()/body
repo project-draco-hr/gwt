@@ -1,0 +1,15 @@
+{
+  MockResource moduleResource=JavaResourceBase.createMockResource("com/foo/RepresentedAsNative.gwt.xml","<module>","  <source path=''/>","  <entry-point class='com.foo.RepresentedAsNativeEntryPoint'/>","</module>");
+  MockResource entryPointResource=JavaResourceBase.createMockJavaResource("com.foo.RepresentedAsNativeEntryPoint","package com.foo;","import com.google.gwt.core.client.EntryPoint;","public class RepresentedAsNativeEntryPoint implements EntryPoint {","  public void onModuleLoad() {","  Double d = new Double(1d);","  }","}");
+  MockResource modifiedEntryPointResource=JavaResourceBase.createMockJavaResource("com.foo.RepresentedAsNativeEntryPoint","package com.foo;","import com.google.gwt.core.client.EntryPoint;","public class RepresentedAsNativeEntryPoint implements EntryPoint {","  public void onModuleLoad() {","  Double d = new Double(\"1\");","  }","}");
+  PrintWriterTreeLogger logger=new PrintWriterTreeLogger();
+  logger.setMaxDetail(TreeLogger.ERROR);
+  MinimalRebuildCache minimalRebuildCache=new MinimalRebuildCache();
+  File applicationDir=Files.createTempDir();
+  CompilerOptions compilerOptions=new CompilerOptionsImpl();
+  compilerOptions.setUseDetailedTypeIds(true);
+  compilerOptions.setSourceLevel(SourceLevel.JAVA8);
+  compilerOptions.setGenerateJsInteropExports(false);
+  compileToJs(logger,compilerOptions,applicationDir,"com.foo.RepresentedAsNative",Lists.newArrayList(moduleResource,entryPointResource),minimalRebuildCache,emptySet,JsOutputOption.OBFUSCATED);
+  compileToJs(logger,compilerOptions,applicationDir,"com.foo.RepresentedAsNative",Lists.newArrayList(modifiedEntryPointResource),minimalRebuildCache,stringSet("com.foo.RepresentedAsNativeEntryPoint",getEntryMethodHolderTypeName("com.foo.RepresentedAsNative")),JsOutputOption.OBFUSCATED);
+}
