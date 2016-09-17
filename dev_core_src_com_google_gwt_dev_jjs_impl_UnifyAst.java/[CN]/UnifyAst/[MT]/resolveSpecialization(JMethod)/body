@@ -3,23 +3,20 @@
     return;
   }
   Specialization specialization=method.getSpecialization();
-  List<JType> resolvedParams=Lists.newArrayList();
   if (specialization.getParams() == null) {
     logger.log(Type.ERROR,"Missing 'params' attribute at @SpecializeMethod for method " + method.getQualifiedName());
     errorsFound=true;
     return;
   }
-  for (  JType param : specialization.getParams()) {
-    resolvedParams.add(translate(param));
-  }
+  List<JType> resolvedParams=translate(specialization.getParams());
   JType resolvedReturn=translate(specialization.getReturns());
   String targetMethodSignature=JjsUtils.computeSignature(specialization.getTarget(),resolvedParams,resolvedReturn,false);
-  JMethod targetMethod=translate(JMethod.getExternalizedMethod(method.getEnclosingType().getName(),targetMethodSignature,false));
-  if (targetMethod == null) {
-    errorsFound=true;
-    logger.log(Type.ERROR,"Unable to locate @SpecializeMethod target " + targetMethodSignature + " for method "+ method.getQualifiedName());
+  JMethod targetMethod=JMethod.getExternalizedMethod(method.getEnclosingType().getName(),targetMethodSignature,false);
+  JMethod resolvedTargetMethod=translate(method.getSourceInfo(),targetMethod);
+  if (resolvedTargetMethod.isExternal()) {
+    error(method.getSourceInfo(),"Unable to locate @SpecializeMethod target " + targetMethodSignature + " for method "+ method.getQualifiedName());
     return;
   }
-  flowInto(targetMethod);
-  specialization.resolve(resolvedParams,resolvedReturn,targetMethod);
+  flowInto(resolvedTargetMethod);
+  specialization.resolve(resolvedParams,resolvedReturn,resolvedTargetMethod);
 }

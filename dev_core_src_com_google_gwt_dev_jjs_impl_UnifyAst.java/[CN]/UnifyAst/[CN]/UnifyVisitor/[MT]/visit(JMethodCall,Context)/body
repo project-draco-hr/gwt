@@ -1,5 +1,10 @@
 {
-  JMethod target=translate(x.getTarget());
+  JMethod target=translate(x.getSourceInfo(),x.getTarget());
   x.resolve(target);
-  return !MAGIC_METHOD_CALLS.contains(target.getQualifiedName());
+  JExpression replacement=maybeHandleMagicMethodCall(x);
+  if (replacement != null) {
+    ctx.replaceMe(accept(replacement));
+    return false;
+  }
+  return true;
 }

@@ -28,8 +28,7 @@
   }
   instantiate(program.getTypeJavaLangString());
   flowInto(program.getIndexedMethod(RuntimeConstants.OBJECT_TO_STRING));
-  mapApi(program.getTypeJavaLangString());
-  flowInto(methodMap.get("java.lang.String.valueOf(C)Ljava/lang/String;"));
+  flowInto((JMethod)resolvedMembersByQualifiedName.get("java.lang.String.valueOf(C)Ljava/lang/String;"));
   AutoboxUtils autoboxUtils=new AutoboxUtils(program);
   for (  JMethod method : autoboxUtils.getBoxMethods()) {
     flowInto(method);
@@ -60,7 +59,7 @@
   }
   List<JMethod> newStubMethods=computeOverrides();
   for (  JMethod method : newStubMethods) {
-    if (instantiatedTypes.contains(method.getEnclosingType()) && virtualMethodsLive.contains(method.getSignature())) {
+    if (instantiatedTypes.contains(method.getEnclosingType()) && liveVirtualMethods.contains(method.getSignature())) {
       liveFieldsAndMethods.add(method);
     }
   }
@@ -70,4 +69,5 @@
   if (errorsFound) {
     throw new UnableToCompleteException();
   }
+  JavaAstVerifier.assertProgramIsConsistent(program);
 }
