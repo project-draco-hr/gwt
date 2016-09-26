@@ -17,18 +17,18 @@
         receiver=new JThisRef(info,oldRef.getClassType());
       }
     }
-    JMethodCall call=new JMethodCall(info,receiver,method);
+    JMethodCall methodCall=new JMethodCall(info,receiver,method);
     boolean isSuperRef=x.receiver instanceof SuperReference || x.receiver instanceof QualifiedSuperReference;
     if (isSuperRef) {
-      call.setStaticDispatchOnly();
+      methodCall.setStaticDispatchOnly();
     }
-    call.addArgs(arguments);
+    methodCall.addArgs(arguments);
     if (x.valueCast != null) {
-      JType castType=typeMap.get(x.valueCast);
-      push(maybeCast(castType,call));
+      JType targetType=typeMap.get(x.valueCast);
+      push(isUncheckedGenericMethodCall(x) ? maybeInsertUnsafeTypeCoersion(targetType,methodCall) : maybeCast(targetType,methodCall));
     }
  else {
-      push(call);
+      push(methodCall);
     }
   }
  catch (  Throwable e) {
